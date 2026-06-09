@@ -73,7 +73,7 @@ body {
   flex-direction: column;
   position: fixed;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   z-index: 100;
   transition: width 0.25s;
 }
@@ -593,7 +593,7 @@ body {
 @media (min-width: 992px) {
   #sidebar {
     position: fixed;
-    left: 0;
+    inset-inline-start: 0;
     top: 0;
     width: var(--sidebar-width);
     height: 100vh;
@@ -646,7 +646,7 @@ body {
 
   /* RTL mobile */
   [dir="rtl"] #sidebar {
-    left: auto;
+    inset-inline-start: 0;
     right: -260px;
     transition: right 0.28s ease;
   }
@@ -890,7 +890,7 @@ body {
   #sidebar {
     position: fixed !important;
     top: 0;
-    left: 0;
+    inset-inline-start: 0;
     height: 100vh !important;
     z-index: 1050 !important;
     transform: translateX(-100%);
@@ -1417,4 +1417,15 @@ body {
   #main-content div:has(> div[style*="height"]) {
     padding-bottom: 45px !important;
   }
+}
+[dir="rtl"] #sidebar {
+    left: auto !important;
+    right: 0 !important;
+    border-right: none !important;
+    border-left: 1px solid var(--border-color) !important;
+}
+
+[dir="rtl"] #page-wrapper {
+    margin-left: 0 !important;
+    margin-right: var(--sidebar-width) !important;
 }
