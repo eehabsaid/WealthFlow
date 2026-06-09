@@ -216,16 +216,46 @@ body {
 }
 
 /* ── Tables ── */
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--bg-secondary);
+  background-color: var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
   border-radius: 10px;
   overflow: hidden;
 }
 
+.data-table tbody {
+  background-color: var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
+}
+
+.data-table * {
+  background-color: var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
+    color: var(--text-primary);
+  font-size: 13.5px;
+}
+.data-table tr:hover, 
+.data-table tr:hover * {
+  background-color: var(--bg-tertiary) !important;
+}
+.data-table *::selection {
+    background-color: var(--accent-primary) !important;
+    color: #ffffff !important;
+}
+.data-table input::selection {
+    background-color: var(--accent-primary) !important;
+    color: #ffffff !important;
+}
+.data-table input {
+    background-color: transparent !important; /* Let the parent row background show through */
+    color: var(--text-primary) !important;
+    
+}
 .data-table th {
-  background: var(--bg-tertiary);
+  background-color: var(--bg-secondary) !important;
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 600;
@@ -241,6 +271,8 @@ body {
   border-bottom: 1px solid rgba(30, 58, 110, .35);
   color: var(--text-primary);
   font-size: 13.5px;
+  background-color: var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
 }
 
 .data-table tr:last-child td {
@@ -248,11 +280,13 @@ body {
 }
 
 .data-table tbody tr:hover {
-  background: rgba(26, 110, 245, .06);
+  background: var(--text-primary);
+
 }
 
 .data-table .total-row td {
-  background: var(--bg-tertiary);
+  background-color: var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
   font-weight: 700;
   color: var(--accent-yellow);
   border-top: 1px solid var(--border-color);

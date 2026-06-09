@@ -47,7 +47,7 @@
   "order": "الترتيب",
   "msg_created": "تم الإنشاء بنجاح",
   "msg_updated": "تم التحديث بنجاح",
-  "__rtl": true,
+  "__rtl": "",
   "nav_exchange_rates": "أسعار الصرف",
   "nav_gold_price": "أسعار الذهب"
 }

@@ -47,7 +47,7 @@
   "order": "Order",
   "msg_created": "Created successfully",
   "msg_updated": "Updated successfully",
-  "__rtl": false,
+  "__rtl": "",
   "nav_exchange_rates": "Exchange Rates",
   "nav_gold_price": "Gold Price"
 }
