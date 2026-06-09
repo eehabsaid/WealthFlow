@@ -754,7 +754,8 @@ async function saveTranslations() {
         })
     });
 
-    alert('Saved');
+    //alert('Saved');
+    showToast('Translations saved ✓'); renderTranslationSettings();
 }
 async function findMissingTranslations() {
     const res = await fetch('/api/translations/');
