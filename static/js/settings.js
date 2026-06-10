@@ -68,7 +68,10 @@ async function renderLanguageSettings() {
 
   // Update the table container and table tag
   document.getElementById("settingsContent").innerHTML = `
-    ... (header div)
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_languages">Languages</div>
+          <button class="btn-primary-custom" onclick="showAddLangModal()"><i class="bi bi-plus-lg"></i> Add Language</button>
+    </div>
     <div style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; overflow:hidden">
         <table class="data-table" style="width: 100%; border-collapse: collapse; background: var(--bg-secondary);">
             <thead>
