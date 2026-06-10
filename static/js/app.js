@@ -366,20 +366,25 @@ function closeModal() {
 
 // ── Toast ──────────────────────────────────────────────────
 function showToast(msg, type = "success") {
+    // Look up the translation; if not found, fallback to the original message
+    const translatedMsg = (_t && _t[msg]) ? _t[msg] : msg;
+    
     const container = document.getElementById("toast-container");
     const id = "toast-" + Date.now();
     const color =
         type === "success" ? "var(--accent-green)" : "var(--accent-red)";
+        
     container.insertAdjacentHTML(
         "beforeend",
         `
         <div id="${id}" class="toast align-items-center" role="alert" style="border-left:3px solid ${color}">
             <div class="d-flex">
-                <div class="toast-body">${msg}</div>
+                <div class="toast-body">${translatedMsg}</div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
         </div>`,
     );
+    
     const toast = new bootstrap.Toast(document.getElementById(id), {
         delay: 3000,
     });

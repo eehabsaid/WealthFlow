@@ -4,7 +4,6 @@ let _lang = localStorage.getItem("lang") || "en";
 
 async function loadLanguage(code) {
   try {
-    // Fetch the language file with a cache-buster
     const res = await fetch(`/static/i18n/${code}.json?v=${Date.now()}`);
     if (!res.ok) throw new Error("Not found");
 
@@ -12,19 +11,16 @@ async function loadLanguage(code) {
     _lang = code;
     localStorage.setItem("lang", code);
 
-    // --- ROBUST RTL LOGIC ---
-    // Check if the __rtl key exists at all in the object
-    const isRTL = _t.hasOwnProperty("__rtl");
-
-    // Apply to the root element for CSS to pick up
+    // --- BULLETPROOF RTL LOGIC ---
+    // Extract value, normalize to string, compare to true-like values
+    const rtlVal = String(_t.__rtl || "").toLowerCase();
+    const isRTL = (rtlVal === "true" || rtlVal === "1");
     document.documentElement.setAttribute("dir", isRTL ? "rtl" : "ltr");
     document.documentElement.lang = code;
-    // ------------------------
+    // ----------------------------
 
-    // Update translations in the UI
     applyTranslations();
 
-    // Save user preference to the server
     await fetch("/api/settings/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -36,14 +32,23 @@ async function loadLanguage(code) {
 }
 
 function applyTranslations() {
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const k = el.getAttribute("data-i18n");
-    if (_t[k]) el.textContent = _t[k];
-  });
-  document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
-    const k = el.getAttribute("data-i18n-ph");
-    if (_t[k]) el.placeholder = _t[k];
-  });
+    // 1. Translate standard text content
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (_t && _t[key]) {
+            element.textContent = _t[key];
+        }
+    });
+
+    // 2. Translate placeholders with a safety check
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        if (_t && _t[key]) {
+            element.setAttribute('placeholder', _t[key]);
+        } else {
+            console.warn(`Missing translation key: ${key}`);
+        }
+    });
 }
 
 function t(key, fallback) {
