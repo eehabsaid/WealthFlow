@@ -628,31 +628,33 @@ body {
    ══════════════════════════════════════ */
 @media (max-width: 991.98px) {
 
-  /* Sidebar slides off-screen by default */
+  /* Sidebar slides off-screen via transform (consistent with Phase 2 open/close logic) */
   #sidebar {
     position: fixed;
-    left: -260px;
     top: 0;
+    left: 0;
     width: 245px !important;
     height: 100vh;
     z-index: 1050;
-    transition: left 0.28s ease;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
   }
 
   #sidebar.open {
-    left: 0;
+    transform: translateX(0) !important;
   }
 
   /* RTL mobile */
   [dir="rtl"] #sidebar {
-    inset-inline-start: 0;
-    right: -260px;
-    transition: right 0.28s ease;
+    left: auto;
+    right: 0;
+    transform: translateX(100%);
+    transition: transform 0.28s ease;
   }
 
   [dir="rtl"] #sidebar.open {
-    right: 0;
+    transform: translateX(0) !important;
   }
 
   /* Page fills full width — no sidebar margin */
@@ -661,7 +663,8 @@ body {
     margin-right: 0 !important;
   }
 
-  /* Show hamburger */
+  /* Show hamburger — targets the actual HTML id used in index.html */
+  #mobile-nav-trigger,
   #sidebarToggle {
     display: inline-flex !important;
     align-items: center;
@@ -868,41 +871,19 @@ body {
 /* sidebarClose mobile handled in main responsive block */
 
 /* ════════════════════════════════════════════════════════════
-   PHASE 2: SIDEBAR & LAYOUT RESPONSIVE MEDIA OVERRIDES
+   PHASE 2: SIDEBAR OVERLAY & TOPBAR (MOBILE)
    ════════════════════════════════════════════════════════════ */
 
 @media (max-width: 991.98px) {
 
-  /* Remove fixed layout properties from desktop */
+  /* Page wrapper: full width, offset for fixed topbar */
   #page-wrapper {
     margin-left: 0 !important;
     width: 100% !important;
     padding-top: 60px;
   }
 
-  /* Target your exact javascript .open variable class */
-  #sidebar.open {
-    transform: translateX(0) !important;
-    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
-  }
-
-  /* Force sidebar onto an absolute off-canvas layout sheet layer */
-  #sidebar {
-    position: fixed !important;
-    top: 0;
-    inset-inline-start: 0;
-    height: 100vh !important;
-    z-index: 1050 !important;
-    transform: translateX(-100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Target your exact javascript background .show overlay variable class */
-  #sidebarOverlay.show {
-    display: block !important;
-    opacity: 1 !important;
-  }
-
+  /* Overlay shown when sidebar is open */
   #sidebarOverlay {
     position: fixed;
     top: 0;
@@ -917,6 +898,12 @@ body {
     transition: opacity 0.3s linear;
   }
 
+  #sidebarOverlay.show {
+    display: block !important;
+    opacity: 1 !important;
+  }
+
+  /* Fixed topbar on mobile */
   #topbar {
     position: fixed;
     top: 0;
@@ -936,47 +923,36 @@ body {
    PHASE 3: DATA TABLE RESPONSIVENESS
    ════════════════════════════════════════════════════════════ */
 
-/* Global selector target intercepting any data view wrappers holding table elements */
+/* Global table base */
 #main-content table {
   width: 100%;
   margin-bottom: 1rem;
   vertical-align: top;
 }
 
-/* Responsive container wrapper engine applied on mobile dimensions */
 @media (max-width: 1024px) {
 
-  /* Capture table parent blocks to make them responsive dynamically */
-  div.table-responsive,
-  .card-body,
-  #main-content .table,
+  /* Prevent table cells from wrapping awkwardly */
   #main-content th,
   #main-content td {
     white-space: nowrap;
-    /* Prevents text elements like dates and numbers from packing awkwardly */
+    padding: 10px 12px !important;
+    font-size: 13px !important;
   }
 
-  /* Force tables to become smoothly scrollable horizontally within container walls */
-  #main-content .card,
-  #main-content .table-parent,
-  div:has(> table) {
+  /* Scoped scroll wrapper — only actual table containers, not cards or chart wrappers */
+  .table-container,
+  .table-responsive,
+  #main-content .table-parent {
     overflow-x: auto !important;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    /* GPU accelerated friction scrolling for iPhones/iPads */
     position: relative;
   }
 
-  /* Optimize table cell touch targets and alignment spacing for small viewports */
-  #main-content th,
-  #main-content td {
-    padding: 10px 12px !important;
-    font-size: 13px !important;
-    /* Slightly more compact to maximize row overview visibility */
-  }
-
-  /* Add a custom aesthetic visual hint indicating the container table scrolls horizontally */
-  div:has(> table)::after {
+  /* Subtle scroll-fade hint on table containers */
+  .table-container::after,
+  .table-responsive::after {
     content: '';
     position: absolute;
     top: 0;
@@ -1139,31 +1115,23 @@ body {
    PHASE 6: CHARTS RESPONSIVENESS
    ════════════════════════════════════════════════════════════ */
 
-/* Standardize chart canvas containers for independent responsiveness */
-.chart-container,
-div:has(> canvas) {
-  position: relative !important;
-  width: 100% !important;
-  height: 320px !important;
-  /* Set a reliable desktop height baseline */
+/* Chart containers: let chart.js control height via its own responsive logic */
+.chart-container {
+  position: relative;
+  width: 100%;
   margin-bottom: 20px;
 }
 
+/* Canvas wrapper sizing — only explicit chart-container class, not all div:has(canvas) */
 @media (max-width: 768px) {
-
-  /* Scale heights slightly on mobile screens to save vertical space */
-  .chart-container,
-  div:has(> canvas) {
-    height: 260px !important;
+  .chart-container {
+    min-height: 260px;
   }
 }
 
 @media (max-width: 400px) {
-
-  /* Ensure compact mobile viewports scale cleanly */
-  .chart-container,
-  div:has(> canvas) {
-    height: 220px !important;
+  .chart-container {
+    min-height: 220px;
   }
 }
 
@@ -1395,37 +1363,13 @@ body {
     min-height: 450px !important;
   }
 
-  .dashboard-chart-card,
-  .chart-container {
-    min-height: 500px;
+  .dashboard-chart-card {
+    min-height: 400px;
   }
 
-  /* Target the text labels and company name spans at the base of the bars */
-  #main-content div[style*="height"] .text-center,
-  #main-content div[style*="height"] [style*="font-size"],
-  #main-content div[style*="height"] span {
-    font-size: 10px !important;
-    display: inline-block !important;
-    white-space: nowrap !important;
-    /* Rotate company labels 45 degrees downwards to maximize width layout clearance */
-    transform: rotate(-45deg) translate(-12px, -2px) !important;
-    transform-origin: left center !important;
-  }
-
-  /* Inject extra vertical breathing space below the chart container box so labels do not clip */
-  #main-content .card:has(div[style*="height"]),
-  #main-content div:has(> div[style*="height"]) {
-    padding-bottom: 45px !important;
+  /* Extra breathing room below chart cards for axis labels */
+  #main-content .card:has(canvas) {
+    padding-bottom: 20px;
   }
 }
-[dir="rtl"] #sidebar {
-    left: auto !important;
-    right: 0 !important;
-    border-right: none !important;
-    border-left: 1px solid var(--border-color) !important;
-}
-
-[dir="rtl"] #page-wrapper {
-    margin-left: 0 !important;
-    margin-right: var(--sidebar-width) !important;
-}
+/* RTL rules are defined in the desktop and mobile blocks above */
