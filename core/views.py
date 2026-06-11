@@ -20,186 +20,26 @@ from django.http import HttpResponse
 @method_decorator(csrf_exempt, name="dispatch")
 class ExportExcelWorkbookView(View):
     """
-    Generates a multi-tab Excel Workbook mimicking the structure, styling,
-    and behavior (formulas) of the original financial sheet tracking metrics.
+    Generates a multi-tab Excel Workbook from live DB data,
+    matching the original Balance.xlsx format, styles, and formulas,
+    with an added Expenses tab.
     """
-    
+
     def get(self, request):
-        # Forward GET requests to the POST logic so it works via direct links/buttons
         return self.post(request)
 
     def post(self, request):
-        # 1. Create a raw memory-based Excel instance
-        wb = openpyxl.Workbook()
-        
-        # 2. Define standard style profiles matching your theme
-        header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
-        header_fill = PatternFill(start_color="1E3A6E", end_color="1E3A6E", fill_type="solid") # Dark Blue
-        data_font = Font(name="Segoe UI", size=10)
-        total_font = Font(name="Segoe UI", size=11, bold=True)
-        total_fill = PatternFill(start_color="E6EDF2", end_color="E6EDF2", fill_type="solid") # Soft grayish-blue
-        
-        thin_border = Border(
-            left=Side(style='thin', color='D1D5DB'),
-            right=Side(style='thin', color='D1D5DB'),
-            top=Side(style='thin', color='D1D5DB'),
-            bottom=Side(style='thin', color='D1D5DB')
+        from .excel_export import generate_excel
+        from datetime import date
+        buf = generate_excel()
+        filename = f"Balance_Tracker_{date.today().strftime('%Y%m%d')}.xlsx"
+        response = HttpResponse(
+            buf.read(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
-        # ==========================================
-        # TAB 1: BALANCE SUMMARY
-        # ==========================================
-        ws_balance = wb.active
-        ws_balance.title = "BALANCE"
-        ws_balance.views.sheetView[0].showGridLines = True
-        
-        balance_headers = ["Title", "EGP", "USD", "EUR", "SAR", "Gold"]
-        ws_balance.append(balance_headers)
-        
-        # Pull latest available rate benchmarks from your GoldPrice model structure
-        latest_rates = GoldPrice.objects.last()
-        usd_rate = float(latest_rates.usd_to_egp) if latest_rates and hasattr(latest_rates, 'usd_to_egp') else 51.88
-        gold_rate_24k = float(latest_rates.carat_24k) if latest_rates and hasattr(latest_rates, 'carat_24k') else 7526.00
-        
-        # Populate current static asset snapshot values
-        ws_balance.append(["Home Balance", 0, 36930, 4500, 483.25, 125])
-        ws_balance.append(["ENBD Bank Account Balance", 358075.51, "", "", "", ""])
-        ws_balance.append(["QNB Bank Account Balance", 108021.65, "", "", "", ""])
-        ws_balance.append(["QNB Certificates Balance", 3458000, "", "", "", ""])
-        
-        # Inject structural sum formulas
-        ws_balance.cell(row=6, column=1, value="Total EGP Balance").font = total_font
-        ws_balance.cell(row=6, column=2, value="=SUM(B2:B5)").font = total_font
-        
-        # Dynamic multi-currency valuation conversion formula matching sheet patterns
-        ws_balance.cell(row=7, column=1, value="Total all Balances").font = total_font
-        ws_balance.cell(row=7, column=2, value=f"=B6+(C2*{usd_rate})+(D2*60.25)+(F2/31.1035*{gold_rate_24k})").font = total_font 
-
-        # ==========================================
-        # TABS 2+: DYNAMIC SALARY HISTORIES BY COMPANY
-        # ==========================================
-        companies = Company.objects.all()
-        
-        for company in companies:
-            # Safe unique string limit tracking (max 31 chars required by Excel sheet rules)
-            tab_title = str(company.display_name if hasattr(company, 'display_name') else company.name)[:30]
-            ws_company = wb.create_sheet(title=tab_title)
-            ws_company.views.sheetView[0].showGridLines = True
-            
-            # Write company specific structured tracking columns
-            company_headers = ["Year", "Month", "Expected", "Paid", "Remaining"]
-            ws_company.append(company_headers)
-            
-            # Fetch relational payment allocations chronologically
-            entries = SalaryEntry.objects.filter(company=company).order_by('year', 'id')
-            
-            current_row = 2
-            for entry in entries:
-                # Resolve field properties or fallback gracefully
-                yr = getattr(entry, 'year', '')
-                mnth = getattr(entry, 'month', '')
-                exp = float(entry.expected) if hasattr(entry, 'expected') and entry.expected else 0.0
-                pd = float(entry.paid) if hasattr(entry, 'paid') and entry.paid else 0.0
-                
-                ws_company.cell(row=current_row, column=1, value=yr)
-                ws_company.cell(row=current_row, column=2, value=mnth)
-                ws_company.cell(row=current_row, column=3, value=exp)
-                ws_company.cell(row=current_row, column=4, value=pd)
-                
-                # Active Formula tracking: Remaining = Expected - Paid
-                ws_company.cell(row=current_row, column=5, value=f"=C{current_row}-D{current_row}")
-                current_row += 1
-            
-            # Final calculation bounds for this specific company tab
-            ws_company.cell(row=current_row, column=1, value="Total").font = total_font
-            ws_company.cell(row=current_row, column=2, value=f"=COUNTA(B2:B{current_row-1})").font = total_font
-            ws_company.cell(row=current_row, column=3, value=f"=SUM(C2:C{current_row-1})").font = total_font
-            ws_company.cell(row=current_row, column=4, value=f"=SUM(D2:D{current_row-1})").font = total_font
-            ws_company.cell(row=current_row, column=5, value=f"=SUM(E2:E{current_row-1})").font = total_font
-            
-            # Apply styling accents over summary bounds
-            for col in range(1, 6):
-                cell = ws_company.cell(row=current_row, column=col)
-                cell.fill = total_fill
-                cell.border = thin_border
-
-        # ==========================================
-        # TAB: BANK CERTIFICATES
-        # ==========================================
-        ws_certs = wb.create_sheet(title="Bank-Certificates")
-        ws_certs.views.sheetView[0].showGridLines = True
-        
-        cert_headers = ["Amount", "Interest Rate", "Interest Value", "Frequency", "Start Date", "End Date"]
-        ws_certs.append(cert_headers)
-        
-        certs = BankCertificate.objects.all()
-        c_row = 2
-        for cert in certs:
-            amount_val = float(cert.amount) if hasattr(cert, 'amount') and cert.amount else 0.0
-            rate_val = float(cert.interest_rate) if hasattr(cert, 'interest_rate') and cert.interest_rate else 0.0
-            
-            ws_certs.cell(row=c_row, column=1, value=amount_val)
-            ws_certs.cell(row=c_row, column=2, value=rate_val)
-            
-            # Interest Value formula: = (Amount * Interest Rate) / 12
-            ws_certs.cell(row=c_row, column=3, value=f"=(A{c_row}*B{c_row})/12")
-            ws_certs.cell(row=c_row, column=4, value=getattr(cert, 'frequency', 'Monthly'))
-            
-            # Resolve flexible date mappings across model variables
-            s_date = getattr(cert, 'start_date', getattr(cert, 'issue_date', getattr(cert, 'date', None)))
-            if s_date:
-                ws_certs.cell(row=c_row, column=5, value=s_date.strftime('%Y-%m-%d') if hasattr(s_date, 'strftime') else str(s_date))
-            else:
-                ws_certs.cell(row=c_row, column=5, value="")
-                
-            e_date = getattr(cert, 'end_date', getattr(cert, 'maturity_date', getattr(cert, 'expiry_date', None)))
-            if e_date:
-                ws_certs.cell(row=c_row, column=6, value=e_date.strftime('%Y-%m-%d') if hasattr(e_date, 'strftime') else str(e_date))
-            else:
-                ws_certs.cell(row=c_row, column=6, value="")
-                
-            c_row += 1
-
-        # ==========================================
-        # POST-PROCESSING: APPLY FORMATTING & PADDING
-        # ==========================================
-        for sheet in wb.worksheets:
-            # Format row header cells
-            for cell in sheet[1]:
-                cell.font = header_font
-                cell.fill = header_fill
-                cell.alignment = Alignment(horizontal="center", vertical="center")
-            
-            # Traversal auto formatting rules engine over structural rows
-            for col in sheet.columns:
-                max_len = 0
-                col_letter = get_column_letter(col[0].column)
-                header_text = str(sheet.cell(row=1, column=col[0].column).value)
-                
-                for cell in col:
-                    if cell.row > 1:
-                        cell.font = data_font
-                        cell.border = thin_border
-                        
-                        # Currency Formatting rules matching original template looks
-                        if type(cell.value) in [int, float] or (isinstance(cell.value, str) and cell.value.startswith('=')):
-                            if any(x in header_text for x in ["EGP", "USD", "EUR", "SAR", "Gold", "Expected", "Paid", "Remaining", "Amount", "Value"]):
-                                cell.number_format = '#,##0.00'
-                            elif "Rate" in header_text:
-                                cell.number_format = '0.00%'
-
-                    if cell.value:
-                        max_len = max(max_len, len(str(cell.value)))
-                
-                # Expand specific columns to avoid ### truncation clipping
-                sheet.column_dimensions[col_letter].width = max(max_len + 4, 14)
-
-        # 3. Save to structural http application output streams
-        response = HttpResponse(content_type='application/vnd.openpyxl.sheet')
-        response['Content-Disposition'] = 'attachment; filename="SalaryTracker_Balance.xlsx"'
-        wb.save(response)
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
-        
+
 User = get_user_model()
 
 PAGE_PERMISSION_KEYS = [key for key, _ in PAGE_PERMISSION_CHOICES]
@@ -1570,3 +1410,20 @@ class UpdateProfileView(View):
         profile.save()
         return JsonResponse({"profile": profile.to_dict(),
                              "user":    _build_user_dict(request.user)})
+
+
+# ── Excel Export View ──────────────────────────────────────────────────────────
+
+@login_required
+def export_excel(request):
+    """Generate and download the full Balance tracker Excel workbook."""
+    from .excel_export import generate_excel
+    from datetime import date
+    buf = generate_excel()
+    filename = f"Balance_Tracker_{date.today().strftime('%Y%m%d')}.xlsx"
+    response = HttpResponse(
+        buf.read(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
