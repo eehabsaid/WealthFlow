@@ -38,11 +38,18 @@ function sortRatesByPriority(rates) {
   });
 }
 
+function fmtRate(n) {
+  const num = Number(n);
+  if (!num) return '—';
+  const decimals = num > 10 ? 4 : 6;
+  return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
 async function renderExchangeRates() {
   const mc = document.getElementById('main-content');
   mc.innerHTML = `<div class="spinner-overlay">
     <div class="spinner-border text-primary"></div>
-    <span>Loading rates...</span></div>`;
+    <span data-i18n="loading_rates">Loading rates...</span></div>`;
 
   let data;
   try {
@@ -50,20 +57,16 @@ async function renderExchangeRates() {
     data = await res.json();
   } catch (e) {
     mc.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>
-      <div class="empty-title">Error loading exchange rates.</div></div>`;
+      <div class="empty-title" data-i18n="error_loading_rates">Error loading exchange rates.</div></div>`;
     return;
   }
 
-  const rates    = data.rates || [];
+  const rates = data.rates || [];
   const fetchedAt = data.fetched_at;
-  const hasData  = rates.length > 0;
-
+  const hasData = rates.length > 0;
   const sortedRates = sortRatesByPriority(rates);
 
-  /* ── Highlight cards for top currencies ── */
-  const featuredRates = TOP_CURRENCY_ORDER
-    .map(code => sortedRates.find(r => r.currency_code === code))
-    .filter(Boolean);
+  const featuredRates = TOP_CURRENCY_ORDER.map(code => sortedRates.find(r => r.currency_code === code)).filter(Boolean);
 
   const featuredCards = featuredRates.map(r => {
     const meta = CURRENCY_META[r.currency_code] || { flag: '💱', name: r.currency_name };
@@ -73,22 +76,19 @@ async function renderExchangeRates() {
           <div style="font-size:28px;margin-bottom:6px">${meta.flag}</div>
           <div class="kpi-label">${r.currency_code}</div>
           <div class="kpi-value" style="font-size:18px">${fmtRate(r.mid_rate)}</div>
-          <div class="kpi-sub">EGP per 1 ${r.currency_code}</div>
-          <div style="display:flex;justify-content:space-between;margin-top:8px;
-                      font-size:11px;color:var(--text-muted)">
-            <span>Buy: ${fmtRate(r.buy_rate)}</span>
-            <span>Sell: ${fmtRate(r.sell_rate)}</span>
+          <div class="kpi-sub" data-i18n="egp_per_1">EGP per 1 ${r.currency_code}</div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text-muted)">
+            <span data-i18n="buy">Buy: ${fmtRate(r.buy_rate)}</span>
+            <span data-i18n="sell">Sell: ${fmtRate(r.sell_rate)}</span>
           </div>
         </div>
       </div>`;
   }).join('');
 
-  /* ── Full table ── */
   const rows = sortedRates.map(r => {
     const meta = CURRENCY_META[r.currency_code] || { flag: '💱', name: r.currency_name };
     return `<tr>
-      <td><span style="font-size:18px;margin-right:8px">${meta.flag}</span>
-          <strong>${r.currency_code}</strong></td>
+      <td><span style="font-size:18px;margin-right:8px">${meta.flag}</span><strong>${r.currency_code}</strong></td>
       <td>${meta.name || r.currency_name}</td>
       <td class="text-end num-col">${fmtRate(r.buy_rate)}</td>
       <td class="text-end num-col" style="color:var(--accent-green)">${fmtRate(r.mid_rate)}</td>
@@ -99,20 +99,16 @@ async function renderExchangeRates() {
   mc.innerHTML = `
     <div class="page-header">
       <div>
-        <div class="page-title">Exchange Rates</div>
+        <div class="page-title" data-i18n="exchange_rates">Exchange Rates</div>
         <div class="page-subtitle">
-          Source: <a href="https://open.er-api.com" target="_blank" style="color:var(--accent-primary)">
-            open.er-api.com
-          </a> &amp;
-          <a href="https://www.cbe.org.eg/en/economic-research/statistics/cbe-exchange-rates"
-             target="_blank" style="color:var(--accent-primary)">CBE</a>
-          ${fetchedAt ? `· Last updated: <strong>${fetchedAt}</strong>` : ''}
+          <span data-i18n="source">Source</span>: open.er-api.com &amp; CBE
+          ${fetchedAt ? `· <span data-i18n="last_updated">Last updated</span>: <strong>${fetchedAt}</strong>` : ''}
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div id="ratesStatus"></div>
         <button class="btn-primary-custom" onclick="refreshExchangeRates()" id="btnRefreshRates">
-          <i class="bi bi-arrow-clockwise"></i> Refresh from Internet
+          <i class="bi bi-arrow-clockwise"></i> <span data-i18n="refresh_internet">Refresh from Internet</span>
         </button>
       </div>
     </div>
@@ -120,34 +116,30 @@ async function renderExchangeRates() {
     ${!hasData ? `
       <div class="empty-state">
         <div class="empty-icon">📊</div>
-        <div class="empty-title">No exchange rate data yet.</div>
+        <div class="empty-title" data-i18n="no_rates_data">No exchange rate data yet.</div>
         <div class="empty-sub" style="margin-top:14px">
           <button class="btn-primary-custom" onclick="refreshExchangeRates()">
-            <i class="bi bi-arrow-clockwise"></i> Fetch Rates Now
+            <i class="bi bi-arrow-clockwise"></i> <span data-i18n="fetch_now">Fetch Rates Now</span>
           </button>
         </div>
       </div>` : `
 
     <div class="row g-3 mb-4">${featuredCards}</div>
 
-    <div style="background:var(--accent-blue-dim);border:1px solid rgba(26,110,245,0.3);
-                border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:13px;
-                color:var(--text-secondary)">
+    <div style="background:var(--accent-blue-dim);border:1px solid rgba(26,110,245,0.3);border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:13px;color:var(--text-secondary)">
       <i class="bi bi-info-circle" style="color:var(--accent-primary)"></i>
-      <strong style="color:var(--text-primary)">Rates are vs Egyptian Pound (EGP).</strong>
-      Buy/Sell reflect a typical ±0.5% bank spread around the mid rate.
-      Click <strong>Refresh</strong> to fetch the latest rates directly from the internet.
-      Rates update once per day on the free tier.
+      <strong data-i18n="rates_vs_egp">Rates are vs Egyptian Pound (EGP).</strong>
+      <span data-i18n="rate_disclaimer">Buy/Sell reflect a typical bank spread.</span>
     </div>
 
     <div class="table-container">
       <table class="data-table">
         <thead><tr>
-          <th>Currency</th>
-          <th>Name</th>
-          <th class="text-end">Buy (EGP)</th>
-          <th class="text-end">Mid Rate</th>
-          <th class="text-end">Sell (EGP)</th>
+          <th data-i18n="currency">Currency</th>
+          <th data-i18n="name">Name</th>
+          <th class="text-end" data-i18n="buy">Buy (EGP)</th>
+          <th class="text-end" data-i18n="mid_rate">Mid Rate</th>
+          <th class="text-end" data-i18n="sell">Sell (EGP)</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -155,41 +147,33 @@ async function renderExchangeRates() {
 
     <div style="margin-top:14px;font-size:12px;color:var(--text-muted)">
       <i class="bi bi-shield-check" style="color:var(--accent-green)"></i>
-      For official CBE rates visit:
-      <a href="https://www.cbe.org.eg/en/economic-research/statistics/cbe-exchange-rates"
-         target="_blank" style="color:var(--accent-primary)">cbe.org.eg</a>
+      <span data-i18n="cbe_disclaimer">For official CBE rates visit:</span>
+      <a href="https://www.cbe.org.eg/en/economic-research/statistics/cbe-exchange-rates" target="_blank" style="color:var(--accent-primary)">cbe.org.eg</a>
     </div>`;
+  applyTranslations();
 }
 
 async function refreshExchangeRates() {
-  const btn    = document.getElementById('btnRefreshRates');
+  const btn = document.getElementById('btnRefreshRates');
   const status = document.getElementById('ratesStatus');
   if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Fetching…'; }
   if (status) status.innerHTML = '';
-
   try {
-    const res  = await fetch('/api/rates/refresh/', { method: 'POST' });
+    const res = await fetch('/api/rates/refresh/', { method: 'POST' });
     const data = await res.json();
     if (data.error) {
       showToast('Error: ' + data.error, 'error');
     } else {
-      showToast(data.message + ' ✓', 'success');
+      showToast(translate('rates_updated') || "Rates updated ✓", 'success');
       renderExchangeRates();
       return;
     }
   } catch (e) {
     showToast('Network error: ' + e.message, 'error');
   }
-  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh from Internet'; }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> ' + (translate('refresh_internet') || "Refresh from Internet"); }
+  applyTranslations();
 }
 
-function fmtRate(n) {
-  const num = Number(n);
-  if (!num) return '—';
-  // Use more decimals for rates like KWD that are > 100 EGP
-  const decimals = num > 10 ? 4 : 6;
-  return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-}
-
-window.renderExchangeRates  = renderExchangeRates;
+window.renderExchangeRates = renderExchangeRates;
 window.refreshExchangeRates = refreshExchangeRates;

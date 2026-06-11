@@ -2,7 +2,10 @@
 let _companies = [];
 let _banks = [];
 let _activeRoute = "";
-
+window.translations = {
+    "en": {},
+    "ar": {}
+};
 document.addEventListener("DOMContentLoaded", async () => {
     await loadLanguage(localStorage.getItem("lang") || "en");
     await initApp();
@@ -254,7 +257,18 @@ function loadingHTML() {
 
 // Make sure it is globally accessible
 window.loadingHTML = loadingHTML;
-
+// This function looks up the key in your loaded dictionary
+function translate(key) {
+    const lang = localStorage.getItem('lang') || 'en';
+    
+    // Safety check: verify window.translations and the language exist
+    if (!window.translations || !window.translations[lang]) {
+        console.warn(`Translation for ${key} not found, using raw key.`);
+        return key; 
+    }
+    
+    return window.translations[lang][key] || key;
+}
 function route() {
     const hash = window.location.hash.replace("#", "") || "dashboard";
     _activeRoute = hash;
