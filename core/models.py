@@ -1,3 +1,5 @@
+from datetime import date,datetime
+
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
@@ -142,8 +144,8 @@ class BankCertificate(models.Model):
             "currency_code": self.currency.code if self.currency else "",
             "currency_symbol": self.currency.symbol if self.currency else "",
             "currency_flag": self.currency.flag if self.currency else "💱",
-            "issue_date": self.issue_date.isoformat() if self.issue_date else "",
-            "expiry_date": self.expiry_date.isoformat() if self.expiry_date else "",
+            "issue_date": self.issue_date.isoformat() if isinstance(self.issue_date, (date, datetime)) else (self.issue_date or ""),
+            "expiry_date": self.expiry_date.isoformat() if isinstance(self.expiry_date, (date, datetime)) else (self.expiry_date or ""),
             "amount": float(self.amount),
             "interest_rate": float(self.interest_rate),
             "interest_value": float(self.interest_value),
