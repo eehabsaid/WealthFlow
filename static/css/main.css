@@ -1373,3 +1373,35 @@ body {
   }
 }
 /* RTL rules are defined in the desktop and mobile blocks above */
+
+.translation-table-wrapper {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-width: 100%;
+}
+
+.translation-table {
+    min-width: max-content;
+    border-collapse: collapse;
+}
+
+.translation-table th:first-child,
+.translation-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--bg-secondary);
+    min-width: 120px;
+}
+
+.translation-table thead th:first-child {
+    z-index: 3;
+}
+
+.translation-table th {
+    white-space: nowrap;
+}
+
+.translation-table td {
+    white-space: nowrap;
+}

@@ -1088,8 +1088,12 @@ async function renderTranslationSettings() {
             </div>
         </div>
 
-        <div style="width:100%;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:auto">
-            <table class="data-table">
+        <div
+    class="translation-table-wrapper"
+    style="background:var(--bg-secondary);
+           border:1px solid var(--border-color);
+           border-radius:12px;">
+    <table class="data-table translation-table">
                 <thead>
                     <tr>
                         <th data-i18n="translation_key">Key</th>
