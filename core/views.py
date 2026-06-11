@@ -597,7 +597,7 @@ class SalarySummaryView(View):
         for c in companies:
             entries = c.salary_entries.all()
             agg = entries.aggregate(
-                months=Count("id"),
+                months=Count("id", filter=Q(paid__gt=0)),
                 exp=Sum("expected"),
                 paid=Sum("paid"),
                 bonus=Sum("bonus"),
