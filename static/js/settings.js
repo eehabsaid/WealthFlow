@@ -41,22 +41,22 @@ async function renderSettings(route) {
 
 // ── Language Settings ──────────────────────────────────────
 async function renderLanguageSettings() {
-  const res = await fetch(`/api/settings/?t=${Date.now()}`); 
+  const res = await fetch(`/api/settings/?t=${Date.now()}`);
   const data = await res.json();
   const activeLang = data.settings.active_language || "en";
   let langs = [];
   // Assign to the global variable
-try {
+  try {
     const rawData = JSON.parse(data.settings.available_languages || "[]");
-    globalLangs = rawData.map(l => ({
-        code: l.code,
-        label: l.label,
-        // Force conversion here once and for all
-        rtl: l.rtl === true || l.rtl === 'true' || l.rtl === 1 
+    globalLangs = rawData.map((l) => ({
+      code: l.code,
+      label: l.label,
+      // Force conversion here once and for all
+      rtl: l.rtl === true || l.rtl === "true" || l.rtl === 1,
     }));
-} catch (e) {
+  } catch (e) {
     globalLangs = [];
-}
+  }
 
   const rows = globalLangs
     .map(
@@ -138,7 +138,7 @@ function showAddLangModal() {
 function showLanguageModal(index) {
   const l = globalLangs[index];
   // FORCE TO BOOLEAN: This ensures "false" or "no" strings become false
-  const isRtl = (l.rtl === true || l.rtl === "true");
+  const isRtl = l.rtl === true || l.rtl === "true";
 
   const html = `
         <div class="modal-header">
@@ -170,48 +170,48 @@ async function setActiveLang(code) {
   renderLanguageSettings();
 }
 async function saveLanguageUpdate(index) {
-    // 1. Collect updated values from the modal inputs
-    const langCode = document.getElementById("lCode").value;
-    const langLabel = document.getElementById("lLabel").value;
-    const isRtl = document.getElementById("lRTL").value === "true"; // Converts string "true" to boolean true
+  // 1. Collect updated values from the modal inputs
+  const langCode = document.getElementById("lCode").value;
+  const langLabel = document.getElementById("lLabel").value;
+  const isRtl = document.getElementById("lRTL").value === "true"; // Converts string "true" to boolean true
 
-    // 2. Update the language object inside our global array track
-    globalLangs[index] = {
-        code: langCode,
-        label: langLabel,
-        rtl: isRtl
-    };
+  // 2. Update the language object inside our global array track
+  globalLangs[index] = {
+    code: langCode,
+    label: langLabel,
+    rtl: isRtl,
+  };
 
-    // 3. Prepare the payload to update the entire list in AppSettings
-    const payload = {
-        key: "available_languages", 
-        value: JSON.stringify(globalLangs) // Saves the entire updated list
-    };
+  // 3. Prepare the payload to update the entire list in AppSettings
+  const payload = {
+    key: "available_languages",
+    value: JSON.stringify(globalLangs), // Saves the entire updated list
+  };
 
-    try {
-        const response = await fetch('/api/settings/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+  try {
+    const response = await fetch("/api/settings/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-        if (response.ok) {
-            showToast("Language updated successfully", "success");
-            
-            // Hide the Bootstrap modal cleanly
-            const modalEl = document.querySelector('.modal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-            
-            // Re-render the interface with fresh data
-            await renderLanguageSettings(); 
-        } else {
-            showToast("Failed to update language", "error");
-        }
-    } catch (error) {
-        console.error("Save error:", error);
-        showToast("Network error", "error");
+    if (response.ok) {
+      showToast("Language updated successfully", "success");
+
+      // Hide the Bootstrap modal cleanly
+      const modalEl = document.querySelector(".modal");
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+
+      // Re-render the interface with fresh data
+      await renderLanguageSettings();
+    } else {
+      showToast("Failed to update language", "error");
     }
+  } catch (error) {
+    console.error("Save error:", error);
+    showToast("Network error", "error");
+  }
 }
 
 async function deleteLang(idx) {
@@ -995,79 +995,138 @@ async function renderTranslationSettings() {
   const res = await fetch("/api/translations/");
   const data = await res.json();
 
-  const en = data.en || {};
-  const ar = data.ar || {};
+  const languages = Object.keys(data);
 
-  const enKeys = Object.keys(en);
-  const allKeys = [...new Set([...enKeys, ...Object.keys(ar)])];
+  const masterLang = languages.includes("en") ? "en" : languages[0];
+  const masterKeys = Object.keys(data[masterLang] || {});
 
-  const keys = allKeys
-    //.filter((k) => !k.startsWith("__")) // This SHOULD hide them
-    .sort((a, b) => {
-      const indexA = enKeys.indexOf(a);
-      const indexB = enKeys.indexOf(b);
-      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-      if (indexA !== -1) return -1;
-      if (indexB !== -1) return 1;
-      return a.localeCompare(b);
-    });
+  const allKeys = [
+    ...new Set(languages.flatMap((lang) => Object.keys(data[lang] || {}))),
+  ];
+
+  const keys = allKeys.sort((a, b) => {
+    const indexA = masterKeys.indexOf(a);
+    const indexB = masterKeys.indexOf(b);
+
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
+
+    return a.localeCompare(b);
+  });
+
+  const headers = languages
+    .map(
+      (lang) => `
+        <th>${lang.toUpperCase()}</th>
+    `,
+    )
+    .join("");
 
   const rows = keys
-    .map(
-      (key) => `
-        <tr class="translation-row" data-key="${key}">
-            <td><code>${key}</code></td>
-            <td>
-                <input type="text" class="form-control" id="en_${key}" 
-                       value="${typeof en[key] === "string" ? en[key].replace(/"/g, "&quot;") : JSON.stringify(en[key] || "")}">
-            </td>
-            <td>
-                <input type="text" class="form-control" id="ar_${key}" 
-                       value="${typeof ar[key] === "string" ? ar[key].replace(/"/g, "&quot;") : JSON.stringify(ar[key] || "")}">
-            </td>
-        </tr>`,
-    )
+    .map((key) => {
+      const cells = languages
+        .map((lang) => {
+          const value = data[lang]?.[key];
+
+          return `
+                <td>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="${lang}_${key}"
+                        value="${
+                          typeof value === "string"
+                            ? value.replace(/"/g, "&quot;")
+                            : JSON.stringify(value || "")
+                        }"
+                    >
+                </td>
+            `;
+        })
+        .join("");
+
+      return `
+            <tr class="translation-row" data-key="${key}">
+                <td><code>${key}</code></td>
+                ${cells}
+            </tr>
+        `;
+    })
     .join("");
 
   document.getElementById("settingsContent").innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;width:100%">
-            <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_translations">Translation Manager</div>
+            <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_translations">
+                Translation Manager
+            </div>
+
             <div style="display:flex;gap:10px;align-items:center;">
-                <input type="text" id="translationSearch" class="form-control" style="width:180px"
-                       data-i18n-placeholder="search_placeholder" placeholder="Search key..." onkeyup="filterTranslations()">
-                <button class="btn-primary-custom" onclick="saveTranslations()" data-i18n="save_button">Save</button>
-                <button class="btn-primary-custom" onclick="findMissingTranslations()" data-i18n="scan_missing_keys">Scan Missing Keys</button>
+                <input
+                    type="text"
+                    id="translationSearch"
+                    class="form-control"
+                    style="width:180px"
+                    data-i18n-placeholder="search_placeholder"
+                    placeholder="Search key..."
+                    onkeyup="filterTranslations()"
+                >
+
+                <button
+                    class="btn-primary-custom"
+                    onclick="saveTranslations()"
+                    data-i18n="save_button">
+                    Save
+                </button>
+
+                <button
+                    class="btn-primary-custom"
+                    onclick="findMissingTranslations()"
+                    data-i18n="scan_missing_keys">
+                    Scan Missing Keys
+                </button>
             </div>
         </div>
 
-        <div style="width:100%;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden">
+        <div style="width:100%;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:auto">
             <table class="data-table">
                 <thead>
                     <tr>
                         <th data-i18n="translation_key">Key</th>
-                        <th data-i18n="English">English</th>
-                        <th data-i18n="Arabic">Arabic</th>
+                        ${headers}
                     </tr>
                 </thead>
-                <tbody>${rows}</tbody>
+                <tbody>
+                    ${rows}
+                </tbody>
             </table>
-        </div>`;
+        </div>
+    `;
+
   applyTranslations();
 }
+
 async function saveTranslations() {
   const res = await fetch("/api/translations/");
   const data = await res.json();
 
-  const en = {};
-  const ar = {};
+  const languages = Object.keys(data);
+
+  const result = {};
+
+  languages.forEach((lang) => {
+    result[lang] = {};
+  });
 
   const keys = [
-    ...new Set([...Object.keys(data.en || {}), ...Object.keys(data.ar || {})]),
+    ...new Set(languages.flatMap((lang) => Object.keys(data[lang] || {}))),
   ];
 
   keys.forEach((key) => {
-    en[key] = document.getElementById(`en_${key}`)?.value || "";
-    ar[key] = document.getElementById(`ar_${key}`)?.value || "";
+    languages.forEach((lang) => {
+      result[lang][key] =
+        document.getElementById(`${lang}_${key}`)?.value || "";
+    });
   });
 
   await fetch("/api/translations/save/", {
@@ -1075,16 +1134,14 @@ async function saveTranslations() {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      en,
-      ar,
-    }),
+    body: JSON.stringify(result),
   });
 
-  //alert('Saved');
   showToast("Translations saved ✓");
+
   renderTranslationSettings();
 }
+
 async function findMissingTranslations() {
   const res = await fetch("/api/translations/");
   const data = await res.json();

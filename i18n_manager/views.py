@@ -10,16 +10,18 @@ I18N_DIR = Path(settings.BASE_DIR) / "static" / "i18n"
 
 
 def get_translations(request):
-    with open(I18N_DIR / "en.json", "r", encoding="utf-8") as f:
-        en = json.load(f)
+    translations = {}
 
-    with open(I18N_DIR / "ar.json", "r", encoding="utf-8") as f:
-        ar = json.load(f)
+    for file in I18N_DIR.glob("*.json"):
+        lang_code = file.stem
 
-    return JsonResponse({
-        "en": en,
-        "ar": ar
-    })
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                translations[lang_code] = json.load(f)
+        except Exception:
+            translations[lang_code] = {}
+
+    return JsonResponse(translations)
 
 def scan_translations(request):
     project_root = Path(settings.BASE_DIR)
@@ -80,10 +82,17 @@ def save_translations(request):
 
     data = json.loads(request.body)
 
-    with open(I18N_DIR / "en.json", "w", encoding="utf-8") as f:
-        json.dump(data["en"], f, ensure_ascii=False, indent=2)
-
-    with open(I18N_DIR / "ar.json", "w", encoding="utf-8") as f:
-        json.dump(data["ar"], f, ensure_ascii=False, indent=2)
+    for lang_code, content in data.items():
+        with open(
+            I18N_DIR / f"{lang_code}.json",
+            "w",
+            encoding="utf-8"
+        ) as f:
+            json.dump(
+                content,
+                f,
+                ensure_ascii=False,
+                indent=2
+            )
 
     return JsonResponse({"success": True})
