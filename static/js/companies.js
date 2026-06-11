@@ -33,9 +33,9 @@ async function renderAllCompanies() {
                 <thead><tr>
                     <th data-i18n="company">Company</th>
                     <th data-i18n="group">Group</th>
-                    <th>Color</th>
+                    <th data-i18n="color">Color</th>
                     <th data-i18n="status">Status</th>
-                    <th style="text-align:center;width:80px">Actions</th>
+                    <th style="text-align:center;width:80px" data-i18n="actions">Actions</th>
                 </tr></thead>
                 <tbody>${rows || '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-secondary)">No companies found</td></tr>'}</tbody>
             </table>
@@ -70,7 +70,7 @@ async function showCompanyModal(companyId) {
                     <input type="text" class="form-control" id="cGroupName" placeholder="Optional" value="${company ? company.group_name : ''}">
                 </div>
                 <div class="col-6">
-                    <label>Color</label>
+                    <label data-i18n="color">Color</label>
                     <input type="color" class="form-control form-control-color" id="cColor" value="${company ? company.color_hex : '#0d6efd'}" style="height:38px">
                 </div>
                 <div class="col-6">

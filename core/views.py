@@ -605,6 +605,10 @@ class SalarySummaryView(View):
             exp = float(agg["exp"] or 0)
             paid = float(agg["paid"] or 0)
             bonus = float(agg["bonus"] or 0)
+            # Calculate company total
+            company_total_paid = paid + bonus
+            company_total_exp = exp + bonus
+            company_remaining = max(0.0, exp - paid) # Remaining = Expected - Base Paid
             result.append({
                 "id": c.id,
                 "name": c.name,
@@ -612,9 +616,9 @@ class SalarySummaryView(View):
                 "group_name": c.group_name,
                 "color_hex": c.color_hex,
                 "total_months": agg["months"],
-                "total_expected": exp,
-                "total_paid": paid,
-                "total_remaining": max(0.0, exp - paid),
+                "total_expected": company_total_exp, # Corrected to include bonus in total expected
+                "total_paid": company_total_paid, # Corrected to include bonus in total paid
+                "total_remaining": company_remaining, # Remaining is still based on expected vs base paid
                 "total_bonus": bonus,
                 "years": list(
                     entries.values_list("year", flat=True).distinct().order_by("year")
@@ -622,8 +626,9 @@ class SalarySummaryView(View):
             })
             grand["total_months"] += agg["months"]
             grand["total_expected"] += exp
-            grand["total_paid"] += paid
-            grand["total_remaining"] += max(0.0, exp - paid)
+            grand["total_paid"] += company_total_paid  # ADDED BONUS HERE
+            # This ensures the grand total is the sum of the individual rows
+            grand["total_remaining"] += company_remaining
             grand["total_bonus"] += bonus
         return JsonResponse({"companies": result, "grand_total": grand})
 

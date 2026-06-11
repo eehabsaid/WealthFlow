@@ -56,7 +56,7 @@ async function renderBalance() {
         <div class="col-6 col-md-4 col-lg-2">
             <div class="currency-card">
                 <div class="cur-flag">${cur.flag || '💱'}</div>
-                <div class="cur-code">${cur.code}</div>
+                <div class="cur-code" data-i18n="${cur.code}">${cur.code}</div>
                 <div class="cur-amount">${fmt(totals[cur.code] || 0)}</div>
             </div>
         </div>`).join('');
@@ -83,7 +83,7 @@ async function renderBalance() {
         <div class="row g-3 mb-4">${currencyCards}</div>
         <div class="kpi-card mb-4" style="text-align:center">
             <div class="kpi-label" data-i18n="grand_total">Total All Balances (EGP equiv.)</div>
-            <div class="kpi-value" style="color:var(--accent-green);font-size:32px">${fmtpresent(grandTotal)} EGP</div>
+            <div class="kpi-value" style="color:var(--accent-green);font-size:32px">${fmtpresent(grandTotal)} <span data-i18n="EGP">EGP</span></div>
             <div style="margin-top:8px;color:var(--text-secondary);font-size:13px">
                 = EGP + (USD × rate) + (EUR × rate) + (SAR × rate) + (Gold × 24K sell price + 28.5)
             </div>

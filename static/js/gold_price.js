@@ -81,7 +81,7 @@ async function renderGoldPrice() {
     ${!hasData ? `
       <div class="empty-state">
         <div class="empty-icon">🥇</div>
-        <div class="empty-title">No gold price data yet.</div>
+        <div class="empty-title" data-i18n="no_gold_data">No gold price data yet.</div>
         <div class="empty-sub" style="margin-top:14px">
           <button class="btn-primary-custom" onclick="refreshGoldPrice()">
             <i class="bi bi-arrow-clockwise"></i> Fetch Gold Price Now
@@ -163,7 +163,7 @@ async function refreshGoldPrice() {
       showToast('Error: ' + data.error, 'error');
       if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh Prices'; }
     } else {
-      showToast('Gold prices updated ✓', 'success');
+      showToast(data-i18n,"Gold prices updated ✓", 'success');
       renderGoldPrice();
     }
   } catch (e) {
@@ -171,6 +171,6 @@ async function refreshGoldPrice() {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh Prices'; }
   }
 }
-
+applyTranslations();
 window.renderGoldPrice  = renderGoldPrice;
 window.refreshGoldPrice = refreshGoldPrice;
