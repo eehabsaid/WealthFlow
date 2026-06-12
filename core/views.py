@@ -792,10 +792,16 @@ class GoldPriceRefreshView(View):
                     self.in_table = False
 
         try:
+            import ssl as _ssl
+            # goldbullioneg.com has an expired SSL cert — bypass verification for this trusted source
+            _ctx = _ssl.create_default_context()
+            _ctx.check_hostname = False
+            _ctx.verify_mode = _ssl.CERT_NONE
+
             # Step 1: Scrape gold prices directly from goldbullioneg.com (EGP table)
             page_url = "https://goldbullioneg.com/%D8%A3%D8%B3%D8%B9%D8%A7%D8%B1-%D8%A7%D9%84%D8%B0%D9%87%D8%A8/"
             req = _ur.Request(page_url, headers={"User-Agent": "SalaryTracker/1.0"})
-            with _ur.urlopen(req, timeout=15) as resp:
+            with _ur.urlopen(req, timeout=15, context=_ctx) as resp:
                 page_html = resp.read().decode('utf-8', errors='ignore')
 
             parser = GoldTableParser()
