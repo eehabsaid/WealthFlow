@@ -97,7 +97,8 @@ async function renderBalance() {
                 ${fmt(totalEGP)} + (${fmt(usdAmount  * usdRate)}) + (${fmt(eurAmount  * eurRate)}) + (${fmt(sarAmount  * sarRate)}) + (${fmt(goldValue)})
             </div>
         </div>
-        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
+            <div class="table-container">
             <table class="data-table">
                 <thead><tr>
                     <th data-i18n="balance_title">Title</th>
@@ -108,6 +109,7 @@ async function renderBalance() {
                 </tr></thead>
                 <tbody>${rows}</tbody>
             </table>
+        </div>
         </div>`;
     applyTranslations();
 }

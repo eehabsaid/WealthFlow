@@ -28,7 +28,8 @@ async function renderAllCompanies() {
         <div class="page-header">
             <div><div class="page-title" data-i18n="nav_all_companies">All Companies</div></div>
         </div>
-        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
+            <div class="table-container">
             <table class="data-table">
                 <thead><tr>
                     <th data-i18n="company">Company</th>
@@ -39,6 +40,7 @@ async function renderAllCompanies() {
                 </tr></thead>
                 <tbody>${rows || '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-secondary)">No companies found</td></tr>'}</tbody>
             </table>
+        </div>
         </div>`;
     applyTranslations();
 }

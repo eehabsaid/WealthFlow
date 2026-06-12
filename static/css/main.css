@@ -547,10 +547,11 @@ body {
 
 
 /* ════════════════════════════════════════════════════════════
-   RESPONSIVE LAYOUT — Desktop fixed sidebar + Mobile offcanvas
+   RESPONSIVE LAYOUT
    ════════════════════════════════════════════════════════════ */
 
-/* ── Hamburger button — HIDDEN on desktop, shown on mobile ── */
+/* ── Hamburger: hidden on desktop ── */
+#mobile-nav-trigger,
 #sidebarToggle {
   display: none;
   background: none;
@@ -562,20 +563,22 @@ body {
   line-height: 1;
 }
 
-/* ── Sidebar overlay — only used on mobile ── */
+/* ── Sidebar overlay ── */
 #sidebarOverlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0,0,0,0.6);
   z-index: 1049;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
-
 #sidebarOverlay.show {
   display: block;
+  opacity: 1;
 }
 
-/* ── Sidebar close button — hidden on desktop ── */
+/* ── Sidebar close button: hidden on desktop ── */
 #sidebarClose {
   display: none;
   background: none;
@@ -588,7 +591,7 @@ body {
 }
 
 /* ══════════════════════════════════════
-   DESKTOP (>= 992px): Normal fixed sidebar
+   DESKTOP (>= 992px)
    ══════════════════════════════════════ */
 @media (min-width: 992px) {
   #sidebar {
@@ -597,7 +600,7 @@ body {
     top: 0;
     width: var(--sidebar-width);
     height: 100vh;
-    transform: translateX(0) !important;
+    transform: none !important;
   }
 
   #page-wrapper {
@@ -614,90 +617,84 @@ body {
     margin-right: var(--sidebar-width);
   }
 
-  #sidebarToggle {
-    display: none !important;
-  }
-
+  #mobile-nav-trigger,
+  #sidebarToggle,
   #sidebarClose {
     display: none !important;
   }
 }
 
 /* ══════════════════════════════════════
-   MOBILE (< 992px): Offcanvas sidebar
+   MOBILE (< 992px): offcanvas sidebar
    ══════════════════════════════════════ */
 @media (max-width: 991.98px) {
 
-  /* Sidebar slides off-screen via transform (consistent with Phase 2 open/close logic) */
+  /* Offcanvas sidebar */
   #sidebar {
     position: fixed;
     top: 0;
     left: 0;
-    width: 245px !important;
+    width: 260px !important;
     height: 100vh;
     z-index: 1050;
     transform: translateX(-100%);
     transition: transform 0.28s ease;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
   }
+  #sidebar.open { transform: translateX(0) !important; }
 
-  #sidebar.open {
-    transform: translateX(0) !important;
-  }
-
-  /* RTL mobile */
   [dir="rtl"] #sidebar {
     left: auto;
     right: 0;
     transform: translateX(100%);
-    transition: transform 0.28s ease;
   }
+  [dir="rtl"] #sidebar.open { transform: translateX(0) !important; }
 
-  [dir="rtl"] #sidebar.open {
-    transform: translateX(0) !important;
-  }
-
-  /* Page fills full width — no sidebar margin */
+  /* Full-width content, padded below fixed topbar */
   #page-wrapper {
     margin-left: 0 !important;
     margin-right: 0 !important;
+    width: 100% !important;
+    padding-top: 60px;
   }
 
-  /* Show hamburger — targets the actual HTML id used in index.html */
+  /* Fixed topbar */
+  #topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    z-index: 1030;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 12px !important;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* Show hamburger */
   #mobile-nav-trigger,
   #sidebarToggle {
     display: inline-flex !important;
     align-items: center;
   }
 
-  /* Show close button inside sidebar */
-  #sidebarClose {
-    display: inline-flex !important;
-  }
+  #sidebarClose { display: inline-flex !important; }
 
-  /* Sidebar labels always visible (it's full offcanvas) */
+  /* Always show sidebar labels (full offcanvas) */
   #sidebar .brand-text,
   #sidebar .nav-section-label,
   #sidebar .nav-group-label,
   #sidebar .nav-item span,
-  #sidebar .nav-item .nav-text {
-    display: block !important;
-  }
+  #sidebar .nav-item .nav-text { display: block !important; }
 
   #sidebar .nav-item {
     justify-content: flex-start !important;
     padding: 9px 12px !important;
   }
 
-  /* Tables scroll horizontally */
-  .table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .data-table {
-    min-width: 600px;
-  }
+  /* Main content padding */
+  #main-content { padding: 16px 12px 48px !important; }
 
   /* Page header stacks */
   .page-header {
@@ -705,703 +702,164 @@ body {
     align-items: flex-start;
     gap: 10px;
   }
+}
 
-  /* Topbar tighter */
-  #topbar {
-    padding: 0 12px;
-    gap: 8px;
-  }
+/* ══════════════════════════════════════
+   TABLES: horizontal scroll on all sizes
+   ══════════════════════════════════════ */
 
-  #main-content {
-    padding: 16px 12px 48px;
+/* Every table must sit inside .table-container */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  min-width: 540px; /* prevents squashing but still fits most desktop cols */
+}
+
+/* Kill the overflow:hidden on the card wrapper so the scroll works */
+.table-container ~ * { overflow: visible; }
+
+/* Small scrollbar on table containers */
+.table-container::-webkit-scrollbar { height: 4px; }
+.table-container::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+.table-container::-webkit-scrollbar-track { background: transparent; }
+
+/* ══════════════════════════════════════
+   GRID / KPI cards
+   ══════════════════════════════════════ */
+
+/* Keep 2-col grid until 480px, then stack */
+@media (max-width: 480px) {
+  #main-content .row > .col-6,
+  #main-content .row > .col-md-3,
+  #main-content .row > .col-md-4,
+  #main-content .row > .col-lg-3 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
   }
 }
 
 /* ══════════════════════════════════════
-   SMALL MOBILE (< 576px)
+   FORMS inside modals
    ══════════════════════════════════════ */
+
 @media (max-width: 575.98px) {
-  .page-title {
-    font-size: 18px;
-  }
+  .page-title { font-size: 18px; }
+  .kpi-value { font-size: 20px !important; }
+  .year-pill { padding: 4px 11px; font-size: 11.5px; }
 
-  .kpi-value {
-    font-size: 20px !important;
-  }
+  /* Modal full width */
+  .modal-dialog { margin: 8px; max-width: calc(100% - 16px) !important; }
 
-  .grand-total-value {
-    font-size: 24px;
-  }
-
-  .year-pills {
-    gap: 5px;
-  }
-
-  .year-pill {
-    padding: 4px 11px;
-    font-size: 11.5px;
-  }
-
-  .btn-primary-custom {
-    padding: 7px 12px;
-    font-size: 12.5px;
-  }
-
-  /* Modal full-width on tiny screens */
-  .modal-dialog {
-    margin: 8px;
-  }
-
-  .modal-body .col-sm-6,
-  .modal-body .col-sm-4,
-  .modal-body .col-sm-3 {
+  /* Stack modal form columns */
+  .modal-body .row > [class*="col-"] {
     width: 100% !important;
-    flex: 0 0 100%;
-  }
-}
-
-/* ════════════════════════════════════════════════════════════
-   EXPENSE PAGE STYLES
-   ════════════════════════════════════════════════════════════ */
-
-.expense-filters {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 14px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-}
-
-.expense-filters .form-select,
-.expense-filters .form-control {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 13px;
-  padding: 5px 10px;
-  border-radius: var(--radius-sm);
-}
-
-.expense-filters .form-select:focus,
-.expense-filters .form-control:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-glow);
-  outline: none;
-}
-
-/* Category badge pill */
-.cat-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: 11.5px;
-  font-weight: 700;
-}
-
-/* ════════════════════════════════════════════════════════════
-   REPORT PAGE STYLES
-   ════════════════════════════════════════════════════════════ */
-
-.report-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 14px 0;
-}
-
-.report-controls .form-select,
-.report-controls .form-control {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 13px;
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
-  min-width: 130px;
-}
-
-.report-controls .form-select:focus,
-.report-controls .form-control:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-glow);
-  outline: none;
-}
-
-/* ════════════════════════════════════════════════════════════
-   NAVIGATION — Grouped nav items
-   ════════════════════════════════════════════════════════════ */
-
-.nav-group-label {
-  padding: 10px 16px 3px;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-
-.nav-item.nav-sub {
-  padding-left: 30px;
-  font-size: 13px;
-}
-
-.nav-item.nav-sub .nav-dot {
-  width: 5px;
-  height: 5px;
-}
-
-/* Close button for mobile sidebar overlay */
-#sidebarClose {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px;
-  margin-left: auto;
-}
-
-/* sidebarClose mobile handled in main responsive block */
-
-/* ════════════════════════════════════════════════════════════
-   PHASE 2: SIDEBAR OVERLAY & TOPBAR (MOBILE)
-   ════════════════════════════════════════════════════════════ */
-
-@media (max-width: 991.98px) {
-
-  /* Page wrapper: full width, offset for fixed topbar */
-  #page-wrapper {
-    margin-left: 0 !important;
-    width: 100% !important;
-    padding-top: 60px;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
   }
 
-  /* Overlay shown when sidebar is open */
-  #sidebarOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(4, 6, 14, 0.75);
-    backdrop-filter: blur(3px);
-    z-index: 1040 !important;
-    display: none;
-    opacity: 0;
-    transition: opacity 0.3s linear;
+  /* Prevent iOS zoom on input focus */
+  .modal-body .form-control,
+  .modal-body .form-select {
+    font-size: 16px !important;
+    min-height: 44px !important;
   }
 
-  #sidebarOverlay.show {
-    display: block !important;
-    opacity: 1 !important;
+  /* Stack modal footer buttons */
+  .modal-footer {
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
   }
+  .modal-footer .btn { width: 100% !important; }
 
-  /* Fixed topbar on mobile */
-  #topbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    z-index: 1030;
-    display: flex !important;
-    align-items: center;
-    padding: 0 15px !important;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
+  /* Toast full width */
+  #toast-container {
+    left: 12px !important; right: 12px !important;
+    bottom: 12px !important; width: auto !important;
   }
+  .toast { width: 100% !important; }
 }
 
-/* ════════════════════════════════════════════════════════════
-   PHASE 3: DATA TABLE RESPONSIVENESS
-   ════════════════════════════════════════════════════════════ */
-
-/* Global table base */
-#main-content table {
-  width: 100%;
-  margin-bottom: 1rem;
-  vertical-align: top;
-}
-
-@media (max-width: 1024px) {
-
-  /* Prevent table cells from wrapping awkwardly */
-  #main-content th,
-  #main-content td {
-    white-space: nowrap;
-    padding: 10px 12px !important;
-    font-size: 13px !important;
-  }
-
-  /* Scoped scroll wrapper — only actual table containers, not cards or chart wrappers */
-  .table-container,
-  .table-responsive,
-  #main-content .table-parent {
-    overflow-x: auto !important;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    position: relative;
-  }
-
-  /* Subtle scroll-fade hint on table containers */
-  .table-container::after,
-  .table-responsive::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 15px;
-    background: linear-gradient(to left, rgba(13, 21, 48, 0.4), rgba(13, 21, 48, 0));
-    pointer-events: none;
-  }
-}
-
-/* ════════════════════════════════════════════════════════════
-   PHASE 4: FORMS RESPONSIVENESS
-   ════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════
+   EXPENSE / REPORT filter bars
+   ══════════════════════════════════════ */
 
 @media (max-width: 768px) {
-
-  /* Transition multi-column form grids into fluid stacking single-column layouts */
-  #main-content form .row>[class*="col-"] {
-    width: 100% !important;
-    max-width: 100% !important;
-    flex: 0 0 100% !important;
-    margin-bottom: 15px;
+  .expense-filters,
+  .report-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
-
-  /* Optimize input controls, text fields, and select dropdown heights for touch interactions */
-  #main-content .form-control,
-  #main-content .form-select {
-    min-height: 44px !important;
-    /* Enforces mobile minimum touch targets */
-    font-size: 16px !important;
-    /* Prevents iOS Safari from automatically zooming in on focus */
-    padding: 10px 14px !important;
-  }
-
-  /* Standardize spacing around form groups and descriptive field labels */
-  #main-content form label {
-    margin-bottom: 6px !important;
-    font-size: 13px !important;
-  }
-
-  /* Make action buttons within form panels easier to tap on mobile devices */
-  #main-content form .btn,
-  #main-content .form-actions .btn {
-    width: 100% !important;
-    min-height: 44px !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-    font-size: 15px !important;
-  }
-
-  /* Arrange grouped form actions inline or in a block when stacked */
-  #main-content form .btn-group,
-  #main-content .form-actions {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    gap: 0;
-  }
-
-  /* Ensure report and data control filter panels wrap nicely on mobile viewports */
-  .report-controls,
-  .filter-bar {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
-  }
-
+  .expense-filters .form-select,
+  .expense-filters .form-control,
   .report-controls .form-select,
   .report-controls .form-control {
     width: 100% !important;
-    min-width: 100% !important;
+    font-size: 16px !important; /* prevent iOS zoom */
+    min-height: 44px !important;
   }
 }
 
-/* ════════════════════════════════════════════════════════════
-   PHASE 5: DASHBOARD RESPONSIVENESS
-   ════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════
+   CHARTS
+   ══════════════════════════════════════ */
 
-@media (max-width: 991.98px) {
-
-  /* Provide comfortable breathing room around the main viewport layout */
-  #main-content {
-    padding: 15px !important;
-  }
-
-  /* Target Bootstrap and custom card grid layouts to break down on tablets/mobiles */
-  #main-content .row {
-    margin-left: -8px !important;
-    margin-right: -8px !important;
-    gap: 0;
-  }
-
-  #main-content .row>[class*="col-"] {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-    margin-bottom: 16px !important;
-  }
-}
-
-@media (max-width: 768px) {
-
-  /* Re-grid metrics grids to show 2 cards per line on typical tablet sizes */
-  #main-content .row>.col-xl-3,
-  #main-content .row>.col-md-6,
-  #main-content .row>.col-6 {
-    width: 50% !important;
-    flex: 0 0 50% !important;
-    max-width: 50% !important;
-  }
-
-  /* Optimize layout metrics inside individual metric summary cards */
-  .stat-card,
-  .metric-card,
-  #main-content .card-body {
-    padding: 14px !important;
-  }
-
-  /* Ensure text headings scale well without clipping or line-wrapping overlaps */
-  .stat-card h3,
-  .metric-card .card-title,
-  #main-content h2 {
-    font-size: 1.1rem !important;
-    line-height: 1.3;
-  }
-
-  .stat-card p,
-  .metric-card .value {
-    font-size: 1.4rem !important;
-    font-weight: 700;
-  }
-}
-
-@media (max-width: 480px) {
-
-  /* Force metric cards to stack completely into 1 single column on compact mobile screens */
-  #main-content .row>.col-xl-3,
-  #main-content .row>.col-md-6,
-  #main-content .row>.col-6,
-  #main-content .row>[class*="col-"] {
-    width: 100% !important;
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-  }
-
-  /* Optimize top header action rows to stack cleanly */
-  .dashboard-header,
-  .page-header-actions {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
-    margin-bottom: 20px !important;
-  }
-}
-
-/* ════════════════════════════════════════════════════════════
-   PHASE 6: CHARTS RESPONSIVENESS
-   ════════════════════════════════════════════════════════════ */
-
-/* Chart containers: let chart.js control height via its own responsive logic */
 .chart-container {
   position: relative;
   width: 100%;
   margin-bottom: 20px;
 }
 
-/* Canvas wrapper sizing — only explicit chart-container class, not all div:has(canvas) */
 @media (max-width: 768px) {
-  .chart-container {
-    min-height: 260px;
-  }
+  .chart-container { min-height: 260px; }
+  #salaryChart { min-height: 300px !important; }
 }
 
-@media (max-width: 400px) {
-  .chart-container {
-    min-height: 220px;
-  }
-}
+/* ══════════════════════════════════════
+   GLOBAL OVERFLOW GUARD
+   ══════════════════════════════════════ */
 
-/* ════════════════════════════════════════════════════════════
-   PHASE 7: MODAL RESPONSIVENESS
-   ════════════════════════════════════════════════════════════ */
+html { overflow-x: hidden; }
+body { overflow-x: hidden; }
 
-@media (max-width: 768px) {
-
-  /* Expand the main modal overlay window safely to avoid edge clipping */
-  #modal-container .modal-dialog,
-  .custom-modal-dialog,
-  #app+.modal .modal-dialog {
-    max-width: calc(100% - 24px) !important;
-    margin: 12px auto !important;
-  }
-
-  /* Optimize modal body inner spaces for small device viewports */
-  #modal-container .modal-content,
-  .custom-modal-content {
-    padding: 16px !important;
-    border-radius: var(--radius-md, 8px) !important;
-    background: var(--bg-secondary) !important;
-  }
-
-  /* Make header close icons and titles easy to read and touch */
-  #modal-container .modal-header,
-  .custom-modal-header {
-    padding-bottom: 12px !important;
-    margin-bottom: 16px !important;
-  }
-
-  /* Ensure long forms inside modals scroll safely vertically if they exceed viewport heights */
-  #modal-container .modal-body,
-  .custom-modal-body {
-    max-height: calc(100vh - 140px) !important;
-    overflow-y: auto !important;
-    padding: 0 !important;
-  }
-
-  /* Scale footer action buttons to stack elegantly at the bottom of the form context */
-  #modal-container .modal-footer,
-  .custom-modal-footer {
-    padding-top: 16px !important;
-    margin-top: 16px !important;
-    display: flex !important;
-    flex-direction: column-reverse !important;
-    /* Puts the primary 'Save' button above the 'Cancel' button */
-    gap: 10px !important;
-  }
-
-  #modal-container .modal-footer .btn,
-  .custom-modal-footer .btn {
-    width: 100% !important;
-    margin: 0 !important;
-    /* Strips Bootstrap default margin gaps */
-  }
-}
-
-/* ════════════════════════════════════════════════════════════
-   PHASE 8: MOBILE NAVIGATION IMPROVEMENTS
-   ════════════════════════════════════════════════════════════ */
-
-@media (max-width: 991.98px) {
-
-  /* Enforce structural container bounds on the sticky topbar navigation link band */
-  #topbar {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    gap: 12px;
-  }
-
-  /* Wrap page title typography blocks securely inside the top utility header line */
-  #topbar .page-title,
-  #topbar h1,
-  #topbar h4 {
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    margin: 0 !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex-grow: 1;
-    color: var(--text-primary);
-  }
-
-  /* Organize utility profile controls and buttons symmetrically inside the top layout bar */
-  #topbar .user-profile,
-  #topbar .header-right {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-  }
-
-  /* Ensure button icons match minimum touch requirements without breaking bar layouts */
-  #topbar .btn-icon,
-  #topbar .profile-trigger {
-    width: 38px !important;
-    height: 38px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
-  }
-
-  /* Optimize operational sub-header sections across individual workspace view models */
-  .section-header,
-  .view-title-container {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 10px !important;
-    padding-bottom: 12px !important;
-    margin-bottom: 16px !important;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  /* Expand quick data filtering panels to fill full screen widths on small viewports */
-  .view-title-container .actions-wrapper,
-  .section-header .btn-group {
-    width: 100% !important;
-    display: flex !important;
-    gap: 8px !important;
-  }
-
-  .view-title-container .actions-wrapper .btn,
-  .section-header .btn-group .btn {
-    flex: 1 1 auto !important;
-    min-height: 40px !important;
-    font-size: 13px !important;
-  }
-}
-
-/* ════════════════════════════════════════════════════════════
-   PHASE 9: FINAL CSS CLEANUP & OPTIMIZATION
-   ════════════════════════════════════════════════════════════ */
-
-/* Global smoothness and layout overflow safeguards */
-html,
-body {
-  overflow-x: hidden !important;
-  /* Locks structural layout horizontally */
-  scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent;
-  /* Removes blue tap highlight on mobile safari */
-}
-
-/* Optimize scrollbar footprints on mobile browsers inside tables */
-@media (max-width: 1024px) {
-  ::-webkit-scrollbar {
-    height: 5px !important;
-    width: 5px !important;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--border-color) !important;
-    border-radius: 10px !important;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent !important;
-  }
-}
-
-@media (max-width: 576px) {
-
-  /* Prevent large dynamic card values from breaking container boxes */
-  .stat-card p,
-  .metric-card .value,
-  .balance-amount {
-    font-size: 1.25rem !important;
-    word-break: break-all !important;
-    white-space: normal !important;
-  }
-
-  /* Safe interactive margins around action groupings */
-  .btn,
-  .form-control,
-  .form-select {
-    margin-top: 2px !important;
-    margin-bottom: 2px !important;
-  }
-
-  /* Optimize modal and toast alert positioning for mobile viewports */
-  #toast-container {
-    left: 12px !important;
-    right: 12px !important;
-    bottom: 12px !important;
-    width: auto !important;
-  }
-
-  .toast {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  /* Ensure profile pictures or avatar circles scale cleanly in responsive rows */
-  .avatar-circle,
-  img[class*="profile"],
-  img[class*="avatar"] {
-    width: 34px !important;
-    height: 34px !important;
-    object-fit: cover;
-  }
-}
-
-/* Hardware acceleration boost to prevent animation stuttering on older mobile viewports */
-#sidebar,
-#sidebarOverlay {
+/* Hardware acceleration for sidebar animation */
+#sidebar, #sidebarOverlay {
   backface-visibility: hidden;
-  perspective: 1000px;
   will-change: transform, opacity;
 }
 
-
-/* ════════════════════════════════════════════════════════════
-   FIXED DASHBOARD CHART RESPONSIEVNESS (OPTION B)
-   ════════════════════════════════════════════════════════════ */
-
-@media (max-width: 768px) {
-
-  /* Target any column bars/flex metrics grids on the dashboard view */
-  #main-content div[style*="height"] {
-    overflow: visible !important;
-  }
-
-  #salaryChart {
-    min-height: 450px !important;
-  }
-
-  .dashboard-chart-card {
-    min-height: 400px;
-  }
-
-  /* Extra breathing room below chart cards for axis labels */
-  #main-content .card:has(canvas) {
-    padding-bottom: 20px;
-  }
-}
-/* RTL rules are defined in the desktop and mobile blocks above */
+/* ══════════════════════════════════════
+   SETTINGS: translation table
+   ══════════════════════════════════════ */
 
 .translation-table-wrapper {
-    overflow-x: auto;
-    overflow-y: auto;
-    max-width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-width: 100%;
 }
 
 .translation-table {
-    min-width: max-content;
-    border-collapse: collapse;
+  min-width: max-content;
+  border-collapse: collapse;
 }
 
 .translation-table th:first-child,
 .translation-table td:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    background: var(--bg-secondary);
-    min-width: 120px;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--bg-secondary);
+  min-width: 120px;
 }
 
-.translation-table thead th:first-child {
-    z-index: 3;
-}
-
-.translation-table th {
-    white-space: nowrap;
-}
-
-.translation-table td {
-    white-space: nowrap;
-}
+.translation-table thead th:first-child { z-index: 3; }
+.translation-table th,
+.translation-table td { white-space: nowrap; }

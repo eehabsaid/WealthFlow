@@ -85,7 +85,7 @@ async function renderLanguageSettings() {
             <i class="bi bi-plus-lg"></i> Add Language
           </button>
     </div>
-    <div style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; overflow:hidden">
+    <div style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; overflow:visible">
         <table class="data-table" style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr>
@@ -289,7 +289,8 @@ async function renderCurrencySettings() {
                 <i class="bi bi-plus-lg"></i> Add Currency
             </button>
         </div>
-        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
+            <div class="table-container">
             <table class="data-table">
                 <thead><tr>
                     <th data-i18n="currency_flag">Flag</th>
@@ -301,6 +302,7 @@ async function renderCurrencySettings() {
                 </tr></thead>
                 <tbody>${rows}</tbody>
             </table>
+        </div>
         </div>
         <div style="margin-top:14px;font-size:13px;color:var(--text-secondary)" data-i18n="currency_settings_desc">
             Manage currency codes, symbols, and flags that appear in the Balance page.
@@ -411,7 +413,8 @@ async function renderCompanySettings() {
                 <i class="bi bi-plus-lg"></i> Add Company
             </button>
         </div>
-        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
+            <div class="table-container">
             <table class="data-table">
                 <thead><tr>
                     <th data-i18n="company_name">Name</th>
@@ -424,6 +427,7 @@ async function renderCompanySettings() {
                 </tr></thead>
                 <tbody>${rows}</tbody>
             </table>
+        </div>
         </div>`;
   applyTranslations();
 }
@@ -540,7 +544,8 @@ async function renderBankSettings() {
             <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_banks">Banks</div>
             <button class="btn-primary-custom" data-i18n="btn_add" onclick="showBankModal(null)"><i class="bi bi-plus-lg"></i> Add Bank</button>
         </div>
-        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
+            <div class="table-container">
             <table class="data-table">
                 <thead><tr>
                     <th data-i18n="bank_name">Name</th>
@@ -551,6 +556,7 @@ async function renderBankSettings() {
                 </tr></thead>
                 <tbody>${rows}</tbody>
             </table>
+        </div>
         </div>`;
   applyTranslations();
 }
@@ -675,7 +681,8 @@ async function loadUsers({ page = 1, pageSize = 10, q = "" } = {}) {
             </div>
             <div><button class="btn-primary-custom" onclick="applyBulkAction()" data-i18n="btn_apply">Apply</button></div>
         </div>
-        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
+            <div class="table-container">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -690,6 +697,7 @@ async function loadUsers({ page = 1, pageSize = 10, q = "" } = {}) {
                 </thead>
                 <tbody id="usersTableBody"></tbody>
             </table>
+        </div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
             <div id="usersPager"></div>

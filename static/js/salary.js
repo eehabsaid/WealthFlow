@@ -44,7 +44,8 @@ const rows = data.companies
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;margin-bottom:24px">
             <canvas id="salaryChart" height="80"></canvas>
         </div>
-        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
+            <div class="table-container">
             <table class="data-table">
                 <thead><tr>
                     <th data-i18n="company">Company</th>
@@ -63,6 +64,7 @@ const rows = data.companies
                     <td class="text-end">${fmt(sumRemaining)}</td>
                 </tr></tfoot>
             </table>
+        </div>
         </div>`;
         applyTranslations();
         drawDashboardChart(data.companies);
@@ -241,7 +243,8 @@ function renderSalaryTable(allEntries, year, companyId) {
     .join("");
 
   area.innerHTML = `
-        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
+            <div class="table-container">
             <table class="data-table">
                 <thead><tr>
                     <th data-i18n="salary_month">Month</th>
@@ -261,6 +264,7 @@ function renderSalaryTable(allEntries, year, companyId) {
                     <td></td>
                 </tr></tfoot>
             </table>
+        </div>
         </div>`;
   applyTranslations();
 }

@@ -35,7 +35,8 @@ async function renderBankCertificates() {
         <div class="page-header">
             <div><div class="page-title">Bank Certificates</div></div>
         </div>
-        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
+            <div class="table-container">
             <table class="data-table">
                 <thead><tr>
                         <th>Bank</th>
@@ -51,6 +52,7 @@ async function renderBankCertificates() {
                 </tr></thead>
                 <tbody>${rows}</tbody>
             </table>
+        </div>
         </div>`;
     applyTranslations();
 }
