@@ -99,13 +99,13 @@ YEAR_ROW_HT = 22.8   # all other year heading rows
 
 # Freeze pane per company (original)
 SALARY_FREEZE = {
-    'NTG':                  'A48',
-    'Giza Systems':         'A36',
-    'Giza Systems (2)':     'A52',
-    'ElSeweedy Technology': 'A2',
-    'Dedalus':              'A2',
-    'Globemed':             'A2',
-    'Giza Systems (3)':     'A2',
+    'NTG':                  'A5',   # freeze header+title rows only, data scrolls
+    'Giza Systems':         'A5',
+    'Giza Systems (2)':     'A5',
+    'ElSeweedy Technology': 'A5',
+    'Dedalus':              'A5',
+    'Globemed':             'A5',
+    'Giza Systems (3)':     'A5',
 }
 
 def _apply_data_row(ws, row, has_bonus=False):
@@ -346,7 +346,7 @@ def build_salary_sheet(ws, company, entries):
         for c in range(1, cols+1):
             sc = ws.cell(row=sr, column=c)
             sc.fill = FILL_BLACK
-            sc.font = Font(bold=True, size=11, name='Arial')
+            sc.font = Font(bold=True, size=11, name='Arial', color='FFFFFFFF')
             sc.border = _thin()
 
         ws.cell(row=sr, column=1, value=label)
@@ -647,10 +647,17 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
     tpr = excel_row + 3
     tmr = tpr + 1
 
+    # Companies that store bonus separately in col F
+    BONUS_COMPANIES = {'ElSeweedy Technology', 'Giza Systems (3)'}
+
     pay_parts, month_parts = [], []
     for cname, (sname, srow) in company_sheet_rows.items():
         ref = f"'{sname}'!{{c}}{srow}" if ' ' in sname else f"{sname}!{{c}}{srow}"
-        pay_parts.append(ref.format(c='D'))
+        if cname in BONUS_COMPANIES:
+            # Total pays = salary (D) + bonus (F)
+            pay_parts.append(f"({ref.format(c='D')}+{ref.format(c='F')})")
+        else:
+            pay_parts.append(ref.format(c='D'))
         month_parts.append(ref.format(c='B'))
 
     ws.cell(row=tpr,column=1,value='Total Pays').font = _f(bold=True,name='Arial')
