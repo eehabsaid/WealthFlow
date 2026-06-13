@@ -787,18 +787,77 @@ body {
   .toast { width: 100% !important; }
 }
 
-/* ══════════════════════════════════════
-   EXPENSE / REPORT filter bars
-   ══════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════
+   EXPENSE PAGE STYLES
+   ════════════════════════════════════════════════════════════ */
 
-/* Base: always a horizontal flex row */
-.expense-filters,
+.expense-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.expense-filters .form-select,
+.expense-filters .form-control {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.expense-filters .form-select:focus,
+.expense-filters .form-control:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+  outline: none;
+}
+
+/* Category badge pill */
+.cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+/* ════════════════════════════════════════════════════════════
+   REPORT PAGE STYLES
+   ════════════════════════════════════════════════════════════ */
+
 .report-controls {
   display: flex;
-  flex-direction: row;
   align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
-  gap: 8px;
+  padding: 14px 0;
+}
+
+.report-controls .form-select,
+.report-controls .form-control {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  min-width: 130px;
+}
+
+.report-controls .form-select:focus,
+.report-controls .form-control:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+  outline: none;
 }
 
 /* Mobile only: stack vertically */
@@ -807,7 +866,6 @@ body {
   .report-controls {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
   }
   .expense-filters .form-select,
   .expense-filters .form-control,
