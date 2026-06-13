@@ -487,12 +487,77 @@ body {
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
+  white-space: nowrap;         /* prevent tab labels from wrapping */
+  flex-shrink: 0;              /* don't squish tabs */
   transition: all .15s;
 }
 
 .settings-tab.active {
   color: var(--accent-primary);
   border-bottom-color: var(--accent-primary);
+}
+
+/* Tabs bar: scrollable on mobile */
+.settings-tab ~ .settings-tab,
+.settings-tab:first-of-type {
+  /* rules applied via parent below */
+}
+
+/* The inline div wrapping all .settings-tab buttons gets scroll on mobile */
+@media (max-width: 991.98px) {
+
+  /* ── 1. Tabs bar — horizontal scroll ── */
+  #main-content > div[style*="border-bottom"][style*="display:flex"],
+  #settingsContainer > div[style*="border-bottom"],
+  div:has(> .settings-tab) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    padding-bottom: 2px; /* avoid clipping active underline */
+    /* hide scrollbar visually but keep scroll functional */
+    scrollbar-width: none;
+  }
+  div:has(> .settings-tab)::-webkit-scrollbar { display: none; }
+
+  /* ── 2. Users header — wrap on mobile ── */
+  #settingsContent > div[style*="justify-content:space-between"] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  #settingsContent > div[style*="justify-content:space-between"] > div[style*="display:flex"] {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  /* Remove fixed widths from search inputs inside settings on mobile */
+  #settingsContent #userSearch,
+  #settingsContent #translationSearch {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  /* Bulk actions row — wrap */
+  #settingsContent > div[style*="display:flex"][style*="gap:8px"] {
+    flex-wrap: wrap !important;
+  }
+  #settingsContent #bulkActionSelect {
+    width: auto !important;
+    flex: 1 !important;
+    min-width: 140px !important;
+  }
+
+  /* ── 3. Translations header — wrap on mobile ── */
+  #settingsContent > div[style*="width:100%"][style*="justify-content:space-between"] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  #settingsContent > div[style*="width:100%"] > div[style*="display:flex"] {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
 }
 
 /* ── Toast ── */
