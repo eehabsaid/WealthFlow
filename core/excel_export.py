@@ -134,199 +134,253 @@ def _apply_total_row(ws, row, has_bonus=False):
             cell.number_format = FMT_EGP
 
 def build_salary_sheet(ws, company, entries):
+    """Exact replica of original salary sheet styling using theme RGB values."""
     name = company.name
     has_bonus = (name == 'Giza Systems (3)')
     cols = 6 if has_bonus else 5
-    span = f'A:{"F" if has_bonus else "E"}'
-    merge_span = f'A2:{"F" if has_bonus else "E"}3'
+    last_col = 'F' if has_bonus else 'E'
 
-    # ── Row heights ──
+    # ── Theme RGB fills (from original Balance.xlsx theme1.xml) ──────────────
+    FILL_WHITE     = _fill('FFFFFFFF')  # theme 1 lt1  — Salary Details row
+    FILL_DARK_BLUE = _fill('FF1F497D')  # theme 2 dk2  — headers, year hdg, total rows
+    FILL_RED_DATA  = _fill('FFC0504D')  # theme 5 acc2 — data rows
+    FILL_BLACK     = _fill('FF000000')  # theme 0 dk1  — SUMMARY/grand total row
+
+    # ── Font colors ───────────────────────────────────────────────────────────
+    GREY    = 'FF7F7F7F'  # header col labels
+    RED_TTL = 'FFFF0000'  # "Salary Details" title
+    WHITE   = 'FFFFFFFF'  # bold on dark backgrounds
+    CREAM   = 'FFEEECE1'  # year heading font (theme 3 lt2)
+
+    # ── Row heights ───────────────────────────────────────────────────────────
     ws.row_dimensions[1].height = 14.25
     ws.row_dimensions[2].height = 14.25
     ws.row_dimensions[3].height = 20.25
-    ws.row_dimensions[4].height = 22.8
 
-    # ── Column widths ──
+    # ── Column widths ─────────────────────────────────────────────────────────
     widths = SALARY_COL_WIDTHS.get(name, {'A':13.7,'B':15.3,'C':16.0,'D':15.7,'E':14.3})
     for col, w in widths.items():
         ws.column_dimensions[col].width = w
 
-    # ── Freeze pane ──
+    # ── Freeze pane ───────────────────────────────────────────────────────────
     fp = SALARY_FREEZE.get(name)
     if fp:
         ws.freeze_panes = fp
 
-    # ── Row 1: column headers ──
-    hdrs = ['Year','Month','Expected','Paid (Salary + Bonus)' if has_bonus else 'Paid','Remaining']
-    if has_bonus: hdrs.append('Bonus')
+    # ── Row 1: column headers ─────────────────────────────────────────────────
+    # GS3: bold+italic, white text, dark blue fill
+    # Others: not bold, italic, grey text, dark blue fill
+    hdrs = ['Year','Month','Expected',
+            'Paid (Salary + Bonus)' if has_bonus else 'Paid',
+            'Remaining']
+    if has_bonus:
+        hdrs.append('Bonus')
+
     for c, h in enumerate(hdrs, 1):
         cell = ws.cell(row=1, column=c, value=h)
-        cell.font = _f(bold=has_bonus, color=None if has_bonus else GREY, name='Arial')
+        if has_bonus:
+            cell.font = Font(bold=True, italic=True, size=11, name='Arial')
+        else:
+            cell.font = Font(bold=False, italic=True, size=11, name='Arial',
+                             color=GREY)
+        cell.fill = FILL_DARK_BLUE
+        cell.alignment = _align('center')
         cell.border = _thin()
-        cell.alignment = _center()
 
-    # ── Rows 2-3: " Salary Details" merged ──
-    ws.merge_cells(merge_span)
+    # ── Rows 2-3: "Salary Details" merged, white bg, red bold text ───────────
+    ws.merge_cells(f'A2:{last_col}3')
     c2 = ws.cell(row=2, column=1, value=' Salary Details')
-    c2.font = _f(bold=True, size=18, color=RED, name='Times New Roman')
-    c2.alignment = _center()
-    c2.border = Border(bottom=Side(style='thin')) if not has_bonus else Border(top=Side(style='thin'))
+    c2.font = Font(bold=True, size=18, name='Times New Roman', color=RED_TTL)
+    c2.fill = FILL_WHITE
+    c2.alignment = _align('center')
+    if has_bonus:
+        c2.border = Border(top=Side(style='thin'))
+    else:
+        c2.border = Border(bottom=Side(style='thin'))
 
-    # ── Data ──
+    # ── Data ──────────────────────────────────────────────────────────────────
     row = 4
     total_rows = []
     sorted_entries = sorted(entries, key=lambda e: (e.year, _msort(str(e.month))))
 
-    year_rows = []  # track year heading rows for height setting
     for year, ygrp in groupby(sorted_entries, key=lambda e: e.year):
         year_entries = list(ygrp)
 
-        # Year heading row — merged, bold sz18, Times New Roman, borders t+b
+        # Year heading: merged, bold sz18, Times NR, cream font, dark blue fill
         yr_row = row
-        year_rows.append(yr_row)
         ws.row_dimensions[yr_row].height = YEAR_ROW_HT
-        yr_merge = f'A{yr_row}:{"F" if has_bonus else "E"}{yr_row}'
+        yr_merge = f'A{yr_row}:{last_col}{yr_row}'
         try:
             ws.merge_cells(yr_merge)
         except Exception:
-            pass  # already merged
-        yc = ws.cell(row=yr_row, column=1, value=str(year))
-        yc.font = _f(bold=True, size=18, name='Times New Roman')
-        yc.alignment = _center()
-        # GS3 year rows have NO border (original), others have t+b thin
-        if not has_bonus:
+            pass
+        yc = ws.cell(row=yr_row, column=1, value=int(year))
+        yc.font = Font(bold=True, size=18, name='Times New Roman')
+        yc.fill = FILL_DARK_BLUE
+        yc.alignment = _align('center')
+        # NTG and multi-year sheets: top+bottom border; GS3: no border
+        if has_bonus:
+            yc.border = Border()
+        else:
             yc.border = Border(top=Side(style='thin'), bottom=Side(style='thin'))
         row += 1
 
         data_start = row
         for entry in year_entries:
-            ws.cell(row=row, column=1, value=entry.year)
+            # Data rows: red (accent2) fill, theme color 0 (dark/auto) font
+            for c in range(1, cols+1):
+                ws.cell(row=row, column=c).fill = FILL_RED_DATA
+                ws.cell(row=row, column=c).font = Font(size=11, name='Arial')
+                ws.cell(row=row, column=c).border = _thin()
+
+            ws.cell(row=row, column=1, value=int(entry.year))
             ws.cell(row=row, column=2, value=str(entry.month))
             ws.cell(row=row, column=3, value=float(entry.expected))
+            ws.cell(row=row, column=3).number_format = FMT_EGP
             ws.cell(row=row, column=4, value=float(entry.paid))
-            # Remaining formula varies by sheet (exact from original)
+            ws.cell(row=row, column=4).number_format = FMT_EGP
+
+            # Remaining formula per company
             if name in ('NTG', 'Giza Systems', 'Giza Systems (2)'):
                 rem = f'=D{row}-C{row}'
-            elif name == 'Giza Systems (3)':
-                rem = f'=IF(C{row}>D{row},C{row}-D{row},0)'
             else:
                 rem = f'=IF(C{row}>D{row},C{row}-D{row},0)'
             ws.cell(row=row, column=5, value=rem)
+            ws.cell(row=row, column=5).number_format = FMT_EGP
+
             if has_bonus:
-                ws.cell(row=row, column=6, value=float(getattr(entry, 'bonus', 0) or 0))
-            _apply_data_row(ws, row, has_bonus)
+                bonus_val = float(getattr(entry, 'bonus', 0) or 0)
+                ws.cell(row=row, column=6, value=bonus_val)
+                ws.cell(row=row, column=6).number_format = FMT_EGP
             row += 1
 
         data_end = row - 1
 
-        # Total row
+        # ── Annual Total row: dark blue fill, white bold font, center ─────────
         paid_count = sum(1 for e in year_entries if float(e.paid) > 0)
+
+        for c in range(1, cols+1):
+            tc = ws.cell(row=row, column=c)
+            tc.fill = FILL_DARK_BLUE
+            tc.font = Font(bold=True, size=11, name='Arial')
+            tc.alignment = _align('center')
+            tc.border = _thin()
+
         ws.cell(row=row, column=1, value='Total')
-        # B col: NTG first year uses plain count; others use COUNTIF on D col
+        # B col: NTG first year plain count; GS3/GS/GS2+ use COUNTIF on D
         if name == 'NTG' and len(total_rows) == 0:
             ws.cell(row=row, column=2, value=paid_count)
         else:
             ws.cell(row=row, column=2,
                     value=f'=COUNTIF(D{data_start}:D{data_end}, "<> 0.00")')
         ws.cell(row=row, column=3, value=f'=SUM(C{data_start}:C{data_end})')
+        ws.cell(row=row, column=3).number_format = FMT_EGP
         ws.cell(row=row, column=4, value=f'=SUM(D{data_start}:D{data_end})')
-        # E col formula varies
+        ws.cell(row=row, column=4).number_format = FMT_EGP
+
+        # E col: NTG uses D-C; GS uses SUM(E:E); GS3 uses SUM(E:E)
         if name == 'NTG':
             ws.cell(row=row, column=5, value=f'=D{row}-C{row}')
         else:
             ws.cell(row=row, column=5, value=f'=SUM(E{data_start}:E{data_end})')
-        # E col on total row: not bold, no alignment (original)
-        # (applied again after _apply_total_row below)
+        ws.cell(row=row, column=5).number_format = FMT_EGP
+        # E col on total: NOT bold (original shows this)
+        ws.cell(row=row, column=5).font = Font(size=11, name='Arial')
+        ws.cell(row=row, column=5).fill = FILL_RED_DATA  # data color per original
+
         if has_bonus:
             ws.cell(row=row, column=6, value=f'=IF(D{row}>C{row},D{row}-C{row},0)')
-        _apply_total_row(ws, row, has_bonus)
-        # E col: not bold, no alignment override (original)
-        ws.cell(row=row, column=5).font = _f(bold=False, name='Arial')
-        ws.cell(row=row, column=5).alignment = Alignment()
-        # B col integer format
-        ws.cell(row=row, column=2).number_format = 'General'
+            ws.cell(row=row, column=6).number_format = FMT_EGP
+
         total_rows.append(row)
         row += 1
 
-    # Grand summary row
+    # ── Grand summary / outer Total row ──────────────────────────────────────
     sr = row
-    # Label
-    if name == 'NTG':
-        label = 'SUMMARY'
-    elif name in ('Giza Systems', 'Giza Systems (2)'):
-        label = 'Summary' if name == 'Giza Systems' else 'Total'
-    else:
-        label = 'Total'
 
-    ws.cell(row=sr, column=1, value=label)
-    b_ref = '+'.join(f'B{r}' for r in total_rows)
-    ws.cell(row=sr, column=2, value=f'={b_ref}')
-    ws.cell(row=sr, column=2).number_format = FMT_INT
-    c_ref = '+'.join(f'C{r}' for r in total_rows)
-    ws.cell(row=sr, column=3, value=f'={c_ref}')
-    ws.cell(row=sr, column=3).number_format = FMT_EGP
-    # NTG SUMMARY C col skips first total (original: =C23+C37+C51+C60)
-    if name == 'NTG':
-        c_ref2 = '+'.join(f'C{r}' for r in total_rows[1:])
-        ws.cell(row=sr, column=3, value=f'={c_ref2}')
-        d_ref2 = '+'.join(f'D{r}' for r in total_rows[1:])
-        ws.cell(row=sr, column=4, value=f'={d_ref2}')
-    else:
-        d_ref = '+'.join(f'D{r}' for r in total_rows)
-        ws.cell(row=sr, column=4, value=f'={d_ref}')
-    ws.cell(row=sr, column=4).number_format = FMT_EGP
-    ws.cell(row=sr, column=5, value=f'=D{sr}-C{sr}')
-    ws.cell(row=sr, column=5).number_format = FMT_EGP
-    if has_bonus:
-        f_ref = '+'.join(f'F{r}' for r in total_rows)
-        ws.cell(row=sr, column=6, value=f'={f_ref}')
-        ws.cell(row=sr, column=6).number_format = FMT_EGP
-
-    for c in range(1, cols+1):
-        cell = ws.cell(row=sr, column=c)
-        cell.font = _f(bold=True, name='Arial')
-        cell.border = _thin()
-        cell.alignment = _center()
-
-    # Single-company sheets (Dedalus, Globemed, ElSeweedy) have an extra
-    # "Total" row that mirrors the inner total (original pattern)
+    # Single-year companies (ElSeweedy, Dedalus, Globemed) have a blank merged
+    # row then an outer Total row that mirrors the inner one
     if name in ('ElSeweedy Technology', 'Dedalus', 'Globemed'):
-        tr = total_rows[0]
-        er = sr
-        ws.cell(row=er, column=1, value='Total')
-        ws.cell(row=er, column=2, value=f'=B{tr}')
-        ws.cell(row=er, column=2).number_format = FMT_INT
-        ws.cell(row=er, column=3, value=f'=C{tr}')
-        ws.cell(row=er, column=3).number_format = FMT_EGP
-        ws.cell(row=er, column=4, value=f'=D{tr}')
-        ws.cell(row=er, column=4).number_format = FMT_EGP
-        ws.cell(row=er, column=5, value=f'=E{tr}')
-        ws.cell(row=er, column=5).number_format = FMT_EGP
-        # blank merged row above
-        mrow = er - 1
-        ws.merge_cells(f'A{mrow}:{"F" if has_bonus else "E"}{mrow}')
-        ws.merge_cells(f'A{er}:{"F" if has_bonus else "E"}{er+1}' if False else f'A{er}:{"F" if has_bonus else "E"}{er}')
-        for c in range(1, cols+1):
-            cell = ws.cell(row=er, column=c)
-            cell.font = _f(bold=True, name='Arial')
-            cell.border = _thin()
-            cell.alignment = _center()
+        inner = total_rows[0]
+        blank_row = sr
+        # blank merged row
+        try:
+            ws.merge_cells(f'A{blank_row}:{last_col}{blank_row}')
+        except Exception:
+            pass
+        sr = blank_row + 1
 
-    ws.row_dimensions[sr].height = 21.0 if name == 'NTG' else None
+        for c in range(1, cols+1):
+            oc = ws.cell(row=sr, column=c)
+            oc.fill = FILL_DARK_BLUE
+            oc.font = Font(bold=True, size=11, name='Arial')
+            oc.alignment = _align('center')
+            oc.border = _thin()
+
+        ws.cell(row=sr, column=1, value='Total')
+        ws.cell(row=sr, column=2, value=f'=B{inner}')
+        ws.cell(row=sr, column=2).number_format = '0'
+        ws.cell(row=sr, column=3, value=f'=C{inner}')
+        ws.cell(row=sr, column=3).number_format = FMT_EGP
+        ws.cell(row=sr, column=4, value=f'=D{inner}')
+        ws.cell(row=sr, column=4).number_format = FMT_EGP
+        ws.cell(row=sr, column=5, value=f'=E{inner}')
+        ws.cell(row=sr, column=5).number_format = FMT_EGP
+
+        # Also add blank+merged row before outer total (original pattern)
+        try:
+            ws.merge_cells(f'A{sr+1}:{last_col}{sr+1}')
+        except Exception:
+            pass
+
+    else:
+        # Multi-year sheets: SUMMARY / Total grand row — BLACK fill, white font
+        label_map = {
+            'NTG':             'SUMMARY',
+            'Giza Systems':    'Summary',
+            'Giza Systems (2)':'Total',
+            'Giza Systems (3)':'Total',
+        }
+        label = label_map.get(name, 'Total')
+
+        for c in range(1, cols+1):
+            sc = ws.cell(row=sr, column=c)
+            sc.fill = FILL_BLACK
+            sc.font = Font(bold=True, size=11, name='Arial')
+            sc.border = _thin()
+
+        ws.cell(row=sr, column=1, value=label)
+        b_ref = '+'.join(f'B{r}' for r in total_rows)
+        ws.cell(row=sr, column=2, value=f'={b_ref}')
+        ws.cell(row=sr, column=2).number_format = '0' if name != 'NTG' else 'General'
+        c_ref = '+'.join(f'C{r}' for r in total_rows)
+        d_ref = '+'.join(f'D{r}' for r in total_rows)
+        ws.cell(row=sr, column=3, value=f'={c_ref}')
+        ws.cell(row=sr, column=3).number_format = FMT_EGP
+        ws.cell(row=sr, column=4, value=f'={d_ref}')
+        ws.cell(row=sr, column=4).number_format = FMT_EGP
+        ws.cell(row=sr, column=5, value=f'=D{sr}-C{sr}')
+        ws.cell(row=sr, column=5).number_format = FMT_EGP
+
+        if has_bonus:
+            f_ref = '+'.join(f'F{r}' for r in total_rows)
+            ws.cell(row=sr, column=6, value=f'={f_ref}')
+            ws.cell(row=sr, column=6).number_format = FMT_EGP
+
+        ws.row_dimensions[sr].height = 21.0 if name == 'NTG' else None
 
     return sr
 
 
-# ── Exchange Rates ────────────────────────────────────────────────────────────
-
 CURRENCIES = [
-    ('USD','دولار أمريكى'),('EUR','يورو'),('GBP','جنيــه إسترليـنى'),
+    ('USD','دولار أمريكى'),('EUR','يورو'),('GBP','جنيَــه إسترليـنى'),
     ('CAD','دولار كنـدى'),('DKK','كرون دانمركى'),('NOK','كرون نرويجى'),
-    ('SEK','كرون ســويدى'),('CHF','فرنك سويسرى'),('JPY','100 ين يابانى'),
-    ('SAR','ريـــال سعـــودى'),('KWD','دينــار كويتى'),('AED','درهم اماراتى'),
+    ('SEK','كرون سَــويدى'),('CHF','فرنك سويسرى'),('JPY','100 ين يابانى'),
+    ('SAR','ريـــال سعــودى'),('KWD','دينــار كويتى'),('AED','درهم اماراتى'),
     ('AUD','دولار اســـترالى'),('BHD','دينــار البحــرين'),('OMR','ريـــال عمـــانى'),
-    ('QAR','ريـــال قطــــرى'),('JOD','دينـار اردنـى'),('CNY','يوان صينى'),
+    ('QAR','ريـــال قطــــرى'),('JOD','دينار اردنى'),('CNY','يوان صينى'),
 ]
+
 
 def build_exchange_rates_sheet(ws, rates_list, balance_entries):
     ws.column_dimensions['A'].width = 10.6
