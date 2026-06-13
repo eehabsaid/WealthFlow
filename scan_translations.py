@@ -32,7 +32,7 @@ def scan():
     print(f"[*] Found {len(found_keys)} unique translation keys.")
 
     # Update JSON files
-    for lang in ['en.json', 'ar.json']:
+    for lang in ['en1.json', 'ar1.json']:
         file_path = os.path.join('static/i18n', lang)
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)

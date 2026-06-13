@@ -196,7 +196,7 @@ async function saveLanguageUpdate(index) {
     });
 
     if (response.ok) {
-      showToast("Language updated successfully", "success");
+      showToast("msg_lang_updated", "success");
 
       // Hide the Bootstrap modal cleanly
       const modalEl = document.querySelector(".modal");
@@ -206,7 +206,7 @@ async function saveLanguageUpdate(index) {
       // Re-render the interface with fresh data
       await renderLanguageSettings();
     } else {
-      showToast("Failed to update language", "error");
+      showToast("Error updating language", "error");
     }
   } catch (error) {
     console.error("Save error:", error);
