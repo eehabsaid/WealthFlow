@@ -791,20 +791,37 @@ body {
    EXPENSE / REPORT filter bars
    ══════════════════════════════════════ */
 
-@media (max-width: 768px) {
+/* Base: always a horizontal flex row */
+.expense-filters,
+.report-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Mobile only: stack vertically */
+@media (max-width: 576px) {
   .expense-filters,
   .report-controls {
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
+    gap: 8px;
   }
   .expense-filters .form-select,
   .expense-filters .form-control,
+  .expense-filters input,
   .report-controls .form-select,
-  .report-controls .form-control {
+  .report-controls .form-control,
+  .report-controls input {
     width: 100% !important;
-    font-size: 16px !important; /* prevent iOS zoom */
+    font-size: 16px !important;
     min-height: 44px !important;
+  }
+  .expense-filters button,
+  .report-controls button {
+    width: 100% !important;
   }
 }
 
