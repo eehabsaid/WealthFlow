@@ -860,6 +860,33 @@ body {
   outline: none;
 }
 
+/* ════════════════════════════════════════════════════════════
+   SETTINGS PAGE — Users & Translations filter bars
+   ════════════════════════════════════════════════════════════ */
+
+/* Target the inline-styled filter containers in settings tabs */
+#settingsContent .form-control,
+#settingsContent .form-select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+}
+
+#settingsContent .form-control:focus,
+#settingsContent .form-select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+  outline: none;
+}
+
+#settingsContent .form-control::placeholder {
+  color: var(--text-muted);
+}
+
+/* ════════════════════════════════════════════════════════════
+
 /* Mobile only: stack vertically */
 @media (max-width: 576px) {
   .expense-filters,
