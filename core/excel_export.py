@@ -79,12 +79,12 @@ def _msort(m):
 
 # Column widths per sheet (exact from original)
 SALARY_COL_WIDTHS = {
-    'NTG':                  {'A':11.0,'B':10.6,'C':20.9,'D':14.6,'E':14.4},
-    'Giza Systems':         {'A':13.7,'B':15.3,'C':16.0,'D':15.7,'E':10.1},
-    'Giza Systems (2)':     {'A':13.7,'B':15.3,'C':16.0,'D':15.7,'E':14.3},
-    'ElSeweedy Technology': {'A':13.7,'B':16.1,'C':16.0,'D':15.7,'E':15.6},
-    'Dedalus':              {'A':13.7,'B':16.1,'C':16.0,'D':15.7,'E':15.6},
-    'Globemed':             {'A':13.7,'B':16.1,'C':16.0,'D':15.7,'E':15.6},
+    'NTG':                  {'A':13.7,'B':16.1,'C':16.0,'D':19.3,'E':15.6,'F':14.3},
+    'Giza Systems':         {'A':13.7,'B':16.1,'C':16.0,'D':19.3,'E':15.6,'F':14.3},
+    'Giza Systems (2)':     {'A':13.7,'B':16.1,'C':16.0,'D':19.3,'E':15.6,'F':14.3},
+    'ElSeweedy Technology': {'A':13.7,'B':16.1,'C':16.0,'D':19.3,'E':15.6,'F':14.3},
+    'Dedalus':              {'A':13.7,'B':16.1,'C':16.0,'D':19.3,'E':15.6,'F':14.3},
+    'Globemed':             {'A':13.7,'B':16.1,'C':16.0,'D':19.3,'E':15.6,'F':14.3},
     'Giza Systems (3)':     {'A':13.7,'B':16.1,'C':16.0,'D':19.3,'E':15.6,'F':14.3},
 }
 
@@ -99,13 +99,13 @@ YEAR_ROW_HT = 22.8   # all other year heading rows
 
 # Freeze pane per company (original)
 SALARY_FREEZE = {
-    'NTG':                  'A5',   # freeze header+title rows only, data scrolls
-    'Giza Systems':         'A5',
-    'Giza Systems (2)':     'A5',
-    'ElSeweedy Technology': 'A5',
-    'Dedalus':              'A5',
-    'Globemed':             'A5',
-    'Giza Systems (3)':     'A5',
+    'NTG':                  'A4',   # freeze header+title rows only, data scrolls
+    'Giza Systems':         'A4',
+    'Giza Systems (2)':     'A4',
+    'ElSeweedy Technology': 'A4',
+    'Dedalus':              'A4',
+    'Globemed':             'A4',
+    'Giza Systems (3)':     'A4',
 }
 
 def _apply_data_row(ws, row, has_bonus=False):
@@ -136,9 +136,10 @@ def _apply_total_row(ws, row, has_bonus=False):
 def build_salary_sheet(ws, company, entries):
     """Exact replica of original salary sheet styling using theme RGB values."""
     name = company.name
-    has_bonus = (name == 'Giza Systems (3)')
-    cols = 6 if has_bonus else 5
-    last_col = 'F' if has_bonus else 'E'
+    #has_bonus = (name == 'Giza Systems (3)')
+    has_bonus = True
+    cols = 6 
+    last_col = 'F'
 
     # ── Theme RGB fills (from original Balance.xlsx theme1.xml) ──────────────
     FILL_WHITE     = _fill('FFFFFFFF')  # theme 1 lt1  — Salary Details row
@@ -158,7 +159,7 @@ def build_salary_sheet(ws, company, entries):
     ws.row_dimensions[3].height = 20.25
 
     # ── Column widths ─────────────────────────────────────────────────────────
-    widths = SALARY_COL_WIDTHS.get(name, {'A':13.7,'B':15.3,'C':16.0,'D':15.7,'E':14.3})
+    widths = SALARY_COL_WIDTHS.get(name, {'A':13.7,'B':16.1,'C':16.0,'D':19.3,'E':15.6,'F':14.3})
     for col, w in widths.items():
         ws.column_dimensions[col].width = w
 
@@ -191,7 +192,7 @@ def build_salary_sheet(ws, company, entries):
     ws.merge_cells(f'A2:{last_col}3')
     c2 = ws.cell(row=2, column=1, value=' Salary Details')
     c2.font = Font(bold=True, size=18, name='Times New Roman', color=RED_TTL)
-    c2.fill = FILL_WHITE
+    c2.fill = FILL_BLACK
     c2.alignment = _align('center')
     if has_bonus:
         c2.border = Border(top=Side(style='thin'))
@@ -284,12 +285,9 @@ def build_salary_sheet(ws, company, entries):
         else:
             ws.cell(row=row, column=5, value=f'=SUM(E{data_start}:E{data_end})')
         ws.cell(row=row, column=5).number_format = FMT_EGP
-        # E col on total: NOT bold (original shows this)
-        ws.cell(row=row, column=5).font = Font(size=11, name='Arial')
-        ws.cell(row=row, column=5).fill = FILL_RED_DATA  # data color per original
 
         if has_bonus:
-            ws.cell(row=row, column=6, value=f'=IF(D{row}>C{row},D{row}-C{row},0)')
+            ws.cell(row=row, column=6, value=f'=SUM(F{data_start}:F{data_end})')
             ws.cell(row=row, column=6).number_format = FMT_EGP
 
         total_rows.append(row)
@@ -300,74 +298,45 @@ def build_salary_sheet(ws, company, entries):
 
     # Single-year companies (ElSeweedy, Dedalus, Globemed) have a blank merged
     # row then an outer Total row that mirrors the inner one
-    if name in ('ElSeweedy Technology', 'Dedalus', 'Globemed'):
-        inner = total_rows[0]
-        blank_row = sr
-        # blank merged row
-        try:
-            ws.merge_cells(f'A{blank_row}:{last_col}{blank_row}')
-        except Exception:
-            pass
-        sr = blank_row + 1
 
-        for c in range(1, cols+1):
-            oc = ws.cell(row=sr, column=c)
-            oc.fill = FILL_DARK_BLUE
-            oc.font = Font(bold=True, size=11, name='Arial')
-            oc.alignment = _align('center')
-            oc.border = _thin()
-
-        ws.cell(row=sr, column=1, value='Total')
-        ws.cell(row=sr, column=2, value=f'=B{inner}')
-        ws.cell(row=sr, column=2).number_format = '0'
-        ws.cell(row=sr, column=3, value=f'=C{inner}')
-        ws.cell(row=sr, column=3).number_format = FMT_EGP
-        ws.cell(row=sr, column=4, value=f'=D{inner}')
-        ws.cell(row=sr, column=4).number_format = FMT_EGP
-        ws.cell(row=sr, column=5, value=f'=E{inner}')
-        ws.cell(row=sr, column=5).number_format = FMT_EGP
-
-        # Also add blank+merged row before outer total (original pattern)
-        try:
-            ws.merge_cells(f'A{sr+1}:{last_col}{sr+1}')
-        except Exception:
-            pass
-
-    else:
         # Multi-year sheets: SUMMARY / Total grand row — BLACK fill, white font
-        label_map = {
-            'NTG':             'SUMMARY',
-            'Giza Systems':    'Summary',
-            'Giza Systems (2)':'Total',
-            'Giza Systems (3)':'Total',
-        }
-        label = label_map.get(name, 'Total')
+    label_map = {
+        'NTG':             'Total',
+        'Giza Systems':    'Total',
+        'Giza Systems (2)':'Total',
+        'Giza Systems (3)':'Total',
+        'ElSeweedy Technology':'Total',
+        'Dedalus':         'Total',
+        'Globemed':        'Total',
+    }
+    label = label_map.get(name, 'Total')
 
-        for c in range(1, cols+1):
-            sc = ws.cell(row=sr, column=c)
-            sc.fill = FILL_BLACK
-            sc.font = Font(bold=True, size=11, name='Arial', color='FFFFFFFF')
-            sc.border = _thin()
+    for c in range(1, cols+1):
+        sc = ws.cell(row=sr, column=c)
+        sc.fill = FILL_BLACK
+        sc.font = Font(bold=True, size=11, name='Arial', color='FFFFFFFF')
+        sc.border = _thin()
 
-        ws.cell(row=sr, column=1, value=label)
-        b_ref = '+'.join(f'B{r}' for r in total_rows)
-        ws.cell(row=sr, column=2, value=f'={b_ref}')
-        ws.cell(row=sr, column=2).number_format = '0' if name != 'NTG' else 'General'
-        c_ref = '+'.join(f'C{r}' for r in total_rows)
-        d_ref = '+'.join(f'D{r}' for r in total_rows)
-        ws.cell(row=sr, column=3, value=f'={c_ref}')
-        ws.cell(row=sr, column=3).number_format = FMT_EGP
-        ws.cell(row=sr, column=4, value=f'={d_ref}')
-        ws.cell(row=sr, column=4).number_format = FMT_EGP
-        ws.cell(row=sr, column=5, value=f'=D{sr}-C{sr}')
-        ws.cell(row=sr, column=5).number_format = FMT_EGP
+    ws.cell(row=sr, column=1, value=label)
+    b_ref = '+'.join(f'B{r}' for r in total_rows)
+    ws.cell(row=sr, column=2, value=f'={b_ref}')
+    ws.cell(row=sr, column=2).number_format = '0' if name != 'NTG' else 'General'
+    c_ref = '+'.join(f'C{r}' for r in total_rows)
+    d_ref = '+'.join(f'D{r}' for r in total_rows)
+    ws.cell(row=sr, column=3, value=f'={c_ref}')
+    ws.cell(row=sr, column=3).number_format = FMT_EGP
+    ws.cell(row=sr, column=4, value=f'={d_ref}')
+    ws.cell(row=sr, column=4).number_format = FMT_EGP
+    ws.cell(row=sr, column=5, value=f'=D{sr}-C{sr}')
+    ws.cell(row=sr, column=5).number_format = FMT_EGP
+        
 
-        if has_bonus:
-            f_ref = '+'.join(f'F{r}' for r in total_rows)
-            ws.cell(row=sr, column=6, value=f'={f_ref}')
-            ws.cell(row=sr, column=6).number_format = FMT_EGP
+    if has_bonus:
+        f_ref = '+'.join(f'F{r}' for r in total_rows)
+        ws.cell(row=sr, column=6, value=f'={f_ref}')
+        ws.cell(row=sr, column=6).number_format = FMT_EGP
 
-        ws.row_dimensions[sr].height = 21.0 if name == 'NTG' else None
+    ws.row_dimensions[sr].height = 21.0 if name == 'NTG' else None
 
     return sr
 
@@ -540,7 +509,8 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
     ws.column_dimensions['B'].width = 14.6
     ws.column_dimensions['C'].width = 12.5
     ws.column_dimensions['D'].width = 13.1
-    ws.column_dimensions['F'].width = 11.0
+    ws.column_dimensions['E'].width = 13.1
+    ws.column_dimensions['F'].width = 14.4
     ws.column_dimensions['G'].width = 14.4
     ws.column_dimensions['H'].width = 17.1
     ws.column_dimensions['I'].width = 12.7
@@ -648,7 +618,7 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
     tmr = tpr + 1
 
     # Companies that store bonus separately in col F
-    BONUS_COMPANIES = {'ElSeweedy Technology', 'Giza Systems (3)'}
+    BONUS_COMPANIES = set(company_sheet_rows.keys())
 
     pay_parts, month_parts = [], []
     for cname, (sname, srow) in company_sheet_rows.items():
