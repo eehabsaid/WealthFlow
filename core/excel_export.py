@@ -8,6 +8,7 @@ from itertools import groupby
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
+import datetime
 
 # ── Exact formats from original ───────────────────────────────────────────────
 FMT_EGP        = '[$ج.م.\u200f-C01]\\ #,##0.00_-'
@@ -28,6 +29,40 @@ WHITE  = 'FFFFFFFF'
 EXP_BG = 'FF203864'
 EXP_MONTH_BG = 'FFD9E1F2'
 EXP_YEAR_BG  = 'FFBDD7EE'
+
+def auto_adjust_columns(ws):
+    """
+    Adjusts column widths based on content, using a larger buffer
+    specifically for date columns.
+    """
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        is_date_col = False
+        
+        for cell in col:
+            # Check if cell contains a date/datetime object
+            if isinstance(cell.value, (datetime.date, datetime.datetime)):
+                is_date_col = True
+            
+            # Check if format is a date format
+            # Many date formats contain 'y', 'm', or 'd'
+            fmt = str(cell.number_format).lower()
+            if any(x in fmt for x in ['yyyy', 'mmmm', 'dddd']):
+                is_date_col = True
+
+            # Get length of the rendered string
+            val = str(cell.value) if cell.value is not None else ""
+            if len(val) > max_length:
+                max_length = len(val)
+        
+        # Apply specific buffer
+        # Dates are naturally longer when formatted (e.g., "Monday, June 14, 2026")
+        if is_date_col:
+            ws.column_dimensions[column].width = max_length + 20
+        else:
+            # Standard buffer for other data
+            ws.column_dimensions[column].width = max_length + 10
 
 def _f(bold=False, size=11, color=None, name='Arial'):
     kw = dict(bold=bold, size=size, name=name)
@@ -350,37 +385,49 @@ CURRENCIES = [
     ('QAR','ريـــال قطــــرى'),('JOD','دينار اردنى'),('CNY','يوان صينى'),
 ]
 
+# --- Add these to excel_export.py ---
+ZEBRA_DARK  = _fill('FFD9D9D9')
+ZEBRA_LIGHT = _fill('FFF2F2F2')
+FILL_BLACK  = _fill('FF000000')
+
+def _apply_zebra_striping(ws, row, col_count):
+    # This automatically determines color: 
+    # Row 2 (even) -> Dark, Row 3 (odd) -> Light, Row 4 (even) -> Dark...
+    is_dark = (row % 2 == 0)
+    fill = ZEBRA_DARK if is_dark else ZEBRA_LIGHT
+    for c in range(1, col_count + 1):
+        cell = ws.cell(row=row, column=c)
+        cell.fill = fill
+        cell.font = Font(bold=True, name='Arial', color='FF000000')
+        cell.border = _thin()
 
 def build_exchange_rates_sheet(ws, rates_list, balance_entries):
-    ws.column_dimensions['A'].width = 10.6
-    ws.column_dimensions['B'].width = 9.8
-    ws.column_dimensions['C'].width = 8.9
-    ws.column_dimensions['F'].width = 14.3
-    ws.column_dimensions['G'].width = 15.8
-    ws.row_dimensions[1].height = 21.0
-
+    FILL_BLACK = _fill('FF000000')
+    # Header
     for c, h in enumerate(['العملة','شراء','بيع'], 1):
         cell = ws.cell(row=1, column=c, value=h)
-        cell.font = _f(bold=True, size=16, name='Arial')
+        cell.font = Font(bold=True, size=12, name='Arial', color=WHITE)
+        cell.fill = FILL_BLACK
         cell.alignment = _center()
+        cell.border = _thin()
 
     rate_map = {r.currency_code: r for r in rates_list}
-    eur_row = None
+    eur_row = 0 # To store row index of EUR for the formula
 
     for i, (code, arabic) in enumerate(CURRENCIES, 2):
+        _apply_zebra_striping(ws, i, 3) 
         r = rate_map.get(code)
-        ws.cell(row=i, column=1, value=arabic).font = _f(name='Arial')
+        ws.cell(row=i, column=1, value=arabic)
         if r:
-            buy  = float(r.buy_rate)
-            sell = float(r.sell_rate)
-            if code == 'JPY':
-                buy  = round(buy  * 100, 4)
-                sell = round(sell * 100, 4)
-            ws.cell(row=i, column=2, value=buy).font  = _f(name='Arial')
-            ws.cell(row=i, column=3, value=sell).font = _f(name='Arial')
-        if code == 'EUR': eur_row = i
+            val_buy = round(float(r.buy_rate)*100, 4) if code=='JPY' else float(r.buy_rate)
+            val_sell = round(float(r.sell_rate)*100, 4) if code=='JPY' else float(r.sell_rate)
+            ws.cell(row=i, column=2, value=val_buy)
+            ws.cell(row=i, column=3, value=val_sell)
+        
+        if code == 'EUR':
+            eur_row = i
 
-    # Side block (original cols F-H rows 5-6)
+    # --- Side block (Cols F-H, Rows 5-6) ---
     from core.models import Currency
     try:
         usd_cur = Currency.objects.get(code='USD')
@@ -392,119 +439,127 @@ def build_exchange_rates_sheet(ws, rates_list, balance_entries):
     except Exception:
         home_usd = home_eur = 0
 
-    ws.cell(row=5, column=6, value=home_eur).font = _f(name='Arial')
-    ws.cell(row=5, column=7, value=home_usd).font = _f(name='Arial')
-    ws.cell(row=5, column=8, value='Total').font   = _f(name='Arial')
-    ws.cell(row=6, column=6, value=f'=F5*B{eur_row}').font = _f(name='Arial')
-    ws.cell(row=6, column=7, value='=G5*B2').font          = _f(name='Arial')
-    ws.cell(row=6, column=8, value='=F6+G6').font          = _f(name='Arial')
+# Helper for side block styling with specific formatting
+    def _style_side(r, c, val, fmt=None):
+        cell = ws.cell(row=r, column=c, value=val)
+        cell.font = _f(name='Arial')
+        cell.alignment = _center()
+        cell.border = _thin()
+        if fmt:
+            cell.number_format = fmt
+        return cell
 
-
-# ── Gold Price ────────────────────────────────────────────────────────────────
+    # Row 5: Amounts (F5=EUR, G5=USD)
+    _style_side(5, 6, home_eur, FMT_EUR) # Euro format for F5
+    _style_side(5, 7, home_usd, FMT_USD) # Dollar format for G5
+    _style_side(5, 8, 'Total')
+    
+    # Row 6: Converted Values (EGP)
+    _style_side(6, 6, f'=F5*B{eur_row}', FMT_EGP_RED) # EGP format
+    _style_side(6, 7, '=G5*B2', FMT_EGP_RED)           # EGP format
+    _style_side(6, 8, '=F6+G6', FMT_EGP_RED)           # EGP format
 
 def build_gold_price_sheet(ws, gold_qs, balance_entries):
+    # Setup Columns
     ws.column_dimensions['A'].width = 18.6
     ws.column_dimensions['B'].width = 10.7
     ws.column_dimensions['C'].width = 10.7
+    ws.column_dimensions['D'].width = 10.7
+    ws.column_dimensions['E'].width = 10.7
     ws.column_dimensions['F'].width = 32.7
     ws.column_dimensions['G'].width = 15.8
     ws.column_dimensions['H'].width = 14.3
-
+    
+    FILL_BLACK = _fill('FF000000')
     latest = gold_qs.order_by('-fetched_at').first()
+    
+    # 1. Header
+    for c, h in enumerate(['السعر', 'شراء', 'بيع', 'المزيد', 'الملاحظات'], 1):
+        cell = ws.cell(row=1, column=c, value=h)
+        cell.font = Font(bold=True, color=WHITE, name='Arial')
+        cell.fill = FILL_BLACK
+        cell.alignment = _center()
+        cell.border = _thin()
 
-    for c, h in enumerate(['Column1','Column2','Column3','Column4','Column5'], 1):
-        ws.cell(row=1, column=c, value=h).font = _f(name='Arial')
-
-    ws.cell(row=2, column=1, value='السعر').font     = _f(name='Arial')
-    ws.cell(row=2, column=2, value='شراء').font      = _f(name='Arial')
-    ws.cell(row=2, column=3, value='بيع').font       = _f(name='Arial')
-    ws.cell(row=2, column=4, value='المزيد').font    = _f(name='Arial')
-
+    # 2. Main Gold Rows (2-6)
     carats = [
-        ('جرام عيار 24 40 ج','carat_24k_buy','carat_24k','40 ج'),
-        ('جرام عيار 22 37 ج','carat_22k_buy','carat_22k','37 ج'),
-        ('جرام عيار 21 35 ج','carat_21k_buy','carat_21k','35 ج'),
-        ('جرام عيار 18 30 ج','carat_18k_buy','carat_18k','30 ج'),
+        ('جرام عيار 24', 'carat_24k_buy', 'carat_24k', '40 ج'),
+        ('جرام عيار 22', 'carat_22k_buy', 'carat_22k', '37 ج'),
+        ('جرام عيار 21', 'carat_21k_buy', 'carat_21k', '35 ج'),
+        ('جرام عيار 18', 'carat_18k_buy', 'carat_18k', '30 ج'),
+        ('جرام عيار 14 27 ج', 'carat_18k_buy', 'carat_18k', '27 ج')
     ]
-    for i,(label,bf,sf,karat) in enumerate(carats, 3):
-        ws.cell(row=i,column=1,value=label).font = _f(name='Arial')
-        ws.cell(row=i,column=2,value=round(float(getattr(latest,bf,0)),0) if latest else 0).font = _f(name='Arial')
-        ws.cell(row=i,column=3,value=round(float(getattr(latest,sf,0)),0) if latest else 0).font = _f(name='Arial')
-        ws.cell(row=i,column=4,value='>').font = _f(name='Arial')
-        ws.cell(row=i,column=5,value=karat).font = _f(name='Arial')
+    for i, (label, bf, sf, karat) in enumerate(carats, 2):
+        _apply_zebra_striping(ws, i, 5)
+        for col, val in enumerate([label, round(float(getattr(latest, bf, 0)), 0) if latest else 0, round(float(getattr(latest, sf, 0)), 0) if latest else 0, '>', karat], 1):
+            c = ws.cell(row=i, column=col, value=val)
+            c.font = _f(name='Arial'); c.alignment = _center(); c.border = _thin()
 
-    ws.cell(row=7,column=1,value='جرام عيار 14 27 ج').font = _f(name='Arial')
-    ws.cell(row=7,column=2,value=round(float(latest.carat_18k_buy)*(14/18),0) if latest else 0).font = _f(name='Arial')
-    ws.cell(row=7,column=3,value=round(float(latest.carat_18k)*(14/18),0) if latest else 0).font     = _f(name='Arial')
-    ws.cell(row=7,column=4,value='>').font = _f(name='Arial')
-    ws.cell(row=7,column=5,value='27 ج').font = _f(name='Arial')
+    # 3. Dollar, Ounce, Gold Pound Rows (7-9)
+    # Using the same zebra striping loop style for consistency
+    rows_data = [
+        ['الدولار 0 ج', float(latest.usd_to_egp) if latest else 0, float(latest.usd_to_egp) if latest else 0, None, '0 ج'],
+        ['الأونصة 0 $', float(latest.usd_per_oz) if latest else 0, float(latest.usd_per_oz) if latest else 0, None, '0 $'],
+        ['الجنيه الذهب 320 ج', round(float(latest.carat_21k_buy)*8,0) if latest else 0, round(float(latest.carat_21k)*8,0) if latest else 0, None, '320 ج']
+    ]
+    for i, row_data in enumerate(rows_data, 7):
+        _apply_zebra_striping(ws, i, 5)
+        for col, val in enumerate(row_data, 1):
+            c = ws.cell(row=i, column=col, value=val)
+            c.font = _f(name='Arial'); c.alignment = _center(); c.border = _thin()
 
-    # Gold grams + merge G7:I7
+    # 4. Side Table (Under the main table)
     from core.models import Currency
+    grams = 0
     try:
         gold_cur = Currency.objects.get(code='Gold')
-        grams = sum(float(be.amount) for be in balance_entries
-                    if be.bank_id is None and be.currency_id == gold_cur.id)
-    except Exception:
-        grams = 0
-    ws.merge_cells('G7:I7')
-    ws.cell(row=7,column=7,value=f'{int(grams)} Grams').font = _f(name='Arial')
+        grams = sum(float(be.amount) for be in balance_entries if be.bank_id is None and be.currency_id == gold_cur.id)
+    except: pass
+    
+    # Merged header
+    ws.merge_cells('G9:I9')
+    c_title = ws.cell(row=9, column=7, value=f'{int(grams)} Grams')
+    c_title.font = _f(name='Arial', bold=True); c_title.alignment = _center(); c_title.border = _thin()
+    ws.cell(row=9, column=8).border = _thin(); ws.cell(row=9, column=9).border = _thin()
 
-    ws.cell(row=8,column=1,value='الدولار 0 ج').font = _f(name='Arial')
-    ws.cell(row=8,column=2,value=float(latest.usd_to_egp) if latest else 0).font = _f(name='Arial')
-    ws.cell(row=8,column=3,value=float(latest.usd_to_egp) if latest else 0).font = _f(name='Arial')
-    ws.cell(row=8,column=5,value='0 ج').font = _f(name='Arial')
-    ws.cell(row=8,column=7,value='Now').font  = _f(name='Arial')
-    ws.cell(row=8,column=8,value='Paid').font = _f(name='Arial')
-    ws.cell(row=8,column=9,value='Diff').font = _f(name='Arial')
+    # Titles
+    for c, title in enumerate(['Now', 'Paid', 'Diff'], 7):
+        c_head = ws.cell(row=10, column=c, value=title)
+        c_head.font = _f(name='Arial', bold=True); c_head.alignment = _center(); c_head.border = _thin()
 
-    ws.cell(row=9,column=1,value='الأونصة 0 $').font = _f(name='Arial')
-    ws.cell(row=9,column=2,value=float(latest.usd_per_oz) if latest else 0).font = _f(name='Arial')
-    ws.cell(row=9,column=3,value=float(latest.usd_per_oz) if latest else 0).font = _f(name='Arial')
-    ws.cell(row=9,column=5,value='0 $').font = _f(name='Arial')
-    ws.cell(row=9,column=7,value='=(C3+28.5)*(BALANCE!F2)').font = _f(name='Arial')
-    ws.cell(row=9,column=8,value=897375).font = _f(name='Arial')
-    ws.cell(row=9,column=9,value='=G9-H9').font = _f(name='Arial')
-
-    ws.cell(row=10,column=1,value='الجنيه الذهب 320 ج').font = _f(name='Arial')
-    ws.cell(row=10,column=2,value=round(float(latest.carat_21k_buy)*8,0) if latest else 0).font = _f(name='Arial')
-    ws.cell(row=10,column=3,value=round(float(latest.carat_21k)*8,0) if latest else 0).font     = _f(name='Arial')
-    ws.cell(row=10,column=5,value='320 ج').font = _f(name='Arial')
-
-
-# ── Bank-Certificates ─────────────────────────────────────────────────────────
+    # Values
+    vals = [f'=(C2+28.5)*(BALANCE!F2)', 897375, '=G11-H11']
+    for c, val in enumerate(vals, 7):
+        c_val = ws.cell(row=11, column=c, value=val)
+        c_val.font = _f(name='Arial'); c_val.alignment = _center(); c_val.border = _thin()
+        # Apply EGP format to all three cells as they are all currency/financial results
+        c_val.number_format = FMT_EGP_RED
 
 def build_bank_certificates_sheet(ws, certs_qs):
-    ws.column_dimensions['A'].width = 15.2
-    ws.column_dimensions['B'].width = 15.7
-    ws.column_dimensions['C'].width = 16.4
-    ws.column_dimensions['D'].width = 14.3
-    ws.column_dimensions['E'].width = 26.6
-    ws.column_dimensions['F'].width = 29.5
-    ws.row_dimensions[1].height = 27.6
-
-    hdrs = [('Amount',FMT_EGP_CERT),('Interest Rate',FMT_PCT),
-            ('Interest Value',FMT_EGP_CERT_R),('Frequency',None),
-            ('Start Date',FMT_DATE),('End Date',FMT_DATE)]
-    for c,(h,fmt) in enumerate(hdrs, 1):
+    FILL_BLACK = _fill('FF000000')
+    hdrs = ['Amount','Interest Rate','Interest Value','Frequency','Start Date','End Date']
+    
+    # Header
+    for c, h in enumerate(hdrs, 1):
         cell = ws.cell(row=1, column=c, value=h)
-        cell.font = _f(name='Arial')
-        if fmt: cell.number_format = fmt
+        cell.font = Font(bold=True, color=WHITE, name='Arial')
+        cell.fill = FILL_BLACK
+        cell.alignment = _center()
+        cell.border = _thin()
 
     for i, cert in enumerate(certs_qs.order_by('issue_date'), 2):
+        _apply_zebra_striping(ws, i, 6) # No is_dark argument needed
         ws.cell(row=i,column=1,value=float(cert.amount)).number_format = FMT_EGP_CERT
         ws.cell(row=i,column=2,value=float(cert.interest_rate)).number_format = FMT_PCT
         ws.cell(row=i,column=3,value=f'=(A{i}*B{i})/12').number_format = FMT_EGP_CERT_R
         ws.cell(row=i,column=4,value=cert.frequency)
         ws.cell(row=i,column=5,value=cert.issue_date).number_format = FMT_DATE
         ws.cell(row=i,column=6,value=cert.expiry_date).number_format = FMT_DATE
-        for c in range(1,7):
-            ws.cell(row=i,column=c).font = _f(name='Arial')
-
 
 # ── BALANCE ───────────────────────────────────────────────────────────────────
 
 def build_balance_sheet(ws, balance_entries, company_sheet_rows):
+
     ws.column_dimensions['A'].width = 26.5
     ws.column_dimensions['B'].width = 14.6
     ws.column_dimensions['C'].width = 12.5
@@ -516,8 +571,8 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
     ws.column_dimensions['I'].width = 12.7
     ws.column_dimensions['J'].width = 12.0
     ws.column_dimensions['K'].width = 29.7
-    ws.row_dimensions[7].height = 18.0
-
+    ws.row_dimensions[7].height = 18.0 
+    
     # Row 1 headers — bold, Arial, borders
     hdrs = ['Title','EGP','USD','EUR','SAR','Gold',
             'Acct-Number','Card-ID','Swift-Code','Customer-id','Customer-Name']
@@ -541,17 +596,31 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
 
     ws.cell(row=2,column=1,value='Home Balance').font    = _f(bold=True, name='Arial')
     ws.cell(row=2,column=1).border = _thin()
+
     b2 = ws.cell(row=2,column=2,value=home.get('EGP',0))
-    b2.font = _f(bold=True, name='Arial'); b2.border = _thin()
+    b2.font = _f(bold=True, name='Arial'); 
+    b2.border = _thin()
     b2.number_format = FMT_EGP_RED
+
     c2 = ws.cell(row=2,column=3,value=home.get('USD',0))
-    c2.border=_thin(); c2.number_format=FMT_USD; c2.font=_f(name='Arial')
+    c2.font = _f(bold=True, name='Arial'); 
+    c2.border=_thin(); 
+    c2.number_format=FMT_USD; 
+
     d2 = ws.cell(row=2,column=4,value=home.get('EUR',0))
-    d2.border=_thin(); d2.number_format=FMT_EUR; d2.font=_f(name='Arial')
+    d2.font = _f(bold=True, name='Arial'); 
+    d2.border=_thin(); 
+    d2.number_format=FMT_EUR; 
+
     e2 = ws.cell(row=2,column=5,value=home.get('SAR',0))
-    e2.border=_thin(); e2.number_format=FMT_SAR; e2.font=_f(name='Arial')
+    e2.font = _f(bold=True, name='Arial'); 
+    e2.border=_thin(); 
+    e2.number_format=FMT_SAR;
+
     f2 = ws.cell(row=2,column=6,value=home.get('Gold',0))
-    f2.border=_thin(); f2.number_format=FMT_GOLD; f2.font=_f(name='Arial')
+    f2.font = _f(bold=True, name='Arial'); 
+    f2.border=_thin(); 
+    f2.number_format=FMT_GOLD;
 
     # Bank rows
     excel_row = 3
@@ -601,15 +670,34 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
     tar = excel_row
     ws.row_dimensions[tar].height = 18.0
     ws.merge_cells(f'B{tar}:F{tar}')
+    
     ws.cell(row=tar,column=1,value='Total all Balances').font = _f(bold=True,name='Arial')
     ws.cell(row=tar,column=1).border = _thin()
+    
     formula = (f"=B{ter}"
                f"+(C2*('Exchange Rates'!B2))"
                f"+(D2*('Exchange Rates'!B3))"
                f"+(E2*('Exchange Rates'!B11))"
-               f"+((F2*('Gold Price'!C3))+28.5)")
-    ta = ws.cell(row=tar,column=2,value=formula)
-    ta.font=_f(bold=True,name='Arial'); ta.border=_thin()
+               f"+((F2*('Gold Price'!C2))+28.5)")
+    
+    # Target the merged cell (B:F)
+    ta = ws.cell(row=tar, column=2, value=formula)
+    
+    # 1. Apply Centering
+    ta.alignment = Alignment(horizontal='center', vertical='center')
+    
+    # 2. Apply Full Border Frame
+    # Create a border style
+    thin_border = Border(left=Side(style='thin'), 
+                         right=Side(style='thin'), 
+                         top=Side(style='thin'), 
+                         bottom=Side(style='thin'))
+    
+    # Apply to all cells in the merged range B to F
+    for col in range(2, 7): # B=2, C=3, D=4, E=5, F=6
+        ws.cell(row=tar, column=col).border = thin_border
+        
+    ta.font = _f(bold=True, name='Arial')
     ta.number_format = FMT_EGP_RED
     excel_row += 1
 
@@ -630,13 +718,24 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
             pay_parts.append(ref.format(c='D'))
         month_parts.append(ref.format(c='B'))
 
-    ws.cell(row=tpr,column=1,value='Total Pays').font = _f(bold=True,name='Arial')
-    tp = ws.cell(row=tpr,column=2,value='='+'+'.join(pay_parts) if pay_parts else 0)
-    tp.font=_f(bold=True,name='Arial'); tp.number_format=FMT_EGP_RED
+    # Total Pays
+    label_tp = ws.cell(row=tpr, column=1, value='Total Pays')
+    label_tp.font = _f(bold=True, name='Arial')
+    label_tp.border = _thin()
+    
+    tp = ws.cell(row=tpr, column=2, value='=' + '+'.join(pay_parts) if pay_parts else 0)
+    tp.font = _f(bold=True, name='Arial')
+    tp.border = _thin()
+    tp.number_format = FMT_EGP_RED
 
-    ws.cell(row=tmr,column=1,value='Total Work Months').font = _f(bold=True,name='Arial')
-    tm = ws.cell(row=tmr,column=2,value='='+'+'.join(month_parts) if month_parts else 0)
-    tm.font=_f(bold=True,name='Arial')
+    # Total Work Months
+    label_tm = ws.cell(row=tmr, column=1, value='Total Work Months')
+    label_tm.font = _f(bold=True, name='Arial')
+    label_tm.border = _thin()
+    
+    tm = ws.cell(row=tmr, column=2, value='=' + '+'.join(month_parts) if month_parts else 0)
+    tm.font = _f(bold=True, name='Arial')
+    tm.border = _thin()
 
 
 # ── Expenses (new) ────────────────────────────────────────────────────────────
@@ -726,10 +825,12 @@ def generate_excel(output_path=None):
                                         fetched_at=item['latest']).first()
         if r: rates.append(r)
     build_exchange_rates_sheet(ws_ex, rates, balance_entries)
+    auto_adjust_columns(ws_ex)
 
     # Gold Price
     ws_gold = wb.create_sheet('Gold Price')
     build_gold_price_sheet(ws_gold, GoldPrice.objects, balance_entries)
+    auto_adjust_columns(ws_gold)
 
     # Salary sheets — capture summary rows
     company_sheet_rows = {}
@@ -742,19 +843,21 @@ def generate_excel(output_path=None):
             company_sheet_rows[company.name] = (company.name, sr)
         else:
             company_sheet_rows[company.name] = (company.name, sr)
+    #auto_adjust_columns(ws_sal)
 
     # Bank-Certificates
     ws_cert = wb.create_sheet('Bank-Certificates')
     build_bank_certificates_sheet(ws_cert, BankCertificate.objects.all())
+    auto_adjust_columns(ws_cert)
 
     # BALANCE
     ws_bal = wb.create_sheet('BALANCE')
     build_balance_sheet(ws_bal, balance_entries, company_sheet_rows)
-
+    #auto_adjust_columns(ws_bal)
     # Expenses
     ws_exp = wb.create_sheet('Expenses')
     build_expenses_sheet(ws_exp, Expense.objects.all())
-
+    #auto_adjust_columns(ws_exp)
     if output_path:
         wb.save(output_path)
         return output_path
