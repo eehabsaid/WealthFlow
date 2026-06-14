@@ -1502,6 +1502,7 @@ def _get_user_ip(request):
 # FEATURE 1: Notifications
 # ════════════════════════════════════════════════════════════
 
+@method_decorator(csrf_exempt, name="dispatch")
 class NotificationListView(View):
     """GET: list notifications for current user. POST: mark-read or generate."""
 
@@ -1528,6 +1529,7 @@ class NotificationListView(View):
         return JsonResponse({'generated': count})
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class NotificationDetailView(View):
     def post(self, request, pk):
         """Mark single notification as read."""
@@ -1542,6 +1544,7 @@ class NotificationDetailView(View):
             return JsonResponse({'error': 'Not found'}, status=404)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class NotificationMarkAllReadView(View):
     def post(self, request):
         if not request.user.is_authenticated:
@@ -1599,6 +1602,7 @@ def _generate_notifications(user):
     return created
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class ReminderRuleListView(View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -1624,6 +1628,7 @@ class ReminderRuleListView(View):
             return JsonResponse({'error': str(e)}, status=400)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class ReminderRuleDetailView(View):
     def put(self, request, pk):
         if not request.user.is_staff:
@@ -1659,6 +1664,7 @@ class ReminderRuleDetailView(View):
 # FEATURE 2: Certificate Status Management
 # ════════════════════════════════════════════════════════════
 
+@method_decorator(csrf_exempt, name="dispatch")
 class CertificateStatusListView(View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -1683,6 +1689,7 @@ class CertificateStatusListView(View):
             return JsonResponse({'error': str(e)}, status=400)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class CertificateStatusDetailView(View):
     def put(self, request, pk):
         if not request.user.is_staff:
@@ -1718,6 +1725,7 @@ class CertificateStatusDetailView(View):
 # FEATURE 3: Audit Log
 # ════════════════════════════════════════════════════════════
 
+@method_decorator(csrf_exempt, name="dispatch")
 class AuditLogListView(View):
     def get(self, request):
         if not request.user.is_staff:
@@ -1754,6 +1762,7 @@ class AuditLogListView(View):
 # FEATURE 4: Dashboard Preferences
 # ════════════════════════════════════════════════════════════
 
+@method_decorator(csrf_exempt, name="dispatch")
 class DashboardPreferenceView(View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -1805,6 +1814,7 @@ def _default_widgets():
 # FEATURE 5: Advanced Reports API
 # ════════════════════════════════════════════════════════════
 
+@method_decorator(csrf_exempt, name="dispatch")
 class SalaryTrendView(View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -1825,6 +1835,7 @@ class SalaryTrendView(View):
         return JsonResponse({'trends': list(years), 'companies': companies})
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class CertificateSummaryView(View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -1866,6 +1877,7 @@ class CertificateSummaryView(View):
 # FEATURE 6: User Preferences
 # ════════════════════════════════════════════════════════════
 
+@method_decorator(csrf_exempt, name="dispatch")
 class UserPreferenceView(View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -1897,6 +1909,7 @@ class UserPreferenceView(View):
             return JsonResponse({'error': str(e)}, status=400)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class ChangePasswordView(View):
     def post(self, request):
         if not request.user.is_authenticated:
@@ -1940,6 +1953,7 @@ class ChangePasswordView(View):
 # FEATURE 7: Security — Login Activity
 # ════════════════════════════════════════════════════════════
 
+@method_decorator(csrf_exempt, name="dispatch")
 class LoginActivityView(View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -1957,6 +1971,7 @@ class LoginActivityView(View):
             return JsonResponse({'activities': [a.to_dict() for a in acts]})
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class AuditLogDeleteView(View):
     """Purge audit logs older than N days (admin only)."""
     def post(self, request):
