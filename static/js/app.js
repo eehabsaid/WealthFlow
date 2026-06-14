@@ -46,6 +46,15 @@ async function initApp() {
     };
     renderSidebar();
     renderTopbar();
+    // Show admin-only nav items
+    if (window._currentUser && window._currentUser.is_staff) {
+        const auditNav = document.getElementById('auditLogNav');
+        if (auditNav) auditNav.style.display = '';
+    }
+    // Generate reminders in background
+    setTimeout(() => {
+        if (typeof generateReminders === 'function') generateReminders();
+    }, 1500);
 }
 
 function renderSidebar() {
@@ -114,9 +123,21 @@ function renderSidebar() {
                 <button class="nav-item" onclick="navigate('reports')"><i class="bi bi-graph-up"></i>
                 <span data-i18n="nav_reports">Reports</span>
                 </button>
+                <button class="nav-item" onclick="navigate('advanced-reports')"><i class="bi bi-bar-chart-line"></i>
+                <span data-i18n="nav_advanced_reports">Analytics</span>
+                </button>
             </div>
 
             <div style="border-top:1px solid var(--border-color); margin:10px 0;"></div>
+            <button class="nav-item" onclick="navigate('notifications')"><i class="bi bi-bell"></i>
+            <span data-i18n="nav_notifications">Notifications</span>
+            </button>
+            <button class="nav-item" onclick="navigate('profile')"><i class="bi bi-person-circle"></i>
+            <span data-i18n="nav_profile">Profile</span>
+            </button>
+            <button class="nav-item" onclick="navigate('audit-log')" id="auditLogNav" style="display:none"><i class="bi bi-clipboard-data"></i>
+            <span data-i18n="nav_audit_log">Audit Log</span>
+            </button>
             <button class="nav-item" onclick="navigate('settings-languages')"><i class="bi bi-gear"></i>
             <span data-i18n="nav_settings">Settings</span>
             </button>
@@ -332,9 +353,25 @@ function route() {
     } else if (hash === "reports") {
         setBreadcrumb("Reports", "Income & Expense Analysis");
         renderReports();
-    } else if (hash.startsWith("settings")) {
-        if (addBtn) addBtn.style.display = "none";
-        if (bc) bc.textContent = t("nav_settings", "Settings");
+    } else if (hash === 'notifications') {
+        if (addBtn) addBtn.style.display = 'none';
+        if (bc) bc.textContent = t('nav_notifications', 'Notifications');
+        renderNotifications();
+    } else if (hash === 'audit-log') {
+        if (addBtn) addBtn.style.display = 'none';
+        if (bc) bc.textContent = t('nav_audit_log', 'Audit Log');
+        renderAuditLog();
+    } else if (hash === 'profile') {
+        if (addBtn) addBtn.style.display = 'none';
+        if (bc) bc.textContent = t('nav_profile', 'Profile');
+        renderProfile();
+    } else if (hash === 'advanced-reports') {
+        if (addBtn) addBtn.style.display = 'none';
+        if (bc) bc.textContent = t('nav_advanced_reports', 'Analytics');
+        renderAdvancedReports();
+    } else if (hash.startsWith('settings')) {
+        if (addBtn) addBtn.style.display = 'none';
+        if (bc) bc.textContent = t('nav_settings', 'Settings');
         renderSettings(hash);
     }
     applyTranslations();

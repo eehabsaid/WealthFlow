@@ -1,41 +1,52 @@
 // settings.js — settings page (languages, companies, banks)
 let globalLangs = [];
 async function renderSettings(route) {
-  const mc = document.getElementById("main-content");
-  const activeTab = route.includes("companies")
-    ? "companies"
-    : route.includes("banks")
-      ? "banks"
-      : route.includes("currency")
-        ? "currency"
-        : route.includes("users")
-          ? "users"
-          : route.includes("translations")
-            ? "translations"
-            : route.includes("languages")
-              ? "languages"
-              : "languages";
+  const mc = document.getElementById('main-content');
+  const activeTab = route.includes('companies')    ? 'companies'
+    : route.includes('banks')        ? 'banks'
+    : route.includes('currency')     ? 'currency'
+    : route.includes('users')        ? 'users'
+    : route.includes('translations') ? 'translations'
+    : route.includes('notifications')? 'notifications'
+    : route.includes('certificates') ? 'certificates'
+    : route.includes('audit')        ? 'audit'
+    : route.includes('security')     ? 'security'
+    : route.includes('dashboard-settings') ? 'dashboard'
+    : route.includes('languages')    ? 'languages'
+    : 'languages';
+
+  const isStaff = window._currentUser && window._currentUser.is_staff;
 
   mc.innerHTML = `
-        <div class="page-header">
-            <div><div class="page-title" data-i18n="nav_settings">Settings</div></div>
-        </div>
-        <div style="border-bottom:1px solid var(--border-color);margin-bottom:20px;display:flex;gap:4px">
-            <button class="settings-tab ${activeTab === "languages" ? "active" : ""}" onclick="navigate('settings-languages')" data-i18n="settings_languages">Languages</button>
-            <button class="settings-tab ${activeTab === "companies" ? "active" : ""}" onclick="navigate('settings-companies')" data-i18n="settings_companies">Companies</button>
-            <button class="settings-tab ${activeTab === "banks" ? "active" : ""}" onclick="navigate('settings-banks')" data-i18n="settings_banks">Banks</button>
-            <button class="settings-tab ${activeTab === "currency" ? "active" : ""}" onclick="navigate('settings-currency')" data-i18n="settings_currency">Currency</button>
-            <button class="settings-tab ${activeTab === "users" ? "active" : ""}" onclick="navigate('settings-users')" data-i18n="settings_users">Users</button>
-            <button class="settings-tab ${activeTab === "translations" ? "active" : ""}" onclick="navigate('settings-translations')" data-i18n="settings_translations">Translations</button>
-        </div>
-        <div id="settingsContent"></div>`;
+    <div class="page-header">
+      <div><div class="page-title" data-i18n="nav_settings">Settings</div></div>
+    </div>
+    <div style="border-bottom:1px solid var(--border-color);margin-bottom:20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap">
+      <button class="settings-tab ${activeTab==='languages'?'active':''}" onclick="navigate('settings-languages')" data-i18n="settings_languages">Languages</button>
+      <button class="settings-tab ${activeTab==='companies'?'active':''}" onclick="navigate('settings-companies')" data-i18n="settings_companies">Companies</button>
+      <button class="settings-tab ${activeTab==='banks'?'active':''}" onclick="navigate('settings-banks')" data-i18n="settings_banks">Banks</button>
+      <button class="settings-tab ${activeTab==='currency'?'active':''}" onclick="navigate('settings-currency')" data-i18n="settings_currency">Currency</button>
+      <button class="settings-tab ${activeTab==='users'?'active':''}" onclick="navigate('settings-users')" data-i18n="settings_users">Users</button>
+      <button class="settings-tab ${activeTab==='translations'?'active':''}" onclick="navigate('settings-translations')" data-i18n="settings_translations">Translations</button>
+      <button class="settings-tab ${activeTab==='notifications'?'active':''}" onclick="navigate('settings-notifications')" data-i18n="tab_notifications">Notifications</button>
+      <button class="settings-tab ${activeTab==='certificates'?'active':''}" onclick="navigate('settings-certificates')" data-i18n="tab_certificates">Certificates</button>
+      ${isStaff ? `<button class="settings-tab ${activeTab==='audit'?'active':''}" onclick="navigate('settings-audit')" data-i18n="tab_audit">Audit</button>` : ''}
+      ${isStaff ? `<button class="settings-tab ${activeTab==='security'?'active':''}" onclick="navigate('settings-security')" data-i18n="tab_security">Security</button>` : ''}
+      <button class="settings-tab ${activeTab==='dashboard'?'active':''}" onclick="navigate('settings-dashboard-settings')" data-i18n="tab_dashboard">Dashboard</button>
+    </div>
+    <div id="settingsContent"></div>`;
   applyTranslations();
 
-  if (activeTab === "languages") renderLanguageSettings();
-  else if (activeTab === "companies") renderCompanySettings();
-  else if (activeTab === "currency") renderCurrencySettings();
-  else if (activeTab === "users") renderUserSettings();
-  else if (activeTab === "translations") renderTranslationSettings();
+  if      (activeTab === 'languages')     renderLanguageSettings();
+  else if (activeTab === 'companies')     renderCompanySettings();
+  else if (activeTab === 'currency')      renderCurrencySettings();
+  else if (activeTab === 'users')         renderUserSettings();
+  else if (activeTab === 'translations')  renderTranslationSettings();
+  else if (activeTab === 'notifications') renderNotificationSettings();
+  else if (activeTab === 'certificates')  renderCertificateSettings();
+  else if (activeTab === 'audit')         renderAuditSettings();
+  else if (activeTab === 'security')      renderSecuritySettings();
+  else if (activeTab === 'dashboard')     renderDashboardSettings();
   else renderBankSettings();
 }
 
