@@ -21,13 +21,6 @@
             <button id="mobile-nav-trigger" class="btn text-light d-lg-none p-2 me-2" onclick="toggleMobileSidebar()" style="font-size: 20px; border: none; background: transparent;">
                 <i class="bi bi-list"></i>
             </button>
-            <!-- Notification Bell -->
-            <button id="notif-bell" onclick="navigate('notifications')"
-                style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;position:relative;padding:4px 8px;margin-left:auto"
-                title="Notifications">
-                <i class="bi bi-bell"></i>
-                <span id="notif-badge" style="display:none;position:absolute;top:0;right:0;background:var(--accent-danger);color:#fff;border-radius:50%;font-size:10px;font-weight:700;width:16px;height:16px;line-height:16px;text-align:center"></span>
-            </button>
         </header>
         <main id="main-content">
             <div class="spinner-overlay">
@@ -57,10 +50,5 @@
 <script src="{% static 'js/exchange_rates.js' %}"></script>
 <script src="{% static 'js/gold_price.js' %}"></script>
 <script src="{% static 'js/expenses.js' %}"></script>
-<script src="{% static 'js/notifications.js' %}"></script>
-<script src="{% static 'js/audit_log.js' %}"></script>
-<script src="{% static 'js/profile.js' %}"></script>
-<script src="{% static 'js/advanced_reports.js' %}"></script>
-<script src="{% static 'js/settings_extensions.js' %}"></script>
 </body>
 </html>

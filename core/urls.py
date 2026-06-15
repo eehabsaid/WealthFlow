@@ -50,33 +50,4 @@ urlpatterns = [
     path("api/settings/", views.SettingsView.as_view()),
     # excel export
     path('api/export/excel/', ExportExcelWorkbookView.as_view(), name='export_excel'),
-
-    # ── Feature 1: Notifications & Reminders ──
-    path('api/notifications/',                views.NotificationListView.as_view()),
-    path('api/notifications/<int:pk>/read/',  views.NotificationDetailView.as_view()),
-    path('api/notifications/mark-all-read/',  views.NotificationMarkAllReadView.as_view()),
-    path('api/reminder-rules/',               views.ReminderRuleListView.as_view()),
-    path('api/reminder-rules/<int:pk>/',      views.ReminderRuleDetailView.as_view()),
-
-    # ── Feature 2: Certificate Statuses ──
-    path('api/certificate-statuses/',         views.CertificateStatusListView.as_view()),
-    path('api/certificate-statuses/<int:pk>/',views.CertificateStatusDetailView.as_view()),
-    path('api/certificate-summary/',          views.CertificateSummaryView.as_view()),
-
-    # ── Feature 3: Audit Log ──
-    path('api/audit-log/',                    views.AuditLogListView.as_view()),
-    path('api/audit-log/purge/',              views.AuditLogDeleteView.as_view()),
-
-    # ── Feature 4: Dashboard Preferences ──
-    path('api/dashboard-preferences/',        views.DashboardPreferenceView.as_view()),
-
-    # ── Feature 5: Advanced Reports ──
-    path('api/salary-trends/',                views.SalaryTrendView.as_view()),
-
-    # ── Feature 6: User Preferences & Password ──
-    path('api/user-preferences/',             views.UserPreferenceView.as_view()),
-    path('api/change-password/',              views.ChangePasswordView.as_view()),
-
-    # ── Feature 7: Security / Login Activity ──
-    path('api/login-activity/',               views.LoginActivityView.as_view()),
 ]
