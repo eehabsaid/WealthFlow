@@ -144,18 +144,20 @@ async function renderLanguageSettings() {
           </button>
     </div>
     <div style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; overflow:visible">
-        <table class="data-table" style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th style="padding: 12px;" data-i18n="language_code">Code</th>
-                    <th style="padding: 12px;" data-i18n="language_label">Label</th>
-                    <th style="padding: 12px;" data-i18n="language_rtl">RTL</th>
-                    <th style="padding: 12px;" data-i18n="active">Active</th>
-                    <th style="padding: 12px;" data-i18n="actions">Actions</th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
+        <div class="table-container">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="padding: 12px;" data-i18n="language_code">Code</th>
+                        <th style="padding: 12px;" data-i18n="language_label">Label</th>
+                        <th style="padding: 12px;" data-i18n="language_rtl">RTL</th>
+                        <th style="padding: 12px;" data-i18n="active">Active</th>
+                        <th style="padding: 12px;" data-i18n="actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
     </div>`;
   applyTranslations();
 }
