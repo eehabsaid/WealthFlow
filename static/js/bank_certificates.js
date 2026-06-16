@@ -33,22 +33,22 @@ async function renderBankCertificates() {
 
     mc.innerHTML = `
         <div class="page-header">
-            <div><div class="page-title">Bank Certificates</div></div>
+            <div><div class="page-title" data-i18n="bank_certificates">Bank Certificates</div></div>
         </div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
             <div class="table-container">
             <table class="data-table">
                 <thead><tr>
-                        <th>Bank</th>
-                    <th>Currency</th>
-                    <th>Issue Date</th>
-                    <th>Expiry Date</th>
-                    <th class="text-end">Amount</th>
-                    <th>Interest Rate</th>
-                    <th>Interest Value</th>
-                    <th>Frequency</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th data-i18n="bank">Bank</th>
+                    <th data-i18n="currency">Currency</th>
+                    <th data-i18n="issue_date">Issue Date</th>
+                    <th data-i18n="expiry_date">Expiry Date</th>
+                    <th class="text-end" data-i18n="balance_amount">Amount</th>
+                    <th data-i18n="interest_rate">Interest Rate</th>
+                    <th data-i18n="interest_value">Interest Value</th>
+                    <th data-i18n="frequency">Frequency</th>
+                    <th data-i18n="status">Status</th>
+                    <th data-i18n="actions">Actions</th>
                 </tr></thead>
                 <tbody>${rows}</tbody>
             </table>
@@ -72,30 +72,31 @@ async function showBankCertificateModal(certificateId) {
 
     const html = `
         <div class="modal-header">
-            <h5 class="modal-title">${certificate ? 'Edit' : 'Add'} Bank Certificate</h5>
+            <h5 class="modal-title" data-i18n="${certificate ? 'edit_bank_certificate' : 'add_bank_certificate'}">${certificate ? 'Edit' : 'Add'} Bank Certificate</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
             <div class="row g-3">
                 <div class="col-6"><label data-i18n="status">Status</label><select class="form-select" id="bcStatus"><option value="Active">Active</option></select></div>
-                <div class="col-6"><label>Bank</label><select class="form-select" id="bcBank"><option value="">— None —</option>${bankOpts}</select></div>
-                <div class="col-6"><label>Currency</label><select class="form-select" id="bcCurrency"><option value="">— Select currency —</option>${curOpts}</select></div>
-                <div class="col-6"><label>Issue Date</label><input type="date" class="form-control" id="bcIssue" value="${certificate ? certificate.issue_date : ''}"></div>
-                <div class="col-6"><label>Expiry Date</label><input type="date" class="form-control" id="bcExpiry" value="${certificate ? certificate.expiry_date : ''}"></div>
-                <div class="col-4"><label>Amount</label><input type="number" step="0.01" class="form-control" id="bcAmount" value="${certificate ? certificate.amount : ''}"></div>
-                <div class="col-4"><label>Interest Rate</label><input type="number" step="0.0001" class="form-control" id="bcInterestRate" value="${certificate ? certificate.interest_rate : ''}"></div>
-                <div class="col-4"><label>Interest Value</label><input type="number" step="0.01" class="form-control" id="bcInterestValue" value="${certificate ? certificate.interest_value : ''}"></div>
-                <div class="col-6"><label>Frequency</label><input class="form-control" id="bcFrequency" value="${certificate ? certificate.frequency : ''}"></div>
-                <div class="col-6"><label>Notes</label><textarea class="form-control" id="bcNotes" rows="2">${certificate ? certificate.notes : ''}</textarea></div>
+                <div class="col-6"><label data-i18n="bank">Bank</label><select class="form-select" id="bcBank"><option value="">— None —</option>${bankOpts}</select></div>
+                <div class="col-6"><label data-i18n="currency">Currency</label><select class="form-select" id="bcCurrency"><option value="">— Select currency —</option>${curOpts}</select></div>
+                <div class="col-6"><label data-i18n="issue_date">Issue Date</label><input type="date" class="form-control" id="bcIssue" value="${certificate ? certificate.issue_date : ''}"></div>
+                <div class="col-6"><label data-i18n="expiry_date">Expiry Date</label><input type="date" class="form-control" id="bcExpiry" value="${certificate ? certificate.expiry_date : ''}"></div>
+                <div class="col-4"><label data-i18n="balance_amount">Amount</label><input type="number" step="0.01" class="form-control" id="bcAmount" value="${certificate ? certificate.amount : ''}"></div>
+                <div class="col-4"><label data-i18n="interest_rate">Interest Rate</label><input type="number" step="0.0001" class="form-control" id="bcInterestRate" value="${certificate ? certificate.interest_rate : ''}"></div>
+                <div class="col-4"><label data-i18n="interest_value">Interest Value</label><input type="number" step="0.01" class="form-control" id="bcInterestValue" value="${certificate ? certificate.interest_value : ''}"></div>
+                <div class="col-6"><label data-i18n="frequency">Frequency</label><input class="form-control" id="bcFrequency" value="${certificate ? certificate.frequency : ''}"></div>
+                <div class="col-6"><label data-i18n="notes">Notes</label><textarea class="form-control" id="bcNotes" rows="2">${certificate ? certificate.notes : ''}</textarea></div>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
-            <button class="btn-primary-custom" onclick="saveBankCertificate(${certificateId})">Save</button>
+            <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
+            <button class="btn-primary-custom" onclick="saveBankCertificate(${certificateId})" data-i18n="btn_save">Save</button>
         </div>`;
     showModal(html);
     // Populate status options from configurable statuses
     _populateCertStatusSelect(certificate ? certificate.status : null);
+    applyTranslations();
 }
 
 async function _populateCertStatusSelect(currentStatus) {

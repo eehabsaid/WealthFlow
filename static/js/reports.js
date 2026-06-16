@@ -6,6 +6,8 @@
 // Unified Global State
 var currentReportYear = 2026;
 let _currentTab = 'monthly';
+const REPORT_MONTH_I18N_KEYS = ['month_january','month_february','month_march','month_april','month_may','month_june',
+  'month_july','month_august','month_september','month_october','month_november','month_december'];
 
 async function renderReports() {
   const mc = document.getElementById('main-content');
@@ -19,14 +21,14 @@ async function renderReports() {
     <div class="page-header">
       <div>
         <div class="page-title">📊 Reports</div>
-        <div class="page-subtitle">Income vs Expenses analysis and PDF export</div>
+        <div class="page-subtitle" data-i18n="reports_subtitle">Income vs Expenses analysis and PDF export</div>
       </div>
     </div>
 
     <div class="settings-tabs mb-4">
-      <button class="settings-tab active" id="tabMonthly" onclick="switchReportTab('monthly')">Monthly</button>
-      <button class="settings-tab" id="tabYearly"  onclick="switchReportTab('yearly')">Yearly</button>
-      <button class="settings-tab" id="tabCustom"  onclick="switchReportTab('custom')">Custom Range</button>
+      <button class="settings-tab active" id="tabMonthly" onclick="switchReportTab('monthly')" data-i18n="tab_monthly">Monthly</button>
+      <button class="settings-tab" id="tabYearly"  onclick="switchReportTab('yearly')" data-i18n="tab_yearly">Yearly</button>
+      <button class="settings-tab" id="tabCustom"  onclick="switchReportTab('custom')" data-i18n="tab_custom_range">Custom Range</button>
     </div>
 
     <div id="ctrlMonthly" class="report-controls mb-4">
@@ -37,7 +39,7 @@ async function renderReports() {
         ${monthOpts(month)}
       </select>
       <button class="btn-primary-custom" onclick="generatePDF('monthly')">
-        <i class="bi bi-file-earmark-pdf"></i> Generate PDF
+        <i class="bi bi-file-earmark-pdf"></i> <span data-i18n="generate_pdf">Generate PDF</span>
       </button>
     </div>
 
@@ -46,18 +48,18 @@ async function renderReports() {
         ${yearOpts(currentReportYear)}
       </select>
       <button class="btn-primary-custom" onclick="generatePDF('yearly')">
-        <i class="bi bi-file-earmark-pdf"></i> Generate PDF
+        <i class="bi bi-file-earmark-pdf"></i> <span data-i18n="generate_pdf">Generate PDF</span>
       </button>
     </div>
 
     <div id="ctrlCustom" class="report-controls mb-4" style="display:none">
       <input type="date" class="form-control" id="rStart" style="width:auto"
              value="${currentReportYear}-01-01" onchange="loadReportData()">
-      <span style="color:var(--text-muted);padding:0 4px">to</span>
+      <span style="color:var(--text-muted);padding:0 4px" data-i18n="report_to">to</span>
       <input type="date" class="form-control" id="rEnd" style="width:auto"
              value="${today.toISOString().split('T')[0]}" onchange="loadReportData()">
       <button class="btn-primary-custom" onclick="generatePDF('custom')">
-        <i class="bi bi-file-earmark-pdf"></i> Generate PDF
+        <i class="bi bi-file-earmark-pdf"></i> <span data-i18n="generate_pdf">Generate PDF</span>
       </button>
     </div>
 
@@ -66,23 +68,24 @@ async function renderReports() {
     <div class="row g-3 mb-4">
       <div class="col-md-8">
         <div class="chart-container">
-          <div class="chart-title">Income vs Expenses</div>
+          <div class="chart-title" data-i18n="income_vs_expenses">Income vs Expenses</div>
           <canvas id="chartIncomeExpense" height="110"></canvas>
         </div>
       </div>
       <div class="col-md-4">
         <div class="chart-container">
-          <div class="chart-title">Expense Categories</div>
+          <div class="chart-title" data-i18n="expense_categories">Expense Categories</div>
           <canvas id="chartCategories" height="220"></canvas>
         </div>
       </div>
     </div>
 
     <div class="chart-container mb-4">
-      <div class="chart-title" id="trendTitle">Monthly Expense Trend (${currentReportYear})</div>
+      <div class="chart-title" id="trendTitle"><span data-i18n="monthly_expense_trend">Monthly Expense Trend</span> (${currentReportYear})</div>
       <canvas id="chartTrend" height="80"></canvas>
     </div>`;
 
+  applyTranslations();
   await loadReportData();
 }
 
