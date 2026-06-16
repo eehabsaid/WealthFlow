@@ -238,6 +238,10 @@ async function loadLangMenu() {
 
 function navigate(route) {
     window.location.hash = route;
+    closeMobileSidebar();
+    setTimeout(() => {
+        window.location.hash = route;
+    }, 50);
 }
 function setBreadcrumb(title, subtitle = "") {
     const bc = document.getElementById("breadcrumb");
