@@ -240,8 +240,8 @@ async function _renderBalanceReport() {
     document.getElementById('reportContent').innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
             ${_kpi('🏛️', t('bank_balance','Bank Balance'), _fmt(banks.reduce((s,b)=>s+b.total_egp,0))+' EGP', '')}
-            ${_kpi('🏦', t('cert_balance','Certificates'), _fmt(d.cert_total)+' EGP', '')}
-            ${_kpi('💹', t('monthly_interest','Monthly Interest'), _fmt(d.cert_interest/12)+' EGP', '')}
+            ${_kpi('🏦', t('cert_balance','Total Certificates'), _fmt(d.cert_total)+' EGP', '')}
+            ${_kpi('💹', t('total_monthly_interest','Total Monthly Interest'), _fmt(d.cert_interest)+' EGP', '')}
         </div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible;margin-bottom:16px">
             <div style="padding:14px 20px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border-color)" data-i18n="bank_accounts">Bank Accounts</div>
@@ -313,7 +313,7 @@ async function _renderCertReport() {
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
             ${_kpi('🏦', t('total_certificates','Total Certificates'), s.total_count||0, '')}
             ${_kpi('💵', t('total_amount','Total Amount'), _fmt(s.total_amount)+' EGP', '')}
-            ${_kpi('💹', t('monthly_interest','Monthly Interest'), _fmt(s.monthly_interest)+' EGP', t('per_month','per month'))}
+            ${_kpi('💹', t('total_monthly_interest','Total Monthly Interest'), _fmt(s.monthly_interest)+' EGP', t('per_month','per month'))}
         </div>
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">
             ${bucketCards}

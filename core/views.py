@@ -1860,7 +1860,7 @@ class CertificateReportView(View):
                 'total_count':    agg['total_count'] or 0,
                 'total_amount':   float(agg['total_amount'] or 0),
                 'total_interest': float(agg['total_interest'] or 0),
-                'monthly_interest': float(agg['total_interest'] or 0) / 12,
+                'monthly_interest': float(agg['total_interest'] or 0),
             },
             'buckets':     buckets,
             'by_status':   by_status,
