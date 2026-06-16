@@ -45,17 +45,17 @@ async function renderSettings(route) {
   else if (activeTab === "currency") renderCurrencySettings();
   else if (activeTab === "users") renderUserSettings();
   else if (activeTab === "translations") renderTranslationSettings();
-  else if (activeTab === "reminders")  renderReminderSettings();
+  else if (activeTab === "reminders") renderReminderSettings();
   else if (activeTab === "certstatus") renderCertStatusSettings();
-  else if (activeTab === "dashboard")  renderDashboardSettings();
+  else if (activeTab === "dashboard") renderDashboardSettings();
   else renderBankSettings();
 }
 
 async function renderDashboardSettings() {
-    const res = await fetch('/api/settings/');
-    const s   = (await res.json()).settings || {};
+  const res = await fetch("/api/settings/");
+  const s = (await res.json()).settings || {};
 
-    document.getElementById('settingsContent').innerHTML = `
+  document.getElementById("settingsContent").innerHTML = `
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:0">
             <div style="font-weight:700;color:var(--text-primary);margin-bottom:16px" data-i18n="dashboard_settings">Dashboard Settings</div>
 
@@ -64,7 +64,7 @@ async function renderDashboardSettings() {
                     <div style="font-weight:600;color:var(--text-primary)" data-i18n="dashboard_show_certs">Show Expiring Certificates Widget</div>
                     <div style="font-size:12px;color:var(--text-muted)" data-i18n="dashboard_show_certs_desc">Display a table of certificates expiring soon on the dashboard</div>
                 </div>
-                <input type="checkbox" ${s.dashboard_show_certs !== 'false' ? 'checked' : ''}
+                <input type="checkbox" ${s.dashboard_show_certs !== "false" ? "checked" : ""}
                     onchange="saveAppSetting('dashboard_show_certs', this.checked ? 'true' : 'false')">
             </div>
 
@@ -73,7 +73,7 @@ async function renderDashboardSettings() {
                     <div style="font-weight:600;color:var(--text-primary)" data-i18n="dashboard_show_reminders">Show Active Reminders Widget</div>
                     <div style="font-size:12px;color:var(--text-muted)" data-i18n="dashboard_show_reminders_desc">Display today's active reminders on the dashboard</div>
                 </div>
-                <input type="checkbox" ${s.dashboard_show_reminders !== 'false' ? 'checked' : ''}
+                <input type="checkbox" ${s.dashboard_show_reminders !== "false" ? "checked" : ""}
                     onchange="saveAppSetting('dashboard_show_reminders', this.checked ? 'true' : 'false')">
             </div>
 
@@ -82,19 +82,19 @@ async function renderDashboardSettings() {
                     <div style="font-weight:600;color:var(--text-primary)" data-i18n="dashboard_show_salary">Show Salary KPI Widget</div>
                     <div style="font-size:12px;color:var(--text-muted)" data-i18n="dashboard_show_salary_desc">Show salary totals on the dashboard</div>
                 </div>
-                <input type="checkbox" ${s.dashboard_show_salary !== 'false' ? 'checked' : ''}
+                <input type="checkbox" ${s.dashboard_show_salary !== "false" ? "checked" : ""}
                     onchange="saveAppSetting('dashboard_show_salary', this.checked ? 'true' : 'false')">
             </div>
         </div>`;
-    applyTranslations();
+  applyTranslations();
 }
 
 function saveAppSetting(key, value) {
-    fetch('/api/settings/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [key]: value }),
-    }).then(() => showToast(t('settings_saved','Settings saved ✓')));
+  fetch("/api/settings/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ [key]: value }),
+  }).then(() => showToast(t("settings_saved", "Settings saved ✓")));
 }
 
 // ── Language Settings ──────────────────────────────────────
@@ -1061,7 +1061,12 @@ async function renderTranslationSettings() {
   const res = await fetch("/api/translations/");
   const data = await res.json();
 
-  const languages = Object.keys(data);
+  const preferredOrder = ["ar", "en", "fr", "de"];
+
+  const languages = [
+    ...preferredOrder.filter((lang) => data[lang]),
+    ...Object.keys(data).filter((lang) => !preferredOrder.includes(lang)),
+  ];
 
   const masterLang = languages.includes("en") ? "en" : languages[0];
   const masterKeys = Object.keys(data[masterLang] || {});

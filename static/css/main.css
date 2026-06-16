@@ -497,10 +497,25 @@ body {
   border-bottom-color: var(--accent-primary);
 }
 
-/* Tabs bar: scrollable on mobile */
-.settings-tab ~ .settings-tab,
-.settings-tab:first-of-type {
-  /* rules applied via parent below */
+/* Container for the tabs - enables horizontal scrolling on small screens */
+.settings-tabs-container {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap; /* Keeps tabs on one line */
+  padding-bottom: 5px;
+  scrollbar-width: thin; /* Firefox: makes scrollbar thinner */
+}
+
+/* Base style for individual tabs */
+.settings-tab {
+  flex-shrink: 0; /* Prevents tabs from shrinking */
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+/* Optional: Add spacing between tabs */
+.settings-tab ~ .settings-tab {
+  margin-left: 10px;
 }
 
 /* The inline div wrapping all .settings-tab buttons gets scroll on mobile */
@@ -1008,9 +1023,9 @@ body { overflow-x: hidden; }
    ══════════════════════════════════════ */
 
 .translation-table-wrapper {
-  overflow-x: auto;
-  overflow-y: auto;
-  max-width: 100%;
+    overflow: auto;
+    max-width: 100%;
+    max-height: 75vh;
 }
 
 .translation-table {
@@ -1027,6 +1042,20 @@ body { overflow-x: hidden; }
   min-width: 120px;
 }
 
+.translation-table th:first-child,
 .translation-table thead th:first-child { z-index: 3; }
 .translation-table th,
 .translation-table td { white-space: nowrap; }
+
+/* Translation table sticky header */
+.translation-table-wrapper {
+    max-height: 75vh;
+    overflow: auto;
+}
+
+.translation-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg-secondary) !important;
+}
