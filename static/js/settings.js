@@ -12,9 +12,15 @@ async function renderSettings(route) {
           ? "users"
           : route.includes("translations")
             ? "translations"
-            : route.includes("languages")
-              ? "languages"
-              : "languages";
+            : route.includes("reminders")
+              ? "reminders"
+              : route.includes("certstatus")
+                ? "certstatus"
+                : route.includes("settings-dashboard")
+                  ? "dashboard"
+                  : route.includes("languages")
+                    ? "languages"
+                    : "languages";
 
   mc.innerHTML = `
         <div class="page-header">
@@ -27,6 +33,9 @@ async function renderSettings(route) {
             <button class="settings-tab ${activeTab === "currency" ? "active" : ""}" onclick="navigate('settings-currency')" data-i18n="settings_currency">Currency</button>
             <button class="settings-tab ${activeTab === "users" ? "active" : ""}" onclick="navigate('settings-users')" data-i18n="settings_users">Users</button>
             <button class="settings-tab ${activeTab === "translations" ? "active" : ""}" onclick="navigate('settings-translations')" data-i18n="settings_translations">Translations</button>
+            <button class="settings-tab ${activeTab === "reminders" ? "active" : ""}" onclick="navigate('settings-reminders')" data-i18n="tab_reminders">Reminders</button>
+            <button class="settings-tab ${activeTab === "certstatus" ? "active" : ""}" onclick="navigate('settings-certstatus')" data-i18n="tab_cert_status">Cert Statuses</button>
+            <button class="settings-tab ${activeTab === "dashboard" ? "active" : ""}" onclick="navigate('settings-dashboard')" data-i18n="tab_dashboard_sett">Dashboard</button>
         </div>
         <div id="settingsContent"></div>`;
   applyTranslations();
@@ -36,7 +45,56 @@ async function renderSettings(route) {
   else if (activeTab === "currency") renderCurrencySettings();
   else if (activeTab === "users") renderUserSettings();
   else if (activeTab === "translations") renderTranslationSettings();
+  else if (activeTab === "reminders")  renderReminderSettings();
+  else if (activeTab === "certstatus") renderCertStatusSettings();
+  else if (activeTab === "dashboard")  renderDashboardSettings();
   else renderBankSettings();
+}
+
+async function renderDashboardSettings() {
+    const res = await fetch('/api/settings/');
+    const s   = (await res.json()).settings || {};
+
+    document.getElementById('settingsContent').innerHTML = `
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:0">
+            <div style="font-weight:700;color:var(--text-primary);margin-bottom:16px" data-i18n="dashboard_settings">Dashboard Settings</div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-color)">
+                <div>
+                    <div style="font-weight:600;color:var(--text-primary)" data-i18n="dashboard_show_certs">Show Expiring Certificates Widget</div>
+                    <div style="font-size:12px;color:var(--text-muted)" data-i18n="dashboard_show_certs_desc">Display a table of certificates expiring soon on the dashboard</div>
+                </div>
+                <input type="checkbox" ${s.dashboard_show_certs !== 'false' ? 'checked' : ''}
+                    onchange="saveAppSetting('dashboard_show_certs', this.checked ? 'true' : 'false')">
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-color)">
+                <div>
+                    <div style="font-weight:600;color:var(--text-primary)" data-i18n="dashboard_show_reminders">Show Active Reminders Widget</div>
+                    <div style="font-size:12px;color:var(--text-muted)" data-i18n="dashboard_show_reminders_desc">Display today's active reminders on the dashboard</div>
+                </div>
+                <input type="checkbox" ${s.dashboard_show_reminders !== 'false' ? 'checked' : ''}
+                    onchange="saveAppSetting('dashboard_show_reminders', this.checked ? 'true' : 'false')">
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+                <div>
+                    <div style="font-weight:600;color:var(--text-primary)" data-i18n="dashboard_show_salary">Show Salary KPI Widget</div>
+                    <div style="font-size:12px;color:var(--text-muted)" data-i18n="dashboard_show_salary_desc">Show salary totals on the dashboard</div>
+                </div>
+                <input type="checkbox" ${s.dashboard_show_salary !== 'false' ? 'checked' : ''}
+                    onchange="saveAppSetting('dashboard_show_salary', this.checked ? 'true' : 'false')">
+            </div>
+        </div>`;
+    applyTranslations();
+}
+
+function saveAppSetting(key, value) {
+    fetch('/api/settings/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [key]: value }),
+    }).then(() => showToast(t('settings_saved','Settings saved ✓')));
 }
 
 // ── Language Settings ──────────────────────────────────────

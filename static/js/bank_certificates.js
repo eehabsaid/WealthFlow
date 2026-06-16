@@ -77,7 +77,7 @@ async function showBankCertificateModal(certificateId) {
         </div>
         <div class="modal-body">
             <div class="row g-3">
-                <div class="col-6"><label>Status</label><input class="form-control" id="bcStatus" value="${certificate ? certificate.status : 'Active'}"></div>
+                <div class="col-6"><label data-i18n="status">Status</label><select class="form-select" id="bcStatus"><option value="Active">Active</option></select></div>
                 <div class="col-6"><label>Bank</label><select class="form-select" id="bcBank"><option value="">— None —</option>${bankOpts}</select></div>
                 <div class="col-6"><label>Currency</label><select class="form-select" id="bcCurrency"><option value="">— Select currency —</option>${curOpts}</select></div>
                 <div class="col-6"><label>Issue Date</label><input type="date" class="form-control" id="bcIssue" value="${certificate ? certificate.issue_date : ''}"></div>
@@ -94,6 +94,31 @@ async function showBankCertificateModal(certificateId) {
             <button class="btn-primary-custom" onclick="saveBankCertificate(${certificateId})">Save</button>
         </div>`;
     showModal(html);
+    // Populate status options from configurable statuses
+    _populateCertStatusSelect(certificate ? certificate.status : null);
+}
+
+async function _populateCertStatusSelect(currentStatus) {
+    try {
+        const res = await fetch('/api/cert-statuses/');
+        const data = await res.json();
+        const statuses = data.statuses || [];
+        const select = document.getElementById('bcStatus');
+        if (!select) return;
+        if (statuses.length === 0) {
+            // Fallback to defaults if no statuses configured
+            ['Active','Maturing','Renewed','Closed'].forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s; opt.textContent = s;
+                if (s === (currentStatus || 'Active')) opt.selected = true;
+                select.appendChild(opt);
+            });
+        } else {
+            select.innerHTML = statuses.map(s =>
+                `<option value="${s.name}" ${s.name === (currentStatus || '') || (!currentStatus && s.is_default) ? 'selected' : ''}>${s.name}</option>`
+            ).join('');
+        }
+    } catch(e) {}
 }
 
 function parseNumberInput(id) {

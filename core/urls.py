@@ -50,4 +50,22 @@ urlpatterns = [
     path("api/settings/", views.SettingsView.as_view()),
     # excel export
     path('api/export/excel/', ExportExcelWorkbookView.as_view(), name='export_excel'),
+
+    # ── Reminder Engine ──────────────────────────────────────────────────────
+    path('api/reminders/',               views.ReminderRuleListView.as_view()),
+    path('api/reminders/<int:pk>/',      views.ReminderRuleDetailView.as_view()),
+    path('api/reminders/check/',         views.ReminderCheckView.as_view()),
+    path('api/reminders/log/',           views.ReminderLogListView.as_view()),
+
+    # ── Certificate Statuses ─────────────────────────────────────────────────
+    path('api/cert-statuses/',           views.CertificateStatusListView.as_view()),
+    path('api/cert-statuses/<int:pk>/',  views.CertificateStatusDetailView.as_view()),
+
+    # ── Advanced Reports ─────────────────────────────────────────────────────
+    path('api/reports/salary/',          views.SalaryReportView.as_view()),
+    path('api/reports/balance/',         views.BalanceReportView.as_view()),
+    path('api/reports/certificates/',    views.CertificateReportView.as_view()),
+
+    # ── Dashboard Summary ────────────────────────────────────────────────────
+    path('api/dashboard/summary/',       views.DashboardSummaryView.as_view()),
 ]

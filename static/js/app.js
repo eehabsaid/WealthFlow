@@ -46,6 +46,10 @@ async function initApp() {
     };
     renderSidebar();
     renderTopbar();
+    // Check reminders in background after load
+    setTimeout(() => {
+        if (typeof checkReminders === 'function') checkReminders();
+    }, 2000);
 }
 
 function renderSidebar() {
@@ -113,6 +117,10 @@ function renderSidebar() {
                 </button>
                 <button class="nav-item" onclick="navigate('reports')"><i class="bi bi-graph-up"></i>
                 <span data-i18n="nav_reports">Reports</span>
+                </button>
+                <button class="nav-item" onclick="navigate('advanced-reports')">
+                    <i class="bi bi-bar-chart-line"></i>
+                    <span data-i18n="nav_advanced_reports">Advanced Reports</span>
                 </button>
             </div>
 
@@ -332,6 +340,10 @@ function route() {
     } else if (hash === "reports") {
         setBreadcrumb("Reports", "Income & Expense Analysis");
         renderReports();
+    } else if (hash === 'advanced-reports') {
+        if (addBtn) addBtn.style.display = "none";
+        if (bc) bc.textContent = t('nav_advanced_reports', 'Advanced Reports');
+        renderAdvancedReports();
     } else if (hash.startsWith("settings")) {
         if (addBtn) addBtn.style.display = "none";
         if (bc) bc.textContent = t("nav_settings", "Settings");

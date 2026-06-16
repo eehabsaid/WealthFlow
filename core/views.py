@@ -9,7 +9,7 @@ from django.utils.decorators import method_decorator
 from django.db import transaction
 from django.db.models import Sum, Count
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Company, SalaryEntry, Bank, BalanceEntry, AppSettings, ExchangeRate, GoldPrice, Currency, ExpenseCategory, ExpenseSubcategory, Expense, BankCertificate, PagePermission, PAGE_PERMISSION_CHOICES, UserProfile
+from .models import Company, SalaryEntry, Bank, BalanceEntry, AppSettings, ExchangeRate, GoldPrice, Currency, ExpenseCategory, ExpenseSubcategory, Expense, BankCertificate, PagePermission, PAGE_PERMISSION_CHOICES, UserProfile, ReminderRule, CertificateStatus, ReminderLog, REMINDER_TYPE_CHOICES, SALARY_TRIGGER_CHOICES
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 import openpyxl
@@ -1433,3 +1433,503 @@ def export_excel(request):
     )
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# REMINDER ENGINE VIEWS
+# ════════════════════════════════════════════════════════════════════════════
+
+from .models import ReminderRule, CertificateStatus, ReminderLog, REMINDER_TYPE_CHOICES, SALARY_TRIGGER_CHOICES
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReminderRuleListView(View):
+    def get(self, request):
+        rules = ReminderRule.objects.all()
+        return JsonResponse({
+            'rules': [r.to_dict() for r in rules],
+            'rule_types': [{'value': v, 'label': l} for v, l in REMINDER_TYPE_CHOICES],
+            'salary_triggers': [{'value': v, 'label': l} for v, l in SALARY_TRIGGER_CHOICES],
+        })
+
+    def post(self, request):
+        data = json.loads(request.body)
+        rule = ReminderRule.objects.create(
+            name           = data['name'],
+            rule_type      = data.get('rule_type', 'cert_maturity'),
+            is_active      = data.get('is_active', True),
+            days_before    = int(data.get('days_before', 30)),
+            salary_trigger = data.get('salary_trigger', 'day_of_month'),
+            salary_day     = int(data.get('salary_day', 25)),
+            salary_message = data.get('salary_message', ''),
+        )
+        return JsonResponse({'rule': rule.to_dict()}, status=201)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReminderRuleDetailView(View):
+    def put(self, request, pk):
+        rule = get_object_or_404(ReminderRule, pk=pk)
+        data = json.loads(request.body)
+        rule.name           = data.get('name', rule.name)
+        rule.rule_type      = data.get('rule_type', rule.rule_type)
+        rule.is_active      = data.get('is_active', rule.is_active)
+        rule.days_before    = int(data.get('days_before', rule.days_before))
+        rule.salary_trigger = data.get('salary_trigger', rule.salary_trigger)
+        rule.salary_day     = int(data.get('salary_day', rule.salary_day))
+        rule.salary_message = data.get('salary_message', rule.salary_message)
+        rule.save()
+        return JsonResponse({'rule': rule.to_dict()})
+
+    def delete(self, request, pk):
+        rule = get_object_or_404(ReminderRule, pk=pk)
+        rule.delete()
+        return JsonResponse({'deleted': pk})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReminderCheckView(View):
+    """Called on page load — evaluates all active rules and returns due reminders."""
+    def get(self, request):
+        from datetime import date, timedelta
+        import calendar as cal
+
+        today = date.today()
+        results = []
+        rules = ReminderRule.objects.filter(is_active=True)
+
+        for rule in rules:
+
+            # ── Certificate Maturity ────────────────────────────
+            if rule.rule_type == 'cert_maturity':
+                target = today + timedelta(days=rule.days_before)
+                certs = BankCertificate.objects.filter(expiry_date=target)
+                # Also check any cert expiring in ≤ days_before that hasn't fired today
+                certs_range = BankCertificate.objects.filter(
+                    expiry_date__gte=today,
+                    expiry_date__lte=target,
+                )
+                for cert in certs_range:
+                    days_left = (cert.expiry_date - today).days
+                    # Only fire if within days_before window and not already logged today
+                    already = ReminderLog.objects.filter(
+                        rule=rule, related_model='BankCertificate',
+                        related_id=cert.id, fired_on=today).exists()
+                    if not already:
+                        bank_name = cert.bank.name if cert.bank else 'Unknown'
+                        msg = (f"Certificate at {bank_name} of "
+                               f"{float(cert.amount):,.2f} expires in {days_left} day(s) "
+                               f"on {cert.expiry_date}.")
+                        ReminderLog.objects.get_or_create(
+                            rule=rule, related_model='BankCertificate',
+                            related_id=cert.id, fired_on=today,
+                            defaults={'message': msg})
+                        results.append({
+                            'rule_id':    rule.id,
+                            'rule_name':  rule.name,
+                            'rule_type':  rule.rule_type,
+                            'message':    msg,
+                            'related_id': cert.id,
+                            'link':       'bank-certificates',
+                            'days_left':  days_left,
+                        })
+
+            # ── Salary Unpaid ───────────────────────────────────
+            elif rule.rule_type == 'salary_unpaid':
+                trigger_day = _salary_trigger_day(rule, today)
+                if today.day >= trigger_day:
+                    # Check if current month has any unpaid salary entry
+                    unpaid = SalaryEntry.objects.filter(
+                        year=today.year,
+                        paid=0,
+                    ).exists()
+                    if unpaid:
+                        already = ReminderLog.objects.filter(
+                            rule=rule, related_model='SalaryEntry',
+                            related_id=0, fired_on=today).exists()
+                        if not already:
+                            msg = rule.salary_message or 'This month has unpaid salary entries.'
+                            ReminderLog.objects.get_or_create(
+                                rule=rule, related_model='SalaryEntry',
+                                related_id=0, fired_on=today,
+                                defaults={'message': msg})
+                            results.append({
+                                'rule_id':   rule.id,
+                                'rule_name': rule.name,
+                                'rule_type': rule.rule_type,
+                                'message':   msg,
+                                'link':      'salary',
+                            })
+
+            # ── Salary Day ──────────────────────────────────────
+            elif rule.rule_type == 'salary_day':
+                trigger_day = _salary_trigger_day(rule, today)
+                if today.day == trigger_day:
+                    already = ReminderLog.objects.filter(
+                        rule=rule, related_model='SalaryDay',
+                        related_id=today.month, fired_on=today).exists()
+                    if not already:
+                        msg = rule.salary_message or f'Salary day reminder for {today.strftime("%B %Y")}.'
+                        ReminderLog.objects.get_or_create(
+                            rule=rule, related_model='SalaryDay',
+                            related_id=today.month, fired_on=today,
+                            defaults={'message': msg})
+                        results.append({
+                            'rule_id':   rule.id,
+                            'rule_name': rule.name,
+                            'rule_type': rule.rule_type,
+                            'message':   msg,
+                            'link':      'salary',
+                        })
+
+            # ── Custom (future-ready, no hardcoded logic) ───────
+            elif rule.rule_type == 'custom':
+                # Custom rules fire based on salary_day as a day-of-month trigger
+                trigger_day = _salary_trigger_day(rule, today)
+                if today.day == trigger_day:
+                    already = ReminderLog.objects.filter(
+                        rule=rule, related_model='Custom',
+                        related_id=today.month, fired_on=today).exists()
+                    if not already:
+                        msg = rule.salary_message or rule.name
+                        ReminderLog.objects.get_or_create(
+                            rule=rule, related_model='Custom',
+                            related_id=today.month, fired_on=today,
+                            defaults={'message': msg})
+                        results.append({
+                            'rule_id':   rule.id,
+                            'rule_name': rule.name,
+                            'rule_type': rule.rule_type,
+                            'message':   msg,
+                            'link':      '',
+                        })
+
+        return JsonResponse({'reminders': results, 'count': len(results)})
+
+
+def _salary_trigger_day(rule, today):
+    """Compute the calendar day this rule fires on for the given month."""
+    import calendar as cal
+    last_day = cal.monthrange(today.year, today.month)[1]
+    if rule.salary_trigger == 'day_of_month':
+        return min(rule.salary_day, last_day)
+    elif rule.salary_trigger == 'days_before_eom':
+        return max(1, last_day - rule.salary_day)
+    elif rule.salary_trigger == 'days_after_som':
+        return min(rule.salary_day + 1, last_day)
+    return rule.salary_day
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReminderLogListView(View):
+    """Return recent reminder log entries."""
+    def get(self, request):
+        limit = int(request.GET.get('limit', 30))
+        logs = ReminderLog.objects.select_related('rule').all()[:limit]
+        return JsonResponse({'logs': [l.to_dict() for l in logs]})
+
+    def delete(self, request):
+        """Clear all log entries (reset fired state)."""
+        ReminderLog.objects.all().delete()
+        return JsonResponse({'cleared': True})
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# CERTIFICATE STATUS VIEWS
+# ════════════════════════════════════════════════════════════════════════════
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CertificateStatusListView(View):
+    def get(self, request):
+        statuses = CertificateStatus.objects.all()
+        return JsonResponse({'statuses': [s.to_dict() for s in statuses]})
+
+    def post(self, request):
+        data = json.loads(request.body)
+        # If new status is default, unset any existing default
+        if data.get('is_default'):
+            CertificateStatus.objects.filter(is_default=True).update(is_default=False)
+        s = CertificateStatus.objects.create(
+            name        = data['name'],
+            color_hex   = data.get('color_hex', '#1a6ef5'),
+            is_default  = data.get('is_default', False),
+            is_terminal = data.get('is_terminal', False),
+            order       = int(data.get('order', 0)),
+        )
+        return JsonResponse({'status': s.to_dict()}, status=201)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CertificateStatusDetailView(View):
+    def put(self, request, pk):
+        s = get_object_or_404(CertificateStatus, pk=pk)
+        data = json.loads(request.body)
+        if data.get('is_default') and not s.is_default:
+            CertificateStatus.objects.filter(is_default=True).update(is_default=False)
+        s.name        = data.get('name', s.name)
+        s.color_hex   = data.get('color_hex', s.color_hex)
+        s.is_default  = data.get('is_default', s.is_default)
+        s.is_terminal = data.get('is_terminal', s.is_terminal)
+        s.order       = int(data.get('order', s.order))
+        s.save()
+        return JsonResponse({'status': s.to_dict()})
+
+    def delete(self, request, pk):
+        s = get_object_or_404(CertificateStatus, pk=pk)
+        s.delete()
+        return JsonResponse({'deleted': pk})
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# ADVANCED REPORTS VIEWS
+# ════════════════════════════════════════════════════════════════════════════
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SalaryReportView(View):
+    """Salary + bonus analytics by year and company."""
+    def get(self, request):
+        from django.db.models import Sum, Count, Q
+
+        year       = request.GET.get('year')
+        company_id = request.GET.get('company_id')
+
+        qs = SalaryEntry.objects.all()
+        if year:
+            qs = qs.filter(year=int(year))
+        if company_id:
+            qs = qs.filter(company_id=int(company_id))
+
+        # By year
+        by_year = list(
+            qs.values('year')
+            .annotate(
+                total_paid=Sum('paid'),
+                total_bonus=Sum('bonus'),
+                total_expected=Sum('expected'),
+                paid_months=Count('id', filter=Q(paid__gt=0)),
+            ).order_by('year')
+        )
+
+        # By company
+        by_company = []
+        for c in Company.objects.all().order_by('order'):
+            cqs = qs.filter(company=c)
+            agg = cqs.aggregate(
+                total_paid=Sum('paid'),
+                total_bonus=Sum('bonus'),
+                total_expected=Sum('expected'),
+                paid_months=Count('id', filter=Q(paid__gt=0)),
+            )
+            if agg['paid_months']:
+                by_company.append({
+                    'company_id':     c.id,
+                    'company_name':   c.display_name or c.name,
+                    'color_hex':      c.color_hex,
+                    'total_paid':     float(agg['total_paid'] or 0),
+                    'total_bonus':    float(agg['total_bonus'] or 0),
+                    'total_expected': float(agg['total_expected'] or 0),
+                    'paid_months':    agg['paid_months'] or 0,
+                })
+
+        # Grand totals
+        grand = qs.aggregate(
+            total_paid=Sum('paid'),
+            total_bonus=Sum('bonus'),
+            total_expected=Sum('expected'),
+            paid_months=Count('id', filter=Q(paid__gt=0)),
+        )
+
+        # Available years
+        years = list(SalaryEntry.objects.values_list('year', flat=True).distinct().order_by('year'))
+        companies = [{'id': c.id, 'name': c.display_name or c.name} for c in Company.objects.all().order_by('order')]
+
+        return JsonResponse({
+            'by_year':      by_year,
+            'by_company':   by_company,
+            'grand': {
+                'total_paid':     float(grand['total_paid'] or 0),
+                'total_bonus':    float(grand['total_bonus'] or 0),
+                'total_expected': float(grand['total_expected'] or 0),
+                'paid_months':    grand['paid_months'] or 0,
+            },
+            'years':     years,
+            'companies': companies,
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class BalanceReportView(View):
+    """Balance summary across banks and currencies."""
+    def get(self, request):
+        from django.db.models import Sum
+
+        entries = BalanceEntry.objects.select_related('bank', 'currency').all()
+        banks   = Bank.objects.all()
+
+        # Group by bank
+        by_bank = []
+        for bank in banks:
+            bank_entries = entries.filter(bank=bank)
+            total_egp = float(bank_entries.filter(
+                currency__code='EGP').aggregate(s=Sum('amount'))['s'] or 0)
+            by_bank.append({
+                'bank_id':   bank.id,
+                'bank_name': bank.name,
+                'total_egp': total_egp,
+                'entries':   [e.to_dict() for e in bank_entries],
+            })
+
+        # Unbanked entries (cash / home)
+        home = entries.filter(bank__isnull=True)
+        by_currency = []
+        for e in home:
+            by_currency.append(e.to_dict())
+
+        # Certificate totals
+        from django.db.models import Sum as S
+        cert_total = float(BankCertificate.objects.aggregate(s=S('amount'))['s'] or 0)
+        cert_interest = float(BankCertificate.objects.aggregate(s=S('interest_value'))['s'] or 0)
+
+        return JsonResponse({
+            'by_bank':       by_bank,
+            'home_entries':  by_currency,
+            'cert_total':    cert_total,
+            'cert_interest': cert_interest,
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CertificateReportView(View):
+    """Certificate maturity and analytics report."""
+    def get(self, request):
+        from datetime import date, timedelta
+        from django.db.models import Sum, Count
+
+        today = date.today()
+        certs = BankCertificate.objects.select_related('bank', 'currency').all()
+
+        agg = certs.aggregate(
+            total_count=Count('id'),
+            total_amount=Sum('amount'),
+            total_interest=Sum('interest_value'),
+        )
+
+        # Maturity buckets (configurable label from settings, days from AppSettings)
+        bucket_days = [
+            ('overdue',   0,   -1),
+            ('30_days',   0,   30),
+            ('90_days',   31,  90),
+            ('180_days',  91,  180),
+            ('later',     181, 9999),
+        ]
+
+        buckets = {}
+        for label, low, high in bucket_days:
+            if label == 'overdue':
+                buckets[label] = [c.to_dict() for c in certs.filter(expiry_date__lt=today)]
+            else:
+                buckets[label] = [c.to_dict() for c in certs.filter(
+                    expiry_date__gte=today + timedelta(days=low),
+                    expiry_date__lte=today + timedelta(days=high),
+                )]
+
+        # By status
+        by_status = {}
+        for c in certs:
+            by_status[c.status] = by_status.get(c.status, {'count': 0, 'total': 0})
+            by_status[c.status]['count'] += 1
+            by_status[c.status]['total'] += float(c.amount)
+
+        # Monthly interest cashflow (next 12 months)
+        monthly_cf = []
+        for i in range(12):
+            m_start = today.replace(day=1) + timedelta(days=32 * i)
+            m_start = m_start.replace(day=1)
+            m_certs = certs.filter(
+                expiry_date__year=m_start.year,
+                expiry_date__month=m_start.month,
+            )
+            monthly_cf.append({
+                'month':  m_start.strftime('%b %Y'),
+                'count':  m_certs.count(),
+                'amount': float(m_certs.aggregate(s=Sum('amount'))['s'] or 0),
+            })
+
+        return JsonResponse({
+            'summary': {
+                'total_count':    agg['total_count'] or 0,
+                'total_amount':   float(agg['total_amount'] or 0),
+                'total_interest': float(agg['total_interest'] or 0),
+                'monthly_interest': float(agg['total_interest'] or 0) / 12,
+            },
+            'buckets':     buckets,
+            'by_status':   by_status,
+            'monthly_cf':  monthly_cf,
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DashboardSummaryView(View):
+    """Enhanced dashboard summary — salary KPIs + cert maturity + balance."""
+    def get(self, request):
+        from datetime import date, timedelta
+        from django.db.models import Sum, Count, Q
+
+        today = date.today()
+
+        # Salary grand totals
+        sal_agg = SalaryEntry.objects.aggregate(
+            total_paid=Sum('paid'),
+            total_bonus=Sum('bonus'),
+            total_expected=Sum('expected'),
+            paid_months=Count('id', filter=Q(paid__gt=0)),
+        )
+
+        # Certificates
+        certs = BankCertificate.objects.select_related('bank').all()
+        cert_agg = certs.aggregate(
+            total=Sum('amount'),
+            total_interest=Sum('interest_value'),
+        )
+        expiring_soon_days = int(AppSettings.get('cert_expiry_warning_days', '30'))
+        expiring_soon = list(certs.filter(
+            expiry_date__gte=today,
+            expiry_date__lte=today + timedelta(days=expiring_soon_days),
+        ).order_by('expiry_date').values(
+            'id', 'expiry_date', 'amount', 'status', 'bank__name'
+        ))
+        for e in expiring_soon:
+            e['days_left'] = (e['expiry_date'] - today).days
+            e['expiry_date'] = e['expiry_date'].isoformat()
+
+        # Active reminders (due today)
+        active_reminders = []
+        for rule in ReminderRule.objects.filter(is_active=True, rule_type='cert_maturity'):
+            logs = ReminderLog.objects.filter(rule=rule, fired_on=today).values(
+                'message', 'related_id', 'related_model')
+            for l in logs:
+                active_reminders.append({'rule': rule.name, 'message': l['message']})
+
+        # Balance
+        bal_entries = BalanceEntry.objects.select_related('currency').all()
+        egp_balance = float(bal_entries.filter(
+            currency__code='EGP').aggregate(s=Sum('amount'))['s'] or 0)
+
+        return JsonResponse({
+            'salary': {
+                'total_paid':     float(sal_agg['total_paid'] or 0),
+                'total_bonus':    float(sal_agg['total_bonus'] or 0),
+                'total_expected': float(sal_agg['total_expected'] or 0),
+                'paid_months':    sal_agg['paid_months'] or 0,
+            },
+            'certificates': {
+                'total_amount':    float(cert_agg['total'] or 0),
+                'total_interest':  float(cert_agg['total_interest'] or 0),
+                'monthly_interest': float(cert_agg['total_interest'] or 0) / 12,
+                'count':           certs.count(),
+            },
+            'expiring_soon':      expiring_soon,
+            'active_reminders':   active_reminders,
+            'egp_balance':        egp_balance,
+            'expiry_warning_days': expiring_soon_days,
+        })
