@@ -78,8 +78,14 @@ async function renderExchangeRates() {
           <div class="kpi-value" style="font-size:18px">${fmtRate(r.mid_rate)}</div>
           <div class="kpi-sub" data-i18n="egp_per_1">EGP per 1 ${r.currency_code}</div>
           <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text-muted)">
-            <span data-i18n="buy">Buy: ${fmtRate(r.buy_rate)}</span>
-            <span data-i18n="sell">Sell: ${fmtRate(r.sell_rate)}</span>
+            <span style="display:flex; gap:4px;">
+              <span data-i18n="buy">Buy</span>
+              <span>${fmtRate(r.buy_rate)}</span>
+            </span>
+            <span style="display:flex; gap:4px;">
+              <span data-i18n="sell">Sell</span>
+              <span>${fmtRate(r.sell_rate)}</span>
+            </span>
           </div>
         </div>
       </div>`;
