@@ -3,7 +3,6 @@
    ============================================================ */
 'use strict';
 
-// Unified Global State
 var currentReportYear = 2026;
 let _currentTab = 'monthly';
 const REPORT_MONTH_I18N_KEYS = ['month_january','month_february','month_march','month_april','month_may','month_june',
@@ -20,8 +19,8 @@ async function renderReports() {
   mc.innerHTML = `
     <div class="page-header">
       <div>
-        <div class="page-title">📊 Reports</div>
-        <div class="page-subtitle" data-i18n="reports_subtitle">Income vs Expenses analysis and PDF export</div>
+        <div class="page-title" data-i18n="reports_title">📊 Reports</div>
+        <div class="page-subtitle" data-i18n="reports_income_expenses_analysis">Income vs Expenses analysis and PDF export</div>
       </div>
     </div>
 
@@ -81,7 +80,7 @@ async function renderReports() {
     </div>
 
     <div class="chart-container mb-4">
-      <div class="chart-title" id="trendTitle"><span data-i18n="monthly_expense_trend">Monthly Expense Trend</span> (${currentReportYear})</div>
+      <div class="chart-title" id="trendTitle">${t('monthly_expense_trend')} (${currentReportYear})</div>
       <canvas id="chartTrend" height="80"></canvas>
     </div>`;
 
@@ -119,17 +118,16 @@ async function loadReportData() {
   const startVal = document.getElementById('rStart')?.value || '';
   const endVal = document.getElementById('rEnd')?.value || '';
 
-  const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
+  const MONTH_NAMES = REPORT_MONTH_I18N_KEYS.map(key => t(key));
 
   const trendTitleEl = document.getElementById('trendTitle');
   if (trendTitleEl) {
     if (tab === 'monthly' && month > 0) {
-      trendTitleEl.innerText = `Monthly Expense Trend (${MONTH_NAMES[month - 1]} - ${year})`;
+      trendTitleEl.innerText = `${t('monthly_expense_trend')} (${MONTH_NAMES[month - 1]} - ${year})`;
     } else if (tab === 'yearly') {
-      trendTitleEl.innerText = `Monthly Expense Trend (${year})`;
+      trendTitleEl.innerText = `${t('monthly_expense_trend')} (${year})`;
     } else {
-      trendTitleEl.innerText = `Monthly Expense Trend (${startVal} to ${endVal})`;
+      trendTitleEl.innerText = `${t('monthly_expense_trend')} (${startVal} ${t('report_to')} ${endVal})`;
     }
   }
 
@@ -267,20 +265,21 @@ async function loadReportData() {
   const netSav = totalInc - totalExp;
   const savRate = totalInc > 0 ? (netSav / totalInc * 100) : 0;
 
+// KPI Rendering
   const kpiEl = document.getElementById('reportKPIs');
   if (kpiEl) {
     kpiEl.innerHTML = `
         <div class="col-6 col-md-3" onclick="editIncome()" style="cursor:pointer">
             <div class="card h-100 kpi-card"> 
                 <div class="card-body">
-                    <div class="kpi-label">Total Income (Edit)</div>
+                    <div class="kpi-label">${t('total_income_edit')}</div>
                     <div class="kpi-value">${fmt(totalInc)}</div>
                 </div>
             </div>
         </div>
-      ${repKPI('Total Expenses', fmt(totalExp), 'bi-cart-x', 'var(--accent-red)', 'var(--accent-red-bg)')}
-      ${repKPI('Net Savings', fmt(netSav), 'bi-piggy-bank', netSav >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', netSav >= 0 ? 'var(--accent-green-bg)' : 'var(--accent-red-bg)')}
-      ${repKPI('Savings Rate', savRate.toFixed(1) + '%', 'bi-percent', 'var(--accent-yellow)', 'var(--accent-yellow-bg)')}`;
+      ${repKPI(t('total_expenses'), fmt(totalExp), 'bi-cart-x', 'var(--accent-red)', 'var(--accent-red-bg)')}
+      ${repKPI(t('net_savings'), fmt(netSav), 'bi-piggy-bank', netSav >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', netSav >= 0 ? 'var(--accent-green-bg)' : 'var(--accent-red-bg)')}
+      ${repKPI(t('savings_rate'), savRate.toFixed(1) + '%', 'bi-percent', 'var(--accent-yellow)', 'var(--accent-yellow-bg)')}`;
   }
 
   drawIncomeExpenseChart(totalInc, totalExp);
@@ -290,7 +289,7 @@ async function loadReportData() {
 
 function editIncome() {
   const current = localStorage.getItem('manualIncome') || 0;
-  const val = prompt("Enter additional manual income:", current);
+  const val = prompt(t('enter_additional_manual_income'), current);
   if (val !== null && !isNaN(val)) {
     localStorage.setItem('manualIncome', val);
     loadReportData();
@@ -368,7 +367,7 @@ function drawTrendChart(monthly) {
   if (!canvas) return;
   const existing = Chart.getChart(canvas);
   if (existing) existing.destroy();
-  const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const MONTH_ABBR = REPORT_MONTH_I18N_KEYS.map(key => t(key));
   new Chart(canvas, {
     type: 'line',
     data: {
@@ -447,10 +446,8 @@ function yearOpts(current) {
   return o;
 }
 function monthOpts(current) {
-  const names = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
-  return names.map((m, i) =>
-    `<option value="${i + 1}" ${i + 1 === current ? 'selected' : ''}>${m}</option>`
+  return REPORT_MONTH_I18N_KEYS.map((key, i) =>
+    `<option value="${i + 1}" ${i + 1 === current ? 'selected' : ''}>${t(key)}</option>`
   ).join('');
 }
 

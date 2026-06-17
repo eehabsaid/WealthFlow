@@ -392,5 +392,19 @@
   "cancel": "Annuler",
   "save": "Enregistrer",
   "edit": "Modifier",
-  "delete": "Supprimer"
+  "delete": "Supprimer",
+  "reports_title": "📊 Rapports",
+  "reports_income_expenses_analysis": "Analyse des revenus vs dépenses et export PDF",
+  "tab_monthly": "Mensuel",
+  "tab_yearly": "Annuel",
+  "tab_custom_range": "Plage personnalisée",
+  "report_to": "à",
+  "income_vs_expenses": "Revenus vs Dépenses",
+  "monthly_expense_trend": "Tendance mensuelle des dépenses",
+  "total_income_edit": "Revenu total (modifier)",
+  "total_expenses": "Dépenses totales",
+  "net_savings": "Épargne nette",
+  "savings_rate": "Taux d'épargne",
+  "enter_additional_manual_income": "Saisir un revenu manuel supplémentaire :",
+  "generate_pdf":"Générer un PDF"
 }

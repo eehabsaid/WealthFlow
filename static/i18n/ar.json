@@ -392,5 +392,19 @@
   "cancel": "إلغاء",
   "save": "حفظ",
   "edit": "تعديل",
-  "delete": "حذف"
+  "delete": "حذف",
+  "reports_title": "📊 التقارير",
+  "reports_income_expenses_analysis": "تحليل الدخل مقابل المصروفات وتصدير ملف PDF",
+  "tab_monthly": "شهري",
+  "tab_yearly": "سنوي",
+  "tab_custom_range": "نطاق مخصص",
+  "report_to": "إلى",
+  "income_vs_expenses": "الدخل مقابل المصروفات",
+  "monthly_expense_trend": "اتجاه المصروفات الشهري",
+  "total_income_edit": "إجمالي الدخل (تعديل)",
+  "total_expenses": "إجمالي المصروفات",
+  "net_savings": "صافي المدخرات",
+  "savings_rate": "معدل الادخار",
+  "enter_additional_manual_income": "أدخل دخلاً إضافياً يدوياً:",
+  "generate_pdf":"إنشاء ملف PDF"
 }

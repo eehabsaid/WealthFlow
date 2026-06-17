@@ -393,5 +393,19 @@
   "cancel": "Cancel",
   "save": "Save",
   "edit": "Edit",
-  "delete": "Delete"
+  "delete": "Delete",
+  "reports_title": "📊 Reports",
+  "reports_income_expenses_analysis": "Income vs Expenses analysis and PDF export",
+  "tab_monthly": "Monthly",
+  "tab_yearly": "Yearly",
+  "tab_custom_range": "Custom Range",
+  "report_to": "to",
+  "income_vs_expenses": "Income vs Expenses",
+  "monthly_expense_trend": "Monthly Expense Trend",
+  "total_income_edit": "Total Income (edit)",
+  "total_expenses": "Total Expenses",
+  "net_savings": "Net Savings",
+  "savings_rate": "Savings Rate",
+  "enter_additional_manual_income": "Enter additional manual income:",
+  "generate_pdf":"Generate PDF"
 }

@@ -392,5 +392,19 @@
   "cancel": "Abbrechen",
   "save": "Speichern",
   "edit": "Bearbeiten",
-  "delete": "Löschen"
+  "delete": "Löschen",
+  "reports_title": "📊 Berichte",
+  "reports_income_expenses_analysis": "Einnahmen-Ausgaben-Analyse und PDF-Export",
+  "tab_monthly": "Monatlich",
+  "tab_yearly": "Jährlich",
+  "tab_custom_range": "Benutzerdefinierter Zeitraum",
+  "report_to": "bis",
+  "income_vs_expenses": "Einnahmen vs. Ausgaben",
+  "monthly_expense_trend": "Monatlicher Ausgabentrend",
+  "total_income_edit": "Gesamteinnahmen (bearbeiten)",
+  "total_expenses": "Gesamtausgaben",
+  "net_savings": "Nettoersparnis",
+  "savings_rate": "Sparquote",
+  "enter_additional_manual_income": "Zusätzliches manuelles Einkommen eingeben:",
+  "generate_pdf":"PDF erstellen"
 }
