@@ -118,12 +118,16 @@ async function loadReportData() {
   const startVal = document.getElementById('rStart')?.value || '';
   const endVal = document.getElementById('rEnd')?.value || '';
 
-  const MONTH_NAMES = REPORT_MONTH_I18N_KEYS.map(key => t(key));
+  const MONTH_NAMES_I18N = REPORT_MONTH_I18N_KEYS.map(key => t(key));
+  const MONTH_NAMES_EN = [
+    'january', 'february', 'march', 'april', 'may', 'june', 
+    'july', 'august', 'september', 'october', 'november', 'december'
+  ];
 
-  const trendTitleEl = document.getElementById('trendTitle');
+const trendTitleEl = document.getElementById('trendTitle');
   if (trendTitleEl) {
     if (tab === 'monthly' && month > 0) {
-      trendTitleEl.innerText = `${t('monthly_expense_trend')} (${MONTH_NAMES[month - 1]} - ${year})`;
+      trendTitleEl.innerText = `${t('monthly_expense_trend')} (${MONTH_NAMES_I18N[month - 1]} - ${year})`;
     } else if (tab === 'yearly') {
       trendTitleEl.innerText = `${t('monthly_expense_trend')} (${year})`;
     } else {
@@ -216,7 +220,7 @@ async function loadReportData() {
   });
 
   // Dynamic Salary Engine
-  let totalSalary = 0;
+let totalSalary = 0;
   if (tab === 'monthly') {
     let prevMonth = month - 1;
     let prevYear = year;
@@ -225,7 +229,7 @@ async function loadReportData() {
     const sRes = await fetch(`/api/salary/?year=${prevYear}`);
     const sData = await sRes.json();
     totalSalary = (sData.entries || [])
-      .filter(e => parseInt(e.year) === prevYear && e.month.toLowerCase() === MONTH_NAMES[prevMonth - 1].toLowerCase())
+      .filter(e => parseInt(e.year) === prevYear && e.month.toLowerCase() === MONTH_NAMES_EN[prevMonth - 1])
       .reduce((s, e) => s + (parseFloat(e.paid) || 0), 0);
 
   } else if (tab === 'yearly') {
@@ -243,14 +247,12 @@ async function loadReportData() {
         const sRes = await fetch(`/api/salary/?year=${y}`);
         const sData = await sRes.json();
         if (sData.entries) combinedEntries = combinedEntries.concat(sData.entries);
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) { console.error(err); }
     }
 
     totalSalary = combinedEntries
       .filter(e => {
-        const mIdx = MONTH_NAMES.findIndex(m => m.toLowerCase() === e.month.toLowerCase());
+        const mIdx = MONTH_NAMES_EN.findIndex(m => m === e.month.toLowerCase());
         if (mIdx === -1) return false;
         const entryDate = new Date(parseInt(e.year), mIdx, 1);
         const compStart = new Date(startDateObj.getFullYear(), startDateObj.getMonth(), 1);
@@ -259,9 +261,9 @@ async function loadReportData() {
       })
       .reduce((s, e) => s + (parseFloat(e.paid) || 0), 0);
   }
+
   let manualIncome = parseFloat(localStorage.getItem('manualIncome') || 0);
   let totalInc = totalSalary + totalInterest + manualIncome;
-
   const netSav = totalInc - totalExp;
   const savRate = totalInc > 0 ? (netSav / totalInc * 100) : 0;
 
