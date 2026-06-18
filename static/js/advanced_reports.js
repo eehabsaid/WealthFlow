@@ -6,24 +6,26 @@ async function renderAdvancedReports(tab) {
     mc.innerHTML = `<div style="display:flex;justify-content:center;padding:60px">
         <div class="spinner-border" style="color:var(--accent-primary)"></div></div>`;
 
-    const tabs = [
-        { id: 'salary',      label: t('report_salary','Salary & Bonus'),      icon: '💰' },
-        { id: 'company',     label: t('report_company','Company Summary'),     icon: '🏢' },
-        { id: 'balance',     label: t('report_balance','Balance'),             icon: '🏛️' },
-        { id: 'certificates',label: t('report_certificates','Certificates'),   icon: '🏦' },
-    ];
+        const tabs = [
+            { id: 'salary',       key: 'report_salary',       icon: '💰' },
+            { id: 'company',      key: 'report_company',      icon: '🏢' },
+            { id: 'balance',      key: 'report_balance',      icon: '🏛️' },
+            { id: 'certificates', key: 'report_certificates', icon: '🏦' },
+        ];
 
-    const tabBar = tabs.map(tb => `
-        <button class="settings-tab ${tab === tb.id ? 'active' : ''}"
-            onclick="renderAdvancedReports('${tb.id}');closeMobileSidebar && closeMobileSidebar()">
-            ${tb.icon} ${tb.label}
-        </button>`).join('');
+        const tabBar = tabs.map(tb => `
+            <button class="settings-tab ${tab === tb.id ? 'active' : ''}"
+                onclick="renderAdvancedReports('${tb.id}');closeMobileSidebar && closeMobileSidebar()">
+                ${tb.icon} <span data-i18n="${tb.key}"></span>
+            </button>
+        `).join('');
 
     mc.innerHTML = `
         <div class="page-header">
             <div>
-                <div class="page-title">📊 ${t('nav_advanced_reports','Advanced Reports')}</div>
-                <div style="color:var(--text-muted);font-size:13px" data-i18n="advanced_reports_subtitle">Detailed analytics across salary, balance and certificates</div>
+                <div class="page-title">📊 <span data-i18n="nav_advanced_reports"></span></div>
+        
+                <div style="color:var(--text-muted);font-size:13px" data-i18n="advanced_reports_subtitle"></div>
             </div>
         </div>
         <div style="border-bottom:1px solid var(--border-color);margin-bottom:20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap">
@@ -49,10 +51,10 @@ async function _renderSalaryReport() {
     // KPIs
     const kpis = `
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
-            ${_kpi('💵', t('total_paid','Total Paid'), _fmt(g.total_paid), '')}
-            ${_kpi('🎁', t('total_bonus','Total Bonus'), _fmt(g.total_bonus), '')}
-            ${_kpi('📋', t('total_expected','Total Expected'), _fmt(g.total_expected), '')}
-            ${_kpi('📅', t('paid_months','Paid Months'), g.paid_months || 0, '')}
+            ${_kpi('💵', 'total_paid', _fmt(g.total_paid), '')}
+            ${_kpi('🎁', 'total_bonus', _fmt(g.total_bonus), '')}
+            ${_kpi('📋', 'total_expected', _fmt(g.total_expected), '')}
+            ${_kpi('📅', 'paid_months', g.paid_months || 0, '')}
         </div>`;
 
     // Chart
@@ -223,7 +225,7 @@ async function _renderBalanceReport() {
     const bankRows = banks.map(b => `
         <tr>
             <td><strong>${esc(b.bank_name)}</strong></td>
-            <td class="text-end">${_fmt(b.total_egp)} EGP</td>
+            <td class="text-end">${_fmt(b.total_egp)} <span data-i18n="EGP"></span></td>
             <td>${b.entries.map(e => `<span style="font-size:11px;color:var(--text-muted)">${_fmt(e.amount)} ${e.currency_code||''}</span>`).join(', ')}</td>
         </tr>`).join('');
 
@@ -239,9 +241,9 @@ async function _renderBalanceReport() {
 
     document.getElementById('reportContent').innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
-            ${_kpi('🏛️', t('bank_balance','Bank Balance'), _fmt(banks.reduce((s,b)=>s+b.total_egp,0))+' EGP', '')}
-            ${_kpi('🏦', t('cert_balance','Total Certificates'), _fmt(d.cert_total)+' EGP', '')}
-            ${_kpi('💹', t('total_monthly_interest','Total Monthly Interest'), _fmt(d.cert_interest)+' EGP', '')}
+            ${_kpi('🏛️', 'bank_balance', _fmt(banks.reduce((s,b)=>s+b.total_egp,0)) + ' <span data-i18n="EGP"></span>', '')}
+            ${_kpi('🏦', 'cert_balance', _fmt(d.cert_total) + ' <span data-i18n="EGP"></span>', '')}
+            ${_kpi('💹', 'total_monthly_interest', _fmt(d.cert_interest) + ' <span data-i18n="EGP"></span>', '')}
         </div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible;margin-bottom:16px">
             <div style="padding:14px 20px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border-color)" data-i18n="bank_accounts">Bank Accounts</div>
@@ -280,21 +282,24 @@ async function _renderCertReport() {
     const cf  = d.monthly_cf || [];
 
     const bucketLabels = {
-        overdue: { label: t('overdue','Overdue'), color: 'var(--accent-danger)' },
-        '30_days': { label: t('within_30_days','Within 30 days'), color: '#f59e0b' },
-        '90_days': { label: t('within_90_days','31–90 days'), color: '#1a6ef5' },
-        '180_days': { label: t('within_180_days','91–180 days'), color: '#10b981' },
-        later: { label: t('beyond_180_days','Beyond 180 days'), color: 'var(--text-muted)' },
+        overdue:    { key: 'overdue',          color: 'var(--accent-danger)' },
+        '30_days':  { key: 'within_30_days',   color: '#f59e0b' },
+        '90_days':  { key: 'within_90_days',   color: '#1a6ef5' },
+        '180_days': { key: 'within_180_days',  color: '#10b981' },
+        later:      { key: 'beyond_180_days',  color: 'var(--text-muted)' },
     };
 
     const bucketCards = Object.entries(d.buckets || {}).map(([key, certs]) => {
-        const bl = bucketLabels[key] || { label: key, color: 'var(--text-primary)' };
+        // Fallback: If key not found, just use the raw string, otherwise get the key
+        const bl = bucketLabels[key] || { key: null, color: 'var(--text-primary)', label: key };
+        
         return `
             <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px 16px">
-                <div style="font-size:12px;font-weight:700;color:${bl.color};text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">${bl.label}</div>
+                <div style="font-size:12px;font-weight:700;color:${bl.color};text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px" 
+                    ${bl.key ? `data-i18n="${bl.key}"` : ''}>${bl.key ? '' : bl.label}</div>
                 <div style="font-size:22px;font-weight:800;color:var(--text-primary)">${certs.length}</div>
                 <div style="font-size:12px;color:var(--text-muted);margin-top:2px">
-                    ${_fmt(certs.reduce((s, c) => s + parseFloat(c.amount||0), 0))} EGP
+                    ${_fmt(certs.reduce((s, c) => s + parseFloat(c.amount||0), 0))} <span data-i18n="EGP"></span>
                 </div>
             </div>`;
     }).join('');
@@ -311,9 +316,9 @@ async function _renderCertReport() {
 
     document.getElementById('reportContent').innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
-            ${_kpi('🏦', t('total_certificates','Total Certificates'), s.total_count||0, '')}
-            ${_kpi('💵', t('total_amount','Total Amount'), _fmt(s.total_amount)+' EGP', '')}
-            ${_kpi('💹', t('total_monthly_interest','Total Monthly Interest'), _fmt(s.monthly_interest)+' EGP', t('per_month','per month'))}
+            ${_kpi('🏦', 'total_certificates', s.total_count||0, '')}
+            ${_kpi('💵', 'total_amount', _fmt(s.total_amount) + ' <span data-i18n="EGP"></span>', '')}
+            ${_kpi('💹', 'total_monthly_interest', _fmt(s.monthly_interest) + ' <span data-i18n="EGP"></span>', '<span data-i18n="per_month">per month</span>')}
         </div>
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">
             ${bucketCards}
@@ -396,10 +401,15 @@ function _drawPieChart(canvasId, labels, data) {
 
 // ── Shared helpers ─────────────────────────────────────────────
 function _kpi(icon, label, value, sub) {
+    // Check if the label is one of our known keys to decide on the data-i18n attribute
+    // We assume your keys don't contain spaces, while normal labels do.
+    const isKey = !label.includes(' ') && !label.includes('<');
+    const attr = isKey ? `data-i18n="${label}"` : '';
+
     return `
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:18px 20px" class="kpi-card">
             <div style="font-size:20px;margin-bottom:4px">${icon}</div>
-            <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">${label}</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px" ${attr}>${isKey ? '' : label}</div>
             <div style="font-size:22px;font-weight:800;color:var(--text-primary)" class="kpi-value">${value}</div>
             ${sub ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px">${sub}</div>` : ''}
         </div>`;

@@ -234,6 +234,7 @@ async function loadLangMenu() {
         const el = document.getElementById("langLabel");
         if (el) el.textContent = active.toUpperCase();
     } catch (e) { }
+    applyTranslations();
 }
 
 function navigate(route) {

@@ -29,6 +29,7 @@ async function loadLanguage(code) {
   } catch (e) {
     console.warn("Language load failed:", e);
   }
+  applyTranslations();
 }
 
 function applyTranslations() {
@@ -51,10 +52,14 @@ function applyTranslations() {
     });
 }
 
+// Correct version for simple JS strings only
 function t(key, fallback) {
-  return _t[key] || fallback || key;
+  const lang = localStorage.getItem('lang') || 'en';
+  // Assuming your _t object is structured as _t[lang][key]
+  return (_t[lang] && _t[lang][key]) ? _t[lang][key] : (fallback || key);
 }
 
 function currentLang() {
   return _lang;
+  applyTranslations();
 }

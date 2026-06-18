@@ -32,14 +32,17 @@ const rows = data.companies
         <div class="page-header">
             <div><div class="page-title" data-i18n="dashboard">Dashboard</div></div>
         </div>
+
         <button class="btn-primary-custom" onclick="window.location.href='/api/export/excel/'">
-            <i class="bi bi-file-earmark-excel"></i> Download Excel Workbook
+          <i class="bi bi-file-earmark-excel"></i> 
+          <span data-i18n="download_excel"></span>
         </button>
+
         <div class="row g-3 mb-4">
-            ${kpiCard(t("kpi_total_earned", "Total Earned"), fmt(g.total_expected), "bi-cash-stack", "var(--accent-primary)")}
-            ${kpiCard(t("kpi_total_paid", "Total Paid"), fmt(g.total_paid), "bi-check-circle", "var(--accent-green)")}
-            ${kpiCard(t("kpi_total_remaining", "Total Remaining"), fmt(sumRemaining), "bi-hourglass-split", sumRemaining > 0 ? "var(--accent-red)" : "var(--text-muted)")}
-            ${kpiCard(t("kpi_work_months", "Work Months"), g.total_months, "bi-calendar3", "var(--accent-yellow)")}
+            ${kpiCard("kpi_total_earned", fmt(g.total_expected), "bi-cash-stack", "var(--accent-primary)")}
+            ${kpiCard("kpi_total_paid",fmt(g.total_paid), "bi-check-circle", "var(--accent-green)")}
+            ${kpiCard("kpi_total_remaining",  fmt(sumRemaining), "bi-hourglass-split", sumRemaining > 0 ? "var(--accent-red)" : "var(--text-muted)")}
+            ${kpiCard("kpi_work_months",  g.total_months, "bi-calendar3", "var(--accent-yellow)")}
         </div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;margin-bottom:24px">
             <canvas id="salaryChart" height="80"></canvas>
@@ -74,6 +77,7 @@ const rows = data.companies
       console.error("Dashboard Render Error:", err);
       mc.innerHTML = '<div class="alert alert-danger">Error loading dashboard. Check console.</div>';
   }
+  applyTranslations();
 }
 
 async function _renderDashboardEnhancements() {
@@ -156,7 +160,7 @@ function kpiCard(label, value, icon, color) {
         <div class="kpi-card">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
                 <i class="bi ${icon}" style="font-size:20px;color:${color}"></i>
-                <div class="kpi-label">${label}</div>
+                <div class="kpi-label" data-i18n="${label}"></div>
             </div>
             <div class="kpi-value" style="color:${color}">${value}</div>
         </div>

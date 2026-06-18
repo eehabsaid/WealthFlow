@@ -406,5 +406,6 @@
   "net_savings": "صافي المدخرات",
   "savings_rate": "معدل الادخار",
   "enter_additional_manual_income": "أدخل دخلاً إضافياً يدوياً:",
-  "generate_pdf":"إنشاء ملف PDF"
+  "generate_pdf":"إنشاء ملف PDF",
+  "download_excel": "تحميل ملف بصيغة Excel"
 }

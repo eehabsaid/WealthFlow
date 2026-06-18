@@ -274,19 +274,20 @@ let totalSalary = 0;
         <div class="col-6 col-md-3" onclick="editIncome()" style="cursor:pointer">
             <div class="card h-100 kpi-card"> 
                 <div class="card-body">
-                    <div class="kpi-label">${t('total_income_edit')}</div>
+                    <div class="kpi-label" data-i18n="total_income_edit"></div>
                     <div class="kpi-value">${fmt(totalInc)}</div>
                 </div>
             </div>
         </div>
-      ${repKPI(t('total_expenses'), fmt(totalExp), 'bi-cart-x', 'var(--accent-red)', 'var(--accent-red-bg)')}
-      ${repKPI(t('net_savings'), fmt(netSav), 'bi-piggy-bank', netSav >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', netSav >= 0 ? 'var(--accent-green-bg)' : 'var(--accent-red-bg)')}
-      ${repKPI(t('savings_rate'), savRate.toFixed(1) + '%', 'bi-percent', 'var(--accent-yellow)', 'var(--accent-yellow-bg)')}`;
+      ${repKPI('total_expenses', fmt(totalExp), 'bi-cart-x', 'var(--accent-red)', 'var(--accent-red-bg)')}
+      ${repKPI('net_savings', fmt(netSav), 'bi-piggy-bank', netSav >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', netSav >= 0 ? 'var(--accent-green-bg)' : 'var(--accent-red-bg)')}
+      ${repKPI('savings_rate', savRate.toFixed(1) + '%', 'bi-percent', 'var(--accent-yellow)', 'var(--accent-yellow-bg)')}`;
   }
 
   drawIncomeExpenseChart(totalInc, totalExp);
   drawCategoryChart(byCat);
   drawTrendChart(trend);
+  applyTranslations();
 }
 
 function editIncome() {
@@ -302,7 +303,7 @@ function repKPI(label, value, icon, accent, bg) {
   return `<div class="col-6 col-md-3">
     <div class="kpi-card" style="--kpi-accent:${accent};--kpi-bg:${bg}">
       <div class="kpi-icon"><i class="bi ${icon}"></i></div>
-      <div class="kpi-label">${label}</div>
+      <div class="kpi-label" data-i18n="${label}"></div>
       <div class="kpi-value">${value}</div>
     </div></div>`;
 }
