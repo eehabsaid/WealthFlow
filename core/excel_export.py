@@ -678,7 +678,7 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
                f"+(C2*('Exchange Rates'!B2))"
                f"+(D2*('Exchange Rates'!B3))"
                f"+(E2*('Exchange Rates'!B11))"
-               f"+((F2*('Gold Price'!C2))+28.5)")
+               f"+(F2*(('Gold Price'!C2)+28.5))")
     
     # Target the merged cell (B:F)
     ta = ws.cell(row=tar, column=2, value=formula)
