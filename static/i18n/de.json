@@ -417,5 +417,12 @@
   "empty_values": "Leere Werte",
   "missing_keys": "Fehlende Schlüssel",
   "coverage": "Abdeckung",
-  "missing_report": "Fehlender Bericht"
+  "missing_report": "Fehlender Bericht",
+  "report_missing": "Fehlend",
+  "report_empty": "Leer",
+  "report_missing_keys": "Fehlende Schlüssel",
+  "report_empty_keys": "Leere Schlüssel",
+  "report_complete": "Vollständig",
+  "report_title": "Übersetzungsabdeckungsbericht",
+  "btn_close": "Schließen"
 }

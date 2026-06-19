@@ -417,5 +417,12 @@
   "empty_values": "Empty Values",
   "missing_keys": "Missing Keys",
   "coverage": "Coverage",
-  "missing_report": "Missing Report"
+  "missing_report": "Missing Report",
+  "report_missing": "Missing",
+  "report_empty": "Empty",
+  "report_missing_keys": "Missing Keys",
+  "report_empty_keys": "Empty Keys",
+  "report_complete": "Complete",
+  "report_title": "Translation Coverage Report",
+  "btn_close": "Close"
 }

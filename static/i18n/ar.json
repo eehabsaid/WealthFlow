@@ -417,5 +417,12 @@
   "empty_values": "القيم الفارغة",
   "missing_keys": "المفاتيح المفقودة",
   "coverage": "نسبة التغطية",
-  "missing_report": "تقرير النواقص"
+  "missing_report": "تقرير النواقص",
+  "report_missing": "مفقود",
+  "report_empty": "فارغ",
+  "report_missing_keys": "مفاتيح مفقودة",
+  "report_empty_keys": "مفاتيح فارغة",
+  "report_complete": "مكتمل",
+  "report_title": "تقرير تغطية الترجمة",
+  "btn_close": "إغلاق"
 }

@@ -417,5 +417,12 @@
   "empty_values": "Valeurs vides",
   "missing_keys": "Clés manquantes",
   "coverage": "Couverture",
-  "missing_report": "Rapport des éléments manquants"
+  "missing_report": "Rapport des éléments manquants",
+  "report_missing": "Manquant",
+  "report_empty": "Vide",
+  "report_missing_keys": "Clés manquantes",
+  "report_empty_keys": "Clés vides",
+  "report_complete": "Terminé",
+  "report_title": "Rapport de couverture de traduction",
+  "btn_close": "Fermer"
 }

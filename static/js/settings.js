@@ -1257,7 +1257,6 @@ async function showMissingTranslationsReport() {
         });
 
         html += `
-
             <div style="
                 border:1px solid var(--border-color);
                 border-radius:12px;
@@ -1265,7 +1264,6 @@ async function showMissingTranslationsReport() {
                 margin-bottom:12px;
                 background:var(--bg-secondary);
             ">
-
                 <div style="
                     display:flex;
                     justify-content:space-between;
@@ -1274,17 +1272,11 @@ async function showMissingTranslationsReport() {
                     <strong>${lang.toUpperCase()}</strong>
 
                     <span>
-                        Missing:
-                        <strong style="color:#dc3545">
-                            ${missing.length}
-                        </strong>
-
+                        <span data-i18n="report_missing">Missing</span>:
+                        <strong style="color:#dc3545">${missing.length}</strong>
                         |
-                        
-                        Empty:
-                        <strong style="color:#fd7e14">
-                            ${empty.length}
-                        </strong>
+                        <span data-i18n="report_empty">Empty</span>:
+                        <strong style="color:#fd7e14">${empty.length}</strong>
                     </span>
                 </div>
 
@@ -1292,20 +1284,10 @@ async function showMissingTranslationsReport() {
                     missing.length
                     ? `
                     <div style="margin-bottom:8px">
-
-                        <div style="
-                            font-weight:600;
-                            color:#dc3545;
-                            margin-bottom:4px;
-                        ">
+                        <div style="font-weight:600;color:#dc3545;margin-bottom:4px;" data-i18n="report_missing_keys">
                             Missing Keys
                         </div>
-
-                        <textarea
-                            class="form-control"
-                            rows="5"
-                            readonly>${missing.join("\n")}</textarea>
-
+                        <textarea class="form-control" rows="5" readonly>${missing.join("\n")}</textarea>
                     </div>
                     `
                     : ""
@@ -1315,20 +1297,10 @@ async function showMissingTranslationsReport() {
                     empty.length
                     ? `
                     <div>
-
-                        <div style="
-                            font-weight:600;
-                            color:#fd7e14;
-                            margin-bottom:4px;
-                        ">
+                        <div style="font-weight:600;color:#fd7e14;margin-bottom:4px;" data-i18n="report_empty_keys">
                             Empty Keys
                         </div>
-
-                        <textarea
-                            class="form-control"
-                            rows="5"
-                            readonly>${empty.join("\n")}</textarea>
-
+                        <textarea class="form-control" rows="5" readonly>${empty.join("\n")}</textarea>
                     </div>
                     `
                     : ""
@@ -1337,54 +1309,37 @@ async function showMissingTranslationsReport() {
                 ${
                     missing.length === 0 && empty.length === 0
                     ? `
-                    <div style="
-                        color:#198754;
-                        font-weight:600;
-                    ">
-                        ✓ Complete
+                    <div style="color:#198754;font-weight:600;">
+                        ✓ <span data-i18n="report_complete">Complete</span>
                     </div>
                     `
                     : ""
                 }
-
             </div>
-
         `;
-
     });
 
     showModal(`
-
         <div class="modal-header">
-            <h5 class="modal-title">
+            <h5 class="modal-title" data-i18n="report_title">
                 Translation Coverage Report
             </h5>
-
-            <button
-                type="button"
-                class="btn-close btn-close-white"
-                data-bs-dismiss="modal">
-            </button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-
-        <div class="modal-body"
-             style="max-height:70vh;overflow:auto">
-
+        <div class="modal-body" style="max-height:70vh;overflow:auto">
             ${html}
-
         </div>
-
         <div class="modal-footer">
-            <button
-                class="btn-secondary-custom"
-                data-bs-dismiss="modal">
+            <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="btn_close">
                 Close
             </button>
         </div>
-
     `);
 
+    // IMPORTANT: Call this to translate the newly created modal elements
+    applyTranslations();
 }
+
 function filterTranslations() {
   const search = document
     .getElementById("translationSearch")
