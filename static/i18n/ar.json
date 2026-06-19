@@ -424,5 +424,18 @@
   "report_empty_keys": "مفاتيح فارغة",
   "report_complete": "مكتمل",
   "report_title": "تقرير تغطية الترجمة",
-  "btn_close": "إغلاق"
+  "btn_close": "إغلاق",
+  "financial_report": "التقرير المالي",
+  "monthly_report": "التقرير الشهري",
+  "yearly_report": "التقرير السنوي",
+  "report": "تقرير",
+  "to": "إلى",
+  "summary": "الملخص",
+  "metric": "المقياس",
+  "total_income": "إجمالي الدخل",
+  "cat_breakdown": "تحليل المصروفات حسب التصنيف",
+  "pct": "نسبة من الإجمالي",
+  "expense_entries": "سجلات المصروفات",
+  "uncategorised": "غير مصنف",
+  "generated_by": "تم الإنشاء بواسطة متتبع الرواتب والرصيد"
 }

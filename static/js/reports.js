@@ -404,13 +404,17 @@ async function generatePDF(type) {
   const start = document.getElementById('rStart')?.value || '';
   const end = document.getElementById('rEnd')?.value || '';
 
-  // FIX: Force backend generation routine to accept values without raising a 500 Python ValueError
   if (type === 'custom') {
     if (start) { year = new Date(start).getFullYear(); }
     month = 1;
   }
 
-  const body = { type, year, month, start_date: start, end_date: end };
+  const body = { 
+    type, year, month, 
+    start_date: start, end_date: end, 
+    lang: currentLang() 
+  };
+  
   const btn = event?.target;
   if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Generating…'; }
 
@@ -420,11 +424,13 @@ async function generatePDF(type) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
+    
     if (!res.ok) {
       const err = await res.json();
       showToast('Error: ' + (err.error || 'Unknown error'), 'error');
       return;
     }
+    
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

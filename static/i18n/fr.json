@@ -424,5 +424,18 @@
   "report_empty_keys": "Clés vides",
   "report_complete": "Terminé",
   "report_title": "Rapport de couverture de traduction",
-  "btn_close": "Fermer"
+  "btn_close": "Fermer",
+  "financial_report": "Rapport Financier",
+  "monthly_report": "Rapport Mensuel",
+  "yearly_report": "Rapport Annuel",
+  "report": "Rapport",
+  "to": "à",
+  "summary": "Résumé",
+  "metric": "Métrique",
+  "total_income": "Revenu Total",
+  "cat_breakdown": "Analyse des Dépenses par Catégorie",
+  "pct": "% du Total",
+  "expense_entries": "Entrées de Dépenses",
+  "uncategorised": "Non classé",
+  "generated_by": "Généré par le Suivi de Salaire & Solde"
 }

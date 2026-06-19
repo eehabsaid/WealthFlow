@@ -424,5 +424,18 @@
   "report_empty_keys": "Leere Schlüssel",
   "report_complete": "Vollständig",
   "report_title": "Übersetzungsabdeckungsbericht",
-  "btn_close": "Schließen"
+  "btn_close": "Schließen",
+  "financial_report": "Finanzbericht",
+  "monthly_report": "Monatsbericht",
+  "yearly_report": "Jahresbericht",
+  "report": "Bericht",
+  "to": "bis",
+  "summary": "Zusammenfassung",
+  "metric": "Metrik",
+  "total_income": "Gesamteinkommen",
+  "cat_breakdown": "Ausgabenaufschlüsselung nach Kategorie",
+  "pct": "% der Gesamtsumme",
+  "expense_entries": "Ausgabeneinträge",
+  "uncategorised": "Nicht kategorisiert",
+  "generated_by": "Generiert durch Gehalts- & Bilanz-Tracker"
 }

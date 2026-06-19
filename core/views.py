@@ -17,6 +17,22 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from django.http import HttpResponse
 
+import json as _json
+import datetime
+import os
+import io
+from django.conf import settings
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from arabic_reshaper import reshape
+from bidi.algorithm import get_display
+
 @method_decorator(csrf_exempt, name="dispatch")
 class ExportExcelWorkbookView(View):
     """
@@ -1086,6 +1102,21 @@ class ExpenseSummaryView(View):
 # ══════════════════════════════════════════════════════════════
 # PDF REPORT VIEW
 # ══════════════════════════════════════════════════════════════
+# Helper to load translations
+def get_translations(lang):
+    path = os.path.join(settings.BASE_DIR, 'static', 'i18n', f'{lang}.json')
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            return _json.load(f)
+    except Exception:
+        return {}
+
+def format_arabic(text):
+    return get_display(reshape(str(text)))
+
+def get_text(key, lang, t, default=""):
+    text = t.get(key, default)
+    return format_arabic(text) if lang == 'ar' else text
 
 @method_decorator(csrf_exempt, name="dispatch")
 class GenerateReportView(View):
@@ -1341,7 +1372,9 @@ class GenerateReportView(View):
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response    
-# ── Profile update + avatar upload ───────────────────────────
+
+
+    # ── Profile update + avatar upload ───────────────────────────
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
