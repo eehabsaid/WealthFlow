@@ -407,5 +407,6 @@
   "savings_rate": "Sparquote",
   "enter_additional_manual_income": "Zusätzliches manuelles Einkommen eingeben:",
   "generate_pdf":"PDF erstellen",
-  "download_excel": "Excel-Arbeitsmappe herunterladen"
+  "download_excel": "Excel-Arbeitsmappe herunterladen",
+  "click_to_edit_profile": "Zum Bearbeiten des Profils klicken"
 }

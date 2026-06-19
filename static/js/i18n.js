@@ -50,6 +50,17 @@ function applyTranslations() {
             console.warn(`Missing translation key: ${key}`);
         }
     });
+
+// 3. Translate titles with a safety check
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        // Use _t (your active translation object) to avoid undefined errors
+        if (_t && _t[key]) {
+            el.setAttribute('title', _t[key]);
+        } else {
+            console.warn(`Missing translation key for title: ${key}`);
+        }
+    });
 }
 
 // Correct version for simple JS strings only

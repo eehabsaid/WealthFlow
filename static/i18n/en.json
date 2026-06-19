@@ -408,5 +408,6 @@
   "savings_rate": "Savings Rate",
   "enter_additional_manual_income": "Enter additional manual income:",
   "generate_pdf":"Generate PDF",
-  "download_excel": "Download Excel Workbook"
+  "download_excel": "Download Excel Workbook",
+  "click_to_edit_profile": "Click to edit profile"
 }

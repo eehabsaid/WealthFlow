@@ -407,5 +407,6 @@
   "savings_rate": "Taux d'épargne",
   "enter_additional_manual_income": "Saisir un revenu manuel supplémentaire :",
   "generate_pdf":"Générer un PDF",
-  "download_excel": "Télécharger le classeur Excel"
+  "download_excel": "Télécharger le classeur Excel",
+  "click_to_edit_profile": "Cliquer pour modifier le profil"
 }

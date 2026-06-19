@@ -3,68 +3,68 @@ let _companies = [];
 let _banks = [];
 let _activeRoute = "";
 window.translations = {
-    "en": {},
-    "ar": {}
+  en: {},
+  ar: {},
 };
 document.addEventListener("DOMContentLoaded", async () => {
-    await loadLanguage(localStorage.getItem("lang") || "en");
-    await initApp();
-    window.addEventListener("hashchange", route);
-    route();
+  await loadLanguage(localStorage.getItem("lang") || "en");
+  await initApp();
+  window.addEventListener("hashchange", route);
+  route();
 });
 
 // Loading helpers: show/hide global spinner overlay
 function showLoading() {
-    const el = document.querySelector(".spinner-overlay");
-    if (el) el.style.display = "flex";
+  const el = document.querySelector(".spinner-overlay");
+  if (el) el.style.display = "flex";
 }
 function hideLoading() {
-    const el = document.querySelector(".spinner-overlay");
-    if (el) el.style.display = "none";
+  const el = document.querySelector(".spinner-overlay");
+  if (el) el.style.display = "none";
 }
 
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
 
 async function initApp() {
-    const [cRes, bRes, meRes, profileRes] = await Promise.all([
-        fetch("/api/companies/"),
-        fetch("/api/banks/"),
-        fetch("/api/auth/me/"),
-        fetch("/api/auth/profile/"),
-    ]);
-    const cData = await cRes.json();
-    const bData = await bRes.json();
-    const meData = await meRes.json();
-    const pData = await profileRes.json(); // Contains avatar/bio/full_name
-    _companies = cData.companies;
-    _banks = bData.banks;
-    // MERGE the two sources of truth into one object
-    window._currentUser = {
-        ...meData.user, // From /api/auth/me/ (includes email)
-        ...pData.profile, // From /api/auth/profile/ (includes avatar/bio)
-    };
-    renderSidebar();
-    renderTopbar();
-    // Check reminders in background after load
-    setTimeout(() => {
-        if (typeof checkReminders === 'function') checkReminders();
-    }, 2000);
+  const [cRes, bRes, meRes, profileRes] = await Promise.all([
+    fetch("/api/companies/"),
+    fetch("/api/banks/"),
+    fetch("/api/auth/me/"),
+    fetch("/api/auth/profile/"),
+  ]);
+  const cData = await cRes.json();
+  const bData = await bRes.json();
+  const meData = await meRes.json();
+  const pData = await profileRes.json(); // Contains avatar/bio/full_name
+  _companies = cData.companies;
+  _banks = bData.banks;
+  // MERGE the two sources of truth into one object
+  window._currentUser = {
+    ...meData.user, // From /api/auth/me/ (includes email)
+    ...pData.profile, // From /api/auth/profile/ (includes avatar/bio)
+  };
+  renderSidebar();
+  renderTopbar();
+  // Check reminders in background after load
+  setTimeout(() => {
+    if (typeof checkReminders === "function") checkReminders();
+  }, 2000);
 }
 
 function renderSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const companyItems = _companies
-        .map(
-            (c) => `
+  const sidebar = document.getElementById("sidebar");
+  const companyItems = _companies
+    .map(
+      (c) => `
         <button class="nav-item" data-route="salary-${c.id}" onclick="navigate('salary-${c.id}')">
             <span class="nav-dot" style="background:${c.color_hex}"></span>
             <span>${c.display_name}</span>
         </button>`,
-        )
-        .join("");
+    )
+    .join("");
 
-    sidebar.innerHTML = `
+  sidebar.innerHTML = `
         <div class="sidebar-brand">
             <div class="brand-icon">💰</div>
             <div class="brand-text">
@@ -130,35 +130,35 @@ function renderSidebar() {
             </button>
         </nav>`;
 
-    // ── User profile + logout at bottom of sidebar ──────────
-    const u = window._currentUser;
-    const uName = u ? u.display_name || u.full_name || u.username : "Guest";
-    const uAvatar = u && u.avatar_url ? u.avatar_url : null;
-    const avatarHTML = uAvatar
-        ? `<img src="${uAvatar}" style="width:36px;height:36px;border-radius:50%;
+  // ── User profile + logout at bottom of sidebar ──────────
+  const u = window._currentUser;
+  const uName = u ? u.display_name || u.full_name || u.username : "Guest";
+  const uAvatar = u && u.avatar_url ? u.avatar_url : null;
+  const avatarHTML = uAvatar
+    ? `<img src="${uAvatar}" style="width:36px;height:36px;border-radius:50%;
                 object-fit:cover;border:2px solid var(--border-color);flex-shrink:0">`
-        : `<div style="width:36px;height:36px;border-radius:50%;
+    : `<div style="width:36px;height:36px;border-radius:50%;
                 background:linear-gradient(135deg,var(--accent-primary),#0f45c8);
                 display:flex;align-items:center;justify-content:center;
                 font-size:15px;font-weight:700;color:#fff;flex-shrink:0">
                 ${uName.charAt(0).toUpperCase()}
            </div>`;
-    const sidebarNav = sidebar.querySelector(".sidebar-nav");
-    if (sidebarNav) {
-        // Remove any existing footer first to prevent duplicates on re-render
-        const old = sidebarNav.querySelector(".user-sidebar-footer");
-        if (old) old.remove();
-        const footer = document.createElement("div");
-        footer.className = "user-sidebar-footer";
-        footer.style.cssText =
-            "border-top:1px solid var(--border-color);padding:10px 8px 8px;margin-top:auto";
-        footer.innerHTML = `
+  const sidebarNav = sidebar.querySelector(".sidebar-nav");
+  if (sidebarNav) {
+    // Remove any existing footer first to prevent duplicates on re-render
+    const old = sidebarNav.querySelector(".user-sidebar-footer");
+    if (old) old.remove();
+    const footer = document.createElement("div");
+    footer.className = "user-sidebar-footer";
+    footer.style.cssText =
+      "border-top:1px solid var(--border-color);padding:10px 8px 8px;margin-top:auto";
+    footer.innerHTML = `
             <div style="display:flex;align-items:center;gap:10px;padding:8px;
                         border-radius:8px;cursor:pointer;transition:background .15s"
                  onclick="window.showProfileModal && window.showProfileModal()"
                  onmouseenter="this.style.background='var(--bg-tertiary)'"
                  onmouseleave="this.style.background='transparent'"
-                 title="Click to edit profile">
+                 data-i18n-title="click_to_edit_profile">
                 ${avatarHTML}
                 <div style="overflow:hidden;flex:1;min-width:0" class="nav-text">
                     <div style="font-size:13px;font-weight:600;color:var(--text-primary);
@@ -183,15 +183,15 @@ function renderSidebar() {
                 <i class="bi bi-box-arrow-left" style="font-size:16px"></i>
                 <span class="nav-text" data-i18n="nav_logout">Logout</span>
             </button>`;
-        sidebarNav.appendChild(footer);
-    }
+    sidebarNav.appendChild(footer);
+  }
 
-    applyTranslations();
+  applyTranslations();
 }
 
 function renderTopbar() {
-    const topbar = document.getElementById("topbar");
-    topbar.innerHTML = `
+  const topbar = document.getElementById("topbar");
+  topbar.innerHTML = `
         <button id="mobile-nav-trigger" class="btn text-light d-lg-none p-2 me-2" onclick="toggleMobileSidebar()" style="font-size: 20px; border: none; background: transparent;">
             <i class="bi bi-list"></i>
         </button>
@@ -210,47 +210,47 @@ function renderTopbar() {
                 <i class="bi bi-plus-lg"></i> <span data-i18n="btn_add">Add</span>
             </button>
         </div>`;
-    loadLangMenu();
+  loadLangMenu();
 }
 
 async function loadLangMenu() {
-    const res = await fetch("/api/settings/");
-    const data = await res.json();
-    try {
-        const langs = JSON.parse(data.settings.available_languages || "[]");
-        const menu = document.getElementById("langMenu");
-        if (!menu) return;
-        menu.innerHTML = langs
-            .map(
-                (l) => `
+  const res = await fetch("/api/settings/");
+  const data = await res.json();
+  try {
+    const langs = JSON.parse(data.settings.available_languages || "[]");
+    const menu = document.getElementById("langMenu");
+    if (!menu) return;
+    menu.innerHTML = langs
+      .map(
+        (l) => `
             <li><a class="dropdown-item" href="#"
                 style="color:var(--text-primary)"
                 onclick="loadLanguage('${l.code}');document.getElementById('langLabel').textContent='${l.code.toUpperCase()}';return false">
                 ${l.label}
             </a></li>`,
-            )
-            .join("");
-        const active = data.settings.active_language || "en";
-        const el = document.getElementById("langLabel");
-        if (el) el.textContent = active.toUpperCase();
-    } catch (e) { }
-    applyTranslations();
+      )
+      .join("");
+    const active = data.settings.active_language || "en";
+    const el = document.getElementById("langLabel");
+    if (el) el.textContent = active.toUpperCase();
+  } catch (e) {}
+  applyTranslations();
 }
 
 function navigate(route) {
+  window.location.hash = route;
+  closeMobileSidebar();
+  setTimeout(() => {
     window.location.hash = route;
-    closeMobileSidebar();
-    setTimeout(() => {
-        window.location.hash = route;
-    }, 50);
+  }, 50);
 }
 function setBreadcrumb(title, subtitle = "") {
-    const bc = document.getElementById("breadcrumb");
-    if (bc) {
-        bc.textContent = title;
-        // If you want to show the subtitle as well, you can add it here:
-        // bc.innerHTML = `${title} <small class="text-muted">${subtitle}</small>`;
-    }
+  const bc = document.getElementById("breadcrumb");
+  if (bc) {
+    bc.textContent = title;
+    // If you want to show the subtitle as well, you can add it here:
+    // bc.innerHTML = `${title} <small class="text-muted">${subtitle}</small>`;
+  }
 }
 window.setBreadcrumb = setBreadcrumb;
 
@@ -258,7 +258,7 @@ window.setBreadcrumb = setBreadcrumb;
  * Helper to get the HTML for a loading state
  */
 function loadingHTML() {
-    return `
+  return `
         <div class="text-center p-5">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -272,16 +272,17 @@ function loadingHTML() {
 window.loadingHTML = loadingHTML;
 // This function looks up the key in your loaded dictionary
 function translate(key) {
-    const lang = localStorage.getItem('lang') || 'en';
-    
-    // Safety check: verify window.translations and the language exist
-    if (!window.translations || !window.translations[lang]) {
-        console.warn(`Translation for ${key} not found, using raw key.`);
-        return key; 
-    }
-    
-    return window.translations[lang][key] || key;
+  const lang = localStorage.getItem("lang") || "en";
+
+  // Safety check: verify window.translations and the language exist
+  if (!window.translations || !window.translations[lang]) {
+    console.warn(`Translation for ${key} not found, using raw key.`);
+    return key;
+  }
+
+  return window.translations[lang][key] || key;
 }
+
 function route() {
     const hash = window.location.hash.replace("#", "") || "dashboard";
     _activeRoute = hash;
@@ -294,159 +295,164 @@ function route() {
     const addBtn = document.getElementById("addEntryBtn");
     const bc = document.getElementById("breadcrumb");
 
+    // --- Unified Routing Logic ---
     if (hash === "dashboard") {
         if (addBtn) addBtn.style.display = "none";
-        if (bc) bc.textContent = t("nav_dashboard", "Dashboard");
+        if (bc) { bc.setAttribute("data-i18n", "nav_dashboard"); bc.textContent = ""; }
         renderDashboard();
+
     } else if (hash.startsWith("salary-")) {
         const id = parseInt(hash.split("-")[1]);
         const c = _companies.find((x) => x.id === id);
-        if (addBtn) {
-            addBtn.style.display = "inline-flex";
-        }
-        if (bc && c) bc.textContent = c.display_name;
+        if (addBtn) addBtn.style.display = "inline-flex";
+        if (bc && c) bc.textContent = c.display_name; // Keep as dynamic name
         renderSalaryPage(id);
+
     } else if (hash === "balance") {
-        if (addBtn) {
-            addBtn.style.display = "inline-flex";
-        }
-        if (bc) bc.textContent = t("nav_balance", "Balance");
+        if (addBtn) addBtn.style.display = "inline-flex";
+        if (bc) { bc.setAttribute("data-i18n", "nav_balance"); bc.textContent = ""; }
         renderBalance();
+
     } else if (hash === "bank-certificates") {
-        if (addBtn) {
-            addBtn.style.display = "inline-flex";
-        }
-        if (bc) bc.textContent = t("nav_bank_certificates", "Bank Certificates");
+        if (addBtn) addBtn.style.display = "inline-flex";
+        if (bc) { bc.setAttribute("data-i18n", "nav_bank_certificates"); bc.textContent = ""; }
         renderBankCertificates();
+
     } else if (hash === "all-companies") {
-        if (addBtn) {
-            addBtn.style.display = "inline-flex";
-        }
-        if (bc) bc.textContent = t("nav_all_companies", "All Companies");
+        if (addBtn) addBtn.style.display = "inline-flex";
+        if (bc) { bc.setAttribute("data-i18n", "nav_all_companies"); bc.textContent = ""; }
         renderAllCompanies();
+
     } else if (hash === "exchange-rates") {
-        if (typeof setBreadcrumb === "function")
-            setBreadcrumb(t("nav_exchange_rates", "Exchange Rates"), "");
-        if (typeof bc !== "undefined" && bc)
-            bc.textContent = t("nav_exchange_rates", "Exchange Rates");
-        renderExchangeRates();
-    } else if (hash === "gold-price") {
-        if (typeof setBreadcrumb === "function")
-            setBreadcrumb(t("nav_gold_price", "Gold Price"), "");
-        if (typeof bc !== "undefined" && bc)
-            bc.textContent = t("nav_gold_price", "Gold Price");
-        renderGoldPrice();
-    } else if (hash === "expenses") {
-        setBreadcrumb("Expenses", "Track your spending");
-        renderExpenses();
-    } else if (hash === "expense-categories") {
-        setBreadcrumb("Expense Categories", "");
-        renderExpenseCategories();
-    } else if (hash === "reports") {
-        setBreadcrumb("Reports", "Income & Expense Analysis");
-        renderReports();
-    } else if (hash === 'advanced-reports') {
         if (addBtn) addBtn.style.display = "none";
-        if (bc) bc.textContent = t('nav_advanced_reports', 'Advanced Reports');
+        if (bc) { bc.setAttribute("data-i18n", "nav_exchange_rates"); bc.textContent = ""; }
+        renderExchangeRates();
+
+    } else if (hash === "gold-price") {
+        if (addBtn) addBtn.style.display = "none";
+        if (bc) { bc.setAttribute("data-i18n", "nav_gold_price"); bc.textContent = ""; }
+        renderGoldPrice();
+
+    } else if (hash === "expenses") {
+        if (addBtn) addBtn.style.display = "none";
+        if (bc) { bc.setAttribute("data-i18n", "nav_expenses"); bc.textContent = ""; }
+        renderExpenses();
+
+    } else if (hash === "expense-categories") {
+        if (addBtn) addBtn.style.display = "none";
+        if (bc) { bc.setAttribute("data-i18n", "nav_expense_categories"); bc.textContent = ""; }
+        renderExpenseCategories();
+
+    } else if (hash === "reports") {
+        if (addBtn) addBtn.style.display = "none";
+        if (bc) { bc.setAttribute("data-i18n", "nav_reports"); bc.textContent = ""; }
+        renderReports();
+
+    } else if (hash === "advanced-reports") {
+        if (addBtn) addBtn.style.display = "none";
+        if (bc) { bc.setAttribute("data-i18n", "nav_advanced_reports"); bc.textContent = ""; }
         renderAdvancedReports();
+
     } else if (hash.startsWith("settings")) {
         if (addBtn) addBtn.style.display = "none";
-        if (bc) bc.textContent = t("nav_settings", "Settings");
+        if (bc) { bc.setAttribute("data-i18n", "nav_settings"); bc.textContent = ""; }
         renderSettings(hash);
     }
+
+    // Apply translations only once at the end
     applyTranslations();
 }
 
 function triggerAddEntry() {
-    const hash = window.location.hash.replace("#", "");
-    if (hash.startsWith("salary-")) {
-        const id = parseInt(hash.split("-")[1]);
-        showSalaryModal(null, id);
-    } else if (hash === "balance") {
-        showBalanceModal(null);
-    } else if (hash === "bank-certificates") {
-        showBankCertificateModal(null);
-    } else if (hash === "all-companies") {
-        showCompanyModal(null);
-    }
+  const hash = window.location.hash.replace("#", "");
+  if (hash.startsWith("salary-")) {
+    const id = parseInt(hash.split("-")[1]);
+    showSalaryModal(null, id);
+  } else if (hash === "balance") {
+    showBalanceModal(null);
+  } else if (hash === "bank-certificates") {
+    showBankCertificateModal(null);
+  } else if (hash === "all-companies") {
+    showCompanyModal(null);
+  }
 }
 
 // ── Modal helpers ──────────────────────────────────────────
 function showModal(html) {
-    let el = document.getElementById("globalModal");
-    if (!el) {
-        el = document.createElement("div");
-        el.id = "globalModal";
-        el.className = "modal fade modal-dark";
-        el.setAttribute("tabindex", "-1");
-        document.body.appendChild(el);
-    }
-    el.innerHTML = `<div class="modal-dialog modal-dialog-centered"><div class="modal-content">${html}</div></div>`;
-    const m = new bootstrap.Modal(el);
-    m.show();
-    return m;
+  let el = document.getElementById("globalModal");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "globalModal";
+    el.className = "modal fade modal-dark";
+    el.setAttribute("tabindex", "-1");
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `<div class="modal-dialog modal-dialog-centered"><div class="modal-content">${html}</div></div>`;
+  const m = new bootstrap.Modal(el);
+  m.show();
+  return m;
 }
 
 function closeModal() {
-    const el = document.getElementById("globalModal");
-    if (el) {
-        const m = bootstrap.Modal.getInstance(el);
-        if (m) m.hide();
-    }
+  const el = document.getElementById("globalModal");
+  if (el) {
+    const m = bootstrap.Modal.getInstance(el);
+    if (m) m.hide();
+  }
 }
 
 // ── Toast ──────────────────────────────────────────────────
 function showToast(msg, type = "success") {
-    // Look up the translation; if not found, fallback to the original message
-    const translatedMsg = (_t && _t[msg]) ? _t[msg] : msg;
-    
-    const container = document.getElementById("toast-container");
-    const id = "toast-" + Date.now();
-    const color =
-        type === "success" ? "var(--accent-green)" : "var(--accent-red)";
-        
-    container.insertAdjacentHTML(
-        "beforeend",
-        `
+  // Look up the translation; if not found, fallback to the original message
+  const translatedMsg = _t && _t[msg] ? _t[msg] : msg;
+
+  const container = document.getElementById("toast-container");
+  const id = "toast-" + Date.now();
+  const color =
+    type === "success" ? "var(--accent-green)" : "var(--accent-red)";
+
+  container.insertAdjacentHTML(
+    "beforeend",
+    `
         <div id="${id}" class="toast align-items-center" role="alert" style="border-left:3px solid ${color}">
             <div class="d-flex">
                 <div class="toast-body">${translatedMsg}</div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
         </div>`,
-    );
-    
-    const toast = new bootstrap.Toast(document.getElementById(id), {
-        delay: 3000,
-    });
-    toast.show();
+  );
+
+  const toast = new bootstrap.Toast(document.getElementById(id), {
+    delay: 3000,
+  });
+  toast.show();
 }
 
 function fmt(n) {
-    if (n === null || n === undefined) return "-";
-    return Number(n).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 6,
-    });
+  if (n === null || n === undefined) return "-";
+  return Number(n).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6,
+  });
 }
 
 function fmtpresent(n) {
-    if (n === null || n === undefined) return "-";
-    return Number(n).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
+  if (n === null || n === undefined) return "-";
+  return Number(n).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 function amtClass(n) {
-    if (n > 0) return "amt-negative";
-    if (n < 0) return "amt-positive";
-    return "amt-zero";
+  if (n > 0) return "amt-negative";
+  if (n < 0) return "amt-positive";
+  return "amt-zero";
 }
 
 function fmtInt(n) {
-    if (n === null || n === undefined) return "-";
-    return Number(n).toLocaleString("en-US");
+  if (n === null || n === undefined) return "-";
+  return Number(n).toLocaleString("en-US");
 }
 
 /* Expose globals used by salary.js, balance.js, settings.js */
@@ -454,19 +460,19 @@ function fmtInt(n) {
 /* ── Auth: Logout, Profile Modal, Avatar Upload ─────────── */
 
 async function doLogout() {
-    try {
-        await fetch("/api/auth/logout/", { method: "POST" });
-    } catch (_) { }
-    window.location.href = "/accounts/login/";
+  try {
+    await fetch("/api/auth/logout/", { method: "POST" });
+  } catch (_) {}
+  window.location.href = "/accounts/login/";
 }
 
 function showProfileModal() {
-    const u = window._currentUser || {};
-    const name = u.display_name || u.full_name || u.username || "";
-    const avatar = u.avatar_url;
-    const initials = name ? name.charAt(0).toUpperCase() : "?";
+  const u = window._currentUser || {};
+  const name = u.display_name || u.full_name || u.username || "";
+  const avatar = u.avatar_url;
+  const initials = name ? name.charAt(0).toUpperCase() : "?";
 
-    showModal(`
+  showModal(`
         <div class="modal-header">
             <h5 class="modal-title">
                 <i class="bi bi-person-circle"
@@ -478,11 +484,12 @@ function showProfileModal() {
         <div class="modal-body">
             <div style="text-align:center;margin-bottom:22px">
                 <div style="position:relative;display:inline-block">
-                    ${avatar
-            ? `<img src="${avatar}" id="avatarPreview"
+                    ${
+                      avatar
+                        ? `<img src="${avatar}" id="avatarPreview"
                                 style="width:90px;height:90px;border-radius:50%;
                                        object-fit:cover;border:3px solid var(--border-color)">`
-            : `<div id="avatarPreview"
+                        : `<div id="avatarPreview"
                                 style="width:90px;height:90px;border-radius:50%;
                                        background:linear-gradient(135deg,var(--accent-primary),#0f45c8);
                                        display:inline-flex;align-items:center;justify-content:center;
@@ -490,7 +497,7 @@ function showProfileModal() {
                                        border:3px solid var(--border-color)">
                                 ${initials}
                            </div>`
-        }
+                    }
                     <label for="avatarInput"
                            style="position:absolute;bottom:2px;right:2px;
                                   background:var(--accent-primary);color:#fff;
@@ -537,90 +544,90 @@ function showProfileModal() {
 }
 
 async function previewAndUploadAvatar(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const prev = document.getElementById("avatarPreview");
-        if (prev)
-            prev.outerHTML = `<img id="avatarPreview" src="${e.target.result}"
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const prev = document.getElementById("avatarPreview");
+    if (prev)
+      prev.outerHTML = `<img id="avatarPreview" src="${e.target.result}"
                  style="width:90px;height:90px;border-radius:50%;
                         object-fit:cover;border:3px solid var(--border-color)">`;
-    };
-    reader.readAsDataURL(file);
-    const fd = new FormData();
-    fd.append("avatar", file);
-    try {
-        const res = await fetch("/api/auth/profile/avatar/", {
-            method: "POST",
-            body: fd,
-        });
-        const data = await res.json();
-        if (res.ok) {
-            if (window._currentUser) window._currentUser.avatar_url = data.avatar_url;
-            showToast("Photo updated ✓", "success");
-            renderSidebar();
-        } else {
-            showToast("Upload failed: " + (data.error || ""), "error");
-        }
-    } catch (e) {
-        showToast("Upload error: " + e.message, "error");
+  };
+  reader.readAsDataURL(file);
+  const fd = new FormData();
+  fd.append("avatar", file);
+  try {
+    const res = await fetch("/api/auth/profile/avatar/", {
+      method: "POST",
+      body: fd,
+    });
+    const data = await res.json();
+    if (res.ok) {
+      if (window._currentUser) window._currentUser.avatar_url = data.avatar_url;
+      showToast("Photo updated ✓", "success");
+      renderSidebar();
+    } else {
+      showToast("Upload failed: " + (data.error || ""), "error");
     }
+  } catch (e) {
+    showToast("Upload error: " + e.message, "error");
+  }
 }
 
 async function saveProfile() {
-    const fullName = (
-        document.getElementById("profileFullName")?.value || ""
-    ).trim();
-    try {
-        const res = await fetch("/api/auth/profile/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ full_name: fullName }),
-        });
-        const data = await res.json();
-        if (res.ok) {
-            if (window._currentUser) {
-                window._currentUser.full_name = data.profile.full_name;
-                window._currentUser.display_name = data.profile.display_name;
-            }
-            closeModal();
-            showToast("Profile saved ✓", "success");
-            renderSidebar();
-        } else {
-            showToast("Error: " + (data.error || ""), "error");
-        }
-    } catch (e) {
-        showToast("Error: " + e.message, "error");
+  const fullName = (
+    document.getElementById("profileFullName")?.value || ""
+  ).trim();
+  try {
+    const res = await fetch("/api/auth/profile/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ full_name: fullName }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      if (window._currentUser) {
+        window._currentUser.full_name = data.profile.full_name;
+        window._currentUser.display_name = data.profile.display_name;
+      }
+      closeModal();
+      showToast("Profile saved ✓", "success");
+      renderSidebar();
+    } else {
+      showToast("Error: " + (data.error || ""), "error");
     }
+  } catch (e) {
+    showToast("Error: " + e.message, "error");
+  }
 }
 
 function toggleSection(element) {
-    const content = element.nextElementSibling;
-    const icon = element.querySelector(".chevron-icon");
-    if (content.style.display === "none") {
-        content.style.display = "block";
-        icon.classList.replace("bi-chevron-right", "bi-chevron-down");
-    } else {
-        content.style.display = "none";
-        icon.classList.replace("bi-chevron-down", "bi-chevron-right");
-    }
+  const content = element.nextElementSibling;
+  const icon = element.querySelector(".chevron-icon");
+  if (content.style.display === "none") {
+    content.style.display = "block";
+    icon.classList.replace("bi-chevron-right", "bi-chevron-down");
+  } else {
+    content.style.display = "none";
+    icon.classList.replace("bi-chevron-down", "bi-chevron-right");
+  }
 }
 
 /* ── Mobile sidebar toggle ───────────────────────────────── */
 function toggleMobileSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("sidebarOverlay");
-    const isOpen = sidebar.classList.contains("open");
-    sidebar.classList.toggle("open", !isOpen);
-    if (overlay) overlay.classList.toggle("show", !isOpen);
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+  const isOpen = sidebar.classList.contains("open");
+  sidebar.classList.toggle("open", !isOpen);
+  if (overlay) overlay.classList.toggle("show", !isOpen);
 }
 
 function closeMobileSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("sidebarOverlay");
-    sidebar.classList.remove("open");
-    if (overlay) overlay.classList.remove("show");
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+  sidebar.classList.remove("open");
+  if (overlay) overlay.classList.remove("show");
 }
 window.navigate = navigate;
 window.showModal = showModal;
@@ -636,10 +643,10 @@ window.toggleMobileSidebar = toggleMobileSidebar;
 window.getCompanies = () => _companies;
 window.getBanks = () => _banks;
 window.refreshBanks = async () => {
-    const r = await fetch("/api/banks/");
-    _banks = (await r.json()).banks || [];
+  const r = await fetch("/api/banks/");
+  _banks = (await r.json()).banks || [];
 };
 window.refreshCompanies = async () => {
-    const r = await fetch("/api/companies/");
-    _companies = (await r.json()).companies || [];
+  const r = await fetch("/api/companies/");
+  _companies = (await r.json()).companies || [];
 };
