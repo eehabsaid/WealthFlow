@@ -409,5 +409,13 @@
   "enter_additional_manual_income": "Enter additional manual income:",
   "generate_pdf":"Generate PDF",
   "download_excel": "Download Excel Workbook",
-  "click_to_edit_profile": "Click to edit profile"
+  "click_to_edit_profile": "Click to edit profile",
+  "settings_translation_coverage": "Translation Coverage",
+  "language": "Language",
+  "total_keys": "Total Keys",
+  "translated": "Translated",
+  "empty_values": "Empty Values",
+  "missing_keys": "Missing Keys",
+  "coverage": "Coverage",
+  "missing_report": "Missing Report"
 }

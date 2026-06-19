@@ -383,6 +383,7 @@
   "month_october": "Octobre",
   "month_november": "Novembre",
   "month_december": "Décembre",
+  "reports_subtitle": "Analyse des revenus par rapport aux dépenses et exportation PDF",
   "add_bank_certificate": "Ajouter un certificat bancaire",
   "edit_bank_certificate": "Modifier le certificat bancaire",
   "issue_date": "Date d'émission",
@@ -408,5 +409,13 @@
   "enter_additional_manual_income": "Saisir un revenu manuel supplémentaire :",
   "generate_pdf":"Générer un PDF",
   "download_excel": "Télécharger le classeur Excel",
-  "click_to_edit_profile": "Cliquer pour modifier le profil"
+  "click_to_edit_profile": "Cliquer pour modifier le profil",
+  "settings_translation_coverage": "Couverture des traductions",
+  "language": "Langue",
+  "total_keys": "Nombre total de clés",
+  "translated": "Traduit",
+  "empty_values": "Valeurs vides",
+  "missing_keys": "Clés manquantes",
+  "coverage": "Couverture",
+  "missing_report": "Rapport des éléments manquants"
 }

@@ -10,17 +10,19 @@ async function renderSettings(route) {
         ? "currency"
         : route.includes("users")
           ? "users"
-          : route.includes("translations")
-            ? "translations"
-            : route.includes("reminders")
-              ? "reminders"
-              : route.includes("certstatus")
-                ? "certstatus"
-                : route.includes("settings-dashboard")
-                  ? "dashboard"
-                  : route.includes("languages")
-                    ? "languages"
-                    : "languages";
+          : route.includes("translationcoverage")
+            ? "translationcoverage"
+            : route.includes("translations")
+              ? "translations"
+              : route.includes("reminders")
+                ? "reminders"
+                : route.includes("certstatus")
+                  ? "certstatus"
+                  : route.includes("settings-dashboard")
+                    ? "dashboard"
+                    : route.includes("languages")
+                      ? "languages"
+                      : "languages";
 
   mc.innerHTML = `
         <div class="page-header">
@@ -33,6 +35,7 @@ async function renderSettings(route) {
             <button class="settings-tab ${activeTab === "currency" ? "active" : ""}" onclick="navigate('settings-currency')" data-i18n="settings_currency">Currency</button>
             <button class="settings-tab ${activeTab === "users" ? "active" : ""}" onclick="navigate('settings-users')" data-i18n="settings_users">Users</button>
             <button class="settings-tab ${activeTab === "translations" ? "active" : ""}" onclick="navigate('settings-translations')" data-i18n="settings_translations">Translations</button>
+            <button class="settings-tab ${activeTab === "translationcoverage" ? "active" : ""}" onclick="navigate('settings-translationcoverage')" data-i18n="settings_translation_coverage">Translation Coverage</button>
             <button class="settings-tab ${activeTab === "reminders" ? "active" : ""}" onclick="navigate('settings-reminders')" data-i18n="tab_reminders">Reminders</button>
             <button class="settings-tab ${activeTab === "certstatus" ? "active" : ""}" onclick="navigate('settings-certstatus')" data-i18n="tab_cert_status">Cert Statuses</button>
             <button class="settings-tab ${activeTab === "dashboard" ? "active" : ""}" onclick="navigate('settings-dashboard')" data-i18n="tab_dashboard_sett">Dashboard</button>
@@ -45,6 +48,7 @@ async function renderSettings(route) {
   else if (activeTab === "currency") renderCurrencySettings();
   else if (activeTab === "users") renderUserSettings();
   else if (activeTab === "translations") renderTranslationSettings();
+  else if (activeTab === "translationcoverage") renderTranslationCoverage();
   else if (activeTab === "reminders") renderReminderSettings();
   else if (activeTab === "certstatus") renderCertStatusSettings();
   else if (activeTab === "dashboard") renderDashboardSettings();
@@ -1152,12 +1156,6 @@ async function renderTranslationSettings() {
                     Save
                 </button>
 
-                <button
-                    class="btn-primary-custom"
-                    onclick="findMissingTranslations()"
-                    data-i18n="scan_missing_keys">
-                    Scan Missing Keys
-                </button>
             </div>
         </div>
 
@@ -1219,31 +1217,173 @@ async function saveTranslations() {
   renderTranslationSettings();
 }
 
-async function findMissingTranslations() {
-  const res = await fetch("/api/translations/");
-  const data = await res.json();
+async function showMissingTranslationsReport() {
 
-  const en = data.en || {};
-  const ar = data.ar || {};
+    const res = await fetch("/api/translations/");
+    const data = await res.json();
 
-  const missingInAr = [];
-  const missingInEn = [];
+    const languages = Object.keys(data);
 
-  Object.keys(en).forEach((k) => {
-    if (!(k in ar)) missingInAr.push(k);
-  });
+    const allKeys = [
+        ...new Set(
+            languages.flatMap(lang => Object.keys(data[lang] || {}))
+        )
+    ];
 
-  Object.keys(ar).forEach((k) => {
-    if (!(k in en)) missingInEn.push(k);
-  });
+    let html = "";
 
-  alert(
-    `Missing in Arabic: ${missingInAr.length}\n` +
-      `Missing in English: ${missingInEn.length}`,
-  );
+    languages.forEach(lang => {
 
-  console.log("Missing in Arabic:", missingInAr);
-  console.log("Missing in English:", missingInEn);
+        const missing = [];
+        const empty = [];
+
+        allKeys.forEach(key => {
+
+            if (!(key in (data[lang] || {}))) {
+                missing.push(key);
+                return;
+            }
+
+            const value = data[lang][key];
+
+            if (
+                value === null ||
+                value === undefined ||
+                value === ""
+            ) {
+                empty.push(key);
+            }
+
+        });
+
+        html += `
+
+            <div style="
+                border:1px solid var(--border-color);
+                border-radius:12px;
+                padding:12px;
+                margin-bottom:12px;
+                background:var(--bg-secondary);
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    margin-bottom:10px;
+                ">
+                    <strong>${lang.toUpperCase()}</strong>
+
+                    <span>
+                        Missing:
+                        <strong style="color:#dc3545">
+                            ${missing.length}
+                        </strong>
+
+                        |
+                        
+                        Empty:
+                        <strong style="color:#fd7e14">
+                            ${empty.length}
+                        </strong>
+                    </span>
+                </div>
+
+                ${
+                    missing.length
+                    ? `
+                    <div style="margin-bottom:8px">
+
+                        <div style="
+                            font-weight:600;
+                            color:#dc3545;
+                            margin-bottom:4px;
+                        ">
+                            Missing Keys
+                        </div>
+
+                        <textarea
+                            class="form-control"
+                            rows="5"
+                            readonly>${missing.join("\n")}</textarea>
+
+                    </div>
+                    `
+                    : ""
+                }
+
+                ${
+                    empty.length
+                    ? `
+                    <div>
+
+                        <div style="
+                            font-weight:600;
+                            color:#fd7e14;
+                            margin-bottom:4px;
+                        ">
+                            Empty Keys
+                        </div>
+
+                        <textarea
+                            class="form-control"
+                            rows="5"
+                            readonly>${empty.join("\n")}</textarea>
+
+                    </div>
+                    `
+                    : ""
+                }
+
+                ${
+                    missing.length === 0 && empty.length === 0
+                    ? `
+                    <div style="
+                        color:#198754;
+                        font-weight:600;
+                    ">
+                        ✓ Complete
+                    </div>
+                    `
+                    : ""
+                }
+
+            </div>
+
+        `;
+
+    });
+
+    showModal(`
+
+        <div class="modal-header">
+            <h5 class="modal-title">
+                Translation Coverage Report
+            </h5>
+
+            <button
+                type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal">
+            </button>
+        </div>
+
+        <div class="modal-body"
+             style="max-height:70vh;overflow:auto">
+
+            ${html}
+
+        </div>
+
+        <div class="modal-footer">
+            <button
+                class="btn-secondary-custom"
+                data-bs-dismiss="modal">
+                Close
+            </button>
+        </div>
+
+    `);
+
 }
 function filterTranslations() {
   const search = document
@@ -1255,4 +1395,249 @@ function filterTranslations() {
 
     row.style.display = key.includes(search) ? "" : "none";
   });
+}
+
+async function renderTranslationCoverage() {
+    const res = await fetch("/api/translations/");
+    const data = await res.json();
+
+    const preferredOrder = ["ar", "en", "fr", "de"];
+
+    const languages = [
+        ...preferredOrder.filter(lang => data[lang]),
+        ...Object.keys(data).filter(lang => !preferredOrder.includes(lang))
+    ];
+
+    const allKeys = [
+        ...new Set(
+            languages.flatMap(lang => Object.keys(data[lang] || {}))
+        )
+    ];
+
+    const stats = languages.map(lang => {
+
+        let translated = 0;
+        let missing = 0;
+        let empty = 0;
+
+        allKeys.forEach(key => {
+
+            if (!(key in (data[lang] || {}))) {
+                missing++;
+                return;
+            }
+
+            const value = data[lang][key];
+
+            if (
+                value === null ||
+                value === undefined ||
+                value === ""
+            ) {
+                empty++;
+            } else {
+                translated++;
+            }
+        });
+
+        const coverage =
+            allKeys.length === 0
+                ? 100
+                : Math.round((translated / allKeys.length) * 100);
+
+        return {
+            lang,
+            translated,
+            missing,
+            empty,
+            coverage
+        };
+    });
+
+    const summaryCards = stats.map(s => `
+
+        <div style="
+            background:var(--bg-secondary);
+            border:1px solid var(--border-color);
+            border-radius:12px;
+            padding:16px;
+            min-width:220px;
+            flex:1;
+        ">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                margin-bottom:8px;
+            ">
+                <strong>${s.lang.toUpperCase()}</strong>
+                <strong>${s.coverage}%</strong>
+            </div>
+
+            <div style="
+                height:18px;
+                background:#e5e7eb;
+                border-radius:20px;
+                overflow:hidden;
+                margin-bottom:10px;
+            ">
+
+                <div style="
+                    width:${s.coverage}%;
+                    height:100%;
+                    background:${
+                        s.coverage >= 95
+                            ? '#198754'
+                            : s.coverage >= 80
+                                ? '#fd7e14'
+                                : '#dc3545'
+                    };
+                    transition:width .4s ease;
+                ">
+                </div>
+
+            </div>
+
+            <div style="
+                font-size:12px;
+                color:var(--text-secondary);
+            ">
+                ${s.translated} / ${allKeys.length}
+            </div>
+
+        </div>
+
+    `).join("");
+
+    const rows = stats.map(s => `
+
+        <tr>
+
+            <td>
+                <strong>${s.lang.toUpperCase()}</strong>
+            </td>
+
+            <td>${allKeys.length}</td>
+
+            <td style="color:#198754;font-weight:600">
+                ${s.translated}
+            </td>
+
+            <td style="color:#fd7e14;font-weight:600">
+                ${s.empty}
+            </td>
+
+            <td style="color:#dc3545;font-weight:600">
+                ${s.missing}
+            </td>
+
+            <td style="min-width:260px">
+
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:10px;
+                ">
+
+                    <div style="
+                        width:180px;
+                        height:14px;
+                        background:#e5e7eb;
+                        border-radius:20px;
+                        overflow:hidden;
+                        flex-shrink:0;
+                    ">
+
+                        <div style="
+                            width:${s.coverage}%;
+                            height:100%;
+                            background:${
+                                s.coverage >= 95
+                                    ? '#198754'
+                                    : s.coverage >= 80
+                                        ? '#fd7e14'
+                                        : '#dc3545'
+                            };
+                        ">
+                        </div>
+
+                    </div>
+
+                    <strong>${s.coverage}%</strong>
+
+                </div>
+
+            </td>
+
+        </tr>
+
+    `).join("");
+
+    document.getElementById("settingsContent").innerHTML = `
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:14px;
+        ">
+
+            <div
+                style="font-weight:600;color:var(--text-secondary)"
+                data-i18n="settings_translation_coverage">
+                Translation Coverage
+            </div>
+
+            <div style="display:flex;gap:10px">
+                <button
+                    class="btn-primary-custom"
+                    onclick="showMissingTranslationsReport()"
+                    data-i18n="missing_report">
+                    Missing Report
+                </button>
+
+            </div>
+
+        </div>
+
+        <div style="
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-bottom:20px;
+        ">
+            ${summaryCards}
+        </div>
+
+        <div style="
+            background:var(--bg-secondary);
+            border:1px solid var(--border-color);
+            border-radius:12px;
+            overflow:hidden;
+        ">
+
+            <table class="data-table">
+
+                <thead>
+                    <tr>
+                        <th data-i18n="language">Language</th>
+                        <th data-i18n="total_keys">Total Keys</th>
+                        <th data-i18n="translated">Translated</th>
+                        <th data-i18n="empty_values">Empty</th>
+                        <th data-i18n="missing_keys">Missing</th>
+                        <th data-i18n="coverage">Coverage</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    ${rows}
+                </tbody>
+
+            </table>
+
+        </div>
+
+    `;
+
+    applyTranslations();
 }

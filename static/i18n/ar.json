@@ -383,6 +383,7 @@
   "month_october": "أكتوبر",
   "month_november": "نوفمبر",
   "month_december": "ديسمبر",
+  "reports_subtitle": "تحليل الإيرادات مقابل المصروفات وتصدير ملف PDF",
   "add_bank_certificate": "إضافة شهادة بنك",
   "edit_bank_certificate": "تعديل شهادة بنك",
   "issue_date": "تاريخ الإصدار",
@@ -408,5 +409,13 @@
   "enter_additional_manual_income": "أدخل دخلاً إضافياً يدوياً:",
   "generate_pdf":"إنشاء ملف PDF",
   "download_excel": "تحميل ملف بصيغة Excel",
-  "click_to_edit_profile": "اضغط لتعديل الملف الشخصي"
+  "click_to_edit_profile": "اضغط لتعديل الملف الشخصي",
+  "settings_translation_coverage": "تغطية الترجمات",
+  "language": "اللغة",
+  "total_keys": "إجمالي المفاتيح",
+  "translated": "المترجم",
+  "empty_values": "القيم الفارغة",
+  "missing_keys": "المفاتيح المفقودة",
+  "coverage": "نسبة التغطية",
+  "missing_report": "تقرير النواقص"
 }

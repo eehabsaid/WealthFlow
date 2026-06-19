@@ -383,6 +383,7 @@
   "month_october": "Oktober",
   "month_november": "November",
   "month_december": "Dezember",
+  "reports_subtitle": "Analyse von Einnahmen und Ausgaben sowie PDF-Export",
   "add_bank_certificate": "Bankzertifikat hinzufügen",
   "edit_bank_certificate": "Bankzertifikat bearbeiten",
   "issue_date": "Ausgabedatum",
@@ -408,5 +409,13 @@
   "enter_additional_manual_income": "Zusätzliches manuelles Einkommen eingeben:",
   "generate_pdf":"PDF erstellen",
   "download_excel": "Excel-Arbeitsmappe herunterladen",
-  "click_to_edit_profile": "Zum Bearbeiten des Profils klicken"
+  "click_to_edit_profile": "Zum Bearbeiten des Profils klicken",
+  "settings_translation_coverage": "Übersetzungsabdeckung",
+  "language": "Sprache",
+  "total_keys": "Gesamte Schlüssel",
+  "translated": "Übersetzt",
+  "empty_values": "Leere Werte",
+  "missing_keys": "Fehlende Schlüssel",
+  "coverage": "Abdeckung",
+  "missing_report": "Fehlender Bericht"
 }
