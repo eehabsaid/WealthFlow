@@ -305,7 +305,13 @@ function route() {
         const id = parseInt(hash.split("-")[1]);
         const c = _companies.find((x) => x.id === id);
         if (addBtn) addBtn.style.display = "inline-flex";
-        if (bc && c) bc.textContent = c.display_name; // Keep as dynamic name
+        
+        // Updated logic to show "Salary" instead of the company name
+        if (bc) {
+            bc.setAttribute("data-i18n", "nav_salary"); // Ensure you have this key in your JSON
+            bc.textContent = ""; 
+        }
+        
         renderSalaryPage(id);
 
     } else if (hash === "balance") {
@@ -335,22 +341,22 @@ function route() {
 
     } else if (hash === "expenses") {
         if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_expenses"); bc.textContent = ""; }
+        if (bc) { bc.setAttribute("data-i18n", "nav_expenses_reports"); bc.textContent = ""; }
         renderExpenses();
 
     } else if (hash === "expense-categories") {
         if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_expense_categories"); bc.textContent = ""; }
+        if (bc) { bc.setAttribute("data-i18n", "nav_expenses_reports"); bc.textContent = ""; }
         renderExpenseCategories();
 
     } else if (hash === "reports") {
         if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_reports"); bc.textContent = ""; }
+        if (bc) { bc.setAttribute("data-i18n", "nav_expenses_reports"); bc.textContent = ""; }
         renderReports();
 
     } else if (hash === "advanced-reports") {
         if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_advanced_reports"); bc.textContent = ""; }
+        if (bc) { bc.setAttribute("data-i18n", "nav_expenses_reports"); bc.textContent = ""; }
         renderAdvancedReports();
 
     } else if (hash.startsWith("settings")) {
