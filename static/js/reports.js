@@ -448,10 +448,15 @@ function yearOpts(current) {
     o += `<option value="${y}" ${y === current ? 'selected' : ''}>${y}</option>`;
   return o;
 }
-function monthOpts(current) {
-  return REPORT_MONTH_I18N_KEYS.map((key, i) =>
-    `<option value="${i + 1}" ${i + 1 === current ? 'selected' : ''}>${t(key)}</option>`
-  ).join('');
+
+function monthOpts(selectedMonth) {
+    return MONTHS_NAMES.map((m, i) => {
+        const monthValue = i + 1;
+        const isSelected = monthValue === selectedMonth ? 'selected' : '';
+        const i18nKey = MONTH_I18N_KEYS[i];
+        
+        return `<option value="${monthValue}" ${isSelected} data-i18n="${i18nKey}">${m}</option>`;
+    }).join('');
 }
 
 function renderYearlyReport() { switchReportTab('yearly'); }
