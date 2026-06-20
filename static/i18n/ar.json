@@ -437,5 +437,14 @@
   "pct": "نسبة من الإجمالي",
   "expense_entries": "سجلات المصروفات",
   "uncategorised": "غير مصنف",
-  "generated_by": "تم الإنشاء بواسطة متتبع الرواتب والرصيد"
+  "generated_by": "تم الإنشاء بواسطة متتبع الرواتب والرصيد",
+  "financial_intelligence":"التحليل المالي",
+  "net_worth":"صافي الثروة",
+  "cash_egp":"النقد بالجنيه المصري",
+  "foreign_currency_value":"قيمة العملات الأجنبية",
+  "gold_value":"قيمة الذهب",
+  "asset_allocation":"توزيع الأصول",
+  "cash": "نقدي",
+  "foreignCurrency": "دولار/يورو/ريال سعودي",
+  "gold": "ذهب"
 }

@@ -284,89 +284,111 @@ function translate(key) {
 }
 
 function route() {
-    const hash = window.location.hash.replace("#", "") || "dashboard";
-    _activeRoute = hash;
+  const hash = window.location.hash.replace("#", "") || "dashboard";
+  _activeRoute = hash;
 
-    // Update active nav
-    document.querySelectorAll(".nav-item").forEach((el) => {
-        el.classList.toggle("active", el.dataset.route === hash);
-    });
+  // Update active nav
+  document.querySelectorAll(".nav-item").forEach((el) => {
+    el.classList.toggle("active", el.dataset.route === hash);
+  });
 
-    const addBtn = document.getElementById("addEntryBtn");
-    const bc = document.getElementById("breadcrumb");
+  const addBtn = document.getElementById("addEntryBtn");
+  const bc = document.getElementById("breadcrumb");
 
-    // --- Unified Routing Logic ---
-    if (hash === "dashboard") {
-        if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_dashboard"); bc.textContent = ""; }
-        renderDashboard();
+  // --- Unified Routing Logic ---
+  if (hash === "dashboard") {
+    if (addBtn) addBtn.style.display = "none";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_dashboard");
+      bc.textContent = "";
+    }
+    renderDashboard();
+  } else if (hash.startsWith("salary-")) {
+    const id = parseInt(hash.split("-")[1]);
+    const c = _companies.find((x) => x.id === id);
+    if (addBtn) addBtn.style.display = "inline-flex";
 
-    } else if (hash.startsWith("salary-")) {
-        const id = parseInt(hash.split("-")[1]);
-        const c = _companies.find((x) => x.id === id);
-        if (addBtn) addBtn.style.display = "inline-flex";
-        
-        // Updated logic to show "Salary" instead of the company name
-        if (bc) {
-            bc.setAttribute("data-i18n", "nav_salary"); // Ensure you have this key in your JSON
-            bc.textContent = ""; 
-        }
-        
-        renderSalaryPage(id);
-
-    } else if (hash === "balance") {
-        if (addBtn) addBtn.style.display = "inline-flex";
-        if (bc) { bc.setAttribute("data-i18n", "nav_balance"); bc.textContent = ""; }
-        renderBalance();
-
-    } else if (hash === "bank-certificates") {
-        if (addBtn) addBtn.style.display = "inline-flex";
-        if (bc) { bc.setAttribute("data-i18n", "nav_bank_certificates"); bc.textContent = ""; }
-        renderBankCertificates();
-
-    } else if (hash === "all-companies") {
-        if (addBtn) addBtn.style.display = "inline-flex";
-        if (bc) { bc.setAttribute("data-i18n", "nav_all_companies"); bc.textContent = ""; }
-        renderAllCompanies();
-
-    } else if (hash === "exchange-rates") {
-        if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_exchange_rates"); bc.textContent = ""; }
-        renderExchangeRates();
-
-    } else if (hash === "gold-price") {
-        if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_gold_price"); bc.textContent = ""; }
-        renderGoldPrice();
-
-    } else if (hash === "expenses") {
-        if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_expenses_reports"); bc.textContent = ""; }
-        renderExpenses();
-
-    } else if (hash === "expense-categories") {
-        if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_expenses_reports"); bc.textContent = ""; }
-        renderExpenseCategories();
-
-    } else if (hash === "reports") {
-        if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_expenses_reports"); bc.textContent = ""; }
-        renderReports();
-
-    } else if (hash === "advanced-reports") {
-        if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_expenses_reports"); bc.textContent = ""; }
-        renderAdvancedReports();
-
-    } else if (hash.startsWith("settings")) {
-        if (addBtn) addBtn.style.display = "none";
-        if (bc) { bc.setAttribute("data-i18n", "nav_settings"); bc.textContent = ""; }
-        renderSettings(hash);
+    // Updated logic to show "Salary" instead of the company name
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_salary"); // Ensure you have this key in your JSON
+      bc.textContent = "";
     }
 
-    // Apply translations only once at the end
-    applyTranslations();
+    renderSalaryPage(id);
+  } else if (hash === "balance") {
+    if (addBtn) addBtn.style.display = "inline-flex";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_balance");
+      bc.textContent = "";
+    }
+    renderBalance();
+  } else if (hash === "bank-certificates") {
+    if (addBtn) addBtn.style.display = "inline-flex";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_bank_certificates");
+      bc.textContent = "";
+    }
+    renderBankCertificates();
+  } else if (hash === "all-companies") {
+    if (addBtn) addBtn.style.display = "inline-flex";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_all_companies");
+      bc.textContent = "";
+    }
+    renderAllCompanies();
+  } else if (hash === "exchange-rates") {
+    if (addBtn) addBtn.style.display = "none";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_exchange_rates");
+      bc.textContent = "";
+    }
+    renderExchangeRates();
+  } else if (hash === "gold-price") {
+    if (addBtn) addBtn.style.display = "none";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_gold_price");
+      bc.textContent = "";
+    }
+    renderGoldPrice();
+  } else if (hash === "expenses") {
+    if (addBtn) addBtn.style.display = "none";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_expenses_reports");
+      bc.textContent = "";
+    }
+    renderExpenses();
+  } else if (hash === "expense-categories") {
+    if (addBtn) addBtn.style.display = "none";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_expenses_reports");
+      bc.textContent = "";
+    }
+    renderExpenseCategories();
+  } else if (hash === "reports") {
+    if (addBtn) addBtn.style.display = "none";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_expenses_reports");
+      bc.textContent = "";
+    }
+    renderReports();
+  } else if (hash === "advanced-reports") {
+    if (addBtn) addBtn.style.display = "none";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_expenses_reports");
+      bc.textContent = "";
+    }
+    renderAdvancedReports();
+  } else if (hash.startsWith("settings")) {
+    if (addBtn) addBtn.style.display = "none";
+    if (bc) {
+      bc.setAttribute("data-i18n", "nav_settings");
+      bc.textContent = "";
+    }
+    renderSettings(hash);
+  }
+
+  // Apply translations only once at the end
+  applyTranslations();
 }
 
 function triggerAddEntry() {

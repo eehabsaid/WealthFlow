@@ -8,10 +8,10 @@ from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-# Add this line to handle the browser's automatic favicon lookup
-    path('favicon.ico', RedirectView.as_view(url='/static/images/favicon.ico')),
-    path('', include('core.urls')),
+    path("admin/", admin.site.urls),
+    # Add this line to handle the browser's automatic favicon lookup
+    path("favicon.ico", RedirectView.as_view(url="/static/images/favicon.ico")),
+    path("", include("core.urls")),
     path("api/", include("i18n_manager.urls")),
 ]
 

@@ -437,5 +437,14 @@
   "pct": "% du Total",
   "expense_entries": "Entrées de Dépenses",
   "uncategorised": "Non classé",
-  "generated_by": "Généré par le Suivi de Salaire & Solde"
+  "generated_by": "Généré par le Suivi de Salaire & Solde",
+  "financial_intelligence":"Intelligence Financière",
+  "net_worth":"Valeur Nette",
+  "cash_egp":"Liquidités (EGP)",
+  "foreign_currency_value":"Valeur des devises",
+  "gold_value":"Valeur de l'or",
+  "asset_allocation":"Répartition des actifs",
+  "cash": "Espèces",
+  "foreignCurrency": "USD/EUR/SAR",
+  "gold": "Or"
 }

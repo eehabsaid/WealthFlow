@@ -437,5 +437,14 @@
   "pct": "% der Gesamtsumme",
   "expense_entries": "Ausgabeneinträge",
   "uncategorised": "Nicht kategorisiert",
-  "generated_by": "Generiert durch Gehalts- & Bilanz-Tracker"
+  "generated_by": "Generiert durch Gehalts- & Bilanz-Tracker",
+  "financial_intelligence":"Finanzanalyse",
+  "net_worth":"Nettovermögen",
+  "cash_egp":"Bargeld (EGP)",
+  "foreign_currency_value":"Fremdwährungswert",
+  "gold_value":"Goldwert",
+  "asset_allocation":"Vermögensaufteilung",
+  "cash": "Bargeld",
+  "foreignCurrency": "USD/EUR/SAR",
+  "gold": "Gold"
 }

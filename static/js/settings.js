@@ -1218,45 +1218,35 @@ async function saveTranslations() {
 }
 
 async function showMissingTranslationsReport() {
+  const res = await fetch("/api/translations/");
+  const data = await res.json();
 
-    const res = await fetch("/api/translations/");
-    const data = await res.json();
+  const languages = Object.keys(data);
 
-    const languages = Object.keys(data);
+  const allKeys = [
+    ...new Set(languages.flatMap((lang) => Object.keys(data[lang] || {}))),
+  ];
 
-    const allKeys = [
-        ...new Set(
-            languages.flatMap(lang => Object.keys(data[lang] || {}))
-        )
-    ];
+  let html = "";
 
-    let html = "";
+  languages.forEach((lang) => {
+    const missing = [];
+    const empty = [];
 
-    languages.forEach(lang => {
+    allKeys.forEach((key) => {
+      if (!(key in (data[lang] || {}))) {
+        missing.push(key);
+        return;
+      }
 
-        const missing = [];
-        const empty = [];
+      const value = data[lang][key];
 
-        allKeys.forEach(key => {
+      if (value === null || value === undefined || value === "") {
+        empty.push(key);
+      }
+    });
 
-            if (!(key in (data[lang] || {}))) {
-                missing.push(key);
-                return;
-            }
-
-            const value = data[lang][key];
-
-            if (
-                value === null ||
-                value === undefined ||
-                value === ""
-            ) {
-                empty.push(key);
-            }
-
-        });
-
-        html += `
+    html += `
             <div style="
                 border:1px solid var(--border-color);
                 border-radius:12px;
@@ -1281,7 +1271,7 @@ async function showMissingTranslationsReport() {
                 </div>
 
                 ${
-                    missing.length
+                  missing.length
                     ? `
                     <div style="margin-bottom:8px">
                         <div style="font-weight:600;color:#dc3545;margin-bottom:4px;" data-i18n="report_missing_keys">
@@ -1294,7 +1284,7 @@ async function showMissingTranslationsReport() {
                 }
 
                 ${
-                    empty.length
+                  empty.length
                     ? `
                     <div>
                         <div style="font-weight:600;color:#fd7e14;margin-bottom:4px;" data-i18n="report_empty_keys">
@@ -1307,7 +1297,7 @@ async function showMissingTranslationsReport() {
                 }
 
                 ${
-                    missing.length === 0 && empty.length === 0
+                  missing.length === 0 && empty.length === 0
                     ? `
                     <div style="color:#198754;font-weight:600;">
                         ✓ <span data-i18n="report_complete">Complete</span>
@@ -1317,9 +1307,9 @@ async function showMissingTranslationsReport() {
                 }
             </div>
         `;
-    });
+  });
 
-    showModal(`
+  showModal(`
         <div class="modal-header">
             <h5 class="modal-title" data-i18n="report_title">
                 Translation Coverage Report
@@ -1336,8 +1326,8 @@ async function showMissingTranslationsReport() {
         </div>
     `);
 
-    // IMPORTANT: Call this to translate the newly created modal elements
-    applyTranslations();
+  // IMPORTANT: Call this to translate the newly created modal elements
+  applyTranslations();
 }
 
 function filterTranslations() {
@@ -1353,63 +1343,57 @@ function filterTranslations() {
 }
 
 async function renderTranslationCoverage() {
-    const res = await fetch("/api/translations/");
-    const data = await res.json();
+  const res = await fetch("/api/translations/");
+  const data = await res.json();
 
-    const preferredOrder = ["ar", "en", "fr", "de"];
+  const preferredOrder = ["ar", "en", "fr", "de"];
 
-    const languages = [
-        ...preferredOrder.filter(lang => data[lang]),
-        ...Object.keys(data).filter(lang => !preferredOrder.includes(lang))
-    ];
+  const languages = [
+    ...preferredOrder.filter((lang) => data[lang]),
+    ...Object.keys(data).filter((lang) => !preferredOrder.includes(lang)),
+  ];
 
-    const allKeys = [
-        ...new Set(
-            languages.flatMap(lang => Object.keys(data[lang] || {}))
-        )
-    ];
+  const allKeys = [
+    ...new Set(languages.flatMap((lang) => Object.keys(data[lang] || {}))),
+  ];
 
-    const stats = languages.map(lang => {
+  const stats = languages.map((lang) => {
+    let translated = 0;
+    let missing = 0;
+    let empty = 0;
 
-        let translated = 0;
-        let missing = 0;
-        let empty = 0;
+    allKeys.forEach((key) => {
+      if (!(key in (data[lang] || {}))) {
+        missing++;
+        return;
+      }
 
-        allKeys.forEach(key => {
+      const value = data[lang][key];
 
-            if (!(key in (data[lang] || {}))) {
-                missing++;
-                return;
-            }
-
-            const value = data[lang][key];
-
-            if (
-                value === null ||
-                value === undefined ||
-                value === ""
-            ) {
-                empty++;
-            } else {
-                translated++;
-            }
-        });
-
-        const coverage =
-            allKeys.length === 0
-                ? 100
-                : Math.round((translated / allKeys.length) * 100);
-
-        return {
-            lang,
-            translated,
-            missing,
-            empty,
-            coverage
-        };
+      if (value === null || value === undefined || value === "") {
+        empty++;
+      } else {
+        translated++;
+      }
     });
 
-    const summaryCards = stats.map(s => `
+    const coverage =
+      allKeys.length === 0
+        ? 100
+        : Math.round((translated / allKeys.length) * 100);
+
+    return {
+      lang,
+      translated,
+      missing,
+      empty,
+      coverage,
+    };
+  });
+
+  const summaryCards = stats
+    .map(
+      (s) => `
 
         <div style="
             background:var(--bg-secondary);
@@ -1441,11 +1425,11 @@ async function renderTranslationCoverage() {
                     width:${s.coverage}%;
                     height:100%;
                     background:${
-                        s.coverage >= 95
-                            ? '#198754'
-                            : s.coverage >= 80
-                                ? '#fd7e14'
-                                : '#dc3545'
+                      s.coverage >= 95
+                        ? "#198754"
+                        : s.coverage >= 80
+                          ? "#fd7e14"
+                          : "#dc3545"
                     };
                     transition:width .4s ease;
                 ">
@@ -1462,9 +1446,13 @@ async function renderTranslationCoverage() {
 
         </div>
 
-    `).join("");
+    `,
+    )
+    .join("");
 
-    const rows = stats.map(s => `
+  const rows = stats
+    .map(
+      (s) => `
 
         <tr>
 
@@ -1507,11 +1495,11 @@ async function renderTranslationCoverage() {
                             width:${s.coverage}%;
                             height:100%;
                             background:${
-                                s.coverage >= 95
-                                    ? '#198754'
-                                    : s.coverage >= 80
-                                        ? '#fd7e14'
-                                        : '#dc3545'
+                              s.coverage >= 95
+                                ? "#198754"
+                                : s.coverage >= 80
+                                  ? "#fd7e14"
+                                  : "#dc3545"
                             };
                         ">
                         </div>
@@ -1526,9 +1514,11 @@ async function renderTranslationCoverage() {
 
         </tr>
 
-    `).join("");
+    `,
+    )
+    .join("");
 
-    document.getElementById("settingsContent").innerHTML = `
+  document.getElementById("settingsContent").innerHTML = `
 
         <div style="
             display:flex;
@@ -1594,5 +1584,5 @@ async function renderTranslationCoverage() {
 
     `;
 
-    applyTranslations();
+  applyTranslations();
 }

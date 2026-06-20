@@ -8,9 +8,12 @@ async function renderDashboard() {
   const g = data.grand_total;
   // 1. Calculate the sum of the "Remaining" column manually
   // This ensures the footer reflects the sum of all company rows
-  const sumRemaining = data.companies.reduce((sum, c) => sum + c.total_remaining, 0);
+  const sumRemaining = data.companies.reduce(
+    (sum, c) => sum + c.total_remaining,
+    0,
+  );
 
-const rows = data.companies
+  const rows = data.companies
     .map(
       (c) => `
         <tr>
@@ -26,9 +29,9 @@ const rows = data.companies
     )
     .join("");
 
-// Wrap in a try-catch to see if there is an error
+  // Wrap in a try-catch to see if there is an error
   try {
-      mc.innerHTML = `
+    mc.innerHTML = `
         <div class="page-header">
             <div><div class="page-title" data-i18n="dashboard">Dashboard</div></div>
         </div>
@@ -40,9 +43,9 @@ const rows = data.companies
 
         <div class="row g-3 mb-4">
             ${kpiCard("kpi_total_earned", fmt(g.total_expected), "bi-cash-stack", "var(--accent-primary)")}
-            ${kpiCard("kpi_total_paid",fmt(g.total_paid), "bi-check-circle", "var(--accent-green)")}
-            ${kpiCard("kpi_total_remaining",  fmt(sumRemaining), "bi-hourglass-split", sumRemaining > 0 ? "var(--accent-red)" : "var(--text-muted)")}
-            ${kpiCard("kpi_work_months",  g.total_months, "bi-calendar3", "var(--accent-yellow)")}
+            ${kpiCard("kpi_total_paid", fmt(g.total_paid), "bi-check-circle", "var(--accent-green)")}
+            ${kpiCard("kpi_total_remaining", fmt(sumRemaining), "bi-hourglass-split", sumRemaining > 0 ? "var(--accent-red)" : "var(--text-muted)")}
+            ${kpiCard("kpi_work_months", g.total_months, "bi-calendar3", "var(--accent-yellow)")}
         </div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;margin-bottom:24px">
             <canvas id="salaryChart" height="80"></canvas>
@@ -69,43 +72,52 @@ const rows = data.companies
             </table>
         </div>
         </div>`;
-        applyTranslations();
-        drawDashboardChart(data.companies);
-        // Dashboard enhancements: expiring certs + active reminders
-        _renderDashboardEnhancements();
+    applyTranslations();
+    drawDashboardChart(data.companies);
+    // Dashboard enhancements: expiring certs + active reminders
+    _renderDashboardEnhancements();
   } catch (err) {
-      console.error("Dashboard Render Error:", err);
-      mc.innerHTML = '<div class="alert alert-danger">Error loading dashboard. Check console.</div>';
+    console.error("Dashboard Render Error:", err);
+    mc.innerHTML =
+      '<div class="alert alert-danger">Error loading dashboard. Check console.</div>';
   }
   applyTranslations();
 }
 
 async function _renderDashboardEnhancements() {
-    try {
-        const [summRes, settRes] = await Promise.all([
-            fetch('/api/dashboard/summary/'),
-            fetch('/api/settings/'),
-        ]);
-        if (!summRes.ok) return;
-        const d    = await summRes.json();
-        const sett = settRes.ok ? (await settRes.json()).settings || {} : {};
-        const mc   = document.getElementById('main-content');
-        if (!mc) return;
+  try {
+    const [summRes, settRes] = await Promise.all([
+      fetch("/api/dashboard/summary/"),
+      fetch("/api/settings/"),
+    ]);
+    if (!summRes.ok) return;
+    const d = await summRes.json();
+    const sett = settRes.ok ? (await settRes.json()).settings || {} : {};
+    const mc = document.getElementById("main-content");
+    if (!mc) return;
 
-        let html = '';
+    let html = "";
 
-        // Expiring certificates
-        if (sett.dashboard_show_certs !== 'false' && d.expiring_soon && d.expiring_soon.length > 0) {
-            const rows = d.expiring_soon.map(c => `
+    // Expiring certificates
+    if (
+      sett.dashboard_show_certs !== "false" &&
+      d.expiring_soon &&
+      d.expiring_soon.length > 0
+    ) {
+      const rows = d.expiring_soon
+        .map(
+          (c) => `
                 <tr>
-                    <td>${c['bank__name'] || '—'}</td>
+                    <td>${c["bank__name"] || "—"}</td>
                     <td style="white-space:nowrap">${c.expiry_date}</td>
-                    <td class="text-end">${(parseFloat(c.amount)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                    <td><span style="color:${c.days_left<=7?'var(--accent-danger)':c.days_left<=30?'#f59e0b':'var(--accent-green)'};font-weight:700">${c.days_left}d</span></td>
-                    <td><span style="background:var(--bg-tertiary);padding:2px 8px;border-radius:8px;font-size:11px">${c.status||'—'}</span></td>
-                </tr>`).join('');
+                    <td class="text-end">${(parseFloat(c.amount) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td><span style="color:${c.days_left <= 7 ? "var(--accent-danger)" : c.days_left <= 30 ? "#f59e0b" : "var(--accent-green)"};font-weight:700">${c.days_left}d</span></td>
+                    <td><span style="background:var(--bg-tertiary);padding:2px 8px;border-radius:8px;font-size:11px">${c.status || "—"}</span></td>
+                </tr>`,
+        )
+        .join("");
 
-            html += `
+      html += `
             <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;margin-top:20px;overflow:visible">
                 <div style="padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-color)">
                     <div style="font-weight:700;color:var(--text-primary)">
@@ -127,33 +139,41 @@ async function _renderDashboardEnhancements() {
                 </table>
                 </div>
             </div>`;
-        }
+    }
 
-        // Active reminders
-        if (sett.dashboard_show_reminders !== 'false' && d.active_reminders && d.active_reminders.length > 0) {
-            const rems = d.active_reminders.map(r => `
+    // Active reminders
+    if (
+      sett.dashboard_show_reminders !== "false" &&
+      d.active_reminders &&
+      d.active_reminders.length > 0
+    ) {
+      const rems = d.active_reminders
+        .map(
+          (r) => `
                 <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-color)">
                     <span style="font-size:16px">🔔</span>
                     <div>
                         <div style="font-size:12px;font-weight:700;color:var(--text-primary)">${r.rule}</div>
                         <div style="font-size:12px;color:var(--text-secondary)">${r.message}</div>
                     </div>
-                </div>`).join('');
+                </div>`,
+        )
+        .join("");
 
-            html += `
+      html += `
             <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;margin-top:16px;padding:16px 20px">
                 <div style="font-weight:700;color:var(--text-primary);margin-bottom:10px">
                     🔔 <span data-i18n="active_reminders">Active Reminders Today</span>
                 </div>
                 ${rems}
             </div>`;
-        }
+    }
 
-        if (html) {
-            mc.insertAdjacentHTML('beforeend', html);
-            applyTranslations();
-        }
-    } catch(e) {}
+    if (html) {
+      mc.insertAdjacentHTML("beforeend", html);
+      applyTranslations();
+    }
+  } catch (e) {}
 }
 function kpiCard(label, value, icon, color) {
   return `<div class="col-6 col-lg-3">

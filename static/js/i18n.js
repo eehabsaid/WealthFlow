@@ -14,7 +14,7 @@ async function loadLanguage(code) {
     // --- BULLETPROOF RTL LOGIC ---
     // Extract value, normalize to string, compare to true-like values
     const rtlVal = String(_t.__rtl || "").toLowerCase();
-    const isRTL = (rtlVal === "true" || rtlVal === "1");
+    const isRTL = rtlVal === "true" || rtlVal === "1";
     document.documentElement.setAttribute("dir", isRTL ? "rtl" : "ltr");
     document.documentElement.lang = code;
     // ----------------------------
@@ -33,41 +33,41 @@ async function loadLanguage(code) {
 }
 
 function applyTranslations() {
-    // 1. Translate standard text content
-    document.querySelectorAll('[data-i18n]').forEach(element => {
-        const key = element.getAttribute('data-i18n');
-        if (_t && _t[key]) {
-            element.textContent = _t[key];
-        }
-    });
+  // 1. Translate standard text content
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    const key = element.getAttribute("data-i18n");
+    if (_t && _t[key]) {
+      element.textContent = _t[key];
+    }
+  });
 
-    // 2. Translate placeholders with a safety check
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-i18n-placeholder');
-        if (_t && _t[key]) {
-            element.setAttribute('placeholder', _t[key]);
-        } else {
-            console.warn(`Missing translation key: ${key}`);
-        }
-    });
+  // 2. Translate placeholders with a safety check
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    const key = element.getAttribute("data-i18n-placeholder");
+    if (_t && _t[key]) {
+      element.setAttribute("placeholder", _t[key]);
+    } else {
+      console.warn(`Missing translation key: ${key}`);
+    }
+  });
 
-// 3. Translate titles with a safety check
-    document.querySelectorAll('[data-i18n-title]').forEach(el => {
-        const key = el.getAttribute('data-i18n-title');
-        // Use _t (your active translation object) to avoid undefined errors
-        if (_t && _t[key]) {
-            el.setAttribute('title', _t[key]);
-        } else {
-            console.warn(`Missing translation key for title: ${key}`);
-        }
-    });
+  // 3. Translate titles with a safety check
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-title");
+    // Use _t (your active translation object) to avoid undefined errors
+    if (_t && _t[key]) {
+      el.setAttribute("title", _t[key]);
+    } else {
+      console.warn(`Missing translation key for title: ${key}`);
+    }
+  });
 }
 
 // Correct version for simple JS strings only
 function t(key, fallback) {
-  const lang = localStorage.getItem('lang') || 'en';
+  const lang = localStorage.getItem("lang") || "en";
   // Assuming your _t object is structured as _t[lang][key]
-  return (_t[lang] && _t[lang][key]) ? _t[lang][key] : (fallback || key);
+  return _t[lang] && _t[lang][key] ? _t[lang][key] : fallback || key;
 }
 
 function currentLang() {
