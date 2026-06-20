@@ -1146,6 +1146,17 @@ class GenerateReportView(View):
             return JsonResponse({"error": "reportlab not installed. Run: pip install reportlab"}, status=500)
 
         data       = _json.loads(request.body)
+        lang = data.get("lang", "en")
+        t = get_translations(lang)
+        
+        # Register Arabic-compatible font if the file exists
+        font_path = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'arial.ttf')
+        if os.path.exists(font_path):
+            pdfmetrics.registerFont(TTFont('ArabicFont', font_path))
+        
+        # Decide which font style template to use
+        pdf_font = "ArabicFont" if lang == 'ar' else "Helvetica-Bold"
+
         rtype      = data.get("type", "monthly")
         year       = int(data.get("year", datetime.date.today().year))
         month      = int(data.get("month", datetime.date.today().month))
@@ -1158,27 +1169,41 @@ class GenerateReportView(View):
         qs = Expense.objects.select_related("category", "subcategory").all()
         if rtype == "monthly":
             qs = qs.filter(year=year, month=month)
-            title_str = f"Monthly Report — {datetime.date(year, month, 1).strftime('%B %Y')}"
+            month_name = datetime.date(year, month, 1).strftime('%B')
+            json_month_key = f"month_{month_name.lower()}"
+            translated_month = t.get(json_month_key)
+            
+            if not translated_month:
+                if lang == 'ar':
+                    ARABIC_MONTHS = {
+                        "January": "يناير", "February": "فبراير", "March": "مارس",
+                        "April": "أبريل", "May": "مايو", "June": "يونيو",
+                        "July": "يوليو", "August": "أغسطس", "September": "سبتمبر",
+                        "October": "أكتوبر", "November": "نوفمبر", "December": "ديسمبر"
+                    }
+                    translated_month = ARABIC_MONTHS.get(month_name, month_name)
+                else:
+                    translated_month = month_name
+
+            # FIXED: Changed long em-dash (—) to standard universal hyphen (-)
+            title_str = f"{t.get('monthly_report', 'Monthly Report')} - {translated_month} {year}"
             filename  = f"report_{year}_{month:02d}.pdf"
         elif rtype == "yearly":
             qs = qs.filter(year=year)
-            title_str = f"Yearly Report — {year}"
+            # FIXED: Changed to standard hyphen
+            title_str = f"{t.get('yearly_report', 'Yearly Report')} - {year}"
             filename  = f"report_{year}.pdf"
         else:
-
             from datetime import date as _date
-
             sd = _date.fromisoformat(start_date)
             ed = _date.fromisoformat(end_date)
-
-            qs = qs.filter(
-                date__gte=sd,
-                date__lte=ed
-            )
-
-            title_str = f"Report {start_date} to {end_date}"
-
+            qs = qs.filter(date__gte=sd, date__lte=ed)
+            
+            title_str = f"{t.get('report', 'Report')} {start_date} {t.get('to', 'to')} {end_date}"
             filename = f"report_{start_date}_{end_date}.pdf"
+
+        if lang == 'ar':
+            title_str = format_arabic(title_str)
 
         expenses   = list(qs)
         total_exp  = sum(float(e.amount) for e in expenses)
@@ -1259,7 +1284,7 @@ class GenerateReportView(View):
                                    rightMargin=2*cm, leftMargin=2*cm,
                                    topMargin=2*cm, bottomMargin=2*cm)
         styles = getSampleStyleSheet()
-        navy   = colors.HexColor("#0d1530")
+        navy   = colors.HexColor("#000080")
         blue   = colors.HexColor("#1a6ef5")
         green  = colors.HexColor("#00d68f")
         red    = colors.HexColor("#ff4d6d")
@@ -1267,9 +1292,11 @@ class GenerateReportView(View):
         grey   = colors.HexColor("#7b97cc")
 
         H1 = ParagraphStyle("H1", fontSize=22, textColor=blue,
-                             spaceAfter=6, alignment=TA_CENTER, fontName="Helvetica-Bold")
+                             spaceAfter=15, alignment=TA_CENTER, fontName=pdf_font)
+        H11 = ParagraphStyle("H11", fontSize=18, textColor=navy,
+                             spaceAfter=15, alignment=TA_CENTER, fontName=pdf_font)
         H2 = ParagraphStyle("H2", fontSize=14, textColor=navy,
-                             spaceAfter=4, spaceBefore=12, fontName="Helvetica-Bold")
+                             spaceAfter=4, spaceBefore=12, fontName=pdf_font)
         BODY = ParagraphStyle("BODY", fontSize=10, textColor=navy, spaceAfter=4)
         SUB  = ParagraphStyle("SUB", fontSize=9, textColor=grey, spaceAfter=2)
 
@@ -1277,54 +1304,90 @@ class GenerateReportView(View):
 
         # Cover
         story.append(Spacer(1, 1*cm))
-        story.append(Paragraph("💰 Financial Report", H1))
-        story.append(Paragraph(title_str, ParagraphStyle("S",fontSize=13,
-            textColor=grey,alignment=TA_CENTER,spaceAfter=6)))
+        
+        # Fetch the clean, localized text without unstable emojis
+        report_text = get_text('financial_report', lang, t, 'Financial Report')
+
+        # Append the titles cleanly to the story
+        story.append(Paragraph(report_text, H1))
+        story.append(Paragraph(title_str, H11))
         story.append(HRFlowable(width="100%", thickness=1, color=blue))
         story.append(Spacer(1, 0.5*cm))
-
+        # Dynamically set table title alignments based on the document language
+        table_title_style = ParagraphStyle(
+            "TableTitle", 
+            parent=H2, 
+            alignment=TA_RIGHT if lang == 'ar' else TA_LEFT
+        )
         # Summary KPIs
-        story.append(Paragraph("Summary", H2))
+        story.append(Paragraph(get_text('summary', lang, t, 'Summary'), table_title_style))
+
+        # Define explicit Paragraph styles for table cells to handle Arabic layout flawlessly
+        cell_L = ParagraphStyle("CellL", fontName=pdf_font, fontSize=10, textColor=navy, alignment=TA_LEFT)
+        cell_R = ParagraphStyle("CellR", fontName=pdf_font, fontSize=10, textColor=navy, alignment=TA_RIGHT)
+        cell_HL = ParagraphStyle("CellHL", fontName=pdf_font, fontSize=10, textColor=colors.white, alignment=TA_LEFT)
+        cell_HR = ParagraphStyle("CellHR", fontName=pdf_font, fontSize=10, textColor=colors.white, alignment=TA_RIGHT)
+
         kpi_data = [
-            ["Metric", "Amount (EGP)"],
-            ["Total Income",   f"{total_inc:,.2f}"],
-            ["Total Expenses", f"{total_exp:,.2f}"],
-            ["Net Savings",    f"{net_sav:,.2f}"],
-            ["Savings Rate",   f"{sav_rate:.1f}%"],
+            [Paragraph(get_text('metric', lang, t, 'Metric'), cell_HL), Paragraph(get_text('amount', lang, t, 'Amount (EGP)'), cell_HR)],
+            [Paragraph(get_text('total_income', lang, t, 'Total Income'), cell_L), Paragraph(f"{total_inc:,.2f}", cell_R)],
+            [Paragraph(get_text('total_expenses', lang, t, 'Total Expenses'), cell_L), Paragraph(f"{total_exp:,.2f}", cell_R)],
+            [Paragraph(get_text('net_savings', lang, t, 'Net Savings'), cell_L), Paragraph(f"{net_sav:,.2f}", ParagraphStyle("NetSavR", parent=cell_R, textColor=green if net_sav >= 0 else red))],
+            [Paragraph(get_text('savings_rate', lang, t, 'Savings Rate'), cell_L), Paragraph(f"{sav_rate:.1f}%", cell_R)],
         ]
+        
         kpi_table = Table(kpi_data, colWidths=[9*cm, 7*cm])
         kpi_table.setStyle(TableStyle([
             ("BACKGROUND",   (0,0), (-1,0),  blue),
             ("TEXTCOLOR",    (0,0), (-1,0),  colors.white),
-            ("FONTNAME",     (0,0), (-1,0),  "Helvetica-Bold"),
+            ("FONTNAME",     (0,0), (-1,-1), pdf_font),  # Applied globally
             ("FONTSIZE",     (0,0), (-1,-1), 10),
-            ("ALIGN",        (1,0), (1,-1),  "RIGHT"),
             ("ROWBACKGROUNDS",(0,1),(-1,-1), [colors.HexColor("#f0f4ff"), colors.white]),
             ("GRID",         (0,0), (-1,-1), 0.5, colors.HexColor("#1e3a6e")),
             ("PADDING",      (0,0), (-1,-1), 7),
-            ("TEXTCOLOR",    (1,3), (1,3), green if net_sav >= 0 else red),
-            ("FONTNAME",     (1,3), (1,3), "Helvetica-Bold"),
         ]))
         story.append(kpi_table)
         story.append(Spacer(1, 0.5*cm))
 
         # Category breakdown
         if cat_totals:
-            story.append(Paragraph("Expense Breakdown by Category", H2))
-            cat_data = [["Category", "Amount (EGP)", "% of Total"]]
+            story.append(Paragraph(get_text('cat_breakdown', lang, t, 'Expense Breakdown by Category'), table_title_style))
+            
+            cell_L9 = ParagraphStyle("CellL9", fontName=pdf_font, fontSize=9, textColor=navy, alignment=TA_LEFT)
+            cell_R9 = ParagraphStyle("CellR9", fontName=pdf_font, fontSize=9, textColor=navy, alignment=TA_RIGHT)
+            cell_HL9 = ParagraphStyle("CellHL9", fontName=pdf_font, fontSize=9, textColor=colors.white, alignment=TA_LEFT)
+            cell_HR9 = ParagraphStyle("CellHR9", fontName=pdf_font, fontSize=9, textColor=colors.white, alignment=TA_RIGHT)
+            
+            cat_data = [[
+                Paragraph(get_text('category', lang, t, 'Category'), cell_HL9), 
+                Paragraph(get_text('amount', lang, t, 'Amount (EGP)'), cell_HR9), 
+                Paragraph(get_text('pct', lang, t, '% of Total'), cell_HR9)
+            ]]
+            
             for cname, ctotal in sorted(cat_totals.items(), key=lambda x: -x[1]):
                 pct = (ctotal / total_exp * 100) if total_exp > 0 else 0
-                cat_data.append([cname, f"{ctotal:,.2f}", f"{pct:.1f}%"])
-            cat_data.append(["TOTAL", f"{total_exp:,.2f}", "100%"])
+                # Reshape dynamic database category names if language is Arabic
+                display_cname = format_arabic(cname) if lang == 'ar' else cname
+                
+                cat_data.append([
+                    Paragraph(display_cname, cell_L9), 
+                    Paragraph(f"{ctotal:,.2f}", cell_R9), 
+                    Paragraph(f"{pct:.1f}%", cell_R9)
+                ])
+                
+            cat_data.append([
+                Paragraph(get_text('total', lang, t, 'TOTAL'), cell_L9), 
+                Paragraph(f"{total_exp:,.2f}", cell_R9), 
+                Paragraph("100%", cell_R9)
+            ])
+            
             cat_table = Table(cat_data, colWidths=[9*cm, 5*cm, 3*cm])
             cat_table.setStyle(TableStyle([
                 ("BACKGROUND",   (0,0), (-1,0),  blue),
                 ("TEXTCOLOR",    (0,0), (-1,0),  colors.white),
-                ("FONTNAME",     (0,0), (-1,0),  "Helvetica-Bold"),
-                ("FONTNAME",     (0,-1),(-1,-1), "Helvetica-Bold"),
+                ("FONTNAME",     (0,0), (-1,-1), pdf_font),  # Fixed range to cover all cells
                 ("BACKGROUND",   (0,-1),(-1,-1), colors.HexColor("#e8f0fe")),
                 ("FONTSIZE",     (0,0), (-1,-1), 9),
-                ("ALIGN",        (1,0), (-1,-1), "RIGHT"),
                 ("ROWBACKGROUNDS",(0,1),(-1,-2), [colors.HexColor("#f0f4ff"), colors.white]),
                 ("GRID",         (0,0), (-1,-1), 0.5, colors.HexColor("#1e3a6e")),
                 ("PADDING",      (0,0), (-1,-1), 6),
@@ -1334,23 +1397,48 @@ class GenerateReportView(View):
 
         # Detailed expense entries
         if expenses:
-            story.append(Paragraph("Expense Entries", H2))
-            exp_data = [["Date", "Category", "Description", "Method", "Amount"]]
+            story.append(Paragraph(get_text('expense_entries', lang, t, 'Expense Entries'), table_title_style))
+            
+            cell_L8 = ParagraphStyle("CellL8", fontName=pdf_font, fontSize=8, textColor=navy, alignment=TA_LEFT)
+            cell_R8 = ParagraphStyle("CellR8", fontName=pdf_font, fontSize=8, textColor=navy, alignment=TA_RIGHT)
+            cell_HL8 = ParagraphStyle("CellHL8", fontName=pdf_font, fontSize=8, textColor=colors.white, alignment=TA_LEFT)
+            cell_HR8 = ParagraphStyle("CellHR8", fontName=pdf_font, fontSize=8, textColor=colors.white, alignment=TA_RIGHT)
+            
+            exp_data = [[
+                Paragraph(get_text('date', lang, t, 'Date'), cell_HL8), 
+                Paragraph(get_text('category', lang, t, 'Category'), cell_HL8), 
+                Paragraph(get_text('description', lang, t, 'Description'), cell_HL8), 
+                Paragraph(get_text('method', lang, t, 'Method'), cell_HL8), 
+                Paragraph(get_text('amount', lang, t, 'Amount'), cell_HR8)
+            ]]
+            
             for e in sorted(expenses, key=lambda x: x.date):
+                cname = e.category.name if e.category else "—"
+                desc = e.description or "—"
+                method = e.payment_method or "—"
+                
+                # Reshape dynamic Arabic inputs from the database if active language is Arabic
+                if lang == 'ar':
+                    cname = format_arabic(cname)
+                    desc = format_arabic(desc[:40])
+                    method = format_arabic(method)
+                else:
+                    desc = desc[:40]
+
                 exp_data.append([
-                    e.date.strftime("%d/%m/%Y"),
-                    e.category.name if e.category else "—",
-                    (e.description or "—")[:40],
-                    e.payment_method or "—",
-                    f"{float(e.amount):,.2f}",
+                    Paragraph(e.date.strftime("%d/%m/%Y"), cell_L8),
+                    Paragraph(cname, cell_L8),
+                    Paragraph(desc, cell_L8),
+                    Paragraph(method, cell_L8),
+                    Paragraph(f"{float(e.amount):,.2f}", cell_R8),
                 ])
+                
             exp_table = Table(exp_data, colWidths=[2.5*cm, 3.5*cm, 6*cm, 3*cm, 3*cm])
             exp_table.setStyle(TableStyle([
                 ("BACKGROUND",    (0,0), (-1,0), blue),
                 ("TEXTCOLOR",     (0,0), (-1,0), colors.white),
-                ("FONTNAME",      (0,0), (-1,0), "Helvetica-Bold"),
+                ("FONTNAME",      (0,0), (-1,-1), pdf_font),  # Fixed range to cover all cells
                 ("FONTSIZE",      (0,0), (-1,-1), 8),
-                ("ALIGN",         (4,0), (4,-1), "RIGHT"),
                 ("ROWBACKGROUNDS",(0,1), (-1,-1), [colors.HexColor("#f0f4ff"), colors.white]),
                 ("GRID",          (0,0), (-1,-1), 0.3, colors.HexColor("#1e3a6e")),
                 ("PADDING",       (0,0), (-1,-1), 5),
@@ -1360,9 +1448,46 @@ class GenerateReportView(View):
         # Footer
         story.append(Spacer(1, 1*cm))
         story.append(HRFlowable(width="100%", thickness=0.5, color=grey))
+
+        # 1. Extract current date components
+        today = datetime.date.today()
+        f_day = today.day
+        f_year = today.year
+        f_month_name = today.strftime('%B')  # e.g., "June"
+
+        # 2. Look up the translation key across ALL languages matching the header logic
+        f_json_key = f"month_{f_month_name.lower()}"
+        f_translated_month = t.get(f_json_key)
+        
+        # Fallback handling if a language JSON file is missing the specific month key
+        if not f_translated_month:
+            if lang == 'ar':
+                ARABIC_MONTHS = {
+                    "January": "يناير", "February": "فبراير", "March": "مارس",
+                    "April": "أبريل", "May": "مايو", "June": "يونيو",
+                    "July": "يوليو", "August": "أغسطس", "September": "سبتمبر",
+                    "October": "أكتوبر", "November": "نوفمبر", "December": "ديسمبر"
+                }
+                f_translated_month = ARABIC_MONTHS.get(f_month_name, f_month_name)
+            else:
+                f_translated_month = f_month_name
+
+        # 3. Pull the "generated_by" label from the translation context
+        raw_label = t.get('generated_by', 'Generated by Salary & Balance Tracker')
+
+        # 4. Construct layout string based on text direction rules
+        if lang == 'ar':
+            # Combined with a standard hyphen, then reshaped once safely
+            raw_footer = f"{raw_label} - {f_day} {f_translated_month} {f_year}"
+            footer_text = format_arabic(raw_footer)
+        else:
+            # Handles English, French, and all other LTR languages uniformly
+            footer_text = f"{raw_label} - {f_day} {f_translated_month} {f_year}"
+
+        # 5. Append the translated paragraph to the layout story
         story.append(Paragraph(
-            f"Generated by Salary & Balance Tracker — {datetime.date.today().strftime('%d %B %Y')}",
-            ParagraphStyle("F", fontSize=8, textColor=grey, alignment=TA_CENTER)
+            footer_text,
+            ParagraphStyle("F", fontSize=8, textColor=grey, alignment=TA_CENTER, fontName=pdf_font)
         ))
 
         doc.build(story)
