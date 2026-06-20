@@ -4,19 +4,22 @@ async function renderBalance() {
   mc.innerHTML =
     '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
 
-  const [bRes, bankRes, currRes, ratesRes, goldRes] = await Promise.all([
-    fetch("/api/balance/"),
-    fetch("/api/banks/"),
-    fetch("/api/currencies/"),
-    fetch("/api/rates/"),
-    fetch("/api/gold/"),
-  ]);
+  const [bRes, bankRes, currRes, ratesRes, goldRes, forecastRes] =
+    await Promise.all([
+      fetch("/api/balance/"),
+      fetch("/api/banks/"),
+      fetch("/api/currencies/"),
+      fetch("/api/rates/"),
+      fetch("/api/gold/"),
+      fetch("/api/certificate-forecast/"),
+    ]);
 
   const bData = await bRes.json();
   const bankData = await bankRes.json();
   const currData = await currRes.json();
   const ratesData = await ratesRes.json();
   const goldData = await goldRes.json();
+  const forecastData = await forecastRes.json();
   const entries = bData.entries;
   _banks = bankData.banks;
   _currencies = currData.currencies || [];
@@ -116,6 +119,7 @@ async function renderBalance() {
             <div class="kpi-label" data-i18n="financial_intelligence">
                 Financial Intelligence
             </div>
+            
             <div style="
                 display:grid;
                 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -163,6 +167,57 @@ async function renderBalance() {
                 </div>
             </div>
         </div>
+
+        <div class="kpi-card mb-4">
+
+    <div class="kpi-label"
+         data-i18n="certificate_forecast">
+        Certificate Forecast
+    </div>
+
+    <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:16px;
+        margin-top:20px;
+    ">
+
+        <div>
+            <div class="kpi-label"
+                 data-i18n="next_30_days">
+                Next 30 Days
+            </div>
+
+            <div class="kpi-value">
+                ${fmtpresent(forecastData.forecast_30 || 0)}
+            </div>
+        </div>
+
+        <div>
+            <div class="kpi-label"
+                 data-i18n="next_90_days">
+                Next 90 Days
+            </div>
+
+            <div class="kpi-value">
+                ${fmtpresent(forecastData.forecast_90 || 0)}
+            </div>
+        </div>
+
+        <div>
+            <div class="kpi-label"
+                 data-i18n="next_180_days">
+                Next 180 Days
+            </div>
+
+            <div class="kpi-value">
+                ${fmtpresent(forecastData.forecast_180 || 0)}
+            </div>
+        </div>
+
+    </div>
+
+</div>
 
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="asset_allocation">

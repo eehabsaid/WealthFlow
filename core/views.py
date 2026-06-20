@@ -2598,3 +2598,66 @@ class DashboardSummaryView(View):
                 "expiry_warning_days": expiring_soon_days,
             }
         )
+
+
+from datetime import date, timedelta
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class CertificateForecastView(View):
+
+    def get(self, request):
+
+        certs = BankCertificate.objects.filter(status="Active")
+
+        today = date.today()
+
+        forecast_30 = 0
+        forecast_90 = 0
+        forecast_180 = 0
+
+        upcoming = []
+
+        for c in certs:
+
+            if not c.expiry_date:
+                continue
+
+            maturity_value = float(c.amount) #+ float(c.interest_value)
+
+            days_left = (c.expiry_date - today).days
+
+            if days_left < 0:
+                continue
+
+            if days_left <= 30:
+                forecast_30 += maturity_value
+
+            if days_left <= 90:
+                forecast_90 += maturity_value
+
+            if days_left <= 180:
+                forecast_180 += maturity_value
+
+            upcoming.append(
+                {
+                    "id": c.id,
+                    "bank": c.bank.name if c.bank else "",
+                    "expiry_date": c.expiry_date.isoformat(),
+                    "amount": float(c.amount),
+                    "interest": float(c.interest_value),
+                    "maturity_value": maturity_value,
+                    "days_left": days_left,
+                }
+            )
+
+        upcoming.sort(key=lambda x: x["days_left"])
+
+        return JsonResponse(
+            {
+                "forecast_30": forecast_30,
+                "forecast_90": forecast_90,
+                "forecast_180": forecast_180,
+                "upcoming": upcoming[:10],
+            }
+        )

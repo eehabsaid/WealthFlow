@@ -446,5 +446,9 @@
   "asset_allocation":"Vermögensaufteilung",
   "cash": "Bargeld",
   "foreignCurrency": "USD/EUR/SAR",
-  "gold": "Gold"
+  "gold": "Gold",
+  "certificate_forecast":"Zertifikatsprognose",
+  "next_30_days":"Nächste 30 Tage",
+  "next_90_days":"Nächste 90 Tage",
+  "next_180_days":"Nächste 180 Tage"
 }

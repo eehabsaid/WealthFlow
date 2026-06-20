@@ -446,5 +446,9 @@
   "asset_allocation":"توزيع الأصول",
   "cash": "نقدي",
   "foreignCurrency": "دولار/يورو/ريال سعودي",
-  "gold": "ذهب"
+  "gold": "ذهب",
+  "certificate_forecast":"توقعات الشهادات",
+  "next_30_days":"خلال 30 يوم",
+  "next_90_days":"خلال 90 يوم",
+  "next_180_days":"خلال 180 يوم"
 }

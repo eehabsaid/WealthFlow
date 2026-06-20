@@ -446,5 +446,9 @@
   "asset_allocation":"Répartition des actifs",
   "cash": "Espèces",
   "foreignCurrency": "USD/EUR/SAR",
-  "gold": "Or"
+  "gold": "Or",
+  "certificate_forecast":"Prévision des certificats",
+  "next_30_days":"30 prochains jours",
+  "next_90_days":"90 prochains jours",
+  "next_180_days":"180 prochains jours"
 }

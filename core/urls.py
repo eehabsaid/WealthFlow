@@ -67,4 +67,8 @@ urlpatterns = [
     path("api/reports/certificates/", views.CertificateReportView.as_view()),
     # ── Dashboard Summary ────────────────────────────────────────────────────
     path("api/dashboard/summary/", views.DashboardSummaryView.as_view()),
+    path(
+        "api/certificate-forecast/",
+        views.CertificateForecastView.as_view(),
+    ),
 ]

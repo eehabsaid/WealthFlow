@@ -446,5 +446,9 @@
   "asset_allocation":"Asset Allocation",
   "cash": "Cash",
   "foreignCurrency": "USD/EUR/SAR",
-  "gold": "Gold"
+  "gold": "Gold",
+  "certificate_forecast":"Certificate Forecast",
+  "next_30_days":"Next 30 Days",
+  "next_90_days":"Next 90 Days",
+  "next_180_days":"Next 180 Days"
 }
