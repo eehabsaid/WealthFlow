@@ -446,6 +446,7 @@ async function generatePDF(type) {
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-file-earmark-pdf"></i> Generate PDF'; }
   }
+  applyTranslations();
 }
 
 function yearOpts(current) {
