@@ -450,5 +450,7 @@
   "certificate_forecast":"Certificate Forecast",
   "next_30_days":"Next 30 Days",
   "next_90_days":"Next 90 Days",
-  "next_180_days":"Next 180 Days"
+  "next_180_days":"Next 180 Days",
+  "upcoming_certificate_maturities":"Upcoming Certificate Maturities",
+  "certificate_value":"Certificate Value"
 }

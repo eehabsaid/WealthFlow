@@ -450,5 +450,7 @@
   "certificate_forecast":"توقعات الشهادات",
   "next_30_days":"خلال 30 يوم",
   "next_90_days":"خلال 90 يوم",
-  "next_180_days":"خلال 180 يوم"
+  "next_180_days":"خلال 180 يوم",
+  "upcoming_certificate_maturities":"الشهادات القادمة للاستحقاق",
+  "certificate_value":"قيمة الشهادة"
 }

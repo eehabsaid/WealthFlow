@@ -51,6 +51,25 @@ function applyTranslations() {
     }
   });
 
+// 3. Translate dynamic maturity date fields on the fly
+  const currentLang = document.documentElement.lang || "en";
+  document.querySelectorAll(".local-date-field").forEach((td) => {
+    const rawDate = td.getAttribute("data-expiry");
+    if (!rawDate) return;
+
+    const dateObj = new Date(rawDate);
+
+    const day = dateObj.toLocaleDateString(currentLang, { day: "2-digit" });
+    
+    // Force long format explicitly here
+    const month = dateObj.toLocaleDateString(currentLang, { month: "short" }); 
+    
+    const year = dateObj.toLocaleDateString(currentLang, { year: "numeric" });
+
+    // Enforce clear hyphenated format
+    td.textContent = `${day}-${month}-${year}`;
+  });
+
   // 3. Translate titles with a safety check
   document.querySelectorAll("[data-i18n-title]").forEach((el) => {
     const key = el.getAttribute("data-i18n-title");
