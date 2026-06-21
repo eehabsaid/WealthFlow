@@ -2653,11 +2653,49 @@ class CertificateForecastView(View):
 
         upcoming.sort(key=lambda x: x["days_left"])
 
+        recommendations = []
+
+        if upcoming:
+
+            nearest = upcoming[0]
+
+            if nearest["days_left"] <= 30:
+                recommendations.append(
+                    f"Certificate at {nearest['bank']} will mature in "
+                    f"{nearest['days_left']} days and release "
+                    f"{nearest['amount']:,.0f} EGP liquidity."
+                )
+
+            elif nearest["days_left"] <= 90:
+                recommendations.append(
+                    f"A certificate maturity is approaching within "
+                    f"{nearest['days_left']} days."
+                )
+
+        if forecast_30 > 0:
+            recommendations.append(
+                f"Expected liquidity within 30 days: "
+                f"{forecast_30:,.0f} EGP."
+            )
+
+        if forecast_90 > forecast_30:
+            recommendations.append(
+                f"Additional liquidity of "
+                f"{forecast_90 - forecast_30:,.0f} EGP "
+                f"is expected between 30 and 90 days."
+            )
+
+        if not recommendations:
+            recommendations.append(
+                "No certificate maturities expected in the near future."
+            )
+
         return JsonResponse(
             {
                 "forecast_30": forecast_30,
                 "forecast_90": forecast_90,
                 "forecast_180": forecast_180,
                 "upcoming": upcoming[:10],
+                "recommendations": recommendations,
             }
         )

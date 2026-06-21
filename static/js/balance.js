@@ -267,7 +267,33 @@ async function renderBalance() {
             )}
             
             ${renderAllocationBar("gold", goldValue, grandTotal)}
-        </div>
+            </div>
+
+            <div class="kpi-card mb-4">
+                <div class="kpi-label" data-i18n="financial_recommendations">
+                    Financial Recommendations
+                </div>
+
+                <div style="margin-top:15px">
+
+                    ${(forecastData.recommendations || [])
+                        .map(
+                            r => `
+                            <div style="
+                                padding:12px;
+                                margin-bottom:10px;
+                                background:var(--bg-secondary);
+                                border:1px solid var(--border-color);
+                                border-radius:10px;
+                            ">
+                                ${r}
+                            </div>
+                        `,
+                        )
+                        .join("")}
+
+                </div>
+            </div>
 
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
             <div class="table-container">
