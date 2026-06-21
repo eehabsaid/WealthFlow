@@ -453,5 +453,9 @@
   "next_180_days":"Next 180 Days",
   "upcoming_certificate_maturities":"Upcoming Certificate Maturities",
   "certificate_value":"Certificate Value",
-  "balance_type": "Balance Type"
+  "balance_type": "Balance Type",
+  "type_cash": "💵 Cash",
+  "type_bank": "🏦 Bank Account",
+  "type_certificate": "📜 Certificate",
+  "select_type": "— Select Type —"
 }

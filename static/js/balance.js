@@ -83,9 +83,9 @@ async function renderBalance() {
         .map(
             (e) => `
             <tr>
-                <td>${e.title}</td>
-                <td>${e.balance_type}</td>
-                <td>${e.bank_name || "—"}</td>
+                <td class="local-type-field" data-type="${e.title || ""}"></td>
+                <td class="local-type-field" data-type="${e.balance_type || ""}"></td>
+                <td class="local-type-field" data-type="${e.bank_name || "_"}"></td>
                 <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${e.currency_flag} ${e.currency_code}</span></td>
                 <td class="text-end amt-positive">${fmt(e.amount)}</td>
                 <td>
@@ -335,6 +335,13 @@ async function showBalanceModal(entryId) {
         )
         .join("");
 
+    // Generate dynamic dropdown options with data-i18n attributes
+    const typeOpts = `
+        <option value="cash" data-i18n="type_cash" ${entry && entry.balance_type === "cash" ? "selected" : ""}>💵 Cash</option>
+        <option value="bank" data-i18n="type_bank" ${entry && entry.balance_type === "bank" ? "selected" : ""}>🏦 Bank Account</option>
+        <option value="certificate" data-i18n="type_certificate" ${entry && entry.balance_type === "certificate" ? "selected" : ""}>📜 Certificate</option>
+    `;
+
     const html = `
         <div class="modal-header">
             <h5 class="modal-title">${entry ? t("btn_edit", "Edit") : t("btn_add", "Add")} Balance Entry</h5>
@@ -348,7 +355,10 @@ async function showBalanceModal(entryId) {
                 </div>
                 <div class="col-12">
                     <label data-i18n="balance_type">Balance Type</label>
-                    <input type="text" class="form-control" id="bbalance_type" value="${entry ? entry.balance_type : ""}">
+                    <select class="form-select" id="bbalance_type">
+                        <option value="" data-i18n="select_type">— Select Type —</option>
+                        ${typeOpts}
+                    </select>
                 </div>
                 <div class="col-6">
                     <label data-i18n="balance_bank">Bank</label>
@@ -379,16 +389,20 @@ async function showBalanceModal(entryId) {
     applyTranslations();
 }
 
+
 async function saveBalanceEntry(entryId) {
     const bankVal = document.getElementById("bBank").value;
+    const typeVal = document.getElementById("bbalance_type").value;
+    
     const body = {
         title: document.getElementById("bTitle").value,
-        balance_type: document.getElementById("bbalance_type").value,
+        balance_type: typeVal || null, // Sends null instead of an empty string if nothing is chosen
         bank_id: bankVal ? parseInt(bankVal) : null,
         currency_id: parseInt(document.getElementById("bCurrency").value) || 1,
         amount: parseFloat(document.getElementById("bAmount").value) || 0,
         notes: document.getElementById("bNotes").value,
     };
+    
     const url = entryId ? `/api/balance/${entryId}/` : "/api/balance/";
     const method = entryId ? "PUT" : "POST";
     const res = await fetch(url, {
@@ -396,6 +410,7 @@ async function saveBalanceEntry(entryId) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
     });
+    
     if (res.ok) {
         closeModal();
         showToast("Saved ✓");

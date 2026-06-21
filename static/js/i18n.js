@@ -51,7 +51,7 @@ function applyTranslations() {
     }
   });
 
-// 3. Translate dynamic maturity date fields on the fly
+  // 3. Translate dynamic maturity date fields on the fly
   const currentLang = document.documentElement.lang || "en";
   document.querySelectorAll(".local-date-field").forEach((td) => {
     const rawDate = td.getAttribute("data-expiry");
@@ -61,7 +61,7 @@ function applyTranslations() {
 
     const day = dateObj.toLocaleDateString(currentLang, { day: "2-digit" });
     
-    // Force long format explicitly here
+    // Force short format explicitly here
     const month = dateObj.toLocaleDateString(currentLang, { month: "short" }); 
     
     const year = dateObj.toLocaleDateString(currentLang, { year: "numeric" });
@@ -70,14 +70,32 @@ function applyTranslations() {
     td.textContent = `${day}-${month}-${year}`;
   });
 
-  // 3. Translate titles with a safety check
+  // 4. Translate titles with a safety check
   document.querySelectorAll("[data-i18n-title]").forEach((el) => {
     const key = el.getAttribute("data-i18n-title");
-    // Use _t (your active translation object) to avoid undefined errors
     if (_t && _t[key]) {
       el.setAttribute("title", _t[key]);
     } else {
       console.warn(`Missing translation key for title: ${key}`);
+    }
+  });
+
+  // 5. Translate dynamic table balance types on the fly
+  document.querySelectorAll(".local-type-field").forEach((td) => {
+    const rawType = td.getAttribute("data-type");
+    if (!rawType) {
+      td.textContent = "—";
+      return;
+    }
+
+    // Maps database string ('cash') to json keys ('type_cash')
+    const translationKey = `type_${rawType}`;
+
+    if (_t && _t[translationKey]) {
+      td.textContent = _t[translationKey];
+    } else {
+      // Fallback to capitalized text if key isn't provided yet
+      td.textContent = rawType.charAt(0).toUpperCase() + rawType.slice(1);
     }
   });
 }
