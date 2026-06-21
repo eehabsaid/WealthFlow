@@ -203,6 +203,15 @@ class Currency(models.Model):
 
 class BalanceEntry(models.Model):
     title = models.CharField(max_length=200)
+    balance_type = models.CharField(
+    max_length=20,
+    choices=[
+        ("cash", "Cash"),
+        ("certificate", "Certificate"),
+        ("investment", "Investment"),
+    ],
+    default="cash"
+    )
     bank = models.ForeignKey(Bank, on_delete=models.SET_NULL, null=True, blank=True)
     currency = models.ForeignKey(
         Currency, on_delete=models.CASCADE, null=True, blank=True
@@ -218,6 +227,7 @@ class BalanceEntry(models.Model):
         return {
             "id": self.id,
             "title": self.title,
+            "balance_type":self.balance_type,
             "bank_id": self.bank_id,
             "bank_name": self.bank.name if self.bank else "",
             "currency_id": self.currency_id,

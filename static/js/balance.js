@@ -84,6 +84,7 @@ async function renderBalance() {
             (e) => `
             <tr>
                 <td>${e.title}</td>
+                <td>${e.balance_type}</td>
                 <td>${e.bank_name || "—"}</td>
                 <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${e.currency_flag} ${e.currency_code}</span></td>
                 <td class="text-end amt-positive">${fmt(e.amount)}</td>
@@ -301,6 +302,7 @@ async function renderBalance() {
                     <thead>
                         <tr>
                             <th data-i18n="balance_title">Title</th>
+                            <th data-i18n="balance_type">Balance Type</th>
                             <th data-i18n="balance_bank">Bank</th>
                             <th data-i18n="balance_currency">Currency</th>
                             <th class="text-end" data-i18n="balance_amount">Amount</th>
@@ -344,6 +346,10 @@ async function showBalanceModal(entryId) {
                     <label data-i18n="balance_title">Title</label>
                     <input type="text" class="form-control" id="bTitle" value="${entry ? entry.title : ""}">
                 </div>
+                <div class="col-12">
+                    <label data-i18n="balance_type">Balance Type</label>
+                    <input type="text" class="form-control" id="bbalance_type" value="${entry ? entry.balance_type : ""}">
+                </div>
                 <div class="col-6">
                     <label data-i18n="balance_bank">Bank</label>
                     <select class="form-select" id="bBank">
@@ -377,6 +383,7 @@ async function saveBalanceEntry(entryId) {
     const bankVal = document.getElementById("bBank").value;
     const body = {
         title: document.getElementById("bTitle").value,
+        balance_type: document.getElementById("bbalance_type").value,
         bank_id: bankVal ? parseInt(bankVal) : null,
         currency_id: parseInt(document.getElementById("bCurrency").value) || 1,
         amount: parseFloat(document.getElementById("bAmount").value) || 0,

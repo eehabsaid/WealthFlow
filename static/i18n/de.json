@@ -452,5 +452,6 @@
   "next_90_days":"Nächste 90 Tage",
   "next_180_days":"Nächste 180 Tage",
   "upcoming_certificate_maturities":"Fällige Zertifikate",
-  "certificate_value":"Zertifikatswert"
+  "certificate_value":"Zertifikatswert",
+  "balance_type": "Saldenart"
 }

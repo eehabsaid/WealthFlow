@@ -747,8 +747,6 @@ class CurrencyDetailView(View):
         c.delete()
         return JsonResponse({"deleted": pk})
 
-
-@method_decorator(csrf_exempt, name="dispatch")
 @method_decorator(csrf_exempt, name="dispatch")
 class BalanceListView(View):
     def get(self, request):
@@ -759,6 +757,7 @@ class BalanceListView(View):
         data = json.loads(request.body)
         entry = BalanceEntry.objects.create(
             title=data["title"],
+            balance_type=data["balance_type"],
             bank_id=data.get("bank_id"),
             currency_id=data.get("currency_id", 1),
             amount=data.get("amount", 0),
@@ -772,7 +771,7 @@ class BalanceDetailView(View):
     def put(self, request, pk):
         entry = get_object_or_404(BalanceEntry, pk=pk)
         data = json.loads(request.body)
-        for field in ["title", "bank_id", "currency_id", "amount", "notes"]:
+        for field in ["title", "balance_type", "bank_id", "currency_id", "amount", "notes"]:
             if field in data:
                 setattr(entry, field, data[field])
         entry.save()
@@ -2653,41 +2652,95 @@ class CertificateForecastView(View):
 
         upcoming.sort(key=lambda x: x["days_left"])
 
+                # Portfolio composition
+
+        total_certificates = sum(
+            float(c.amount)
+            for c in certs
+        )
+
+        # Current balances
+
+        from core.models import BalanceEntry as Balance
+
+        balances = Balance.objects.all()
+
+        cash_egp = 0
+        foreign_currency = 0
+
+        for b in balances:
+
+            currency = (
+                b.currency.code.upper()
+                if b.currency
+                else "EGP"
+            )
+
+            amount = float(b.amount)
+
+            if currency == "EGP":
+                cash_egp += amount
+            else:
+                foreign_currency += amount
+
+        total_portfolio = (
+            cash_egp +
+            foreign_currency +
+            total_certificates
+        )
+
+        cash_pct = (
+            cash_egp / total_portfolio * 100
+            if total_portfolio else 0
+        )
+
+        cert_pct = (
+            total_certificates / total_portfolio * 100
+            if total_portfolio else 0
+        )
+
+
         recommendations = []
 
-        if upcoming:
+        if cash_pct > 40:
+            recommendations.append(
+                "Large amount of cash is idle. Consider investing part of it in certificates or gold."
+            )
 
-            nearest = upcoming[0]
-
-            if nearest["days_left"] <= 30:
-                recommendations.append(
-                    f"Certificate at {nearest['bank']} will mature in "
-                    f"{nearest['days_left']} days and release "
-                    f"{nearest['amount']:,.0f} EGP liquidity."
-                )
-
-            elif nearest["days_left"] <= 90:
-                recommendations.append(
-                    f"A certificate maturity is approaching within "
-                    f"{nearest['days_left']} days."
-                )
+        if cert_pct > 70:
+            recommendations.append(
+                "Portfolio is heavily concentrated in certificates. Consider diversification."
+            )
 
         if forecast_30 > 0:
             recommendations.append(
-                f"Expected liquidity within 30 days: "
-                f"{forecast_30:,.0f} EGP."
+                f"{forecast_30:,.0f} EGP will become available within 30 days."
             )
 
-        if forecast_90 > forecast_30:
+        cash_ratio = (
+            (forecast_30 / forecast_180) * 100
+            if forecast_180 > 0
+            else 0
+        )
+
+        if forecast_30 > 500000:
             recommendations.append(
-                f"Additional liquidity of "
-                f"{forecast_90 - forecast_30:,.0f} EGP "
-                f"is expected between 30 and 90 days."
+                f"Certificates worth {forecast_30:,.0f} EGP will mature within 30 days. Review reinvestment opportunities."
+            )
+
+        if forecast_90 > forecast_30 * 2:
+            recommendations.append(
+                "Large certificate maturities are expected within the next 90 days. Consider staggering future investments."
+            )
+
+        if forecast_180 > 0 and cash_ratio < 25:
+            recommendations.append(
+                "Most certificate value is locked for longer periods. Maintain sufficient liquid cash reserves."
             )
 
         if not recommendations:
             recommendations.append(
-                "No certificate maturities expected in the near future."
+                "Portfolio structure appears balanced. No immediate action is required."
             )
 
         return JsonResponse(
@@ -2697,5 +2750,9 @@ class CertificateForecastView(View):
                 "forecast_180": forecast_180,
                 "upcoming": upcoming[:10],
                 "recommendations": recommendations,
+                "cash_egp": cash_egp,
+                "certificate_value": total_certificates,
+                "cash_pct": round(cash_pct, 2),
+                "certificate_pct": round(cert_pct, 2)
             }
         )

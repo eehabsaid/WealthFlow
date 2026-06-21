@@ -452,5 +452,6 @@
   "next_90_days":"Next 90 Days",
   "next_180_days":"Next 180 Days",
   "upcoming_certificate_maturities":"Upcoming Certificate Maturities",
-  "certificate_value":"Certificate Value"
+  "certificate_value":"Certificate Value",
+  "balance_type": "Balance Type"
 }

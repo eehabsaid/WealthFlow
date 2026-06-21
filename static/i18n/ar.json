@@ -452,5 +452,6 @@
   "next_90_days":"خلال 90 يوم",
   "next_180_days":"خلال 180 يوم",
   "upcoming_certificate_maturities":"الشهادات القادمة للاستحقاق",
-  "certificate_value":"قيمة الشهادة"
+  "certificate_value":"قيمة الشهادة",
+  "balance_type": "نوع الرصيد"
 }
