@@ -160,6 +160,34 @@ async function renderBalance() {
                         ${fmtpresent(goldValue)}
                     </div>
                 </div>
+
+                <div>
+                    <div class="kpi-label">
+                        Monthly Salary
+                    </div>
+                    <div class="kpi-value">
+                        ${fmtpresent(forecastData.monthly_salary || 0)}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="kpi-label">
+                        Certificate Income
+                    </div>
+                    <div class="kpi-value">
+                        ${fmtpresent(forecastData.monthly_certificate_income || 0)}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="kpi-label">
+                        Income Dependency
+                    </div>
+                    <div class="kpi-value">
+                        ${forecastData.certificate_income_ratio || 0}%
+                    </div>
+                </div>
+
             </div>
         </div>
 

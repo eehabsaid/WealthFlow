@@ -2828,7 +2828,17 @@ class CertificateForecastView(View):
 
         if forecast_30 > 0:
             recommendations.append(
-                f"{forecast_30:,.0f} EGP will mature within 30 days."
+                f"{forecast_30:,.0f} EGP of certificates will mature within 30 days."
+            )
+
+        if certificate_income_ratio > 30:
+            recommendations.append(
+                f"{certificate_income_ratio:.1f}% of monthly income comes from certificates."
+            )
+
+        if certificate_income_ratio > 50:
+            recommendations.append(
+                "Avoid liquidating certificates without a replacement income source."
             )
 
         if not recommendations:
