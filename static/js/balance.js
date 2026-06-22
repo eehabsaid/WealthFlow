@@ -223,6 +223,26 @@ async function renderBalance() {
                         </div>
                     `).join("")}
             </div>
+
+            <div style="
+            margin-top:20px;
+            padding:16px;
+            border:1px solid var(--accent-primary);
+            border-radius:12px;
+        ">
+
+            <div class="kpi-label">
+                Recommended Action
+            </div>
+
+            <div style="
+                margin-top:8px;
+                font-weight:600;
+            ">
+                ${forecastData.action_plan || ""}
+            </div>
+
+        </div>
         </div>
 
         ${forecastData.upcoming?.length

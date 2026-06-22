@@ -2806,6 +2806,30 @@ class CertificateForecastView(View):
                 "Current asset allocation looks balanced."
             )
 
+        action_plan = ""
+
+        if forecast_30 > 0:
+
+            if cash_ratio > 60:
+                action_plan = (
+                    "Keep the upcoming maturity amount as cash."
+                )
+
+            elif gold_ratio < 10:
+                action_plan = (
+                    "Consider allocating part of the upcoming maturity amount to gold."
+                )
+
+            elif certificate_ratio < 40:
+                action_plan = (
+                    "Consider reinvesting the maturity amount into a new certificate."
+                )
+
+            else:
+                action_plan = (
+                    "Split the maturity amount between cash and gold."
+                )
+
         return JsonResponse(
             {
                 "cash_balance": cash_balance,
@@ -2826,5 +2850,6 @@ class CertificateForecastView(View):
                 "gold_ratio": round(gold_ratio, 1),
 
                 "recommendations": recommendations,
+                "action_plan": action_plan,
             }
         )
