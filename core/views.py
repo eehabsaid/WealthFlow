@@ -2810,24 +2810,43 @@ class CertificateForecastView(View):
 
         if forecast_30 > 0:
 
-            if cash_ratio > 60:
-                action_plan = (
-                    "Keep the upcoming maturity amount as cash."
-                )
+            if gold_ratio < 10:
 
-            elif gold_ratio < 10:
+                gold_amount = round(forecast_30 * 0.60, 2)
+                cash_amount = round(forecast_30 * 0.40, 2)
+
                 action_plan = (
-                    "Consider allocating part of the upcoming maturity amount to gold."
+                    f"Invest {gold_amount:,.0f} EGP in gold and keep "
+                    f"{cash_amount:,.0f} EGP as cash reserve."
                 )
 
             elif certificate_ratio < 40:
+
+                cert_amount = round(forecast_30 * 0.70, 2)
+                cash_amount = round(forecast_30 * 0.30, 2)
+
                 action_plan = (
-                    "Consider reinvesting the maturity amount into a new certificate."
+                    f"Invest {cert_amount:,.0f} EGP in a new certificate and keep "
+                    f"{cash_amount:,.0f} EGP as cash reserve."
+                )
+
+            elif cash_ratio > 60:
+
+                cert_amount = round(forecast_30 * 0.80, 2)
+
+                action_plan = (
+                    f"Cash level is already high. Reinvest "
+                    f"{cert_amount:,.0f} EGP into a new certificate."
                 )
 
             else:
+
+                gold_amount = round(forecast_30 * 0.50, 2)
+                cert_amount = round(forecast_30 * 0.50, 2)
+
                 action_plan = (
-                    "Split the maturity amount between cash and gold."
+                    f"Invest {gold_amount:,.0f} EGP in gold and "
+                    f"{cert_amount:,.0f} EGP in a new certificate."
                 )
 
         return JsonResponse(
