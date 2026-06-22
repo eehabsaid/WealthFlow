@@ -2601,7 +2601,7 @@ class DashboardSummaryView(View):
 
 
 from datetime import date, timedelta
-
+from core.models import SalaryEntry
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CertificateForecastView(View):
@@ -2617,9 +2617,10 @@ class CertificateForecastView(View):
         forecast_30 = 0
         forecast_90 = 0
         forecast_180 = 0
+        maturing_interest_30 = 0
 
         upcoming = []
-
+        
         for c in certs:
 
             if not c.expiry_date:
@@ -2633,7 +2634,8 @@ class CertificateForecastView(View):
 
             if days_left <= 30:
                 forecast_30 += maturity_value
-
+                maturing_interest_30 += float(c.interest_value)
+                
             if days_left <= 90:
                 forecast_90 += maturity_value
 
@@ -2714,6 +2716,34 @@ class CertificateForecastView(View):
             if total_portfolio else 0
         )
 
+        monthly_certificate_income = sum(
+            float(c.interest_value)
+            for c in certs
+        )
+
+        latest_salary = (
+            SalaryEntry.objects
+            .filter(paid__gt=0)
+            .order_by("-year", "-id")
+            .first()
+        )
+
+        monthly_salary = (
+            float(latest_salary.paid)
+            if latest_salary
+            else 0
+        )
+
+        total_monthly_income = (
+            monthly_salary +
+            monthly_certificate_income
+        )
+
+        certificate_income_ratio = (
+            (monthly_certificate_income / total_monthly_income) * 100
+            if total_monthly_income > 0
+            else 0
+        )
 
         recommendations = []
 
@@ -2809,8 +2839,20 @@ class CertificateForecastView(View):
         action_plan = ""
 
         if forecast_30 > 0:
+            income_loss_ratio = (
+                    (maturing_interest_30 / total_monthly_income) * 100
+                    if total_monthly_income > 0
+                    else 0
+                )
+            if income_loss_ratio > 20:
 
-            if gold_ratio < 10:
+                action_plan = (
+                    f"Certificate income represents "
+                    f"{certificate_income_ratio:.1f}% of your monthly income. "
+                    f"Consider renewing the certificate instead of converting it fully to gold."
+                )
+
+            elif gold_ratio < 10:
 
                 gold_amount = round(forecast_30 * 0.60, 2)
                 cash_amount = round(forecast_30 * 0.40, 2)
@@ -2870,5 +2912,10 @@ class CertificateForecastView(View):
 
                 "recommendations": recommendations,
                 "action_plan": action_plan,
+
+                "monthly_salary": round(monthly_salary, 2),
+                "monthly_certificate_income": round(monthly_certificate_income, 2),
+                "total_monthly_income": round(total_monthly_income, 2),
+                "certificate_income_ratio": round(certificate_income_ratio, 1),
             }
         )
