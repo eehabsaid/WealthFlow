@@ -108,7 +108,7 @@ async function renderBalance() {
                 = EGP + (USD × rate) + (EUR × rate) + (SAR × rate) + (Gold × 24K sell price + 28.5)
             </div>
             <div style="margin-top:8px;color:var(--text-secondary);font-size:13px">
-                ${fmt(totalEGP)} + (${fmt(usdAmount)}  * ${fmt(usdRate)}) + (${fmt(eurAmount)}  * ${fmt(eurRate)}) + (${fmt(sarAmount)}  * ${fmt(sarRate)}) + ((${fmt(goldGrams)} * (${fmt(gold24kSell)} + 28.5))
+                ${fmt(totalEGP)} + (${fmt(usdAmount)} * ${fmt(usdRate)}) + (${fmt(eurAmount)} * ${fmt(eurRate)}) + (${fmt(sarAmount)} * ${fmt(sarRate)}) + ((${fmt(goldGrams)} * (${fmt(gold24kSell)} + 28.5))
             </div>
             <div style="margin-top:8px;color:var(--text-secondary);font-size:13px">
                 ${fmt(totalEGP)} + (${fmt(usdAmount * usdRate)}) + (${fmt(eurAmount * eurRate)}) + (${fmt(sarAmount * sarRate)}) + (${fmt(goldValue)})
@@ -148,11 +148,7 @@ async function renderBalance() {
                         Foreign Currency Value
                     </div>
                     <div class="kpi-value">
-                        ${fmtpresent(
-                            usdAmount * usdRate +
-                            eurAmount * eurRate +
-                            sarAmount * sarRate,
-                        )}
+                        ${fmtpresent(usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate)}
                     </div>
                 </div>
 
@@ -217,28 +213,22 @@ async function renderBalance() {
             </div>
             <div style="margin-top:15px">
                 ${(forecastData.recommendations || [])
-                    .map(r => `
+                    .map(
+                        (r) => `
                         <div style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">
                             ${r}
-                        </div>
-                    `).join("")}
+                        </div>`,
+                    )
+                    .join("")}
             </div>
+        </div>
 
-            <div style="
-                margin-top:20px;
-                padding:16px;
-                border:1px solid var(--accent-primary);
-                border-radius:12px;
-            ">
-                <div class="kpi-label" data-i18n="recommended_action">
-                    Recommended Action
-                </div>
-                <div style="
-                    margin-top:8px;
-                    font-weight:600;
-                ">
-                    ${forecastData.action_plan || ""}
-                </div>
+        <div class="kpi-card mb-4">
+            <div class="kpi-label" data-i18n="recommended_action">
+                Recommended Action
+            </div>
+            <div style="margin-top: 15px; font-weight: 600;">
+                ${forecastData.action_plan || ""}
             </div>
         </div>
 
@@ -266,13 +256,7 @@ async function renderBalance() {
                                     <td class="local-date-field" data-expiry="${c.expiry_date}"></td>
                                     <td>
                                         <span style="
-                                            color:${
-                                                c.days_left <= 30
-                                                    ? "var(--accent-red)"
-                                                    : c.days_left <= 90
-                                                    ? "orange"
-                                                    : "var(--text-primary)"
-                                            };
+                                            color:${c.days_left <= 30 ? "var(--accent-red)" : c.days_left <= 90 ? "orange" : "var(--text-primary)"};
                                             font-weight:600;
                                         ">
                                             ${c.days_left}
@@ -308,7 +292,7 @@ async function renderBalance() {
             <div style="margin-top:15px">
                 ${(forecastData.recommendations || [])
                     .map(
-                        r => `
+                        (r) => `
                         <div style="
                             padding:12px;
                             margin-bottom:10px;
@@ -317,8 +301,7 @@ async function renderBalance() {
                             border-radius:10px;
                         ">
                             ${r}
-                        </div>
-                    `,
+                        </div>`,
                     )
                     .join("")}
             </div>
@@ -420,7 +403,7 @@ async function showBalanceModal(entryId) {
 async function saveBalanceEntry(entryId) {
     const bankVal = document.getElementById("bBank").value;
     const typeVal = document.getElementById("bbalance_type").value;
-    
+
     const body = {
         title: document.getElementById("bTitle").value,
         balance_type: typeVal || null, // Sends null instead of an empty string if nothing is chosen
@@ -429,7 +412,7 @@ async function saveBalanceEntry(entryId) {
         amount: parseFloat(document.getElementById("bAmount").value) || 0,
         notes: document.getElementById("bNotes").value,
     };
-    
+
     const url = entryId ? `/api/balance/${entryId}/` : "/api/balance/";
     const method = entryId ? "PUT" : "POST";
     const res = await fetch(url, {
@@ -437,7 +420,7 @@ async function saveBalanceEntry(entryId) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
     });
-    
+
     if (res.ok) {
         closeModal();
         showToast("Saved ✓");
