@@ -463,5 +463,16 @@
   "type_cash": "💵 Barbestand",
   "type_bank": "🏦 Bankkonto",
   "type_certificate": "📜 Sparzertifikat",
-  "select_type": "— Typ auswählen —"
+  "select_type": "— Typ auswählen —",
+  "balance_formula_desc": "= EGP + (USD × Kurs) + (EUR × Kurs) + (SAR × Kurs) + (Gold × 24K Verkaufspreis + 28.5)",
+  "financial_recommendations": "Finanzempfehlungen",
+  "future_cash_position": "Zukünftige Cash-Position",
+  "current_cash": "Aktuelle Barmittel",
+  "cash_after_30_days": "Barmittel nach 30 Tagen",
+  "cash_after_90_days": "Barmittel nach 90 Tagen",
+  "cash_after_180_days": "Barmittel nach 180 Tagen",
+  "investment_recommendations": "Investitionsempfehlungen",
+  "recommended_action": "Empfohlene Maßnahme",
+  "title_add_balance": "Saldoeintrag hinzufügen",
+  "title_edit_balance": "Saldoeintrag bearbeiten"
 }

@@ -463,5 +463,16 @@
   "type_cash": "💵 Espèces",
   "type_bank": "🏦 Compte bancaire",
   "type_certificate": "📜 Certificat de dépôt",
-  "select_type": "— Sélectionner le type —"
+  "select_type": "— Sélectionner le type —",
+  "balance_formula_desc": "= EGP + (USD × taux) + (EUR × taux) + (SAR × taux) + (Or × prix de vente 24K + 28.5)",
+  "financial_recommendations": "Recommandations financières",
+  "future_cash_position": "Position de trésorerie future",
+  "current_cash": "Trésorerie actuelle",
+  "cash_after_30_days": "Trésorerie après 30 jours",
+  "cash_after_90_days": "Trésorerie après 90 jours",
+  "cash_after_180_days": "Trésorerie après 180 jours",
+  "investment_recommendations": "Recommandations d'investissement",
+  "recommended_action": "Action recommandée",
+  "title_add_balance": "Ajouter une entrée de solde",
+  "title_edit_balance": "Modifier l'entrée de solde"
 }

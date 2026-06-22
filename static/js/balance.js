@@ -104,7 +104,7 @@ async function renderBalance() {
         <div class="kpi-card mb-4" style="text-align:center">
             <div class="kpi-label" data-i18n="grand_total">Total All Balances (EGP equiv.)</div>
             <div class="kpi-value" style="color:var(--accent-green);font-size:32px">${fmtpresent(grandTotal)} <span data-i18n="EGP">EGP</span></div>
-            <div style="margin-top:8px;color:var(--text-secondary);font-size:13px">
+            <div style="margin-top:8px;color:var(--text-secondary);font-size:13px" data-i18n="balance_formula_desc">
                 = EGP + (USD × rate) + (EUR × rate) + (SAR × rate) + (Gold × 24K sell price + 28.5)
             </div>
             <div style="margin-top:8px;color:var(--text-secondary);font-size:13px">
@@ -188,31 +188,31 @@ async function renderBalance() {
         </div>
 
         <div class="kpi-card mb-4">
-            <div class="kpi-label">
+            <div class="kpi-label" data-i18n="future_cash_position">
                 Future Cash Position
             </div>
             <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:20px;">
                 <div>
-                    <div class="kpi-label">Current Cash</div>
+                    <div class="kpi-label" data-i18n="current_cash">Current Cash</div>
                     <div class="kpi-value">${fmtpresent(forecastData.cash_balance || 0)}</div>
                 </div>
                 <div>
-                    <div class="kpi-label">Cash After 30 Days</div>
+                    <div class="kpi-label" data-i18n="cash_after_30_days">Cash After 30 Days</div>
                     <div class="kpi-value">${fmtpresent(forecastData.future_cash_30 || 0)}</div>
                 </div>
                 <div>
-                    <div class="kpi-label">Cash After 90 Days</div>
+                    <div class="kpi-label" data-i18n="cash_after_90_days">Cash After 90 Days</div>
                     <div class="kpi-value">${fmtpresent(forecastData.future_cash_90 || 0)}</div>
                 </div>
                 <div>
-                    <div class="kpi-label">Cash After 180 Days</div>
+                    <div class="kpi-label" data-i18n="cash_after_180_days">Cash After 180 Days</div>
                     <div class="kpi-value">${fmtpresent(forecastData.future_cash_180 || 0)}</div>
                 </div>
             </div>
         </div>
 
         <div class="kpi-card mb-4">
-            <div class="kpi-label">
+            <div class="kpi-label" data-i18n="investment_recommendations">
                 Investment Recommendations
             </div>
             <div style="margin-top:15px">
@@ -230,7 +230,7 @@ async function renderBalance() {
                 border:1px solid var(--accent-primary);
                 border-radius:12px;
             ">
-                <div class="kpi-label">
+                <div class="kpi-label" data-i18n="recommended_action">
                     Recommended Action
                 </div>
                 <div style="
@@ -372,7 +372,7 @@ async function showBalanceModal(entryId) {
 
     const html = `
         <div class="modal-header">
-            <h5 class="modal-title">${entry ? t("btn_edit", "Edit") : t("btn_add", "Add")} Balance Entry</h5>
+            <h5 class="modal-title" data-i18n="${entry ? "title_edit_balance" : "title_add_balance"}">${entry ? "Edit Balance Entry" : "Add Balance Entry"}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -391,7 +391,7 @@ async function showBalanceModal(entryId) {
                 <div class="col-6">
                     <label data-i18n="balance_bank">Bank</label>
                     <select class="form-select" id="bBank">
-                        <option value="">— None —</option>${bankOpts}
+                        <option value="" data-i18n="none_option">— None —</option>${bankOpts}
                     </select>
                 </div>
                 <div class="col-3">

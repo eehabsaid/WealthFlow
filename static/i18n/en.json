@@ -463,5 +463,16 @@
   "freq_semi_annually": "Semi-Annually",
   "freq_annually": "Annually",
   "freq_at_maturity": "At Maturity",
-  "select_frequency": "— Select Frequency —"
+  "select_frequency": "— Select Frequency —",
+  "balance_formula_desc": "= EGP + (USD × rate) + (EUR × rate) + (SAR × rate) + (Gold × 24K sell price + 28.5)",
+  "financial_recommendations": "Financial Recommendations",
+  "future_cash_position": "Future Cash Position",
+  "current_cash": "Current Cash",
+  "cash_after_30_days": "Cash After 30 Days",
+  "cash_after_90_days": "Cash After 90 Days",
+  "cash_after_180_days": "Cash After 180 Days",
+  "investment_recommendations": "Investment Recommendations",
+  "recommended_action": "Recommended Action",
+  "title_add_balance": "Add Balance Entry",
+  "title_edit_balance": "Edit Balance Entry"
 }

@@ -463,5 +463,16 @@
   "freq_semi_annually": "نصف سنوي",
   "freq_annually": "سنوي",
   "freq_at_maturity": "عند الاستحقاق",
-  "select_frequency": "— اختر دورية الصرف —"
+  "select_frequency": "— اختر دورية الصرف —",
+  "balance_formula_desc": "= جنيه مصري + (دولار أمريكي × السعر) + (يورو × السعر) + (ريال سعودي × السعر) + (الذهب × سعر بيع عيار 24 + 28.5)",
+  "financial_recommendations": "التوصيات المالية",
+  "future_cash_position": "السيولة النقدية المستقبلية",
+  "current_cash": "النقد الحالي",
+  "cash_after_30_days": "النقد بعد 30 يوماً",
+  "cash_after_90_days": "النقد بعد 90 يوماً",
+  "cash_after_180_days": "النقد بعد 180 يوماً",
+  "investment_recommendations": "توصيات الاستثمار",
+  "recommended_action": "الإجراء الموصى به",
+  "title_add_balance": "إضافة حركة رصيد",
+  "title_edit_balance": "تعديل حركة الرصيد"
 }
