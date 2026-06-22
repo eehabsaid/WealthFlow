@@ -453,5 +453,15 @@
   "next_180_days":"Nächste 180 Tage",
   "upcoming_certificate_maturities":"Fällige Zertifikate",
   "certificate_value":"Zertifikatswert",
-  "balance_type": "Saldenart"
+  "balance_type": "Saldenart",
+  "freq_monthly": "Monatlich",
+  "freq_quarterly": "Quartalsweise",
+  "freq_semi_annually": "Halbjährlich",
+  "freq_annually": "Jährlich",
+  "freq_at_maturity": "Bei Fälligkeit",
+  "select_frequency": "— Häufigkeit auswählen —",
+  "type_cash": "💵 Barbestand",
+  "type_bank": "🏦 Bankkonto",
+  "type_certificate": "📜 Sparzertifikat",
+  "select_type": "— Typ auswählen —"
 }

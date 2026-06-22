@@ -171,47 +171,66 @@ async function renderBalance() {
             <div class="kpi-label" data-i18n="certificate_forecast">
                 Certificate Forecast
             </div>
-            <div style="
-                display:grid;
-                grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-                gap:16px;
-                margin-top:20px;
-            ">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:20px;">
                 <div>
-                    <div class="kpi-label" data-i18n="next_30_days">
-                        Next 30 Days
-                    </div>
-                    <div class="kpi-value">
-                        ${fmtpresent(forecastData.forecast_30 || 0)}
-                    </div>
+                    <div class="kpi-label" data-i18n="next_30_days">Next 30 Days</div>
+                    <div class="kpi-value">${fmtpresent(forecastData.forecast_30 || 0)}</div>
                 </div>
+                <div>
+                    <div class="kpi-label" data-i18n="next_90_days">Next 90 Days</div>
+                    <div class="kpi-value">${fmtpresent(forecastData.forecast_90 || 0)}</div>
+                </div>
+                <div>
+                    <div class="kpi-label" data-i18n="next_180_days">Next 180 Days</div>
+                    <div class="kpi-value">${fmtpresent(forecastData.forecast_180 || 0)}</div>
+                </div>
+            </div>
+        </div>
 
+        <div class="kpi-card mb-4">
+            <div class="kpi-label">
+                Future Cash Position
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:20px;">
                 <div>
-                    <div class="kpi-label" data-i18n="next_90_days">
-                        Next 90 Days
-                    </div>
-                    <div class="kpi-value">
-                        ${fmtpresent(forecastData.forecast_90 || 0)}
-                    </div>
+                    <div class="kpi-label">Current Cash</div>
+                    <div class="kpi-value">${fmtpresent(forecastData.cash_balance || 0)}</div>
                 </div>
+                <div>
+                    <div class="kpi-label">Cash After 30 Days</div>
+                    <div class="kpi-value">${fmtpresent(forecastData.future_cash_30 || 0)}</div>
+                </div>
+                <div>
+                    <div class="kpi-label">Cash After 90 Days</div>
+                    <div class="kpi-value">${fmtpresent(forecastData.future_cash_90 || 0)}</div>
+                </div>
+                <div>
+                    <div class="kpi-label">Cash After 180 Days</div>
+                    <div class="kpi-value">${fmtpresent(forecastData.future_cash_180 || 0)}</div>
+                </div>
+            </div>
+        </div>
 
-                <div>
-                    <div class="kpi-label" data-i18n="next_180_days">
-                        Next 180 Days
-                    </div>
-                    <div class="kpi-value">
-                        ${fmtpresent(forecastData.forecast_180 || 0)}
-                    </div>
-                </div>
+        <div class="kpi-card mb-4">
+            <div class="kpi-label">
+                Investment Recommendations
+            </div>
+            <div style="margin-top:15px">
+                ${(forecastData.recommendations || [])
+                    .map(r => `
+                        <div style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">
+                            ${r}
+                        </div>
+                    `).join("")}
             </div>
         </div>
 
         ${forecastData.upcoming?.length
             ? `
-            <div class="kpi-label" data-i18n="upcoming_certificate_maturities">
+            <div class="kpi-label" data-i18n="upcoming_certificate_maturities" style="margin-top: 24px; font-weight: 600;">
                 Upcoming Certificate Maturities
             </div>
-            <div class="table-container" style="margin-top:15px">
+            <div class="table-container" style="margin-top:15px; margin-bottom: 24px;">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -252,49 +271,41 @@ async function renderBalance() {
             : ""
         }
 
-        <div style="height:16px"></div>
-
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="asset_allocation">
                 Asset Allocation
             </div>
-            
             ${renderAllocationBar("cash", totalEGP, grandTotal)}
-            
             ${renderAllocationBar(
                 "foreignCurrency",
                 usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate,
                 grandTotal,
             )}
-            
             ${renderAllocationBar("gold", goldValue, grandTotal)}
+        </div>
+
+        <div class="kpi-card mb-4">
+            <div class="kpi-label" data-i18n="financial_recommendations">
+                Financial Recommendations
             </div>
-
-            <div class="kpi-card mb-4">
-                <div class="kpi-label" data-i18n="financial_recommendations">
-                    Financial Recommendations
-                </div>
-
-                <div style="margin-top:15px">
-
-                    ${(forecastData.recommendations || [])
-                        .map(
-                            r => `
-                            <div style="
-                                padding:12px;
-                                margin-bottom:10px;
-                                background:var(--bg-secondary);
-                                border:1px solid var(--border-color);
-                                border-radius:10px;
-                            ">
-                                ${r}
-                            </div>
-                        `,
-                        )
-                        .join("")}
-
-                </div>
+            <div style="margin-top:15px">
+                ${(forecastData.recommendations || [])
+                    .map(
+                        r => `
+                        <div style="
+                            padding:12px;
+                            margin-bottom:10px;
+                            background:var(--bg-secondary);
+                            border:1px solid var(--border-color);
+                            border-radius:10px;
+                        ">
+                            ${r}
+                        </div>
+                    `,
+                    )
+                    .join("")}
             </div>
+        </div>
 
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
             <div class="table-container">

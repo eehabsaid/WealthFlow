@@ -457,5 +457,11 @@
   "type_cash": "💵 Cash",
   "type_bank": "🏦 Bank Account",
   "type_certificate": "📜 Certificate",
-  "select_type": "— Select Type —"
+  "select_type": "— Select Type —",
+  "freq_monthly": "Monthly",
+  "freq_quarterly": "Quarterly",
+  "freq_semi_annually": "Semi-Annually",
+  "freq_annually": "Annually",
+  "freq_at_maturity": "At Maturity",
+  "select_frequency": "— Select Frequency —"
 }

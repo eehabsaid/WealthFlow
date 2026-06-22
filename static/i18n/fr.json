@@ -453,5 +453,15 @@
   "next_180_days":"180 prochains jours",
   "upcoming_certificate_maturities":"Certificats arrivant à échéance",
   "certificate_value":"Valeur du certificat",
-  "balance_type": "Type de solde"
+  "balance_type": "Type de solde",
+  "freq_monthly": "Mensuel",
+  "freq_quarterly": "Trimestriel",
+  "freq_semi_annually": "Semi-annuel",
+  "freq_annually": "Annuel",
+  "freq_at_maturity": "À l'échéance",
+  "select_frequency": "— Sélectionner la fréquence —",
+  "type_cash": "💵 Espèces",
+  "type_bank": "🏦 Compte bancaire",
+  "type_certificate": "📜 Certificat de dépôt",
+  "select_type": "— Sélectionner le type —"
 }

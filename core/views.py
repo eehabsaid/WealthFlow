@@ -670,6 +670,9 @@ class BankCertificateListView(View):
             issue_date=data.get("issue_date") or None,
             expiry_date=data.get("expiry_date") or None,
             amount=data.get("amount", 0),
+            interest_rate=data.get("interest_rate", 0),
+            interest_value=data.get("interest_value", 0),
+            frequency=data.get("frequency", ""),
             status=data.get("status", "Active"),
             notes=data.get("notes", ""),
         )
@@ -707,8 +710,6 @@ class BankCertificateDetailView(View):
         certificate.delete()
         return JsonResponse({"deleted": pk})
 
-
-@method_decorator(csrf_exempt, name="dispatch")
 @method_decorator(csrf_exempt, name="dispatch")
 class CurrencyListView(View):
     def get(self, request):
@@ -2610,7 +2611,9 @@ class CertificateForecastView(View):
         certs = BankCertificate.objects.filter(status="Active")
 
         today = date.today()
-
+        
+        cash_balance = 0
+        certificate_balance = 0
         forecast_30 = 0
         forecast_90 = 0
         forecast_180 = 0
@@ -2623,7 +2626,6 @@ class CertificateForecastView(View):
                 continue
 
             maturity_value = float(c.amount) #+ float(c.interest_value)
-
             days_left = (c.expiry_date - today).days
 
             if days_left < 0:
@@ -2638,6 +2640,7 @@ class CertificateForecastView(View):
             if days_left <= 180:
                 forecast_180 += maturity_value
 
+
             upcoming.append(
                 {
                     "id": c.id,
@@ -2649,6 +2652,18 @@ class CertificateForecastView(View):
                     "days_left": days_left,
                 }
             )
+        from core.models import BalanceEntry
+
+        egp_balances = BalanceEntry.objects.filter(
+            currency__code="EGP"
+        )
+
+        for b in egp_balances:
+
+            if b.balance_type == "certificate":
+                certificate_balance += float(b.amount)
+            else:
+                cash_balance += float(b.amount)
 
         upcoming.sort(key=lambda x: x["days_left"])
 
@@ -2743,16 +2758,73 @@ class CertificateForecastView(View):
                 "Portfolio structure appears balanced. No immediate action is required."
             )
 
+        future_cash_30 = cash_balance + forecast_30
+        future_cash_90 = cash_balance + forecast_90
+        future_cash_180 = cash_balance + forecast_180
+
+        gold_value = 0
+        grand_total = (
+            cash_balance
+            + certificate_balance
+        )
+
+        total_assets = grand_total if grand_total > 0 else 1
+
+        cash_ratio = (
+            cash_balance / total_assets
+        ) * 100
+
+        certificate_ratio = (
+            certificate_balance / total_assets
+        ) * 100
+
+        gold_ratio = 0
+        recommendations = []
+
+        if cash_ratio > 60:
+            recommendations.append(
+                "Large cash position detected. Consider investing part of the cash."
+            )
+
+        if gold_ratio < 10:
+            recommendations.append(
+                "Gold allocation is low. Consider increasing gold exposure."
+            )
+
+        if certificate_ratio < 20:
+            recommendations.append(
+                "Certificate allocation is low. Consider a new certificate investment."
+            )
+
+        if forecast_30 > 0:
+            recommendations.append(
+                f"{forecast_30:,.0f} EGP will mature within 30 days."
+            )
+
+        if not recommendations:
+            recommendations.append(
+                "Current asset allocation looks balanced."
+            )
+
         return JsonResponse(
             {
+                "cash_balance": cash_balance,
+                "certificate_balance": certificate_balance,
+
+                "future_cash_30": future_cash_30,
+                "future_cash_90": future_cash_90,
+                "future_cash_180": future_cash_180,
+
                 "forecast_30": forecast_30,
                 "forecast_90": forecast_90,
                 "forecast_180": forecast_180,
+
+
                 "upcoming": upcoming[:10],
+                "cash_ratio": round(cash_ratio, 1),
+                "certificate_ratio": round(certificate_ratio, 1),
+                "gold_ratio": round(gold_ratio, 1),
+
                 "recommendations": recommendations,
-                "cash_egp": cash_egp,
-                "certificate_value": total_certificates,
-                "cash_pct": round(cash_pct, 2),
-                "certificate_pct": round(cert_pct, 2)
             }
         )

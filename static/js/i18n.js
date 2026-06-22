@@ -98,6 +98,25 @@ function applyTranslations() {
       td.textContent = rawType.charAt(0).toUpperCase() + rawType.slice(1);
     }
   });
+
+  // 6. Translate dynamic table certificate frequency distributions on the fly
+  document.querySelectorAll(".local-freq-field").forEach((td) => {
+    const rawFreq = td.getAttribute("data-freq");
+    if (!rawFreq) {
+      td.textContent = "—";
+      return;
+    }
+
+    // Maps database values (e.g. 'semi_annually') to json keys ('freq_semi_annually')
+    const translationKey = `freq_${rawFreq}`;
+
+    if (_t && _t[translationKey]) {
+      td.textContent = _t[translationKey];
+    } else {
+      // Fallback fallback if key is missing or manually written text
+      td.textContent = rawFreq.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+  });
 }
 
 // Correct version for simple JS strings only

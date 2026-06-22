@@ -175,7 +175,71 @@ class BankCertificate(models.Model):
         bank_name = self.bank.name if self.bank else "Unknown Bank"
         return f"{bank_name} Certificate {self.id}"
 
+from django.db.models import Sum
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from datetime import date, datetime
 
+# Assuming BalanceEntry and Bank models are in the same models.py file
+@receiver(post_save, sender=BankCertificate)
+def handle_certificate_save(sender, instance, **kwargs):
+    """
+    Fires automatically on insert or update of a BankCertificate.
+    Calculates total aggregate sum per bank and currency and updates BalanceEntry.
+    """
+    _sync_certificate_balance(instance.bank_id, instance.currency_id)
+
+
+@receiver(post_delete, sender=BankCertificate)
+def handle_certificate_delete(sender, instance, **kwargs):
+    """
+    Fires automatically when a BankCertificate is deleted.
+    Recalculates balances to ensure zero values or removed allocations clear out.
+    """
+    _sync_certificate_balance(instance.bank_id, instance.currency_id)
+
+
+def _sync_certificate_balance(bank_id, currency_id):
+    """
+    Internal transactional helper to safely aggregate matching certificate fields
+    and pipe them down to the parent Balance sheet.
+    """
+    if not bank_id or not currency_id:
+        return
+
+    # Aggregate total sum of active/available certificates for this bank & currency combo
+    total_amount = BankCertificate.objects.filter(
+        bank_id=bank_id, 
+        currency_id=currency_id
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    if total_amount > 0:
+        # Build standard engineering title syntax dynamically safely from foreign object tracking
+        try:
+            bank_instance = Bank.objects.get(pk=bank_id)
+            title_text = f"{bank_instance.name} Certificates Balance"
+        except Bank.DoesNotExist:
+            title_text = "Certificates Balance"
+
+        # Update matching row or build a clean new asset profile block automatically
+        BalanceEntry.objects.update_or_create(
+            balance_type="certificate",
+            bank_id=bank_id,
+            currency_id=currency_id,
+            defaults={
+                "title": title_text,
+                "amount": total_amount,
+                "notes": "Automated system synchronization from active bank certificates profile pipeline."
+            }
+        )
+    else:
+        # Cascade-delete or remove redundant balance references if aggregate returns empty sets
+        BalanceEntry.objects.filter(
+            balance_type="certificate",
+            bank_id=bank_id,
+            currency_id=currency_id
+        ).delete()
+        
 class Currency(models.Model):
     code = models.CharField(max_length=10, unique=True)  # USD, EGP, SAR
     symbol = models.CharField(max_length=10, default="")  # $, ج.م, ﷼

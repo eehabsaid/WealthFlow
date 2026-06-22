@@ -457,5 +457,11 @@
   "type_cash": "💵 نقدي",
   "type_bank": "🏦 حساب بنكي",
   "type_certificate": "📜 شهادة ادخار",
-  "select_type": "— اختر النوع —"
+  "select_type": "— اختر النوع —",
+  "freq_monthly": "شهري",
+  "freq_quarterly": "ربع سنوي",
+  "freq_semi_annually": "نصف سنوي",
+  "freq_annually": "سنوي",
+  "freq_at_maturity": "عند الاستحقاق",
+  "select_frequency": "— اختر دورية الصرف —"
 }
