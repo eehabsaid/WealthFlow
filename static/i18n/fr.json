@@ -474,5 +474,16 @@
   "investment_recommendations": "Recommandations d'investissement",
   "recommended_action": "Action recommandée",
   "title_add_balance": "Ajouter une entrée de solde",
-  "title_edit_balance": "Modifier l'entrée de solde"
+  "title_edit_balance": "Modifier l'entrée de solde",
+  "recommend_idle_cash": "Un montant important de liquidités est inactif. Envisagez d'en investir une partie.",
+  "recommend_certificate_concentration": "Le portefeuille est fortement concentré en certificats/titres. Envisagez une diversification.",
+  "recommend_large_maturity_30": "Des échéances importantes de certificats sont attendues dans les 30 jours.",
+  "recommend_large_maturity_90": "Des échéances importantes de certificats sont attendues dans les 90 prochains jours.",
+  "recommend_low_liquidity": "La majeure partie de la valeur des certificats est bloquée pour de longues périodes. Maintenez des réserves de liquidités suffisantes.",
+  "recommend_portfolio_balanced": "La structure du portefeuille semble équilibrée. Aucune action immédiate n'est requise.",
+  "recommend_high_cash_position": "Position de trésorerie élevée détectée. Envisagez d'investir une partie des liquidités.",
+  "recommend_low_gold_allocation": "L'allocation en or est faible. Envisagez d'augmenter l'exposition à l'or.",
+  "recommend_low_certificate_allocation": "L'allocation en certificats est faible. Envisagez un nouvel investissement en certificat.",
+  "recommend_maturity_30_days": "Les certificats arriveront à échéance dans les 30 jours.",
+  "recommend_asset_allocation_balanced": "L'allocation d'actifs actuelle semble équilibrée."
 }

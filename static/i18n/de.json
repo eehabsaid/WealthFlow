@@ -474,5 +474,16 @@
   "investment_recommendations": "Investitionsempfehlungen",
   "recommended_action": "Empfohlene Maßnahme",
   "title_add_balance": "Saldoeintrag hinzufügen",
-  "title_edit_balance": "Saldoeintrag bearbeiten"
+  "title_edit_balance": "Saldoeintrag bearbeiten",
+  "recommend_idle_cash": "Ein großer Geldbetrag liegt brach. Erwägen Sie, einen Teil davon zu investieren.",
+  "recommend_certificate_concentration": "Das Portfolio ist stark in Zertifikaten/Anlagen konzentriert. Erwägen Sie eine Diversifikation.",
+  "recommend_large_maturity_30": "Große Zertifikatsfälligkeiten werden innerhalb von 30 Tagen erwartet.",
+  "recommend_large_maturity_90": "Große Zertifikatsfälligkeiten werden innerhalb der nächsten 90 Tage erwartet.",
+  "recommend_low_liquidity": "Der größte Teil des Zertifikatswerts ist für längere Zeiträume gebunden. Halten Sie ausreichende flüssige Cash-Reserven.",
+  "recommend_portfolio_balanced": "Die Portfoliostruktur erscheint ausgewogen. Es ist keine sofortige Maßnahme erforderlich.",
+  "recommend_high_cash_position": "Hohe Cash-Position erkannt. Erwägen Sie, einen Teil des Bargelds zu investieren.",
+  "recommend_low_gold_allocation": "Die Goldallokation ist niedrig. Erwägen Sie, das Goldengagement zu erhöhen.",
+  "recommend_low_certificate_allocation": "Die Zertifikatsallokation ist niedrig. Erwägen Sie eine neue Zertifikatsanlage.",
+  "recommend_maturity_30_days": "Zertifikate laufen innerhalb von 30 Tagen ab.",
+  "recommend_asset_allocation_balanced": "Die aktuelle Vermögensallokation sieht ausgewogen aus."
 }
