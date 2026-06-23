@@ -2748,45 +2748,28 @@ class CertificateForecastView(View):
         recommendations = []
 
         if cash_pct > 40:
-            recommendations.append(
-                "Large amount of cash is idle. Consider investing part of it in certificates or gold."
-            )
+            recommendations.append("recommend_idle_cash")
 
         if cert_pct > 70:
-            recommendations.append(
-                "Portfolio is heavily concentrated in certificates. Consider diversification."
-            )
+            recommendations.append("recommend_certificate_concentration")
 
-        if forecast_30 > 0:
-            recommendations.append(
-                f"{forecast_30:,.0f} EGP will become available within 30 days."
-            )
+        if forecast_30 > 500000:
+            recommendations.append("recommend_large_maturity_30")
 
-        cash_ratio = (
+        if forecast_90 > forecast_30 * 2:
+            recommendations.append("recommend_large_maturity_90")
+
+        liquidity_ratio = (
             (forecast_30 / forecast_180) * 100
             if forecast_180 > 0
             else 0
         )
-
-        if forecast_30 > 500000:
-            recommendations.append(
-                f"Certificates worth {forecast_30:,.0f} EGP will mature within 30 days. Review reinvestment opportunities."
-            )
-
-        if forecast_90 > forecast_30 * 2:
-            recommendations.append(
-                "Large certificate maturities are expected within the next 90 days. Consider staggering future investments."
-            )
-
-        if forecast_180 > 0 and cash_ratio < 25:
-            recommendations.append(
-                "Most certificate value is locked for longer periods. Maintain sufficient liquid cash reserves."
-            )
+        
+        if forecast_180 > 0 and liquidity_ratio < 25:
+            recommendations.append("recommend_low_liquidity")
 
         if not recommendations:
-            recommendations.append(
-                "Portfolio structure appears balanced. No immediate action is required."
-            )
+            recommendations.append("recommend_portfolio_balanced")
 
         future_cash_30 = cash_balance + forecast_30
         future_cash_90 = cash_balance + forecast_90
@@ -2809,42 +2792,21 @@ class CertificateForecastView(View):
         ) * 100
 
         gold_ratio = 0
-        recommendations = []
 
         if cash_ratio > 60:
-            recommendations.append(
-                "Large cash position detected. Consider investing part of the cash."
-            )
+            recommendations.append("recommend_high_cash_position")
 
         if gold_ratio < 10:
-            recommendations.append(
-                "Gold allocation is low. Consider increasing gold exposure."
-            )
+            recommendations.append("recommend_low_gold_allocation")
 
         if certificate_ratio < 20:
-            recommendations.append(
-                "Certificate allocation is low. Consider a new certificate investment."
-            )
+            recommendations.append("recommend_low_certificate_allocation")
 
         if forecast_30 > 0:
-            recommendations.append(
-                f"{forecast_30:,.0f} EGP of certificates will mature within 30 days."
-            )
-
-        if certificate_income_ratio > 30:
-            recommendations.append(
-                f"{certificate_income_ratio:.1f}% of monthly income comes from certificates."
-            )
-
-        if certificate_income_ratio > 50:
-            recommendations.append(
-                "Avoid liquidating certificates without a replacement income source."
-            )
+            recommendations.append("recommend_maturity_30_days")
 
         if not recommendations:
-            recommendations.append(
-                "Current asset allocation looks balanced."
-            )
+            recommendations.append("recommend_asset_allocation_balanced")
 
         action_plan = ""
 
@@ -2867,10 +2829,11 @@ class CertificateForecastView(View):
                 gold_amount = round(forecast_30 * 0.60, 2)
                 cash_amount = round(forecast_30 * 0.40, 2)
 
-                action_plan = (
-                    f"Invest {gold_amount:,.0f} EGP in gold and keep "
-                    f"{cash_amount:,.0f} EGP as cash reserve."
-                )
+                action_plan = {
+                    "key": "action_gold_cash",
+                    "gold_amount": round(gold_amount, 0),
+                    "cash_amount": round(cash_amount, 0)
+                }
 
             elif certificate_ratio < 40:
 

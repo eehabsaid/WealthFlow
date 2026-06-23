@@ -474,5 +474,16 @@
   "investment_recommendations": "Investment Recommendations",
   "recommended_action": "Recommended Action",
   "title_add_balance": "Add Balance Entry",
-  "title_edit_balance": "Edit Balance Entry"
+  "title_edit_balance": "Edit Balance Entry",
+  "recommend_idle_cash": "Large amount of cash is idle. Consider investing part of it.",
+  "recommend_certificate_concentration": "Portfolio is heavily concentrated in certificates. Consider diversification.",
+  "recommend_large_maturity_30": "Large certificate maturities are expected within 30 days.",
+  "recommend_large_maturity_90": "Large certificate maturities are expected within the next 90 days.",
+  "recommend_low_liquidity": "Most certificate value is locked for longer periods. Maintain sufficient liquid cash reserves.",
+  "recommend_portfolio_balanced": "Portfolio structure appears balanced. No immediate action is required.",
+  "recommend_high_cash_position": "Large cash position detected. Consider investing part of the cash.",
+  "recommend_low_gold_allocation": "Gold allocation is low. Consider increasing gold exposure.",
+  "recommend_low_certificate_allocation": "Certificate allocation is low. Consider a new certificate investment.",
+  "recommend_maturity_30_days": "Certificates will mature within 30 days.",
+  "recommend_asset_allocation_balanced": "Current asset allocation looks balanced."
 }

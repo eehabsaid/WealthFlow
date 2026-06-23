@@ -474,5 +474,16 @@
   "investment_recommendations": "توصيات الاستثمار",
   "recommended_action": "الإجراء الموصى به",
   "title_add_balance": "إضافة حركة رصيد",
-  "title_edit_balance": "تعديل حركة الرصيد"
+  "title_edit_balance": "تعديل حركة الرصيد",
+  "recommend_idle_cash": "يوجد سيولة نقدية كبيرة غير مستثمرة. يفضل استثمار جزء منها في الشهادات أو الذهب.",
+  "recommend_certificate_concentration": "المحفظة تتركز بشكل كبير في الشهادات. يفضل تنويع الاستثمارات.",
+  "recommend_large_maturity_30": "هناك شهادات كبيرة ستستحق خلال 30 يوماً.",
+  "recommend_large_maturity_90": "هناك استحقاقات كبيرة للشهادات خلال التسعين يوماً القادمة.",
+  "recommend_low_liquidity": "معظم الأموال مقفلة في شهادات طويلة الأجل. احتفظ بسيولة كافية.",
+  "recommend_portfolio_balanced": "هيكل المحفظة متوازن حالياً.",
+  "recommend_high_cash_position": "يوجد رصيد نقدي مرتفع. يفضل استثمار جزء منه.",
+  "recommend_low_gold_allocation": "نسبة الذهب منخفضة. يفضل زيادة الاستثمار في الذهب.",
+  "recommend_low_certificate_allocation": "نسبة الشهادات منخفضة. يفضل إضافة شهادة جديدة.",
+  "recommend_maturity_30_days": "توجد شهادات ستستحق خلال 30 يوماً.",
+  "recommend_asset_allocation_balanced": "توزيع الأصول متوازن حالياً."
 }

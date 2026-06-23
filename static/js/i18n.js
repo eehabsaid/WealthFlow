@@ -33,90 +33,59 @@ async function loadLanguage(code) {
 }
 
 function applyTranslations() {
-  // 1. Translate standard text content
-  document.querySelectorAll("[data-i18n]").forEach((element) => {
-    const key = element.getAttribute("data-i18n");
-    if (_t && _t[key]) {
-      element.textContent = _t[key];
-    }
-  });
-
-  // 2. Translate placeholders with a safety check
-  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
-    const key = element.getAttribute("data-i18n-placeholder");
-    if (_t && _t[key]) {
-      element.setAttribute("placeholder", _t[key]);
-    } else {
-      console.warn(`Missing translation key: ${key}`);
-    }
-  });
-
-  // 3. Translate dynamic maturity date fields on the fly
+  if (!_t) return; // Guard clause if translations dictionary isn't ready
   const currentLang = document.documentElement.lang || "en";
+
+  // 1. Static Text Framework
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (_t[key]) el.textContent = _t[key];
+  });
+
+  // 2. Dynamic Key Framework (Covers Recommendations, Actions, Dynamic Badges)
+  document.querySelectorAll("[data-i18n-key]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-key");
+    if (key && _t[key]) el.textContent = _t[key];
+  });
+
+  // 3. Dynamic Prefix Framework (Covers Table Metadata: type_cash, freq_monthly, etc.)
+  document.querySelectorAll("[data-i18n-prefix]").forEach((el) => {
+    const prefix = el.getAttribute("data-i18n-prefix");
+    const rawVal = el.getAttribute("data-i18n-value");
+    if (!rawVal) { el.textContent = "—"; return; }
+
+    const combinedKey = `${prefix}${rawVal}`;
+    if (_t[combinedKey]) {
+      el.textContent = _t[combinedKey];
+    } else {
+      // Fallback: strip underscores and capitalize nicely
+      el.textContent = rawVal.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+  });
+
+  // 4. Attribute / Safety Translators
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (_t[key]) el.setAttribute("placeholder", _t[key]);
+  });
+
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-title");
+    if (_t[key]) el.setAttribute("title", _t[key]);
+  });
+
+  // 5. Dynamic Date Parsing Loop
   document.querySelectorAll(".local-date-field").forEach((td) => {
     const rawDate = td.getAttribute("data-expiry");
     if (!rawDate) return;
-
     const dateObj = new Date(rawDate);
-
-    const day = dateObj.toLocaleDateString(currentLang, { day: "2-digit" });
-    
-    // Force short format explicitly here
-    const month = dateObj.toLocaleDateString(currentLang, { month: "short" }); 
-    
-    const year = dateObj.toLocaleDateString(currentLang, { year: "numeric" });
-
-    // Enforce clear hyphenated format
-    td.textContent = `${day}-${month}-${year}`;
+    td.textContent = `${dateObj.toLocaleDateString(currentLang, { day: "2-digit" })}-${dateObj.toLocaleDateString(currentLang, { month: "short" })}-${dateObj.toLocaleDateString(currentLang, { year: "numeric" })}`;
   });
 
-  // 4. Translate titles with a safety check
-  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
-    const key = el.getAttribute("data-i18n-title");
-    if (_t && _t[key]) {
-      el.setAttribute("title", _t[key]);
-    } else {
-      console.warn(`Missing translation key for title: ${key}`);
-    }
-  });
-
-  // 5. Translate dynamic table balance types on the fly
-  document.querySelectorAll(".local-type-field").forEach((td) => {
-    const rawType = td.getAttribute("data-type");
-    if (!rawType) {
-      td.textContent = "—";
-      return;
-    }
-
-    // Maps database string ('cash') to json keys ('type_cash')
-    const translationKey = `type_${rawType}`;
-
-    if (_t && _t[translationKey]) {
-      td.textContent = _t[translationKey];
-    } else {
-      // Fallback to capitalized text if key isn't provided yet
-      td.textContent = rawType.charAt(0).toUpperCase() + rawType.slice(1);
-    }
-  });
-
-  // 6. Translate dynamic table certificate frequency distributions on the fly
-  document.querySelectorAll(".local-freq-field").forEach((td) => {
-    const rawFreq = td.getAttribute("data-freq");
-    if (!rawFreq) {
-      td.textContent = "—";
-      return;
-    }
-
-    // Maps database values (e.g. 'semi_annually') to json keys ('freq_semi_annually')
-    const translationKey = `freq_${rawFreq}`;
-
-    if (_t && _t[translationKey]) {
-      td.textContent = _t[translationKey];
-    } else {
-      // Fallback fallback if key is missing or manually written text
-      td.textContent = rawFreq.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-    }
-  });
+  // 6. Global App Currency/Number Refreshers
+  document.querySelectorAll('.num-fmt').forEach(el => { const v = el.getAttribute('data-value'); if (v !== null) el.innerText = fmt(v); });
+  document.querySelectorAll('.num-fmtpresent').forEach(el => { const v = el.getAttribute('data-value'); if (v !== null) el.innerText = fmtpresent(v); });
+  document.querySelectorAll('.num-fmtint').forEach(el => { const v = el.getAttribute('data-value'); if (v !== null) el.innerText = fmtInt(v); });
 }
 
 // Correct version for simple JS strings only
