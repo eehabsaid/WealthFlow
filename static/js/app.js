@@ -213,7 +213,7 @@ function _renderSidebarFooter(sidebar) {
 function renderTopbar() {
     const topbar = document.getElementById('topbar');
     topbar.innerHTML = `
-        <button id="mobile-nav-trigger" class="btn text-light d-lg-none p-2 me-2"
+        <button id="mobile-nav-trigger" class="btn d-lg-none p-2 me-2" style="color:var(--text-primary)"
                 onclick="toggleMobileSidebar()"
                 style="font-size:20px;border:none;background:transparent">
             <i class="bi bi-list"></i>
