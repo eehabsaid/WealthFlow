@@ -458,9 +458,9 @@ function toggleSection(el) {
 // AUTH — LOGOUT, PROFILE MODAL, AVATAR UPLOAD
 // ════════════════════════════════════════════════════════════════════════════
 
-async function doLogout() {
-    try { await fetch('/api/auth/logout/', { method: 'POST' }); } catch (_) {}
-    window.location.href = '/accounts/login/';
+function doLogout() {
+    // Use GET redirect to the Django logout view (no CSRF token needed)
+    window.location.href = '/accounts/logout/';
 }
 
 function showProfileModal() {
