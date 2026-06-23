@@ -221,11 +221,10 @@ function renderTopbar() {
         <div id="breadcrumb" style="font-weight:600;font-size:14px;color:var(--text-secondary)"></div>
         <div style="display:flex;align-items:center;gap:12px">
             <button id="themeToggleBtn" onclick="toggleTheme()"
-                style="background:none;border:none;cursor:pointer;font-size:19px;
-                       color:var(--text-secondary);padding:4px 6px;border-radius:6px;
-                       transition:background .15s"
-                onmouseenter="this.style.background='var(--bg-tertiary)'"
-                onmouseleave="this.style.background='none'"
+                style="background:var(--bg-tertiary);border:1px solid var(--border-color);
+                       cursor:pointer;font-size:18px;color:var(--text-primary);
+                       padding:4px 8px;border-radius:8px;line-height:1;
+                       transition:opacity .15s"
                 title="Toggle light/dark theme">
                 🌙
             </button>

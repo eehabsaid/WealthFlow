@@ -1116,3 +1116,50 @@ body { overflow-x: hidden; }
   background: var(--bg-secondary);
   color: var(--text-primary);
 }
+
+/* ── Light theme: topbar & dropdown fixes ── */
+[data-theme="light"] #topbar {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="light"] #topbar .btn-icon,
+[data-theme="light"] #topbar button,
+[data-theme="light"] #topbar span,
+[data-theme="light"] #topbar .dropdown-toggle {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] #langBtn,
+[data-theme="light"] #breadcrumb {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] #themeToggleBtn {
+  background: var(--bg-tertiary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px;
+}
+
+[data-theme="light"] .dropdown-menu {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+[data-theme="light"] .dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .dropdown-item:hover {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .btn-primary-custom {
+  color: #fff !important;
+}
+
+[data-theme="light"] #addEntryBtn {
+  color: #fff !important;
+}
