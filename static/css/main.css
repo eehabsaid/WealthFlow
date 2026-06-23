@@ -1059,3 +1059,60 @@ body { overflow-x: hidden; }
     z-index: 10;
     background: var(--bg-secondary) !important;
 }
+/* ════════════════════════════════════════════════════════════════
+   LIGHT THEME
+   ════════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  --bg-primary:    #f0f4f8;
+  --bg-secondary:  #ffffff;
+  --bg-tertiary:   #e8edf5;
+  --border-color:  #cdd8e8;
+  --accent-primary: #1a6ef5;
+  --accent-hover:  #2d7fff;
+  --accent-green:  #00a86b;
+  --accent-red:    #e02d4a;
+  --accent-yellow: #d4930a;
+  --text-primary:  #0d1b3e;
+  --text-secondary:#3a5a8a;
+  --text-muted:    #6b83aa;
+  color-scheme: light;
+}
+
+[data-theme="light"] body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .modal-content {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .dropdown-menu {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="light"] .dropdown-item:hover {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="light"] .form-control,
+[data-theme="light"] .form-select {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="light"] .form-control::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .btn-close-white {
+  filter: none;
+}
+
+[data-theme="light"] .toast {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}

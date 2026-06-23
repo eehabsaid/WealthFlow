@@ -17,6 +17,7 @@ window.translations = {};
 // ════════════════════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', async () => {
+    applyStoredTheme();
     await loadLanguage(localStorage.getItem('lang') || 'en');
     await initApp();
     window.addEventListener('hashchange', route);
@@ -219,6 +220,15 @@ function renderTopbar() {
         </button>
         <div id="breadcrumb" style="font-weight:600;font-size:14px;color:var(--text-secondary)"></div>
         <div style="display:flex;align-items:center;gap:12px">
+            <button id="themeToggleBtn" onclick="toggleTheme()"
+                style="background:none;border:none;cursor:pointer;font-size:19px;
+                       color:var(--text-secondary);padding:4px 6px;border-radius:6px;
+                       transition:background .15s"
+                onmouseenter="this.style.background='var(--bg-tertiary)'"
+                onmouseleave="this.style.background='none'"
+                title="Toggle light/dark theme">
+                🌙
+            </button>
             <div class="dropdown">
                 <button class="btn-icon dropdown-toggle" data-bs-toggle="dropdown" id="langBtn">
                     🌐 <span id="langLabel">EN</span>
@@ -599,6 +609,34 @@ function translate(key) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// THEME TOGGLE
+// ════════════════════════════════════════════════════════════════════════════
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const isLight = html.getAttribute('data-theme') === 'light';
+    const next    = isLight ? 'dark' : 'light';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    _updateThemeBtn(next);
+}
+
+function _updateThemeBtn(theme) {
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
+}
+
+function applyStoredTheme() {
+    const stored = localStorage.getItem('theme') || 'dark';
+    if (stored === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+    _updateThemeBtn(stored);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // GLOBAL EXPORTS
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -624,6 +662,8 @@ window.previewAndUploadAvatar = previewAndUploadAvatar;
 window.saveProfile          = saveProfile;
 window.getCompanies         = () => _companies;
 window.getBanks             = () => _banks;
+window.toggleTheme          = toggleTheme;
+window.applyStoredTheme     = applyStoredTheme;
 window.refreshBanks         = async () => {
     const r = await fetch('/api/banks/');
     _banks  = (await r.json()).banks || [];
