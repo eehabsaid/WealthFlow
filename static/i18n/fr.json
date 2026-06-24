@@ -496,5 +496,10 @@
   "action_new_certificate": "Investissez {cert_amount} EGP dans un nouveau certificat et conservez {cash_amount} EGP en liquidités.",
   "action_reinvest_certificate": "Le niveau de liquidités est déjà élevé. Réinvestissez {cert_amount} EGP dans un nouveau certificat.",
   "action_gold_and_certificate": "Investissez {gold_amount} EGP dans l'or et {cert_amount} EGP dans un nouveau certificat.",
-  "action_renew_certificate": "Le revenu des certificats représente {income_ratio}% de votre revenu mensuel. Envisagez de renouveler le certificat au lieu de le convertir entièrement en or."
+  "action_renew_certificate": "Le revenu des certificats représente {income_ratio}% de votre revenu mensuel. Envisagez de renouveler le certificat au lieu de le convertir entièrement en or.",
+  "recommend_gold_uptrend": "Les prix de l'or sont en hausse. Envisagez d'augmenter progressivement votre exposition à l'or.",
+  "recommend_gold_downtrend": "Les prix de l'or sont actuellement en baisse. Surveillez le marché avant d'augmenter votre exposition à l'or.",
+  "recommend_gold_neutral": "Votre allocation en or est faible. Envisagez de l'augmenter si cela correspond à votre stratégie à long terme.",
+  "recommend_gold_strong_uptrend": "Les prix de l'or affichent une forte tendance haussière. Une augmentation de l'exposition à l'or peut être envisagée.",
+  "recommend_gold_strong_downtrend": "Les prix de l'or affichent une forte tendance baissière. Attendre une stabilisation peut être judicieux."
 }

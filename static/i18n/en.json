@@ -496,5 +496,10 @@
   "action_new_certificate": "Invest {cert_amount} EGP in a new certificate and keep {cash_amount} EGP as cash reserve.",
   "action_reinvest_certificate": "Cash level is already high. Reinvest {cert_amount} EGP into a new certificate.",
   "action_gold_and_certificate": "Invest {gold_amount} EGP in gold and {cert_amount} EGP in a new certificate.",
-  "action_renew_certificate": "Certificate income represents {income_ratio}% of your monthly income. Consider renewing the certificate instead of converting it fully to gold."
+  "action_renew_certificate": "Certificate income represents {income_ratio}% of your monthly income. Consider renewing the certificate instead of converting it fully to gold.",
+  "recommend_gold_uptrend": "Gold prices are trending upward. Consider gradually increasing gold exposure.",
+  "recommend_gold_downtrend": "Gold prices are currently declining. Monitor the market before increasing gold exposure.",
+  "recommend_gold_neutral": "Gold allocation is low. Consider increasing gold exposure if it matches your long-term strategy.",
+  "recommend_gold_strong_uptrend": "Gold prices show a strong upward trend. Increasing gold exposure may help protect purchasing power.",
+  "recommend_gold_strong_downtrend": "Gold prices show a strong downward trend. Waiting for stabilization before increasing exposure may be prudent."
 }

@@ -17,6 +17,7 @@ from .models import (
     AppSettings,
     ExchangeRate,
     GoldPrice,
+    GoldPriceHistory,
     Currency,
     ExpenseCategory,
     ExpenseSubcategory,
@@ -710,6 +711,7 @@ class BankCertificateDetailView(View):
         certificate.delete()
         return JsonResponse({"deleted": pk})
 
+
 @method_decorator(csrf_exempt, name="dispatch")
 class CurrencyListView(View):
     def get(self, request):
@@ -748,6 +750,7 @@ class CurrencyDetailView(View):
         c.delete()
         return JsonResponse({"deleted": pk})
 
+
 @method_decorator(csrf_exempt, name="dispatch")
 class BalanceListView(View):
     def get(self, request):
@@ -772,7 +775,14 @@ class BalanceDetailView(View):
     def put(self, request, pk):
         entry = get_object_or_404(BalanceEntry, pk=pk)
         data = json.loads(request.body)
-        for field in ["title", "balance_type", "bank_id", "currency_id", "amount", "notes"]:
+        for field in [
+            "title",
+            "balance_type",
+            "bank_id",
+            "currency_id",
+            "amount",
+            "notes",
+        ]:
             if field in data:
                 setattr(entry, field, data[field])
         entry.save()
@@ -1050,8 +1060,13 @@ class GoldPriceRefreshView(View):
             # Calculate USD per gram from the EGP per gram (using sell price)
             usd_gram_24k = prices_egp[24]["sell"] / usd_to_egp if usd_to_egp else 0
 
+            from datetime import timedelta
+            from django.utils import timezone
+
             with transaction.atomic():
+
                 GoldPrice.objects.all().delete()
+
                 gp = GoldPrice.objects.create(
                     carat_24k=round(prices_egp[24]["sell"], 2),
                     carat_22k=round(prices_egp[22]["sell"], 2),
@@ -1066,6 +1081,15 @@ class GoldPriceRefreshView(View):
                     usd_to_egp=round(usd_to_egp, 6),
                     source_gold="goldbullioneg.com",
                     source_fx="goldbullioneg.com",
+                )
+
+                GoldPriceHistory.objects.create(
+                    carat_24k=gp.carat_24k,
+                    carat_21k=gp.carat_21k,
+                    carat_18k=gp.carat_18k,
+                    usd_gram_24k=gp.usd_gram_24k,
+                    usd_per_oz=gp.usd_per_oz,
+                    usd_to_egp=gp.usd_to_egp,
                 )
             return JsonResponse({"gold": gp.to_dict()})
 
@@ -2603,6 +2627,7 @@ class DashboardSummaryView(View):
 from datetime import date, timedelta
 from core.models import SalaryEntry
 
+
 @method_decorator(csrf_exempt, name="dispatch")
 class CertificateForecastView(View):
 
@@ -2611,7 +2636,7 @@ class CertificateForecastView(View):
         certs = BankCertificate.objects.filter(status="Active")
 
         today = date.today()
-        
+
         cash_balance = 0
         certificate_balance = 0
         forecast_30 = 0
@@ -2620,13 +2645,13 @@ class CertificateForecastView(View):
         maturing_interest_30 = 0
 
         upcoming = []
-        
+
         for c in certs:
 
             if not c.expiry_date:
                 continue
 
-            maturity_value = float(c.amount) #+ float(c.interest_value)
+            maturity_value = float(c.amount)  # + float(c.interest_value)
             days_left = (c.expiry_date - today).days
 
             if days_left < 0:
@@ -2635,13 +2660,12 @@ class CertificateForecastView(View):
             if days_left <= 30:
                 forecast_30 += maturity_value
                 maturing_interest_30 += float(c.interest_value)
-                
+
             if days_left <= 90:
                 forecast_90 += maturity_value
 
             if days_left <= 180:
                 forecast_180 += maturity_value
-
 
             upcoming.append(
                 {
@@ -2656,9 +2680,7 @@ class CertificateForecastView(View):
             )
         from core.models import BalanceEntry
 
-        egp_balances = BalanceEntry.objects.filter(
-            currency__code="EGP"
-        )
+        egp_balances = BalanceEntry.objects.filter(currency__code="EGP")
 
         for b in egp_balances:
 
@@ -2669,12 +2691,9 @@ class CertificateForecastView(View):
 
         upcoming.sort(key=lambda x: x["days_left"])
 
-                # Portfolio composition
+        # Portfolio composition
 
-        total_certificates = sum(
-            float(c.amount)
-            for c in certs
-        )
+        total_certificates = sum(float(c.amount) for c in certs)
 
         # Current balances
 
@@ -2688,11 +2707,7 @@ class CertificateForecastView(View):
 
         for b in balances:
 
-            currency = (
-                b.currency.code.upper()
-                if b.currency
-                else "EGP"
-            )
+            currency = b.currency.code.upper() if b.currency else "EGP"
 
             amount = float(b.amount)
 
@@ -2705,44 +2720,21 @@ class CertificateForecastView(View):
             else:
                 foreign_currency += amount
 
-        total_portfolio = (
-            cash_egp +
-            foreign_currency +
-            certificate_balance
-        )
+        total_portfolio = cash_egp + foreign_currency + certificate_balance
 
-        cash_pct = (
-            cash_egp / total_portfolio * 100
-            if total_portfolio else 0
-        )
+        cash_pct = cash_egp / total_portfolio * 100 if total_portfolio else 0
 
-        cert_pct = (
-            total_certificates / total_portfolio * 100
-            if total_portfolio else 0
-        )
+        cert_pct = total_certificates / total_portfolio * 100 if total_portfolio else 0
 
-        monthly_certificate_income = sum(
-            float(c.interest_value)
-            for c in certs
-        )
+        monthly_certificate_income = sum(float(c.interest_value) for c in certs)
 
         latest_salary = (
-            SalaryEntry.objects
-            .filter(paid__gt=0)
-            .order_by("-year", "-id")
-            .first()
+            SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
         )
 
-        monthly_salary = (
-            float(latest_salary.paid)
-            if latest_salary
-            else 0
-        )
+        monthly_salary = float(latest_salary.paid) if latest_salary else 0
 
-        total_monthly_income = (
-            monthly_salary +
-            monthly_certificate_income
-        )
+        total_monthly_income = monthly_salary + monthly_certificate_income
 
         certificate_income_ratio = (
             (monthly_certificate_income / total_monthly_income) * 100
@@ -2764,12 +2756,8 @@ class CertificateForecastView(View):
         if forecast_90 > forecast_30 * 2:
             recommendations.append("recommend_large_maturity_90")
 
-        liquidity_ratio = (
-            (forecast_30 / forecast_180) * 100
-            if forecast_180 > 0
-            else 0
-        )
-        
+        liquidity_ratio = (forecast_30 / forecast_180) * 100 if forecast_180 > 0 else 0
+
         if forecast_180 > 0 and liquidity_ratio < 25:
             recommendations.append("recommend_low_liquidity")
 
@@ -2781,28 +2769,84 @@ class CertificateForecastView(View):
         future_cash_180 = cash_balance + forecast_180
 
         gold_value = 0
-        grand_total = (
-            cash_balance
-            + certificate_balance
-        )
 
+        from core.models import GoldPriceHistory
+
+        gold_trend_pct = 0
+
+        history = list(GoldPriceHistory.objects.order_by("-timestamp")[:7])
+
+        if len(history) >= 2:
+
+            latest_price = float(history[0].carat_21k)
+
+            avg_price = sum(float(x.carat_21k) for x in history) / len(history)
+
+            if avg_price > 0:
+
+                gold_trend_pct = ((latest_price - avg_price) / avg_price) * 100
+                
+        grand_total = cash_balance + certificate_balance
+        
         total_assets = grand_total if grand_total > 0 else 1
 
-        cash_ratio = (
-            cash_balance / total_assets
-        ) * 100
+        cash_ratio = (cash_balance / total_assets) * 100
 
-        certificate_ratio = (
-            certificate_balance / total_assets
-        ) * 100
+        certificate_ratio = (certificate_balance / total_assets) * 100
 
         gold_ratio = 0
+
+        from core.models import GoldPriceHistory
+
+        gold_trend_30 = 0
+        gold_trend_90 = 0
+        gold_trend_365 = 0
+
+        gold_history = GoldPriceHistory.objects.order_by("-timestamp")
+
+        if gold_history.count() > 30:
+
+            latest = float(gold_history.first().carat_21k)
+
+            old_30 = float(gold_history[29].carat_21k)
+
+            gold_trend_30 = ((latest - old_30) / old_30) * 100
+
+        if gold_history.count() > 90:
+
+            latest = float(gold_history.first().carat_21k)
+
+            old_90 = float(gold_history[89].carat_21k)
+
+            gold_trend_90 = ((latest - old_90) / old_90) * 100
+
+        if gold_history.count() > 250:
+
+            latest = float(gold_history.first().carat_21k)
+
+            old_365 = float(gold_history[249].carat_21k)
+
+            gold_trend_365 = ((latest - old_365) / old_365) * 100
 
         if cash_ratio > 60:
             recommendations.append("recommend_high_cash_position")
 
         if gold_ratio < 10:
-            recommendations.append("recommend_low_gold_allocation")
+
+            if gold_trend_365 > 15:
+                recommendations.append("recommend_gold_strong_uptrend")
+
+            elif gold_trend_365 > 5:
+                recommendations.append("recommend_gold_uptrend")
+
+            elif gold_trend_365 < -15:
+                recommendations.append("recommend_gold_strong_downtrend")
+
+            elif gold_trend_365 < -5:
+                recommendations.append("recommend_gold_downtrend")
+
+            else:
+                recommendations.append("recommend_gold_neutral")
 
         if certificate_ratio < 20:
             recommendations.append("recommend_low_certificate_allocation")
@@ -2817,10 +2861,10 @@ class CertificateForecastView(View):
 
         if forecast_30 > 0:
             income_loss_ratio = (
-                    (maturing_interest_30 / total_monthly_income) * 100
-                    if total_monthly_income > 0
-                    else 0
-                )
+                (maturing_interest_30 / total_monthly_income) * 100
+                if total_monthly_income > 0
+                else 0
+            )
             if income_loss_ratio > 20:
 
                 action_plan = (
@@ -2837,7 +2881,7 @@ class CertificateForecastView(View):
                 action_plan = {
                     "key": "action_gold_cash",
                     "gold_amount": round(gold_amount, 0),
-                    "cash_amount": round(cash_amount, 0)
+                    "cash_amount": round(cash_amount, 0),
                 }
 
             elif certificate_ratio < 40:
@@ -2873,27 +2917,25 @@ class CertificateForecastView(View):
             {
                 "cash_balance": cash_balance,
                 "certificate_balance": certificate_balance,
-
                 "future_cash_30": future_cash_30,
                 "future_cash_90": future_cash_90,
                 "future_cash_180": future_cash_180,
-
                 "forecast_30": forecast_30,
                 "forecast_90": forecast_90,
                 "forecast_180": forecast_180,
-
-
                 "upcoming": upcoming[:10],
                 "cash_ratio": round(cash_ratio, 1),
                 "certificate_ratio": round(certificate_ratio, 1),
                 "gold_ratio": round(gold_ratio, 1),
-
+                "gold_trend_pct": round(gold_trend_pct, 2),
                 "recommendations": recommendations,
                 "action_plan": action_plan,
-
                 "monthly_salary": round(monthly_salary, 2),
                 "monthly_certificate_income": round(monthly_certificate_income, 2),
                 "total_monthly_income": round(total_monthly_income, 2),
                 "certificate_income_ratio": round(certificate_income_ratio, 1),
+                "gold_trend_30": round(gold_trend_30, 2),
+                "gold_trend_90": round(gold_trend_90, 2),
+                "gold_trend_365": round(gold_trend_365, 2),
             }
         )

@@ -436,6 +436,49 @@ class GoldPrice(models.Model):
     def __str__(self):
         return f"Gold {self.fetched_at}  21K={self.carat_21k} EGP/g"
 
+# --- History of gold price-------------------------------------
+class GoldPriceHistory(models.Model):
+
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    carat_24k = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    carat_21k = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    carat_18k = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    usd_gram_24k = models.DecimalField(
+        max_digits=12,
+        decimal_places=6,
+        default=0
+    )
+
+    usd_per_oz = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        default=0
+    )
+
+    usd_to_egp = models.DecimalField(
+        max_digits=10,
+        decimal_places=6,
+        default=0
+    )
+
+    class Meta:
+        ordering = ["-timestamp"]
+
+    def __str__(self):
+        return f"{self.timestamp:%Y-%m-%d %H:%M}"
 
 # ── Expenses ──────────────────────────────────────────────────
 
