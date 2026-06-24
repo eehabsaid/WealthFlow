@@ -132,7 +132,7 @@ async function renderBalance() {
        <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="investment_recommendations">Investment Recommendations</div>
             <div style="margin-top:15px">
-                ${(forecastData.recommendations || []).map((r) => `<div data-i18n-key="${r}" style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">${_t && _t[r] ? _t[r] : r}</div>`).join("")}
+                ${(forecastData.investment_recommendations || []).map((r) => `<div data-i18n-key="${r}" style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">${_t && _t[r] ? _t[r] : r}</div>`).join("")}
             </div>
         </div>
 
@@ -142,6 +142,7 @@ async function renderBalance() {
                 data-i18n-key="${forecastData.action_plan?.key || ''}"
                 data-gold-amount="${forecastData.action_plan?.gold_amount || 0}"
                 data-cash-amount="${forecastData.action_plan?.cash_amount || 0}"
+                data-certificate-amount="${forecastData.action_plan?.certificate_amount || 0}"
                 style="margin-top:15px;font-weight:600;"
             >
                 ${
@@ -149,6 +150,7 @@ async function renderBalance() {
                         ? (_t[forecastData.action_plan.key] || forecastData.action_plan.key)
                             .replace("{gold_amount}", fmtpresent(forecastData.action_plan.gold_amount || 0))
                             .replace("{cash_amount}", fmtpresent(forecastData.action_plan.cash_amount || 0))
+                            .replace("{certificate_amount}", fmtpresent(forecastData.action_plan.certificate_amount || 0))
                         : ""
                 }
             </div>
@@ -178,7 +180,7 @@ async function renderBalance() {
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="financial_recommendations">Financial Recommendations</div>
             <div style="margin-top:15px">
-                ${(forecastData.recommendations || []).map((r) => `<div data-i18n-key="${r}" style="padding:12px; margin-bottom:10px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">${_t && _t[r] ? _t[r] : r}</div>`).join("")}
+                ${(forecastData.financial_recommendations || []).map((r) => `<div data-i18n-key="${r}" style="padding:12px; margin-bottom:10px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">${_t && _t[r] ? _t[r] : r}</div>`).join("")}
             </div>
         </div>
 

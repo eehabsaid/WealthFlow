@@ -2704,6 +2704,7 @@ class CertificateForecastView(View):
         cash_egp = 0
         foreign_currency = 0
         certificate_balance = 0
+        gold_grams = 0
 
         for b in balances:
 
@@ -2716,6 +2717,9 @@ class CertificateForecastView(View):
 
             elif currency == "EGP":
                 cash_egp += amount
+
+            elif currency == "GOLD":
+                gold_grams += amount
 
             else:
                 foreign_currency += amount
@@ -2742,33 +2746,38 @@ class CertificateForecastView(View):
             else 0
         )
 
-        recommendations = []
+        investment_recommendations = []
+        financial_recommendations = []
 
         if cash_pct > 40:
-            recommendations.append("recommend_idle_cash")
+            financial_recommendations.append("recommend_idle_cash")
 
         if cert_pct > 70:
-            recommendations.append("recommend_certificate_concentration")
+            financial_recommendations.append("recommend_certificate_concentration")
 
         if forecast_30 > 500000:
-            recommendations.append("recommend_large_maturity_30")
+            investment_recommendations.append("recommend_large_maturity_30")
 
         if forecast_90 > forecast_30 * 2:
-            recommendations.append("recommend_large_maturity_90")
+            investment_recommendations.append("recommend_large_maturity_90")
 
         liquidity_ratio = (forecast_30 / forecast_180) * 100 if forecast_180 > 0 else 0
 
         if forecast_180 > 0 and liquidity_ratio < 25:
-            recommendations.append("recommend_low_liquidity")
-
-        if not recommendations:
-            recommendations.append("recommend_portfolio_balanced")
+            financial_recommendations.append("recommend_low_liquidity")
 
         future_cash_30 = cash_balance + forecast_30
         future_cash_90 = cash_balance + forecast_90
         future_cash_180 = cash_balance + forecast_180
 
+        from core.models import GoldPrice
+
         gold_value = 0
+
+        latest_gold = GoldPrice.objects.first()
+
+        if latest_gold:
+            gold_value = gold_grams * float(latest_gold.carat_24k)
 
         from core.models import GoldPriceHistory
 
@@ -2786,7 +2795,7 @@ class CertificateForecastView(View):
 
                 gold_trend_pct = ((latest_price - avg_price) / avg_price) * 100
                 
-        grand_total = cash_balance + certificate_balance
+        grand_total = (cash_balance + certificate_balance + gold_value)
         
         total_assets = grand_total if grand_total > 0 else 1
 
@@ -2794,7 +2803,7 @@ class CertificateForecastView(View):
 
         certificate_ratio = (certificate_balance / total_assets) * 100
 
-        gold_ratio = 0
+        gold_ratio = (gold_value / total_assets) * 100
 
         from core.models import GoldPriceHistory
 
@@ -2829,33 +2838,31 @@ class CertificateForecastView(View):
             gold_trend_365 = ((latest - old_365) / old_365) * 100
 
         if cash_ratio > 60:
-            recommendations.append("recommend_high_cash_position")
+            financial_recommendations.append("recommend_high_cash_position")
 
-        if gold_ratio < 10:
+        if gold_trend_30 > 15:
+            investment_recommendations.append("recommend_gold_strong_uptrend")
 
-            if gold_trend_365 > 15:
-                recommendations.append("recommend_gold_strong_uptrend")
+        elif gold_trend_30 > 5:
+            investment_recommendations.append("recommend_gold_uptrend")
 
-            elif gold_trend_365 > 5:
-                recommendations.append("recommend_gold_uptrend")
+        elif gold_trend_30 < -15:
+            investment_recommendations.append("recommend_gold_strong_downtrend")
 
-            elif gold_trend_365 < -15:
-                recommendations.append("recommend_gold_strong_downtrend")
+        elif gold_trend_30 < -5:
+            investment_recommendations.append("recommend_gold_downtrend")
 
-            elif gold_trend_365 < -5:
-                recommendations.append("recommend_gold_downtrend")
-
-            else:
-                recommendations.append("recommend_gold_neutral")
+        else:
+            investment_recommendations.append("recommend_gold_neutral")
 
         if certificate_ratio < 20:
-            recommendations.append("recommend_low_certificate_allocation")
+            financial_recommendations.append("recommend_low_certificate_allocation")
 
         if forecast_30 > 0:
-            recommendations.append("recommend_maturity_30_days")
+            investment_recommendations.append("recommend_maturity_30_days")
 
-        if not recommendations:
-            recommendations.append("recommend_asset_allocation_balanced")
+        if not financial_recommendations:
+            financial_recommendations.append("recommend_asset_allocation_balanced")
 
         action_plan = ""
 
@@ -2875,13 +2882,25 @@ class CertificateForecastView(View):
 
             elif gold_ratio < 10:
 
-                gold_amount = round(forecast_30 * 0.60, 2)
-                cash_amount = round(forecast_30 * 0.40, 2)
+                if gold_trend_30 < -15:
+
+                    gold_amount = round(forecast_30 * 0.80, 2)
+                    cash_amount = round(forecast_30 * 0.20, 2)
+
+                elif gold_trend_30 < -5:
+
+                    gold_amount = round(forecast_30 * 0.70, 2)
+                    cash_amount = round(forecast_30 * 0.30, 2)
+
+                else:
+
+                    gold_amount = round(forecast_30 * 0.60, 2)
+                    cash_amount = round(forecast_30 * 0.40, 2)
 
                 action_plan = {
                     "key": "action_gold_cash",
                     "gold_amount": round(gold_amount, 0),
-                    "cash_amount": round(cash_amount, 0),
+                    "cash_amount": round(cash_amount, 0)
                 }
 
             elif certificate_ratio < 40:
@@ -2908,10 +2927,11 @@ class CertificateForecastView(View):
                 gold_amount = round(forecast_30 * 0.50, 2)
                 cert_amount = round(forecast_30 * 0.50, 2)
 
-                action_plan = (
-                    f"Invest {gold_amount:,.0f} EGP in gold and "
-                    f"{cert_amount:,.0f} EGP in a new certificate."
-                )
+                action_plan = {
+                    "key": "action_gold_certificate",
+                    "gold_amount": round(gold_amount, 0),
+                    "certificate_amount": round(cert_amount, 0)
+                }
 
         return JsonResponse(
             {
@@ -2927,8 +2947,11 @@ class CertificateForecastView(View):
                 "cash_ratio": round(cash_ratio, 1),
                 "certificate_ratio": round(certificate_ratio, 1),
                 "gold_ratio": round(gold_ratio, 1),
+                "gold_value": round(gold_value, 2),
+                "gold_grams": round(gold_grams, 3),
                 "gold_trend_pct": round(gold_trend_pct, 2),
-                "recommendations": recommendations,
+                "investment_recommendations": investment_recommendations,
+                "financial_recommendations": financial_recommendations,
                 "action_plan": action_plan,
                 "monthly_salary": round(monthly_salary, 2),
                 "monthly_certificate_income": round(monthly_certificate_income, 2),

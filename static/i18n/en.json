@@ -501,5 +501,6 @@
   "recommend_gold_downtrend": "Gold prices are currently declining. Monitor the market before increasing gold exposure.",
   "recommend_gold_neutral": "Gold allocation is low. Consider increasing gold exposure if it matches your long-term strategy.",
   "recommend_gold_strong_uptrend": "Gold prices show a strong upward trend. Increasing gold exposure may help protect purchasing power.",
-  "recommend_gold_strong_downtrend": "Gold prices show a strong downward trend. Waiting for stabilization before increasing exposure may be prudent."
+  "recommend_gold_strong_downtrend": "Gold prices show a strong downward trend. Waiting for stabilization before increasing exposure may be prudent.",
+  "action_gold_certificate": "Invest {gold_amount} EGP in gold and {certificate_amount} EGP in a new certificate."
 }

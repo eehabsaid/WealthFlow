@@ -53,6 +53,7 @@ function applyTranslations() {
 
     const goldAmount = el.getAttribute("data-gold-amount");
     const cashAmount = el.getAttribute("data-cash-amount");
+    const certificateAmount = el.getAttribute("data-certificate-amount");
 
     if (goldAmount !== null) {
         text = text.replace(
@@ -65,6 +66,13 @@ function applyTranslations() {
         text = text.replace(
             "{cash_amount}",
             fmtpresent(cashAmount)
+        );
+    }
+
+    if (certificateAmount !== null) {
+        text = text.replace(
+            "{certificate_amount}",
+            fmtpresent(certificateAmount)
         );
     }
 
