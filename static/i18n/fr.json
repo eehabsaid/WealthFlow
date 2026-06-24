@@ -485,5 +485,16 @@
   "recommend_low_gold_allocation": "L'allocation en or est faible. Envisagez d'augmenter l'exposition à l'or.",
   "recommend_low_certificate_allocation": "L'allocation en certificats est faible. Envisagez un nouvel investissement en certificat.",
   "recommend_maturity_30_days": "Les certificats arriveront à échéance dans les 30 jours.",
-  "recommend_asset_allocation_balanced": "L'allocation d'actifs actuelle semble équilibrée."
+  "recommend_asset_allocation_balanced": "L'allocation d'actifs actuelle semble équilibrée.",
+  "liquid_cash": "Liquidités disponibles",
+  "certificate_investments": "Investissements en certificats",
+  "certificates": "Certificats",
+  "monthly_salary": "Salaire mensuel",
+  "certificate_income": "Revenu des certificats",
+  "income_dependency": "Dépendance au revenu des certificats",
+  "action_gold_cash": "Investissez {gold_amount} EGP dans l'or et conservez {cash_amount} EGP en liquidités.",
+  "action_new_certificate": "Investissez {cert_amount} EGP dans un nouveau certificat et conservez {cash_amount} EGP en liquidités.",
+  "action_reinvest_certificate": "Le niveau de liquidités est déjà élevé. Réinvestissez {cert_amount} EGP dans un nouveau certificat.",
+  "action_gold_and_certificate": "Investissez {gold_amount} EGP dans l'or et {cert_amount} EGP dans un nouveau certificat.",
+  "action_renew_certificate": "Le revenu des certificats représente {income_ratio}% de votre revenu mensuel. Envisagez de renouveler le certificat au lieu de le convertir entièrement en or."
 }

@@ -100,12 +100,13 @@ async function renderBalance() {
             <div class="kpi-label" data-i18n="financial_intelligence">Financial Intelligence</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:20px;">
                 <div><div class="kpi-label" data-i18n="net_worth">Net Worth</div><div class="kpi-value num-fmtpresent" data-value="${grandTotal}">${fmtpresent(grandTotal)}</div></div>
-                <div><div class="kpi-label" data-i18n="cash_egp">Cash (EGP)</div><div class="kpi-value num-fmtpresent" data-value="${totalEGP}">${fmtpresent(totalEGP)}</div></div>
+                <div><div class="kpi-label" data-i18n="liquid_cash">Liquid Cash</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.cash_balance || 0}">${fmtpresent(forecastData.cash_balance || 0)}</div></div>
+                <div><div class="kpi-label" data-i18n="certificate_investments">Certificate Investments</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.certificate_balance || 0}">${fmtpresent(forecastData.certificate_balance || 0)}</div></div>
                 <div><div class="kpi-label" data-i18n="foreign_currency_value">Foreign Currency Value</div><div class="kpi-value num-fmtpresent" data-value="${usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate}">${fmtpresent(usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate)}</div></div>
                 <div><div class="kpi-label" data-i18n="gold_value">Gold Value</div><div class="kpi-value num-fmtpresent" data-value="${goldValue}">${fmtpresent(goldValue)}</div></div>
-                <div><div class="kpi-label">Monthly Salary</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_salary || 0}">${fmtpresent(forecastData.monthly_salary || 0)}</div></div>
-                <div><div class="kpi-label">Certificate Income</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_certificate_income || 0}">${fmtpresent(forecastData.monthly_certificate_income || 0)}</div></div>
-                <div><div class="kpi-label">Income Dependency</div><div class="kpi-value">${forecastData.certificate_income_ratio || 0}%</div></div>
+                <div><div class="kpi-label" data-i18n="monthly_salary">Monthly Salary</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_salary || 0}">${fmtpresent(forecastData.monthly_salary || 0)}</div></div>
+                <div><div class="kpi-label" data-i18n="certificate_income">Certificate Income</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_certificate_income || 0}">${fmtpresent(forecastData.monthly_certificate_income || 0)}</div></div>
+                <div><div class="kpi-label" data-i18n="income_dependency">Income Dependency</div><div class="kpi-value"><span class="num-fmtint" data-value="${forecastData.certificate_income_ratio || 0}">${fmtInt(forecastData.certificate_income_ratio || 0)}</span>%</div></div>
             </div>
         </div>
 
@@ -136,10 +137,22 @@ async function renderBalance() {
         </div>
 
         <div class="kpi-card mb-4">
-            <div class="kpi-label" data-i18n="recommended_action">Recommended Action</div>
-            <div data-i18n-key="${forecastData.action_plan || ""}" style="margin-top: 15px; font-weight: 600;">
-                ${_t && _t[forecastData.action_plan] ? _t[forecastData.action_plan] : (forecastData.action_plan || "")}
+        <div class="kpi-label" data-i18n="recommended_action">Recommended Action</div>
+            <div
+                data-i18n-key="${forecastData.action_plan?.key || ''}"
+                data-gold-amount="${forecastData.action_plan?.gold_amount || 0}"
+                data-cash-amount="${forecastData.action_plan?.cash_amount || 0}"
+                style="margin-top:15px;font-weight:600;"
+            >
+                ${
+                    forecastData.action_plan?.key
+                        ? (_t[forecastData.action_plan.key] || forecastData.action_plan.key)
+                            .replace("{gold_amount}", fmtpresent(forecastData.action_plan.gold_amount || 0))
+                            .replace("{cash_amount}", fmtpresent(forecastData.action_plan.cash_amount || 0))
+                        : ""
+                }
             </div>
+        </div>
         </div>
 
         ${forecastData.upcoming?.length ? `
@@ -156,8 +169,9 @@ async function renderBalance() {
 
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="asset_allocation">Asset Allocation</div>
-            ${renderAllocationBar("cash", totalEGP, grandTotal)}
+            ${renderAllocationBar("cash", forecastData.cash_balance || 0, grandTotal)}
             ${renderAllocationBar("foreignCurrency", usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate, grandTotal)}
+            ${renderAllocationBar("certificates",forecastData.certificate_balance || 0,grandTotal)}
             ${renderAllocationBar("gold", goldValue, grandTotal)}
         </div>
 

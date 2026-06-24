@@ -485,5 +485,16 @@
   "recommend_low_gold_allocation": "Die Goldallokation ist niedrig. Erwägen Sie, das Goldengagement zu erhöhen.",
   "recommend_low_certificate_allocation": "Die Zertifikatsallokation ist niedrig. Erwägen Sie eine neue Zertifikatsanlage.",
   "recommend_maturity_30_days": "Zertifikate laufen innerhalb von 30 Tagen ab.",
-  "recommend_asset_allocation_balanced": "Die aktuelle Vermögensallokation sieht ausgewogen aus."
+  "recommend_asset_allocation_balanced": "Die aktuelle Vermögensallokation sieht ausgewogen aus.",
+  "liquid_cash": "Verfügbare Liquidität",
+  "certificate_investments": "Zertifikatsanlagen",
+  "certificates": "Zertifikate",
+  "monthly_salary": "Monatsgehalt",
+  "certificate_income": "Zertifikatserträge",
+  "income_dependency": "Abhängigkeit von Zertifikatserträgen",
+  "action_gold_cash": "Investieren Sie {gold_amount} EGP in Gold und behalten Sie {cash_amount} EGP als Liquiditätsreserve.",
+  "action_new_certificate": "Investieren Sie {cert_amount} EGP in ein neues Zertifikat und behalten Sie {cash_amount} EGP als Liquiditätsreserve.",
+  "action_reinvest_certificate": "Die Liquidität ist bereits hoch. Reinvestieren Sie {cert_amount} EGP in ein neues Zertifikat.",
+  "action_gold_and_certificate": "Investieren Sie {gold_amount} EGP in Gold und {cert_amount} EGP in ein neues Zertifikat.",
+  "action_renew_certificate": "Die Zertifikatserträge machen {income_ratio}% Ihres monatlichen Einkommens aus. Erwägen Sie die Verlängerung des Zertifikats statt einer vollständigen Umwandlung in Gold."
 }

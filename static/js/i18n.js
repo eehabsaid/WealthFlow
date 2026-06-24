@@ -44,8 +44,31 @@ function applyTranslations() {
 
   // 2. Dynamic Key Framework (Covers Recommendations, Actions, Dynamic Badges)
   document.querySelectorAll("[data-i18n-key]").forEach((el) => {
+
     const key = el.getAttribute("data-i18n-key");
-    if (key && _t[key]) el.textContent = _t[key];
+
+    if (!key || !_t[key]) return;
+
+    let text = _t[key];
+
+    const goldAmount = el.getAttribute("data-gold-amount");
+    const cashAmount = el.getAttribute("data-cash-amount");
+
+    if (goldAmount !== null) {
+        text = text.replace(
+            "{gold_amount}",
+            fmtpresent(goldAmount)
+        );
+    }
+
+    if (cashAmount !== null) {
+        text = text.replace(
+            "{cash_amount}",
+            fmtpresent(cashAmount)
+        );
+    }
+
+    el.textContent = text;
   });
 
   // 3. Dynamic Prefix Framework (Covers Table Metadata: type_cash, freq_monthly, etc.)

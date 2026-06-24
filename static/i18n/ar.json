@@ -485,5 +485,16 @@
   "recommend_low_gold_allocation": "نسبة الذهب منخفضة. يفضل زيادة الاستثمار في الذهب.",
   "recommend_low_certificate_allocation": "نسبة الشهادات منخفضة. يفضل إضافة شهادة جديدة.",
   "recommend_maturity_30_days": "توجد شهادات ستستحق خلال 30 يوماً.",
-  "recommend_asset_allocation_balanced": "توزيع الأصول متوازن حالياً."
+  "recommend_asset_allocation_balanced": "توزيع الأصول متوازن حالياً.",
+  "action_gold_cash": "استثمر {gold_amount} جنيه في الذهب واحتفظ بـ {cash_amount} جنيه كسيولة نقدية.",
+  "liquid_cash": "السيولة النقدية",
+  "certificate_investments": "الاستثمارات في الشهادات",
+  "certificates": "الشهادات",
+  "monthly_salary": "الراتب الشهري",
+  "certificate_income": "دخل الشهادات",
+  "income_dependency": "الاعتماد على دخل الشهادات",
+  "action_new_certificate": "استثمر {cert_amount} جنيه في شهادة جديدة واحتفظ بـ {cash_amount} جنيه كسيولة نقدية.",
+  "action_reinvest_certificate": "مستوى السيولة مرتفع بالفعل. أعد استثمار {cert_amount} جنيه في شهادة جديدة.",
+  "action_gold_and_certificate": "استثمر {gold_amount} جنيه في الذهب و {cert_amount} جنيه في شهادة جديدة.",
+  "action_renew_certificate": "دخل الشهادات يمثل {income_ratio}% من دخلك الشهري. يفضل تجديد الشهادة بدلاً من تحويلها بالكامل إلى ذهب."
 }

@@ -485,5 +485,16 @@
   "recommend_low_gold_allocation": "Gold allocation is low. Consider increasing gold exposure.",
   "recommend_low_certificate_allocation": "Certificate allocation is low. Consider a new certificate investment.",
   "recommend_maturity_30_days": "Certificates will mature within 30 days.",
-  "recommend_asset_allocation_balanced": "Current asset allocation looks balanced."
+  "recommend_asset_allocation_balanced": "Current asset allocation looks balanced.",
+  "action_gold_cash": "Invest {gold_amount} EGP in gold and keep {cash_amount} EGP as cash reserve.",
+  "liquid_cash": "Liquid Cash",
+  "certificate_investments": "Certificate Investments",
+  "certificates": "Certificates",
+  "monthly_salary": "Monthly Salary",
+  "certificate_income": "Certificate Income",
+  "income_dependency": "Income Dependency",
+  "action_new_certificate": "Invest {cert_amount} EGP in a new certificate and keep {cash_amount} EGP as cash reserve.",
+  "action_reinvest_certificate": "Cash level is already high. Reinvest {cert_amount} EGP into a new certificate.",
+  "action_gold_and_certificate": "Invest {gold_amount} EGP in gold and {cert_amount} EGP in a new certificate.",
+  "action_renew_certificate": "Certificate income represents {income_ratio}% of your monthly income. Consider renewing the certificate instead of converting it fully to gold."
 }

@@ -2684,6 +2684,7 @@ class CertificateForecastView(View):
 
         cash_egp = 0
         foreign_currency = 0
+        certificate_balance = 0
 
         for b in balances:
 
@@ -2695,15 +2696,19 @@ class CertificateForecastView(View):
 
             amount = float(b.amount)
 
-            if currency == "EGP":
+            if b.balance_type == "certificate":
+                certificate_balance += amount
+
+            elif currency == "EGP":
                 cash_egp += amount
+
             else:
                 foreign_currency += amount
 
         total_portfolio = (
             cash_egp +
             foreign_currency +
-            total_certificates
+            certificate_balance
         )
 
         cash_pct = (
