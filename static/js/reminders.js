@@ -348,9 +348,13 @@ async function saveAppSetting(key, value) {
   await fetch("/api/settings/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ [key]: value }),
+    body: JSON.stringify({ 
+      key: key,     // Matches backend data["key"]
+      value: value  // Matches backend data["value"]
+    }),
   });
   showToast(t("settings_saved", "Settings saved ✓"));
+  applyTranslations();
 }
 
 function esc(s) {

@@ -90,9 +90,25 @@ function applyTranslations() {
 
 // Correct version for simple JS strings only
 function t(key, fallback) {
+  // 1. Safety check: if global translations don't exist yet, return fallback immediately
+  if (typeof _t === 'undefined' || !_t) {
+    return fallback || key;
+  }
+
   const lang = localStorage.getItem("lang") || "en";
-  // Assuming your _t object is structured as _t[lang][key]
-  return _t[lang] && _t[lang][key] ? _t[lang][key] : fallback || key;
+
+  // 2. Case A: Standard dictionary structure (_t[lang][key])
+  if (_t[lang] && _t[lang][key]) {
+    return _t[lang][key];
+  }
+
+  // 3. Case B: Flat dictionary structure or global fallback (_t[key])
+  if (_t[key]) {
+    return _t[key];
+  }
+
+  // 4. Case C: No translation found anywhere, return the provided fallback or the key itself
+  return fallback !== undefined ? fallback : key;
 }
 
 function currentLang() {
