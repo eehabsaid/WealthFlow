@@ -505,5 +505,14 @@
   "recommend_gold_strong_downtrend": "أسعار الذهب في اتجاه هابط قوي. قد يكون من الأفضل انتظار استقرار السوق قبل زيادة الاستثمار في الذهب.",
   "action_gold_certificate": "استثمر {gold_amount} جنيه في الذهب و {certificate_amount} جنيه في شهادة جديدة.",
   "action_gold_certificate_cash": "استثمر {gold_amount} جنيه في الذهب و {certificate_amount} جنيه في شهادة جديدة واحتفظ بـ {cash_amount} جنيه كسيولة نقدية.",
-  "recommend_high_foreign_currency_exposure": "جزء كبير من أصولك محتفظ به بعملات أجنبية. راجع ما إذا كان هذا التوزيع لا يزال مناسباً لأهدافك طويلة المدى."
+  "recommend_high_foreign_currency_exposure": "جزء كبير من أصولك محتفظ به بعملات أجنبية. راجع ما إذا كان هذا التوزيع لا يزال مناسباً لأهدافك طويلة المدى.",
+  "recommend_excess_cash": "لديك سيولة نقدية أعلى من احتياج صندوق الطوارئ. يمكن دراسة توجيه جزء منها إلى استثمارات أو أصول أكثر إنتاجية.",
+  "recommend_low_emergency_fund": "صندوق الطوارئ لديك أقل من المستوى الموصى به. يُفضل زيادة الاحتياطي النقدي قبل التوسع في استثمارات جديدة.",
+  "monthly_expenses": "متوسط المصروفات الشهرية",
+  "cash_coverage": "مدة تغطية النقد",
+  "months": "شهر",
+  "recommend_maturity_very_soon": "يوجد شهادة ستستحق بعد {days_left} يوم.",
+  "recommend_maturity_soon": "يوجد شهادة ستستحق بعد {days_left} يوم.",
+  "certificate_mature_singular": "تستحق شهادة خلال {days_left} يوم.",
+  "certificate_mature_plural": "تستحق شهادة خلال {days_left} يومًا."
 }

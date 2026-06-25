@@ -2675,6 +2675,7 @@ class CertificateForecastView(View):
             else:
                 cash_balance += float(b.amount)
         upcoming.sort(key=lambda x: x["days_left"])
+        nearest_maturity = upcoming[0]["days_left"] if upcoming else None
         total_certificates = sum(float(c.amount) for c in certs)
         from core.models import BalanceEntry as Balance
 
@@ -2715,12 +2716,41 @@ class CertificateForecastView(View):
         
         cash_pct = cash_egp / total_portfolio * 100 if total_portfolio else 0
         cert_pct = total_certificates / total_portfolio * 100 if total_portfolio else 0
+        from django.db.models import Sum
+        from datetime import timedelta
+
+        last_90_days = today - timedelta(days=90)
+
+        expenses = Expense.objects.filter(date__gte=last_90_days)
+
+        total_expenses = float(
+            expenses.aggregate(total=Sum("amount"))["total"] or 0
+        )
+
+        months_with_expenses = len(
+            set(
+                expenses.values_list("year", "month")
+            )
+        )
+
+        avg_monthly_expenses = (
+            total_expenses / months_with_expenses
+            if months_with_expenses > 0
+            else 0
+        )
+
         monthly_certificate_income = sum(float(c.interest_value) for c in certs)
         latest_salary = (
             SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
         )
         monthly_salary = float(latest_salary.paid) if latest_salary else 0
         total_monthly_income = monthly_salary + monthly_certificate_income
+        cash_coverage_months = (
+            cash_balance / avg_monthly_expenses
+            if avg_monthly_expenses > 0
+            else None
+        )
+
         certificate_income_ratio = (
             (monthly_certificate_income / total_monthly_income) * 100
             if total_monthly_income > 0
@@ -2732,8 +2762,19 @@ class CertificateForecastView(View):
             financial_recommendations.append("recommend_idle_cash")
         if cert_pct > 70:
             financial_recommendations.append("recommend_certificate_concentration")
-        if forecast_30 > 500000:
-            investment_recommendations.append("recommend_large_maturity_30")
+        if nearest_maturity is not None:
+
+            if nearest_maturity <= 7:
+                investment_recommendations.append({
+                    "key": "recommend_maturity_very_soon",
+                    "days_left": nearest_maturity,
+                })
+
+            elif nearest_maturity <= 30:
+                investment_recommendations.append({
+                    "key": "recommend_maturity_soon",
+                    "days_left": nearest_maturity,
+                })
         if forecast_90 > forecast_30 * 2:
             investment_recommendations.append("recommend_large_maturity_90")
         liquidity_ratio = (forecast_30 / forecast_180) * 100 if forecast_180 > 0 else 0
@@ -2757,7 +2798,7 @@ class CertificateForecastView(View):
                 grams = float(g.amount)
                 gold_grams += grams
                 gold_value += grams * (gold_price + 28.5)
-                
+
         from core.models import GoldPriceHistory
 
         gold_trend_pct = 0
@@ -2810,12 +2851,31 @@ class CertificateForecastView(View):
             latest = float(gold_history.first().carat_21k)
             old_365 = float(gold_history[249].carat_21k)
             gold_trend_365 = ((latest - old_365) / old_365) * 100
+
         if cash_ratio > 60:
             financial_recommendations.append("recommend_high_cash_position")
+
         if foreign_currency_ratio > 40:
             financial_recommendations.append("recommend_high_foreign_currency_exposure")
+
+        if cash_coverage_months is not None:
+
+            if cash_coverage_months < 3:
+                financial_recommendations.append(
+                    "recommend_low_emergency_fund"
+                )
+
+            elif (
+                cash_coverage_months > 12
+                and cash_ratio > 25
+            ):
+                financial_recommendations.append(
+                    "recommend_excess_cash"
+                )
+
         if gold_trend_30 > 15:
             investment_recommendations.append("recommend_gold_strong_uptrend")
+
         elif gold_trend_30 > 5:
             investment_recommendations.append("recommend_gold_uptrend")
         elif gold_trend_30 < -15:
@@ -2826,8 +2886,7 @@ class CertificateForecastView(View):
             investment_recommendations.append("recommend_gold_neutral")
         if certificate_ratio < 20:
             financial_recommendations.append("recommend_low_certificate_allocation")
-        if forecast_30 > 0:
-            investment_recommendations.append("recommend_maturity_30_days")
+
         if not financial_recommendations:
             financial_recommendations.append("recommend_asset_allocation_balanced")
         action_plan = ""
@@ -2840,7 +2899,10 @@ class CertificateForecastView(View):
             )
             if income_loss_ratio > 20:
                 action_plan = {"key": "action_renew_certificate"}
-            elif certificate_ratio > 70:
+            elif (
+                certificate_ratio > 45
+                or certificate_income_ratio > 30
+            ):
                 if gold_trend_365 > 15 and gold_trend_30 < -10:
                     gold_amount = round(available_capital * 0.40, 0)
                     certificate_amount = round(available_capital * 0.30, 0)
@@ -2894,6 +2956,7 @@ class CertificateForecastView(View):
                     "gold_amount": gold_amount,
                     "certificate_amount": certificate_amount,
                 }
+        
         return JsonResponse(
             {
                 "cash_balance": cash_balance,
@@ -2922,5 +2985,7 @@ class CertificateForecastView(View):
                 "gold_trend_30": round(gold_trend_30, 2),
                 "gold_trend_90": round(gold_trend_90, 2),
                 "gold_trend_365": round(gold_trend_365, 2),
+                "avg_monthly_expenses": round(avg_monthly_expenses, 2),
+                "cash_coverage_months": round(cash_coverage_months, 1),
             }
         )

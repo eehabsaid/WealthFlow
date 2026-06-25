@@ -44,9 +44,7 @@ function applyTranslations() {
 
   // 2. Dynamic Key Framework (Covers Recommendations, Actions, Dynamic Badges)
   document.querySelectorAll("[data-i18n-key]").forEach((el) => {
-
     const key = el.getAttribute("data-i18n-key");
-
     if (!key || !_t[key]) return;
 
     let text = _t[key];
@@ -54,6 +52,7 @@ function applyTranslations() {
     const goldAmount = el.getAttribute("data-gold-amount");
     const cashAmount = el.getAttribute("data-cash-amount");
     const certificateAmount = el.getAttribute("data-certificate-amount");
+    const daysLeft = el.getAttribute("data-days-left"); // Captured dynamically from elements
 
     if (goldAmount !== null) {
         text = text.replace(
@@ -73,6 +72,13 @@ function applyTranslations() {
         text = text.replace(
             "{certificate_amount}",
             fmtpresent(certificateAmount)
+        );
+    }
+
+    if (daysLeft !== null) {
+        text = text.replace(
+            "{days_left}",
+            daysLeft
         );
     }
 

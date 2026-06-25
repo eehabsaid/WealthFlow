@@ -505,5 +505,14 @@
   "recommend_gold_strong_downtrend": "Gold prices show a strong downward trend. Waiting for stabilization before increasing exposure may be prudent.",
   "action_gold_certificate": "Invest {gold_amount} EGP in gold and {certificate_amount} EGP in a new certificate.",
   "action_gold_certificate_cash": "Invest {gold_amount} EGP in gold, {certificate_amount} EGP in a new certificate and keep {cash_amount} EGP as cash reserve.",
-  "recommend_high_foreign_currency_exposure": "A large portion of your assets is held in foreign currencies. Review whether this allocation still matches your long-term goals."
+  "recommend_high_foreign_currency_exposure": "A large portion of your assets is held in foreign currencies. Review whether this allocation still matches your long-term goals.",
+  "recommend_excess_cash": "You hold more cash than needed for your emergency fund. Consider reallocating part of it into investments or other productive assets.",
+  "recommend_low_emergency_fund": "Your emergency fund is below the recommended level. Consider increasing your liquid cash reserves before making new investments.",
+  "monthly_expenses": "Monthly Expenses",
+  "cash_coverage": "Cash Coverage",
+  "months": "Months",
+  "recommend_maturity_very_soon": "A certificate will mature in {days_left} days.",
+  "recommend_maturity_soon": "A certificate will mature in {days_left} days.",
+  "certificate_mature_singular": "A certificate will mature in {days_left} day.",
+  "certificate_mature_plural": "A certificate will mature in {days_left} days."
 }

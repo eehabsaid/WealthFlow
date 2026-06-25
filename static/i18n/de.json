@@ -505,5 +505,14 @@
   "recommend_gold_strong_downtrend": "Die Goldpreise zeigen einen starken Abwärtstrend. Es könnte sinnvoll sein, auf eine Stabilisierung zu warten.",
   "action_gold_certificate": "Investieren Sie {gold_amount} EGP in Gold und {certificate_amount} EGP in ein neues Zertifikat.",
   "action_gold_certificate_cash": "Investieren Sie {gold_amount} EGP in Gold, {certificate_amount} EGP in ein neues Zertifikat und behalten Sie {cash_amount} EGP als Barreserve.",
-  "recommend_high_foreign_currency_exposure": "Ein großer Teil Ihres Vermögens wird in Fremdwährungen gehalten. Prüfen Sie, ob diese Aufteilung weiterhin zu Ihren langfristigen Zielen passt."
+  "recommend_high_foreign_currency_exposure": "Ein großer Teil Ihres Vermögens wird in Fremdwährungen gehalten. Prüfen Sie, ob diese Aufteilung weiterhin zu Ihren langfristigen Zielen passt.",
+  "recommend_excess_cash": "Sie halten mehr Bargeld als für Ihren Notfallfonds erforderlich. Erwägen Sie, einen Teil davon in Investitionen oder andere produktive Vermögenswerte umzuschichten.",
+  "recommend_low_emergency_fund": "Ihr Notfallfonds liegt unter dem empfohlenen Niveau. Erwägen Sie, Ihre liquiden Reserven zu erhöhen, bevor Sie neue Investitionen tätigen.",
+  "monthly_expenses": "Monatliche Ausgaben",
+  "cash_coverage": "Liquiditätsdeckung",
+  "months": "Monate",
+  "recommend_maturity_very_soon": "Eine Anlage wird in {days_left} Tagen fällig.",
+  "recommend_maturity_soon": "Eine Anlage wird in {days_left} Tagen fällig.",
+  "certificate_mature_singular": "Zertifikat wird in {days_left} Tag fällig.",
+  "certificate_mature_plural": "Zertifikat wird in {days_left} Tagen fällig."
 }

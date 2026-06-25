@@ -505,5 +505,14 @@
   "recommend_gold_strong_downtrend": "Les prix de l'or affichent une forte tendance baissière. Attendre une stabilisation peut être judicieux.",
   "action_gold_certificate": "Investissez {gold_amount} EGP dans l'or et {certificate_amount} EGP dans un nouveau certificat.",
   "action_gold_certificate_cash": "Investissez {gold_amount} EGP dans l'or, {certificate_amount} EGP dans un nouveau certificat et conservez {cash_amount} EGP en réserve de trésorerie.",
-  "recommend_high_foreign_currency_exposure": "Une grande partie de vos actifs est détenue en devises étrangères. Vérifiez si cette allocation correspond toujours à vos objectifs à long terme."
+  "recommend_high_foreign_currency_exposure": "Une grande partie de vos actifs est détenue en devises étrangères. Vérifiez si cette allocation correspond toujours à vos objectifs à long terme.",
+  "recommend_excess_cash": "Vous détenez plus de liquidités que nécessaire pour votre fonds d'urgence. Envisagez de réaffecter une partie de cette trésorerie vers des investissements ou d'autres actifs productifs.",
+  "recommend_low_emergency_fund": "Votre fonds d'urgence est inférieur au niveau recommandé. Envisagez d'augmenter vos réserves de liquidités avant de réaliser de nouveaux investissements.",
+  "monthly_expenses": "Dépenses mensuelles",
+  "cash_coverage": "Couverture de trésorerie",
+  "months": "Mois",
+  "recommend_maturity_very_soon": "Un certificat arrivera à échéance dans {days_left} jours.",
+  "recommend_maturity_soon": "Un certificat arrivera à échéance dans {days_left} jours.",
+  "certificate_mature_singular": "تستحق شهادة خلال {days_left} يوم.",
+  "certificate_mature_plural": "تستحق شهادة خلال {days_left} يومًا."
 }
