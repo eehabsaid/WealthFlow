@@ -19,6 +19,7 @@ async function renderBalance() {
     const goldData = await goldRes.json();
     const forecastData = await forecastRes.json();
     const entries = bData.entries;
+    window.entries = entries;
     _banks = bankData.banks;
     _currencies = currData.currencies || [];
 
@@ -29,6 +30,13 @@ async function renderBalance() {
     });
 
     const totalEGP = totals.EGP || 0;
+    const certificateEGP =
+    entries
+        .filter(x => x.balance_type === "certificate")
+        .reduce((sum, x) => sum + Number(x.amount), 0);
+
+    const cashEGP =
+        totalEGP - certificateEGP;
 
     const getRate = (code) => {
         const rate = (ratesData.rates || []).find((r) => r.currency_code === code);
@@ -47,7 +55,13 @@ async function renderBalance() {
     const gold24kSell = goldData.gold ? Number(goldData.gold.carat_24k) : 0;
     const goldValue = goldGrams > 0 ? goldGrams * (gold24kSell + 28.5) : 0;
 
-    const grandTotal = totalEGP + usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate + goldValue;
+    const grandTotal =
+        cashEGP +
+        certificateEGP +
+        usdAmount * usdRate +
+        eurAmount * eurRate +
+        sarAmount * sarRate +
+        goldValue;
 
     const currencyCards = _currencies
         .map((cur) => `<div class="col-6 col-md-4 col-lg-2"><div class="currency-card"><div class="cur-flag">${cur.flag || "💱"}</div><div class="cur-code" data-i18n="${cur.code}">${cur.code}</div><div class="cur-amount num-fmt" data-value="${totals[cur.code] || 0}">${fmt(totals[cur.code] || 0)}</div></div></div>`)
@@ -72,7 +86,6 @@ async function renderBalance() {
         </tr>`,
         )
         .join("");
-
     mc.innerHTML = `
         <div class="page-header"><div><div class="page-title" data-i18n="nav_balance">Balance</div></div></div>
         <div class="row g-3 mb-4">${currencyCards}</div>
@@ -168,12 +181,11 @@ async function renderBalance() {
                 </table>
             </div>` : ""
         }
-
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="asset_allocation">Asset Allocation</div>
             ${renderAllocationBar("cash", forecastData.cash_balance || 0, grandTotal)}
-            ${renderAllocationBar("foreignCurrency", usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate, grandTotal)}
-            ${renderAllocationBar("certificates",forecastData.certificate_balance || 0,grandTotal)}
+            ${renderAllocationBar("foreignCurrency", (forecastData.foreign_currency_ratio / 100) * grandTotal, grandTotal)}
+            ${renderAllocationBar("certificates", forecastData.certificate_balance || 0, grandTotal)}
             ${renderAllocationBar("gold", goldValue, grandTotal)}
         </div>
 

@@ -503,5 +503,7 @@
   "recommend_gold_neutral": "Gold allocation is low. Consider increasing gold exposure if it matches your long-term strategy.",
   "recommend_gold_strong_uptrend": "Gold prices show a strong upward trend. Increasing gold exposure may help protect purchasing power.",
   "recommend_gold_strong_downtrend": "Gold prices show a strong downward trend. Waiting for stabilization before increasing exposure may be prudent.",
-  "action_gold_certificate": "Invest {gold_amount} EGP in gold and {certificate_amount} EGP in a new certificate."
+  "action_gold_certificate": "Invest {gold_amount} EGP in gold and {certificate_amount} EGP in a new certificate.",
+  "action_gold_certificate_cash": "Invest {gold_amount} EGP in gold, {certificate_amount} EGP in a new certificate and keep {cash_amount} EGP as cash reserve.",
+  "recommend_high_foreign_currency_exposure": "A large portion of your assets is held in foreign currencies. Review whether this allocation still matches your long-term goals."
 }

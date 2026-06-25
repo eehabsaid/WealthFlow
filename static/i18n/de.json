@@ -503,5 +503,7 @@
   "recommend_gold_neutral": "Der Goldanteil ist niedrig. Erwägen Sie eine Erhöhung, wenn dies zu Ihrer langfristigen Strategie passt.",
   "recommend_gold_strong_uptrend": "Die Goldpreise zeigen einen starken Aufwärtstrend. Eine Erhöhung des Goldanteils könnte sinnvoll sein.",
   "recommend_gold_strong_downtrend": "Die Goldpreise zeigen einen starken Abwärtstrend. Es könnte sinnvoll sein, auf eine Stabilisierung zu warten.",
-  "action_gold_certificate": "Investieren Sie {gold_amount} EGP in Gold und {certificate_amount} EGP in ein neues Zertifikat."
+  "action_gold_certificate": "Investieren Sie {gold_amount} EGP in Gold und {certificate_amount} EGP in ein neues Zertifikat.",
+  "action_gold_certificate_cash": "Investieren Sie {gold_amount} EGP in Gold, {certificate_amount} EGP in ein neues Zertifikat und behalten Sie {cash_amount} EGP als Barreserve.",
+  "recommend_high_foreign_currency_exposure": "Ein großer Teil Ihres Vermögens wird in Fremdwährungen gehalten. Prüfen Sie, ob diese Aufteilung weiterhin zu Ihren langfristigen Zielen passt."
 }
