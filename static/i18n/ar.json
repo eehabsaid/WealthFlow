@@ -457,6 +457,7 @@
   "type_cash": "💵 نقدي",
   "type_bank": "🏦 حساب بنكي",
   "type_certificate": "📜 شهادة ادخار",
+  "type_gold": "🪙 ذهب",
   "select_type": "— اختر النوع —",
   "freq_monthly": "شهري",
   "freq_quarterly": "ربع سنوي",

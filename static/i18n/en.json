@@ -457,6 +457,7 @@
   "type_cash": "💵 Cash",
   "type_bank": "🏦 Bank Account",
   "type_certificate": "📜 Certificate",
+  "type_gold": "🪙 Gold",
   "select_type": "— Select Type —",
   "freq_monthly": "Monthly",
   "freq_quarterly": "Quarterly",

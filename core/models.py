@@ -267,14 +267,18 @@ class Currency(models.Model):
 
 class BalanceEntry(models.Model):
     title = models.CharField(max_length=200)
+    
+    # Clean, scalable choice definition
+    class BalanceType(models.TextChoices):
+        CASH = "cash", "Cash"
+        BANK = "bank", "Bank Account"
+        GOLD = "gold", "Gold"  # Matches frontend value="gold"
+        CERTIFICATE = "certificate", "Certificate"
+
     balance_type = models.CharField(
-    max_length=20,
-    choices=[
-        ("cash", "Cash"),
-        ("certificate", "Certificate"),
-        ("investment", "Investment"),
-    ],
-    default="cash"
+        max_length=20,
+        choices=BalanceType.choices,
+        default=BalanceType.CASH
     )
     bank = models.ForeignKey(Bank, on_delete=models.SET_NULL, null=True, blank=True)
     currency = models.ForeignKey(

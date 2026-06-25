@@ -200,10 +200,11 @@ async function showBalanceModal(entryId) {
     const curOpts = _currencies.map((c) => `<option value="${c.id}" ${entry && entry.currency_id === c.id ? "selected" : ""}>${c.flag} ${c.code} - ${c.name}</option>`).join("");
 
     const typeOpts = `
-        <option value="cash" data-i18n="type_cash" ${entry && entry.balance_type === "cash" ? "selected" : ""}>💵 Cash</option>
-        <option value="bank" data-i18n="type_bank" ${entry && entry.balance_type === "bank" ? "selected" : ""}>🏦 Bank Account</option>
-        <option value="certificate" data-i18n="type_certificate" ${entry && entry.balance_type === "certificate" ? "selected" : ""}>📜 Certificate</option>
-    `;
+            <option value="cash" data-i18n="type_cash" ${entry && entry.balance_type === "cash" ? "selected" : ""}>💵 Cash</option>
+            <option value="bank" data-i18n="type_bank" ${entry && entry.balance_type === "bank" ? "selected" : ""}>🏦 Bank Account</option>
+            <option value="gold" data-i18n="type_gold" ${entry && entry.balance_type === "gold" ? "selected" : ""}>🪙 Gold</option>
+            <option value="certificate" data-i18n="type_certificate" ${entry && entry.balance_type === "certificate" ? "selected" : ""}>📜 Certificate</option>
+        `;
 
     const html = `
         <div class="modal-header"><h5 class="modal-title" data-i18n="${entry ? "title_edit_balance" : "title_add_balance"}">${entry ? "Edit Balance Entry" : "Add Balance Entry"}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>

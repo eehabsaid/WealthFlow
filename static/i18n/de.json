@@ -462,6 +462,7 @@
   "select_frequency": "— Häufigkeit auswählen —",
   "type_cash": "💵 Barbestand",
   "type_bank": "🏦 Bankkonto",
+  "type_gold": "🪙 Gold",
   "type_certificate": "📜 Sparzertifikat",
   "select_type": "— Typ auswählen —",
   "balance_formula_desc": "= EGP + (USD × Kurs) + (EUR × Kurs) + (SAR × Kurs) + (Gold × 24K Verkaufspreis + 28.5)",

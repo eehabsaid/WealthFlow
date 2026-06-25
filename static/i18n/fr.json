@@ -463,6 +463,7 @@
   "type_cash": "💵 Espèces",
   "type_bank": "🏦 Compte bancaire",
   "type_certificate": "📜 Certificat de dépôt",
+  "type_gold": "🪙 Or",
   "select_type": "— Sélectionner le type —",
   "balance_formula_desc": "= EGP + (USD × taux) + (EUR × taux) + (SAR × taux) + (Or × prix de vente 24K + 28.5)",
   "financial_recommendations": "Recommandations financières",
