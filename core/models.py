@@ -4,6 +4,26 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 
+ASSET_TYPES = [
+    ("Apartment", "Apartment"),
+    ("Villa", "Villa"),
+    ("Land", "Land"),
+    ("Shop", "Shop"),
+    ("Office", "Office"),
+    ("Car", "Car"),
+    ("Other", "Other"),
+]
+
+ASSET_STATUS = [
+    ("Owned", "Owned"),
+    ("Sold", "Sold"),
+]
+
+VALUATION_SOURCE = [
+    ("Manual", "Manual"),
+    ("Automatic", "Automatic"),
+]
+
 PAGE_PERMISSION_CHOICES = [
     ("dashboard", "Dashboard"),
     ("companies", "Companies"),
@@ -773,3 +793,432 @@ class ReminderLog(models.Model):
             "fired_on": self.fired_on.isoformat(),
             "message": self.message,
         }
+    
+class FixedAsset(models.Model):
+    name = models.CharField(max_length=200)
+
+    asset_type = models.CharField(
+        max_length=30,
+        choices=ASSET_TYPES,
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=ASSET_STATUS,
+        default="Owned",
+    )
+
+    purchase_date = models.DateField()
+
+    purchase_price = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    purchase_usd_rate = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        default=0,
+    )
+
+    purchase_price_usd = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    current_market_value = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    valuation_source = models.CharField(
+        max_length=20,
+        choices=VALUATION_SOURCE,
+        default="Manual",
+    )
+
+    last_valuation_date = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    notes = models.TextField(
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["name"]
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "asset_type": self.asset_type,
+            "status": self.status,
+            "purchase_date": (
+                self.purchase_date.isoformat()
+                if self.purchase_date
+                else ""
+            ),
+            "purchase_price": float(self.purchase_price),
+            "purchase_usd_rate": float(self.purchase_usd_rate),
+            "purchase_price_usd": float(self.purchase_price_usd),
+            "current_market_value": float(self.current_market_value),
+            "valuation_source": self.valuation_source,
+            "last_valuation_date": (
+                self.last_valuation_date.isoformat()
+                if self.last_valuation_date
+                else ""
+            ),
+            "notes": self.notes,
+
+            # Related Models
+            "real_estate": (
+                self.real_estate.to_dict()
+                if hasattr(self, "real_estate")
+                else None
+            ),
+
+            "renovations": [
+                item.to_dict()
+                for item in self.renovations.all()
+            ],
+
+            "furniture": [
+                item.to_dict()
+                for item in self.furniture.all()
+            ],
+
+            "valuation_history": [
+                item.to_dict()
+                for item in self.valuation_history.all()
+            ],
+
+            "sale": (
+                self.sale.to_dict()
+                if hasattr(self, "sale")
+                else None
+            ),
+        }
+
+    def __str__(self):
+        return self.name
+        
+class RealEstateDetails(models.Model):
+    asset = models.OneToOneField(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="real_estate",
+    )
+
+    country = models.CharField(max_length=100, default="Egypt")
+    governorate = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    district = models.CharField(max_length=100, blank=True)
+    full_address = models.TextField(blank=True)
+
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+
+    area_m2 = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    bedrooms = models.PositiveSmallIntegerField(default=0)
+    bathrooms = models.PositiveSmallIntegerField(default=0)
+
+    floor_number = models.PositiveSmallIntegerField(default=0)
+    building_floors = models.PositiveSmallIntegerField(default=0)
+
+    build_year = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    has_elevator = models.BooleanField(default=False)
+    has_garage = models.BooleanField(default=False)
+    has_gas = models.BooleanField(default=False)
+
+    electricity_meter_private = models.BooleanField(default=True)
+    water_meter_private = models.BooleanField(default=False)
+
+    has_land_share = models.BooleanField(default=False)
+    land_share_ratio = models.CharField(max_length=50, blank=True)
+
+    facing = models.CharField(max_length=100, blank=True)
+
+    finishing_level = models.CharField(max_length=100, blank=True)
+
+    furnished_status = models.CharField(
+        max_length=50,
+        choices=[
+            ("Unfurnished", "Unfurnished"),
+            ("Semi Furnished", "Semi Furnished"),
+            ("Fully Furnished", "Fully Furnished"),
+        ],
+        default="Unfurnished",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def to_dict(self):
+        return {
+            "asset_id": self.asset_id,
+            "area_sqm": float(self.area_sqm),
+            "bedrooms": self.bedrooms,
+            "bathrooms": self.bathrooms,
+            "floor_number": self.floor_number,
+            "building_floors": self.building_floors,
+            "has_elevator": self.has_elevator,
+            "licensed": self.licensed,
+            "construction_year": self.construction_year,
+            "land_share_sqm": float(self.land_share_sqm),
+            "address": self.address,
+            "city": self.city,
+            "country": self.country,
+            "notes": self.notes,
+        }
+
+    def __str__(self):
+        return f"{self.asset.name} Details"
+
+class AssetRenovation(models.Model):
+    asset = models.ForeignKey(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="renovations",
+    )
+
+    date = models.DateField()
+
+    category = models.CharField(
+        max_length=100,
+    )
+
+    description = models.CharField(
+        max_length=300,
+        blank=True,
+    )
+
+    amount_egp = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+    )
+
+    usd_rate = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        default=0,
+    )
+
+    amount_usd = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    notes = models.TextField(
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["date", "id"]
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "asset_id": self.asset_id,
+            "date": self.date.isoformat() if self.date else "",
+            "category": self.category,
+            "description": self.description,
+            "amount_egp": float(self.amount_egp),
+            "usd_rate": float(self.usd_rate),
+            "amount_usd": float(self.amount_usd),
+            "notes": self.notes,
+        }
+    
+    def __str__(self):
+        return f"{self.asset.name} - {self.category}"
+
+class AssetFurniture(models.Model):
+    asset = models.ForeignKey(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="furniture",
+    )
+
+    name = models.CharField(max_length=200)
+
+    category = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    purchase_date = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    amount_egp = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+    )
+
+    usd_rate = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        default=0,
+    )
+
+    amount_usd = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    quantity = models.PositiveIntegerField(default=1)
+
+    notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "asset_id": self.asset_id,
+            "name": self.name,
+            "category": self.category,
+            "purchase_date": (
+                self.purchase_date.isoformat()
+                if self.purchase_date
+                else ""
+            ),
+            "amount_egp": float(self.amount_egp),
+            "usd_rate": float(self.usd_rate),
+            "amount_usd": float(self.amount_usd),
+            "quantity": self.quantity,
+            "notes": self.notes,
+        }
+
+    def __str__(self):
+        return f"{self.asset.name} - {self.name}"
+
+class AssetValuationHistory(models.Model):
+    asset = models.ForeignKey(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="valuation_history",
+    )
+
+    valuation_date = models.DateField()
+
+    market_value = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+    )
+
+    valuation_source = models.CharField(
+        max_length=20,
+        choices=VALUATION_SOURCE,
+        default="Manual",
+    )
+
+    notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-valuation_date", "-id"]
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "asset_id": self.asset_id,
+            "valuation_date": (
+                self.valuation_date.isoformat()
+                if self.valuation_date
+                else ""
+            ),
+            "market_value": float(self.market_value),
+            "valuation_source": self.valuation_source,
+            "notes": self.notes,
+        }
+
+    def __str__(self):
+        return f"{self.asset.name} - {self.valuation_date}"
+
+class AssetSale(models.Model):
+    asset = models.OneToOneField(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="sale",
+    )
+
+    sale_date = models.DateField()
+
+    sale_price = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+    )
+
+    selling_expenses = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    net_sale_amount = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+    )
+
+    deposit_balance = models.ForeignKey(
+        "BalanceEntry",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="asset_sales",
+    )
+
+    notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "asset_id": self.asset_id,
+            "sale_date": (
+                self.sale_date.isoformat()
+                if self.sale_date
+                else ""
+            ),
+            "sale_price": float(self.sale_price),
+            "selling_expenses": float(self.selling_expenses),
+            "net_sale_amount": float(self.net_sale_amount),
+            "deposit_balance_id": self.deposit_balance_id,
+            "notes": self.notes,
+        }
+
+    def __str__(self):
+        return f"{self.asset.name} Sold"

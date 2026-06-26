@@ -31,6 +31,13 @@ from .models import (
     ReminderLog,
     REMINDER_TYPE_CHOICES,
     SALARY_TRIGGER_CHOICES,
+    FixedAsset,
+    RealEstateDetails,
+    AssetRenovation,
+    AssetFurniture,
+    AssetValuationHistory,
+    AssetSale,
+
 )
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
@@ -2988,4 +2995,333 @@ class CertificateForecastView(View):
                 "avg_monthly_expenses": round(avg_monthly_expenses, 2),
                 "cash_coverage_months": round(cash_coverage_months, 1),
             }
+        )
+
+# ============================================================
+# Fixed Assets APIs
+# ============================================================
+
+@method_decorator(csrf_exempt, name="dispatch")
+class FixedAssetListView(View):
+
+    def get(self, request):
+        qs = FixedAsset.objects.all().order_by("name")
+
+        asset_type = request.GET.get("asset_type")
+        status = request.GET.get("status")
+
+        if asset_type:
+            qs = qs.filter(asset_type=asset_type)
+
+        if status:
+            qs = qs.filter(status=status)
+
+        return JsonResponse(
+            {
+                "assets": [a.to_dict() for a in qs]
+            }
+        )
+
+    def post(self, request):
+        data = json.loads(request.body)
+
+        asset = FixedAsset.objects.create(
+            name=data["name"],
+            asset_type=data["asset_type"],
+            status=data.get("status", "Owned"),
+            purchase_date=data["purchase_date"],
+            purchase_price=data.get("purchase_price", 0),
+            purchase_usd_rate=data.get("purchase_usd_rate", 0),
+            purchase_price_usd=data.get("purchase_price_usd", 0),
+            current_market_value=data.get("current_market_value", 0),
+            valuation_source=data.get("valuation_source", "Manual"),
+            last_valuation_date=data.get("last_valuation_date") or None,
+            notes=data.get("notes", ""),
+        )
+
+        return JsonResponse(asset.to_dict(), status=201)
+    
+@method_decorator(csrf_exempt, name="dispatch")
+class FixedAssetDetailView(View):
+
+    def put(self, request, pk):
+        asset = get_object_or_404(FixedAsset, pk=pk)
+
+        data = json.loads(request.body)
+
+        fields = [
+            "name",
+            "asset_type",
+            "status",
+            "purchase_date",
+            "purchase_price",
+            "purchase_usd_rate",
+            "purchase_price_usd",
+            "current_market_value",
+            "valuation_source",
+            "last_valuation_date",
+            "notes",
+        ]
+
+        for field in fields:
+            if field in data:
+                setattr(asset, field, data[field])
+
+        asset.save()
+
+        return JsonResponse(asset.to_dict())
+
+    def delete(self, request, pk):
+        asset = get_object_or_404(FixedAsset, pk=pk)
+        asset.delete()
+
+        return JsonResponse({"deleted": pk})
+    
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetRenovationListView(View):
+
+    def get(self, request):
+        asset_id = request.GET.get("asset")
+
+        qs = AssetRenovation.objects.all().order_by("date", "id")
+
+        if asset_id:
+            qs = qs.filter(asset_id=asset_id)
+
+        return JsonResponse({
+            "renovations": [r.to_dict() for r in qs]
+        })
+
+    def post(self, request):
+        data = json.loads(request.body)
+
+        item = AssetRenovation.objects.create(
+            asset_id=data["asset_id"],
+            date=data["date"],
+            category=data["category"],
+            description=data.get("description", ""),
+            amount_egp=data.get("amount_egp", 0),
+            usd_rate=data.get("usd_rate", 0),
+            amount_usd=data.get("amount_usd", 0),
+            notes=data.get("notes", ""),
+        )
+
+        return JsonResponse(item.to_dict(), status=201)
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetRenovationDetailView(View):
+
+    def put(self, request, pk):
+        item = get_object_or_404(AssetRenovation, pk=pk)
+
+        data = json.loads(request.body)
+
+        fields = [
+            "date",
+            "category",
+            "description",
+            "amount_egp",
+            "usd_rate",
+            "amount_usd",
+            "notes",
+        ]
+
+        for field in fields:
+            if field in data:
+                setattr(item, field, data[field])
+
+        item.save()
+
+        return JsonResponse(item.to_dict())
+
+    def delete(self, request, pk):
+        item = get_object_or_404(AssetRenovation, pk=pk)
+        item.delete()
+
+        return JsonResponse({"deleted": pk})
+    
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetFurnitureListView(View):
+
+    def get(self, request):
+        asset_id = request.GET.get("asset")
+
+        qs = AssetFurniture.objects.all().order_by("name")
+
+        if asset_id:
+            qs = qs.filter(asset_id=asset_id)
+
+        return JsonResponse({
+            "furniture": [f.to_dict() for f in qs]
+        })
+
+    def post(self, request):
+        data = json.loads(request.body)
+
+        item = AssetFurniture.objects.create(
+            asset_id=data["asset_id"],
+            name=data["name"],
+            category=data.get("category", ""),
+            purchase_date=data.get("purchase_date") or None,
+            amount_egp=data.get("amount_egp", 0),
+            usd_rate=data.get("usd_rate", 0),
+            amount_usd=data.get("amount_usd", 0),
+            quantity=data.get("quantity", 1),
+            notes=data.get("notes", ""),
+        )
+
+        return JsonResponse(item.to_dict(), status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetFurnitureDetailView(View):
+
+    def put(self, request, pk):
+        item = get_object_or_404(AssetFurniture, pk=pk)
+
+        data = json.loads(request.body)
+
+        fields = [
+            "name",
+            "category",
+            "purchase_date",
+            "amount_egp",
+            "usd_rate",
+            "amount_usd",
+            "quantity",
+            "notes",
+        ]
+
+        for field in fields:
+            if field in data:
+                setattr(item, field, data[field])
+
+        item.save()
+
+        return JsonResponse(item.to_dict())
+
+    def delete(self, request, pk):
+        item = get_object_or_404(AssetFurniture, pk=pk)
+        item.delete()
+
+        return JsonResponse({"deleted": pk})
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetValuationHistoryListView(View):
+
+    def get(self, request):
+        asset_id = request.GET.get("asset")
+
+        qs = AssetValuationHistory.objects.all().order_by(
+            "-valuation_date",
+            "-id",
+        )
+
+        if asset_id:
+            qs = qs.filter(asset_id=asset_id)
+
+        return JsonResponse({
+            "valuation_history": [
+                v.to_dict() for v in qs
+            ]
+        })
+
+    def post(self, request):
+        data = json.loads(request.body)
+
+        item = AssetValuationHistory.objects.create(
+            asset_id=data["asset_id"],
+            valuation_date=data["valuation_date"],
+            market_value=data["market_value"],
+            valuation_source=data.get(
+                "valuation_source",
+                "Manual",
+            ),
+            notes=data.get("notes", ""),
+        )
+
+        asset = item.asset
+        asset.current_market_value = item.market_value
+        asset.last_valuation_date = item.valuation_date
+        asset.valuation_source = item.valuation_source
+        asset.save()
+
+        return JsonResponse(item.to_dict(), status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetValuationHistoryDetailView(View):
+
+    def put(self, request, pk):
+        item = get_object_or_404(
+            AssetValuationHistory,
+            pk=pk,
+        )
+
+        data = json.loads(request.body)
+
+        fields = [
+            "valuation_date",
+            "market_value",
+            "valuation_source",
+            "notes",
+        ]
+
+        for field in fields:
+            if field in data:
+                setattr(item, field, data[field])
+
+        item.save()
+
+        asset = item.asset
+        asset.current_market_value = item.market_value
+        asset.last_valuation_date = item.valuation_date
+        asset.valuation_source = item.valuation_source
+        asset.save()
+
+        return JsonResponse(item.to_dict())
+
+    def delete(self, request, pk):
+        item = get_object_or_404(
+            AssetValuationHistory,
+            pk=pk,
+        )
+        item.delete()
+
+        return JsonResponse({"deleted": pk})
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetSaleView(View):
+
+    def get(self, request, asset_id):
+        asset = get_object_or_404(FixedAsset, pk=asset_id)
+
+        if hasattr(asset, "sale"):
+            return JsonResponse(asset.sale.to_dict())
+
+        return JsonResponse({}, status=404)
+
+    def post(self, request, asset_id):
+        asset = get_object_or_404(FixedAsset, pk=asset_id)
+
+        data = json.loads(request.body)
+
+        sale, created = AssetSale.objects.update_or_create(
+            asset=asset,
+            defaults={
+                "sale_date": data["sale_date"],
+                "sale_price": data["sale_price"],
+                "selling_expenses": data.get("selling_expenses", 0),
+                "net_sale_amount": data["net_sale_amount"],
+                "deposit_balance_id": data.get("deposit_balance_id"),
+                "notes": data.get("notes", ""),
+            },
+        )
+
+        asset.status = "Sold"
+        asset.save()
+
+        return JsonResponse(
+            sale.to_dict(),
+            status=201 if created else 200,
         )

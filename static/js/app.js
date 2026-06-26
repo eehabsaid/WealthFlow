@@ -102,6 +102,10 @@ function renderSidebar() {
                 <i class="bi bi-file-earmark-text"></i>
                 <span data-i18n="nav_bank_certificates">Bank Certificates</span>
             </button>
+            <button class="nav-item" onclick="navigate('fixed-assets')">
+                <i class="bi bi-house-door"></i>
+                <span data-i18n="nav_fixed_assets">Fixed Assets</span>
+            </button>
             <button class="nav-item" onclick="navigate('exchange-rates')">
                 <i class="bi bi-currency-exchange"></i>
                 <span data-i18n="nav_exchange_rates">Exchange Rates</span>
@@ -282,6 +286,7 @@ const ROUTES = {
     'expense-categories': { key: 'nav_expenses_reports',  add: false, fn: () => renderExpenseCategories() },
     'reports':            { key: 'nav_expenses_reports',  add: false, fn: () => renderReports()       },
     'advanced-reports':   { key: 'nav_expenses_reports',  add: false, fn: () => renderAdvancedReports() },
+    'fixed-assets':       { key: 'nav_fixed_assets',      add: true,  fn: () => renderFixedAssets()    },
 };
 
 function route() {
@@ -327,6 +332,7 @@ function triggerAddEntry() {
     if (hash.startsWith('salary-'))       showSalaryModal(null, parseInt(hash.split('-')[1]));
     else if (hash === 'balance')          showBalanceModal(null);
     else if (hash === 'bank-certificates') showBankCertificateModal(null);
+    else if (hash === "fixed-assets") showFixedAssetModal();
     else if (hash === 'all-companies')    showCompanyModal(null);
 }
 
