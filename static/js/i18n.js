@@ -1,154 +1,149 @@
-// i18n.js — language engine
-let _t = {};
-let _lang = localStorage.getItem("lang") || "en";
+// i18n.js — Language engine (translation loading, applying, t() helper)
+
+'use strict';
+
+// ── Module state ──────────────────────────────────────────────────────────
+let _t    = {};
+let _lang = localStorage.getItem('lang') || 'en';
+
+// ════════════════════════════════════════════════════════════════════════════
+// LANGUAGE LOADING
+// ════════════════════════════════════════════════════════════════════════════
 
 async function loadLanguage(code) {
-  try {
-    const res = await fetch(`/static/i18n/${code}.json?v=${Date.now()}`);
-    if (!res.ok) throw new Error("Not found");
+    try {
+        const res = await fetch(`/static/i18n/${code}.json?v=${Date.now()}`);
+        if (!res.ok) throw new Error('Not found');
 
-    _t = await res.json();
-    _lang = code;
-    localStorage.setItem("lang", code);
+        _t    = await res.json();
+        _lang = code;
+        localStorage.setItem('lang', code);
 
-    // --- BULLETPROOF RTL LOGIC ---
-    // Extract value, normalize to string, compare to true-like values
-    const rtlVal = String(_t.__rtl || "").toLowerCase();
-    const isRTL = rtlVal === "true" || rtlVal === "1";
-    document.documentElement.setAttribute("dir", isRTL ? "rtl" : "ltr");
-    document.documentElement.lang = code;
-    // ----------------------------
+        // RTL detection — normalise to string before comparing
+        const rtlVal = String(_t.__rtl || '').toLowerCase();
+        const isRTL  = rtlVal === 'true' || rtlVal === '1';
+        document.documentElement.setAttribute('dir', isRTL ? 'rtl' : 'ltr');
+        document.documentElement.lang = code;
 
+        applyTranslations();
+
+        // Persist active language to server
+        await fetch('/api/settings/', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ key: 'active_language', value: code }),
+        });
+
+    } catch (e) {
+        console.warn('Language load failed:', e);
+    }
     applyTranslations();
-
-    await fetch("/api/settings/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: "active_language", value: code }),
-    });
-  } catch (e) {
-    console.warn("Language load failed:", e);
-  }
-  applyTranslations();
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// APPLY TRANSLATIONS
+// ════════════════════════════════════════════════════════════════════════════
 
 function applyTranslations() {
-  if (!_t) return; // Guard clause if translations dictionary isn't ready
-  const currentLang = document.documentElement.lang || "en";
+    if (!_t) return;
+    const lang = document.documentElement.lang || 'en';
 
-  // 1. Static Text Framework
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const key = el.getAttribute("data-i18n");
-    if (_t[key]) el.textContent = _t[key];
-  });
+    // 1. Static text — [data-i18n]
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (_t[key]) el.textContent = _t[key];
+    });
 
-  // 2. Dynamic Key Framework (Covers Recommendations, Actions, Dynamic Badges)
-  document.querySelectorAll("[data-i18n-key]").forEach((el) => {
-    const key = el.getAttribute("data-i18n-key");
-    if (!key || !_t[key]) return;
+    // 2. Dynamic keys with template placeholders — [data-i18n-key]
+    document.querySelectorAll('[data-i18n-key]').forEach(el => {
+        const key = el.getAttribute('data-i18n-key');
+        if (!key || !_t[key]) return;
 
-    let text = _t[key];
+        let text = _t[key];
 
-    const goldAmount = el.getAttribute("data-gold-amount");
-    const cashAmount = el.getAttribute("data-cash-amount");
-    const certificateAmount = el.getAttribute("data-certificate-amount");
-    const daysLeft = el.getAttribute("data-days-left"); // Captured dynamically from elements
+        const goldAmt  = el.getAttribute('data-gold-amount');
+        const cashAmt  = el.getAttribute('data-cash-amount');
+        const certAmt  = el.getAttribute('data-certificate-amount');
+        const daysLeft = el.getAttribute('data-days-left');
 
-    if (goldAmount !== null) {
-        text = text.replace(
-            "{gold_amount}",
-            fmtpresent(goldAmount)
-        );
-    }
+        if (goldAmt  !== null) text = text.replace('{gold_amount}',        fmtpresent(goldAmt));
+        if (cashAmt  !== null) text = text.replace('{cash_amount}',        fmtpresent(cashAmt));
+        if (certAmt  !== null) text = text.replace('{certificate_amount}', fmtpresent(certAmt));
+        if (daysLeft !== null) text = text.replace('{days_left}',          daysLeft);
 
-    if (cashAmount !== null) {
-        text = text.replace(
-            "{cash_amount}",
-            fmtpresent(cashAmount)
-        );
-    }
+        el.textContent = text;
+    });
 
-    if (certificateAmount !== null) {
-        text = text.replace(
-            "{certificate_amount}",
-            fmtpresent(certificateAmount)
-        );
-    }
+    // 3. Prefix-based keys — [data-i18n-prefix] + [data-i18n-value]
+    document.querySelectorAll('[data-i18n-prefix]').forEach(el => {
+        const prefix = el.getAttribute('data-i18n-prefix');
+        const raw    = el.getAttribute('data-i18n-value');
+        if (!raw) { el.textContent = '—'; return; }
+        const combined = `${prefix}${raw}`;
+        el.textContent = _t[combined]
+            || raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    });
 
-    if (daysLeft !== null) {
-        text = text.replace(
-            "{days_left}",
-            daysLeft
-        );
-    }
+    // 4. Attribute translators — placeholder and title
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (_t[key]) el.setAttribute('placeholder', _t[key]);
+    });
 
-    el.textContent = text;
-  });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (_t[key]) el.setAttribute('title', _t[key]);
+    });
 
-  // 3. Dynamic Prefix Framework (Covers Table Metadata: type_cash, freq_monthly, etc.)
-  document.querySelectorAll("[data-i18n-prefix]").forEach((el) => {
-    const prefix = el.getAttribute("data-i18n-prefix");
-    const rawVal = el.getAttribute("data-i18n-value");
-    if (!rawVal) { el.textContent = "—"; return; }
+    // 5. Date formatting — .local-date-field[data-expiry]
+    document.querySelectorAll('.local-date-field').forEach(td => {
+        const raw = td.getAttribute('data-expiry');
+        if (!raw) return;
+        const d = new Date(raw);
+        td.textContent = [
+            d.toLocaleDateString(lang, { day:   '2-digit' }),
+            d.toLocaleDateString(lang, { month: 'short'   }),
+            d.toLocaleDateString(lang, { year:  'numeric' }),
+        ].join('-');
+    });
 
-    const combinedKey = `${prefix}${rawVal}`;
-    if (_t[combinedKey]) {
-      el.textContent = _t[combinedKey];
-    } else {
-      // Fallback: strip underscores and capitalize nicely
-      el.textContent = rawVal.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-    }
-  });
-
-  // 4. Attribute / Safety Translators
-  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
-    const key = el.getAttribute("data-i18n-placeholder");
-    if (_t[key]) el.setAttribute("placeholder", _t[key]);
-  });
-
-  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
-    const key = el.getAttribute("data-i18n-title");
-    if (_t[key]) el.setAttribute("title", _t[key]);
-  });
-
-  // 5. Dynamic Date Parsing Loop
-  document.querySelectorAll(".local-date-field").forEach((td) => {
-    const rawDate = td.getAttribute("data-expiry");
-    if (!rawDate) return;
-    const dateObj = new Date(rawDate);
-    td.textContent = `${dateObj.toLocaleDateString(currentLang, { day: "2-digit" })}-${dateObj.toLocaleDateString(currentLang, { month: "short" })}-${dateObj.toLocaleDateString(currentLang, { year: "numeric" })}`;
-  });
-
-  // 6. Global App Currency/Number Refreshers
-  document.querySelectorAll('.num-fmt').forEach(el => { const v = el.getAttribute('data-value'); if (v !== null) el.innerText = fmt(v); });
-  document.querySelectorAll('.num-fmtpresent').forEach(el => { const v = el.getAttribute('data-value'); if (v !== null) el.innerText = fmtpresent(v); });
-  document.querySelectorAll('.num-fmtint').forEach(el => { const v = el.getAttribute('data-value'); if (v !== null) el.innerText = fmtInt(v); });
+    // 6. Number formatter classes
+    document.querySelectorAll('.num-fmt').forEach(el => {
+        const v = el.getAttribute('data-value');
+        if (v !== null) el.innerText = fmt(v);
+    });
+    document.querySelectorAll('.num-fmtpresent').forEach(el => {
+        const v = el.getAttribute('data-value');
+        if (v !== null) el.innerText = fmtpresent(v);
+    });
+    document.querySelectorAll('.num-fmtint').forEach(el => {
+        const v = el.getAttribute('data-value');
+        if (v !== null) el.innerText = fmtInt(v);
+    });
 }
 
-// Correct version for simple JS strings only
+// ════════════════════════════════════════════════════════════════════════════
+// TRANSLATION HELPER — t(key, fallback)
+// ════════════════════════════════════════════════════════════════════════════
+
 function t(key, fallback) {
-  // 1. Safety check: if global translations don't exist yet, return fallback immediately
-  if (typeof _t === 'undefined' || !_t) {
-    return fallback || key;
-  }
+    if (typeof _t === 'undefined' || !_t) return fallback ?? key;
 
-  const lang = localStorage.getItem("lang") || "en";
+    const lang = localStorage.getItem('lang') || 'en';
 
-  // 2. Case A: Standard dictionary structure (_t[lang][key])
-  if (_t[lang] && _t[lang][key]) {
-    return _t[lang][key];
-  }
+    // Nested: _t[lang][key]
+    if (_t[lang]?.[key]) return _t[lang][key];
 
-  // 3. Case B: Flat dictionary structure or global fallback (_t[key])
-  if (_t[key]) {
-    return _t[key];
-  }
+    // Flat: _t[key]
+    if (_t[key]) return _t[key];
 
-  // 4. Case C: No translation found anywhere, return the provided fallback or the key itself
-  return fallback !== undefined ? fallback : key;
+    return fallback !== undefined ? fallback : key;
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// CURRENT LANGUAGE ACCESSOR
+// ════════════════════════════════════════════════════════════════════════════
 
 function currentLang() {
-  return _lang;
-  applyTranslations();
+    return _lang;
 }
