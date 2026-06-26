@@ -57,7 +57,7 @@ async function renderDashboard() {
                 ${kpiCard('kpi_total_earned',    fmt(g.total_expected), 'bi-cash-stack',      'var(--accent-primary)')}
                 ${kpiCard('kpi_total_paid',      fmt(g.total_paid),     'bi-check-circle',    'var(--accent-green)')}
                 ${kpiCard('kpi_total_remaining', fmt(sumRemaining),     'bi-hourglass-split', sumRemaining > 0 ? 'var(--accent-red)' : 'var(--text-muted)')}
-                ${kpiCard('kpi_work_months',     g.total_months,        'bi-calendar3',       'var(--accent-yellow)')}
+                ${kpiCard('kpi_work_months',     fmtInt(g.total_months),        'bi-calendar3',       'var(--accent-yellow)')}
             </div>
 
             <div style="background:var(--bg-secondary);border:1px solid var(--border-color);

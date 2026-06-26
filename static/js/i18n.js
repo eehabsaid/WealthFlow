@@ -118,7 +118,11 @@ function applyTranslations() {
     });
     document.querySelectorAll('.num-fmtint').forEach(el => {
         const v = el.getAttribute('data-value');
-        if (v !== null) el.innerText = fmtInt(v);
+        if (v !== null) el.innerText = fmtInt(v); 
+    });
+    document.querySelectorAll('.num-fmtRate').forEach(el => {
+        const v = el.getAttribute('data-value');
+        if (v !== null) el.innerText = fmtRate(v); 
     });
 }
 
