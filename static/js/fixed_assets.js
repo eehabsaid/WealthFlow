@@ -72,20 +72,28 @@ function renderFixedAssetsList(assets) {
   }
 
   let html = `
-        <div class="table-responsive rounded-3 mt-4" style="border: 1px solid var(--border-color); background: var(--bg-secondary);">
-            <table class="table table-hover align-middle mb-0" style="color: var(--text-primary);">
-                <thead style="background: rgba(0, 0, 0, 0.2); border-bottom: 2px solid var(--border-color);">
-                    <tr>
-                        <th class="px-4 py-3 small text-muted text-uppercase tracking-wider" data-i18n="asset_name">Asset Name</th>
-                        <th class="px-3 py-3 small text-muted text-uppercase tracking-wider" data-i18n="asset_type">Asset Type</th>
-                        <th class="px-3 py-3 small text-muted text-uppercase tracking-wider" data-i18n="purchase_date">Purchase Date</th>
-                        <th class="px-3 py-3 small text-muted text-uppercase tracking-wider text-end" data-i18n="purchase_price_egp">Purchase Price (EGP)</th>
-                        <th class="px-3 py-3 small text-muted text-uppercase tracking-wider text-end" data-i18n="current_market_value">Current Value</th>
-                        <th class="px-4 py-3 small text-muted text-uppercase tracking-wider text-center" style="width: 120px;" data-i18n="actions">Actions</th>
-                    </tr>
-                </thead>
-                <tbody style="border-top: none;">
-    `;
+  <div style="background:var(--bg-secondary);
+              border:1px solid var(--border-color);
+              border-radius:12px;
+              overflow:visible">
+
+      <div class="table-container">
+
+          <table class="data-table">
+
+              <thead>
+                  <tr>
+                      <th data-i18n="asset_name">Asset Name</th>
+                      <th data-i18n="asset_type">Asset Type</th>
+                      <th data-i18n="purchase_date">Purchase Date</th>
+                      <th class="text-end" data-i18n="purchase_price_egp">Purchase Price (EGP)</th>
+                      <th class="text-end" data-i18n="current_market_value">Current Market Value</th>
+                      <th data-i18n="actions">Actions</th>
+                  </tr>
+              </thead>
+
+              <tbody>
+  `;
 
 
   assetsArray.forEach((asset) => {
@@ -94,33 +102,59 @@ function renderFixedAssetsList(assets) {
     const typeKey = `type_${assetType.toLowerCase()}`;
 
     html += `
-            <tr style="border-bottom: 1px solid var(--border-color);">
-                <td class="px-4 py-3 fw-bold asset-name-cell">${asset.name || ""}</td>
-                <td class="px-3 py-3">
-                    <span class="badge bg-dark text-light border" style="border-color: var(--border-color) !important;" data-i18n="${typeKey}">${assetType}</span>
+            <tr>
+
+                <td>${asset.name || "—"}</td>
+
+                <td>
+                    <span
+                        style="
+                            background:rgba(26,110,245,.15);
+                            color:var(--accent-primary);
+                            padding:2px 8px;
+                            border-radius:10px;
+                            font-size:11px;
+                            font-weight:700;
+                        "
+                        data-i18n="${typeKey}">
+                        ${assetType}
+                    </span>
                 </td>
-                <td class="px-3 py-3 text-muted small">${asset.purchase_date || ""}</td>
-                <td class="px-3 py-3 text-end font-monospace">${Number(asset.purchase_price || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td class="px-3 py-3 text-end font-monospace text-success fw-bold">${Number(asset.current_market_value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td class="px-4 py-3 text-center">
-                    <div class="btn-group row-actions">
-                        <button class="btn btn-sm btn-outline-secondary border-0 text-muted" onclick="showFixedAssetModal(${asset.id})" title="Edit">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteFixedAsset(${asset.id})" title="Delete">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
+
+                <td>${asset.purchase_date || "—"}</td>
+
+                <td class="text-end">
+                    ${fmt(asset.purchase_price)}
                 </td>
+
+                <td class="text-end">
+                    <span style="color:#17a34a;font-weight:700">
+                        ${fmt(asset.current_market_value)}
+                    </span>
+                </td>
+
+                <td>
+                    <button class="btn-icon"
+                        onclick="showFixedAssetModal(${asset.id})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                    <button class="btn-icon del"
+                        onclick="deleteFixedAsset(${asset.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+
             </tr>
-        `;
+            `;
   });
 
   html += `
-                </tbody>
-            </table>
-        </div>
-    `;
+                  </tbody>
+              </table>
+          </div>
+      </div>
+      `;
 
   container.innerHTML = html;
   //if (typeof applyTranslations === 'function')
