@@ -561,5 +561,15 @@
   "governorate": "المحافظة",
   "city": "المدينة",
   "district": "الحي / المنطقة",
-  "address": "تفاصيل العنوان"
+  "address": "تفاصيل العنوان",
+  "furnished_status": "حالة التأثيث",
+  "unfurnished": "غير مفروش",
+  "semi_furnished": "نصف مفروش",
+  "fully_furnished": "مفروش بالكامل",
+  "has_land_share": "له حصة في الأرض",
+  "shell_core": "على الطوب",
+  "semi_finished": "تشطيب نصف كامل",
+  "fully_finished": "تشطيب كامل",
+  "luxury_finished": "تشطيب فاخر",
+  "purchase_price_usd": "سعر الشراء (USD)"
 }

@@ -3043,37 +3043,36 @@ class FixedAssetListView(View):
 
         if re:
             RealEstateDetails.objects.create(
-                asset=asset,
-                country=re.get("country", "Egypt"),
-                governorate=re.get("governorate", ""),
-                city=re.get("city", ""),
-                district=re.get("district", ""),
-                full_address=re.get("address", ""),
+            asset=asset,
+            country=re.get("country", "Egypt"),
+            governorate=re.get("governorate", ""),
+            city=re.get("city", ""),
+            district=re.get("district", ""),
+            full_address=re.get("address", ""),
 
-                area_m2=re.get("apartment_area", 0),
+            area_m2=re.get("apartment_area", 0),
 
-                bedrooms=re.get("rooms", 0),
-                bathrooms=re.get("bathrooms", 0),
+            bedrooms=re.get("rooms", 0),
+            bathrooms=re.get("bathrooms", 0),
 
-                floor_number=re.get("floor", 0),
-                building_floors=re.get("building_floors", 0),
-                build_year=re.get("building_year") or None,
+            floor_number=re.get("floor", 0),
+            building_floors=re.get("building_floors", 0),
+            build_year=re.get("building_year") or None,
 
-                facing=re.get("facades", ""),
-                finishing_level=re.get("finishing_level", ""),
+            facing=re.get("facades", ""),
+            finishing_level=re.get("finishing_level", ""),
+            
 
-                electricity_meter_private=re.get("electricity", False),
-                water_meter_private=re.get("water", False),
-                has_gas=re.get("gas", False),
+            electricity_meter_private=re.get("electricity", False),
+            water_meter_private=re.get("water", False),
+            has_gas=re.get("gas", False),
 
-                has_elevator=re.get("elevator", False),
-                has_garage=re.get("garage", False),
-
-                land_share_ratio = re.get("land_share", ""),
-                land_share_sqm = re.get("land_area", 0),
-                licensed = re.get("licensed", False),
-                description = re.get("description", ""),
-            )
+            has_elevator=re.get("elevator", False),
+            has_garage=re.get("garage", False),
+            has_land_share = re.get("has_land_share", False),
+            land_share_ratio=re.get("land_share", ""),
+            land_share_sqm=float(re.get("land_share_sqm") or 0),
+        )
         return JsonResponse(asset.to_dict(), status=201)
     
 @method_decorator(csrf_exempt, name="dispatch")
@@ -3129,6 +3128,8 @@ class FixedAssetDetailView(View):
             obj.build_year = re.get("building_year") or None
 
             obj.facing = re.get("facades", "")
+
+            obj.furnished_status = re.get("furnished_status", "Unfurnished")
             obj.finishing_level = re.get("finishing_level", "")
 
             obj.electricity_meter_private = re.get("electricity", False)
@@ -3137,9 +3138,9 @@ class FixedAssetDetailView(View):
 
             obj.has_elevator = re.get("elevator", False)
             obj.has_garage = re.get("garage", False)
-
+            obj.has_land_share = re.get("has_land_share", False)
             obj.land_share_ratio = re.get("land_share", "")
-            obj.land_share_sqm = re.get("land_area", 0)
+            obj.land_share_sqm = float(re.get("land_share_sqm") or 0)
             obj.licensed = re.get("licensed", False)
             obj.description = re.get("description", "")
 

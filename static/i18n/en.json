@@ -561,5 +561,15 @@
   "governorate": "Governorate/State",
   "city": "City",
   "district": "District/Neighborhood",
-  "address": "Address Details"
+  "address": "Address Details",
+  "furnished_status": "Furnished Status",
+  "unfurnished": "Unfurnished",
+  "semi_furnished": "Semi Furnished",
+  "fully_furnished": "Fully Furnished",
+  "has_land_share": "Has Land Share",
+  "shell_core": "Shell & Core",
+  "semi_finished": "Semi Finished",
+  "fully_finished": "Fully Finished",
+  "luxury_finished": "Luxury Finished",
+  "purchase_price_usd": "Purchase Price (USD)"
 }

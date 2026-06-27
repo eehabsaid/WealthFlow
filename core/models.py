@@ -3,6 +3,7 @@ from datetime import date, datetime
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 ASSET_TYPES = [
     ("Apartment", "Apartment"),
@@ -911,6 +912,14 @@ class FixedAsset(models.Model):
                 else None
             ),
         }
+    def save(self, *args, **kwargs):
+        if self.purchase_usd_rate and self.purchase_usd_rate > 0:
+            self.purchase_price_usd = (
+                Decimal(self.purchase_price) /
+                Decimal(self.purchase_usd_rate)
+            )
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -986,11 +995,13 @@ class RealEstateDetails(models.Model):
             "building_year": self.build_year,
             "facades": self.facing,
             "finishing_level": self.finishing_level,
+            "furnished_status": self.furnished_status,
             "electricity": self.electricity_meter_private,
             "water": self.water_meter_private,
             "gas": self.has_gas,
             "elevator": self.has_elevator,
             "garage": self.has_garage,
+            "has_land_share":self.has_land_share,
             "land_share": self.land_share_ratio,
             "apartment_area": float(self.area_m2),
             "land_area": float(self.land_share_sqm),

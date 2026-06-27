@@ -561,5 +561,15 @@
   "finishing_level": "Type de niveau de finition",
   "utilities": "Services publics disponibles",
   "features": "Équipements structurels",
-  "land_share": "Part de terrain indivise (Carat)"
+  "land_share": "Part de terrain indivise (Carat)",
+  "furnished_status": "État d'ameublement",
+  "unfurnished": "Non meublé",
+  "semi_furnished": "Semi-meublé",
+  "fully_furnished": "Entièrement meublé",
+  "has_land_share": "Part de terrain",
+  "shell_core": "Gros œuvre",
+  "semi_finished": "Semi fini",
+  "fully_finished": "Entièrement fini",
+  "luxury_finished": "Finition de luxe",
+  "purchase_price_usd": "Prix d'achat (USD)"
 }

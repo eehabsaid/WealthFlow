@@ -561,5 +561,15 @@
   "finishing_level": "Art des Fertigstellungsgrads",
   "utilities": "Verfügbare Versorgungsanschlüsse",
   "features": "Strukturelle Ausstattung",
-  "land_share": "Ungeteilter Grundstücksanteil (Karat)"
+  "land_share": "Ungeteilter Grundstücksanteil (Karat)",
+  "furnished_status": "Möblierungsstatus",
+  "unfurnished": "Unmöbliert",
+  "semi_furnished": "Teilmöbliert",
+  "fully_furnished": "Voll möbliert",
+  "has_land_share": "Grundstücksanteil vorhanden",
+  "shell_core": "Rohbau",
+  "semi_finished": "Teilweise fertiggestellt",
+  "fully_finished": "Fertiggestellt",
+  "luxury_finished": "Luxusausstattung",
+  "purchase_price_usd": "Kaufpreis (USD)"
 }
