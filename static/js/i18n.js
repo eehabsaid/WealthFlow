@@ -51,7 +51,14 @@ function applyTranslations() {
     // 1. Static text — [data-i18n]
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (_t[key]) el.textContent = _t[key];
+
+        // Ignore missing or empty translations
+        if (!_t[key]) return;
+
+        // Do not overwrite with empty values
+        if (_t[key].trim() === "") return;
+
+        el.textContent = _t[key];
     });
 
     // 2. Dynamic keys with template placeholders — [data-i18n-key]

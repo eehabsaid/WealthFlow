@@ -868,8 +868,8 @@ class FixedAsset(models.Model):
             "status": self.status,
             "purchase_date": (
                 self.purchase_date.isoformat()
-                if self.purchase_date
-                else ""
+                if hasattr(self.purchase_date, "isoformat")
+                else self.purchase_date
             ),
             "purchase_price": float(self.purchase_price),
             "purchase_usd_rate": float(self.purchase_usd_rate),
@@ -878,8 +878,8 @@ class FixedAsset(models.Model):
             "valuation_source": self.valuation_source,
             "last_valuation_date": (
                 self.last_valuation_date.isoformat()
-                if self.last_valuation_date
-                else ""
+                if hasattr(self.last_valuation_date, "isoformat")
+                else self.last_valuation_date
             ),
             "notes": self.notes,
 
@@ -953,6 +953,10 @@ class RealEstateDetails(models.Model):
 
     facing = models.CharField(max_length=100, blank=True)
 
+    licensed = models.BooleanField(default=False)
+    land_share_sqm = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    description = models.TextField(blank=True)
+
     finishing_level = models.CharField(max_length=100, blank=True)
 
     furnished_status = models.CharField(
@@ -970,20 +974,28 @@ class RealEstateDetails(models.Model):
 
     def to_dict(self):
         return {
-            "asset_id": self.asset_id,
-            "area_sqm": float(self.area_sqm),
-            "bedrooms": self.bedrooms,
-            "bathrooms": self.bathrooms,
-            "floor_number": self.floor_number,
-            "building_floors": self.building_floors,
-            "has_elevator": self.has_elevator,
-            "licensed": self.licensed,
-            "construction_year": self.construction_year,
-            "land_share_sqm": float(self.land_share_sqm),
-            "address": self.address,
-            "city": self.city,
             "country": self.country,
-            "notes": self.notes,
+            "governorate": self.governorate,
+            "city": self.city,
+            "district": self.district,
+            "address": self.full_address,
+            "rooms": self.bedrooms,
+            "bathrooms": self.bathrooms,
+            "floor": self.floor_number,
+            "building_floors": self.building_floors,
+            "building_year": self.build_year,
+            "facades": self.facing,
+            "finishing_level": self.finishing_level,
+            "electricity": self.electricity_meter_private,
+            "water": self.water_meter_private,
+            "gas": self.has_gas,
+            "elevator": self.has_elevator,
+            "garage": self.has_garage,
+            "land_share": self.land_share_ratio,
+            "apartment_area": float(self.area_m2),
+            "land_area": float(self.land_share_sqm),
+            "licensed": self.licensed,
+            "description": self.description,
         }
 
     def __str__(self):

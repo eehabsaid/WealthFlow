@@ -67,36 +67,36 @@ urlpatterns = [
     path("api/reports/certificates/", views.CertificateReportView.as_view()),
     # ── Dashboard Summary ────────────────────────────────────────────────────
     path("api/dashboard/summary/", views.DashboardSummaryView.as_view()),
-        # ── Fixed Assets ────────────────────────────────────────────────────────
+    # ── Fixed Assets ────────────────────────────────────────────────────────
     path("api/fixed-assets/", views.FixedAssetListView.as_view()),
     path("api/fixed-assets/<int:pk>/", views.FixedAssetDetailView.as_view()),
     path(
-    "api/asset-renovations/",
-    views.AssetRenovationListView.as_view(),
+        "api/asset-renovations/",
+        views.AssetRenovationListView.as_view(),
     ),
     path(
         "api/asset-renovations/<int:pk>/",
         views.AssetRenovationDetailView.as_view(),
     ),
     path(
-    "api/asset-furniture/",
-    views.AssetFurnitureListView.as_view(),
+        "api/asset-furniture/",
+        views.AssetFurnitureListView.as_view(),
     ),
     path(
         "api/asset-furniture/<int:pk>/",
         views.AssetFurnitureDetailView.as_view(),
     ),
     path(
-    "api/asset-valuations/",
-    views.AssetValuationHistoryListView.as_view(),
+        "api/asset-valuations/",
+        views.AssetValuationHistoryListView.as_view(),
     ),
     path(
         "api/asset-valuations/<int:pk>/",
         views.AssetValuationHistoryDetailView.as_view(),
     ),
     path(
-    "api/fixed-assets/<int:asset_id>/sale/",
-    views.AssetSaleView.as_view(),
+        "api/fixed-assets/<int:asset_id>/sale/",
+        views.AssetSaleView.as_view(),
     ),
     path(
         "api/certificate-forecast/",

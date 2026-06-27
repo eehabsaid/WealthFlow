@@ -286,7 +286,27 @@ const ROUTES = {
     'expense-categories': { key: 'nav_expenses_reports',  add: false, fn: () => renderExpenseCategories() },
     'reports':            { key: 'nav_expenses_reports',  add: false, fn: () => renderReports()       },
     'advanced-reports':   { key: 'nav_expenses_reports',  add: false, fn: () => renderAdvancedReports() },
-    'fixed-assets':       { key: 'nav_fixed_assets',      add: true,  fn: () => renderFixedAssets()    },
+    'fixed-assets': { 
+    key: 'nav_fixed_assets',      
+    add: true,  
+    fn: () => {
+        //console.log("Router: Checking window.renderFixedAssets...", typeof window.renderFixedAssets);
+        if (typeof window.renderFixedAssets === 'function') {
+            
+            window.renderFixedAssets();
+        } else {
+            setTimeout(() => {
+                //console.log("Router (Retry): Checking window.renderFixedAssets...", typeof window.renderFixedAssets);
+                if (typeof window.renderFixedAssets === 'function') {
+                    window.renderFixedAssets();
+                } else {
+                    console.error("Router Error: fixed_assets.js loaded, but renderFixedAssets is missing from window scope.");
+                }
+            }, 100);
+        }
+    }    
+},
+
 };
 
 function route() {
@@ -673,6 +693,7 @@ window.getCompanies         = () => _companies;
 window.getBanks             = () => _banks;
 window.toggleTheme          = toggleTheme;
 window.applyStoredTheme     = applyStoredTheme;
+window.renderFixedAssets    = window.renderFixedAssets;
 window.refreshBanks         = async () => {
     const r = await fetch('/api/banks/');
     _banks  = (await r.json()).banks || [];
