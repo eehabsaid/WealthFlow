@@ -573,5 +573,9 @@
   "fully_finished": "Entièrement fini",
   "luxury_finished": "Finition de luxe",
   "purchase_price_usd": "Prix d'achat (USD)",
-  "last_valuation_date": "Date de la dernière évaluation"
+  "last_valuation_date": "Date de la dernière évaluation",
+  "latitude": "Latitude",
+  "longitude": "Longitude",
+  "property_location": "Emplacement de la propriété",
+  "map_click_instruction": "Cliquez n'importe où sur la carte pour sélectionner l'emplacement de la propriété."
 }

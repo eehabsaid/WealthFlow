@@ -1005,6 +1005,8 @@ class RealEstateDetails(models.Model):
             "land_share": self.land_share_ratio,
             "apartment_area": float(self.area_m2),
             "land_area": float(self.land_share_sqm),
+            "latitude": float(self.latitude) if self.latitude else None,
+            "longitude": float(self.longitude) if self.longitude else None,
             "licensed": self.licensed,
             "description": self.description,
         }

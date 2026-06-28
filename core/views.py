@@ -3141,6 +3141,8 @@ class FixedAssetDetailView(View):
             obj.has_land_share = re.get("has_land_share", False)
             obj.land_share_ratio = re.get("land_share", "")
             obj.land_share_sqm = float(re.get("land_share_sqm") or 0)
+            obj.latitude = re.get("latitude") or None
+            obj.longitude = re.get("longitude") or None
             obj.licensed = re.get("licensed", False)
             obj.description = re.get("description", "")
 

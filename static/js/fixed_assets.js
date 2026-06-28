@@ -1,5 +1,8 @@
 "use strict";
 
+let propertyMap = null;
+let propertyMarker = null;
+
 // ════════════════════════════════════════════════════════════════════════════
 // DATA FETCHING & ROUTING
 // ════════════════════════════════════════════════════════════════════════════
@@ -233,8 +236,70 @@ async function showFixedAssetModal(assetId = null) {
                         <div class="col-md-3"><input type="text" class="form-control" id="re_city" placeholder="City" data-i18n-placeholder="city"></div>
                         <div class="col-md-3"><input type="text" class="form-control" id="re_district" placeholder="District" data-i18n-placeholder="district"></div>
                     </div>
+
                     <div class="row mb-3">
-                        <div class="col-md-12"><input type="text" class="form-control" id="re_address" placeholder="Address Details" data-i18n-placeholder="address"></div>
+                        <div class="col-md-12">
+                            <input type="text"
+                                  class="form-control"
+                                  id="re_address"
+                                  placeholder="Address Details"
+                                  data-i18n-placeholder="address">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label small" data-i18n="latitude">
+                                Latitude
+                            </label>
+
+                            <input
+                                type="number"
+                                step="0.000001"
+                                class="form-control"
+                                id="re_latitude"
+                                readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small" data-i18n="longitude">
+                                Longitude
+                            </label>
+
+                            <input
+                                type="number"
+                                step="0.000001"
+                                class="form-control"
+                                id="re_longitude"
+                                readonly>
+                        </div>
+
+                    </div>
+
+                    <div class="row mb-3">
+
+                        <div class="col-12">
+
+                            <label class="form-label small"
+                                  data-i18n="property_location">
+                                Property Location
+                            </label>
+
+                            <div id="propertyMap"
+                                style="
+                                    height:350px;
+                                    border:1px solid var(--border-color);
+                                    border-radius:8px;">
+                            </div>
+
+                            <small class="form-label small"
+                                  data-i18n="map_click_instruction">
+                                Click anywhere on the map to select the property location.
+                            </small>
+
+                        </div>
+
                     </div>
 
                     <div class="row g-3 mb-3">
@@ -334,7 +399,7 @@ async function showFixedAssetModal(assetId = null) {
 
   showModal(html);
   applyTranslations();
-
+  initializePropertyMap();
   if (isEdit) {
     await loadFixedAsset(assetId);
   }
@@ -357,6 +422,7 @@ async function loadFixedAsset(assetId) {
     document.getElementById("fa_current_value").value = asset.current_market_value || 0;
     document.getElementById("fa_last_valuation_date").value = asset.last_valuation_date || "";
     document.getElementById("fa_val_source").value = asset.valuation_source || "Manual";
+    document.getElementById("fa_last_valuation_date").value = asset.last_valuation_date || "";
     document.getElementById("fa_notes").value = asset.notes || "";
 
     toggleRealEstateFields();
@@ -368,6 +434,8 @@ async function loadFixedAsset(assetId) {
       document.getElementById("re_city").value = re.city || "";
       document.getElementById("re_district").value = re.district || "";
       document.getElementById("re_address").value = re.address || "";
+      document.getElementById("re_latitude").value = re.latitude || "";
+      document.getElementById("re_longitude").value = re.longitude || "";
       document.getElementById("re_area").value = re.apartment_area || 0;
       document.getElementById("re_land_area").value = re.land_area || 0;
       document.getElementById("re_rooms").value = re.rooms || 0;
@@ -387,6 +455,17 @@ async function loadFixedAsset(assetId) {
       document.getElementById("re_has_land_share").checked = Boolean(re.has_land_share);
       document.getElementById("re_land_share").value = re.land_share || "";
       document.getElementById("re_description").value = re.description || "";
+      const lat = parseFloat(re.latitude);
+      const lng = parseFloat(re.longitude);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+
+          document.getElementById("re_latitude").value = lat;
+          document.getElementById("re_longitude").value = lng;
+
+          initializePropertyMap(lat, lng);
+
+      }
     }
   } catch (err) {
     showToast(err.message, "danger");
@@ -425,9 +504,10 @@ async function saveFixedAsset(assetId = null) {
     purchase_usd_rate: parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 1,
     current_market_value: parseFloat(document.getElementById("fa_current_value").value) || 0,
     valuation_source: document.getElementById("fa_val_source").value,
+    last_valuation_date: document.getElementById("fa_last_valuation_date").value || null,
     notes: document.getElementById("fa_notes").value,
     status: "Owned",
-  };
+};
 
   if (isRealEstate) {
     payload.real_estate_details = {
@@ -436,6 +516,8 @@ async function saveFixedAsset(assetId = null) {
       city: document.getElementById("re_city").value,
       district: document.getElementById("re_district").value,
       address: document.getElementById("re_address").value,
+      latitude: parseFloat(document.getElementById("re_latitude").value) || null,
+      longitude: parseFloat(document.getElementById("re_longitude").value) || null,
       apartment_area: parseFloat(document.getElementById("re_area").value) || 0,
       land_share_sqm: parseFloat(document.getElementById("re_land_area").value) || 0,
       rooms: parseInt(document.getElementById("re_rooms").value) || 0,
@@ -588,6 +670,42 @@ function getCsrfToken() {
       .find((row) => row.startsWith("csrftoken="))
       ?.split("=")[1] || ""
   );
+}
+
+function initializePropertyMap(lat = 30.0444, lng = 31.2357) {
+
+    if (propertyMap) {
+        propertyMap.remove();
+        propertyMap = null;
+    }
+
+    propertyMap = L.map("propertyMap").setView([lat, lng], 13);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(propertyMap);
+
+    propertyMarker = L.marker([lat, lng], {
+        draggable: true
+    }).addTo(propertyMap);
+
+    propertyMarker.on("dragend", function () {
+        const p = propertyMarker.getLatLng();
+
+        document.getElementById("re_latitude").value = p.lat.toFixed(6);
+        document.getElementById("re_longitude").value = p.lng.toFixed(6);
+    });
+
+    propertyMap.on("click", function (e) {
+
+        propertyMarker.setLatLng(e.latlng);
+
+        document.getElementById("re_latitude").value = e.latlng.lat.toFixed(6);
+        document.getElementById("re_longitude").value = e.latlng.lng.toFixed(6);
+
+    });
+
+    setTimeout(() => propertyMap.invalidateSize(), 200);
 }
 
 // ════════════════════════════════════════════════════════════════════════════
