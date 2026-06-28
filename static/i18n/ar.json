@@ -577,5 +577,6 @@
   "latitude": "خط العرض",
   "longitude": "خط الطول",
   "property_location": "موقع العقار",
-  "map_click_instruction": "انقر في أي مكان على الخريطة لتحديد موقع العقار."
+  "map_click_instruction": "انقر في أي مكان على الخريطة لتحديد موقع العقار.",
+  "locate_on_map": "تحديد على الخريطة"
 }

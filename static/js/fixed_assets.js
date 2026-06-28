@@ -245,6 +245,16 @@ async function showFixedAssetModal(assetId = null) {
                                   placeholder="Address Details"
                                   data-i18n-placeholder="address">
                         </div>
+
+                        <div class="col-md-3">
+                            <button
+                                type="button"
+                                class="btn btn-primary w-100"
+                                id="btnLocateProperty"
+                                data-i18n="locate_on_map">
+                                Locate on Map
+                            </button>
+                        </div>
                     </div>
 
                     <div class="row mb-3">
@@ -399,6 +409,9 @@ async function showFixedAssetModal(assetId = null) {
 
   showModal(html);
   applyTranslations();
+  document
+    .getElementById("btnLocateProperty")
+    .addEventListener("click", locatePropertyOnMap);
   initializePropertyMap();
   if (isEdit) {
     await loadFixedAsset(assetId);
@@ -706,6 +719,64 @@ function initializePropertyMap(lat = 30.0444, lng = 31.2357) {
     });
 
     setTimeout(() => propertyMap.invalidateSize(), 200);
+}
+
+async function locatePropertyOnMap() {
+
+    const country = document.getElementById("re_country").value.trim();
+    const governorate = document.getElementById("re_governorate").value.trim();
+    const city = document.getElementById("re_city").value.trim();
+    const district = document.getElementById("re_district").value.trim();
+    const address = document.getElementById("re_address").value.trim();
+
+    const query = [
+        address,
+        district,
+        city,
+        governorate,
+        country
+    ]
+    .filter(Boolean)
+    .join(", ");
+
+    if (!query) {
+        showToast("Please enter an address first.", "warning");
+        return;
+    }
+
+    showLoading();
+
+    try {
+
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
+        );
+
+        const results = await response.json();
+
+        if (!results.length) {
+            showToast("Address not found.", "warning");
+            return;
+        }
+
+        const lat = parseFloat(results[0].lat);
+        const lng = parseFloat(results[0].lon);
+
+        document.getElementById("re_latitude").value = lat.toFixed(6);
+        document.getElementById("re_longitude").value = lng.toFixed(6);
+
+        propertyMap.setView([lat, lng], 17);
+
+        propertyMarker.setLatLng([lat, lng]);
+
+    }
+    catch (err) {
+        console.error(err);
+        showToast("Unable to locate address.", "danger");
+    }
+    finally {
+        hideLoading();
+    }
 }
 
 // ════════════════════════════════════════════════════════════════════════════

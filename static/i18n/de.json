@@ -577,5 +577,6 @@
   "latitude": "Breitengrad",
   "longitude": "Längengrad",
   "property_location": "Immobilienstandort",
-  "map_click_instruction": "Klicken Sie auf eine beliebige Stelle der Karte, um den Standort der Immobilie auszuwählen."
+  "map_click_instruction": "Klicken Sie auf eine beliebige Stelle der Karte, um den Standort der Immobilie auszuwählen.",
+  "locate_on_map": "Auf der Karte lokalisieren"
 }

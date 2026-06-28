@@ -577,5 +577,6 @@
   "latitude": "Latitude",
   "longitude": "Longitude",
   "property_location": "Emplacement de la propriété",
-  "map_click_instruction": "Cliquez n'importe où sur la carte pour sélectionner l'emplacement de la propriété."
+  "map_click_instruction": "Cliquez n'importe où sur la carte pour sélectionner l'emplacement de la propriété.",
+  "locate_on_map": "Localiser sur la carte"
 }
