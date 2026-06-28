@@ -167,7 +167,7 @@ async function showFixedAssetModal(assetId = null) {
             <h5 class="modal-title" data-i18n="${modalTitleKey}">${modalTitleDefault}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
             <form id="fixedAssetForm">
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
@@ -392,6 +392,21 @@ async function showFixedAssetModal(assetId = null) {
                             <label class="form-label small" data-i18n="description">Property Structural Description</label>
                             <input type="text" class="form-control" id="re_description">
                         </div>
+                        <hr class="my-4">
+                        <h6 class="mb-3" data-i18n="renovation_history">
+                            Renovation History
+                        </h6>
+
+                        <div id="renovationContainer"></div>
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm mt-2"
+                            onclick="addRenovationRow()"
+                            data-i18n="add_renovation">
+                            + Add Renovation
+                        </button>
+
                     </div>
                 </div>
 
@@ -480,6 +495,29 @@ async function loadFixedAsset(assetId) {
 
       }
     }
+
+    // ---------- Renovations ----------
+    const renovationContainer = document.getElementById("renovationContainer");
+
+    if (renovationContainer) {
+
+        renovationContainer.innerHTML = "";
+
+        if (asset.renovations && asset.renovations.length) {
+
+            asset.renovations.forEach(r => {
+                addRenovationRow({
+                    renovation_date: r.date,
+                    renovation_type: r.category,
+                    description: r.description,
+                    cost: r.amount_egp
+                });
+            });
+
+        }
+
+    }
+
   } catch (err) {
     showToast(err.message, "danger");
   } finally {
@@ -551,6 +589,7 @@ async function saveFixedAsset(assetId = null) {
       land_share: document.getElementById("re_land_share").value,
       description: document.getElementById("re_description").value,
     };
+    payload.renovations = collectRenovations();
   }
 
   showLoading();
@@ -707,6 +746,8 @@ function initializePropertyMap(lat = 30.0444, lng = 31.2357) {
 
         document.getElementById("re_latitude").value = p.lat.toFixed(6);
         document.getElementById("re_longitude").value = p.lng.toFixed(6);
+
+        reverseGeocode(p.lat, p.lng);
     });
 
     propertyMap.on("click", function (e) {
@@ -715,6 +756,8 @@ function initializePropertyMap(lat = 30.0444, lng = 31.2357) {
 
         document.getElementById("re_latitude").value = e.latlng.lat.toFixed(6);
         document.getElementById("re_longitude").value = e.latlng.lng.toFixed(6);
+
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
 
     });
 
@@ -777,6 +820,133 @@ async function locatePropertyOnMap() {
     finally {
         hideLoading();
     }
+}
+
+async function reverseGeocode(lat, lng) {
+
+    try {
+
+        const currentLang = localStorage.getItem("lang") || "en";
+
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=${currentLang},en`
+        );
+        
+        const result = await response.json();
+
+        if (!result.address) return;
+
+        const a = result.address;
+        document.getElementById("re_country").value =
+            a.country || "";
+
+        document.getElementById("re_governorate").value =
+            a.state || a.county || "";
+
+        document.getElementById("re_city").value =
+            a.city ||
+            a.town ||
+            a.village ||
+            "";
+
+        document.getElementById("re_district").value =
+            a.suburb ||
+            a.neighbourhood ||
+            a.city_district ||
+            a.district ||
+            a.municipality ||
+            a.hamlet ||
+            a.quarter ||
+            a.borough ||
+            a.village ||
+            a.town ||
+            a.city ||
+            "";
+
+        document.getElementById("re_address").value =
+            result.display_name || "";
+
+    }
+    catch (err) {
+        console.error(err);
+    }
+
+}
+
+function addRenovationRow(data = {}) {
+
+    const container = document.getElementById("renovationContainer");
+
+    const row = document.createElement("div");
+
+    row.className = "row g-2 mb-2 renovation-row";
+
+    row.innerHTML = `
+        <div class="col-md-3">
+            <input type="date"
+                   class="form-control renovation-date"
+                   value="${data.renovation_date || ""}">
+        </div>
+
+        <div class="col-md-5">
+            <input type="text"
+                   class="form-control renovation-desc"
+                   placeholder="Description"
+                   value="${data.description || ""}">
+        </div>
+
+        <div class="col-md-3">
+            <input type="number"
+                   step="0.01"
+                   class="form-control renovation-cost"
+                   placeholder="Cost"
+                   value="${data.cost || ""}">
+        </div>
+
+        <div class="col-md-1">
+            <button
+                type="button"
+                class="btn btn-danger btn-sm"
+                onclick="this.closest('.renovation-row').remove()">
+                ×
+            </button>
+        </div>
+    `;
+
+    container.appendChild(row);
+}
+
+function collectRenovations() {
+
+    return Array.from(document.querySelectorAll(".renovation-row")).map(r => ({
+
+        date:
+            r.querySelector(".renovation-date").value,
+
+        category:
+            r.querySelector(".renovation-type").value,
+
+        description:
+            r.querySelector(".renovation-desc").value,
+
+        amount_egp:
+            parseFloat(r.querySelector(".renovation-cost").value) || 0,
+
+        usd_rate:
+            parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0,
+
+        amount_usd:
+            (
+                parseFloat(r.querySelector(".renovation-cost").value) || 0
+            ) /
+            (
+                parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 1
+            ),
+
+        notes: ""
+
+    }));
+
 }
 
 // ════════════════════════════════════════════════════════════════════════════

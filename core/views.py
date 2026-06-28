@@ -3037,6 +3037,11 @@ class FixedAssetListView(View):
             valuation_source=data.get("valuation_source", "Manual"),
             last_valuation_date=data.get("last_valuation_date") or None,
             notes=data.get("notes", ""),
+            furnished_status=re.get("furnished_status", "Unfurnished"),
+            latitude=re.get("latitude"),
+            longitude=re.get("longitude"),
+            description=re.get("description", ""),
+            licensed=re.get("licensed", False),
         )
 
         re = data.get("real_estate_details")
@@ -3073,6 +3078,18 @@ class FixedAssetListView(View):
             land_share_ratio=re.get("land_share", ""),
             land_share_sqm=float(re.get("land_share_sqm") or 0),
         )
+        for item in data.get("renovations", []):
+
+            AssetRenovation.objects.create(
+                asset=asset,
+                date=item.get("date") or None,
+                category=item.get("category", ""),
+                description=item.get("description", ""),
+                amount_egp=item.get("amount_egp", 0),
+                usd_rate=item.get("usd_rate", 0),
+                amount_usd=item.get("amount_usd", 0),
+                notes=item.get("notes", ""),
+            )
         return JsonResponse(asset.to_dict(), status=201)
     
 @method_decorator(csrf_exempt, name="dispatch")
@@ -3147,6 +3164,20 @@ class FixedAssetDetailView(View):
             obj.description = re.get("description", "")
 
             obj.save()
+        AssetRenovation.objects.filter(asset=asset).delete()
+
+        for item in data.get("renovations", []):
+
+            AssetRenovation.objects.create(
+                asset=asset,
+                date=item.get("date") or None,
+                category=item.get("category", ""),
+                description=item.get("description", ""),
+                amount_egp=item.get("amount_egp", 0),
+                usd_rate=item.get("usd_rate", 0),
+                amount_usd=item.get("amount_usd", 0),
+                notes=item.get("notes", ""),
+            )
 
         return JsonResponse(asset.to_dict())
 
