@@ -572,5 +572,6 @@
   "semi_finished": "تشطيب نصف كامل",
   "fully_finished": "تشطيب كامل",
   "luxury_finished": "تشطيب فاخر",
-  "purchase_price_usd": "سعر الشراء (USD)"
+  "purchase_price_usd": "سعر الشراء (USD)",
+  "last_valuation_date": "تاريخ آخر تقييم"
 }

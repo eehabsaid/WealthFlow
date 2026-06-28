@@ -95,17 +95,13 @@ function renderFixedAssetsList(assets) {
               <tbody>
   `;
 
-
   assetsArray.forEach((asset) => {
-
     const assetType = asset.asset_type || asset.type || "Other";
     const typeKey = `type_${assetType.toLowerCase()}`;
 
     html += `
             <tr>
-
                 <td>${asset.name || "—"}</td>
-
                 <td>
                     <span
                         style="
@@ -120,31 +116,25 @@ function renderFixedAssetsList(assets) {
                         ${assetType}
                     </span>
                 </td>
-
                 <td>${asset.purchase_date || "—"}</td>
-
                 <td class="text-end">
                     ${fmt(asset.purchase_price)}
                 </td>
-
                 <td class="text-end">
                     <span style="color:#17a34a;font-weight:700">
                         ${fmt(asset.current_market_value)}
                     </span>
                 </td>
-
                 <td>
                     <button class="btn-icon"
                         onclick="showFixedAssetModal(${asset.id})">
                         <i class="bi bi-pencil"></i>
                     </button>
-
                     <button class="btn-icon del"
                         onclick="deleteFixedAsset(${asset.id})">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
-
             </tr>
             `;
   });
@@ -157,7 +147,6 @@ function renderFixedAssetsList(assets) {
       `;
 
   container.innerHTML = html;
-  //if (typeof applyTranslations === 'function')
   applyTranslations();
 }
 
@@ -168,243 +157,186 @@ function renderFixedAssetsList(assets) {
 async function showFixedAssetModal(assetId = null) {
   const isEdit = assetId !== null;
   const modalTitleKey = isEdit ? "edit_fixed_asset" : "add_fixed_asset";
-  const modalTitleDefault = isEdit
-    ? "Edit Asset Details"
-    : "Register New Fixed Asset";
+  const modalTitleDefault = isEdit ? "Edit Asset Details" : "Register New Fixed Asset";
 
   const html = `
-        <div class="modal fade" id="fixedAssetModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content" style="background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.37);">
-                    <div class="modal-header px-4" style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.1);">
-                        <h5 class="modal-title font-weight-bold" data-i18n="${modalTitleKey}" style="font-size: 1.15rem; color: var(--text-primary);">${modalTitleDefault}</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-header">
+            <h5 class="modal-title" data-i18n="${modalTitleKey}">${modalTitleDefault}</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <form id="fixedAssetForm">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" data-i18n="asset_name">Asset Name</label>
+                        <input type="text" class="form-control" id="fa_name" required>
                     </div>
-                    <div class="modal-body p-4" style="max-height:70vh; overflow-y:auto;">
-                        <form id="fixedAssetForm">
-                            <div class="row g-2 mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label small mb-2" style="color: var(--text-primary);" data-i18n="asset_name">Asset Name</label>
-                                    <input type="text" class="form-control" id="fa_name" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small mb-2" style="color: var(--text-primary);" data-i18n="asset_type">Asset Type</label>
-                                    <select class="form-select" id="fa_type" onchange="toggleRealEstateFields()" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);" required>
-                                        <option value="Apartment" data-i18n="type_apartment" style="background: var(--bg-primary); color: var(--text-primary);">Apartment</option>
-                                        <option value="Villa" data-i18n="type_villa" style="background: var(--bg-primary); color: var(--text-primary);">Villa</option>
-                                        <option value="Land" data-i18n="type_land" style="background: var(--bg-primary); color: var(--text-primary);">Land</option>
-                                        <option value="Shop" data-i18n="type_shop" style="background: var(--bg-primary); color: var(--text-primary);">Shop</option>
-                                        <option value="Office" data-i18n="type_office" style="background: var(--bg-primary); color: var(--text-primary);">Office</option>
-                                        <option value="Car" data-i18n="type_car" style="background: var(--bg-primary); color: var(--text-primary);">Car</option>
-                                        <option value="Other" data-i18n="type_other" style="background: var(--bg-primary); color: var(--text-primary);">Other</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="row g-2 mb-3">
-
-                                <div class="col-md-4">
-                                    <label class="form-label small mb-2" style="color: var(--text-primary);"
-                                          data-i18n="purchase_price_egp">
-                                        Purchase Price (EGP)
-                                    </label>
-
-                                    <input type="number"
-                                          step="0.01"
-                                          class="form-control"
-                                          oninput="updatePurchasePriceUSD()"
-                                          id="fa_purchase_price" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);" required>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label class="form-label small mb-2" style="color: var(--text-primary);"
-                                          data-i18n="purchase_usd_rate">
-                                        USD Exchange Rate
-                                    </label>
-
-                                    <input type="number"
-                                          step="0.0001"
-                                          class="form-control"
-                                          oninput="updatePurchasePriceUSD()"
-                                          id="fa_purchase_usd_rate" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);" required>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label class="form-label small mb-2" style="color: var(--text-primary);"
-                                          data-i18n="purchase_price_usd">
-                                        Purchase Price (USD)
-                                    </label>
-
-                                    <input type="number"
-                                          step="0.01"
-                                          class="form-control"
-                                          id="fa_purchase_price_usd" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);" readonly>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label class="form-label small mb-2" style="color: var(--text-primary);"
-                                          data-i18n="purchase_date">
-                                        Purchase Date
-                                    </label>
-
-                                    <input type="date"
-                                          class="form-control"
-                                          id="fa_purchase_date" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);" required>
-                                </div>
-
-                            </div>
-
-                            <div class="row g-2 mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label small mb-2" style="color: var(--text-primary);" data-i18n="current_market_value">Current Market Value</label>
-                                    <input type="number" step="0.01" class="form-control" id="fa_current_value" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small mb-2" style="color: var(--text-primary);" data-i18n="valuation_source">Valuation Source</label>
-                                    <select class="form-select" id="fa_val_source" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);">
-                                        <option value="Manual" data-i18n="val_manual" style="background: var(--bg-primary); color: var(--text-primary);">Manual Input</option>
-                                        <option value="Automatic" data-i18n="val_automatic" style="background: var(--bg-primary); color: var(--text-primary);">System Synced</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div id="realEstateSection" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 20px; margin-top: 15px;">
-                                <h6 class="mb-3 font-weight-bold" style="font-size: 0.95rem; color: var(--text-primary);" data-i18n="real_estate_details">Real Estate Technical Specifications</h6>
-                                <div class="row g-2 mb-2">
-                                    <div class="col-md-3"><input type="text" class="form-control" id="re_country" placeholder="Egypt" data-i18n-placeholder="country" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                    <div class="col-md-3"><input type="text" class="form-control" id="re_governorate" placeholder="Governorate" data-i18n-placeholder="governorate" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                    <div class="col-md-3"><input type="text" class="form-control" id="re_city" placeholder="City" data-i18n-placeholder="city" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                    <div class="col-md-3"><input type="text" class="form-control" id="re_district" placeholder="District" data-i18n-placeholder="district" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-12"><input type="text" class="form-control" id="re_address" placeholder="Address Details" data-i18n-placeholder="address" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                </div>
-
-                                <div class="row g-2 mb-2">
-                                    <div class="col-md-3"><label class="form-label small mb-1" style="color: var(--text-primary);" data-i18n="apt_area">Property Area (Sqm)</label><input type="number" class="form-control" id="re_area" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                    <div class="col-md-3"><label class="form-label small mb-1" style="color: var(--text-primary);" data-i18n="land_area">Land Plot Footprint (Sqm)</label><input type="number" class="form-control" id="re_land_area" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                    <div class="col-md-2"><label class="form-label small mb-1" style="color: var(--text-primary);" data-i18n="rooms">Bedrooms</label><input type="number" class="form-control" id="re_rooms" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                    <div class="col-md-2"><label class="form-label small mb-1" style="color: var(--text-primary);" data-i18n="bathrooms">Bathrooms</label><input type="number" class="form-control" id="re_bathrooms" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                    <div class="col-md-2"><label class="form-label small mb-1" style="color: var(--text-primary);" data-i18n="floor">Floor Number</label><input type="number" class="form-control" id="re_floor" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                </div>
-
-                                <div class="row g-2 mb-2">
-                                    <div class="col-md-3"><label class="form-label small mb-1" style="color: var(--text-primary);" data-i18n="building_floors">Total Building Stories</label><input type="number" class="form-control" id="re_b_floors" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                    <div class="col-md-3"><label class="form-label small mb-1" style="color: var(--text-primary);" data-i18n="building_year">Construction Year</label><input type="number" class="form-control" id="re_year" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                    <div class="col-md-3"><label class="form-label small mb-1" style="color: var(--text-primary);" data-i18n="facades">Facade Orientation</label><input type="text" class="form-control" id="re_facades" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small mb-1"
-                                            style="color: var(--text-primary);"
-                                            data-i18n="furnished_status">
-                                            Furnished Status
-                                        </label>
-
-                                        <select
-                                            class="form-select"
-                                            id="re_furnished"
-                                            style="background: var(--bg-primary);
-                                                  color: var(--text-primary);
-                                                  border: 1px solid var(--border-color);">
-
-                                            <option value="Unfurnished" data-i18n="unfurnished">Unfurnished</option>
-                                            <option value="Semi Furnished" data-i18n="semi_furnished">Semi Furnished</option>
-                                            <option value="Fully Furnished" data-i18n="fully_furnished">Fully Furnished</option>
-
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3"><label class="form-label small mb-1" style="color: var(--text-primary);" data-i18n="finishing_level">Finishing Level Type</label>
-                                      <select
-                                          class="form-select"
-                                          id="re_finishing"
-                                          style="background: var(--bg-primary);
-                                                color: var(--text-primary);
-                                                border: 1px solid var(--border-color);">
-
-                                          <option value="Shell & Core" data-i18n="shell_core">Shell & Core</option>
-                                          <option value="Semi Finished" data-i18n="semi_finished">Semi Finished</option>
-                                          <option value="Fully Finished" data-i18n="fully_finished">Fully Finished</option>
-                                          <option value="Luxury Finished" data-i18n="luxury_finished">Luxury Finished</option>
-
-                                      </select>
-                                    </div>
-                                </div>
-
-                                <div class="row g-2 mb-2">
-                                    <div class="col-md-6">
-                                        <label class="form-label small d-block mb-2" style="color: var(--text-primary);" data-i18n="utilities">Available Utilities</label>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" id="re_util_elec">
-                                            <label class="form-check-label small" for="re_util_elec" style="color: var(--text-primary);" data-i18n="electricity">Electricity Grid Connection</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" id="re_util_water">
-                                            <label class="form-check-label small" for="re_util_water" style="color: var(--text-primary);" data-i18n="water">Water Line Connection</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" id="re_util_gas">
-                                            <label class="form-check-label small" for="re_util_gas" style="color: var(--text-primary);" data-i18n="gas">Natural Gas Supply</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small d-block mb-2" style="color: var(--text-primary);" data-i18n="features">Structural Amenities</label>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" id="re_feat_elevator">
-                                            <label class="form-check-label small" for="re_feat_elevator" style="color: var(--text-primary);" data-i18n="elevator">Elevator Access</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" id="re_feat_garage">
-                                            <label class="form-check-label small" for="re_feat_garage" style="color: var(--text-primary);" data-i18n="garage">Dedicated Parking/Garage</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" id="re_has_land_share">
-                                            <label class="form-check-label small" for="re_has_land_share" style="color: var(--text-primary);" data-i18n="has_land_share">Has Land Share</label>
-                                        </div>
-
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" id="re_feat_licensed">
-                                            <label class="form-check-label small" for="re_feat_licensed" style="color: var(--text-primary);" data-i18n="licensed">Legally Licensed Building</label>
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <div class="row g-2">
-                                    <div class="col-md-4">
-                                        <label class="form-label small mb-2" style="color: var(--text-primary);" data-i18n="land_share">Undivided Land Share (Carat)</label>
-                                        <input type="text" class="form-control" id="re_land_share" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);">
-                                    </div>
-                                    <div class="col-md-8">
-                                        <label class="form-label small mb-2" style="color: var(--text-primary);" data-i18n="description">Property Structural Description</label>
-                                        <input type="text" class="form-control" id="re_description" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mb-2 mt-4">
-                                <label class="form-label small mb-2" style="color: var(--text-primary);" data-i18n="notes">Internal Notes</label>
-                                <textarea class="form-control" id="fa_notes" rows="2" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); caret-color: var(--text-primary);"></textarea>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer px-4" style="border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.1);">
-                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" data-i18n="cancel" style="border-radius: 6px;">Cancel</button>
-                        <button type="button" class="btn btn-primary px-4 btn-primary-custom" onclick="saveFixedAsset(${assetId})" data-i18n="save" style="border-radius: 6px;">Save</button>
+                    <div class="col-md-6">
+                        <label class="form-label" data-i18n="asset_type">Asset Type</label>
+                        <select class="form-select" id="fa_type" onchange="toggleRealEstateFields()" required>
+                            <option value="Apartment" data-i18n="type_apartment">Apartment</option>
+                            <option value="Villa" data-i18n="type_villa">Villa</option>
+                            <option value="Land" data-i18n="type_land">Land</option>
+                            <option value="Shop" data-i18n="type_shop">Shop</option>
+                            <option value="Office" data-i18n="type_office">Office</option>
+                            <option value="Car" data-i18n="type_car">Car</option>
+                            <option value="Other" data-i18n="type_other">Other</option>
+                        </select>
                     </div>
                 </div>
-            </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label" data-i18n="purchase_price_egp">Purchase Price (EGP)</label>
+                        <input type="number" step="0.01" class="form-control" oninput="updatePurchasePriceUSD()" id="fa_purchase_price" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
+                        <input type="number" step="0.0001" class="form-control" oninput="updatePurchasePriceUSD()" id="fa_purchase_usd_rate" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" data-i18n="purchase_price_usd">Purchase Price (USD)</label>
+                        <input type="number" step="0.01" class="form-control" id="fa_purchase_price_usd" readonly>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label" data-i18n="purchase_date">Purchase Date</label>
+                        <input type="date" class="form-control" id="fa_purchase_date" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" data-i18n="current_market_value">Current Market Value</label>
+                        <input type="number" step="0.01" class="form-control" id="fa_current_value" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" data-i18n="last_valuation_date">Last Valuation Date</label>
+                        <input type="date" class="form-control" id="fa_last_valuation_date" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label" data-i18n="valuation_source">Valuation Source</label>
+                        <select class="form-select" id="fa_val_source">
+                            <option value="Manual" data-i18n="val_manual">Manual Input</option>
+                            <option value="Automatic" data-i18n="val_automatic">System Synced</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="realEstateSection" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 20px; margin-top: 15px;">
+                    <h6 class="mb-3 font-weight-bold" style="font-size: 0.95rem;" data-i18n="real_estate_details">Real Estate Technical Specifications</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3"><input type="text" class="form-control" id="re_country" placeholder="Egypt" data-i18n-placeholder="country"></div>
+                        <div class="col-md-3"><input type="text" class="form-control" id="re_governorate" placeholder="Governorate" data-i18n-placeholder="governorate"></div>
+                        <div class="col-md-3"><input type="text" class="form-control" id="re_city" placeholder="City" data-i18n-placeholder="city"></div>
+                        <div class="col-md-3"><input type="text" class="form-control" id="re_district" placeholder="District" data-i18n-placeholder="district"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12"><input type="text" class="form-control" id="re_address" placeholder="Address Details" data-i18n-placeholder="address"></div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4"><label class="form-label small" data-i18n="apt_area">Property Area (Sqm)</label><input type="number" class="form-control" id="re_area"></div>
+                        <div class="col-md-4"><label class="form-label small" data-i18n="land_area">Land Plot Footprint (Sqm)</label><input type="number" class="form-control" id="re_land_area"></div>
+                        <div class="col-md-2"><label class="form-label small" data-i18n="rooms">Bedrooms</label><input type="number" class="form-control" id="re_rooms"></div>
+                        <div class="col-md-2"><label class="form-label small" data-i18n="bathrooms">Bathrooms</label><input type="number" class="form-control" id="re_bathrooms"></div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3"><label class="form-label small" data-i18n="floor">Floor Number</label><input type="number" class="form-control" id="re_floor"></div>
+                        <div class="col-md-3"><label class="form-label small" data-i18n="building_floors">Total Building Stories</label><input type="number" class="form-control" id="re_b_floors"></div>
+                        <div class="col-md-3"><label class="form-label small" data-i18n="building_year">Construction Year</label><input type="number" class="form-control" id="re_year"></div>
+                        <div class="col-md-3"><label class="form-label small" data-i18n="facades">Facade Orientation</label><input type="text" class="form-control" id="re_facades"></div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small" data-i18n="furnished_status">Furnished Status</label>
+                            <select class="form-select" id="re_furnished">
+                                <option value="Unfurnished" data-i18n="unfurnished">Unfurnished</option>
+                                <option value="Semi Furnished" data-i18n="semi_furnished">Semi Furnished</option>
+                                <option value="Fully Furnished" data-i18n="fully_furnished">Fully Furnished</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small" data-i18n="finishing_level">Finishing Level Type</label>
+                            <select class="form-select" id="re_finishing">
+                                <option value="Shell & Core" data-i18n="shell_core">Shell & Core</option>
+                                <option value="Semi Finished" data-i18n="semi_finished">Semi Finished</option>
+                                <option value="Fully Finished" data-i18n="fully_finished">Fully Finished</option>
+                                <option value="Luxury Finished" data-i18n="luxury_finished">Luxury Finished</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small d-block mb-2" data-i18n="utilities">Available Utilities</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="re_util_elec">
+                                <label class="form-check-label small" for="re_util_elec" data-i18n="electricity">Electricity Grid Connection</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="re_util_water">
+                                <label class="form-check-label small" for="re_util_water" data-i18n="water">Water Line Connection</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="re_util_gas">
+                                <label class="form-check-label small" for="re_util_gas" data-i18n="gas">Natural Gas Supply</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small d-block mb-2" data-i18n="features">Structural Amenities</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="re_feat_elevator">
+                                <label class="form-check-label small" for="re_feat_elevator" data-i18n="elevator">Elevator Access</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="re_feat_garage">
+                                <label class="form-check-label small" for="re_feat_garage" data-i18n="garage">Dedicated Parking/Garage</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="re_has_land_share">
+                                <label class="form-check-label small" for="re_has_land_share" data-i18n="has_land_share">Has Land Share</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="re_feat_licensed">
+                                <label class="form-check-label small" for="re_feat_licensed" data-i18n="licensed">Legally Licensed Building</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small" data-i18n="land_share">Undivided Land Share (Carat)</label>
+                            <input type="text" class="form-control" id="re_land_share">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small" data-i18n="description">Property Structural Description</label>
+                            <input type="text" class="form-control" id="re_description">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-2 mt-4">
+                    <label class="form-label" data-i18n="notes">Internal Notes</label>
+                    <textarea class="form-control" id="fa_notes" rows="2"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+            <button class="btn-primary-custom" onclick="saveFixedAsset(${assetId})" data-i18n="save">Save</button>
         </div>
     `;
 
-  document.getElementById("modal-container").innerHTML = html;
-  const modalEl = document.getElementById("fixedAssetModal");
-  const modalInstance = new bootstrap.Modal(modalEl);
-
-  if (typeof applyTranslations === "function") applyTranslations();
-
-  modalInstance.show();
+  showModal(html);
+  applyTranslations();
 
   if (isEdit) {
-      await loadFixedAsset(assetId);
+    await loadFixedAsset(assetId);
   }
 }
 
@@ -417,19 +349,14 @@ async function loadFixedAsset(assetId) {
 
     document.getElementById("fa_name").value = asset.name || "";
     document.getElementById("fa_type").value = asset.asset_type || "Apartment";
-    document.getElementById("fa_purchase_date").value =
-      asset.purchase_date || "";
-    document.getElementById("fa_purchase_price").value =
-      asset.purchase_price || 0;
-    document.getElementById("fa_purchase_usd_rate").value =
-      asset.purchase_usd_rate || 1;
-    document.getElementById("fa_purchase_price_usd").value =
-    asset.purchase_price_usd || 0;
+    document.getElementById("fa_purchase_date").value = asset.purchase_date || "";
+    document.getElementById("fa_purchase_price").value = asset.purchase_price || 0;
+    document.getElementById("fa_purchase_usd_rate").value = asset.purchase_usd_rate || 1;
+    document.getElementById("fa_purchase_price_usd").value = asset.purchase_price_usd || 0;
     updatePurchasePriceUSD();
-    document.getElementById("fa_current_value").value =
-      asset.current_market_value || 0;
-    document.getElementById("fa_val_source").value =
-      asset.valuation_source || "Manual";
+    document.getElementById("fa_current_value").value = asset.current_market_value || 0;
+    document.getElementById("fa_last_valuation_date").value = asset.last_valuation_date || "";
+    document.getElementById("fa_val_source").value = asset.valuation_source || "Manual";
     document.getElementById("fa_notes").value = asset.notes || "";
 
     toggleRealEstateFields();
@@ -469,21 +396,17 @@ async function loadFixedAsset(assetId) {
 }
 
 function updatePurchasePriceUSD() {
-    const egp =
-        parseFloat(document.getElementById("fa_purchase_price").value) || 0;
+  const egp = parseFloat(document.getElementById("fa_purchase_price").value) || 0;
+  const rate = parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0;
+  const usdField = document.getElementById("fa_purchase_price_usd");
 
-    const rate =
-        parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0;
+  if (!usdField) return;
 
-    const usdField = document.getElementById("fa_purchase_price_usd");
-
-    if (!usdField) return;
-
-    if (rate > 0) {
-        usdField.value = (egp / rate).toFixed(2);
-    } else {
-        usdField.value = "";
-    }
+  if (rate > 0) {
+    usdField.value = (egp / rate).toFixed(2);
+  } else {
+    usdField.value = "";
+  }
 }
 
 async function saveFixedAsset(assetId = null) {
@@ -492,20 +415,15 @@ async function saveFixedAsset(assetId = null) {
   const method = isEdit ? "PUT" : "POST";
 
   const assetType = document.getElementById("fa_type").value;
-  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(
-    assetType,
-  );
+  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(assetType);
 
   const payload = {
     name: document.getElementById("fa_name").value,
     asset_type: assetType,
     purchase_date: document.getElementById("fa_purchase_date").value,
-    purchase_price:
-      parseFloat(document.getElementById("fa_purchase_price").value) || 0,
-    purchase_usd_rate:
-      parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 1,
-    current_market_value:
-      parseFloat(document.getElementById("fa_current_value").value) || 0,
+    purchase_price: parseFloat(document.getElementById("fa_purchase_price").value) || 0,
+    purchase_usd_rate: parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 1,
+    current_market_value: parseFloat(document.getElementById("fa_current_value").value) || 0,
     valuation_source: document.getElementById("fa_val_source").value,
     notes: document.getElementById("fa_notes").value,
     status: "Owned",
@@ -523,8 +441,7 @@ async function saveFixedAsset(assetId = null) {
       rooms: parseInt(document.getElementById("re_rooms").value) || 0,
       bathrooms: parseInt(document.getElementById("re_bathrooms").value) || 0,
       floor: parseInt(document.getElementById("re_floor").value) || 0,
-      building_floors:
-        parseInt(document.getElementById("re_b_floors").value) || 0,
+      building_floors: parseInt(document.getElementById("re_b_floors").value) || 0,
       building_year: parseInt(document.getElementById("re_year").value) || 0,
       facades: document.getElementById("re_facades").value,
       finishing_level: document.getElementById("re_finishing").value,
@@ -535,7 +452,7 @@ async function saveFixedAsset(assetId = null) {
       elevator: document.getElementById("re_feat_elevator").checked,
       garage: document.getElementById("re_feat_garage").checked,
       licensed: document.getElementById("re_feat_licensed").checked,
-      has_land_share:document.getElementById("re_has_land_share").checked,
+      has_land_share: document.getElementById("re_has_land_share").checked,
       land_share: document.getElementById("re_land_share").value,
       description: document.getElementById("re_description").value,
     };
@@ -554,15 +471,9 @@ async function saveFixedAsset(assetId = null) {
 
     if (!response.ok) throw new Error("Error saving fixed asset");
 
-    showToast(
-      isEdit ? "Asset updated successfully!" : "Asset added successfully!",
-      "success",
-    );
+    showToast(isEdit ? "Asset updated successfully!" : "Asset added successfully!", "success");
 
-    const modalEl = document.getElementById("fixedAssetModal");
-    const modalInstance = bootstrap.Modal.getInstance(modalEl);
-    if (modalInstance) modalInstance.hide();
-
+    closeModal(); // Call global dynamic closing match
     fetchAndRenderFixedAssets();
   } catch (err) {
     showToast(err.message, "danger");
@@ -591,51 +502,42 @@ async function deleteFixedAsset(assetId) {
 
 function showSaleModal(assetId, assetName, currentMarketValue) {
   const html = `
-        <div class="modal fade" id="assetSaleModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color);caret-color: var(--text-primary);">
-                    <div class="modal-header">
-                        <h5 class="modal-title"><span data-i18n="sell_asset">Sell Asset</span>: ${assetName}</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="assetSaleForm">
-                            <div class="mb-3">
-                                <label class="form-label" style="color: var(--text-primary);" data-i18n="sale_date">Sale Date</label>
-                                <input type="date" class="form-control" id="sale_date" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label" style="color: var(--text-primary);" data-i18n="sale_price">Sale Price</label>
-                                <input type="number" step="0.01" class="form-control" id="sale_price" value="${currentMarketValue}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label" style="color: var(--text-primary);" data-i18n="selling_expenses">Selling Expenses</label>
-                                <input type="number" step="0.01" class="form-control" id="selling_expenses" value="0">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label" style="color: var(--text-primary);" data-i18n="notes">Notes</label>
-                                <textarea class="form-control" id="sale_notes" rows="2"></textarea>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
-                        <button type="button" class="btn btn-danger" onclick="submitAssetSale(${assetId})" data-i18n="confirm_sale">Confirm Sale</button>
-                    </div>
+        <div class="modal-header">
+            <h5 class="modal-title"><span data-i18n="sell_asset">Sell Asset</span>: ${assetName}</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <form id="assetSaleForm">
+                <div class="mb-3">
+                    <label class="form-label" data-i18n="sale_date">Sale Date</label>
+                    <input type="date" class="form-control" id="sale_date" required>
                 </div>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label" data-i18n="sale_price">Sale Price</label>
+                    <input type="number" step="0.01" class="form-control" id="sale_price" value="${currentMarketValue}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" data-i18n="selling_expenses">Selling Expenses</label>
+                    <input type="number" step="0.01" class="form-control" id="selling_expenses" value="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" data-i18n="notes">Notes</label>
+                    <textarea class="form-control" id="sale_notes" rows="2"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+            <button class="btn-primary-custom" onclick="submitAssetSale(${assetId})" data-i18n="confirm_sale">Confirm Sale</button>
         </div>
     `;
-  document.getElementById("modal-container").innerHTML = html;
-  if (typeof applyTranslations === "function") applyTranslations();
-  new bootstrap.Modal(document.getElementById("assetSaleModal")).show();
+  showModal(html);
+  applyTranslations();
 }
 
 async function submitAssetSale(assetId) {
-  const salePrice =
-    parseFloat(document.getElementById("sale_price").value) || 0;
-  const expenses =
-    parseFloat(document.getElementById("selling_expenses").value) || 0;
+  const salePrice = parseFloat(document.getElementById("sale_price").value) || 0;
+  const expenses = parseFloat(document.getElementById("selling_expenses").value) || 0;
   const netSaleAmount = salePrice - expenses;
 
   const payload = {
@@ -660,9 +562,7 @@ async function submitAssetSale(assetId) {
     if (!response.ok) throw new Error("Failed to process sale");
 
     showToast("Asset marked as Sold successfully!", "success");
-    bootstrap.Modal.getInstance(
-      document.getElementById("assetSaleModal"),
-    ).hide();
+    closeModal();
     fetchAndRenderFixedAssets();
   } catch (err) {
     showToast(err.message, "danger");
@@ -674,9 +574,7 @@ async function submitAssetSale(assetId) {
 function toggleRealEstateFields() {
   const assetType = document.getElementById("fa_type").value;
   const reSection = document.getElementById("realEstateSection");
-  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(
-    assetType,
-  );
+  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(assetType);
 
   if (reSection) {
     reSection.style.display = isRealEstate ? "block" : "none";

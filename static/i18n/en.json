@@ -572,5 +572,6 @@
   "semi_finished": "Semi Finished",
   "fully_finished": "Fully Finished",
   "luxury_finished": "Luxury Finished",
-  "purchase_price_usd": "Purchase Price (USD)"
+  "purchase_price_usd": "Purchase Price (USD)",
+  "last_valuation_date": "Last Valuation Date"
 }

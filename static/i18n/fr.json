@@ -572,5 +572,6 @@
   "semi_finished": "Semi fini",
   "fully_finished": "Entièrement fini",
   "luxury_finished": "Finition de luxe",
-  "purchase_price_usd": "Prix d'achat (USD)"
+  "purchase_price_usd": "Prix d'achat (USD)",
+  "last_valuation_date": "Date de la dernière évaluation"
 }
