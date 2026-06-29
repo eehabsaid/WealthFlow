@@ -394,20 +394,54 @@ async function showFixedAssetModal(assetId = null) {
                             <label class="form-label small" data-i18n="description">Property Structural Description</label>
                             <input type="text" class="form-control" id="re_description">
                         </div>
-                        <hr class="my-4">
-                        <h6 class="mb-3" data-i18n="renovation_history">
-                            Renovation History
-                        </h6>
+                        <div class="col-md-12">
+                            <hr class="my-4">
+                        </div>
 
-                        <div id="renovationContainer"></div>
+                        <div class="card border-0 shadow-sm bg-transparent">
 
-                        <button
-                            type="button"
-                            class="btn btn-outline-primary btn-sm mt-2"
-                            onclick="addRenovationRow()"
-                            data-i18n="add_renovation">
-                            + Add Renovation
-                        </button>
+                            <div class="card-header d-flex justify-content-between align-items-center">
+
+                                <h6 class="mb-0"
+                                    data-i18n="renovation_history">
+                                    Renovation History
+                                </h6>
+
+                                <button
+                                    class="btn btn-sm btn-outline-secondary"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#renovationCollapse">
+
+                                    <i class="bi bi-chevron-down"></i>
+
+                                </button>
+
+                            </div>
+
+                            <div
+                                class="collapse show"
+                                id="renovationCollapse">
+
+                                <div class="card-body">
+
+                                    <div id="renovationContainer"></div>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary btn-sm mt-3"
+                                        onclick="addRenovationRow()"
+                                        data-i18n="add_renovation">
+
+                                        + Add Renovation
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
 
                     </div>
                 </div>

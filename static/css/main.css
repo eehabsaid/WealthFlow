@@ -1176,3 +1176,30 @@ body { overflow-x: hidden; }
     color: var(--text-primary) !important;
 }
 
+.asset-modal-dialog{
+    max-width:1200px;
+}
+
+.asset-modal-body{
+    height:70vh;
+    overflow-y:auto;
+    overflow-x:hidden;
+}
+
+.asset-tabs{
+    position:sticky;
+    top:0;
+    z-index:10;
+    background:var(--card-bg);
+    padding-bottom:10px;
+}
+
+.tab-pane{
+    padding-top:10px;
+}
+
+.asset-card-body{
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
