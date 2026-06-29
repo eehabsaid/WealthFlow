@@ -164,293 +164,291 @@ async function showFixedAssetModal(assetId = null) {
     ? "Edit Asset Details"
     : "Register New Fixed Asset";
 
-  const html = `
+const html = `
         <div class="modal-header">
             <h5 class="modal-title" data-i18n="${modalTitleKey}">${modalTitleDefault}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
-            <form id="fixedAssetForm">
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label" data-i18n="asset_name">Asset Name</label>
-                        <input type="text" class="form-control" id="fa_name" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" data-i18n="asset_type">Asset Type</label>
-                        <select class="form-select" id="fa_type" onchange="toggleRealEstateFields()" required>
-                            <option value="Apartment" data-i18n="type_apartment">Apartment</option>
-                            <option value="Villa" data-i18n="type_villa">Villa</option>
-                            <option value="Land" data-i18n="type_land">Land</option>
-                            <option value="Shop" data-i18n="type_shop">Shop</option>
-                            <option value="Office" data-i18n="type_office">Office</option>
-                            <option value="Car" data-i18n="type_car">Car</option>
-                            <option value="Other" data-i18n="type_other">Other</option>
-                        </select>
-                    </div>
-                </div>
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto; overflow-x: hidden; padding: 1.5rem;">
+          <form id="fixedAssetForm">
 
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label" data-i18n="purchase_price_egp">Purchase Price (EGP)</label>
-                        <input type="number" step="0.01" class="form-control" oninput="updatePurchasePriceUSD()" id="fa_purchase_price" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
-                        <input type="number" step="0.0001" class="form-control" oninput="updatePurchasePriceUSD()" id="fa_purchase_usd_rate" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label" data-i18n="purchase_price_usd">Purchase Price (USD)</label>
-                        <input type="number" step="0.01" class="form-control" id="fa_purchase_price_usd" readonly>
-                    </div>
-                </div>
+              <ul class="nav nav-tabs mb-4" id="fixedAssetTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                      <button class="nav-link active"
+                              id="general-tab"
+                              data-bs-toggle="tab"
+                              data-bs-target="#general-pane"
+                              type="button"
+                              role="tab"
+                              aria-controls="general-pane"
+                              aria-selected="true"
+                              data-i18n="general">
+                          General
+                      </button>
+                  </li>
 
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label" data-i18n="purchase_date">Purchase Date</label>
-                        <input type="date" class="form-control" id="fa_purchase_date" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label" data-i18n="current_market_value">Current Market Value</label>
-                        <input type="number" step="0.01" class="form-control" id="fa_current_value" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label" data-i18n="last_valuation_date">Last Valuation Date</label>
-                        <input type="date" class="form-control" id="fa_last_valuation_date" required>
-                    </div>
-                </div>
+                  <li class="nav-item" role="presentation">
+                      <button class="nav-link"
+                              id="property-tab"
+                              data-bs-toggle="tab"
+                              data-bs-target="#property-pane"
+                              type="button"
+                              role="tab"
+                              aria-controls="property-pane"
+                              aria-selected="false"
+                              data-i18n="property">
+                          Property
+                      </button>
+                  </li>
 
-                <div class="row g-3 mb-3">
-                    <div class="col-md-12">
-                        <label class="form-label" data-i18n="valuation_source">Valuation Source</label>
-                        <select class="form-select" id="fa_val_source">
-                            <option value="Manual" data-i18n="val_manual">Manual Input</option>
-                            <option value="Automatic" data-i18n="val_automatic">System Synced</option>
-                        </select>
-                    </div>
-                </div>
+                  <li class="nav-item" role="presentation">
+                      <button class="nav-link"
+                              id="renovation-tab"
+                              data-bs-toggle="tab"
+                              data-bs-target="#renovation-pane"
+                              type="button"
+                              role="tab"
+                              aria-controls="renovation-pane"
+                              aria-selected="false"
+                              data-i18n="renovations">
+                          Renovations
+                      </button>
+                  </li>
+              </ul>
 
-                <div id="realEstateSection" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 20px; margin-top: 15px;">
-                    <h6 class="mb-3 font-weight-bold" style="font-size: 0.95rem;" data-i18n="real_estate_details">Real Estate Technical Specifications</h6>
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-3"><input type="text" class="form-control" id="re_country" placeholder="Egypt" data-i18n-placeholder="country"></div>
-                        <div class="col-md-3"><input type="text" class="form-control" id="re_governorate" placeholder="Governorate" data-i18n-placeholder="governorate"></div>
-                        <div class="col-md-3"><input type="text" class="form-control" id="re_city" placeholder="City" data-i18n-placeholder="city"></div>
-                        <div class="col-md-3"><input type="text" class="form-control" id="re_district" placeholder="District" data-i18n-placeholder="district"></div>
-                    </div>
+              <div class="tab-content" id="fixedAssetTabsContent">
 
-                    <div class="row mb-3">
+                  <!-- 1. GENERAL TAB PANE -->
+                  <div class="tab-pane fade show active"
+                      id="general-pane"
+                      role="tabpanel"
+                      aria-labelledby="general-tab">
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-light" data-i18n="asset_name">Asset Name</label>
+                                <input type="text" class="form-control" id="fa_name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light" data-i18n="asset_type">Asset Type</label>
+                                <select class="form-select" id="fa_type" onchange="toggleRealEstateFields()" required>
+                                    <option value="Apartment" data-i18n="type_apartment">Apartment</option>
+                                    <option value="Villa" data-i18n="type_villa">Villa</option>
+                                    <option value="Land" data-i18n="type_land">Land</option>
+                                    <option value="Shop" data-i18n="type_shop">Shop</option>
+                                    <option value="Office" data-i18n="type_office">Office</option>
+                                    <option value="Car" data-i18n="type_car">Car</option>
+                                    <option value="Other" data-i18n="type_other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label text-light" data-i18n="purchase_price_egp">Purchase Price (EGP)</label>
+                                <input type="number" step="0.01" class="form-control" oninput="updatePurchasePriceUSD()" id="fa_purchase_price" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-light" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
+                                <input type="number" step="0.0001" class="form-control" oninput="updatePurchasePriceUSD()" id="fa_purchase_usd_rate" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-light" data-i18n="purchase_price_usd">Purchase Price (USD)</label>
+                                <input type="number" step="0.01" class="form-control" id="fa_purchase_price_usd" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label text-light" data-i18n="purchase_date">Purchase Date</label>
+                                <input type="date" class="form-control" id="fa_purchase_date" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-light" data-i18n="current_market_value">Current Market Value</label>
+                                <input type="number" step="0.01" class="form-control" id="fa_current_value" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-light" data-i18n="last_valuation_date">Last Valuation Date</label>
+                                <input type="date" class="form-control" id="fa_last_valuation_date" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label text-light" data-i18n="valuation_source">Valuation Source</label>
+                                <select class="form-select" id="fa_val_source">
+                                    <option value="Manual" data-i18n="val_manual">Manual Input</option>
+                                    <option value="Automatic" data-i18n="val_automatic">System Synced</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- FIXED: Notes is now nested exclusively here at the bottom of the General Tab -->
                         <div class="col-md-12">
-                            <input type="text"
-                                  class="form-control"
-                                  id="re_address"
-                                  placeholder="Address Details"
-                                  data-i18n-placeholder="address">
+                            <label class="form-label text-light" data-i18n="notes">Internal Notes</label>
+                            <textarea class="form-control" id="fa_notes" rows="2"></textarea>
                         </div>
 
-                        <div class="col-md-3">
-                            <button
-                                type="button"
-                                class="btn btn-primary w-100"
-                                id="btnLocateProperty"
-                                data-i18n="locate_on_map">
-                                Locate on Map
-                            </button>
-                        </div>
-                    </div>
+                  </div> <!-- End General Tab -->
 
-                    <div class="row mb-3">
+                  <!-- 2. PROPERTY TAB PANE -->
+                  <div class="tab-pane fade"
+                      id="property-pane"
+                      role="tabpanel"
+                      aria-labelledby="property-tab">
 
-                        <div class="col-md-6">
-                            <label class="form-label small" data-i18n="latitude">
-                                Latitude
-                            </label>
-
-                            <input
-                                type="number"
-                                step="0.000001"
-                                class="form-control"
-                                id="re_latitude"
-                                readonly>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label small" data-i18n="longitude">
-                                Longitude
-                            </label>
-
-                            <input
-                                type="number"
-                                step="0.000001"
-                                class="form-control"
-                                id="re_longitude"
-                                readonly>
-                        </div>
-
-                    </div>
-
-                    <div class="row mb-3">
-
-                        <div class="col-12">
-
-                            <label class="form-label small"
-                                  data-i18n="property_location">
-                                Property Location
-                            </label>
-
-                            <div id="propertyMap"
-                                style="
-                                    height:350px;
-                                    border:1px solid var(--border-color);
-                                    border-radius:8px;">
+                        <div id="realEstateSection">
+                            <h6 class="mb-3 font-weight-bold text-light" style="font-size: 0.95rem;" data-i18n="real_estate_details">Real Estate Technical Specifications</h6>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-6 col-md-3"><input type="text" class="form-control" id="re_country" placeholder="Egypt" data-i18n-placeholder="country"></div>
+                                <div class="col-sm-6 col-md-3"><input type="text" class="form-control" id="re_governorate" placeholder="Governorate" data-i18n-placeholder="governorate"></div>
+                                <div class="col-sm-6 col-md-3"><input type="text" class="form-control" id="re_city" placeholder="City" data-i18n-placeholder="city"></div>
+                                <div class="col-sm-6 col-md-3"><input type="text" class="form-control" id="re_district" placeholder="District" data-i18n-placeholder="district"></div>
                             </div>
 
-                            <small class="form-label small"
-                                  data-i18n="map_click_instruction">
-                                Click anywhere on the map to select the property location.
-                            </small>
-
-                        </div>
-
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-4"><label class="form-label small" data-i18n="apt_area">Property Area (Sqm)</label><input type="number" class="form-control" id="re_area"></div>
-                        <div class="col-md-4"><label class="form-label small" data-i18n="land_area">Land Plot Footprint (Sqm)</label><input type="number" class="form-control" id="re_land_area"></div>
-                        <div class="col-md-2"><label class="form-label small" data-i18n="rooms">Bedrooms</label><input type="number" class="form-control" id="re_rooms"></div>
-                        <div class="col-md-2"><label class="form-label small" data-i18n="bathrooms">Bathrooms</label><input type="number" class="form-control" id="re_bathrooms"></div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-3"><label class="form-label small" data-i18n="floor">Floor Number</label><input type="number" class="form-control" id="re_floor"></div>
-                        <div class="col-md-3"><label class="form-label small" data-i18n="building_floors">Total Building Stories</label><input type="number" class="form-control" id="re_b_floors"></div>
-                        <div class="col-md-3"><label class="form-label small" data-i18n="building_year">Construction Year</label><input type="number" class="form-control" id="re_year"></div>
-                        <div class="col-md-3"><label class="form-label small" data-i18n="facades">Facade Orientation</label><input type="text" class="form-control" id="re_facades"></div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label small" data-i18n="furnished_status">Furnished Status</label>
-                            <select class="form-select" id="re_furnished">
-                                <option value="Unfurnished" data-i18n="unfurnished">Unfurnished</option>
-                                <option value="Semi Furnished" data-i18n="semi_furnished">Semi Furnished</option>
-                                <option value="Fully Furnished" data-i18n="fully_furnished">Fully Furnished</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small" data-i18n="finishing_level">Finishing Level Type</label>
-                            <select class="form-select" id="re_finishing">
-                                <option value="Shell & Core" data-i18n="shell_core">Shell & Core</option>
-                                <option value="Semi Finished" data-i18n="semi_finished">Semi Finished</option>
-                                <option value="Fully Finished" data-i18n="fully_finished">Fully Finished</option>
-                                <option value="Luxury Finished" data-i18n="luxury_finished">Luxury Finished</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label small d-block mb-2" data-i18n="utilities">Available Utilities</label>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" id="re_util_elec">
-                                <label class="form-check-label small" for="re_util_elec" data-i18n="electricity">Electricity Grid Connection</label>
+                            <div class="row g-3 mb-3 align-items-end">
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" id="re_address" placeholder="Address Details" data-i18n-placeholder="address">
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" class="btn btn-primary w-100" id="btnLocateProperty" data-i18n="locate_on_map">Locate on Map</button>
+                                </div>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" id="re_util_water">
-                                <label class="form-check-label small" for="re_util_water" data-i18n="water">Water Line Connection</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" id="re_util_gas">
-                                <label class="form-check-label small" for="re_util_gas" data-i18n="gas">Natural Gas Supply</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small d-block mb-2" data-i18n="features">Structural Amenities</label>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" id="re_feat_elevator">
-                                <label class="form-check-label small" for="re_feat_elevator" data-i18n="elevator">Elevator Access</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" id="re_feat_garage">
-                                <label class="form-check-label small" for="re_feat_garage" data-i18n="garage">Dedicated Parking/Garage</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" id="re_has_land_share">
-                                <label class="form-check-label small" for="re_has_land_share" data-i18n="has_land_share">Has Land Share</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" id="re_feat_licensed">
-                                <label class="form-check-label small" for="re_feat_licensed" data-i18n="licensed">Legally Licensed Building</label>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label small" data-i18n="land_share">Undivided Land Share (Carat)</label>
-                            <input type="text" class="form-control" id="re_land_share">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-light" data-i18n="latitude">Latitude</label>
+                                    <input type="number" step="0.000001" class="form-control" id="re_latitude" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-light" data-i18n="longitude">Longitude</label>
+                                    <input type="number" step="0.000001" class="form-control" id="re_longitude" readonly>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-12">
+                                    <label class="form-label small text-light" data-i18n="property_location">Property Location</label>
+                                    <div id="propertyMap" class="w-100" style="height:300px; border:1px solid var(--border-color); border-radius:8px;"></div>
+                                    <small class="form-text text-light" style="opacity: 0.65;" data-i18n="map_click_instruction">Click anywhere on the map to select the property location.</small>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-6 col-md-4"><label class="form-label small text-light" data-i18n="apt_area">Property Area (Sqm)</label><input type="number" class="form-control" id="re_area"></div>
+                                <div class="col-sm-6 col-md-4"><label class="form-label small text-light" data-i18n="land_area">Land Plot Footprint (Sqm)</label><input type="number" class="form-control" id="re_land_area"></div>
+                                <div class="col-6 col-md-2"><label class="form-label small text-light" data-i18n="rooms">Bedrooms</label><input type="number" class="form-control" id="re_rooms"></div>
+                                <div class="col-6 col-md-2"><label class="form-label small text-light" data-i18n="bathrooms">Bathrooms</label><input type="number" class="form-control" id="re_bathrooms"></div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-6 col-md-3"><label class="form-label small text-light" data-i18n="floor">Floor Number</label><input type="number" class="form-control" id="re_floor"></div>
+                                <div class="col-6 col-md-3"><label class="form-label small text-light" data-i18n="building_floors">Total Building Stories</label><input type="number" class="form-control" id="re_b_floors"></div>
+                                <div class="col-6 col-md-3"><label class="form-label small text-light" data-i18n="building_year">Construction Year</label><input type="number" class="form-control" id="re_year"></div>
+                                <div class="col-6 col-md-3"><label class="form-label small text-light" data-i18n="facades">Facade Orientation</label><input type="text" class="form-control" id="re_facades"></div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-light" data-i18n="furnished_status">Furnished Status</label>
+                                    <select class="form-select" id="re_furnished">
+                                        <option value="Unfurnished" data-i18n="unfurnished">Unfurnished</option>
+                                        <option value="Semi Furnished" data-i18n="semi_furnished">Semi Furnished</option>
+                                        <option value="Fully Furnished" data-i18n="fully_furnished">Fully Furnished</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-light" data-i18n="finishing_level">Finishing Level Type</label>
+                                    <select class="form-select" id="re_finishing">
+                                        <option value="Shell & Core" data-i18n="shell_core">Shell & Core</option>
+                                        <option value="Semi Finished" data-i18n="semi_finished">Semi Finished</option>
+                                        <option value="Fully Finished" data-i18n="fully_finished">Fully Finished</option>
+                                        <option value="Luxury Finished" data-i18n="luxury_finished">Luxury Finished</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small d-block mb-2 text-light" data-i18n="utilities">Available Utilities</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="re_util_elec">
+                                        <label class="form-check-label small text-light" for="re_util_elec" data-i18n="electricity">Electricity Grid</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="re_util_water">
+                                        <label class="form-check-label small text-light" for="re_util_water" data-i18n="water">Water Line</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="re_util_gas">
+                                        <label class="form-check-label small text-light" for="re_util_gas" data-i18n="gas">Natural Gas</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small d-block mb-2 text-light" data-i18n="features">Structural Amenities</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="re_feat_elevator">
+                                        <label class="form-check-label small text-light" for="re_feat_elevator" data-i18n="elevator">Elevator</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="re_feat_garage">
+                                        <label class="form-check-label small text-light" for="re_feat_garage" data-i18n="garage">Garage</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="re_has_land_share">
+                                        <label class="form-check-label small text-light" for="re_has_land_share" data-i18n="has_land_share">Land Share</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="re_feat_licensed">
+                                        <label class="form-check-label small text-light" for="re_feat_licensed" data-i18n="licensed">Licensed</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small text-light" data-i18n="land_share">Undivided Land Share (Carat)</label>
+                                    <input type="text" class="form-control" id="re_land_share">
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label small text-light" data-i18n="description">Property Structural Description</label>
+                                    <input type="text" class="form-control" id="re_description">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-8">
-                            <label class="form-label small" data-i18n="description">Property Structural Description</label>
-                            <input type="text" class="form-control" id="re_description">
-                        </div>
-                        <div class="col-md-12">
-                            <hr class="my-4">
-                        </div>
+                        
+                  </div> <!-- End Property Tab -->
+
+                  <!-- 3. RENOVATION TAB PANE -->
+                  <div class="tab-pane fade"
+                      id="renovation-pane"
+                      role="tabpanel"
+                      aria-labelledby="renovation-tab">
 
                         <div class="card border-0 shadow-sm bg-transparent">
-
-                            <div class="card-header d-flex justify-content-between align-items-center">
-
-                                <h6 class="mb-0"
-                                    data-i18n="renovation_history">
-                                    Renovation History
-                                </h6>
-
-                                <button
-                                    class="btn btn-sm btn-outline-secondary"
-                                    type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#renovationCollapse">
-
+                            <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
+                                <h6 class="mb-0 font-weight-bold" style="color: var(--text-primary) !important;" data-i18n="renovation_history">Renovation History</h6>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#renovationCollapse">
                                     <i class="bi bi-chevron-down"></i>
-
                                 </button>
-
                             </div>
 
-                            <div
-                                class="collapse show"
-                                id="renovationCollapse">
-
-                                <div class="card-body">
-
-                                    <div id="renovationContainer"></div>
-
-                                    <button
-                                        type="button"
-                                        class="btn btn-outline-primary btn-sm mt-3"
-                                        onclick="addRenovationRow()"
-                                        data-i18n="add_renovation">
-
+                            <div class="collapse show" id="renovationCollapse">
+                                <div class="card-body px-0 pt-2">
+                                    <div id="renovationContainer" class="w-100"></div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addRenovationRow()" data-i18n="add_renovation">
                                         + Add Renovation
-
                                     </button>
-
                                 </div>
-
                             </div>
-
                         </div>
 
-                    </div>
-                </div>
+                  </div> <!-- End Renovation Tab -->
 
-                <div class="mb-2 mt-4">
-                    <label class="form-label" data-i18n="notes">Internal Notes</label>
-                    <textarea class="form-control" id="fa_notes" rows="2"></textarea>
-                </div>
-            </form>
+              </div> <!-- End Tab Content -->
+
+          </form>
         </div>
         <div class="modal-footer">
             <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
@@ -516,15 +514,22 @@ async function loadFixedAsset(assetId) {
       document.getElementById("re_b_floors").value = re.building_floors || 0;
       document.getElementById("re_year").value = re.building_year || 0;
       document.getElementById("re_facades").value = re.facades || "";
-      document.getElementById("re_furnished").value = re.furnished_status || "Unfurnished";
+      document.getElementById("re_furnished").value =
+        re.furnished_status || "Unfurnished";
       document.getElementById("re_finishing").value = re.finishing_level || "";
       document.getElementById("re_util_elec").checked = Boolean(re.electricity);
       document.getElementById("re_util_water").checked = Boolean(re.water);
       document.getElementById("re_util_gas").checked = Boolean(re.gas);
-      document.getElementById("re_feat_elevator").checked = Boolean(re.elevator,);
+      document.getElementById("re_feat_elevator").checked = Boolean(
+        re.elevator,
+      );
       document.getElementById("re_feat_garage").checked = Boolean(re.garage);
-      document.getElementById("re_feat_licensed").checked = Boolean(re.licensed,);
-      document.getElementById("re_has_land_share").checked = Boolean(re.has_land_share,);
+      document.getElementById("re_feat_licensed").checked = Boolean(
+        re.licensed,
+      );
+      document.getElementById("re_has_land_share").checked = Boolean(
+        re.has_land_share,
+      );
       document.getElementById("re_land_share").value = re.land_share || "";
       document.getElementById("re_description").value = re.description || "";
       const lat = parseFloat(re.latitude);
@@ -545,16 +550,16 @@ async function loadFixedAsset(assetId) {
       renovationContainer.innerHTML = "";
 
       if (asset.renovations && asset.renovations.length) {
-      asset.renovations.forEach((r) => {
-            addRenovationRow({
-                date: r.date,
-                category: r.category,
-                description: r.description,
-                amount_egp: r.amount_egp,
-                usd_rate: r.usd_rate,
-                amount_usd: r.amount_usd,
-                notes: r.notes
-            });
+        asset.renovations.forEach((r) => {
+          addRenovationRow({
+            date: r.date,
+            category: r.category,
+            description: r.description,
+            amount_egp: r.amount_egp,
+            usd_rate: r.usd_rate,
+            amount_usd: r.amount_usd,
+            notes: r.notes,
+          });
         });
       }
     }
@@ -595,11 +600,15 @@ async function saveFixedAsset(assetId = null) {
     name: document.getElementById("fa_name").value,
     asset_type: assetType,
     purchase_date: document.getElementById("fa_purchase_date").value,
-    purchase_price: parseFloat(document.getElementById("fa_purchase_price").value) || 0,
-    purchase_usd_rate: parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 1,
-    current_market_value: parseFloat(document.getElementById("fa_current_value").value) || 0,
+    purchase_price:
+      parseFloat(document.getElementById("fa_purchase_price").value) || 0,
+    purchase_usd_rate:
+      parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 1,
+    current_market_value:
+      parseFloat(document.getElementById("fa_current_value").value) || 0,
     valuation_source: document.getElementById("fa_val_source").value,
-    last_valuation_date: document.getElementById("fa_last_valuation_date").value || null,
+    last_valuation_date:
+      document.getElementById("fa_last_valuation_date").value || null,
     notes: document.getElementById("fa_notes").value,
     status: "Owned",
   };
@@ -611,14 +620,18 @@ async function saveFixedAsset(assetId = null) {
       city: document.getElementById("re_city").value,
       district: document.getElementById("re_district").value,
       address: document.getElementById("re_address").value,
-      latitude: parseFloat(document.getElementById("re_latitude").value) || null,
-      longitude: parseFloat(document.getElementById("re_longitude").value) || null,
+      latitude:
+        parseFloat(document.getElementById("re_latitude").value) || null,
+      longitude:
+        parseFloat(document.getElementById("re_longitude").value) || null,
       apartment_area: parseFloat(document.getElementById("re_area").value) || 0,
-      land_share_sqm: parseFloat(document.getElementById("re_land_area").value) || 0,
+      land_share_sqm:
+        parseFloat(document.getElementById("re_land_area").value) || 0,
       rooms: parseInt(document.getElementById("re_rooms").value) || 0,
       bathrooms: parseInt(document.getElementById("re_bathrooms").value) || 0,
       floor: parseInt(document.getElementById("re_floor").value) || 0,
-      building_floors: parseInt(document.getElementById("re_b_floors").value) || 0,
+      building_floors:
+        parseInt(document.getElementById("re_b_floors").value) || 0,
       building_year: parseInt(document.getElementById("re_year").value) || 0,
       facades: document.getElementById("re_facades").value,
       finishing_level: document.getElementById("re_finishing").value,
@@ -1012,7 +1025,7 @@ function addRenovationRow(data = {}) {
         <div class="col-md-2">
 
             <label class="form-label small"
-                   data-i18n="amount_egp">
+                   data-i18n="amount">
                 Amount (EGP)
             </label>
 
