@@ -349,8 +349,10 @@ function showModal(html) {
         el.setAttribute('tabindex', '-1');
         document.body.appendChild(el);
     }
+
+    //<div class="modal-dialog modal-dialog-centered"> small dialog
     el.innerHTML = `
-        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">${html}</div>
         </div>`;
     new bootstrap.Modal(el).show();
