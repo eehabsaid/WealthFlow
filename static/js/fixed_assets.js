@@ -160,7 +160,9 @@ function renderFixedAssetsList(assets) {
 async function showFixedAssetModal(assetId = null) {
   const isEdit = assetId !== null;
   const modalTitleKey = isEdit ? "edit_fixed_asset" : "add_fixed_asset";
-  const modalTitleDefault = isEdit ? "Edit Asset Details" : "Register New Fixed Asset";
+  const modalTitleDefault = isEdit
+    ? "Edit Asset Details"
+    : "Register New Fixed Asset";
 
   const html = `
         <div class="modal-header">
@@ -442,15 +444,23 @@ async function loadFixedAsset(assetId) {
 
     document.getElementById("fa_name").value = asset.name || "";
     document.getElementById("fa_type").value = asset.asset_type || "Apartment";
-    document.getElementById("fa_purchase_date").value = asset.purchase_date || "";
-    document.getElementById("fa_purchase_price").value = asset.purchase_price || 0;
-    document.getElementById("fa_purchase_usd_rate").value = asset.purchase_usd_rate || 1;
-    document.getElementById("fa_purchase_price_usd").value = asset.purchase_price_usd || 0;
+    document.getElementById("fa_purchase_date").value =
+      asset.purchase_date || "";
+    document.getElementById("fa_purchase_price").value =
+      asset.purchase_price || 0;
+    document.getElementById("fa_purchase_usd_rate").value =
+      asset.purchase_usd_rate || 1;
+    document.getElementById("fa_purchase_price_usd").value =
+      asset.purchase_price_usd || 0;
     updatePurchasePriceUSD();
-    document.getElementById("fa_current_value").value = asset.current_market_value || 0;
-    document.getElementById("fa_last_valuation_date").value = asset.last_valuation_date || "";
-    document.getElementById("fa_val_source").value = asset.valuation_source || "Manual";
-    document.getElementById("fa_last_valuation_date").value = asset.last_valuation_date || "";
+    document.getElementById("fa_current_value").value =
+      asset.current_market_value || 0;
+    document.getElementById("fa_last_valuation_date").value =
+      asset.last_valuation_date || "";
+    document.getElementById("fa_val_source").value =
+      asset.valuation_source || "Manual";
+    document.getElementById("fa_last_valuation_date").value =
+      asset.last_valuation_date || "";
     document.getElementById("fa_notes").value = asset.notes || "";
 
     toggleRealEstateFields();
@@ -477,22 +487,20 @@ async function loadFixedAsset(assetId) {
       document.getElementById("re_util_elec").checked = Boolean(re.electricity);
       document.getElementById("re_util_water").checked = Boolean(re.water);
       document.getElementById("re_util_gas").checked = Boolean(re.gas);
-      document.getElementById("re_feat_elevator").checked = Boolean(re.elevator);
+      document.getElementById("re_feat_elevator").checked = Boolean(re.elevator,);
       document.getElementById("re_feat_garage").checked = Boolean(re.garage);
-      document.getElementById("re_feat_licensed").checked = Boolean(re.licensed);
-      document.getElementById("re_has_land_share").checked = Boolean(re.has_land_share);
+      document.getElementById("re_feat_licensed").checked = Boolean(re.licensed,);
+      document.getElementById("re_has_land_share").checked = Boolean(re.has_land_share,);
       document.getElementById("re_land_share").value = re.land_share || "";
       document.getElementById("re_description").value = re.description || "";
       const lat = parseFloat(re.latitude);
       const lng = parseFloat(re.longitude);
 
       if (!isNaN(lat) && !isNaN(lng)) {
+        document.getElementById("re_latitude").value = lat;
+        document.getElementById("re_longitude").value = lng;
 
-          document.getElementById("re_latitude").value = lat;
-          document.getElementById("re_longitude").value = lng;
-
-          initializePropertyMap(lat, lng);
-
+        initializePropertyMap(lat, lng);
       }
     }
 
@@ -500,24 +508,22 @@ async function loadFixedAsset(assetId) {
     const renovationContainer = document.getElementById("renovationContainer");
 
     if (renovationContainer) {
+      renovationContainer.innerHTML = "";
 
-        renovationContainer.innerHTML = "";
-
-        if (asset.renovations && asset.renovations.length) {
-
-            asset.renovations.forEach(r => {
-                addRenovationRow({
-                    renovation_date: r.date,
-                    renovation_type: r.category,
-                    description: r.description,
-                    cost: r.amount_egp
-                });
+      if (asset.renovations && asset.renovations.length) {
+      asset.renovations.forEach((r) => {
+            addRenovationRow({
+                date: r.date,
+                category: r.category,
+                description: r.description,
+                amount_egp: r.amount_egp,
+                usd_rate: r.usd_rate,
+                amount_usd: r.amount_usd,
+                notes: r.notes
             });
-
-        }
-
+        });
+      }
     }
-
   } catch (err) {
     showToast(err.message, "danger");
   } finally {
@@ -526,8 +532,10 @@ async function loadFixedAsset(assetId) {
 }
 
 function updatePurchasePriceUSD() {
-  const egp = parseFloat(document.getElementById("fa_purchase_price").value) || 0;
-  const rate = parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0;
+  const egp =
+    parseFloat(document.getElementById("fa_purchase_price").value) || 0;
+  const rate =
+    parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0;
   const usdField = document.getElementById("fa_purchase_price_usd");
 
   if (!usdField) return;
@@ -545,7 +553,9 @@ async function saveFixedAsset(assetId = null) {
   const method = isEdit ? "PUT" : "POST";
 
   const assetType = document.getElementById("fa_type").value;
-  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(assetType);
+  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(
+    assetType,
+  );
 
   const payload = {
     name: document.getElementById("fa_name").value,
@@ -558,7 +568,7 @@ async function saveFixedAsset(assetId = null) {
     last_valuation_date: document.getElementById("fa_last_valuation_date").value || null,
     notes: document.getElementById("fa_notes").value,
     status: "Owned",
-};
+  };
 
   if (isRealEstate) {
     payload.real_estate_details = {
@@ -605,7 +615,10 @@ async function saveFixedAsset(assetId = null) {
 
     if (!response.ok) throw new Error("Error saving fixed asset");
 
-    showToast(isEdit ? "Asset updated successfully!" : "Asset added successfully!", "success");
+    showToast(
+      isEdit ? "Asset updated successfully!" : "Asset added successfully!",
+      "success",
+    );
 
     closeModal(); // Call global dynamic closing match
     fetchAndRenderFixedAssets();
@@ -670,8 +683,10 @@ function showSaleModal(assetId, assetName, currentMarketValue) {
 }
 
 async function submitAssetSale(assetId) {
-  const salePrice = parseFloat(document.getElementById("sale_price").value) || 0;
-  const expenses = parseFloat(document.getElementById("selling_expenses").value) || 0;
+  const salePrice =
+    parseFloat(document.getElementById("sale_price").value) || 0;
+  const expenses =
+    parseFloat(document.getElementById("selling_expenses").value) || 0;
   const netSaleAmount = salePrice - expenses;
 
   const payload = {
@@ -708,7 +723,9 @@ async function submitAssetSale(assetId) {
 function toggleRealEstateFields() {
   const assetType = document.getElementById("fa_type").value;
   const reSection = document.getElementById("realEstateSection");
-  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(assetType);
+  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(
+    assetType,
+  );
 
   if (reSection) {
     reSection.style.display = isRealEstate ? "block" : "none";
@@ -725,228 +742,352 @@ function getCsrfToken() {
 }
 
 function initializePropertyMap(lat = 30.0444, lng = 31.2357) {
+  if (propertyMap) {
+    propertyMap.remove();
+    propertyMap = null;
+  }
 
-    if (propertyMap) {
-        propertyMap.remove();
-        propertyMap = null;
-    }
+  propertyMap = L.map("propertyMap").setView([lat, lng], 13);
 
-    propertyMap = L.map("propertyMap").setView([lat, lng], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+  }).addTo(propertyMap);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors"
-    }).addTo(propertyMap);
+  propertyMarker = L.marker([lat, lng], {
+    draggable: true,
+  }).addTo(propertyMap);
 
-    propertyMarker = L.marker([lat, lng], {
-        draggable: true
-    }).addTo(propertyMap);
+  propertyMarker.on("dragend", function () {
+    const p = propertyMarker.getLatLng();
 
-    propertyMarker.on("dragend", function () {
-        const p = propertyMarker.getLatLng();
+    document.getElementById("re_latitude").value = p.lat.toFixed(6);
+    document.getElementById("re_longitude").value = p.lng.toFixed(6);
 
-        document.getElementById("re_latitude").value = p.lat.toFixed(6);
-        document.getElementById("re_longitude").value = p.lng.toFixed(6);
+    reverseGeocode(p.lat, p.lng);
+  });
 
-        reverseGeocode(p.lat, p.lng);
-    });
+  propertyMap.on("click", function (e) {
+    propertyMarker.setLatLng(e.latlng);
 
-    propertyMap.on("click", function (e) {
+    document.getElementById("re_latitude").value = e.latlng.lat.toFixed(6);
+    document.getElementById("re_longitude").value = e.latlng.lng.toFixed(6);
 
-        propertyMarker.setLatLng(e.latlng);
+    reverseGeocode(e.latlng.lat, e.latlng.lng);
+  });
 
-        document.getElementById("re_latitude").value = e.latlng.lat.toFixed(6);
-        document.getElementById("re_longitude").value = e.latlng.lng.toFixed(6);
-
-        reverseGeocode(e.latlng.lat, e.latlng.lng);
-
-    });
-
-    setTimeout(() => propertyMap.invalidateSize(), 200);
+  setTimeout(() => propertyMap.invalidateSize(), 200);
 }
 
 async function locatePropertyOnMap() {
+  const country = document.getElementById("re_country").value.trim();
+  const governorate = document.getElementById("re_governorate").value.trim();
+  const city = document.getElementById("re_city").value.trim();
+  const district = document.getElementById("re_district").value.trim();
+  const address = document.getElementById("re_address").value.trim();
 
-    const country = document.getElementById("re_country").value.trim();
-    const governorate = document.getElementById("re_governorate").value.trim();
-    const city = document.getElementById("re_city").value.trim();
-    const district = document.getElementById("re_district").value.trim();
-    const address = document.getElementById("re_address").value.trim();
-
-    const query = [
-        address,
-        district,
-        city,
-        governorate,
-        country
-    ]
+  const query = [address, district, city, governorate, country]
     .filter(Boolean)
     .join(", ");
 
-    if (!query) {
-        showToast("Please enter an address first.", "warning");
-        return;
+  if (!query) {
+    showToast("Please enter an address first.", "warning");
+    return;
+  }
+
+  showLoading();
+
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`,
+    );
+
+    const results = await response.json();
+
+    if (!results.length) {
+      showToast("Address not found.", "warning");
+      return;
     }
 
-    showLoading();
+    const lat = parseFloat(results[0].lat);
+    const lng = parseFloat(results[0].lon);
 
-    try {
+    document.getElementById("re_latitude").value = lat.toFixed(6);
+    document.getElementById("re_longitude").value = lng.toFixed(6);
 
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
-        );
+    propertyMap.setView([lat, lng], 17);
 
-        const results = await response.json();
-
-        if (!results.length) {
-            showToast("Address not found.", "warning");
-            return;
-        }
-
-        const lat = parseFloat(results[0].lat);
-        const lng = parseFloat(results[0].lon);
-
-        document.getElementById("re_latitude").value = lat.toFixed(6);
-        document.getElementById("re_longitude").value = lng.toFixed(6);
-
-        propertyMap.setView([lat, lng], 17);
-
-        propertyMarker.setLatLng([lat, lng]);
-
-    }
-    catch (err) {
-        console.error(err);
-        showToast("Unable to locate address.", "danger");
-    }
-    finally {
-        hideLoading();
-    }
+    propertyMarker.setLatLng([lat, lng]);
+  } catch (err) {
+    console.error(err);
+    showToast("Unable to locate address.", "danger");
+  } finally {
+    hideLoading();
+  }
 }
 
 async function reverseGeocode(lat, lng) {
+  try {
+    const currentLang = localStorage.getItem("lang") || "en";
 
-    try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=${currentLang},en`,
+    );
 
-        const currentLang = localStorage.getItem("lang") || "en";
+    const result = await response.json();
 
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=${currentLang},en`
-        );
-        
-        const result = await response.json();
+    if (!result.address) return;
 
-        if (!result.address) return;
+    const a = result.address;
+    document.getElementById("re_country").value = a.country || "";
 
-        const a = result.address;
-        document.getElementById("re_country").value =
-            a.country || "";
+    document.getElementById("re_governorate").value = a.state || a.county || "";
 
-        document.getElementById("re_governorate").value =
-            a.state || a.county || "";
+    document.getElementById("re_city").value =
+      a.city || a.town || a.village || "";
 
-        document.getElementById("re_city").value =
-            a.city ||
-            a.town ||
-            a.village ||
-            "";
+    document.getElementById("re_district").value =
+      a.suburb ||
+      a.neighbourhood ||
+      a.city_district ||
+      a.district ||
+      a.municipality ||
+      a.hamlet ||
+      a.quarter ||
+      a.borough ||
+      a.village ||
+      a.town ||
+      a.city ||
+      "";
 
-        document.getElementById("re_district").value =
-            a.suburb ||
-            a.neighbourhood ||
-            a.city_district ||
-            a.district ||
-            a.municipality ||
-            a.hamlet ||
-            a.quarter ||
-            a.borough ||
-            a.village ||
-            a.town ||
-            a.city ||
-            "";
-
-        document.getElementById("re_address").value =
-            result.display_name || "";
-
-    }
-    catch (err) {
-        console.error(err);
-    }
-
+    document.getElementById("re_address").value = result.display_name || "";
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 function addRenovationRow(data = {}) {
+  const container = document.getElementById("renovationContainer");
 
-    const container = document.getElementById("renovationContainer");
+  const row = document.createElement("div");
 
-    const row = document.createElement("div");
+  row.className = "row g-2 mb-3 renovation-row";
 
-    row.className = "row g-2 mb-2 renovation-row";
+  row.innerHTML = `
 
-    row.innerHTML = `
+        <div class="col-md-2">
+            <label class="form-label small"
+                   data-i18n="renovation_date">
+                Date
+            </label>
+
+            <input
+                type="date"
+                class="form-control renovation-date"
+                value="${data.date || ""}">
+        </div>
+
+        <div class="col-md-2">
+
+            <label class="form-label small"
+                   data-i18n="renovation_type">
+                Renovation Type
+            </label>
+
+            <select class="form-select renovation-category">
+
+                <option value="Finishing"
+                    data-i18n="renovation_finishing">
+                    Finishing
+                </option>
+
+                <option value="Painting"
+                    data-i18n="renovation_painting">
+                    Painting
+                </option>
+
+                <option value="Flooring"
+                    data-i18n="renovation_flooring">
+                    Flooring
+                </option>
+
+                <option value="Kitchen"
+                    data-i18n="renovation_kitchen">
+                    Kitchen
+                </option>
+
+                <option value="Bathroom"
+                    data-i18n="renovation_bathroom">
+                    Bathroom
+                </option>
+
+                <option value="Electrical"
+                    data-i18n="renovation_electrical">
+                    Electrical
+                </option>
+
+                <option value="Plumbing"
+                    data-i18n="renovation_plumbing">
+                    Plumbing
+                </option>
+
+                <option value="Doors & Windows"
+                    data-i18n="renovation_doors_windows">
+                    Doors & Windows
+                </option>
+
+                <option value="Furniture"
+                    data-i18n="renovation_furniture">
+                    Furniture
+                </option>
+
+                <option value="Landscape"
+                    data-i18n="renovation_landscape">
+                    Landscape
+                </option>
+
+                <option value="Maintenance"
+                    data-i18n="renovation_maintenance">
+                    Maintenance
+                </option>
+
+                <option value="Other"
+                    data-i18n="type_other">
+                    Other
+                </option>
+
+            </select>
+
+        </div>
+
         <div class="col-md-3">
-            <input type="date"
-                   class="form-control renovation-date"
-                   value="${data.renovation_date || ""}">
+
+            <label class="form-label small"
+                   data-i18n="description">
+                Description
+            </label>
+
+            <input
+                type="text"
+                class="form-control renovation-description"
+                data-i18n-placeholder="description"
+                placeholder="Description"
+                value="${data.description || ""}">
+
         </div>
 
-        <div class="col-md-5">
-            <input type="text"
-                   class="form-control renovation-desc"
-                   placeholder="Description"
-                   value="${data.description || ""}">
+        <div class="col-md-2">
+
+            <label class="form-label small"
+                   data-i18n="amount_egp">
+                Amount (EGP)
+            </label>
+
+            <input
+                type="number"
+                step="0.01"
+                class="form-control renovation-egp"
+                value="${data.amount_egp || ""}"
+                oninput="updateRenovationUSD(this)">
+
         </div>
 
-        <div class="col-md-3">
-            <input type="number"
-                   step="0.01"
-                   class="form-control renovation-cost"
-                   placeholder="Cost"
-                   value="${data.cost || ""}">
+        <div class="col-md-2">
+
+            <label class="form-label small"
+                   data-i18n="amount_usd">
+                USD
+            </label>
+
+            <input
+                type="number"
+                step="0.01"
+                class="form-control renovation-usd"
+                value="${data.amount_usd || ""}"
+                readonly>
+
         </div>
 
-        <div class="col-md-1">
-            <button
-                type="button"
-                class="btn btn-danger btn-sm"
-                onclick="this.closest('.renovation-row').remove()">
-                ×
-            </button>
+
+
+            <div class="col-md-1">
+
+                <label class="form-label small">&nbsp;</label>
+
+                <button
+                    type="button"
+                    class="btn btn-danger w-100"
+                    onclick="this.closest('.renovation-row').remove()">
+
+                    <i class="bi bi-trash"></i>
+
+                </button>
+
+            </div>
+
+        <div class="col-md-12">
+
+            <label class="form-label small"
+                   data-i18n="notes">
+                Notes
+            </label>
+
+            <textarea
+                class="form-control renovation-notes"
+                rows="2">${data.notes || ""}</textarea>
+
         </div>
+
     `;
 
-    container.appendChild(row);
+  container.appendChild(row);
+
+  row.querySelector(".renovation-category").value =
+    data.category || "Finishing";
+
+  applyTranslations();
+  updateRenovationUSD(row.querySelector(".renovation-egp"));
 }
 
 function collectRenovations() {
+  const renovations = [];
 
-    return Array.from(document.querySelectorAll(".renovation-row")).map(r => ({
+  document.querySelectorAll(".renovation-row").forEach((row) => {
+    renovations.push({
+      date: row.querySelector(".renovation-date").value,
 
-        date:
-            r.querySelector(".renovation-date").value,
+      category: row.querySelector(".renovation-category").value,
 
-        category:
-            r.querySelector(".renovation-type").value,
+      description: row.querySelector(".renovation-description").value,
 
-        description:
-            r.querySelector(".renovation-desc").value,
+      amount_egp: parseFloat(row.querySelector(".renovation-egp").value) || 0,
 
-        amount_egp:
-            parseFloat(r.querySelector(".renovation-cost").value) || 0,
+      usd_rate:
+        parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0,
 
-        usd_rate:
-            parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0,
+      amount_usd: parseFloat(row.querySelector(".renovation-usd").value) || 0,
 
-        amount_usd:
-            (
-                parseFloat(r.querySelector(".renovation-cost").value) || 0
-            ) /
-            (
-                parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 1
-            ),
+      notes: row.querySelector(".renovation-notes").value,
+    });
+  });
 
-        notes: ""
+  return renovations;
+}
 
-    }));
+function updateRenovationUSD(input) {
+  const row = input.closest(".renovation-row");
 
+  const egp = parseFloat(row.querySelector(".renovation-egp").value) || 0;
+
+  const rate =
+    parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0;
+
+  const usdInput = row.querySelector(".renovation-usd");
+
+  if (rate > 0) {
+    usdInput.value = (egp / rate).toFixed(2);
+  } else {
+    usdInput.value = "";
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
