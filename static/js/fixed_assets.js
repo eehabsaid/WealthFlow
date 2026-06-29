@@ -458,6 +458,16 @@ const html = `
 
   showModal(html);
   applyTranslations();
+  const propertyTab = document.getElementById("property-tab");
+
+  propertyTab.addEventListener("shown.bs.tab", function () {
+      if (propertyMap) {
+          setTimeout(() => {
+              propertyMap.invalidateSize();
+          }, 50);
+      }
+  });
+
   document
     .getElementById("btnLocateProperty")
     .addEventListener("click", locatePropertyOnMap);
