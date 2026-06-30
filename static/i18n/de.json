@@ -603,5 +603,7 @@
   "close": "Schließen",
   "asset_summary":"Anlagenübersicht",
   "no_renovations": "Keine Renovierungen vorhanden.",
-  "gain_loss": "Gewinn / Verlust"
+  "gain_loss": "Gewinn / Verlust",
+  "general_information": "Allgemeine Informationen",
+  "property_details": "Immobiliendetails"
 }

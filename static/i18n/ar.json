@@ -603,5 +603,7 @@
   "close": "إغلاق",
   "asset_summary":"ملخص الأصل",
   "no_renovations": "لا توجد أعمال تجديد مسجلة.",
-  "gain_loss": "الربح / الخسارة"
+  "gain_loss": "الربح / الخسارة",
+  "general_information": "المعلومات العامة",
+  "property_details": "تفاصيل العقار"
 }

@@ -572,37 +572,30 @@ async function showFixedAssetDetails(assetId) {
                     <div class="card flex-fill border-0 shadow-sm" style="background:var(--bg-secondary);">
                         <div class="card-header fw-bold" data-i18n="general_information">General Information</div>
                         <div class="card-body p-0">
-
                             <table class="table table-borderless align-middle mb-0">
-
                                 <tbody>
-
                                     <tr>
                                         <td width="45%">
                                             <strong data-i18n="asset_name">Asset Name</strong>
                                         </td>
                                         <td>${asset.name || "-"}</td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="asset_type">Asset Type</strong>
                                         </td>
                                         <td>
-                                            <span class="badge text-bg-primary"
-                                                  data-i18n="type_${(asset.asset_type || "other").toLowerCase()}">
+                                            <span class="badge text-bg-primary" data-i18n="type_${(asset.asset_type || "other").toLowerCase()}">
                                                 ${asset.asset_type || "-"}
                                             </span>
                                         </td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="purchase_date">Purchase Date</strong>
                                         </td>
                                         <td>${asset.purchase_date || "-"}</td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="purchase_price_egp">Purchase Price</strong>
@@ -611,25 +604,24 @@ async function showFixedAssetDetails(assetId) {
                                             ${fmt(asset.purchase_price)}
                                         </td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="valuation_source">Valuation Source</strong>
                                         </td>
-                                        <td>${asset.valuation_source || "-"}</td>
+                                        <td>
+                                            <span data-i18n="val_${(asset.valuation_source || "").toLowerCase()}">
+                                                ${asset.valuation_source || "-"}
+                                            </span>
+                                        </td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="notes">Notes</strong>
                                         </td>
                                         <td>${asset.notes || "-"}</td>
                                     </tr>
-
                                 </tbody>
-
                             </table>
-
                         </div>
                     </div>
                 </div>
@@ -638,78 +630,64 @@ async function showFixedAssetDetails(assetId) {
                     <div class="card flex-fill border-0 shadow-sm" style="background:var(--bg-secondary);">
                         <div class="card-header fw-bold" data-i18n="property_details">Property Details</div>
                         <div class="card-body p-0">
-
                             <table class="table table-borderless align-middle mb-0">
-
                                 <tbody>
-
                                     <tr>
                                         <td width="45%">
                                             <strong data-i18n="country">Country</strong>
                                         </td>
                                         <td>${asset.real_estate?.country || "-"}</td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="governorate">Governorate</strong>
                                         </td>
                                         <td>${asset.real_estate?.governorate || "-"}</td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="city">City</strong>
                                         </td>
                                         <td>${asset.real_estate?.city || "-"}</td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="district">District</strong>
                                         </td>
                                         <td>${asset.real_estate?.district || "-"}</td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="address">Address</strong>
                                         </td>
                                         <td>${asset.real_estate?.address || "-"}</td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="apt_area">Property Area</strong>
                                         </td>
                                         <td>${asset.real_estate?.apartment_area || "-"} m²</td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="rooms">Bedrooms</strong>
                                         </td>
                                         <td>${asset.real_estate?.rooms || "-"}</td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="bathrooms">Bathrooms</strong>
                                         </td>
                                         <td>${asset.real_estate?.bathrooms || "-"}</td>
                                     </tr>
-
                                     <tr>
                                         <td>
                                             <strong data-i18n="building_year">Construction Year</strong>
                                         </td>
                                         <td>${asset.real_estate?.building_year || "-"}</td>
                                     </tr>
-
                                 </tbody>
-
                             </table>
-
                         </div>
                     </div>
                 </div>
@@ -718,79 +696,44 @@ async function showFixedAssetDetails(assetId) {
                     <div class="card flex-fill border-0 shadow-sm" style="background:var(--bg-secondary);">
                         <div class="card-header fw-bold" data-i18n="renovation_history">Renovation History</div>
                         <div class="card-body">
-
-                      ${asset.renovations && asset.renovations.length ? asset.renovations.map(r => `
-
-                      <div class="d-flex mb-4">
-
-                          <div class="me-3">
-
-                              <div style="
-                                  width:40px;
-                                  height:40px;
-                                  border-radius:50%;
-                                  background:rgba(26,110,245,.15);
-                                  display:flex;
-                                  align-items:center;
-                                  justify-content:center;
-                              ">
-                                  <i class="bi bi-tools"
-                                    style="color:var(--accent-primary);font-size:18px;">
-                                  </i>
-                              </div>
-
-                          </div>
-
-                          <div class="flex-grow-1">
-
-                              <div class="d-flex justify-content-between">
-
-                                  <strong
-                                      data-i18n="renovation_type_${r.category.toLowerCase()}">
-                                      ${r.category}
-                                  </strong>
-
-                                  <span class="fw-bold text-success">
-                                      ${fmt(r.amount_egp)}
-                                  </span>
-
-                              </div>
-
-                              <div class="small text-muted mb-2">
-                                  ${r.date || "-"}
-                              </div>
-
-                              <div>
-                                  ${r.description || "-"}
-                              </div>
-
-                              ${r.notes ? `
-                                  <div class="small text-muted mt-2">
-                                      ${r.notes}
-                                  </div>
-                              ` : ""}
-
-                          </div>
-
-                      </div>
-
-                      `).join("") : `
-
-                      <div class="text-center py-5">
-
-                          <i class="bi bi-tools"
-                            style="font-size:40px;color:var(--text-secondary);"></i>
-
-                          <div class="mt-3 text-muted"
-                              data-i18n="no_renovations">
-                              No renovations registered.
-                          </div>
-
-                      </div>
-
-                      `}
-
-                      </div>
+                            ${asset.renovations && asset.renovations.length ? asset.renovations.map(r => `
+                            <div class="d-flex mb-4">
+                                <div class="me-3">
+                                    <div style="width:40px; height:40px; border-radius:50%; background:rgba(26,110,245,.15); display:flex; align-items:center; justify-content:center;">
+                                        <i class="bi bi-tools" style="color:var(--accent-primary); font-size:18px;"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <strong data-i18n="renovation_${(r.category || "other").toLowerCase()}">
+                                            ${r.category}
+                                        </strong>
+                                        <span class="fw-bold text-success">
+                                            ${fmt(r.amount_egp)}
+                                        </span>
+                                    </div>
+                                    <div class="small text-muted mb-2">
+                                        ${r.date || "-"}
+                                    </div>
+                                    <div>
+                                        ${r.description || "-"}
+                                    </div>
+                                    ${r.notes ? `
+                                        <div class="small text-muted mt-2">
+                                            ${r.notes}
+                                        </div>
+                                    ` : ""}
+                                </div>
+                            </div>
+                            `).join("") : `
+                            <div class="text-center py-5">
+                                <i class="bi bi-tools" style="font-size:40px; color:var(--text-secondary);"></i>
+                                <div class="mt-3 text-muted" data-i18n="no_renovations">
+                                    No renovations registered.
+                                </div>
+                            </div>
+                            `}
+                        </div>
                     </div>
                 </div>
 
@@ -804,7 +747,7 @@ async function showFixedAssetDetails(assetId) {
     </div>
 `;
 
-// Render layout into the page instance context
+    // Render layout into the page instance context
     showModal(html);
 
     applyTranslations();

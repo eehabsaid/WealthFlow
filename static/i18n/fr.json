@@ -603,5 +603,7 @@
   "close": "Fermer",
   "asset_summary":"Résumé de l'actif",
   "no_renovations": "Aucune rénovation enregistrée.",
-  "gain_loss": "Gain / Perte"
+  "gain_loss": "Gain / Perte",
+  "general_information": "Informations Générales",
+  "property_details": "Détails de la Propriété"
 }

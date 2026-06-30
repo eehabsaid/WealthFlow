@@ -603,5 +603,7 @@
   "close": "Close",
   "asset_summary":"Asset Summary",
   "no_renovations": "No renovations registered.",
-  "gain_loss": "Gain / Loss"
+  "gain_loss": "Gain / Loss",
+  "general_information": "General Information",
+  "property_details": "Property Details"
 }
