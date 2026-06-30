@@ -128,16 +128,27 @@ function renderFixedAssetsList(assets) {
                         ${fmt(asset.current_market_value)}
                     </span>
                 </td>
-                <td>
-                    <button class="btn-icon"
-                        onclick="showFixedAssetModal(${asset.id})">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn-icon del"
-                        onclick="deleteFixedAsset(${asset.id})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
+                <td class="d-flex gap-2">
+
+                  <button class="btn-icon"
+                      title="View"
+                      onclick="showFixedAssetDetails(${asset.id})">
+                      <i class="bi bi-eye"></i>
+                  </button>
+
+                  <button class="btn-icon"
+                      title="Edit"
+                      onclick="showFixedAssetModal(${asset.id})">
+                      <i class="bi bi-pencil"></i>
+                  </button>
+
+                  <button class="btn-icon del"
+                      title="Delete"
+                      onclick="deleteFixedAsset(${asset.id})">
+                      <i class="bi bi-trash"></i>
+                  </button>
+
+              </td>
             </tr>
             `;
   });
