@@ -37,6 +37,7 @@ from .models import (
     AssetFurniture,
     AssetValuationHistory,
     AssetSale,
+    AssetPhoto,
 
 )
 from django.core.paginator import Paginator, EmptyPage
@@ -68,7 +69,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from arabic_reshaper import reshape
 from bidi.algorithm import get_display
-
+from django.views.decorators.http import require_http_methods
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ExportExcelWorkbookView(View):
@@ -3186,6 +3187,80 @@ class FixedAssetDetailView(View):
         asset.delete()
 
         return JsonResponse({"deleted": pk})
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetPhotoUploadView(View):
+
+    def post(self, request, pk):
+
+        asset = get_object_or_404(FixedAsset, pk=pk)
+
+        for file in request.FILES.getlist("photos"):
+
+            AssetPhoto.objects.create(
+                asset=asset,
+                image_data=file.read(),
+                filename=file.name,
+                mime_type=file.content_type,
+            )
+
+        return JsonResponse({"success": True})
+    
+@method_decorator(csrf_exempt, name="dispatch")
+class FixedAssetPhotoView(View):
+
+    def post(self, request, pk):
+
+        asset = get_object_or_404(FixedAsset, pk=pk)
+
+        files = request.FILES.getlist("photos")
+
+        if not files:
+            return JsonResponse(
+                {"error": "No photos uploaded"},
+                status=400,
+            )
+
+        uploaded = []
+
+        for file in files:
+
+            photo = AssetPhoto.objects.create(
+                asset=asset,
+                image_data=file.read(),
+                filename=file.name,
+                mime_type=file.content_type,
+            )
+
+            uploaded.append(photo.to_dict())
+
+        return JsonResponse(uploaded, safe=False)
+
+    def delete(self, request, pk, photo_id):
+
+        photo = get_object_or_404(
+            AssetPhoto,
+            pk=photo_id,
+            asset_id=pk,
+        )
+
+        photo.delete()
+
+        return JsonResponse({"deleted": True})
+
+class AssetPhotoView(View):
+
+    def get(self, request, photo_id):
+
+        photo = get_object_or_404(
+            AssetPhoto,
+            pk=photo_id,
+        )
+
+        return HttpResponse(
+            photo.image_data,
+            content_type=photo.mime_type,
+        )
     
 @method_decorator(csrf_exempt, name="dispatch")
 class AssetRenovationListView(View):

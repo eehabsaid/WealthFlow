@@ -2,6 +2,8 @@
 
 let propertyMap = null;
 let propertyMarker = null;
+let propertyPhotos = [];
+let currentEditingAssetId = null;
 
 // ════════════════════════════════════════════════════════════════════════════
 // DATA FETCHING & ROUTING
@@ -346,6 +348,46 @@ async function showFixedAssetModal(assetId = null) {
                                 </div>
                             </div>
 
+                            <hr class="my-4">
+
+                            <div class="mb-3">
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                    <h5 class="mb-0"
+                                        data-i18n="property_photos">
+                                        Property Photos
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        id="btnUploadPropertyPhoto"
+                                        class="btn btn-primary btn-sm">
+
+                                        <i class="bi bi-upload me-1"></i>
+
+                                        <span data-i18n="upload_photo">
+                                            Upload Photo
+                                        </span>
+
+                                    </button>
+
+                                </div>
+
+                                <input
+                                    type="file"
+                                    id="propertyPhotoInput"
+                                    accept="image/*"
+                                    multiple
+                                    style="display:none;">
+
+                                <div id="propertyPhotoGallery" class="row g-3">
+
+                                    
+
+                                </div>
+
+                            </div>
                             <div class="row g-3 mb-3">
                                 <div class="col-sm-6 col-md-4"><label class="form-label small text-light" data-i18n="apt_area">Property Area (Sqm)</label><input type="number" class="form-control" id="re_area"></div>
                                 <div class="col-sm-6 col-md-4"><label class="form-label small text-light" data-i18n="land_area">Land Plot Footprint (Sqm)</label><input type="number" class="form-control" id="re_land_area"></div>
@@ -784,6 +826,8 @@ async function showFixedAssetDetails(assetId) {
 }
 
 async function loadFixedAsset(assetId) {
+
+    currentEditingAssetId = assetId;
   showLoading();
   try {
     const response = await fetch(`/api/fixed-assets/${assetId}/`);
@@ -810,6 +854,11 @@ async function loadFixedAsset(assetId) {
     document.getElementById("fa_last_valuation_date").value =
       asset.last_valuation_date || "";
     document.getElementById("fa_notes").value = asset.notes || "";
+    // ---------------- Property Photos ----------------
+
+    propertyPhotos = asset.photos || [];
+
+    renderPropertyPhotoGallery();
 
     toggleRealEstateFields();
 
@@ -978,6 +1027,44 @@ async function saveFixedAsset(assetId = null) {
 
     if (!response.ok) throw new Error("Error saving fixed asset");
 
+    const savedAsset = await response.json();
+
+    const files = document.getElementById("propertyPhotoInput").files;
+
+    if (files.length > 0) {
+
+        for (const file of files) {
+
+            const formData = new FormData();
+
+            formData.append("image", file);
+
+            const uploadResponse = await fetch(
+                `/api/fixed-assets/${savedAsset.id}/photos/`,
+                {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCsrfToken(),
+                    },
+                    body: formData,
+                }
+            );
+
+            if (!uploadResponse.ok)
+                throw new Error("Failed to upload property photo.");
+
+            const uploadedPhoto = await uploadResponse.json();
+
+            propertyPhotos.push(uploadedPhoto);
+
+        }
+
+        renderPropertyPhotoGallery();
+
+        document.getElementById("propertyPhotoInput").value = "";
+
+    }
+
     showToast(
       isEdit ? "Asset updated successfully!" : "Asset added successfully!",
       "success",
@@ -985,6 +1072,7 @@ async function saveFixedAsset(assetId = null) {
 
     closeModal(); // Call global dynamic closing match
     fetchAndRenderFixedAssets();
+    document.getElementById("propertyPhotoInput").value = "";
   } catch (err) {
     showToast(err.message, "danger");
   } finally {
@@ -1240,7 +1328,162 @@ function initializePropertyMap(lat = 30.0444, lng = 31.2357) {
     reverseGeocode(e.latlng.lat, e.latlng.lng);
   });
 
-  setTimeout(() => propertyMap.invalidateSize(), 200);
+    setTimeout(() => propertyMap.invalidateSize(), 200);
+
+    const uploadBtn = document.getElementById("btnUploadPropertyPhoto");
+    const uploadInput = document.getElementById("propertyPhotoInput");
+
+    if (uploadBtn && uploadInput) {
+
+        uploadBtn.onclick = () => uploadInput.click();
+
+        uploadInput.onchange = function () {
+
+        const gallery = document.getElementById("propertyPhotoGallery");
+
+        gallery.innerHTML = "";
+
+        Array.from(this.files).forEach(file => {
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+
+                gallery.insertAdjacentHTML(
+                    "beforeend",
+                    `
+                    <div class="col-md-4">
+
+                        <div class="card border-0 shadow-sm">
+
+                            <div class="d-flex justify-content-center align-items-center"
+                                style="height:220px; background:var(--bg-secondary);">
+
+                                <img
+                                    src="${e.target.result}"
+                                    class="img-fluid rounded"
+                                    style="
+                                        max-width:100%;
+                                        max-height:200px;
+                                        object-fit:contain;">
+
+                            </div>
+
+                            <div class="card-body p-2 text-center">
+
+                                <div class="small text-truncate">
+                                    ${file.name}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                    `
+                );
+
+            };
+
+            reader.readAsDataURL(file);
+
+        });
+
+    };
+
+    }
+    
+}
+
+function renderPropertyPhotoGallery() {
+
+    const gallery = document.getElementById("propertyPhotoGallery");
+
+    if (!gallery) return;
+
+    gallery.innerHTML = "";
+
+    if (!propertyPhotos || propertyPhotos.length === 0) {
+
+        gallery.innerHTML = `
+            <div class="col-12 text-center py-4">
+                <i class="bi bi-images"
+                   style="font-size:40px;color:var(--text-secondary);opacity:.45;"></i>
+
+                <div class="mt-2"
+                     style="color:var(--text-secondary);"
+                     data-i18n="no_property_photos">
+                    No property photos uploaded
+                </div>
+            </div>
+        `;
+
+        applyTranslations();
+        return;
+    }
+
+    propertyPhotos.forEach((photo, index) => {
+
+        gallery.innerHTML += `
+            <div class="col-md-4 col-lg-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <img
+                        src="${photo.url}"
+                        class="card-img-top"
+                        style="height:180px;object-fit:cover;">
+
+                        <button
+                            type="button"
+                            class="btn btn-danger w-100"
+                            onclick="removePropertyPhoto(${index})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                </div>
+            </div>
+        `;
+
+    });
+
+}
+
+async function removePropertyPhoto(index) {
+
+    const photo = propertyPhotos[index];
+
+    if (!photo) return;
+
+    if (!confirm("Delete this photo?")) return;
+
+    try {
+
+        const response = await fetch(
+            `/api/fixed-assets/${currentEditingAssetId}/photos/${photo.id}/`,
+            {
+                method: "DELETE",
+                headers: {
+                    "X-CSRFToken": getCsrfToken(),
+                },
+            }
+        );
+
+        if (!response.ok)
+            throw new Error("Failed to delete photo.");
+
+        propertyPhotos.splice(index, 1);
+
+        renderPropertyPhotoGallery();
+
+        showToast("Photo deleted successfully.", "success");
+
+    } catch (err) {
+
+        showToast(err.message, "danger");
+
+    }
+
 }
 
 async function locatePropertyOnMap() {
