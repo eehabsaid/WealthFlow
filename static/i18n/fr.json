@@ -597,5 +597,11 @@
   "renovation_doors_windows": "Portes & Fenêtres",
   "renovation_furniture": "Mobilier",
   "renovation_landscape": "Aménagement paysager",
-  "renovation_maintenance": "Maintenance"
+  "renovation_maintenance": "Maintenance",
+  "asset_details": "Détails de l'actif",
+  "details_loading_layout": "Page de détails en cours de création...",
+  "close": "Fermer",
+  "asset_summary":"Résumé de l'actif",
+  "no_renovations": "Aucune rénovation enregistrée.",
+  "gain_loss": "Gain / Perte"
 }

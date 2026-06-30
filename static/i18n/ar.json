@@ -597,5 +597,11 @@
   "renovation_doors_windows": "الأبواب والشبابيك",
   "renovation_furniture": "الأثاث",
   "renovation_landscape": "اللاندسكيب والحدائق",
-  "renovation_maintenance": "الصيانة"
+  "renovation_maintenance": "الصيانة",
+  "asset_details": "تفاصيل الأصل",
+  "details_loading_layout": "جاري إنشاء صفحة التفاصيل...",
+  "close": "إغلاق",
+  "asset_summary":"ملخص الأصل",
+  "no_renovations": "لا توجد أعمال تجديد مسجلة.",
+  "gain_loss": "الربح / الخسارة"
 }

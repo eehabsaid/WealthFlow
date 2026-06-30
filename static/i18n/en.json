@@ -597,5 +597,11 @@
   "renovation_doors_windows": "Doors & Windows",
   "renovation_furniture": "Furniture",
   "renovation_landscape": "Landscape",
-  "renovation_maintenance": "Maintenance"
+  "renovation_maintenance": "Maintenance",
+  "asset_details": "Asset Details",
+  "details_loading_layout": "Details page under construction...",
+  "close": "Close",
+  "asset_summary":"Asset Summary",
+  "no_renovations": "No renovations registered.",
+  "gain_loss": "Gain / Loss"
 }

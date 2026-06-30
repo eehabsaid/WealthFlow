@@ -597,5 +597,11 @@
   "renovation_doors_windows": "Türen & Fenster",
   "renovation_furniture": "Möbel",
   "renovation_landscape": "Landschaftsbau",
-  "renovation_maintenance": "Instandhaltung"
+  "renovation_maintenance": "Instandhaltung",
+  "asset_details": "Anlagendetails",
+  "details_loading_layout": "Detailseite wird erstellt...",
+  "close": "Schließen",
+  "asset_summary":"Anlagenübersicht",
+  "no_renovations": "Keine Renovierungen vorhanden.",
+  "gain_loss": "Gewinn / Verlust"
 }

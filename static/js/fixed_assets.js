@@ -175,7 +175,7 @@ async function showFixedAssetModal(assetId = null) {
     ? "Edit Asset Details"
     : "Register New Fixed Asset";
 
-const html = `
+  const html = `
         <div class="modal-header">
             <h5 class="modal-title" data-i18n="${modalTitleKey}">${modalTitleDefault}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -472,11 +472,11 @@ const html = `
   const propertyTab = document.getElementById("property-tab");
 
   propertyTab.addEventListener("shown.bs.tab", function () {
-      if (propertyMap) {
-          setTimeout(() => {
-              propertyMap.invalidateSize();
-          }, 50);
-      }
+    if (propertyMap) {
+      setTimeout(() => {
+        propertyMap.invalidateSize();
+      }, 50);
+    }
   });
 
   document
@@ -485,6 +485,221 @@ const html = `
   initializePropertyMap();
   if (isEdit) {
     await loadFixedAsset(assetId);
+  }
+}
+
+async function showFixedAssetDetails(assetId) {
+  showLoading();
+
+  try {
+    const response = await fetch(`/api/fixed-assets/${assetId}/`);
+
+    if (!response.ok) throw new Error("Failed to load asset");
+
+    const asset = await response.json();
+
+    const html = `
+    <div class="modal-header">
+        <h5 class="modal-title" data-i18n="asset_details">Asset Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
+
+    <div class="modal-body" style="max-height:75vh; overflow-y:auto; overflow-x:hidden; padding:1.5rem;">
+        
+        <div class="card border-0 shadow-sm mb-4" style="background:var(--bg-secondary);">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-auto me-3">
+                        <div style="width:72px; height:72px; border-radius:16px; background:rgba(26,110,245,.15); display:flex; align-items:center; justify-content:center;">
+                            <i class="bi bi-building" style="font-size:34px; color:var(--accent-primary);"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <h3 class="mb-1 fw-bold text-light">${asset.name || "-"}</h3>
+                        <span class="badge rounded-pill text-bg-primary" data-i18n="type_${(asset.asset_type || "other").toLowerCase()}">
+                            ${asset.asset_type || "-"}
+                        </span>
+                    </div>
+                    <div class="col-auto text-end ms-auto pe-2">
+                        <div class="small text-light opacity-75" data-i18n="current_market_value">Current Market Value</div>
+                        <div class="fs-4 fw-bold text-success">${fmt(asset.current_market_value)}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted" data-i18n="purchase_price_egp">Purchase Price</small>
+                        <h5 class="mt-2 mb-0">${fmt(asset.purchase_price)}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted" data-i18n="purchase_date">Purchase Date</small>
+                        <h5 class="mt-2 mb-0">${asset.purchase_date || "-"}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted" data-i18n="gain_loss">Gain / Loss</small>
+                        <h5 class="mt-2 mb-0 ${asset.current_market_value - asset.purchase_price >= 0 ? "text-success" : "text-danger"}">
+                            ${fmt((asset.current_market_value || 0) - (asset.purchase_price || 0))}
+                        </h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted" data-i18n="last_valuation_date">Last Valuation</small>
+                        <h5 class="mt-2 mb-0">${asset.last_valuation_date || "-"}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="assetDetailsContent">
+            <div class="row g-4">
+                
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm" style="background:var(--bg-secondary);">
+                        <div class="card-header fw-bold" data-i18n="general_information">General Information</div>
+                        <div class="card-body" id="generalInfoCard">
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="asset_name">Asset Name</small>
+                                <div class="fw-bold">${asset.name || "-"}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="asset_type">Asset Type</small>
+                                <div>${asset.asset_type || "-"}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="purchase_date">Purchase Date</small>
+                                <div>${asset.purchase_date || "-"}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="purchase_price_egp">Purchase Price (EGP)</small>
+                                <div>${fmt(asset.purchase_price)}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="valuation_source">Valuation Source</small>
+                                <div>${asset.valuation_source || "-"}</div>
+                            </div>
+                            <div>
+                                <small class="text-muted" data-i18n="notes">Internal Notes</small>
+                                <div>${asset.notes || "-"}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm" style="background:var(--bg-secondary);">
+                        <div class="card-header fw-bold" data-i18n="property_details">Property Details</div>
+                        <div class="card-body" id="propertyInfoCard">
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="country">Country</small>
+                                <div>${asset.real_estate?.country || "-"}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="city">City</small>
+                                <div>${asset.real_estate?.city || "-"}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="address">Address</small>
+                                <div>${asset.real_estate?.address || "-"}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="apt_area">Property Area</small>
+                                <div>${asset.real_estate?.apartment_area || "-"}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="rooms">Bedrooms</small>
+                                <div>${asset.real_estate?.rooms || "-"}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted" data-i18n="bathrooms">Bathrooms</small>
+                                <div>${asset.real_estate?.bathrooms || "-"}</div>
+                            </div>
+                            <div>
+                                <small class="text-muted" data-i18n="building_year">Construction Year</small>
+                                <div>${asset.real_estate?.building_year || "-"}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm" style="background:var(--bg-secondary);">
+                        <div class="card-header fw-bold" data-i18n="renovation_history">Renovation History</div>
+                        <div class="card-body" id="renovationInfoCard">
+    ${asset.renovations && asset.renovations.length
+      ? asset.renovations.map(r => `
+        <div class="border-bottom pb-2 mb-3">
+            <div class="d-flex justify-content-between">
+                <strong data-i18n="renovation_type_${r.category.toLowerCase()}">${r.category}</strong>
+                <span class="text-success fw-bold">${fmt(r.amount_egp)}</span>
+            </div>
+            <div class="small text-muted">${r.date || "-"}</div>
+            <div class="small">${r.description || ""}</div>
+        </div>
+      `).join("")
+      : `<div class="text-muted" data-i18n="no_renovations">No renovations registered.</div>`
+    }
+</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="close">Close</button>
+    </div>
+`;
+
+// Render layout into the page instance context
+    showModal(html);
+
+    applyTranslations();
+
+    document.querySelectorAll("#assetDetailsContent .card").forEach((card) => {
+      card.style.background = "var(--bg-secondary)";
+      card.style.color = "var(--text-primary)";
+    });
+
+    document
+      .querySelectorAll("#assetDetailsContent .card-header")
+      .forEach((h) => {
+        h.style.background = "transparent";
+        h.style.color = "var(--text-primary)";
+        h.style.borderBottom = "1px solid var(--border-color)";
+      });
+
+    document.querySelectorAll("#assetDetailsContent small").forEach((el) => {
+      el.style.color = "var(--text-secondary)";
+    });
+
+    document
+      .querySelectorAll("#assetDetailsContent .card-body div")
+      .forEach((el) => {
+        if (!el.classList.contains("text-success")) {
+          el.style.color = "var(--text-primary)";
+        }
+      });
+  } catch (err) {
+    showToast(err.message, "danger");
+  } finally {
+    hideLoading();
   }
 }
 
@@ -741,6 +956,108 @@ function showSaleModal(assetId, assetName, currentMarketValue) {
                 </div>
             </form>
         </div>
+
+        <!-- Information Cards -->
+        <div class="container-fluid py-4">
+
+            <div class="row g-4">
+
+                <div class="col-lg-4">
+
+                    <div class="card h-100 border-0 shadow-sm bg-secondary-subtle">
+
+                        <div class="card-body">
+
+                            <h6 class="text-uppercase small mb-3"
+                                data-i18n="general_information">
+                                General Information
+                            </h6>
+
+                            <table class="table table-borderless table-sm mb-0">
+
+                                <tr>
+                                    <td data-i18n="asset_type">Asset Type</td>
+                                    <td id="details_asset_type" class="text-end fw-bold"></td>
+                                </tr>
+
+                                <tr>
+                                    <td data-i18n="purchase_date">Purchase Date</td>
+                                    <td id="details_purchase_date" class="text-end"></td>
+                                </tr>
+
+                                <tr>
+                                    <td data-i18n="valuation_source">Valuation Source</td>
+                                    <td id="details_valuation_source" class="text-end"></td>
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-lg-4">
+
+                    <div class="card h-100 border-0 shadow-sm bg-secondary-subtle">
+
+                        <div class="card-body">
+
+                            <h6 class="text-uppercase small mb-3"
+                                data-i18n="financial_information">
+                                Financial Information
+                            </h6>
+
+                            <table class="table table-borderless table-sm mb-0">
+
+                                <tr>
+                                    <td data-i18n="purchase_price_egp">Purchase Price</td>
+                                    <td id="details_purchase_price" class="text-end fw-bold"></td>
+                                </tr>
+
+                                <tr>
+                                    <td data-i18n="purchase_price_usd">Purchase USD</td>
+                                    <td id="details_purchase_usd" class="text-end"></td>
+                                </tr>
+
+                                <tr>
+                                    <td data-i18n="last_valuation_date">Last Valuation</td>
+                                    <td id="details_last_valuation" class="text-end"></td>
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-lg-4">
+
+                    <div class="card h-100 border-0 shadow-sm bg-secondary-subtle">
+
+                        <div class="card-body">
+
+                            <h6 class="text-uppercase small mb-3"
+                                data-i18n="notes">
+                                Notes
+                            </h6>
+
+                            <div id="details_notes"
+                                style="white-space:pre-wrap;"></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
         <div class="modal-footer">
             <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
             <button class="btn-primary-custom" onclick="submitAssetSale(${assetId})" data-i18n="confirm_sale">Confirm Sale</button>
