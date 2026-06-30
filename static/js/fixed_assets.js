@@ -640,20 +640,20 @@ async function showFixedAssetDetails(assetId) {
                     <div class="card h-100 border-0 shadow-sm" style="background:var(--bg-secondary);">
                         <div class="card-header fw-bold" data-i18n="renovation_history">Renovation History</div>
                         <div class="card-body" id="renovationInfoCard">
-    ${asset.renovations && asset.renovations.length
-      ? asset.renovations.map(r => `
-        <div class="border-bottom pb-2 mb-3">
-            <div class="d-flex justify-content-between">
-                <strong data-i18n="renovation_type_${r.category.toLowerCase()}">${r.category}</strong>
-                <span class="text-success fw-bold">${fmt(r.amount_egp)}</span>
-            </div>
-            <div class="small text-muted">${r.date || "-"}</div>
-            <div class="small">${r.description || ""}</div>
-        </div>
-      `).join("")
-      : `<div class="text-muted" data-i18n="no_renovations">No renovations registered.</div>`
-    }
-</div>
+                          ${asset.renovations && asset.renovations.length
+                            ? asset.renovations.map(r => `
+                              <div class="border-bottom pb-2 mb-3">
+                                  <div class="d-flex justify-content-between">
+                                      <strong data-i18n="renovation_type_${r.category.toLowerCase()}">${r.category}</strong>
+                                      <span class="text-success fw-bold">${fmt(r.amount_egp)}</span>
+                                  </div>
+                                  <div class="small text-muted">${r.date || "-"}</div>
+                                  <div class="small">${r.description || ""}</div>
+                              </div>
+                            `).join("")
+                            : `<div class="text-muted" data-i18n="no_renovations">No renovations registered.</div>`
+                          }
+                      </div>
                     </div>
                 </div>
 
