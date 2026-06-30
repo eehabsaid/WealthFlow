@@ -1,304 +1,375 @@
-// bank_certificates.js — Bank Certificates page
+// bank_certificates.js — Bank Certificates management page
+
+'use strict';
+
+// ════════════════════════════════════════════════════════════════════════════
+// MODULE STATE
+// ════════════════════════════════════════════════════════════════════════════
+
+let _currencies = [];
+
+// ════════════════════════════════════════════════════════════════════════════
+// BANK CERTIFICATES RENDERING
+// ════════════════════════════════════════════════════════════════════════════
+
 async function renderBankCertificates() {
-  const mc = document.getElementById("main-content");
-  mc.innerHTML =
-    '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
+    const mc = document.getElementById('main-content');
+    mc.innerHTML =
+        '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
 
-  await refreshBanks();
-  const [cRes, certRes] = await Promise.all([
-    fetch("/api/currencies/"),
-    fetch("/api/bank-certificates/"),
-  ]);
+    await refreshBanks();
+    const [cRes, certRes] = await Promise.all([
+        fetch('/api/currencies/'),
+        fetch('/api/bank-certificates/'),
+    ]);
 
-  const currData = await cRes.json();
-  const certData = await certRes.json();
-  const certificates = certData.certificates || [];
-  _currencies = currData.currencies || [];
+    const currData = await cRes.json();
+    const certData = await certRes.json();
+    const certificates = certData.certificates || [];
+    _currencies = currData.currencies || [];
 
-  const rows = certificates
-    .map(
-      (c) => `
-        <tr>
-            <td>${c.bank_name || "—"}</td>
-            <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${c.currency_flag} ${c.currency_code || "—"}</span></td>
-            <td>${c.issue_date || "—"}</td>
-            <td>${c.expiry_date || "—"}</td>
-            <td>${fmt(c.amount)}</td>
-            <td>${c.interest_rate ? c.interest_rate : "—"}</td>
-            <td>${c.interest_value ? fmt(c.interest_value) : "—"}</td>
-            <td class="local-freq-field" data-freq="${c.frequency || ""}">
-              ${c.frequency ? c.frequency.replace(/_/g, " ").replace(/\b\w/g, ch => ch.toUpperCase()) : "—"}
-            </td>
-            <td>${c.status || "—"}</td>
-            <td>
-                <button class="btn-icon" onclick="showBankCertificateModal(${c.id})"><i class="bi bi-pencil"></i></button>
-                <button class="btn-icon del" onclick="deleteBankCertificate(${c.id})"><i class="bi bi-trash"></i></button>
-            </td>
-        </tr>`,
-    )
-    .join("");
+    const editTitle = t('edit', 'Edit');
+    const deleteTitle = t('delete', 'Delete');
 
-  mc.innerHTML = `
+    const rows = certificates
+        .map(
+            (c) => `
+            <tr>
+                <td>${c.bank_name || '—'}</td>
+                <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${c.currency_flag} ${c.currency_code || '—'}</span></td>
+                <td>${c.issue_date || '—'}</td>
+                <td>${c.expiry_date || '—'}</td>
+                <td>${fmt(c.amount)}</td>
+                <td>${c.interest_rate ? c.interest_rate : '—'}</td>
+                <td>${c.interest_value ? fmt(c.interest_value) : '—'}</td>
+                <td class="local-freq-field" data-freq="${c.frequency || ''}">
+                  ${c.frequency ? c.frequency.replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()) : '—'}
+                </td>
+                <td>${c.status || '—'}</td>
+                <td>
+                    <button class="btn-icon" onclick="showBankCertificateModal(${c.id})" title="${editTitle}"><i class="bi bi-pencil"></i></button>
+                    <button class="btn-icon del" onclick="deleteBankCertificate(${c.id})" title="${deleteTitle}"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>`,
+        )
+        .join('');
+
+    const bankCertificatesTitle = t('bank_certificates', 'Bank Certificates');
+    const bankHeader = t('bank', 'Bank');
+    const currencyHeader = t('currency', 'Currency');
+    const issueDateHeader = t('issue_date', 'Issue Date');
+    const expiryDateHeader = t('expiry_date', 'Expiry Date');
+    const amountHeader = t('balance_amount', 'Amount');
+    const rateHeader = t('interest_rate', 'Interest Rate');
+    const valueHeader = t('interest_value', 'Interest Value');
+    const frequencyHeader = t('frequency', 'Frequency');
+    const statusHeader = t('status', 'Status');
+    const actionsHeader = t('actions', 'Actions');
+
+    mc.innerHTML = `
         <div class="page-header">
-            <div><div class="page-title" data-i18n="bank_certificates">Bank Certificates</div></div>
+            <div><div class="page-title" data-i18n="bank_certificates">${bankCertificatesTitle}</div></div>
         </div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
             <div class="table-container">
-            <table class="data-table">
-                <thead><tr>
-                    <th data-i18n="bank">Bank</th>
-                    <th data-i18n="currency">Currency</th>
-                    <th data-i18n="issue_date">Issue Date</th>
-                    <th data-i18n="expiry_date">Expiry Date</th>
-                    <th class="text-end" data-i18n="balance_amount">Amount</th>
-                    <th data-i18n="interest_rate">Interest Rate</th>
-                    <th data-i18n="interest_value">Interest Value</th>
-                    <th data-i18n="frequency">Frequency</th>
-                    <th data-i18n="status">Status</th>
-                    <th data-i18n="actions">Actions</th>
-                </tr></thead>
-                <tbody>${rows}</tbody>
-            </table>
-        </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="bank">${bankHeader}</th>
+                            <th data-i18n="currency">${currencyHeader}</th>
+                            <th data-i18n="issue_date">${issueDateHeader}</th>
+                            <th data-i18n="expiry_date">${expiryDateHeader}</th>
+                            <th class="text-end" data-i18n="balance_amount">${amountHeader}</th>
+                            <th data-i18n="interest_rate">${rateHeader}</th>
+                            <th data-i18n="interest_value">${valueHeader}</th>
+                            <th data-i18n="frequency">${frequencyHeader}</th>
+                            <th data-i18n="status">${statusHeader}</th>
+                            <th data-i18n="actions">${actionsHeader}</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
         </div>`;
-  applyTranslations();
+    applyTranslations();
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// MODAL MANAGEMENT
+// ════════════════════════════════════════════════════════════════════════════
+
 async function showBankCertificateModal(certificateId) {
-  let certificate = null;
-  if (certificateId) {
-    const res = await fetch(`/api/bank-certificates/${certificateId}/`);
-    certificate = await res.json();
-  }
-  const bankOpts = _banks
-    .map(
-      (b) =>
-        `<option value="${b.id}" ${certificate && certificate.bank_id === b.id ? "selected" : ""}>${b.name}</option>`,
-    )
-    .join("");
-  const curOpts = _currencies
-    .map(
-      (c) =>
-        `<option value="${c.id}" ${certificate && certificate.currency_id === c.id ? "selected" : ""}>${c.flag} ${c.code}</option>`,
-    )
-    .join("");
+    let certificate = null;
+    if (certificateId) {
+        const res = await fetch(`/api/bank-certificates/${certificateId}/`);
+        certificate = await res.json();
+    }
+    const bankOpts = _banks
+        .map(
+            (b) =>
+                `<option value="${b.id}" ${certificate && certificate.bank_id === b.id ? 'selected' : ''}>${b.name}</option>`,
+        )
+        .join('');
+    const curOpts = _currencies
+        .map(
+            (c) =>
+                `<option value="${c.id}" ${certificate && certificate.currency_id === c.id ? 'selected' : ''}>${c.flag} ${c.code}</option>`,
+        )
+        .join('');
 
-  // Fetch status options cleanly BEFORE generating the HTML template to eliminate race conditions
-  const statusOpts = await _getCertStatusOptions(certificate ? certificate.status : null);
+    // Fetch status options cleanly BEFORE generating the HTML template to eliminate race conditions
+    const statusOpts = await _getCertStatusOptions(certificate ? certificate.status : null);
 
-  const html = `
+    const titleText = certificate ? t('edit_bank_certificate', 'Edit Bank Certificate') : t('add_bank_certificate', 'Add Bank Certificate');
+    const statusLabel = t('status', 'Status');
+    const bankLabel = t('bank', 'Bank');
+    const currencyLabel = t('currency', 'Currency');
+    const issueDateLabel = t('issue_date', 'Issue Date');
+    const expiryDateLabel = t('expiry_date', 'Expiry Date');
+    const amountLabel = t('balance_amount', 'Amount');
+    const rateLabel = t('interest_rate', 'Interest Rate');
+    const valueLabel = t('interest_value', 'Interest Value');
+    const frequencyLabel = t('frequency', 'Frequency');
+    const notesLabel = t('notes', 'Notes');
+    const selectFreqText = t('select_frequency', '— Select Frequency —');
+    const monthlyText = t('freq_monthly', 'Monthly');
+    const quarterlyText = t('freq_quarterly', 'Quarterly');
+    const semiAnnuallyText = t('freq_semi_annually', 'Semi-Annually');
+    const annuallyText = t('freq_annually', 'Annually');
+    const maturityText = t('freq_at_maturity', 'At Maturity');
+    const cancelText = t('btn_cancel', 'Cancel');
+    const saveText = t('btn_save', 'Save');
+    const noneText = t('none_option', '— None —');
+    const selectCurText = t('select_currency_option', '— Select currency —');
+
+    const html = `
         <div class="modal-header">
-            <h5 class="modal-title" data-i18n="${certificate ? "edit_bank_certificate" : "add_bank_certificate"}">${certificate ? "Edit" : "Add"} Bank Certificate</h5>
+            <h5 class="modal-title" data-i18n="${certificate ? 'edit_bank_certificate' : 'add_bank_certificate'}">${titleText}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
             <div class="row g-3">
                 <div class="col-6">
-                    <label data-i18n="status">Status</label>
+                    <label data-i18n="status">${statusLabel}</label>
                     <select class="form-select" id="bcStatus">
                         ${statusOpts}
                     </select>
                 </div>
-                <div class="col-6"><label data-i18n="bank">Bank</label><select class="form-select" id="bcBank"><option value="">— None —</option>${bankOpts}</select></div>
-                <div class="col-6"><label data-i18n="currency">Currency</label>
-                <select class="form-select" id="bcCurrency"><option value="">— Select currency —</option>${curOpts}</select></div>
-                <div class="col-6"><label data-i18n="issue_date">Issue Date</label>
-                <input type="date" class="form-control" id="bcIssue" value="${certificate ? certificate.issue_date : ""}"></div>
-                <div class="col-6"><label data-i18n="expiry_date">Expiry Date</label>
-                <input type="date" class="form-control" id="bcExpiry" value="${certificate ? certificate.expiry_date : ""}"></div>
-                <div class="col-4"><label data-i18n="balance_amount">Amount</label>
-                <input type="number" step="0.01" class="form-control" id="bcAmount" value="${certificate ? certificate.amount : ""}"></div>
-                <div class="col-4"><label data-i18n="interest_rate">Interest Rate</label>
-                <input type="number" step="0.0001" class="form-control" id="bcInterestRate" value="${certificate ? certificate.interest_rate : ""}"></div>
-                <div class="col-4"><label data-i18n="interest_value">Interest Value</label>
-                <input type="number" step="0.01" class="form-control" id="bcInterestValue" value="${certificate ? certificate.interest_value : ""}"></div>
+                <div class="col-6"><label data-i18n="bank">${bankLabel}</label><select class="form-select" id="bcBank"><option value="">${noneText}</option>${bankOpts}</select></div>
+                <div class="col-6"><label data-i18n="currency">${currencyLabel}</label>
+                <select class="form-select" id="bcCurrency"><option value="">${selectCurText}</option>${curOpts}</select></div>
+                <div class="col-6"><label data-i18n="issue_date">${issueDateLabel}</label>
+                <input type="date" class="form-control" id="bcIssue" value="${certificate ? certificate.issue_date : ''}"></div>
+                <div class="col-6"><label data-i18n="expiry_date">${expiryDateLabel}</label>
+                <input type="date" class="form-control" id="bcExpiry" value="${certificate ? certificate.expiry_date : ''}"></div>
+                <div class="col-4"><label data-i18n="balance_amount">${amountLabel}</label>
+                <input type="number" step="0.01" class="form-control" id="bcAmount" value="${certificate ? certificate.amount : ''}"></div>
+                <div class="col-4"><label data-i18n="interest_rate">${rateLabel}</label>
+                <input type="number" step="0.0001" class="form-control" id="bcInterestRate" value="${certificate ? certificate.interest_rate : ''}"></div>
+                <div class="col-4"><label data-i18n="interest_value">${valueLabel}</label>
+                <input type="number" step="0.01" class="form-control" id="bcInterestValue" value="${certificate ? certificate.interest_value : ''}"></div>
                 <div class="col-6">
-                    <label data-i18n="frequency">Frequency</label>
+                    <label data-i18n="frequency">${frequencyLabel}</label>
                     <select class="form-select" id="bcFrequency">
-                        <option value="" data-i18n="select_frequency">— Select Frequency —</option>
-                        <option value="monthly" data-i18n="freq_monthly" ${certificate && certificate.frequency === "monthly" ? "selected" : ""}>Monthly</option>
-                        <option value="quarterly" data-i18n="freq_quarterly" ${certificate && certificate.frequency === "quarterly" ? "selected" : ""}>Quarterly</option>
-                        <option value="semi_annually" data-i18n="freq_semi_annually" ${certificate && certificate.frequency === "semi_annually" ? "selected" : ""}>Semi-Annually</option>
-                        <option value="annually" data-i18n="freq_annually" ${certificate && certificate.frequency === "annually" ? "selected" : ""}>Annually</option>
-                        <option value="at_maturity" data-i18n="freq_at_maturity" ${certificate && certificate.frequency === "at_maturity" ? "selected" : ""}>At Maturity</option>
+                        <option value="" data-i18n="select_frequency">${selectFreqText}</option>
+                        <option value="monthly" data-i18n="freq_monthly" ${certificate && certificate.frequency === 'monthly' ? 'selected' : ''}>${monthlyText}</option>
+                        <option value="quarterly" data-i18n="freq_quarterly" ${certificate && certificate.frequency === 'quarterly' ? 'selected' : ''}>${quarterlyText}</option>
+                        <option value="semi_annually" data-i18n="freq_semi_annually" ${certificate && certificate.frequency === 'semi_annually' ? 'selected' : ''}>${semiAnnuallyText}</option>
+                        <option value="annually" data-i18n="freq_annually" ${certificate && certificate.frequency === 'annually' ? 'selected' : ''}>${annuallyText}</option>
+                        <option value="at_maturity" data-i18n="freq_at_maturity" ${certificate && certificate.frequency === 'at_maturity' ? 'selected' : ''}>${maturityText}</option>
                     </select>
                 </div>
-                <div class="col-6"><label data-i18n="notes">Notes</label>
-                <textarea class="form-control" id="bcNotes" rows="2">${certificate ? certificate.notes : ""}</textarea></div>
+                <div class="col-6"><label data-i18n="notes">${notesLabel}</label>
+                <textarea class="form-control" id="bcNotes" rows="2">${certificate ? certificate.notes : ''}</textarea></div>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
-            <button class="btn-primary-custom" onclick="saveBankCertificate(${certificateId})" data-i18n="btn_save">Save</button>
+            <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="btn_cancel">${cancelText}</button>
+            <button class="btn-primary-custom" onclick="saveBankCertificate(${certificateId})" data-i18n="btn_save">${saveText}</button>
         </div>`;
-  showModal(html);
-  applyTranslations();
+    showModal(html);
+    applyTranslations();
 
-  // --- ADD EVENT LISTENERS FOR LIVE CALCULATION ---
-  const inputsToWatch = ["bcAmount", "bcInterestRate", "bcFrequency", "bcIssue", "bcExpiry"];
-  inputsToWatch.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      // 'input' catches typing inside number boxes; 'change' handles dropdown modifications and datepickers
-      el.addEventListener("input", calculateCertificateInterest);
-      el.addEventListener("change", calculateCertificateInterest);
+    // --- ADD EVENT LISTENERS FOR LIVE CALCULATION ---
+    const inputsToWatch = ['bcAmount', 'bcInterestRate', 'bcFrequency', 'bcIssue', 'bcExpiry'];
+    inputsToWatch.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            // 'input' catches typing inside number boxes; 'change' handles dropdown modifications and datepickers
+            el.addEventListener('input', calculateCertificateInterest);
+            el.addEventListener('change', calculateCertificateInterest);
+        }
+    });
+
+    // If editing an existing record, run it once to ensure correct validation display state
+    if (certificateId) {
+        calculateCertificateInterest();
     }
-  });
-
-  // If editing an existing record, run it once to ensure correct validation display state
-  if (certificateId) {
-    calculateCertificateInterest();
-  }
 }
 
-// Rewritten to return a formatted option string explicitly instead of interacting with DOM nodes mid-render
+// ════════════════════════════════════════════════════════════════════════════
+// STATUS OPTIONS & UTILITIES
+// ════════════════════════════════════════════════════════════════════════════
+
 async function _getCertStatusOptions(currentStatus) {
-  try {
-    const res = await fetch("/api/cert-statuses/");
-    const data = await res.json();
-    const statuses = data.statuses || [];
-    
-    if (statuses.length === 0) {
-      return ["Active", "Maturing", "Renewed", "Closed"]
-        .map((s) => `<option value="${s}" ${s === (currentStatus || "Active") ? "selected" : ""}>${s}</option>`)
-        .join("");
-    } else {
-      return statuses
-        .map(
-          (s) => `<option value="${s.name}" ${s.name === (currentStatus || "") || (!currentStatus && s.is_default) ? "selected" : ""}>${s.name}</option>`
-        )
-        .join("");
+    try {
+        const res = await fetch('/api/cert-statuses/');
+        const data = await res.json();
+        const statuses = data.statuses || [];
+        
+        if (statuses.length === 0) {
+            const defaultStatuses = ['Active', 'Maturing', 'Renewed', 'Closed'];
+            return defaultStatuses
+                .map((s) => `<option value="${s}" ${s === (currentStatus || 'Active') ? 'selected' : ''}>${s}</option>`)
+                .join('');
+        } else {
+            return statuses
+                .map(
+                    (s) => `<option value="${s.name}" ${s.name === (currentStatus || '') || (!currentStatus && s.is_default) ? 'selected' : ''}>${s.name}</option>`
+                )
+                .join('');
+        }
+    } catch (e) {
+        // Fallback if API fails
+        const defaultStatuses = ['Active', 'Maturing', 'Renewed', 'Closed'];
+        return defaultStatuses
+            .map((s) => `<option value="${s}" ${s === (currentStatus || 'Active') ? 'selected' : ''}>${s}</option>`)
+            .join('');
     }
-  } catch (e) {
-    // Fallback if API fails
-    return ["Active", "Maturing", "Renewed", "Closed"]
-      .map((s) => `<option value="${s}" ${s === (currentStatus || "Active") ? "selected" : ""}>${s}</option>`)
-      .join("");
-  }
 }
 
 function parseNumberInput(id) {
-  const el = document.getElementById(id);
-  if (!el) return null;
-  const raw = el.value || "";
-  const normalized = String(raw).replace(/,/g, "").trim();
-  if (normalized === "") return null;
-  const num = Number(normalized);
-  return Number.isFinite(num) ? num : null;
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const raw = el.value || '';
+    const normalized = String(raw).replace(/,/g, '').trim();
+    if (normalized === '') return null;
+    const num = Number(normalized);
+    return Number.isFinite(num) ? num : null;
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// SAVE & DELETE
+// ════════════════════════════════════════════════════════════════════════════
+
 async function saveBankCertificate(certificateId) {
-  // Normalize certificateId to ensure "undefined" or "null" strings are treated as clean null
-  let cleanId = certificateId;
-  if (cleanId === "undefined" || cleanId === "null" || !cleanId) {
-    cleanId = null;
-  }
+    // Normalize certificateId to ensure "undefined" or "null" strings are treated as clean null
+    let cleanId = certificateId;
+    if (cleanId === 'undefined' || cleanId === 'null' || !cleanId) {
+        cleanId = null;
+    }
 
-  const amount = parseNumberInput("bcAmount");
-  const interestRate = parseNumberInput("bcInterestRate");
-  const interestValue = parseNumberInput("bcInterestValue");
-  
-  const body = {
-    status: document.getElementById("bcStatus").value.trim(),
-    bank_id: parseInt(document.getElementById("bcBank").value, 10) || null,
-    currency_id: parseInt(document.getElementById("bcCurrency").value, 10) || null,
-    issue_date: document.getElementById("bcIssue").value || null,
-    expiry_date: document.getElementById("bcExpiry").value || null,
-    amount: amount === null ? 0 : amount,
-    interest_rate: interestRate === null ? 0 : interestRate,
-    interest_value: interestValue === null ? 0 : interestValue,
-    frequency: document.getElementById("bcFrequency").value.trim(),
-    notes: document.getElementById("bcNotes").value.trim(),
-  };
+    const amount = parseNumberInput('bcAmount');
+    const interestRate = parseNumberInput('bcInterestRate');
+    const interestValue = parseNumberInput('bcInterestValue');
+    
+    const body = {
+        status: document.getElementById('bcStatus').value.trim(),
+        bank_id: parseInt(document.getElementById('bcBank').value, 10) || null,
+        currency_id: parseInt(document.getElementById('bcCurrency').value, 10) || null,
+        issue_date: document.getElementById('bcIssue').value || null,
+        expiry_date: document.getElementById('bcExpiry').value || null,
+        amount: amount === null ? 0 : amount,
+        interest_rate: interestRate === null ? 0 : interestRate,
+        interest_value: interestValue === null ? 0 : interestValue,
+        frequency: document.getElementById('bcFrequency').value.trim(),
+        notes: document.getElementById('bcNotes').value.trim(),
+    };
 
-  // Use the normalized cleanId variable here
-  const url = cleanId
-    ? `/api/bank-certificates/${cleanId}/`
-    : "/api/bank-certificates/";
-  const method = cleanId ? "PUT" : "POST";
+    // Use the normalized cleanId variable here
+    const url = cleanId
+        ? `/api/bank-certificates/${cleanId}/`
+        : '/api/bank-certificates/';
+    const method = cleanId ? 'PUT' : 'POST';
 
-  const res = await fetch(url, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  
-  if (res.ok) {
-    closeModal();
-    showToast("Bank Certificate saved ✓");
-    renderBankCertificates();
-    if (typeof renderBalanceEntries === "function") {
-    renderBalanceEntries(); 
-  }
-  } else {
-    const text = await res.text();
-    console.error("Bank certificate save failed", res.status, text);
-    showToast("Error saving certificate: " + (text || res.status), "error");
-  }
+    const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    
+    if (res.ok) {
+        closeModal();
+        showToast(t('bank_certificate_saved', 'Bank Certificate saved ✓'), 'success');
+        renderBankCertificates();
+        if (typeof renderBalanceEntries === 'function') {
+            renderBalanceEntries(); 
+        }
+    } else {
+        const text = await res.text();
+        console.error('Bank certificate save failed', res.status, text);
+        const errorMsg = t('error_saving_certificate', 'Error saving certificate: ') + (text || res.status);
+        showToast(errorMsg, 'error');
+    }
 }
 
 async function deleteBankCertificate(certificateId) {
-  if (!confirm("Delete this certificate?")) return;
-  const res = await fetch(`/api/bank-certificates/${certificateId}/`, {
-    method: "DELETE",
-  });
-  if (res.ok) {
-    showToast("Deleted");
-    renderBankCertificates();
-  } else {
-    showToast("Error deleting certificate", "error");
-  }
+    const confirmMsg = t('confirm_delete_certificate', 'Delete this certificate?');
+    if (!confirm(confirmMsg)) return;
+    const res = await fetch(`/api/bank-certificates/${certificateId}/`, {
+        method: 'DELETE',
+    });
+    if (res.ok) {
+        showToast(t('certificate_deleted', 'Certificate deleted'), 'success');
+        renderBankCertificates();
+    } else {
+        showToast(t('error_deleting_certificate', 'Error deleting certificate'), 'error');
+    }
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// INTEREST CALCULATION
+// ════════════════════════════════════════════════════════════════════════════
+
 function calculateCertificateInterest() {
-  const amount = parseNumberInput("bcAmount") || 0;
-  const rate = parseNumberInput("bcInterestRate") || 0; // e.g., 0.10 for 10%
-  const frequency = document.getElementById("bcFrequency").value;
-  
-  // Calculate base yearly interest
-  const yearlyInterest = amount * (rate/100);
-  let computedValue = 0;
+    const amount = parseNumberInput('bcAmount') || 0;
+    const rate = parseNumberInput('bcInterestRate') || 0; // e.g., 0.10 for 10%
+    const frequency = document.getElementById('bcFrequency').value;
+    
+    // Calculate base yearly interest
+    const yearlyInterest = amount * (rate / 100);
+    let computedValue = 0;
 
-  if (yearlyInterest <= 0) {
-    document.getElementById("bcInterestValue").value = "0.00";
-    return;
-  }
+    if (yearlyInterest <= 0) {
+        document.getElementById('bcInterestValue').value = '0.00';
+        return;
+    }
 
-  switch (frequency) {
-    case "monthly":
-      computedValue = yearlyInterest / 12;
-      break;
-    case "quarterly":
-      computedValue = yearlyInterest / 4;
-      break;
-    case "semi_annually":
-      computedValue = yearlyInterest / 2;
-      break;
-    case "annually":
-      computedValue = yearlyInterest;
-      break;
-    case "at_maturity":
-      const issueDateVal = document.getElementById("bcIssue").value;
-      const expiryDateVal = document.getElementById("bcExpiry").value;
-      
-      if (issueDateVal && expiryDateVal) {
-        const issue = new Date(issueDateVal);
-        const expiry = new Date(expiryDateVal);
-        
-        // Calculate total days between dates, converted to fractional years
-        const diffTime = Math.max(0, expiry - issue);
-        const diffDays = diffTime / (1000 * 60 * 60 * 24);
-        const totalYears = diffDays / 365.25; // Accounting for leap years safely
-        
-        computedValue = yearlyInterest * totalYears;
-      } else {
-        computedValue = 0; // Can't calculate maturity return without clear dates
-      }
-      break;
-    default:
-      computedValue = 0;
-  }
+    switch (frequency) {
+        case 'monthly':
+            computedValue = yearlyInterest / 12;
+            break;
+        case 'quarterly':
+            computedValue = yearlyInterest / 4;
+            break;
+        case 'semi_annually':
+            computedValue = yearlyInterest / 2;
+            break;
+        case 'annually':
+            computedValue = yearlyInterest;
+            break;
+        case 'at_maturity':
+            const issueDateVal = document.getElementById('bcIssue').value;
+            const expiryDateVal = document.getElementById('bcExpiry').value;
+            
+            if (issueDateVal && expiryDateVal) {
+                const issue = new Date(issueDateVal);
+                const expiry = new Date(expiryDateVal);
+                
+                // Calculate total days between dates, converted to fractional years
+                const diffTime = Math.max(0, expiry - issue);
+                const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                const totalYears = diffDays / 365.25; // Accounting for leap years safely
+                
+                computedValue = yearlyInterest * totalYears;
+            } else {
+                computedValue = 0; // Can't calculate maturity return without clear dates
+            }
+            break;
+        default:
+            computedValue = 0;
+    }
 
-  // Populate field locked to standard financial decimal precision
-  document.getElementById("bcInterestValue").value = computedValue.toFixed(2);
+    // Populate field locked to standard financial decimal precision
+    document.getElementById('bcInterestValue').value = computedValue.toFixed(2);
 }
