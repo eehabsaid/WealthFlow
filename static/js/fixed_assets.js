@@ -715,9 +715,9 @@ async function showFixedAssetDetails(assetId) {
                                                 ${photos.length ? `<img id="assetMainPhoto" src="${photos[0].url}" alt="Asset photo" class="img-fluid" style="max-height:100%;max-width:100%;cursor:pointer;" />` : `<div class="text-center" data-i18n="no_property_photos">No photos available</div>`}
                                             </div>
                                             <div class="asset-photo-grid">
-                                                ${photos.length ? photos.map((photo, index) => `
-                                                    <button type="button" class="btn btn-sm asset-photo-thumbnail p-0" data-url="${photo.url}" aria-label="Photo ${index + 1}">
-                                                        <img src="${photo.url}" alt="Thumbnail ${index + 1}" />
+                                              ${photos.length ? photos.slice(1).map((photo, index) => `
+                                                <button type="button" class="btn btn-sm asset-photo-thumbnail p-0" data-url="${photo.url}" aria-label="Photo ${index + 2}">
+                                                  <img src="${photo.url}" alt="Thumbnail ${index + 2}" />
                                                     </button>
                                                 `).join('') : ''}
                                             </div>
@@ -823,7 +823,6 @@ async function showFixedAssetDetails(assetId) {
 
     const assetPhotoThumbnails = document.querySelectorAll('.asset-photo-thumbnail');
     assetPhotoThumbnails.forEach((thumb, index) => {
-      if (index === 0) thumb.classList.add('active');
       thumb.addEventListener('click', (e) => {
         const url = e.currentTarget.dataset.url;
         const mainImg = document.getElementById('assetMainPhoto');
