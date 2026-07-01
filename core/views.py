@@ -2592,7 +2592,7 @@ class BalanceReportView(View):
             cert_total += amount
             cert_interest_total += interest
 
-        cert_monthly_interest = cert_interest_total / 12 if cert_interest_total else 0.0
+        cert_monthly_interest = cert_interest_total if cert_interest_total else 0.0
 
         return JsonResponse(
             {
@@ -2757,7 +2757,7 @@ class DashboardSummaryView(View):
                 "certificates": {
                     "total_amount": float(cert_agg["total"] or 0),
                     "total_interest": float(cert_agg["total_interest"] or 0),
-                    "monthly_interest": float(cert_agg["total_interest"] or 0) / 12,
+                    "monthly_interest": float(cert_agg["total_interest"] or 0),
                     "count": certs.count(),
                 },
                 "expiring_soon": expiring_soon,
