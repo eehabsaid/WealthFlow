@@ -275,9 +275,9 @@ async function renderBalance() {
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="asset_allocation">Asset Allocation</div>
             ${renderAllocationBar('cash', forecastData.cash_balance || 0, grandTotal)}
-            ${renderAllocationBar('foreignCurrency', (forecastData.foreign_currency_ratio / 100) * grandTotal, grandTotal)}
-            ${renderAllocationBar('certificates', forecastData.certificate_balance || 0, grandTotal)}
-            ${renderAllocationBar('gold', goldValue, grandTotal)}
+            ${renderAllocationBar('foreign_currency', (forecastData.foreign_currency_ratio / 100) * grandTotal, grandTotal)}
+            ${renderAllocationBar('bank_certificates', forecastData.certificate_balance || 0, grandTotal)}
+            ${renderAllocationBar('Gold', goldValue, grandTotal)}
         </div>
 
         <div class="kpi-card mb-4">
@@ -439,10 +439,25 @@ async function deleteBalanceEntry(entryId) {
 
 function renderAllocationBar(labelKey, value, total) {
     const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+    
+    // Normalize key to lowercase for insensitive lookup
+    const lookupKey = labelKey.toLowerCase();
+    let finalKey = labelKey;
+    let translatedText = t(labelKey, labelKey); // Default fallback
+
+    // Find the actual case-sensitive key used inside the JSON translation dictionary
+    if (_t) {
+        const matchedKey = Object.keys(_t).find(k => k.toLowerCase() === lookupKey);
+        if (matchedKey) {
+            finalKey = matchedKey;
+            translatedText = _t[matchedKey];
+        }
+    }
+
     return `
         <div style="margin-top:14px">
             <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
-                <span data-i18n="${labelKey}">${t(labelKey, labelKey)}</span>
+                <span data-i18n="${finalKey}">${translatedText}</span>
                 <span>${pct}%</span>
             </div>
             <div style="height:12px;background:var(--bg-tertiary);border-radius:999px;overflow:hidden;">

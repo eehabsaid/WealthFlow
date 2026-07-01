@@ -514,5 +514,7 @@
   "add_fixed_asset": "Neue Anlage registrieren",
   "property_photos": "Immobilienfotos",
   "no_property_photos": "Noch keine Fotos hochgeladen.",
-  "upload_photo": "Foto hochladen"
+  "upload_photo": "Foto hochladen",
+  "cash": "Bargeld",
+  "foreign_currency": "Fremdwährung"
 }

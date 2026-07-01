@@ -514,5 +514,7 @@
   "add_fixed_asset": "Register New Fixed Asset",
   "property_photos": "Property Photos",
   "no_property_photos": "No photos uploaded yet.",
-  "upload_photo": "Upload Photo"
+  "upload_photo": "Upload Photo",
+  "cash": "Cash",
+  "foreign_currency": "Foreign Currency"
 }

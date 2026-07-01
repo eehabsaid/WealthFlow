@@ -514,5 +514,7 @@
   "add_fixed_asset": "تسجيل أصل ثابت جديد",
   "property_photos": "صور العقار",
   "no_property_photos": "لم يتم تحميل أي صور بعد.",
-  "upload_photo": "تحميل صورة"
+  "upload_photo": "تحميل صورة",
+  "cash": "نقدي",
+  "foreign_currency": "عملة أجنبية"
 }

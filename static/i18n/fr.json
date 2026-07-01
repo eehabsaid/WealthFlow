@@ -514,5 +514,7 @@
   "add_fixed_asset": "Enregistrer un nouvel actif immobilisé",
   "property_photos": "Photos de la propriété",
   "no_property_photos": "Aucune photo importée pour le moment.",
-  "upload_photo": "Téléverser une photo"
+  "upload_photo": "Téléverser une photo",
+  "cash": "Espèces",
+  "foreign_currency": "Devise étrangère"
 }
