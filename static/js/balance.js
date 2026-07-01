@@ -1,15 +1,28 @@
-// balance.js — balance page
+// balance.js — Personal balance dashboard with assets, investments, and forecasts
+
+'use strict';
+
+// ════════════════════════════════════════════════════════════════════════════
+// MODULE STATE
+// ════════════════════════════════════════════════════════════════════════════
+
+let entries = [];
+
+// ════════════════════════════════════════════════════════════════════════════
+// BALANCE RENDERING
+// ════════════════════════════════════════════════════════════════════════════
+
 async function renderBalance() {
-    const mc = document.getElementById("main-content");
+    const mc = document.getElementById('main-content');
     mc.innerHTML = '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
 
     const [bRes, bankRes, currRes, ratesRes, goldRes, forecastRes] = await Promise.all([
-        fetch("/api/balance/"),
-        fetch("/api/banks/"),
-        fetch("/api/currencies/"),
-        fetch("/api/rates/"),
-        fetch("/api/gold/"),
-        fetch("/api/certificate-forecast/"),
+        fetch('/api/balance/'),
+        fetch('/api/banks/'),
+        fetch('/api/currencies/'),
+        fetch('/api/rates/'),
+        fetch('/api/gold/'),
+        fetch('/api/certificate-forecast/'),
     ]);
 
     const bData = await bRes.json();
@@ -19,7 +32,7 @@ async function renderBalance() {
     const goldData = await goldRes.json();
     const forecastData = await forecastRes.json();
 
-    const entries = bData.entries;
+    entries = bData.entries;
     window.entries = entries;
     _banks = bankData.banks;
     _currencies = currData.currencies || [];
@@ -34,24 +47,24 @@ async function renderBalance() {
 
     const totalEGP = totals.EGP || 0;
     const certificateEGP = entries
-        .filter(x => x.balance_type === "certificate")
+        .filter(x => x.balance_type === 'certificate')
         .reduce((sum, x) => sum + Number(x.amount), 0);
 
     const cashEGP = totalEGP - certificateEGP;
 
     const getRate = (code) => {
         const rate = (ratesData.rates || []).find((r) => r.currency_code === code);
-        return rate ? Number(rate.buy_rate) : 0;
+        return rate ? Number(r.buy_rate) : 0;
     };
 
-    const usdAmount = totals["USD"] || 0;
-    const eurAmount = totals["EUR"] || 0;
-    const sarAmount = totals["SAR"] || 0;
-    const goldGrams = totals["Gold"] || 0;
+    const usdAmount = totals['USD'] || 0;
+    const eurAmount = totals['EUR'] || 0;
+    const sarAmount = totals['SAR'] || 0;
+    const goldGrams = totals['Gold'] || 0;
 
-    const usdRate = getRate("USD");
-    const eurRate = getRate("EUR");
-    const sarRate = getRate("SAR");
+    const usdRate = getRate('USD');
+    const eurRate = getRate('EUR');
+    const sarRate = getRate('SAR');
 
     const gold24kSell = goldData.gold ? Number(goldData.gold.carat_24k) : 0;
     const goldValue = goldGrams > 0 ? goldGrams * (gold24kSell + 28.5) : 0;
@@ -64,17 +77,26 @@ async function renderBalance() {
         sarAmount * sarRate +
         goldValue;
 
+    const editText = t('edit', 'Edit');
+    const deleteText = t('delete', 'Delete');
+    const titleLabel = t('balance_title', 'Title');
+    const typeLabel = t('balance_type', 'Balance Type');
+    const bankLabel = t('balance_bank', 'Bank');
+    const currencyLabel = t('balance_currency', 'Currency');
+    const amountLabel = t('balance_amount', 'Amount');
+    const actionsLabel = t('actions', 'Actions');
+
     const currencyCards = _currencies
         .map((cur) => `
             <div class="col-6 col-md-4 col-lg-2">
                 <div class="currency-card">
-                    <div class="cur-flag">${cur.flag || "💱"}</div>
+                    <div class="cur-flag">${cur.flag || '💱'}</div>
                     <div class="cur-code" data-i18n="${cur.code}">${cur.code}</div>
                     <div class="cur-amount num-fmt" data-value="${totals[cur.code] || 0}">${fmt(totals[cur.code] || 0)}</div>
                 </div>
             </div>
         `)
-        .join("");
+        .join('');
 
     const bankMap = {};
     _banks.forEach((b) => { bankMap[b.id] = b.name; });
@@ -82,33 +104,37 @@ async function renderBalance() {
     const rows = entries
         .map((e) => `
             <tr>
-                <td data-i18n-key="${e.title || ""}">${_t && _t[e.title] ? _t[e.title] : (e.title || "")}</td>
-                <td data-i18n-prefix="type_" data-i18n-value="${e.balance_type || ""}">${_t && _t["type_" + e.balance_type] ? _t["type_" + e.balance_type] : (e.balance_type || "")}</td>
-                <td data-i18n-prefix="bank_" data-i18n-value="${e.bank_name || ""}">${e.bank_name || "_"}</td>
+                <td data-i18n-key="${e.title || ''}">${_t && _t[e.title] ? _t[e.title] : (e.title || '')}</td>
+                <td data-i18n-prefix="type_" data-i18n-value="${e.balance_type || ''}">${_t && _t['type_' + e.balance_type] ? _t['type_' + e.balance_type] : (e.balance_type || '')}</td>
+                <td data-i18n-prefix="bank_" data-i18n-value="${e.bank_name || ''}">${e.bank_name || '_'}</td>
                 <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${e.currency_flag} ${e.currency_code}</span></td>
                 <td class="text-end amt-positive num-fmt" data-value="${e.amount}">${fmt(e.amount)}</td>
                 <td>
-                    <button class="btn-icon" onclick="showBalanceModal(${e.id})"><i class="bi bi-pencil"></i></button>
-                    <button class="btn-icon del" onclick="deleteBalanceEntry(${e.id})"><i class="bi bi-trash"></i></button>
+                    <button class="btn-icon" onclick="showBalanceModal(${e.id})" title="${editText}"><i class="bi bi-pencil"></i></button>
+                    <button class="btn-icon del" onclick="deleteBalanceEntry(${e.id})" title="${deleteText}"><i class="bi bi-trash"></i></button>
                 </td>
             </tr>
         `)
-        .join("");
+        .join('');
+
+    const balanceTitle = t('nav_balance', 'Balance');
+    const grandTotalLabel = t('grand_total', 'Total All Balances (EGP equiv.)');
+    const formulaDesc = t('balance_formula_desc', '= EGP + (USD × rate) + (EUR × rate) + (SAR × rate) + (Gold × 24K sell price + 28.5)');
 
     mc.innerHTML = `
         <div class="page-header">
-            <div><div class="page-title" data-i18n="nav_balance">Balance</div></div>
+            <div><div class="page-title" data-i18n="nav_balance">${balanceTitle}</div></div>
         </div>
         
         <div class="row g-3 mb-4">${currencyCards}</div>
         
         <div class="kpi-card mb-4" style="text-align:center">
-            <div class="kpi-label" data-i18n="grand_total">Total All Balances (EGP equiv.)</div>
+            <div class="kpi-label" data-i18n="grand_total">${grandTotalLabel}</div>
             <div class="kpi-value num-fmtpresent" style="color:var(--accent-green);font-size:32px" data-value="${grandTotal}">
                 ${fmtpresent(grandTotal)} <span data-i18n="EGP">EGP</span>
             </div>
             <div style="margin-top:8px;color:var(--text-secondary);font-size:13px" data-i18n="balance_formula_desc">
-                = EGP + (USD × rate) + (EUR × rate) + (SAR × rate) + (Gold × 24K sell price + 28.5)
+                ${formulaDesc}
             </div>
             <div style="margin-top:8px;color:var(--text-secondary);font-size:13px">
                 <span class="num-fmt" data-value="${totalEGP}">${fmt(totalEGP)}</span> + 
@@ -176,17 +202,15 @@ async function renderBalance() {
             <div class="kpi-label" data-i18n="investment_recommendations">Investment Recommendations</div>
             <div style="margin-top:15px">
                 ${(forecastData.investment_recommendations || []).map((r) => {
-                    // Find this block inside your formatted balance.js file:
-                    if (typeof r === "object") {
-                        // Determine the translation key dynamically based on day count
-                        const dynamicKey = r.days_left > 1 ? "certificate_mature_plural" : "certificate_mature_singular";
+                    if (typeof r === 'object') {
+                        const dynamicKey = r.days_left > 1 ? 'certificate_mature_plural' : 'certificate_mature_singular';
                         const fallbackText = r.days_left > 1 ? `A certificate will mature in ${r.days_left} days.` : `A certificate will mature in ${r.days_left} day.`;
 
                         return `
                             <div data-i18n-key="${dynamicKey}" 
                                 data-days-left="${r.days_left}"
                                 style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">
-                                ${_t && _t[dynamicKey] ? _t[dynamicKey].replace("{days_left}", r.days_left) : fallbackText}
+                                ${_t && _t[dynamicKey] ? _t[dynamicKey].replace('{days_left}', r.days_left) : fallbackText}
                             </div>`;
                     }
 
@@ -195,7 +219,7 @@ async function renderBalance() {
                         style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">
                         ${_t && _t[r] ? _t[r] : r}
                     </div>`;
-                }).join("")}
+                }).join('')}
             </div>
         </div>
 
@@ -209,16 +233,16 @@ async function renderBalance() {
                 ${
                     forecastData.action_plan?.key
                         ? (_t[forecastData.action_plan.key] || forecastData.action_plan.key)
-                            .replace("{gold_amount}", fmtpresent(forecastData.action_plan.gold_amount || 0))
-                            .replace("{cash_amount}", fmtpresent(forecastData.action_plan.cash_amount || 0))
-                            .replace("{certificate_amount}", fmtpresent(forecastData.action_plan.certificate_amount || 0))
-                        : ""
+                            .replace('{gold_amount}', fmtpresent(forecastData.action_plan.gold_amount || 0))
+                            .replace('{cash_amount}', fmtpresent(forecastData.action_plan.cash_amount || 0))
+                            .replace('{certificate_amount}', fmtpresent(forecastData.action_plan.certificate_amount || 0))
+                        : ''
                 }
             </div>
         </div>
 
         ${forecastData.upcoming?.length ? `
-            <div class="kpi-label" data-i18n="upcoming_certificate_maturities" style="margin-top: 24px; font-weight: 600;">Upcoming Certificate Maturities</div>
+            <div class="kpi-label" data-i18n="upcoming_certificate_maturities" style="margin-top: 24px; font-weight: 600;">${t('upcoming_certificate_maturities', 'Upcoming Certificate Maturities')}</div>
             <div class="table-container" style="margin-top:15px; margin-bottom: 24px;">
                 <table class="data-table">
                     <thead>
@@ -235,24 +259,24 @@ async function renderBalance() {
                                 <td>${c.bank}</td>
                                 <td class="local-date-field" data-expiry="${c.expiry_date}"></td>
                                 <td>
-                                    <span style="color:${c.days_left <= 30 ? "var(--accent-red)" : c.days_left <= 90 ? "orange" : "var(--text-primary)"}; font-weight:600;">
+                                    <span style="color:${c.days_left <= 30 ? 'var(--accent-red)' : c.days_left <= 90 ? 'orange' : 'var(--text-primary)'}; font-weight:600;">
                                         ${c.days_left}
                                     </span>
                                 </td>
                                 <td class="num-fmtpresent" data-value="${c.amount}">${fmtpresent(c.amount)}</td>
                             </tr>
-                        `).join("")}
+                        `).join('')}
                     </tbody>
                 </table>
-            </div>` : ""
+            </div>` : ''
         }
 
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="asset_allocation">Asset Allocation</div>
-            ${renderAllocationBar("cash", forecastData.cash_balance || 0, grandTotal)}
-            ${renderAllocationBar("foreignCurrency", (forecastData.foreign_currency_ratio / 100) * grandTotal, grandTotal)}
-            ${renderAllocationBar("certificates", forecastData.certificate_balance || 0, grandTotal)}
-            ${renderAllocationBar("gold", goldValue, grandTotal)}
+            ${renderAllocationBar('cash', forecastData.cash_balance || 0, grandTotal)}
+            ${renderAllocationBar('foreignCurrency', (forecastData.foreign_currency_ratio / 100) * grandTotal, grandTotal)}
+            ${renderAllocationBar('certificates', forecastData.certificate_balance || 0, grandTotal)}
+            ${renderAllocationBar('gold', goldValue, grandTotal)}
         </div>
 
         <div class="kpi-card mb-4">
@@ -262,7 +286,7 @@ async function renderBalance() {
                     <div data-i18n-key="${r}" style="padding:12px; margin-bottom:10px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">
                         ${_t && _t[r] ? _t[r] : r}
                     </div>
-                `).join("")}
+                `).join('')}
             </div>
         </div>
 
@@ -271,12 +295,12 @@ async function renderBalance() {
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th data-i18n="balance_title">Title</th>
-                            <th data-i18n="balance_type">Balance Type</th>
-                            <th data-i18n="balance_bank">Bank</th>
-                            <th data-i18n="balance_currency">Currency</th>
-                            <th class="text-end" data-i18n="balance_amount">Amount</th>
-                            <th data-i18n="actions">Actions</th>
+                            <th data-i18n="balance_title">${titleLabel}</th>
+                            <th data-i18n="balance_type">${typeLabel}</th>
+                            <th data-i18n="balance_bank">${bankLabel}</th>
+                            <th data-i18n="balance_currency">${currencyLabel}</th>
+                            <th class="text-end" data-i18n="balance_amount">${amountLabel}</th>
+                            <th data-i18n="actions">${actionsLabel}</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
@@ -288,44 +312,60 @@ async function renderBalance() {
     applyTranslations();
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// MODAL MANAGEMENT
+// ════════════════════════════════════════════════════════════════════════════
+
 async function showBalanceModal(entryId) {
     let entry = null;
     if (entryId) {
-        const res = await fetch("/api/balance/");
+        const res = await fetch('/api/balance/');
         const data = await res.json();
         entry = data.entries.find((e) => e.id === entryId);
     }
     
-    const bankOpts = _banks.map((b) => `<option value="${b.id}" ${entry && entry.bank_id === b.id ? "selected" : ""}>${b.name}</option>`).join("");
-    const curOpts = _currencies.map((c) => `<option value="${c.id}" ${entry && entry.currency_id === c.id ? "selected" : ""}>${c.flag} ${c.code} - ${c.name}</option>`).join("");
+    const bankOpts = _banks.map((b) => `<option value="${b.id}" ${entry && entry.bank_id === b.id ? 'selected' : ''}>${b.name}</option>`).join('');
+    const curOpts = _currencies.map((c) => `<option value="${c.id}" ${entry && entry.currency_id === c.id ? 'selected' : ''}>${c.flag} ${c.code} - ${c.name}</option>`).join('');
 
     const typeOpts = `
-        <option value="cash" data-i18n="type_cash" ${entry && entry.balance_type === "cash" ? "selected" : ""}>💵 Cash</option>
-        <option value="bank" data-i18n="type_bank" ${entry && entry.balance_type === "bank" ? "selected" : ""}>🏦 Bank Account</option>
-        <option value="gold" data-i18n="type_gold" ${entry && entry.balance_type === "gold" ? "selected" : ""}>🪙 Gold</option>
-        <option value="certificate" data-i18n="type_certificate" ${entry && entry.balance_type === "certificate" ? "selected" : ""}>📜 Certificate</option>
+        <option value="cash" data-i18n="type_cash" ${entry && entry.balance_type === 'cash' ? 'selected' : ''}>${t('type_cash', '💵 Cash')}</option>
+        <option value="bank" data-i18n="type_bank" ${entry && entry.balance_type === 'bank' ? 'selected' : ''}>${t('type_bank', '🏦 Bank Account')}</option>
+        <option value="gold" data-i18n="type_gold" ${entry && entry.balance_type === 'gold' ? 'selected' : ''}>${t('type_gold', '🪙 Gold')}</option>
+        <option value="certificate" data-i18n="type_certificate" ${entry && entry.balance_type === 'certificate' ? 'selected' : ''}>${t('type_certificate', '📜 Certificate')}</option>
     `;
+
+    const titleText = entry ? t('title_edit_balance', 'Edit Balance Entry') : t('title_add_balance', 'Add Balance Entry');
+    const balanceTitleLabel = t('balance_title', 'Title');
+    const balanceTypeLabel = t('balance_type', 'Balance Type');
+    const balanceBankLabel = t('balance_bank', 'Bank');
+    const balanceCurrencyLabel = t('balance_currency', 'Currency');
+    const balanceAmountLabel = t('balance_amount', 'Amount');
+    const notesLabel = t('notes', 'Notes');
+    const selectTypeText = t('select_type', '— Select Type —');
+    const noneOptionText = t('none_option', '— None —');
+    const cancelText = t('btn_cancel', 'Cancel');
+    const saveText = t('btn_save', 'Save');
 
     const html = `
         <div class="modal-header">
-            <h5 class="modal-title" data-i18n="${entry ? "title_edit_balance" : "title_add_balance"}">
-                ${entry ? "Edit Balance Entry" : "Add Balance Entry"}
+            <h5 class="modal-title" data-i18n="${entry ? 'title_edit_balance' : 'title_add_balance'}">
+                ${titleText}
             </h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
             <div class="row g-3">
-                <div class="col-12"><label data-i18n="balance_title">Title</label><input type="text" class="form-control" id="bTitle" value="${entry ? entry.title : ""}"></div>
-                <div class="col-12"><label data-i18n="balance_type">Balance Type</label><select class="form-select" id="bbalance_type"><option value="" data-i18n="select_type">— Select Type —</option>${typeOpts}</select></div>
-                <div class="col-6"><label data-i18n="balance_bank">Bank</label><select class="form-select" id="bBank"><option value="" data-i18n="none_option">— None —</option>${bankOpts}</select></div>
-                <div class="col-3"><label data-i18n="balance_currency">Currency</label><select class="form-select" id="bCurrency">${curOpts}</select></div>
-                <div class="col-3"><label data-i18n="balance_amount">Amount</label><input type="number" step="0.01" class="form-control" id="bAmount" value="${entry ? entry.amount : ""}"></div>
-                <div class="col-12"><label data-i18n="notes">Notes</label><input type="text" class="form-control" id="bNotes" value="${entry ? entry.notes : ""}"></div>
+                <div class="col-12"><label data-i18n="balance_title">${balanceTitleLabel}</label><input type="text" class="form-control" id="bTitle" value="${entry ? entry.title : ''}"></div>
+                <div class="col-12"><label data-i18n="balance_type">${balanceTypeLabel}</label><select class="form-select" id="bbalance_type"><option value="" data-i18n="select_type">${selectTypeText}</option>${typeOpts}</select></div>
+                <div class="col-6"><label data-i18n="balance_bank">${balanceBankLabel}</label><select class="form-select" id="bBank"><option value="" data-i18n="none_option">${noneOptionText}</option>${bankOpts}</select></div>
+                <div class="col-3"><label data-i18n="balance_currency">${balanceCurrencyLabel}</label><select class="form-select" id="bCurrency">${curOpts}</select></div>
+                <div class="col-3"><label data-i18n="balance_amount">${balanceAmountLabel}</label><input type="number" step="0.01" class="form-control" id="bAmount" value="${entry ? entry.amount : ''}"></div>
+                <div class="col-12"><label data-i18n="notes">${notesLabel}</label><input type="text" class="form-control" id="bNotes" value="${entry ? entry.notes : ''}"></div>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
-            <button class="btn-primary-custom" onclick="saveBalanceEntry(${entryId})" data-i18n="btn_save">Save</button>
+            <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="btn_cancel">${cancelText}</button>
+            <button class="btn-primary-custom" onclick="saveBalanceEntry(${entryId})" data-i18n="btn_save">${saveText}</button>
         </div>
     `;
 
@@ -333,51 +373,59 @@ async function showBalanceModal(entryId) {
     applyTranslations();
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// SAVE & DELETE
+// ════════════════════════════════════════════════════════════════════════════
+
 async function saveBalanceEntry(entryId) {
-    const bankVal = document.getElementById("bBank").value;
-    const typeVal = document.getElementById("bbalance_type").value;
+    const bankVal = document.getElementById('bBank').value;
+    const typeVal = document.getElementById('bbalance_type').value;
 
     const body = {
-        title: document.getElementById("bTitle").value,
+        title: document.getElementById('bTitle').value,
         balance_type: typeVal || null,
         bank_id: bankVal ? parseInt(bankVal) : null,
-        currency_id: parseInt(document.getElementById("bCurrency").value) || 1,
-        amount: parseFloat(document.getElementById("bAmount").value) || 0,
-        notes: document.getElementById("bNotes").value,
+        currency_id: parseInt(document.getElementById('bCurrency').value) || 1,
+        amount: parseFloat(document.getElementById('bAmount').value) || 0,
+        notes: document.getElementById('bNotes').value,
     };
 
-    const url = entryId ? `/api/balance/${entryId}/` : "/api/balance/";
-    const method = entryId ? "PUT" : "POST";
+    const url = entryId ? `/api/balance/${entryId}/` : '/api/balance/';
+    const method = entryId ? 'PUT' : 'POST';
     const res = await fetch(url, { 
         method, 
-        headers: { "Content-Type": "application/json" }, 
+        headers: { 'Content-Type': 'application/json' }, 
         body: JSON.stringify(body) 
     });
 
     if (res.ok) {
         closeModal();
-        showToast("Saved ✓");
+        showToast(t('balance_entry_saved', 'Balance entry saved ✓'), 'success');
         renderBalance();
     } else {
-        showToast("Error saving", "error");
+        showToast(t('error_saving_entry', 'Error saving entry'), 'error');
     }
 }
 
 async function deleteBalanceEntry(entryId) {
-    if (!confirm("Delete this entry?")) return;
-    const res = await fetch(`/api/balance/${entryId}/`, { method: "DELETE" });
+    if (!confirm(t('confirm_delete_entry', 'Delete this entry?'))) return;
+    const res = await fetch(`/api/balance/${entryId}/`, { method: 'DELETE' });
     if (res.ok) {
-        showToast("Deleted");
+        showToast(t('entry_deleted', 'Entry deleted'), 'success');
         renderBalance();
     }
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// ALLOCATION BAR HELPER
+// ════════════════════════════════════════════════════════════════════════════
 
 function renderAllocationBar(labelKey, value, total) {
     const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
     return `
         <div style="margin-top:14px">
             <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
-                <span data-i18n="${labelKey}">${labelKey}</span>
+                <span data-i18n="${labelKey}">${t(labelKey, labelKey)}</span>
                 <span>${pct}%</span>
             </div>
             <div style="height:12px;background:var(--bg-tertiary);border-radius:999px;overflow:hidden;">
