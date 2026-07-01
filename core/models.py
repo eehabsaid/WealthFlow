@@ -944,6 +944,18 @@ class FixedAsset(models.Model):
                 else None
             ),
 
+            "mortgage": (
+                self.mortgage.to_dict()
+                if hasattr(self, "mortgage")
+                else None
+            ),
+
+            "rental": (
+                self.rental.to_dict()
+                if hasattr(self, "rental")
+                else None
+            ),
+
             "photos": [
                 photo.to_dict()
                 for photo in self.photos.all()
@@ -1330,3 +1342,100 @@ class AssetSale(models.Model):
 
     def __str__(self):
         return f"{self.asset.name} Sold"
+
+
+class AssetMortgage(models.Model):
+    asset = models.OneToOneField(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="mortgage",
+    )
+
+    loan_amount = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    remaining_balance = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    monthly_installment = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    interest_rate = models.DecimalField(
+        max_digits=8,
+        decimal_places=4,
+        default=0,
+    )
+
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def to_dict(self):
+        current_market_value = float(self.asset.current_market_value or 0)
+        remaining_balance = float(self.remaining_balance or 0)
+        return {
+            "id": self.id,
+            "asset_id": self.asset_id,
+            "loan_amount": float(self.loan_amount or 0),
+            "remaining_balance": remaining_balance,
+            "monthly_installment": float(self.monthly_installment or 0),
+            "interest_rate": float(self.interest_rate or 0),
+            "start_date": self.start_date.isoformat() if self.start_date else "",
+            "end_date": self.end_date.isoformat() if self.end_date else "",
+            "net_equity": current_market_value - remaining_balance,
+        }
+
+
+class AssetRental(models.Model):
+    asset = models.OneToOneField(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="rental",
+    )
+
+    monthly_rent = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    occupancy_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+    )
+
+    tenant_name = models.CharField(max_length=200, blank=True)
+    contract_start = models.DateField(null=True, blank=True)
+    contract_end = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def to_dict(self):
+        monthly_rent = float(self.monthly_rent or 0)
+        annual_rent = monthly_rent * 12
+        current_market_value = float(self.asset.current_market_value or 0)
+        rental_yield = (annual_rent / current_market_value * 100) if current_market_value > 0 else 0
+        return {
+            "id": self.id,
+            "asset_id": self.asset_id,
+            "monthly_rent": monthly_rent,
+            "annual_rent": annual_rent,
+            "occupancy_rate": float(self.occupancy_rate or 0),
+            "rental_yield": rental_yield,
+            "tenant_name": self.tenant_name,
+            "contract_start": self.contract_start.isoformat() if self.contract_start else "",
+            "contract_end": self.contract_end.isoformat() if self.contract_end else "",
+            "notes": self.notes,
+        }

@@ -4,42 +4,151 @@ let propertyMap = null;
 let propertyMarker = null;
 let propertyPhotos = [];
 let currentEditingAssetId = null;
+let fixedAssetBalanceOptions = [];
+let fixedAssetsState = {
+  activeTab: "assets",
+  assets: [],
+  isLoading: false,
+  portfolioSnapshot: null,
+  portfolioSnapshotLoading: false,
+};
 
 // ════════════════════════════════════════════════════════════════════════════
 // DATA FETCHING & ROUTING
 // ════════════════════════════════════════════════════════════════════════════
 
 async function fetchAndRenderFixedAssets() {
+  fixedAssetsState.isLoading = true;
+  renderActiveFixedAssetsTab();
   showLoading();
   try {
     const response = await fetch("/api/fixed-assets/");
     if (!response.ok) throw new Error("Failed to load fixed assets");
     const data = await response.json();
-    renderFixedAssetsList(data);
+    fixedAssetsState.assets = normalizeFixedAssetsData(data);
+    fixedAssetsState.isLoading = false;
+    renderActiveFixedAssetsTab();
   } catch (err) {
+    fixedAssetsState.isLoading = false;
+    renderActiveFixedAssetsTab();
     showToast(err.message, "danger");
   } finally {
     hideLoading();
   }
 }
 
-function renderFixedAssets() {
+function normalizeFixedAssetsData(assets) {
+  if (Array.isArray(assets)) {
+    return assets;
+  }
+
+  if (assets && typeof assets === "object") {
+    if (Array.isArray(assets.data)) return assets.data;
+    if (Array.isArray(assets.results)) return assets.results;
+    if (Array.isArray(assets.assets)) return assets.assets;
+    if (Array.isArray(assets.fixed_assets)) return assets.fixed_assets;
+  }
+
+  return [];
+}
+
+function renderFixedAssets(activeTab = "assets") {
+  fixedAssetsState.activeTab = activeTab;
   const target = document.getElementById("main-content");
   if (!target) return;
 
   target.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-2" style="border-bottom: 1px solid var(--border-color);">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2" style="border-bottom: 1px solid var(--border-color); gap: 1rem;">
             <h3 class="m-0 font-weight-bold" data-i18n="fixed_assets">Fixed Assets</h3>
-            <button class="btn-primary-custom" onclick="showFixedAssetModal()">
-                <i class="bi bi-plus-lg"></i> <span data-i18n="add_new_asset">Add Asset</span>
+            <div id="fixedAssetsHeaderAction"></div>
+        </div>
+        <div class="settings-tabs-container" style="border-bottom:1px solid var(--border-color);margin-bottom:20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap;">
+            <button class="settings-tab ${fixedAssetsState.activeTab === "assets" ? "active" : ""}" onclick="switchFixedAssetsTab('assets')">
+                <span data-i18n="fixed_assets_tab_assets">Assets</span>
+            </button>
+            <button class="settings-tab ${fixedAssetsState.activeTab === "dashboard" ? "active" : ""}" onclick="switchFixedAssetsTab('dashboard')">
+                <span data-i18n="dashboard">Dashboard</span>
+            </button>
+            <button class="settings-tab ${fixedAssetsState.activeTab === "analytics" ? "active" : ""}" onclick="switchFixedAssetsTab('analytics')">
+                <span data-i18n="fixed_assets_tab_analytics">Analytics</span>
+            </button>
+            <button class="settings-tab ${fixedAssetsState.activeTab === "reports" ? "active" : ""}" onclick="switchFixedAssetsTab('reports')">
+                <span data-i18n="nav_reports">Reports</span>
             </button>
         </div>
         <div id="fixedAssetsContainer"></div>
     `;
 
+  renderFixedAssetsHeaderAction();
+  renderActiveFixedAssetsTab();
+  applyTranslations();
+
   setTimeout(() => {
     fetchAndRenderFixedAssets();
   }, 0);
+}
+
+function switchFixedAssetsTab(tab) {
+  fixedAssetsState.activeTab = tab;
+  renderFixedAssetsHeaderAction();
+  updateFixedAssetsTabButtons();
+  renderActiveFixedAssetsTab();
+  applyTranslations();
+}
+
+function updateFixedAssetsTabButtons() {
+  document.querySelectorAll(".settings-tabs-container .settings-tab").forEach((button) => {
+    button.classList.toggle(
+      "active",
+      button.getAttribute("onclick") === `switchFixedAssetsTab('${fixedAssetsState.activeTab}')`,
+    );
+  });
+}
+
+function renderFixedAssetsHeaderAction() {
+  const actionContainer = document.getElementById("fixedAssetsHeaderAction");
+  if (!actionContainer) return;
+
+  if (fixedAssetsState.activeTab === "assets") {
+    actionContainer.innerHTML = `
+      <button class="btn-primary-custom" onclick="showFixedAssetModal()">
+          <i class="bi bi-plus-lg"></i> <span data-i18n="add_new_asset">Add Asset</span>
+      </button>
+    `;
+  } else {
+    actionContainer.innerHTML = "";
+  }
+}
+
+function renderActiveFixedAssetsTab() {
+  const container = document.getElementById("fixedAssetsContainer");
+  if (!container) return;
+
+  if (fixedAssetsState.isLoading) {
+    container.innerHTML = `
+      <div style="display:flex;justify-content:center;padding:60px;">
+        <div class="spinner-border" style="color:var(--accent-primary)"></div>
+      </div>
+    `;
+    return;
+  }
+
+  if (fixedAssetsState.activeTab === "assets") {
+    renderFixedAssetsList(fixedAssetsState.assets);
+    return;
+  }
+
+  if (fixedAssetsState.activeTab === "dashboard") {
+    renderFixedAssetsDashboard(fixedAssetsState.assets);
+    return;
+  }
+
+  if (fixedAssetsState.activeTab === "analytics") {
+    renderFixedAssetsAnalytics(fixedAssetsState.assets);
+    return;
+  }
+
+  renderFixedAssetsReports(fixedAssetsState.assets);
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -50,16 +159,7 @@ function renderFixedAssetsList(assets) {
   const container = document.getElementById("fixedAssetsContainer");
   if (!container) return;
 
-  let assetsArray = [];
-  if (Array.isArray(assets)) {
-    assetsArray = assets;
-  } else if (assets && typeof assets === "object") {
-    if (Array.isArray(assets.data)) assetsArray = assets.data;
-    else if (Array.isArray(assets.results)) assetsArray = assets.results;
-    else if (Array.isArray(assets.assets)) assetsArray = assets.assets;
-    else if (Array.isArray(assets.fixed_assets))
-      assetsArray = assets.fixed_assets;
-  }
+  const assetsArray = normalizeFixedAssetsData(assets);
 
   if (!assetsArray || assetsArray.length === 0) {
     container.innerHTML = `
@@ -166,6 +266,764 @@ function renderFixedAssetsList(assets) {
   applyTranslations();
 }
 
+function renderFixedAssetsDashboard(assets) {
+  const container = document.getElementById("fixedAssetsContainer");
+  if (!container) return;
+
+  const assetsArray = normalizeFixedAssetsData(assets);
+
+  if (!assetsArray.length) {
+    container.innerHTML = `
+      <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
+          <div class="display-5 mb-3">📈</div>
+          <h4 class="mt-2" style="color:var(--text-primary);" data-i18n="fixed_assets_dashboard_empty">No Dashboard Data</h4>
+          <p class="small mb-0" style="color:var(--text-secondary);" data-i18n="fixed_assets_dashboard_empty_desc">Add fixed assets to see your dashboard analytics.</p>
+      </div>
+    `;
+    applyTranslations();
+    return;
+  }
+
+  const metrics = getFixedAssetsDashboardMetrics(assetsArray);
+  const gainColor = metrics.totalGain >= 0 ? "#17a34a" : "#ef4444";
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;">
+      ${renderFixedAssetsKpi("bi bi-building", "total_assets", fmtInt(metrics.totalAssets))}
+      ${renderFixedAssetsKpi("bi bi-cash-stack", "total_purchase_value", fmt(metrics.totalPurchaseValue))}
+      ${renderFixedAssetsKpi("bi bi-graph-up-arrow", "current_market_value", fmt(metrics.currentMarketValue))}
+      ${renderFixedAssetsKpi("bi bi-plus-slash-minus", "total_gain", `<span style="color:${gainColor}">${fmt(metrics.totalGain)}</span>`)}
+      ${renderFixedAssetsKpi("bi bi-percent", "average_appreciation_percent", `${fmtpresent(metrics.averageAppreciation)}%`)}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
+        <div style="font-weight:700;color:var(--text-primary);margin-bottom:14px;" data-i18n="asset_allocation"></div>
+        <div style="position:relative;height:280px;"><canvas id="fixedAssetsAllocationChart"></canvas></div>
+      </div>
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
+        <div style="font-weight:700;color:var(--text-primary);margin-bottom:14px;" data-i18n="asset_type_distribution"></div>
+        <div style="position:relative;height:280px;"><canvas id="fixedAssetsTypeChart"></canvas></div>
+      </div>
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
+        <div style="font-weight:700;color:var(--text-primary);margin-bottom:14px;" data-i18n="portfolio_distribution"></div>
+        <div style="position:relative;height:280px;"><canvas id="fixedAssetsPortfolioChart"></canvas></div>
+      </div>
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
+        <div style="font-weight:700;color:var(--text-primary);margin-bottom:14px;" data-i18n="value_growth_over_time"></div>
+        <div style="position:relative;height:280px;"><canvas id="fixedAssetsGrowthChart"></canvas></div>
+      </div>
+    </div>
+  `;
+
+  applyTranslations();
+  drawFixedAssetsDashboardCharts(metrics);
+}
+
+function renderFixedAssetsAnalytics(assets) {
+  const container = document.getElementById("fixedAssetsContainer");
+  if (!container) return;
+
+  const assetsArray = normalizeFixedAssetsData(assets);
+
+  if (!assetsArray.length) {
+    container.innerHTML = `
+      <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
+          <div class="display-5 mb-3">📊</div>
+          <h4 class="mt-2" style="color:var(--text-primary);" data-i18n="fixed_assets_analytics_empty">No Analytics Data</h4>
+          <p class="small mb-0" style="color:var(--text-secondary);" data-i18n="fixed_assets_analytics_empty_desc">Add fixed assets to calculate analytics.</p>
+      </div>
+    `;
+    applyTranslations();
+    return;
+  }
+
+  const metrics = getFixedAssetsAnalyticsMetrics(assetsArray);
+
+  if (!fixedAssetsState.portfolioSnapshot && !fixedAssetsState.portfolioSnapshotLoading) {
+    loadFixedAssetsPortfolioSnapshot();
+  }
+
+  const portfolioCards = renderFixedAssetsPortfolioCards(metrics, fixedAssetsState.portfolioSnapshot);
+  const tableRows = metrics.assetRows.map((row) => `
+    <tr>
+      <td>${row.name}</td>
+      <td data-i18n="type_${String(row.type || "other").toLowerCase()}">${row.type}</td>
+      <td class="text-end">${fmtpresent(row.roi)}%</td>
+      <td class="text-end">${fmtpresent(row.appreciation)}%</td>
+      <td class="text-end">${fmtpresent(row.annualReturn)}%</td>
+      <td class="text-end">${row.holdingPeriodLabel}</td>
+      <td class="text-end">${fmtpresent(row.renovationCostPercent)}%</td>
+      <td class="text-end ${row.gainAmount >= 0 ? "text-success" : "text-danger"}">${fmt(row.gainAmount)}</td>
+    </tr>
+  `).join("");
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px;">
+      ${portfolioCards}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:20px;">
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
+        <div style="font-weight:700;color:var(--text-primary);margin-bottom:14px;" data-i18n="liquid_vs_fixed_assets"></div>
+        <div style="position:relative;height:280px;"><canvas id="fixedAssetsLiquidVsFixedChart"></canvas></div>
+      </div>
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
+        <div style="font-weight:700;color:var(--text-primary);margin-bottom:14px;" data-i18n="asset_performance"></div>
+        <div style="position:relative;height:280px;"><canvas id="fixedAssetsPerformanceChart"></canvas></div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible;">
+      <div style="padding:14px 20px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border-color);" data-i18n="per_asset_analytics"></div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th data-i18n="asset_name">Asset Name</th>
+              <th data-i18n="asset_type">Asset Type</th>
+              <th class="text-end" data-i18n="roi">ROI</th>
+              <th class="text-end" data-i18n="appreciation_percent">Appreciation %</th>
+              <th class="text-end" data-i18n="annual_return">Annual Return</th>
+              <th class="text-end" data-i18n="holding_period">Holding Period</th>
+              <th class="text-end" data-i18n="renovation_cost_percent">Renovation Cost %</th>
+              <th class="text-end" data-i18n="gain_amount">Gain Amount</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows || _noDataFixedAssets(8)}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  applyTranslations();
+  drawFixedAssetsAnalyticsCharts(metrics, fixedAssetsState.portfolioSnapshot);
+}
+
+function renderFixedAssetsReports(assets) {
+  const container = document.getElementById("fixedAssetsContainer");
+  if (!container) return;
+
+  const assetsArray = normalizeFixedAssetsData(assets);
+
+  if (!assetsArray.length) {
+    container.innerHTML = `
+      <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
+          <div class="display-5 mb-3">🗂️</div>
+          <h4 class="mt-2" style="color:var(--text-primary);" data-i18n="fixed_assets_reports_empty">No Reports Data</h4>
+          <p class="small mb-0" style="color:var(--text-secondary);" data-i18n="fixed_assets_reports_empty_desc">Add fixed assets to generate reports.</p>
+      </div>
+    `;
+    applyTranslations();
+    return;
+  }
+
+  const options = assetsArray
+    .map((asset) => `<option value="${asset.id}">${asset.name || "—"}</option>`)
+    .join("");
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,1fr);gap:16px;align-items:start;">
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
+        <div style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:8px;" data-i18n="fixed_assets_reports_title"></div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;" data-i18n="fixed_assets_reports_subtitle"></div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label text-light" data-i18n="report_scope"></label>
+            <select class="form-select" id="fixedAssetsReportScope" onchange="toggleFixedAssetsReportScope()">
+              <option value="single" data-i18n="single_asset">Single Asset</option>
+              <option value="portfolio" data-i18n="entire_portfolio">Entire Portfolio</option>
+            </select>
+          </div>
+          <div class="col-md-6" id="fixedAssetsReportAssetWrap">
+            <label class="form-label text-light" data-i18n="select_asset"></label>
+            <select class="form-select" id="fixedAssetsReportAsset">
+              ${options}
+            </select>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn-primary-custom" onclick="downloadFixedAssetsReport('pdf')">
+            <i class="bi bi-file-earmark-pdf"></i> <span data-i18n="generate_pdf">Generate PDF</span>
+          </button>
+          <button class="btn-secondary-custom" onclick="downloadFixedAssetsReport('excel')">
+            <i class="bi bi-file-earmark-excel"></i> <span data-i18n="download_excel">Download Excel Workbook</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
+        <div style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:12px;" data-i18n="report_contents"></div>
+        <div style="display:grid;gap:10px;">
+          <div style="padding:12px;border:1px solid var(--border-color);border-radius:10px;color:var(--text-secondary);" data-i18n="report_includes_general_property"></div>
+          <div style="padding:12px;border:1px solid var(--border-color);border-radius:10px;color:var(--text-secondary);" data-i18n="report_includes_photos_renovations"></div>
+          <div style="padding:12px;border:1px solid var(--border-color);border-radius:10px;color:var(--text-secondary);" data-i18n="report_includes_furniture_valuations"></div>
+          <div style="padding:12px;border:1px solid var(--border-color);border-radius:10px;color:var(--text-secondary);" data-i18n="report_includes_sale_info"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const scopeField = document.getElementById("fixedAssetsReportScope");
+  if (scopeField) {
+    scopeField.value = "single";
+  }
+
+  applyTranslations();
+  toggleFixedAssetsReportScope();
+}
+
+function toggleFixedAssetsReportScope() {
+  const scopeField = document.getElementById("fixedAssetsReportScope");
+  const assetWrap = document.getElementById("fixedAssetsReportAssetWrap");
+  const isSingle = scopeField?.value !== "portfolio";
+
+  if (assetWrap) {
+    assetWrap.style.display = isSingle ? "block" : "none";
+  }
+}
+
+async function downloadFixedAssetsReport(format) {
+  const scope = document.getElementById("fixedAssetsReportScope")?.value || "single";
+  const assetId = document.getElementById("fixedAssetsReportAsset")?.value || "";
+
+  if (scope === "single" && !assetId) {
+    showToast(t("report_asset_required", "Please select an asset first."), "warning");
+    return;
+  }
+
+  const btn = event?.currentTarget || event?.target;
+  const loadingText = t("generating", "Generating...");
+  const originalHtml = btn?.innerHTML;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<div class="spinner-border spinner-border-sm"></div> ${loadingText}`;
+  }
+
+  try {
+    const params = new URLSearchParams({
+      scope,
+      lang: currentLang(),
+    });
+
+    if (scope === "single") {
+      params.set("asset_id", assetId);
+    }
+
+    const endpoint =
+      format === "pdf"
+        ? "/api/fixed-assets/reports/pdf/"
+        : "/api/fixed-assets/reports/excel/";
+
+    const response = await fetch(`${endpoint}?${params.toString()}`);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || t("download_report_failed", "Failed to download report."));
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    const disposition = response.headers.get("Content-Disposition") || "";
+    const fileNameMatch = disposition.match(/filename="(.+)"/);
+
+    anchor.href = url;
+    anchor.download =
+      fileNameMatch?.[1] || `fixed_assets_report.${format === "pdf" ? "pdf" : "xlsx"}`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    showToast(err.message, "danger");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
+  }
+}
+
+function renderFixedAssetsPortfolioCards(metrics, snapshot) {
+  const fixedValueCard = renderFixedAssetsKpi(
+    "bi bi-bank2",
+    "total_fixed_assets_value",
+    fmt(metrics.totalFixedAssetsValue),
+  );
+
+  if (!snapshot) {
+    return `
+      ${fixedValueCard}
+      ${renderFixedAssetsKpi("bi bi-pie-chart", "net_worth_contribution", "...")}
+      ${renderFixedAssetsKpi("bi bi-arrows-collapse", "liquid_vs_fixed_assets", "...")}
+      ${renderFixedAssetsKpi("bi bi-diagram-3", "diversification", `${fmtpresent(metrics.diversificationScore)}%`)}
+    `;
+  }
+
+  const liquidVsFixedLabel = `${fmtpresent(snapshot.liquidAssetsRatio)}% / ${fmtpresent(snapshot.fixedAssetsRatio)}%`;
+
+  return `
+    ${fixedValueCard}
+    ${renderFixedAssetsKpi("bi bi-pie-chart", "net_worth_contribution", `${fmtpresent(snapshot.netWorthContribution)}%`)}
+    ${renderFixedAssetsKpi("bi bi-arrows-collapse", "liquid_vs_fixed_assets", liquidVsFixedLabel)}
+    ${renderFixedAssetsKpi("bi bi-diagram-3", "diversification", `${fmtpresent(metrics.diversificationScore)}%`)}
+  `;
+}
+
+function getFixedAssetsAnalyticsMetrics(assets) {
+  const now = new Date();
+  const assetRows = assets.map((asset) => {
+    const purchasePrice = parseFloat(asset.purchase_price) || 0;
+    const currentValue = parseFloat(asset.current_market_value) || 0;
+    const gainAmount = currentValue - purchasePrice;
+    const renovationCost = (asset.renovations || []).reduce(
+      (sum, item) => sum + (parseFloat(item.amount_egp) || 0),
+      0,
+    );
+    const investmentBase = purchasePrice + renovationCost;
+    const roi = investmentBase > 0 ? ((currentValue - investmentBase) / investmentBase) * 100 : 0;
+    const appreciation = purchasePrice > 0 ? (gainAmount / purchasePrice) * 100 : 0;
+
+    const purchaseDate = asset.purchase_date ? new Date(asset.purchase_date) : null;
+    const holdingYearsRaw = purchaseDate ? (now - purchaseDate) / (1000 * 60 * 60 * 24 * 365.25) : 0;
+    const holdingYears = holdingYearsRaw > 0 ? holdingYearsRaw : 0;
+    const annualReturn = purchasePrice > 0 && holdingYears > 0
+      ? (Math.pow(currentValue / purchasePrice, 1 / holdingYears) - 1) * 100
+      : 0;
+    const holdingMonths = purchaseDate
+      ? Math.max(0, Math.round((now - purchaseDate) / (1000 * 60 * 60 * 24 * 30.4375)))
+      : 0;
+    const renovationCostPercent = purchasePrice > 0 ? (renovationCost / purchasePrice) * 100 : 0;
+
+    return {
+      name: asset.name || "—",
+      type: asset.asset_type || t("type_other", "Other"),
+      roi,
+      appreciation,
+      annualReturn: Number.isFinite(annualReturn) ? annualReturn : 0,
+      holdingPeriodMonths: holdingMonths,
+      holdingPeriodLabel: formatHoldingPeriod(holdingMonths),
+      renovationCostPercent,
+      gainAmount,
+      currentValue,
+    };
+  });
+
+  const totalFixedAssetsValue = assetRows.reduce((sum, row) => sum + row.currentValue, 0);
+  const shares = assetRows
+    .map((row) => (totalFixedAssetsValue > 0 ? row.currentValue / totalFixedAssetsValue : 0))
+    .filter((share) => share > 0);
+  const concentration = shares.reduce((sum, share) => sum + share * share, 0);
+  const diversificationScore = shares.length > 1
+    ? Math.max(0, ((1 - concentration) / (1 - 1 / shares.length)) * 100)
+    : shares.length === 1 ? 0 : 100;
+
+  return {
+    totalFixedAssetsValue,
+    diversificationScore,
+    assetRows,
+  };
+}
+
+function formatHoldingPeriod(months) {
+  if (!months) {
+    return `0 ${t("months", "Months")}`;
+  }
+
+  if (months < 12) {
+    return `${months} ${t("months", "Months")}`;
+  }
+
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+
+  if (!remainingMonths) {
+    return `${years} ${t("years", "Years")}`;
+  }
+
+  return `${years} ${t("years", "Years")} ${remainingMonths} ${t("months", "Months")}`;
+}
+
+async function loadFixedAssetsPortfolioSnapshot() {
+  fixedAssetsState.portfolioSnapshotLoading = true;
+
+  try {
+    const response = await fetch("/api/certificate-forecast/");
+    if (!response.ok) throw new Error("Failed to load analytics snapshot");
+
+    const data = await response.json();
+    const ratio = (parseFloat(data.foreign_currency_ratio) || 0) / 100;
+    const cashValue = parseFloat(data.cash_balance) || 0;
+    const certificateValue = parseFloat(data.certificate_balance) || 0;
+    const goldValue = parseFloat(data.gold_value) || 0;
+    const knownLiquidValue = cashValue + certificateValue + goldValue;
+    const foreignCurrencyValue = ratio >= 1
+      ? 0
+      : ratio > 0
+        ? (ratio * knownLiquidValue) / (1 - ratio)
+        : 0;
+    const liquidAssetsValue = knownLiquidValue + foreignCurrencyValue;
+    const fixedAssetsValue = fixedAssetsState.assets.reduce(
+      (sum, asset) => sum + (parseFloat(asset.current_market_value) || 0),
+      0,
+    );
+    const totalNetWorth = liquidAssetsValue + fixedAssetsValue;
+
+    fixedAssetsState.portfolioSnapshot = {
+      liquidAssetsValue,
+      fixedAssetsValue,
+      totalNetWorth,
+      fixedAssetsRatio: totalNetWorth > 0 ? (fixedAssetsValue / totalNetWorth) * 100 : 0,
+      liquidAssetsRatio: totalNetWorth > 0 ? (liquidAssetsValue / totalNetWorth) * 100 : 0,
+      netWorthContribution: totalNetWorth > 0 ? (fixedAssetsValue / totalNetWorth) * 100 : 0,
+    };
+  } catch (err) {
+    fixedAssetsState.portfolioSnapshot = null;
+    console.error(err);
+  } finally {
+    fixedAssetsState.portfolioSnapshotLoading = false;
+    if (fixedAssetsState.activeTab === "analytics") {
+      renderActiveFixedAssetsTab();
+    }
+  }
+}
+
+function drawFixedAssetsAnalyticsCharts(metrics, snapshot) {
+  const liquidValue = snapshot?.liquidAssetsValue || 0;
+  const fixedValue = snapshot?.fixedAssetsValue || metrics.totalFixedAssetsValue;
+
+  drawFixedAssetsDoughnutChart(
+    "fixedAssetsLiquidVsFixedChart",
+    [t("liquid_assets", "Liquid Assets"), t("fixed_assets", "Fixed Assets")],
+    [liquidValue, fixedValue],
+  );
+
+  const performanceRows = [...metrics.assetRows]
+    .sort((a, b) => b.roi - a.roi)
+    .slice(0, 8);
+
+  drawFixedAssetsBarChart(
+    "fixedAssetsPerformanceChart",
+    performanceRows.map((row) => row.name),
+    [
+      {
+        label: t("roi", "ROI"),
+        data: performanceRows.map((row) => row.roi),
+        color: "#1a6ef5",
+      },
+      {
+        label: t("annual_return", "Annual Return"),
+        data: performanceRows.map((row) => row.annualReturn),
+        color: "#10b981",
+      },
+    ],
+  );
+}
+
+function renderFixedAssetsKpi(iconClass, labelKey, value) {
+  return `
+    <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:18px 20px;">
+      <div style="font-size:20px;margin-bottom:6px;color:var(--accent-primary);"><i class="${iconClass}"></i></div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:6px;" data-i18n="${labelKey}"></div>
+      <div style="font-size:22px;font-weight:800;color:var(--text-primary);">${value}</div>
+    </div>
+  `;
+}
+
+function renderFixedAssetsPlaceholder(titleKey, descKey) {
+  const container = document.getElementById("fixedAssetsContainer");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
+        <div class="display-5 mb-3">🧭</div>
+        <h4 class="mt-2" style="color:var(--text-primary);" data-i18n="${titleKey}"></h4>
+        <p class="small mb-0" style="color:var(--text-secondary);" data-i18n="${descKey}"></p>
+    </div>
+  `;
+  applyTranslations();
+}
+
+function getFixedAssetsDashboardMetrics(assets) {
+  const totalAssets = assets.length;
+  const totalPurchaseValue = assets.reduce(
+    (sum, asset) => sum + (parseFloat(asset.purchase_price) || 0),
+    0,
+  );
+  const currentMarketValue = assets.reduce(
+    (sum, asset) => sum + (parseFloat(asset.current_market_value) || 0),
+    0,
+  );
+  const totalGain = currentMarketValue - totalPurchaseValue;
+
+  const appreciationValues = assets
+    .filter((asset) => (parseFloat(asset.purchase_price) || 0) > 0)
+    .map((asset) => {
+      const purchase = parseFloat(asset.purchase_price) || 0;
+      const current = parseFloat(asset.current_market_value) || 0;
+      return ((current - purchase) / purchase) * 100;
+    });
+
+  const averageAppreciation = appreciationValues.length
+    ? appreciationValues.reduce((sum, value) => sum + value, 0) /
+      appreciationValues.length
+    : 0;
+
+  const allocation = assets
+    .map((asset) => ({
+      label: asset.name || "—",
+      value: parseFloat(asset.current_market_value) || 0,
+    }))
+    .filter((item) => item.value > 0);
+
+  const typeMap = new Map();
+  assets.forEach((asset) => {
+    const key = asset.asset_type || t("type_other");
+    typeMap.set(key, (typeMap.get(key) || 0) + 1);
+  });
+
+  const portfolioStatusMap = new Map();
+  assets.forEach((asset) => {
+    const isSold = asset.status === "Sold";
+    const label = isSold ? t("sold_assets") : t("owned_assets");
+    const value = isSold
+      ? parseFloat(asset.sale?.net_sale_amount) || parseFloat(asset.sale?.sale_price) || 0
+      : parseFloat(asset.current_market_value) || 0;
+    portfolioStatusMap.set(label, (portfolioStatusMap.get(label) || 0) + value);
+  });
+
+  const growthSeries = buildFixedAssetsGrowthSeries(assets);
+
+  return {
+    totalAssets,
+    totalPurchaseValue,
+    currentMarketValue,
+    totalGain,
+    averageAppreciation,
+    allocation,
+    typeDistribution: Array.from(typeMap.entries()).map(([label, value]) => ({
+      label,
+      value,
+    })),
+    portfolioDistribution: Array.from(portfolioStatusMap.entries())
+      .map(([label, value]) => ({ label, value }))
+      .filter((item) => item.value > 0),
+    growthSeries,
+  };
+}
+
+function buildFixedAssetsGrowthSeries(assets) {
+  const sortedAssets = [...assets].sort((a, b) => {
+    const dateA = new Date(a.purchase_date || 0).getTime();
+    const dateB = new Date(b.purchase_date || 0).getTime();
+    return dateA - dateB;
+  });
+
+  let cumulativePurchase = 0;
+  let cumulativeCurrent = 0;
+
+  const labels = [];
+  const purchaseValues = [];
+  const currentValues = [];
+
+  sortedAssets.forEach((asset) => {
+    cumulativePurchase += parseFloat(asset.purchase_price) || 0;
+    cumulativeCurrent += parseFloat(asset.current_market_value) || 0;
+
+    labels.push(asset.purchase_date || asset.name || "—");
+    purchaseValues.push(cumulativePurchase);
+    currentValues.push(cumulativeCurrent);
+  });
+
+  return {
+    labels,
+    purchaseValues,
+    currentValues,
+  };
+}
+
+function drawFixedAssetsDashboardCharts(metrics) {
+  drawFixedAssetsDoughnutChart(
+    "fixedAssetsAllocationChart",
+    metrics.allocation.map((item) => item.label),
+    metrics.allocation.map((item) => item.value),
+  );
+  drawFixedAssetsDoughnutChart(
+    "fixedAssetsTypeChart",
+    metrics.typeDistribution.map((item) => item.label),
+    metrics.typeDistribution.map((item) => item.value),
+  );
+  drawFixedAssetsDoughnutChart(
+    "fixedAssetsPortfolioChart",
+    metrics.portfolioDistribution.map((item) => item.label),
+    metrics.portfolioDistribution.map((item) => item.value),
+  );
+  drawFixedAssetsLineChart(
+    "fixedAssetsGrowthChart",
+    metrics.growthSeries.labels,
+    [
+      {
+        label: t("total_purchase_value"),
+        data: metrics.growthSeries.purchaseValues,
+        color: "#1a6ef5",
+      },
+      {
+        label: t("current_market_value"),
+        data: metrics.growthSeries.currentValues,
+        color: "#10b981",
+      },
+    ],
+  );
+}
+
+function getFixedAssetsChartTheme() {
+  const styles = getComputedStyle(document.documentElement);
+  return {
+    textPrimary: styles.getPropertyValue("--text-primary").trim() || "#e2e8f0",
+    textSecondary: styles.getPropertyValue("--text-secondary").trim() || "#94a3b8",
+    borderColor: styles.getPropertyValue("--border-color").trim() || "#1e293b",
+  };
+}
+
+function drawFixedAssetsDoughnutChart(canvasId, labels, data) {
+  setTimeout(() => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || !window.Chart) return;
+    const chartTheme = getFixedAssetsChartTheme();
+    const existing = Chart.getChart(canvas);
+    if (existing) existing.destroy();
+
+    new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: ["#1a6ef5", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899"].slice(0, data.length),
+          borderWidth: 0,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "right",
+            labels: {
+              color: chartTheme.textSecondary,
+              boxWidth: 12,
+              padding: 12,
+            },
+          },
+        },
+      },
+    });
+  }, 50);
+}
+
+function drawFixedAssetsBarChart(canvasId, labels, datasets) {
+  setTimeout(() => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || !window.Chart) return;
+    const chartTheme = getFixedAssetsChartTheme();
+    const existing = Chart.getChart(canvas);
+    if (existing) existing.destroy();
+
+    new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: datasets.map((dataset) => ({
+          label: dataset.label,
+          data: dataset.data,
+          backgroundColor: `${dataset.color}cc`,
+          borderColor: dataset.color,
+          borderWidth: 1,
+          borderRadius: 4,
+        })),
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: chartTheme.textSecondary,
+              boxWidth: 12,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: chartTheme.textSecondary },
+            grid: { color: chartTheme.borderColor },
+          },
+          y: {
+            ticks: { color: chartTheme.textSecondary },
+            grid: { color: chartTheme.borderColor },
+          },
+        },
+      },
+    });
+  }, 50);
+}
+
+function drawFixedAssetsLineChart(canvasId, labels, datasets) {
+  setTimeout(() => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || !window.Chart) return;
+    const chartTheme = getFixedAssetsChartTheme();
+    const existing = Chart.getChart(canvas);
+    if (existing) existing.destroy();
+
+    new Chart(canvas, {
+      type: "line",
+      data: {
+        labels,
+        datasets: datasets.map((dataset) => ({
+          label: dataset.label,
+          data: dataset.data,
+          borderColor: dataset.color,
+          backgroundColor: `${dataset.color}33`,
+          borderWidth: 2,
+          fill: false,
+          tension: 0.25,
+          pointRadius: 3,
+          pointBackgroundColor: dataset.color,
+        })),
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: chartTheme.textSecondary,
+              boxWidth: 12,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: chartTheme.textSecondary },
+            grid: { color: chartTheme.borderColor },
+          },
+          y: {
+            ticks: { color: chartTheme.textSecondary },
+            grid: { color: chartTheme.borderColor },
+          },
+        },
+      },
+    });
+  }, 50);
+}
+
+function _noDataFixedAssets(cols) {
+  return `<tr><td colspan="${cols}" style="text-align:center;padding:28px;color:var(--text-secondary)" data-i18n="no_data">${t("no_data", "No data available")}</td></tr>`;
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 // MODALS & ACTIONS
 // ════════════════════════════════════════════════════════════════════════════
@@ -227,6 +1085,76 @@ async function showFixedAssetModal(assetId = null) {
                           Renovations
                       </button>
                   </li>
+
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link"
+                                id="furniture-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#furniture-pane"
+                                type="button"
+                                role="tab"
+                                aria-controls="furniture-pane"
+                                aria-selected="false"
+                                data-i18n="furniture">
+                              Furniture
+                            </button>
+                          </li>
+
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link"
+                                id="valuation-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#valuation-pane"
+                                type="button"
+                                role="tab"
+                                aria-controls="valuation-pane"
+                                aria-selected="false"
+                                data-i18n="valuation_history">
+                              Valuation History
+                            </button>
+                          </li>
+
+                          <li class="nav-item d-none" role="presentation" id="mortgage-tab-item">
+                            <button class="nav-link"
+                                id="mortgage-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#mortgage-pane"
+                                type="button"
+                                role="tab"
+                                aria-controls="mortgage-pane"
+                                aria-selected="false"
+                                data-i18n="mortgage">
+                              Mortgage
+                            </button>
+                          </li>
+
+                          <li class="nav-item d-none" role="presentation" id="rental-tab-item">
+                            <button class="nav-link"
+                                id="rental-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#rental-pane"
+                                type="button"
+                                role="tab"
+                                aria-controls="rental-pane"
+                                aria-selected="false"
+                                data-i18n="rental">
+                              Rental
+                            </button>
+                          </li>
+
+                          <li class="nav-item d-none" role="presentation" id="sale-tab-item">
+                            <button class="nav-link"
+                                id="sale-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#sale-pane"
+                                type="button"
+                                role="tab"
+                                aria-controls="sale-pane"
+                                aria-selected="false"
+                                data-i18n="sale">
+                              Sale
+                            </button>
+                          </li>
               </ul>
 
               <div class="tab-content" id="fixedAssetTabsContent">
@@ -255,6 +1183,16 @@ async function showFixedAssetModal(assetId = null) {
                                 </select>
                             </div>
                         </div>
+
+                            <div class="row g-3 mb-3">
+                              <div class="col-md-6">
+                                <label class="form-label text-light" data-i18n="asset_status">Asset Status</label>
+                                <select class="form-select" id="fa_status" required>
+                                  <option value="Owned" data-i18n="owned">Owned</option>
+                                  <option value="Sold" data-i18n="sold">Sold</option>
+                                </select>
+                              </div>
+                            </div>
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
@@ -425,37 +1363,41 @@ async function showFixedAssetModal(assetId = null) {
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label small d-block mb-2 text-light" data-i18n="utilities">Available Utilities</label>
-                                    <div class="form-check form-check-inline">
+                                <div class="fa-chip-check-list">
+                                <div class="form-check fa-chip-check">
                                         <input class="form-check-input" type="checkbox" id="re_util_elec">
                                         <label class="form-check-label small text-light" for="re_util_elec" data-i18n="electricity">Electricity Grid</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
+                                <div class="form-check fa-chip-check">
                                         <input class="form-check-input" type="checkbox" id="re_util_water">
                                         <label class="form-check-label small text-light" for="re_util_water" data-i18n="water">Water Line</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
+                                <div class="form-check fa-chip-check">
                                         <input class="form-check-input" type="checkbox" id="re_util_gas">
                                         <label class="form-check-label small text-light" for="re_util_gas" data-i18n="gas">Natural Gas</label>
                                     </div>
                                 </div>
+                                </div>
                                 <div class="col-md-6">
                                     <label class="form-label small d-block mb-2 text-light" data-i18n="features">Structural Amenities</label>
-                                    <div class="form-check form-check-inline">
+                                <div class="fa-chip-check-list">
+                                <div class="form-check fa-chip-check">
                                         <input class="form-check-input" type="checkbox" id="re_feat_elevator">
                                         <label class="form-check-label small text-light" for="re_feat_elevator" data-i18n="elevator">Elevator</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
+                                <div class="form-check fa-chip-check">
                                         <input class="form-check-input" type="checkbox" id="re_feat_garage">
                                         <label class="form-check-label small text-light" for="re_feat_garage" data-i18n="garage">Garage</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
+                                <div class="form-check fa-chip-check">
                                         <input class="form-check-input" type="checkbox" id="re_has_land_share">
                                         <label class="form-check-label small text-light" for="re_has_land_share" data-i18n="has_land_share">Land Share</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
+                                <div class="form-check fa-chip-check">
                                         <input class="form-check-input" type="checkbox" id="re_feat_licensed">
                                         <label class="form-check-label small text-light" for="re_feat_licensed" data-i18n="licensed">Licensed</label>
                                     </div>
+                                </div>
                                 </div>
                             </div>
 
@@ -499,6 +1441,144 @@ async function showFixedAssetModal(assetId = null) {
 
                   </div> <!-- End Renovation Tab -->
 
+                    <div class="tab-pane fade"
+                      id="furniture-pane"
+                      role="tabpanel"
+                      aria-labelledby="furniture-tab">
+
+                      <div class="card border-0 shadow-sm bg-transparent">
+                        <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
+                          <h6 class="mb-0 font-weight-bold" style="color: var(--text-primary) !important;" data-i18n="furniture">Furniture</h6>
+                          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addFurnitureRow()" data-i18n="add_furniture">
+                            + Add Furniture
+                          </button>
+                        </div>
+                        <div class="card-body px-0 pt-2">
+                          <div id="furnitureContainer" class="w-100"></div>
+                        </div>
+                      </div>
+
+                    </div> <!-- End Furniture Tab -->
+
+                    <div class="tab-pane fade"
+                      id="valuation-pane"
+                      role="tabpanel"
+                      aria-labelledby="valuation-tab">
+
+                      <div class="card border-0 shadow-sm bg-transparent">
+                        <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
+                          <h6 class="mb-0 font-weight-bold" style="color: var(--text-primary) !important;" data-i18n="valuation_history">Valuation History</h6>
+                          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addValuationRow()" data-i18n="add_valuation">
+                            + Add Valuation
+                          </button>
+                        </div>
+                        <div class="card-body px-0 pt-2">
+                          <div id="valuationContainer" class="w-100"></div>
+                        </div>
+                      </div>
+
+                    </div> <!-- End Valuation Tab -->
+
+                    <div class="tab-pane fade"
+                      id="mortgage-pane"
+                      role="tabpanel"
+                      aria-labelledby="mortgage-tab">
+
+                      <div class="card border-0 shadow-sm bg-transparent">
+                        <div class="card-body px-0 pt-2">
+                          <div class="row g-3 mb-3">
+                            <div class="col-md-6"><label class="form-label text-light" data-i18n="loan_amount">Loan Amount</label><input type="number" step="0.01" class="form-control" id="fa_loan_amount"></div>
+                            <div class="col-md-6"><label class="form-label text-light" data-i18n="remaining_balance">Remaining Balance</label><input type="number" step="0.01" class="form-control" id="fa_remaining_balance" oninput="updateMortgageSummary()"></div>
+                          </div>
+                          <div class="row g-3 mb-3">
+                            <div class="col-md-4"><label class="form-label text-light" data-i18n="monthly_installment">Monthly Installment</label><input type="number" step="0.01" class="form-control" id="fa_monthly_installment"></div>
+                            <div class="col-md-4"><label class="form-label text-light" data-i18n="interest_rate">Interest Rate</label><input type="number" step="0.0001" class="form-control" id="fa_interest_rate"></div>
+                            <div class="col-md-4"><label class="form-label text-light" data-i18n="net_equity">Net Equity</label><input type="number" step="0.01" class="form-control" id="fa_net_equity" readonly></div>
+                          </div>
+                          <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label text-light" data-i18n="start_date">Start Date</label><input type="date" class="form-control" id="fa_mortgage_start_date"></div>
+                            <div class="col-md-6"><label class="form-label text-light" data-i18n="end_date">End Date</label><input type="date" class="form-control" id="fa_mortgage_end_date"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div> <!-- End Mortgage Tab -->
+
+                    <div class="tab-pane fade"
+                      id="rental-pane"
+                      role="tabpanel"
+                      aria-labelledby="rental-tab">
+
+                      <div class="card border-0 shadow-sm bg-transparent">
+                        <div class="card-body px-0 pt-2">
+                          <div class="row g-3 mb-3">
+                            <div class="col-md-4"><label class="form-label text-light" data-i18n="monthly_rent">Monthly Rent</label><input type="number" step="0.01" class="form-control" id="fa_monthly_rent" oninput="updateRentalSummary()"></div>
+                            <div class="col-md-4"><label class="form-label text-light" data-i18n="annual_rent">Annual Rent</label><input type="number" step="0.01" class="form-control" id="fa_annual_rent" readonly></div>
+                            <div class="col-md-4"><label class="form-label text-light" data-i18n="rental_yield">Rental Yield</label><input type="number" step="0.01" class="form-control" id="fa_rental_yield" readonly></div>
+                          </div>
+                          <div class="row g-3 mb-3">
+                            <div class="col-md-4"><label class="form-label text-light" data-i18n="occupancy_rate">Occupancy Rate</label><input type="number" step="0.01" class="form-control" id="fa_occupancy_rate"></div>
+                            <div class="col-md-4"><label class="form-label text-light" data-i18n="tenant_name_optional">Tenant Name (Optional)</label><input type="text" class="form-control" id="fa_tenant_name"></div>
+                          </div>
+                          <div class="row g-3 mb-3">
+                            <div class="col-md-6"><label class="form-label text-light" data-i18n="contract_start">Contract Start</label><input type="date" class="form-control" id="fa_contract_start"></div>
+                            <div class="col-md-6"><label class="form-label text-light" data-i18n="contract_end">Contract End</label><input type="date" class="form-control" id="fa_contract_end"></div>
+                          </div>
+                          <div class="row g-3">
+                            <div class="col-md-12"><label class="form-label text-light" data-i18n="rental_notes">Rental Notes</label><textarea class="form-control" id="fa_rental_notes" rows="3"></textarea></div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div> <!-- End Rental Tab -->
+
+                    <div class="tab-pane fade"
+                      id="sale-pane"
+                      role="tabpanel"
+                      aria-labelledby="sale-tab">
+
+                      <div class="card border-0 shadow-sm bg-transparent">
+                        <div class="card-body px-0 pt-2">
+                          <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                              <label class="form-label text-light" data-i18n="sale_date">Sale Date</label>
+                              <input type="date" class="form-control" id="fa_sale_date">
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label text-light" data-i18n="sale_price_egp">Sale Price (EGP)</label>
+                              <input type="number" step="0.01" class="form-control" id="fa_sale_price">
+                            </div>
+                          </div>
+
+                          <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                              <label class="form-label text-light" data-i18n="selling_expenses_egp">Selling Expenses (EGP)</label>
+                              <input type="number" step="0.01" class="form-control" id="fa_selling_expenses">
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label text-light" data-i18n="net_sale_amount">Net Sale Amount</label>
+                              <input type="number" step="0.01" class="form-control" id="fa_net_sale_amount" readonly>
+                            </div>
+                          </div>
+
+                          <div class="row g-3 mb-3">
+                            <div class="col-md-12">
+                              <label class="form-label text-light" data-i18n="deposit_balance">Deposit Balance</label>
+                              <select class="form-select" id="fa_deposit_balance"></select>
+                            </div>
+                          </div>
+
+                          <div class="row g-3">
+                            <div class="col-md-12">
+                              <label class="form-label text-light" data-i18n="sale_notes">Sale Notes</label>
+                              <textarea class="form-control" id="fa_sale_notes" rows="3"></textarea>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div> <!-- End Sale Tab -->
+
               </div> <!-- End Tab Content -->
 
           </form>
@@ -512,6 +1592,51 @@ async function showFixedAssetModal(assetId = null) {
   showModal(html);
   applyTranslations();
   const propertyTab = document.getElementById("property-tab");
+  const statusField = document.getElementById("fa_status");
+  const salePriceField = document.getElementById("fa_sale_price");
+  const sellingExpensesField = document.getElementById("fa_selling_expenses");
+  const currentValueField = document.getElementById("fa_current_value");
+  const monthlyRentField = document.getElementById("fa_monthly_rent");
+  const remainingBalanceField = document.getElementById("fa_remaining_balance");
+  const assetTypeField = document.getElementById("fa_type");
+
+  if (statusField) {
+    statusField.addEventListener("change", toggleSaleTabVisibility);
+  }
+
+  if (salePriceField) {
+    salePriceField.addEventListener("input", updateNetSaleAmount);
+  }
+
+  if (sellingExpensesField) {
+    sellingExpensesField.addEventListener("input", updateNetSaleAmount);
+  }
+
+  if (currentValueField) {
+    currentValueField.addEventListener("input", () => {
+      updateMortgageSummary();
+      updateRentalSummary();
+    });
+  }
+
+  if (monthlyRentField) {
+    monthlyRentField.addEventListener("input", updateRentalSummary);
+  }
+
+  if (remainingBalanceField) {
+    remainingBalanceField.addEventListener("input", updateMortgageSummary);
+  }
+
+  if (assetTypeField) {
+    assetTypeField.addEventListener("change", toggleRealEstateDependentTabs);
+  }
+
+  await loadFixedAssetBalanceOptions();
+  resetSaleForm();
+  resetMortgageForm();
+  resetRentalForm();
+  toggleSaleTabVisibility();
+  toggleRealEstateDependentTabs();
 
   propertyTab.addEventListener("shown.bs.tab", function () {
     if (propertyMap) {
@@ -542,6 +1667,37 @@ async function showFixedAssetDetails(assetId) {
 
     const photos = asset.photos || [];
     const renovations = asset.renovations || [];
+    const furniture = asset.furniture || [];
+    const valuationHistory = asset.valuation_history || [];
+    const sale = asset.sale || null;
+    const mortgage = asset.mortgage || null;
+    const rental = asset.rental || null;
+    const realEstate = asset.real_estate || {};
+    const utilitiesBadges = [
+      realEstate.electricity
+        ? '<span class="badge rounded-pill asset-info-pill"><i class="bi bi-plug-fill me-1"></i><span data-i18n="electricity">Electricity</span></span>'
+        : '',
+      realEstate.water
+        ? '<span class="badge rounded-pill asset-info-pill"><i class="bi bi-droplet-fill me-1"></i><span data-i18n="water">Water</span></span>'
+        : '',
+      realEstate.gas
+        ? '<span class="badge rounded-pill asset-info-pill"><i class="bi bi-fire me-1"></i><span data-i18n="gas">Gas</span></span>'
+        : '',
+    ].filter(Boolean).join('');
+    const featuresBadges = [
+      realEstate.elevator
+        ? '<span class="badge rounded-pill asset-info-pill"><i class="bi bi-building me-1"></i><span data-i18n="elevator">Elevator</span></span>'
+        : '',
+      realEstate.garage
+        ? '<span class="badge rounded-pill asset-info-pill"><i class="bi bi-car-front-fill me-1"></i><span data-i18n="garage">Garage</span></span>'
+        : '',
+      realEstate.has_land_share
+        ? '<span class="badge rounded-pill asset-info-pill"><i class="bi bi-tree-fill me-1"></i><span data-i18n="has_land_share">Land Share</span></span>'
+        : '',
+      realEstate.licensed
+        ? '<span class="badge rounded-pill asset-info-pill"><i class="bi bi-shield-lock-fill me-1"></i><span data-i18n="licensed">Licensed</span></span>'
+        : '',
+    ].filter(Boolean).join('');
     const gainValue = (asset.current_market_value || 0) - (asset.purchase_price || 0);
     const gainClass = gainValue >= 0 ? 'text-success' : 'text-danger';
     let assetViewMap = null;
@@ -599,6 +1755,22 @@ async function showFixedAssetDetails(assetId) {
                         <div class="asset-summary-value">${asset.last_valuation_date || '-'}</div>
                     </div>
                 </div>
+                ${mortgage ? `
+                <div class="col">
+                  <div class="asset-summary-card h-100">
+                    <div class="asset-summary-label" data-i18n="net_equity">Net Equity</div>
+                    <div class="asset-summary-value">${fmt(mortgage.net_equity)}</div>
+                  </div>
+                </div>
+                ` : ''}
+                ${rental ? `
+                <div class="col">
+                  <div class="asset-summary-card h-100">
+                    <div class="asset-summary-label" data-i18n="rental_yield">Rental Yield</div>
+                    <div class="asset-summary-value">${fmtpresent(rental.rental_yield)}%</div>
+                  </div>
+                </div>
+                ` : ''}
             </div>
 
             <ul class="nav nav-pills nav-fill mb-4 asset-detail-tabs" role="tablist">
@@ -611,6 +1783,21 @@ async function showFixedAssetDetails(assetId) {
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="asset-renovation-tab" data-bs-toggle="tab" data-bs-target="#asset-renovation-pane" type="button" role="tab" aria-controls="asset-renovation-pane" aria-selected="false" data-i18n="renovations">Renovations</button>
                 </li>
+                ${furniture.length ? `
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="asset-furniture-tab" data-bs-toggle="tab" data-bs-target="#asset-furniture-pane" type="button" role="tab" aria-controls="asset-furniture-pane" aria-selected="false" data-i18n="furniture">Furniture</button>
+                </li>
+                ` : ''}
+                ${valuationHistory.length ? `
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="asset-valuation-tab" data-bs-toggle="tab" data-bs-target="#asset-valuation-pane" type="button" role="tab" aria-controls="asset-valuation-pane" aria-selected="false" data-i18n="valuation_history">Valuation History</button>
+                </li>
+                ` : ''}
+                ${sale ? `
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="asset-sale-tab" data-bs-toggle="tab" data-bs-target="#asset-sale-pane" type="button" role="tab" aria-controls="asset-sale-pane" aria-selected="false" data-i18n="sale">Sale</button>
+                </li>
+                ` : ''}
             </ul>
 
             <div class="tab-content" id="assetDetailsTabsContent">
@@ -687,9 +1874,7 @@ async function showFixedAssetDetails(assetId) {
                                         <div class="card-body p-4">
                                             <h6 class="mb-3 fw-bold" data-i18n="utilities">Utilities</h6>
                                             <div class="d-flex flex-wrap gap-2">
-                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-plug-fill me-1"></i><span data-i18n="electricity">Electricity</span></span>
-                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-droplet-fill me-1"></i><span data-i18n="water">Water</span></span>
-                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-fire me-1"></i><span data-i18n="gas">Gas</span></span>
+                                              ${utilitiesBadges || `<span class="small" style="color:var(--text-secondary);" data-i18n="no_data">No data available</span>`}
                                             </div>
                                         </div>
                                     </div>
@@ -699,10 +1884,7 @@ async function showFixedAssetDetails(assetId) {
                                         <div class="card-body p-4">
                                             <h6 class="mb-3 fw-bold" data-i18n="features">Features</h6>
                                             <div class="d-flex flex-wrap gap-2">
-                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-building me-1"></i><span data-i18n="elevator">Elevator</span></span>
-                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-car-front-fill me-1"></i><span data-i18n="garage">Garage</span></span>
-                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-tree-fill me-1"></i><span data-i18n="has_land_share">Land Share</span></span>
-                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-shield-lock-fill me-1"></i><span data-i18n="licensed">Licensed</span></span>
+                                              ${featuresBadges || `<span class="small" style="color:var(--text-secondary);" data-i18n="no_data">No data available</span>`}
                                             </div>
                                         </div>
                                     </div>
@@ -787,6 +1969,86 @@ async function showFixedAssetDetails(assetId) {
                         ` : ''}
                     </div>
                 </div>
+                  ${furniture.length ? `
+                  <div class="tab-pane fade" id="asset-furniture-pane" role="tabpanel" aria-labelledby="asset-furniture-tab">
+                    <div class="row g-3">
+                      ${furniture.map((item) => `
+                        <div class="col-md-6">
+                          <div class="asset-renovation-card">
+                            <div class="d-flex justify-content-between gap-3">
+                              <div>
+                                <div class="small mb-1" data-i18n="asset_name">Name</div>
+                                <div class="fw-semibold">${item.name || '-'}</div>
+                              </div>
+                              <div class="text-end">
+                                <div class="small mb-1" data-i18n="amount_egp">Amount EGP</div>
+                                <div class="fw-semibold">${fmt(item.amount_egp)}</div>
+                              </div>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-between gap-3">
+                              <div><span class="small" data-i18n="category">Category</span><div>${item.category || '-'}</div></div>
+                              <div><span class="small" data-i18n="quantity">Quantity</span><div>${item.quantity || '-'}</div></div>
+                              <div><span class="small" data-i18n="purchase_date">Purchase Date</span><div>${item.purchase_date || '-'}</div></div>
+                            </div>
+                            <div class="mt-3"><div class="small mb-1" data-i18n="notes">Notes</div><div>${item.notes || '-'}</div></div>
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                  ` : ''}
+                  ${valuationHistory.length ? `
+                  <div class="tab-pane fade" id="asset-valuation-pane" role="tabpanel" aria-labelledby="asset-valuation-tab">
+                    <div class="row g-3">
+                      ${valuationHistory.map((item) => `
+                        <div class="col-12">
+                          <div class="asset-renovation-card">
+                            <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                              <div>
+                                <div class="small mb-1" data-i18n="date">Date</div>
+                                <div class="fw-semibold">${item.valuation_date || '-'}</div>
+                              </div>
+                              <div>
+                                <div class="small mb-1" data-i18n="valuation_source">Valuation Source</div>
+                                <div>${item.valuation_source || '-'}</div>
+                              </div>
+                              <div class="text-md-end">
+                                <div class="small mb-1" data-i18n="current_market_value">Current Market Value</div>
+                                <div class="fw-semibold">${fmt(item.market_value)}</div>
+                              </div>
+                            </div>
+                            <div class="mt-3"><div class="small mb-1" data-i18n="notes">Notes</div><div>${item.notes || '-'}</div></div>
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                  ` : ''}
+                  ${sale ? `
+                  <div class="tab-pane fade" id="asset-sale-pane" role="tabpanel" aria-labelledby="asset-sale-tab">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                          <div class="card-body p-4">
+                            <h6 class="mb-3 fw-bold" data-i18n="sale_information">Sale Information</h6>
+                            <div class="row mb-2"><div class="col-5" data-i18n="sale_date">Sale Date</div><div class="col-7">${sale.sale_date || '-'}</div></div>
+                            <div class="row mb-2"><div class="col-5" data-i18n="sale_price_egp">Sale Price</div><div class="col-7 fw-bold">${fmt(sale.sale_price)}</div></div>
+                            <div class="row mb-2"><div class="col-5" data-i18n="selling_expenses_egp">Selling Expenses</div><div class="col-7">${fmt(sale.selling_expenses)}</div></div>
+                            <div class="row"><div class="col-5" data-i18n="net_sale_amount">Net Sale Amount</div><div class="col-7 fw-bold">${fmt(sale.net_sale_amount)}</div></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                          <div class="card-body p-4">
+                            <h6 class="mb-3 fw-bold" data-i18n="notes">Notes</h6>
+                            <div>${sale.notes || '-'}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  ` : ''}
             </div>
             <div id="assetPhotoOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-90 d-none" style="z-index:2000;">
                 <div class="d-flex h-100 align-items-center justify-content-center">
@@ -888,6 +2150,7 @@ async function loadFixedAsset(assetId) {
 
     document.getElementById("fa_name").value = asset.name || "";
     document.getElementById("fa_type").value = asset.asset_type || "Apartment";
+    document.getElementById("fa_status").value = asset.status || "Owned";
     document.getElementById("fa_purchase_date").value =
       asset.purchase_date || "";
     document.getElementById("fa_purchase_price").value =
@@ -906,13 +2169,17 @@ async function loadFixedAsset(assetId) {
     document.getElementById("fa_last_valuation_date").value =
       asset.last_valuation_date || "";
     document.getElementById("fa_notes").value = asset.notes || "";
+    populateSaleForm(asset.sale || null);
+    populateMortgageForm(asset.mortgage || null);
+    populateRentalForm(asset.rental || null);
+    toggleSaleTabVisibility();
     // ---------------- Property Photos ----------------
 
     propertyPhotos = asset.photos || [];
 
     renderPropertyPhotoGallery();
 
-    toggleRealEstateFields();
+    toggleRealEstateDependentTabs();
 
     if (asset.real_estate) {
       const re = asset.real_estate;
@@ -980,6 +2247,18 @@ async function loadFixedAsset(assetId) {
         });
       }
     }
+
+    const furnitureContainer = document.getElementById("furnitureContainer");
+    if (furnitureContainer) {
+      furnitureContainer.innerHTML = "";
+      (asset.furniture || []).forEach((item) => addFurnitureRow(item));
+    }
+
+    const valuationContainer = document.getElementById("valuationContainer");
+    if (valuationContainer) {
+      valuationContainer.innerHTML = "";
+      (asset.valuation_history || []).forEach((item) => addValuationRow(item));
+    }
   } catch (err) {
     showToast(err.message, "danger");
   } finally {
@@ -1003,12 +2282,291 @@ function updatePurchasePriceUSD() {
   }
 }
 
+function updateNetSaleAmount() {
+  const salePrice =
+    parseFloat(document.getElementById("fa_sale_price")?.value) || 0;
+  const sellingExpenses =
+    parseFloat(document.getElementById("fa_selling_expenses")?.value) || 0;
+  const netSaleField = document.getElementById("fa_net_sale_amount");
+
+  if (!netSaleField) return;
+
+  netSaleField.value = (salePrice - sellingExpenses).toFixed(2);
+}
+
+function resetSaleForm() {
+  const saleDateField = document.getElementById("fa_sale_date");
+  const salePriceField = document.getElementById("fa_sale_price");
+  const sellingExpensesField = document.getElementById("fa_selling_expenses");
+  const saleNotesField = document.getElementById("fa_sale_notes");
+  const balanceSelect = document.getElementById("fa_deposit_balance");
+
+  if (saleDateField) saleDateField.value = "";
+  if (salePriceField) salePriceField.value = "";
+  if (sellingExpensesField) sellingExpensesField.value = "0";
+  if (saleNotesField) saleNotesField.value = "";
+  if (balanceSelect) balanceSelect.value = "";
+
+  updateNetSaleAmount();
+}
+
+function populateSaleForm(sale) {
+  resetSaleForm();
+
+  if (!sale) return;
+
+  document.getElementById("fa_sale_date").value = sale.sale_date || "";
+  document.getElementById("fa_sale_price").value = sale.sale_price || 0;
+  document.getElementById("fa_selling_expenses").value =
+    sale.selling_expenses || 0;
+  document.getElementById("fa_sale_notes").value = sale.notes || "";
+
+  if (sale.deposit_balance_id !== null && sale.deposit_balance_id !== undefined) {
+    document.getElementById("fa_deposit_balance").value = String(sale.deposit_balance_id);
+  }
+
+  updateNetSaleAmount();
+}
+
+function toggleSaleTabVisibility() {
+  const statusField = document.getElementById("fa_status");
+  const saleTabItem = document.getElementById("sale-tab-item");
+  const salePane = document.getElementById("sale-pane");
+  const saleTabButton = document.getElementById("sale-tab");
+  const generalTabButton = document.getElementById("general-tab");
+  const isSold = statusField?.value === "Sold";
+
+  if (!saleTabItem || !salePane || !saleTabButton) return;
+
+  saleTabItem.classList.toggle("d-none", !isSold);
+  salePane.classList.toggle("d-none", !isSold);
+
+  if (!isSold && saleTabButton.classList.contains("active") && generalTabButton) {
+    bootstrap.Tab.getOrCreateInstance(generalTabButton).show();
+  }
+}
+
+function toggleRealEstateDependentTabs() {
+  const assetType = document.getElementById("fa_type")?.value;
+  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(assetType);
+  const mortgageTabItem = document.getElementById("mortgage-tab-item");
+  const rentalTabItem = document.getElementById("rental-tab-item");
+  const mortgagePane = document.getElementById("mortgage-pane");
+  const rentalPane = document.getElementById("rental-pane");
+  const generalTabButton = document.getElementById("general-tab");
+
+  [mortgageTabItem, rentalTabItem, mortgagePane, rentalPane].forEach((element) => {
+    if (element) {
+      element.classList.toggle("d-none", !isRealEstate);
+    }
+  });
+
+  ["mortgage-tab", "rental-tab"].forEach((tabId) => {
+    const tab = document.getElementById(tabId);
+    if (!isRealEstate && tab?.classList.contains("active") && generalTabButton) {
+      bootstrap.Tab.getOrCreateInstance(generalTabButton).show();
+    }
+  });
+
+  toggleRealEstateFields();
+}
+
+function updateMortgageSummary() {
+  const currentValue = parseFloat(document.getElementById("fa_current_value")?.value) || 0;
+  const remainingBalance = parseFloat(document.getElementById("fa_remaining_balance")?.value) || 0;
+  const netEquityField = document.getElementById("fa_net_equity");
+
+  if (netEquityField) {
+    netEquityField.value = (currentValue - remainingBalance).toFixed(2);
+  }
+}
+
+function resetMortgageForm() {
+  [
+    "fa_loan_amount",
+    "fa_remaining_balance",
+    "fa_monthly_installment",
+    "fa_interest_rate",
+    "fa_mortgage_start_date",
+    "fa_mortgage_end_date",
+  ].forEach((id) => {
+    const field = document.getElementById(id);
+    if (field) field.value = "";
+  });
+  const netEquityField = document.getElementById("fa_net_equity");
+  if (netEquityField) netEquityField.value = "";
+}
+
+function populateMortgageForm(mortgage) {
+  resetMortgageForm();
+  if (!mortgage) return;
+
+  document.getElementById("fa_loan_amount").value = mortgage.loan_amount || 0;
+  document.getElementById("fa_remaining_balance").value = mortgage.remaining_balance || 0;
+  document.getElementById("fa_monthly_installment").value = mortgage.monthly_installment || 0;
+  document.getElementById("fa_interest_rate").value = mortgage.interest_rate || 0;
+  document.getElementById("fa_mortgage_start_date").value = mortgage.start_date || "";
+  document.getElementById("fa_mortgage_end_date").value = mortgage.end_date || "";
+  updateMortgageSummary();
+}
+
+function collectMortgagePayload() {
+  return {
+    loan_amount: parseFloat(document.getElementById("fa_loan_amount")?.value) || 0,
+    remaining_balance: parseFloat(document.getElementById("fa_remaining_balance")?.value) || 0,
+    monthly_installment: parseFloat(document.getElementById("fa_monthly_installment")?.value) || 0,
+    interest_rate: parseFloat(document.getElementById("fa_interest_rate")?.value) || 0,
+    start_date: document.getElementById("fa_mortgage_start_date")?.value || null,
+    end_date: document.getElementById("fa_mortgage_end_date")?.value || null,
+  };
+}
+
+function updateRentalSummary() {
+  const monthlyRent = parseFloat(document.getElementById("fa_monthly_rent")?.value) || 0;
+  const annualRent = monthlyRent * 12;
+  const currentValue = parseFloat(document.getElementById("fa_current_value")?.value) || 0;
+  const rentalYield = currentValue > 0 ? (annualRent / currentValue) * 100 : 0;
+  const annualRentField = document.getElementById("fa_annual_rent");
+  const rentalYieldField = document.getElementById("fa_rental_yield");
+
+  if (annualRentField) annualRentField.value = annualRent.toFixed(2);
+  if (rentalYieldField) rentalYieldField.value = rentalYield.toFixed(2);
+}
+
+function resetRentalForm() {
+  [
+    "fa_monthly_rent",
+    "fa_occupancy_rate",
+    "fa_tenant_name",
+    "fa_contract_start",
+    "fa_contract_end",
+    "fa_rental_notes",
+  ].forEach((id) => {
+    const field = document.getElementById(id);
+    if (field) field.value = "";
+  });
+  ["fa_annual_rent", "fa_rental_yield"].forEach((id) => {
+    const field = document.getElementById(id);
+    if (field) field.value = "";
+  });
+}
+
+function populateRentalForm(rental) {
+  resetRentalForm();
+  if (!rental) return;
+
+  document.getElementById("fa_monthly_rent").value = rental.monthly_rent || 0;
+  document.getElementById("fa_occupancy_rate").value = rental.occupancy_rate || 0;
+  document.getElementById("fa_tenant_name").value = rental.tenant_name || "";
+  document.getElementById("fa_contract_start").value = rental.contract_start || "";
+  document.getElementById("fa_contract_end").value = rental.contract_end || "";
+  document.getElementById("fa_rental_notes").value = rental.notes || "";
+  updateRentalSummary();
+}
+
+function collectRentalPayload() {
+  return {
+    monthly_rent: parseFloat(document.getElementById("fa_monthly_rent")?.value) || 0,
+    occupancy_rate: parseFloat(document.getElementById("fa_occupancy_rate")?.value) || 0,
+    tenant_name: document.getElementById("fa_tenant_name")?.value || "",
+    contract_start: document.getElementById("fa_contract_start")?.value || null,
+    contract_end: document.getElementById("fa_contract_end")?.value || null,
+    notes: document.getElementById("fa_rental_notes")?.value || "",
+  };
+}
+
+async function loadFixedAssetBalanceOptions() {
+  const balanceSelect = document.getElementById("fa_deposit_balance");
+  if (!balanceSelect) return;
+
+  if (fixedAssetBalanceOptions.length === 0) {
+    const response = await fetch("/api/balance/");
+    if (!response.ok) {
+      throw new Error(t("error_loading_balances", "Error loading balances"));
+    }
+
+    const data = await response.json();
+    fixedAssetBalanceOptions = Array.isArray(data.entries) ? data.entries : [];
+  }
+
+  const options = [
+    `<option value="">${t("no_deposit_balance", "No deposit balance")}</option>`,
+    ...fixedAssetBalanceOptions.map((entry) => {
+      const bankPart = entry.bank_name ? ` - ${entry.bank_name}` : "";
+      const currencyPart = entry.currency_code ? ` (${entry.currency_code})` : "";
+      return `<option value="${entry.id}">${entry.title}${bankPart}${currencyPart}</option>`;
+    }),
+  ];
+
+  balanceSelect.innerHTML = options.join("");
+}
+
+function collectSalePayload() {
+  return {
+    sale_date: document.getElementById("fa_sale_date").value,
+    sale_price: parseFloat(document.getElementById("fa_sale_price").value) || 0,
+    selling_expenses:
+      parseFloat(document.getElementById("fa_selling_expenses").value) || 0,
+    net_sale_amount:
+      parseFloat(document.getElementById("fa_net_sale_amount").value) || 0,
+    deposit_balance_id:
+      parseInt(document.getElementById("fa_deposit_balance").value, 10) || null,
+    notes: document.getElementById("fa_sale_notes").value,
+  };
+}
+
+function validateSaleForm() {
+  const saleDate = document.getElementById("fa_sale_date").value;
+  const salePrice = parseFloat(document.getElementById("fa_sale_price").value) || 0;
+
+  if (!saleDate) {
+    throw new Error(t("sale_date_required", "Sale date is required"));
+  }
+
+  if (salePrice <= 0) {
+    throw new Error(t("sale_price_required", "Sale price must be greater than zero"));
+  }
+}
+
+async function syncAssetSale(assetId, status) {
+  if (status === "Sold") {
+    validateSaleForm();
+
+    const response = await fetch(`/api/fixed-assets/${assetId}/sale/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken(),
+      },
+      body: JSON.stringify(collectSalePayload()),
+    });
+
+    if (!response.ok) {
+      throw new Error(t("error_saving_sale", "Error saving sale information"));
+    }
+
+    return;
+  }
+
+  const response = await fetch(`/api/fixed-assets/${assetId}/sale/`, {
+    method: "DELETE",
+    headers: {
+      "X-CSRFToken": getCsrfToken(),
+    },
+  });
+
+  if (!response.ok && response.status !== 404) {
+    throw new Error(t("error_removing_sale", "Error removing sale information"));
+  }
+}
+
 async function saveFixedAsset(assetId = null) {
   const isEdit = assetId !== null;
   const url = isEdit ? `/api/fixed-assets/${assetId}/` : "/api/fixed-assets/";
   const method = isEdit ? "PUT" : "POST";
 
   const assetType = document.getElementById("fa_type").value;
+  const assetStatus = document.getElementById("fa_status").value;
   const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(
     assetType,
   );
@@ -1027,7 +2585,7 @@ async function saveFixedAsset(assetId = null) {
     last_valuation_date:
       document.getElementById("fa_last_valuation_date").value || null,
     notes: document.getElementById("fa_notes").value,
-    status: "Owned",
+    status: assetStatus,
   };
 
   if (isRealEstate) {
@@ -1063,8 +2621,16 @@ async function saveFixedAsset(assetId = null) {
       land_share: document.getElementById("re_land_share").value,
       description: document.getElementById("re_description").value,
     };
+    payload.mortgage_details = collectMortgagePayload();
+    payload.rental_details = collectRentalPayload();
     payload.renovations = collectRenovations();
+  } else {
+    payload.mortgage_details = null;
+    payload.rental_details = null;
   }
+
+  payload.furniture = collectFurniture();
+  payload.valuation_history = collectValuationHistory();
 
   showLoading();
   try {
@@ -1080,6 +2646,8 @@ async function saveFixedAsset(assetId = null) {
     if (!response.ok) throw new Error("Error saving fixed asset");
 
     const savedAsset = await response.json();
+
+  await syncAssetSale(savedAsset.id, assetStatus);
 
     const files = document.getElementById("propertyPhotoInput").files;
 
@@ -1111,7 +2679,9 @@ async function saveFixedAsset(assetId = null) {
     }
 
     showToast(
-      isEdit ? "Asset updated successfully!" : "Asset added successfully!",
+      isEdit
+        ? t("fixed_asset_updated_success", "Asset updated successfully")
+        : t("fixed_asset_added_success", "Asset added successfully"),
       "success",
     );
 
@@ -1843,11 +3413,97 @@ function updateRenovationUSD(input) {
   }
 }
 
+function addFurnitureRow(data = {}) {
+  const container = document.getElementById("furnitureContainer");
+  if (!container) return;
+
+  const row = document.createElement("div");
+  row.className = "row g-2 mb-3 furniture-row";
+  row.innerHTML = `
+    <div class="col-md-3"><label class="form-label small" data-i18n="asset_name">Name</label><input type="text" class="form-control furniture-name" value="${data.name || ""}"></div>
+    <div class="col-md-2"><label class="form-label small" data-i18n="category">Category</label><input type="text" class="form-control furniture-category" value="${data.category || ""}"></div>
+    <div class="col-md-2"><label class="form-label small" data-i18n="purchase_date">Purchase Date</label><input type="date" class="form-control furniture-purchase-date" value="${data.purchase_date || ""}"></div>
+    <div class="col-md-2"><label class="form-label small" data-i18n="amount_egp">Amount EGP</label><input type="number" step="0.01" class="form-control furniture-egp" value="${data.amount_egp || ""}" oninput="updateFurnitureUSD(this)"></div>
+    <div class="col-md-2"><label class="form-label small" data-i18n="amount_usd">Amount USD</label><input type="number" step="0.01" class="form-control furniture-usd" value="${data.amount_usd || ""}" readonly></div>
+    <div class="col-md-1"><label class="form-label small">&nbsp;</label><button type="button" class="btn btn-danger w-100" onclick="this.closest('.furniture-row').remove()"><i class="bi bi-trash"></i></button></div>
+    <div class="col-md-2"><label class="form-label small" data-i18n="purchase_usd_rate">USD Exchange Rate</label><input type="number" step="0.0001" class="form-control furniture-usd-rate" value="${data.usd_rate || document.getElementById("fa_purchase_usd_rate")?.value || ""}" oninput="updateFurnitureUSD(this)"></div>
+    <div class="col-md-2"><label class="form-label small" data-i18n="quantity">Quantity</label><input type="number" step="1" class="form-control furniture-quantity" value="${data.quantity || 1}"></div>
+    <div class="col-md-8"><label class="form-label small" data-i18n="notes">Notes</label><textarea class="form-control furniture-notes" rows="2">${data.notes || ""}</textarea></div>
+  `;
+  container.appendChild(row);
+  applyTranslations();
+  updateFurnitureUSD(row.querySelector(".furniture-egp"));
+}
+
+function updateFurnitureUSD(input) {
+  const row = input.closest(".furniture-row");
+  if (!row) return;
+  const egp = parseFloat(row.querySelector(".furniture-egp").value) || 0;
+  const rate = parseFloat(row.querySelector(".furniture-usd-rate").value) || 0;
+  const usdInput = row.querySelector(".furniture-usd");
+  usdInput.value = rate > 0 ? (egp / rate).toFixed(2) : "";
+}
+
+function collectFurniture() {
+  const furniture = [];
+  document.querySelectorAll(".furniture-row").forEach((row) => {
+    const name = row.querySelector(".furniture-name").value;
+    if (!name) return;
+    furniture.push({
+      name,
+      category: row.querySelector(".furniture-category").value,
+      purchase_date: row.querySelector(".furniture-purchase-date").value || null,
+      amount_egp: parseFloat(row.querySelector(".furniture-egp").value) || 0,
+      usd_rate: parseFloat(row.querySelector(".furniture-usd-rate").value) || 0,
+      amount_usd: parseFloat(row.querySelector(".furniture-usd").value) || 0,
+      quantity: parseInt(row.querySelector(".furniture-quantity").value, 10) || 1,
+      notes: row.querySelector(".furniture-notes").value,
+    });
+  });
+  return furniture;
+}
+
+function addValuationRow(data = {}) {
+  const container = document.getElementById("valuationContainer");
+  if (!container) return;
+
+  const row = document.createElement("div");
+  row.className = "row g-2 mb-3 valuation-row";
+  row.innerHTML = `
+    <div class="col-md-3"><label class="form-label small" data-i18n="date">Date</label><input type="date" class="form-control valuation-date" value="${data.valuation_date || ""}"></div>
+    <div class="col-md-3"><label class="form-label small" data-i18n="current_market_value">Market Value</label><input type="number" step="0.01" class="form-control valuation-market-value" value="${data.market_value || ""}"></div>
+    <div class="col-md-3"><label class="form-label small" data-i18n="valuation_source">Valuation Source</label><select class="form-select valuation-source"><option value="Manual" data-i18n="val_manual">Manual Input</option><option value="Automatic" data-i18n="val_automatic">System Synced</option></select></div>
+    <div class="col-md-2"><label class="form-label small">&nbsp;</label><button type="button" class="btn btn-danger w-100" onclick="this.closest('.valuation-row').remove()"><i class="bi bi-trash"></i></button></div>
+    <div class="col-md-12"><label class="form-label small" data-i18n="notes">Notes</label><textarea class="form-control valuation-notes" rows="2">${data.notes || ""}</textarea></div>
+  `;
+  container.appendChild(row);
+  row.querySelector(".valuation-source").value = data.valuation_source || "Manual";
+  applyTranslations();
+}
+
+function collectValuationHistory() {
+  const valuationHistory = [];
+  document.querySelectorAll(".valuation-row").forEach((row) => {
+    const valuationDate = row.querySelector(".valuation-date").value;
+    if (!valuationDate) return;
+    valuationHistory.push({
+      valuation_date: valuationDate,
+      market_value: parseFloat(row.querySelector(".valuation-market-value").value) || 0,
+      valuation_source: row.querySelector(".valuation-source").value,
+      notes: row.querySelector(".valuation-notes").value,
+    });
+  });
+  return valuationHistory;
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 // GLOBAL ROUTER EXPORTS
 // ════════════════════════════════════════════════════════════════════════════
 
 window.renderFixedAssets = renderFixedAssets;
+window.switchFixedAssetsTab = switchFixedAssetsTab;
+window.toggleFixedAssetsReportScope = toggleFixedAssetsReportScope;
+window.downloadFixedAssetsReport = downloadFixedAssetsReport;
 window.showFixedAssetModal = showFixedAssetModal;
 window.showSaleModal = showSaleModal;
 

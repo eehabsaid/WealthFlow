@@ -111,6 +111,14 @@ urlpatterns = [
         views.AssetPhotoView.as_view(),
     ),
     path(
+        "api/fixed-assets/reports/pdf/",
+        views.FixedAssetPdfReportView.as_view(),
+    ),
+    path(
+        "api/fixed-assets/reports/excel/",
+        views.FixedAssetExcelReportView.as_view(),
+    ),
+    path(
         "api/certificate-forecast/",
         views.CertificateForecastView.as_view(),
     ),

@@ -39,6 +39,8 @@ from .models import (
     AssetValuationHistory,
     AssetSale,
     AssetPhoto,
+    AssetMortgage,
+    AssetRental,
 
 )
 from django.core.paginator import Paginator, EmptyPage
@@ -64,6 +66,8 @@ from reportlab.platypus import (
     Table,
     TableStyle,
     HRFlowable,
+    Image as RLImage,
+    PageBreak,
 )
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from reportlab.pdfbase import pdfmetrics
@@ -3137,6 +3141,123 @@ class CertificateForecastView(View):
 # Fixed Assets APIs
 # ============================================================
 
+REAL_ESTATE_ASSET_TYPES = {"Apartment", "Villa", "Shop", "Office"}
+
+
+def _sync_asset_mortgage(asset, mortgage_data):
+    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES or not mortgage_data:
+        if hasattr(asset, "mortgage"):
+            asset.mortgage.delete()
+        return
+
+    has_values = any(
+        mortgage_data.get(key) not in (None, "", 0, 0.0)
+        for key in [
+            "loan_amount",
+            "remaining_balance",
+            "monthly_installment",
+            "interest_rate",
+            "start_date",
+            "end_date",
+        ]
+    )
+
+    if not has_values:
+        if hasattr(asset, "mortgage"):
+            asset.mortgage.delete()
+        return
+
+    AssetMortgage.objects.update_or_create(
+        asset=asset,
+        defaults={
+            "loan_amount": mortgage_data.get("loan_amount", 0),
+            "remaining_balance": mortgage_data.get("remaining_balance", 0),
+            "monthly_installment": mortgage_data.get("monthly_installment", 0),
+            "interest_rate": mortgage_data.get("interest_rate", 0),
+            "start_date": mortgage_data.get("start_date") or None,
+            "end_date": mortgage_data.get("end_date") or None,
+        },
+    )
+
+
+def _sync_asset_rental(asset, rental_data):
+    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES or not rental_data:
+        if hasattr(asset, "rental"):
+            asset.rental.delete()
+        return
+
+    has_values = any(
+        rental_data.get(key) not in (None, "", 0, 0.0)
+        for key in [
+            "monthly_rent",
+            "occupancy_rate",
+            "tenant_name",
+            "contract_start",
+            "contract_end",
+            "notes",
+        ]
+    )
+
+    if not has_values:
+        if hasattr(asset, "rental"):
+            asset.rental.delete()
+        return
+
+    AssetRental.objects.update_or_create(
+        asset=asset,
+        defaults={
+            "monthly_rent": rental_data.get("monthly_rent", 0),
+            "occupancy_rate": rental_data.get("occupancy_rate", 0),
+            "tenant_name": rental_data.get("tenant_name", ""),
+            "contract_start": rental_data.get("contract_start") or None,
+            "contract_end": rental_data.get("contract_end") or None,
+            "notes": rental_data.get("notes", ""),
+        },
+    )
+
+
+def _sync_asset_furniture(asset, items):
+    AssetFurniture.objects.filter(asset=asset).delete()
+    for item in items or []:
+        if not item.get("name"):
+            continue
+        AssetFurniture.objects.create(
+            asset=asset,
+            name=item.get("name", ""),
+            category=item.get("category", ""),
+            purchase_date=item.get("purchase_date") or None,
+            amount_egp=item.get("amount_egp", 0),
+            usd_rate=item.get("usd_rate", 0),
+            amount_usd=item.get("amount_usd", 0),
+            quantity=item.get("quantity", 1),
+            notes=item.get("notes", ""),
+        )
+
+
+def _sync_asset_valuation_history(asset, items):
+    AssetValuationHistory.objects.filter(asset=asset).delete()
+    created_items = []
+    for item in items or []:
+        if not item.get("valuation_date"):
+            continue
+        created_items.append(
+            AssetValuationHistory.objects.create(
+                asset=asset,
+                valuation_date=item.get("valuation_date"),
+                market_value=item.get("market_value", 0),
+                valuation_source=item.get("valuation_source", "Manual"),
+                notes=item.get("notes", ""),
+            )
+        )
+
+    if created_items:
+        latest_item = max(created_items, key=lambda value: value.valuation_date)
+        asset.current_market_value = latest_item.market_value
+        asset.last_valuation_date = latest_item.valuation_date
+        asset.valuation_source = latest_item.valuation_source
+        asset.save()
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetListView(View):
 
@@ -3160,6 +3281,7 @@ class FixedAssetListView(View):
 
     def post(self, request):
         data = json.loads(request.body)
+        re = data.get("real_estate_details")
 
         asset = FixedAsset.objects.create(
             name=data["name"],
@@ -3173,14 +3295,7 @@ class FixedAssetListView(View):
             valuation_source=data.get("valuation_source", "Manual"),
             last_valuation_date=data.get("last_valuation_date") or None,
             notes=data.get("notes", ""),
-            furnished_status=re.get("furnished_status", "Unfurnished"),
-            latitude=re.get("latitude"),
-            longitude=re.get("longitude"),
-            description=re.get("description", ""),
-            licensed=re.get("licensed", False),
         )
-
-        re = data.get("real_estate_details")
 
         if re:
             RealEstateDetails.objects.create(
@@ -3214,6 +3329,10 @@ class FixedAssetListView(View):
             land_share_ratio=re.get("land_share", ""),
             land_share_sqm=float(re.get("land_share_sqm") or 0),
         )
+
+        _sync_asset_mortgage(asset, data.get("mortgage_details"))
+        _sync_asset_rental(asset, data.get("rental_details"))
+
         for item in data.get("renovations", []):
 
             AssetRenovation.objects.create(
@@ -3226,6 +3345,10 @@ class FixedAssetListView(View):
                 amount_usd=item.get("amount_usd", 0),
                 notes=item.get("notes", ""),
             )
+
+        _sync_asset_furniture(asset, data.get("furniture", []))
+        _sync_asset_valuation_history(asset, data.get("valuation_history", []))
+
         return JsonResponse(asset.to_dict(), status=201)
     
 @method_decorator(csrf_exempt, name="dispatch")
@@ -3314,6 +3437,11 @@ class FixedAssetDetailView(View):
                 amount_usd=item.get("amount_usd", 0),
                 notes=item.get("notes", ""),
             )
+
+        _sync_asset_mortgage(asset, data.get("mortgage_details"))
+        _sync_asset_rental(asset, data.get("rental_details"))
+        _sync_asset_furniture(asset, data.get("furniture", []))
+        _sync_asset_valuation_history(asset, data.get("valuation_history", []))
 
         return JsonResponse(asset.to_dict())
 
@@ -3627,3 +3755,562 @@ class AssetSaleView(View):
             sale.to_dict(),
             status=201 if created else 200,
         )
+
+    def delete(self, request, asset_id):
+        asset = get_object_or_404(FixedAsset, pk=asset_id)
+
+        if not hasattr(asset, "sale"):
+            return JsonResponse({}, status=404)
+
+        asset.sale.delete()
+
+        if asset.status == "Sold":
+            asset.status = "Owned"
+            asset.save()
+
+        return JsonResponse({"deleted": True})
+
+
+def _fixed_asset_report_queryset():
+    return (
+        FixedAsset.objects.select_related("real_estate", "sale")
+        .prefetch_related(
+            "photos",
+            "renovations",
+            "furniture",
+            "valuation_history",
+        )
+        .order_by("name")
+    )
+
+
+def _fixed_asset_report_context(request):
+    scope = request.GET.get("scope", "single")
+    asset_id = request.GET.get("asset_id")
+    lang = request.GET.get("lang", "en")
+    t = get_translations(lang)
+
+    queryset = _fixed_asset_report_queryset()
+
+    if scope == "single":
+        if not asset_id:
+            raise ValueError("asset_id is required")
+        queryset = queryset.filter(pk=asset_id)
+
+    assets = list(queryset)
+    if not assets:
+        raise FixedAsset.DoesNotExist()
+
+    return {
+        "scope": scope,
+        "asset_id": asset_id,
+        "lang": lang,
+        "t": t,
+        "assets": assets,
+    }
+
+
+def _fixed_asset_display_value(value):
+    if value in (None, "", []):
+        return "-"
+    return str(value)
+
+
+def _fixed_asset_report_label(t, lang, key, default):
+    return get_text(key, lang, t, default)
+
+
+def _fixed_asset_user_text(value, lang):
+    if value in (None, ""):
+        return "-"
+    text = str(value)
+    return format_arabic(text) if lang == "ar" else text
+
+
+def _fixed_asset_pdf_table(rows, col_widths, font_name):
+    table = Table(rows, colWidths=col_widths, hAlign="LEFT")
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#d9e1f2")),
+                ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#1f2937")),
+                ("FONTNAME", (0, 0), (-1, -1), font_name),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#94a3b8")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    return table
+
+
+def _build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_style, body_style, font_name):
+    data = asset.to_dict()
+    story = []
+
+    asset_name = _fixed_asset_user_text(asset.name, lang)
+    story.append(Paragraph(asset_name, title_style))
+    story.append(Spacer(1, 0.25 * cm))
+
+    gain_amount = float(data.get("current_market_value") or 0) - float(data.get("purchase_price") or 0)
+    general_rows = [
+        [
+            _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
+            asset_name,
+        ],
+        [
+            _fixed_asset_report_label(t, lang, "asset_type", "Asset Type"),
+            _fixed_asset_report_label(
+                t,
+                lang,
+                f"type_{str(data.get('asset_type') or 'other').lower()}",
+                data.get("asset_type") or "-",
+            ),
+        ],
+        [
+            _fixed_asset_report_label(t, lang, "status", "Status"),
+            _fixed_asset_report_label(
+                t,
+                lang,
+                str(data.get("status") or "owned").lower(),
+                data.get("status") or "-",
+            ),
+        ],
+        [
+            _fixed_asset_report_label(t, lang, "purchase_date", "Purchase Date"),
+            _fixed_asset_display_value(data.get("purchase_date")),
+        ],
+        [
+            _fixed_asset_report_label(t, lang, "purchase_price_egp", "Purchase Price (EGP)"),
+            f"{float(data.get('purchase_price') or 0):,.2f}",
+        ],
+        [
+            _fixed_asset_report_label(t, lang, "current_market_value", "Current Market Value"),
+            f"{float(data.get('current_market_value') or 0):,.2f}",
+        ],
+        [
+            _fixed_asset_report_label(t, lang, "gain_amount", "Gain Amount"),
+            f"{gain_amount:,.2f}",
+        ],
+        [
+            _fixed_asset_report_label(t, lang, "notes", "Notes"),
+            _fixed_asset_user_text(data.get("notes"), lang),
+        ],
+    ]
+
+    story.append(Paragraph(_fixed_asset_report_label(t, lang, "general_information", "General Information"), heading_style))
+    story.append(_fixed_asset_pdf_table(general_rows, [5 * cm, 10.5 * cm], font_name))
+    story.append(Spacer(1, 0.3 * cm))
+
+    real_estate = data.get("real_estate") or {}
+    if real_estate:
+        property_rows = [
+            [_fixed_asset_report_label(t, lang, "country", "Country"), _fixed_asset_user_text(real_estate.get("country"), lang)],
+            [_fixed_asset_report_label(t, lang, "governorate", "Governorate"), _fixed_asset_user_text(real_estate.get("governorate"), lang)],
+            [_fixed_asset_report_label(t, lang, "city", "City"), _fixed_asset_user_text(real_estate.get("city"), lang)],
+            [_fixed_asset_report_label(t, lang, "district", "District"), _fixed_asset_user_text(real_estate.get("district"), lang)],
+            [_fixed_asset_report_label(t, lang, "address", "Address"), _fixed_asset_user_text(real_estate.get("address"), lang)],
+            [_fixed_asset_report_label(t, lang, "apt_area", "Property Area (Sqm)"), _fixed_asset_display_value(real_estate.get("apartment_area"))],
+            [_fixed_asset_report_label(t, lang, "land_area", "Land Area"), _fixed_asset_display_value(real_estate.get("land_area"))],
+            [_fixed_asset_report_label(t, lang, "rooms", "Bedrooms"), _fixed_asset_display_value(real_estate.get("rooms"))],
+            [_fixed_asset_report_label(t, lang, "bathrooms", "Bathrooms"), _fixed_asset_display_value(real_estate.get("bathrooms"))],
+            [_fixed_asset_report_label(t, lang, "description", "Description"), _fixed_asset_user_text(real_estate.get("description"), lang)],
+        ]
+        story.append(Paragraph(_fixed_asset_report_label(t, lang, "property_details", "Property Details"), heading_style))
+        story.append(_fixed_asset_pdf_table(property_rows, [5 * cm, 10.5 * cm], font_name))
+        story.append(Spacer(1, 0.3 * cm))
+
+    photos = list(asset.photos.all())
+    if photos:
+        story.append(Paragraph(_fixed_asset_report_label(t, lang, "photos", "Photos"), heading_style))
+        image_rows = []
+        current_row = []
+        for photo in photos[:4]:
+            try:
+                img = RLImage(io.BytesIO(photo.image_data), width=6 * cm, height=4.5 * cm)
+                current_row.append(img)
+            except Exception:
+                current_row.append(Paragraph(_fixed_asset_user_text(photo.filename or photo.title or photo.id, lang), body_style))
+            if len(current_row) == 2:
+                image_rows.append(current_row)
+                current_row = []
+        if current_row:
+            while len(current_row) < 2:
+                current_row.append(Paragraph("", body_style))
+            image_rows.append(current_row)
+        story.append(Table(image_rows, colWidths=[7.7 * cm, 7.7 * cm], hAlign="LEFT"))
+        story.append(Spacer(1, 0.3 * cm))
+
+    def build_collection_section(title_key, title_default, items, headers, value_rows):
+        if not items:
+            return
+        story.append(Paragraph(_fixed_asset_report_label(t, lang, title_key, title_default), heading_style))
+        rows = [[_fixed_asset_report_label(t, lang, key, default) for key, default in headers]]
+        rows.extend(value_rows(item) for item in items)
+        story.append(_fixed_asset_pdf_table(rows, [4 * cm, 4 * cm, 3.5 * cm, 4 * cm], font_name))
+        story.append(Spacer(1, 0.3 * cm))
+
+    build_collection_section(
+        "renovations",
+        "Renovations",
+        data.get("renovations") or [],
+        [("date", "Date"), ("category", "Category"), ("amount_egp", "Amount EGP"), ("notes", "Notes")],
+        lambda item: [
+            _fixed_asset_display_value(item.get("date")),
+            _fixed_asset_user_text(item.get("category"), lang),
+            f"{float(item.get('amount_egp') or 0):,.2f}",
+            _fixed_asset_user_text(item.get("notes"), lang),
+        ],
+    )
+
+    build_collection_section(
+        "furniture",
+        "Furniture",
+        data.get("furniture") or [],
+        [("asset_name", "Name"), ("category", "Category"), ("amount_egp", "Amount EGP"), ("notes", "Notes")],
+        lambda item: [
+            _fixed_asset_user_text(item.get("name"), lang),
+            _fixed_asset_user_text(item.get("category"), lang),
+            f"{float(item.get('amount_egp') or 0):,.2f}",
+            _fixed_asset_user_text(item.get("notes"), lang),
+        ],
+    )
+
+    build_collection_section(
+        "valuation_history",
+        "Valuation History",
+        data.get("valuation_history") or [],
+        [("date", "Date"), ("current_market_value", "Market Value"), ("valuation_source", "Valuation Source"), ("notes", "Notes")],
+        lambda item: [
+            _fixed_asset_display_value(item.get("valuation_date")),
+            f"{float(item.get('market_value') or 0):,.2f}",
+            _fixed_asset_user_text(item.get("valuation_source"), lang),
+            _fixed_asset_user_text(item.get("notes"), lang),
+        ],
+    )
+
+    sale = data.get("sale") or None
+    if sale:
+        sale_rows = [
+            [_fixed_asset_report_label(t, lang, "sale_date", "Sale Date"), _fixed_asset_display_value(sale.get("sale_date"))],
+            [_fixed_asset_report_label(t, lang, "sale_price_egp", "Sale Price (EGP)"), f"{float(sale.get('sale_price') or 0):,.2f}"],
+            [_fixed_asset_report_label(t, lang, "selling_expenses_egp", "Selling Expenses (EGP)"), f"{float(sale.get('selling_expenses') or 0):,.2f}"],
+            [_fixed_asset_report_label(t, lang, "net_sale_amount", "Net Sale Amount"), f"{float(sale.get('net_sale_amount') or 0):,.2f}"],
+            [_fixed_asset_report_label(t, lang, "deposit_balance", "Deposit Balance"), _fixed_asset_display_value(sale.get("deposit_balance_id"))],
+            [_fixed_asset_report_label(t, lang, "notes", "Notes"), _fixed_asset_user_text(sale.get("notes"), lang)],
+        ]
+        story.append(Paragraph(_fixed_asset_report_label(t, lang, "sale_information", "Sale Information"), heading_style))
+        story.append(_fixed_asset_pdf_table(sale_rows, [5 * cm, 10.5 * cm], font_name))
+        story.append(Spacer(1, 0.3 * cm))
+
+    return story
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class FixedAssetPdfReportView(View):
+
+    def get(self, request):
+        try:
+            context = _fixed_asset_report_context(request)
+        except ValueError as exc:
+            return JsonResponse({"error": str(exc)}, status=400)
+        except FixedAsset.DoesNotExist:
+            return JsonResponse({"error": "No fixed assets found"}, status=404)
+
+        lang = context["lang"]
+        t = context["t"]
+        assets = context["assets"]
+        scope = context["scope"]
+
+        font_path = os.path.join(settings.BASE_DIR, "static", "fonts", "arial.ttf")
+        if lang == "ar" and os.path.exists(font_path):
+            pdfmetrics.registerFont(TTFont("ArabicFont", font_path))
+
+        font_name = "ArabicFont" if lang == "ar" and os.path.exists(font_path) else "Helvetica"
+        font_name_bold = "ArabicFont" if font_name == "ArabicFont" else "Helvetica-Bold"
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=1.5 * cm,
+            leftMargin=1.5 * cm,
+            topMargin=1.5 * cm,
+            bottomMargin=1.5 * cm,
+        )
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            "FixedAssetTitle",
+            parent=styles["Heading1"],
+            fontName=font_name_bold,
+            fontSize=16,
+            textColor=colors.HexColor("#1f2937"),
+            spaceAfter=8,
+        )
+        heading_style = ParagraphStyle(
+            "FixedAssetHeading",
+            parent=styles["Heading2"],
+            fontName=font_name_bold,
+            fontSize=12,
+            textColor=colors.HexColor("#1a6ef5"),
+            spaceBefore=4,
+            spaceAfter=6,
+        )
+        body_style = ParagraphStyle(
+            "FixedAssetBody",
+            parent=styles["BodyText"],
+            fontName=font_name,
+            fontSize=9,
+            textColor=colors.HexColor("#1f2937"),
+            leading=11,
+        )
+
+        report_title = _fixed_asset_report_label(
+            t,
+            lang,
+            "fixed_assets_report_title",
+            "Fixed Assets Report",
+        )
+        if scope == "single":
+            report_title = f"{report_title} - {_fixed_asset_user_text(assets[0].name, lang)}"
+
+        story = [Paragraph(report_title, title_style), Spacer(1, 0.35 * cm)]
+        for index, asset in enumerate(assets):
+            story.extend(
+                _build_fixed_asset_pdf_story(
+                    asset,
+                    lang,
+                    t,
+                    styles,
+                    title_style,
+                    heading_style,
+                    body_style,
+                    font_name,
+                )
+            )
+            if index < len(assets) - 1:
+                story.append(PageBreak())
+
+        doc.build(story)
+        pdf_bytes = buffer.getvalue()
+        buffer.close()
+
+        filename = (
+            f"fixed_asset_{assets[0].id}_report.pdf"
+            if scope == "single"
+            else "fixed_assets_portfolio_report.pdf"
+        )
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class FixedAssetExcelReportView(View):
+
+    def get(self, request):
+        try:
+            context = _fixed_asset_report_context(request)
+        except ValueError as exc:
+            return JsonResponse({"error": str(exc)}, status=400)
+        except FixedAsset.DoesNotExist:
+            return JsonResponse({"error": "No fixed assets found"}, status=404)
+
+        lang = context["lang"]
+        t = context["t"]
+        assets = context["assets"]
+        scope = context["scope"]
+
+        wb = openpyxl.Workbook()
+        summary_ws = wb.active
+        summary_ws.title = "Summary"
+
+        header_font = Font(bold=True)
+
+        summary_headers = [
+            _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
+            _fixed_asset_report_label(t, lang, "asset_type", "Asset Type"),
+            _fixed_asset_report_label(t, lang, "status", "Status"),
+            _fixed_asset_report_label(t, lang, "purchase_date", "Purchase Date"),
+            _fixed_asset_report_label(t, lang, "purchase_price_egp", "Purchase Price (EGP)"),
+            _fixed_asset_report_label(t, lang, "current_market_value", "Current Market Value"),
+            _fixed_asset_report_label(t, lang, "country", "Country"),
+            _fixed_asset_report_label(t, lang, "city", "City"),
+            _fixed_asset_report_label(t, lang, "address", "Address"),
+            _fixed_asset_report_label(t, lang, "sale_date", "Sale Date"),
+            _fixed_asset_report_label(t, lang, "net_sale_amount", "Net Sale Amount"),
+            _fixed_asset_report_label(t, lang, "notes", "Notes"),
+        ]
+        summary_ws.append(summary_headers)
+        for cell in summary_ws[1]:
+            cell.font = header_font
+
+        for asset in assets:
+            data = asset.to_dict()
+            real_estate = data.get("real_estate") or {}
+            sale = data.get("sale") or {}
+            summary_ws.append(
+                [
+                    data.get("name"),
+                    data.get("asset_type"),
+                    data.get("status"),
+                    data.get("purchase_date"),
+                    float(data.get("purchase_price") or 0),
+                    float(data.get("current_market_value") or 0),
+                    real_estate.get("country"),
+                    real_estate.get("city"),
+                    real_estate.get("address"),
+                    sale.get("sale_date"),
+                    float(sale.get("net_sale_amount") or 0),
+                    data.get("notes"),
+                ]
+            )
+
+        collections = [
+            (
+                "Renovations",
+                _fixed_asset_report_label(t, lang, "renovations", "Renovations"),
+                [
+                    _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
+                    _fixed_asset_report_label(t, lang, "date", "Date"),
+                    _fixed_asset_report_label(t, lang, "category", "Category"),
+                    _fixed_asset_report_label(t, lang, "amount_egp", "Amount EGP"),
+                    _fixed_asset_report_label(t, lang, "notes", "Notes"),
+                ],
+                lambda asset_data, item: [
+                    asset_data.get("name"),
+                    item.get("date"),
+                    item.get("category"),
+                    float(item.get("amount_egp") or 0),
+                    item.get("notes"),
+                ],
+                lambda asset_data: asset_data.get("renovations") or [],
+            ),
+            (
+                "Furniture",
+                _fixed_asset_report_label(t, lang, "furniture", "Furniture"),
+                [
+                    _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
+                    _fixed_asset_report_label(t, lang, "category", "Category"),
+                    _fixed_asset_report_label(t, lang, "purchase_date", "Purchase Date"),
+                    _fixed_asset_report_label(t, lang, "amount_egp", "Amount EGP"),
+                    _fixed_asset_report_label(t, lang, "notes", "Notes"),
+                ],
+                lambda asset_data, item: [
+                    item.get("name"),
+                    item.get("category"),
+                    item.get("purchase_date"),
+                    float(item.get("amount_egp") or 0),
+                    item.get("notes"),
+                ],
+                lambda asset_data: asset_data.get("furniture") or [],
+            ),
+            (
+                "Valuations",
+                _fixed_asset_report_label(t, lang, "valuation_history", "Valuation History"),
+                [
+                    _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
+                    _fixed_asset_report_label(t, lang, "date", "Date"),
+                    _fixed_asset_report_label(t, lang, "current_market_value", "Market Value"),
+                    _fixed_asset_report_label(t, lang, "valuation_source", "Valuation Source"),
+                    _fixed_asset_report_label(t, lang, "notes", "Notes"),
+                ],
+                lambda asset_data, item: [
+                    asset_data.get("name"),
+                    item.get("valuation_date"),
+                    float(item.get("market_value") or 0),
+                    item.get("valuation_source"),
+                    item.get("notes"),
+                ],
+                lambda asset_data: asset_data.get("valuation_history") or [],
+            ),
+            (
+                "Photos",
+                _fixed_asset_report_label(t, lang, "photos", "Photos"),
+                [
+                    _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
+                    _fixed_asset_report_label(t, lang, "description", "Description"),
+                    _fixed_asset_report_label(t, lang, "notes", "Filename"),
+                    "URL",
+                ],
+                lambda asset_data, item: [
+                    asset_data.get("name"),
+                    item.get("title"),
+                    item.get("filename"),
+                    item.get("url"),
+                ],
+                lambda asset_data: asset_data.get("photos") or [],
+            ),
+        ]
+
+        sale_ws = wb.create_sheet(title="Sale")
+        sale_headers = [
+            _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
+            _fixed_asset_report_label(t, lang, "sale_date", "Sale Date"),
+            _fixed_asset_report_label(t, lang, "sale_price_egp", "Sale Price (EGP)"),
+            _fixed_asset_report_label(t, lang, "selling_expenses_egp", "Selling Expenses (EGP)"),
+            _fixed_asset_report_label(t, lang, "net_sale_amount", "Net Sale Amount"),
+            _fixed_asset_report_label(t, lang, "deposit_balance", "Deposit Balance"),
+            _fixed_asset_report_label(t, lang, "notes", "Notes"),
+        ]
+        sale_ws.append(sale_headers)
+        for cell in sale_ws[1]:
+            cell.font = header_font
+
+        for asset in assets:
+            asset_data = asset.to_dict()
+            sale = asset_data.get("sale")
+            if not sale:
+                continue
+            sale_ws.append(
+                [
+                    asset_data.get("name"),
+                    sale.get("sale_date"),
+                    float(sale.get("sale_price") or 0),
+                    float(sale.get("selling_expenses") or 0),
+                    float(sale.get("net_sale_amount") or 0),
+                    sale.get("deposit_balance_id"),
+                    sale.get("notes"),
+                ]
+            )
+
+        for sheet_name, title, headers, row_builder, collection_getter in collections:
+            ws = wb.create_sheet(title=sheet_name)
+            ws.append(headers)
+            for cell in ws[1]:
+                cell.font = header_font
+            for asset in assets:
+                asset_data = asset.to_dict()
+                for item in collection_getter(asset_data):
+                    ws.append(row_builder(asset_data, item))
+
+        for ws in wb.worksheets:
+            for col in ws.columns:
+                max_length = 0
+                column = col[0].column_letter
+                for cell in col:
+                    try:
+                        max_length = max(max_length, len(str(cell.value or "")))
+                    except Exception:
+                        pass
+                ws.column_dimensions[column].width = min(max_length + 2, 40)
+
+        buffer = io.BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+
+        filename = (
+            f"fixed_asset_{assets[0].id}_report.xlsx"
+            if scope == "single"
+            else "fixed_assets_portfolio_report.xlsx"
+        )
+        response = HttpResponse(
+            buffer.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
