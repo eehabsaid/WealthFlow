@@ -540,248 +540,250 @@ async function showFixedAssetDetails(assetId) {
 
     const asset = await response.json();
 
+    const photos = asset.photos || [];
+    const renovations = asset.renovations || [];
+    const gainValue = (asset.current_market_value || 0) - (asset.purchase_price || 0);
+    const gainClass = gainValue >= 0 ? 'text-success' : 'text-danger';
+    let assetViewMap = null;
+
     const html = `
-    <div class="modal-header">
+    <div class="modal-header border-0 pb-0">
         <h5 class="modal-title" data-i18n="asset_details">Asset Details</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
     </div>
 
-    <div class="modal-body" style="max-height:75vh; overflow-y:auto; overflow-x:hidden; padding:1.5rem;">
-        
-        <div class="card border-0 shadow-sm mb-4" style="background:var(--bg-secondary);">
-            <div class="card-body p-4">
-                <div class="row align-items-center">
-                    <div class="col-auto me-3">
-                        <div style="width:72px; height:72px; border-radius:16px; background:rgba(26,110,245,.15); display:flex; align-items:center; justify-content:center;">
-                            <i class="bi bi-building" style="font-size:34px; color:var(--accent-primary);"></i>
-                        </div>
+    <div class="modal-body asset-modal-body p-0">
+        <div class="p-4">
+            <div class="asset-detail-header mb-4">
+                <div class="d-flex flex-column flex-lg-row gap-3 align-items-start">
+                    <div class="asset-header-icon d-flex align-items-center justify-content-center">
+                        <i class="bi bi-building"></i>
                     </div>
-                    <div class="col">
-                        <h3 class="mb-1 fw-bold text-light">${asset.name || "-"}</h3>
-                        <span class="badge rounded-pill text-bg-primary" data-i18n="type_${(asset.asset_type || "other").toLowerCase()}">
-                            ${asset.asset_type || "-"}
-                        </span>
-                    </div>
-                    <div class="col-auto text-end ms-auto pe-2">
-                        <div class="small text-light opacity-75" data-i18n="current_market_value">Current Market Value</div>
-                        <div class="fs-4 fw-bold text-success">${fmt(asset.current_market_value)}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <small class="text-muted" data-i18n="purchase_price_egp">Purchase Price</small>
-                        <h5 class="mt-2 mb-0">${fmt(asset.purchase_price)}</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <small class="text-muted" data-i18n="purchase_date">Purchase Date</small>
-                        <h5 class="mt-2 mb-0">${asset.purchase_date || "-"}</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <small class="text-muted" data-i18n="gain_loss">Gain / Loss</small>
-                        <h5 class="mt-2 mb-0 ${asset.current_market_value - asset.purchase_price >= 0 ? "text-success" : "text-danger"}">
-                            ${fmt((asset.current_market_value || 0) - (asset.purchase_price || 0))}
-                        </h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <small class="text-muted" data-i18n="last_valuation_date">Last Valuation</small>
-                        <h5 class="mt-2 mb-0">${asset.last_valuation_date || "-"}</h5>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="assetDetailsContent">
-            <div class="row g-4">
-                
-                <div class="col-lg-4 d-flex">
-                    <div class="card flex-fill border-0 shadow-sm" style="background:var(--bg-secondary);">
-                        <div class="card-header fw-bold" data-i18n="general_information">General Information</div>
-                        <div class="card-body p-0">
-                            <table class="table table-borderless align-middle mb-0">
-                                <tbody>
-                                    <tr>
-                                        <td width="45%">
-                                            <strong data-i18n="asset_name">Asset Name</strong>
-                                        </td>
-                                        <td>${asset.name || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="asset_type">Asset Type</strong>
-                                        </td>
-                                        <td>
-                                            <span class="badge text-bg-primary" data-i18n="type_${(asset.asset_type || "other").toLowerCase()}">
-                                                ${asset.asset_type || "-"}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="purchase_date">Purchase Date</strong>
-                                        </td>
-                                        <td>${asset.purchase_date || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="purchase_price_egp">Purchase Price</strong>
-                                        </td>
-                                        <td class="fw-bold">
-                                            ${fmt(asset.purchase_price)}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="valuation_source">Valuation Source</strong>
-                                        </td>
-                                        <td>
-                                            <span data-i18n="val_${(asset.valuation_source || "").toLowerCase()}">
-                                                ${asset.valuation_source || "-"}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="notes">Notes</strong>
-                                        </td>
-                                        <td>${asset.notes || "-"}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <div class="flex-fill">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-3 align-items-start align-items-sm-center">
+                            <div>
+                                <h3 class="asset-title mb-1">${asset.name || '-'}</h3>
+                                <span class="badge rounded-pill asset-type-badge" data-i18n="type_${(asset.asset_type || 'other').toLowerCase()}">${asset.asset_type || '-'}</span>
+                            </div>
+                            <div class="text-sm-end">
+                                <div class="small asset-label" data-i18n="current_market_value">Current Market Value</div>
+                                <div class="asset-value-large ${gainClass}">${fmt(asset.current_market_value)}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-lg-4 d-flex">
-                    <div class="card flex-fill border-0 shadow-sm" style="background:var(--bg-secondary);">
-                        <div class="card-header fw-bold" data-i18n="property_details">Property Details</div>
-                        <div class="card-body p-0">
-                            <table class="table table-borderless align-middle mb-0">
-                                <tbody>
-                                    <tr>
-                                        <td width="45%">
-                                            <strong data-i18n="country">Country</strong>
-                                        </td>
-                                        <td>${asset.real_estate?.country || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="governorate">Governorate</strong>
-                                        </td>
-                                        <td>${asset.real_estate?.governorate || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="city">City</strong>
-                                        </td>
-                                        <td>${asset.real_estate?.city || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="district">District</strong>
-                                        </td>
-                                        <td>${asset.real_estate?.district || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="address">Address</strong>
-                                        </td>
-                                        <td>${asset.real_estate?.address || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="apt_area">Property Area</strong>
-                                        </td>
-                                        <td>${asset.real_estate?.apartment_area || "-"} m²</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="rooms">Bedrooms</strong>
-                                        </td>
-                                        <td>${asset.real_estate?.rooms || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="bathrooms">Bathrooms</strong>
-                                        </td>
-                                        <td>${asset.real_estate?.bathrooms || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <strong data-i18n="building_year">Construction Year</strong>
-                                        </td>
-                                        <td>${asset.real_estate?.building_year || "-"}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 mb-4">
+                <div class="col">
+                    <div class="asset-summary-card h-100">
+                        <div class="asset-summary-label" data-i18n="purchase_price_egp">Purchase Price</div>
+                        <div class="asset-summary-value">${fmt(asset.purchase_price)}</div>
                     </div>
                 </div>
+                <div class="col">
+                    <div class="asset-summary-card h-100">
+                        <div class="asset-summary-label" data-i18n="purchase_date">Purchase Date</div>
+                        <div class="asset-summary-value">${asset.purchase_date || '-'}</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="asset-summary-card h-100">
+                        <div class="asset-summary-label" data-i18n="gain_loss">Gain / Loss</div>
+                        <div class="asset-summary-value ${gainClass}">${fmt(gainValue)}</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="asset-summary-card h-100">
+                        <div class="asset-summary-label" data-i18n="last_valuation_date">Last Valuation Date</div>
+                        <div class="asset-summary-value">${asset.last_valuation_date || '-'}</div>
+                    </div>
+                </div>
+            </div>
 
-                <div class="col-lg-4 d-flex">
-                    <div class="card flex-fill border-0 shadow-sm" style="background:var(--bg-secondary);">
-                        <div class="card-header fw-bold" data-i18n="renovation_history">Renovation History</div>
-                        <div class="card-body">
-                            ${asset.renovations && asset.renovations.length ? asset.renovations.map(r => `
-                            <div class="d-flex mb-4">
-                                <div class="me-3">
-                                    <div style="width:40px; height:40px; border-radius:50%; background:rgba(26,110,245,.15); display:flex; align-items:center; justify-content:center;">
-                                        <i class="bi bi-tools" style="color:var(--accent-primary); font-size:18px;"></i>
-                                    </div>
+            <ul class="nav nav-pills nav-fill mb-4 asset-detail-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="asset-general-tab" data-bs-toggle="tab" data-bs-target="#asset-general-pane" type="button" role="tab" aria-controls="asset-general-pane" aria-selected="true" data-i18n="general">General</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="asset-property-tab" data-bs-toggle="tab" data-bs-target="#asset-property-pane" type="button" role="tab" aria-controls="asset-property-pane" aria-selected="false" data-i18n="property">Property</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="asset-renovation-tab" data-bs-toggle="tab" data-bs-target="#asset-renovation-pane" type="button" role="tab" aria-controls="asset-renovation-pane" aria-selected="false" data-i18n="renovations">Renovations</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="assetDetailsTabsContent">
+                <div class="tab-pane fade show active" id="asset-general-pane" role="tabpanel" aria-labelledby="asset-general-tab">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                                <div class="card-body p-4">
+                                    <h6 class="mb-3 fw-bold" data-i18n="general_information">General Information</h6>
+                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="asset_name">Asset Name</div><div class="col-7">${asset.name || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="asset_type">Asset Type</div><div class="col-7">${asset.asset_type || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="purchase_date">Purchase Date</div><div class="col-7">${asset.purchase_date || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="valuation_source">Valuation Source</div><div class="col-7">${asset.valuation_source || '-'}</div></div>
+                                    <div class="row"><div class="col-5 text-muted" data-i18n="notes">Notes</div><div class="col-7">${asset.notes || '-'}</div></div>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between">
-                                        <strong data-i18n="renovation_${(r.category || "other").toLowerCase()}">
-                                            ${r.category}
-                                        </strong>
-                                        <span class="fw-bold text-success">
-                                            ${fmt(r.amount_egp)}
-                                        </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                                <div class="card-body p-4">
+                                    <h6 class="mb-3 fw-bold" data-i18n="valuation_summary">Valuation Summary</h6>
+                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="purchase_price_egp">Purchase Price (EGP)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price)}</div></div>
+                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="purchase_price_usd">Purchase Price (USD)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price_usd)}</div></div>
+                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="current_market_value">Current Market Value</div><div class="col-7 fw-bold">${fmt(asset.current_market_value)}</div></div>
+                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="last_valuation_date">Last Valuation Date</div><div class="col-7">${asset.last_valuation_date || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="gain_loss">Gain (EGP)</div><div class="col-7 fw-bold ${gainClass}">${fmt(gainValue)}</div></div>
+                                    <div class="row"><div class="col-5 text-muted" data-i18n="gain_percent">Gain (%)</div><div class="col-7 fw-bold ${gainClass}">${asset.purchase_price ? fmtpresent((gainValue / asset.purchase_price) * 100) + '%' : '-'}</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="asset-property-pane" role="tabpanel" aria-labelledby="asset-property-tab">
+                    <div class="row g-3">
+                        <div class="col-xl-7">
+                            <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                                <div class="card-body p-4">
+                                    <h6 class="mb-3 fw-bold" data-i18n="property_details">Property Details</h6>
+                                    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3">
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="country">Country</span><span class="value">${asset.real_estate?.country || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="governorate">Governorate</span><span class="value">${asset.real_estate?.governorate || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="city">City</span><span class="value">${asset.real_estate?.city || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="district">District</span><span class="value">${asset.real_estate?.district || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="address">Address</span><span class="value">${asset.real_estate?.address || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="apt_area">Property Area</span><span class="value">${asset.real_estate?.apartment_area || '-'} m²</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="land_area">Land Area</span><span class="value">${asset.real_estate?.land_area || '-'} m²</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="rooms">Bedrooms</span><span class="value">${asset.real_estate?.rooms || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="bathrooms">Bathrooms</span><span class="value">${asset.real_estate?.bathrooms || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="floor">Floor Number</span><span class="value">${asset.real_estate?.floor || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="building_floors">Total Building Floors</span><span class="value">${asset.real_estate?.building_floors || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="building_year">Construction Year</span><span class="value">${asset.real_estate?.building_year || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="facades">Facade</span><span class="value">${asset.real_estate?.facades || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="furnished_status">Furnished Status</span><span class="value">${asset.real_estate?.furnished_status || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="finishing_level">Finishing Level</span><span class="value">${asset.real_estate?.finishing_level || '-'}</span></div></div>
+                                        <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="land_share">Land Share</span><span class="value">${asset.real_estate?.land_share || '-'}</span></div></div>
                                     </div>
-                                    <div class="small text-muted mb-2">
-                                        ${r.date || "-"}
-                                    </div>
-                                    <div>
-                                        ${r.description || "-"}
-                                    </div>
-                                    ${r.notes ? `
-                                        <div class="small text-muted mt-2">
-                                            ${r.notes}
+                                    <div class="asset-attribute-row mt-3"><span class="label" data-i18n="description">Description</span><span class="value">${asset.real_estate?.description || '-'}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-5">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                                        <div class="card-body p-4">
+                                            <h6 class="mb-3 fw-bold" data-i18n="location">Location</h6>
+                                            <div id="assetPropertyMap" class="asset-main-photo-container" style="height:280px;"></div>
                                         </div>
-                                    ` : ""}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                                        <div class="card-body p-4">
+                                            <h6 class="mb-3 fw-bold" data-i18n="utilities">Utilities</h6>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-plug-fill me-1"></i><span data-i18n="electricity">Electricity</span></span>
+                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-droplet-fill me-1"></i><span data-i18n="water">Water</span></span>
+                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-fire me-1"></i><span data-i18n="gas">Gas</span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                                        <div class="card-body p-4">
+                                            <h6 class="mb-3 fw-bold" data-i18n="features">Features</h6>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-building me-1"></i><span data-i18n="elevator">Elevator</span></span>
+                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-car-front-fill me-1"></i><span data-i18n="garage">Garage</span></span>
+                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-tree-fill me-1"></i><span data-i18n="has_land_share">Land Share</span></span>
+                                                <span class="badge rounded-pill bg-secondary-subtle text-light"><i class="bi bi-shield-lock-fill me-1"></i><span data-i18n="licensed">Licensed</span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                                        <div class="card-body p-4">
+                                            <h6 class="mb-3 fw-bold" data-i18n="property_photos">Photo Gallery</h6>
+                                            <div id="assetMainPhotoContainer" class="asset-main-photo-container mb-3">
+                                                ${photos.length ? `<img id="assetMainPhoto" src="${photos[0].url}" alt="Asset photo" class="img-fluid" style="max-height:100%;max-width:100%;cursor:pointer;" />` : `<div class="text-center text-muted" data-i18n="no_property_photos">No photos available</div>`}
+                                            </div>
+                                            <div class="asset-photo-grid">
+                                                ${photos.length ? photos.map((photo, index) => `
+                                                    <button type="button" class="btn btn-sm asset-photo-thumbnail p-0" data-url="${photo.url}" aria-label="Photo ${index + 1}">
+                                                        <img src="${photo.url}" alt="Thumbnail ${index + 1}" />
+                                                    </button>
+                                                `).join('') : ''}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            `).join("") : `
-                            <div class="text-center py-5">
-                                <i class="bi bi-tools" style="font-size:40px; color:var(--text-secondary);"></i>
-                                <div class="mt-3 text-muted" data-i18n="no_renovations">
-                                    No renovations registered.
-                                </div>
-                            </div>
-                            `}
                         </div>
                     </div>
                 </div>
-
+                <div class="tab-pane fade" id="asset-renovation-pane" role="tabpanel" aria-labelledby="asset-renovation-tab">
+                    <div class="row g-3">
+                        ${renovations.length ? renovations.map((r) => `
+                            <div class="col-12">
+                                <div class="asset-renovation-card">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                                        <div>
+                                            <div class="small text-muted mb-2" data-i18n="date">Date</div>
+                                            <div class="fw-semibold">${r.date || '-'}</div>
+                                            <div class="small text-muted mt-2" data-i18n="category">Category</div>
+                                            <div>${r.category || '-'}</div>
+                                        </div>
+                                        <div class="text-md-end">
+                                            <div class="small text-muted mb-2" data-i18n="amount_usd">Amount USD</div>
+                                            <div class="fw-semibold">${fmt(r.amount_usd)}</div>
+                                            <div class="small text-muted mt-3" data-i18n="amount_egp">Amount EGP</div>
+                                            <div class="fw-semibold">${fmt(r.amount_egp)}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="small text-muted mb-1" data-i18n="description">Description</div>
+                                        <div>${r.description || '-'}</div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="small text-muted mb-1" data-i18n="notes">Notes</div>
+                                        <div>${r.notes || '-'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('') : `
+                            <div class="col-12">
+                                <div class="text-center text-muted py-5" data-i18n="no_renovations">No renovations registered.</div>
+                            </div>
+                        `}
+                        ${renovations.length ? `
+                        <div class="col-12">
+                            <div class="asset-renovation-card asset-renovation-summary">
+                                <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-center">
+                                    <div class="fw-semibold" data-i18n="total_renovation_cost_usd">Total Renovation Cost USD</div>
+                                    <div class="text-end">
+                                        <div>${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_usd) || 0), 0))}</div>
+                                        <div class="text-muted small" data-i18n="amount_egp">Total EGP</div>
+                                        <div>${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_egp) || 0), 0))}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+            <div id="assetPhotoOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-90 d-none" style="z-index:2000;">
+                <div class="d-flex h-100 align-items-center justify-content-center">
+                    <img id="assetFullscreenImage" src="" alt="Fullscreen asset photo" class="img-fluid rounded" style="max-height:90%; max-width:90%;" />
+                </div>
             </div>
         </div>
-
     </div>
 
     <div class="modal-footer">
@@ -789,35 +791,76 @@ async function showFixedAssetDetails(assetId) {
     </div>
 `;
 
-    // Render layout into the page instance context
     showModal(html);
 
     applyTranslations();
 
-    document.querySelectorAll("#assetDetailsContent .card").forEach((card) => {
-      card.style.background = "var(--bg-secondary)";
-      card.style.color = "var(--text-primary)";
+    const mainPhoto = document.getElementById('assetMainPhoto');
+    const photoOverlay = document.getElementById('assetPhotoOverlay');
+    const fullscreenImage = document.getElementById('assetFullscreenImage');
+
+    if (mainPhoto) {
+      mainPhoto.addEventListener('click', () => {
+        fullscreenImage.src = mainPhoto.src;
+        photoOverlay.classList.remove('d-none');
+      });
+    }
+
+    photoOverlay?.addEventListener('click', () => {
+      photoOverlay.classList.add('d-none');
+      fullscreenImage.src = '';
     });
 
-    document
-      .querySelectorAll("#assetDetailsContent .card-header")
-      .forEach((h) => {
-        h.style.background = "transparent";
-        h.style.color = "var(--text-primary)";
-        h.style.borderBottom = "1px solid var(--border-color)";
+    const assetPhotoThumbnails = document.querySelectorAll('.asset-photo-thumbnail');
+    assetPhotoThumbnails.forEach((thumb, index) => {
+      if (index === 0) thumb.classList.add('active');
+      thumb.addEventListener('click', (e) => {
+        const url = e.currentTarget.dataset.url;
+        const mainImg = document.getElementById('assetMainPhoto');
+        if (mainImg) mainImg.src = url;
+        assetPhotoThumbnails.forEach((item) => item.classList.remove('active'));
+        e.currentTarget.classList.add('active');
       });
-
-    document.querySelectorAll("#assetDetailsContent small").forEach((el) => {
-      el.style.color = "var(--text-secondary)";
     });
 
-    document
-      .querySelectorAll("#assetDetailsContent .card-body div")
-      .forEach((el) => {
-        if (!el.classList.contains("text-success")) {
-          el.style.color = "var(--text-primary)";
-        }
+    const propertyLatitude = parseFloat(asset.real_estate?.latitude);
+    const propertyLongitude = parseFloat(asset.real_estate?.longitude);
+
+    if (!Number.isNaN(propertyLatitude) && !Number.isNaN(propertyLongitude)) {
+      assetViewMap = L.map('assetPropertyMap', {
+        dragging: false,
+        touchZoom: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
+        zoomControl: false,
+        tap: false,
+      }).setView([propertyLatitude, propertyLongitude], 14);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(assetViewMap);
+
+      L.marker([propertyLatitude, propertyLongitude], { interactive: false }).addTo(assetViewMap);
+      setTimeout(() => assetViewMap.invalidateSize(), 200);
+    }
+
+    const assetPropertyTab = document.getElementById('asset-property-tab');
+    if (assetPropertyTab && assetViewMap) {
+      assetPropertyTab.addEventListener('shown.bs.tab', () => {
+        setTimeout(() => assetViewMap.invalidateSize(), 50);
       });
+    }
+
+    document.querySelectorAll('#assetDetailsTabsContent .card').forEach((card) => {
+      card.style.background = 'var(--bg-secondary)';
+      card.style.color = 'var(--text-primary)';
+    });
+
+    document.querySelectorAll('#assetDetailsTabsContent .text-muted').forEach((el) => {
+      el.style.color = 'var(--text-secondary)';
+    });
   } catch (err) {
     showToast(err.message, "danger");
   } finally {
@@ -1032,12 +1075,9 @@ async function saveFixedAsset(assetId = null) {
     const files = document.getElementById("propertyPhotoInput").files;
 
     if (files.length > 0) {
-
         for (const file of files) {
-
             const formData = new FormData();
-
-            formData.append("image", file);
+            formData.append("photos", file);
 
             const uploadResponse = await fetch(
                 `/api/fixed-assets/${savedAsset.id}/photos/`,
@@ -1054,15 +1094,11 @@ async function saveFixedAsset(assetId = null) {
                 throw new Error("Failed to upload property photo.");
 
             const uploadedPhoto = await uploadResponse.json();
-
             propertyPhotos.push(uploadedPhoto);
-
         }
 
         renderPropertyPhotoGallery();
-
         document.getElementById("propertyPhotoInput").value = "";
-
     }
 
     showToast(

@@ -99,20 +99,16 @@ urlpatterns = [
         views.AssetSaleView.as_view(),
     ),
     path(
-    "api/fixed-assets/<int:pk>/photos/",
+        "api/fixed-assets/<int:pk>/photos/",
         views.FixedAssetPhotoView.as_view(),
     ),
     path(
-    "api/fixed-assets/<int:pk>/photos/<int:photo_id>/",
+        "api/fixed-assets/<int:pk>/photos/<int:photo_id>/",
         views.FixedAssetPhotoView.as_view(),
     ),
     path(
-    "api/fixed-assets/photo/<int:photo_id>/",
+        "api/fixed-assets/photo/<int:photo_id>/",
         views.AssetPhotoView.as_view(),
-    ),
-    path(
-    "api/fixed-assets/<int:pk>/photos/",
-    views.AssetPhotoUploadView.as_view(),
     ),
     path(
         "api/certificate-forecast/",
