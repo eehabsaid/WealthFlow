@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from . import views
 from .views import ExportExcelWorkbookView
 
@@ -118,4 +118,5 @@ urlpatterns = [
         "api/certificate-forecast/",
         views.CertificateForecastView.as_view(),
     ),
+    path('api/', include('i18n_manager.urls')),
 ]

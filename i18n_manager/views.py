@@ -1,9 +1,14 @@
 import json
+import os
 from pathlib import Path
+import django
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import re
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "salary_tracker.settings")
+django.setup()
 
 I18N_DIR = Path(settings.BASE_DIR) / "static" / "i18n"
 

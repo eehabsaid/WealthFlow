@@ -54,7 +54,7 @@ async function renderBalance() {
 
     const getRate = (code) => {
         const rate = (ratesData.rates || []).find((r) => r.currency_code === code);
-        return rate ? Number(r.buy_rate) : 0;
+        return rate ? Number(rate.buy_rate) : 0;
     };
 
     const usdAmount = totals['USD'] || 0;
@@ -202,22 +202,23 @@ async function renderBalance() {
             <div class="kpi-label" data-i18n="investment_recommendations">Investment Recommendations</div>
             <div style="margin-top:15px">
                 ${(forecastData.investment_recommendations || []).map((r) => {
-                    if (typeof r === 'object') {
-                        const dynamicKey = r.days_left > 1 ? 'certificate_mature_plural' : 'certificate_mature_singular';
-                        const fallbackText = r.days_left > 1 ? `A certificate will mature in ${r.days_left} days.` : `A certificate will mature in ${r.days_left} day.`;
-
-                        return `
-                            <div data-i18n-key="${dynamicKey}" 
-                                data-days-left="${r.days_left}"
-                                style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">
-                                ${_t && _t[dynamicKey] ? _t[dynamicKey].replace('{days_left}', r.days_left) : fallbackText}
-                            </div>`;
-                    }
+                    const itemKey = typeof r === 'object' && r.key ? r.key : r;
+                    const itemText = typeof r === 'object' && r.key
+                        ? (t(itemKey, itemKey) || itemKey)
+                        : (t(itemKey, itemKey) || itemKey);
+                    const fallbackText = typeof r === 'object' && r.days_left != null
+                        ? (r.days_left > 1 ? `A certificate will mature in ${r.days_left} days.` : `A certificate will mature in ${r.days_left} day.`)
+                        : itemText;
+                    const resolvedText = typeof r === 'object' && r.key
+                        ? (itemKey === 'recommend_maturity_soon' || itemKey === 'recommend_maturity_very_soon'
+                            ? (t(itemKey, fallbackText).replace('{days_left}', r.days_left))
+                            : t(itemKey, fallbackText))
+                        : t(itemKey, fallbackText);
 
                     return `<div
-                        data-i18n-key="${r}"
+                        data-i18n-key="${itemKey}"
                         style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">
-                        ${_t && _t[r] ? _t[r] : r}
+                        ${resolvedText}
                     </div>`;
                 }).join('')}
             </div>
@@ -284,7 +285,7 @@ async function renderBalance() {
             <div style="margin-top:15px">
                 ${(forecastData.financial_recommendations || []).map((r) => `
                     <div data-i18n-key="${r}" style="padding:12px; margin-bottom:10px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">
-                        ${_t && _t[r] ? _t[r] : r}
+                        ${t(r, r)}
                     </div>
                 `).join('')}
             </div>
@@ -325,7 +326,23 @@ async function showBalanceModal(entryId) {
     }
     
     const bankOpts = _banks.map((b) => `<option value="${b.id}" ${entry && entry.bank_id === b.id ? 'selected' : ''}>${b.name}</option>`).join('');
-    const curOpts = _currencies.map((c) => `<option value="${c.id}" ${entry && entry.currency_id === c.id ? 'selected' : ''}>${c.flag} ${c.code} - ${c.name}</option>`).join('');
+    const curOpts = _currencies.map((c) => {
+        // Match your existing JSON translation keys
+        const key = c.code === 'Gold' ? 'type_gold' : c.code;
+        
+        // Get the translated name or fallback to the currency name
+        let translatedName = _t && _t[key] ? _t[key] : `${c.code} - ${c.name}`;
+        
+        // Clean up any double emojis if your 'type_gold' translation already includes one (e.g., "🪙 Gold")
+        if (c.code === 'Gold' && _t && _t['type_gold']) {
+            translatedName = _t['type_gold'].replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+        }
+
+        // Combine the flag/emoji with the translated currency label
+        const displayName = `${c.flag || '💵'} ${translatedName}`;
+
+        return `<option value="${c.id}" data-i18n="${key}" ${entry && entry.currency_id === c.id ? 'selected' : ''}>${displayName}</option>`;
+    }).join('');
 
     const typeOpts = `
         <option value="cash" data-i18n="type_cash" ${entry && entry.balance_type === 'cash' ? 'selected' : ''}>${t('type_cash', '💵 Cash')}</option>

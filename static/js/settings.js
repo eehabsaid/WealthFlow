@@ -31,23 +31,27 @@ async function renderSettings(route) {
     }
 
     const tabs = [
-        { id: 'languages',          i18n: 'settings_languages',         route: 'settings-languages'          },
-        { id: 'companies',          i18n: 'settings_companies',         route: 'settings-companies'          },
-        { id: 'banks',              i18n: 'settings_banks',             route: 'settings-banks'              },
-        { id: 'currency',           i18n: 'settings_currency',         route: 'settings-currency'           },
-        { id: 'users',              i18n: 'settings_users',             route: 'settings-users'              },
-        { id: 'translations',       i18n: 'settings_translations',      route: 'settings-translations'       },
-        { id: 'translationcoverage',i18n: 'settings_translation_coverage', route: 'settings-translationcoverage' },
-        { id: 'reminders',          i18n: 'tab_reminders',              route: 'settings-reminders'          },
-        { id: 'certstatus',         i18n: 'tab_cert_status',            route: 'settings-certstatus'         },
-        { id: 'dashboard',          i18n: 'tab_dashboard_sett',         route: 'settings-dashboard'          },
+        { id: 'languages',          i18n: 'settings_languages',         fallback: 'Languages',         route: 'settings-languages'          },
+        { id: 'companies',          i18n: 'settings_companies',         fallback: 'Companies',         route: 'settings-companies'          },
+        { id: 'banks',              i18n: 'settings_banks',             fallback: 'Banks',             route: 'settings-banks'              },
+        { id: 'currency',           i18n: 'settings_currency',          fallback: 'Currency',          route: 'settings-currency'           },
+        { id: 'users',              i18n: 'settings_users',             fallback: 'Users',             route: 'settings-users'              },
+        { id: 'translations',       i18n: 'settings_translations',      fallback: 'Translations',      route: 'settings-translations'       },
+        { id: 'translationcoverage',i18n: 'settings_translation_coverage', fallback: 'Translation Coverage', route: 'settings-translationcoverage' },
+        { id: 'reminders',          i18n: 'tab_reminders',              fallback: 'Reminders',         route: 'settings-reminders'          },
+        { id: 'certstatus',         i18n: 'tab_cert_status',            fallback: 'Certificate Status', route: 'settings-certstatus'         },
+        { id: 'dashboard',          i18n: 'tab_dashboard_sett',         fallback: 'Dashboard',         route: 'settings-dashboard'          },
     ];
 
-    const tabBar = tabs.map(tab => `
+    const tabBar = tabs.map(tab => {
+        const label = t(tab.i18n, tab.fallback || tab.id);
+        return `
         <button class="settings-tab ${activeTab === tab.id ? 'active' : ''}"
             onclick="navigate('${tab.route}')"
             data-i18n="${tab.i18n}">
-        </button>`).join('');
+            ${label}
+        </button>`;
+    }).join('');
 
     mc.innerHTML = `
         <div class="page-header">

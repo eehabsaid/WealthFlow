@@ -92,15 +92,15 @@ async function renderReports() {
 
     <div class="row g-3 mb-4" id="reportKPIs"></div>
 
-    <div class="row g-3 mb-4">
-      <div class="col-md-8">
-        <div class="chart-container">
+    <div class="row g-3 mb-4 align-items-stretch">
+      <div class="col-lg-8">
+        <div class="chart-container h-100">
           <div class="chart-title" data-i18n="income_vs_expenses">Income vs Expenses</div>
           <canvas id="chartIncomeExpense" height="110"></canvas>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="chart-container">
+      <div class="col-lg-4">
+        <div class="chart-container h-100">
           <div class="chart-title" data-i18n="expense_categories">Expense Categories</div>
           <canvas id="chartCategories" height="220"></canvas>
         </div>
@@ -108,7 +108,7 @@ async function renderReports() {
     </div>
 
     <div class="chart-container mb-4">
-      <div class="chart-title" id="trendTitle">${t("monthly_expense_trend")} (${currentReportYear})</div>
+      <div class="chart-title" id="trendTitle">${t("monthly_expense_trend", "Monthly Expense Trend")} (${currentReportYear})</div>
       <canvas id="chartTrend" height="80"></canvas>
     </div>`;
 
@@ -194,14 +194,12 @@ async function loadReportData() {
     sumUrl = `/api/expenses/summary/?year=${year}`;
   }
 
-  const [expRes, bankRes, sumRes] = await Promise.all([
+  const [expRes, sumRes] = await Promise.all([
     fetch(expUrl),
-    fetch("/api/bank-certificates/"),
     fetch(sumUrl),
   ]);
 
   const expData = await expRes.json();
-  const bankData = await bankRes.json();
   const sumData = await sumRes.json();
 
   // FIX: Separate custom dashboard metrics tracking completely from backend calculations
@@ -259,82 +257,9 @@ async function loadReportData() {
     trend = sumData.monthly_trend || [];
   }
 
-  // Certificate Interest Parsers
-  let totalInterest = 0;
-  (bankData.certificates || []).forEach((c) => {
-    totalInterest += parseFloat(c.interest_value || 0);
-  });
-
-  // Dynamic Salary Engine
-  let totalSalary = 0;
-  if (tab === "monthly") {
-    let prevMonth = month - 1;
-    let prevYear = year;
-    if (prevMonth === 0) {
-      prevMonth = 12;
-      prevYear -= 1;
-    }
-
-    const sRes = await fetch(`/api/salary/?year=${prevYear}`);
-    const sData = await sRes.json();
-    totalSalary = (sData.entries || [])
-      .filter(
-        (e) =>
-          parseInt(e.year) === prevYear &&
-          e.month.toLowerCase() === MONTH_NAMES_EN[prevMonth - 1],
-      )
-      .reduce((s, e) => s + (parseFloat(e.paid) || 0), 0);
-  } else if (tab === "yearly") {
-    const sRes = await fetch(`/api/salary/?year=${year}`);
-    const sData = await sRes.json();
-    totalSalary = (sData.entries || []).reduce(
-      (s, e) => s + (parseFloat(e.paid) || 0),
-      0,
-    );
-  } else if (tab === "custom" && startVal && endVal) {
-    const startDateObj = new Date(startVal);
-    const endDateObj = new Date(endVal);
-
-    let combinedEntries = [];
-    for (
-      let y = startDateObj.getFullYear();
-      y <= endDateObj.getFullYear();
-      y++
-    ) {
-      try {
-        const sRes = await fetch(`/api/salary/?year=${y}`);
-        const sData = await sRes.json();
-        if (sData.entries)
-          combinedEntries = combinedEntries.concat(sData.entries);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    totalSalary = combinedEntries
-      .filter((e) => {
-        const mIdx = MONTH_NAMES_EN.findIndex(
-          (m) => m === e.month.toLowerCase(),
-        );
-        if (mIdx === -1) return false;
-        const entryDate = new Date(parseInt(e.year), mIdx, 1);
-        const compStart = new Date(
-          startDateObj.getFullYear(),
-          startDateObj.getMonth(),
-          1,
-        );
-        const compEnd = new Date(
-          endDateObj.getFullYear(),
-          endDateObj.getMonth(),
-          1,
-        );
-        return entryDate >= compStart && entryDate <= compEnd;
-      })
-      .reduce((s, e) => s + (parseFloat(e.paid) || 0), 0);
-  }
-
   let manualIncome = parseFloat(localStorage.getItem("manualIncome") || 0);
-  let totalInc = totalSalary + totalInterest + manualIncome;
+  const incomeSummary = sumData.income_summary || {};
+  let totalInc = parseFloat(incomeSummary.total_income || 0) + manualIncome;
   const netSav = totalInc - totalExp;
   const savRate = totalInc > 0 ? (netSav / totalInc) * 100 : 0;
 
@@ -342,12 +267,10 @@ async function loadReportData() {
   const kpiEl = document.getElementById("reportKPIs");
   if (kpiEl) {
     kpiEl.innerHTML = `
-        <div class="col-6 col-md-3" onclick="editIncome()" style="cursor:pointer">
-            <div class="card h-100 kpi-card"> 
-                <div class="card-body">
-                    <div class="kpi-label" data-i18n="total_income_edit"></div>
-                    <div class="kpi-value">${fmt(totalInc)}</div>
-                </div>
+        <div class="col-6 col-lg-3" onclick="editIncome()" style="cursor:pointer">
+            <div class="kpi-card h-100">
+                <div class="kpi-label" data-i18n="total_income_edit">${t("total_income_edit", "Total Income (edit)")}</div>
+                <div class="kpi-value">${fmt(totalInc)}</div>
             </div>
         </div>
       ${repKPI("total_expenses", fmt(totalExp), "bi-cart-x", "var(--accent-red)", "var(--accent-red-bg)")}
@@ -371,10 +294,11 @@ function editIncome() {
 }
 
 function repKPI(label, value, icon, accent, bg) {
-  return `<div class="col-6 col-md-3">
-    <div class="kpi-card" style="--kpi-accent:${accent};--kpi-bg:${bg}">
+  const translatedLabel = t(label, label.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()));
+  return `<div class="col-6 col-lg-3">
+    <div class="kpi-card h-100" style="--kpi-accent:${accent};--kpi-bg:${bg}">
       <div class="kpi-icon"><i class="bi ${icon}"></i></div>
-      <div class="kpi-label" data-i18n="${label}"></div>
+      <div class="kpi-label" data-i18n="${label}">${translatedLabel}</div>
       <div class="kpi-value">${value}</div>
     </div></div>`;
 }

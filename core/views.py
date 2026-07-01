@@ -23,6 +23,7 @@ from .models import (
     ExpenseSubcategory,
     Expense,
     BankCertificate,
+    _is_certificate_active,
     PagePermission,
     PAGE_PERMISSION_CHOICES,
     UserProfile,
@@ -763,7 +764,26 @@ class CurrencyDetailView(View):
 class BalanceListView(View):
     def get(self, request):
         entries = BalanceEntry.objects.select_related("bank", "currency").all()
-        return JsonResponse({"entries": [e.to_dict() for e in entries]})
+        payload = []
+        for entry in entries:
+            if entry.balance_type == "certificate":
+                active_total = sum(
+                    float(c.amount or 0)
+                    for c in BankCertificate.objects.filter(
+                        bank_id=entry.bank_id,
+                        currency_id=entry.currency_id,
+                    )
+                    if _is_certificate_active(c)
+                )
+                if active_total <= 0:
+                    continue
+                item = entry.to_dict()
+                item["amount"] = active_total
+                payload.append(item)
+            else:
+                payload.append(entry.to_dict())
+
+        return JsonResponse({"entries": payload})
 
     def post(self, request):
         data = json.loads(request.body)
@@ -1272,6 +1292,8 @@ class ExpenseSummaryView(View):
 
     def get(self, request):
         from django.db.models import Sum
+        import calendar
+        import datetime
 
         year = request.GET.get("year")
         month = request.GET.get("month")
@@ -1293,9 +1315,6 @@ class ExpenseSummaryView(View):
             by_cat[key]["total"] += float(e.amount)
 
         # Monthly trend (last 12 months)
-        from django.db.models.functions import TruncMonth
-        import datetime
-
         monthly = []
         for m in range(1, 13):
             y = int(year) if year else datetime.date.today().year
@@ -1306,11 +1325,104 @@ class ExpenseSummaryView(View):
             monthly.append({"month": m, "total": float(total)})
 
         grand_total = sum(v["total"] for v in by_cat.values())
+
+        # Income summary for reports (salary + certificate interest)
+        month_names = [
+            "january",
+            "february",
+            "march",
+            "april",
+            "may",
+            "june",
+            "july",
+            "august",
+            "september",
+            "october",
+            "november",
+            "december",
+        ]
+
+        def _month_bounds(y, m):
+            start = datetime.date(y, m, 1)
+            end = datetime.date(y, m, calendar.monthrange(y, m)[1])
+            return start, end
+
+        def _year_bounds(y):
+            return datetime.date(y, 1, 1), datetime.date(y, 12, 31)
+
+        def _includes_in_period(certificate, start_date, end_date):
+            if not certificate:
+                return False
+            issue_date = certificate.issue_date
+            expiry_date = certificate.expiry_date
+            if issue_date and issue_date > end_date:
+                return False
+            if expiry_date and expiry_date < start_date:
+                return False
+            return True
+
+        salary_amount = 0.0
+        total_interest = 0.0
+
+        if month:
+            target_year = int(year) if year else datetime.date.today().year
+            target_month = int(month)
+            prev_month = target_month - 1
+            prev_year = target_year
+            if prev_month == 0:
+                prev_month = 12
+                prev_year -= 1
+
+            prev_month_name = month_names[prev_month - 1]
+            salary_qs = SalaryEntry.objects.filter(
+                year=prev_year,
+                month__iexact=prev_month_name,
+            )
+            salary_amount = float(
+                salary_qs.aggregate(total=Sum("paid"))["total"] or 0
+            )
+
+            start_date, end_date = _month_bounds(target_year, target_month)
+            certs = BankCertificate.objects.all()
+            total_interest = sum(
+                float(c.interest_value or 0)
+                for c in certs
+                if _includes_in_period(c, start_date, end_date)
+            )
+        elif year:
+            salary_amount = float(
+                SalaryEntry.objects.filter(year=int(year)).aggregate(total=Sum("paid"))["total"]
+                or 0
+            )
+            start_date, end_date = _year_bounds(int(year))
+            certs = BankCertificate.objects.all()
+            total_interest = sum(
+                float(c.interest_value or 0)
+                for c in certs
+                if _includes_in_period(c, start_date, end_date)
+            )
+        else:
+            today = datetime.date.today()
+            start_date, end_date = _month_bounds(today.year, today.month)
+            salary_amount = 0.0
+            total_interest = sum(
+                float(c.interest_value or 0)
+                for c in BankCertificate.objects.all()
+                if _includes_in_period(c, start_date, end_date)
+            )
+
+        total_income = salary_amount + total_interest
+
         return JsonResponse(
             {
                 "by_category": list(by_cat.values()),
                 "monthly_trend": monthly,
                 "grand_total": grand_total,
+                "income_summary": {
+                    "total_income": total_income,
+                    "total_salary": salary_amount,
+                    "total_interest": total_interest,
+                },
             }
         )
 
@@ -2458,20 +2570,37 @@ class BalanceReportView(View):
         for e in home:
             by_currency.append(e.to_dict())
 
-        # Certificate totals
+        # Certificate totals (active certificates only, converted to EGP when possible)
         from django.db.models import Sum as S
+        from core.models import ExchangeRate
 
-        cert_total = float(BankCertificate.objects.aggregate(s=S("amount"))["s"] or 0)
-        cert_interest = float(
-            BankCertificate.objects.aggregate(s=S("interest_value"))["s"] or 0
-        )
+        cert_total = 0.0
+        cert_interest_total = 0.0
+        active_certs = BankCertificate.objects.filter(status__iexact="active")
+        for cert in active_certs:
+            amount = float(cert.amount or 0)
+            interest = float(cert.interest_value or 0)
+            if cert.currency and cert.currency.code.upper() != "EGP":
+                rate = (
+                    ExchangeRate.objects.filter(currency_code=cert.currency.code)
+                    .order_by("-fetched_at")
+                    .first()
+                )
+                if rate:
+                    amount *= float(rate.buy_rate)
+                    interest *= float(rate.buy_rate)
+            cert_total += amount
+            cert_interest_total += interest
+
+        cert_monthly_interest = cert_interest_total / 12 if cert_interest_total else 0.0
 
         return JsonResponse(
             {
                 "by_bank": by_bank,
                 "home_entries": by_currency,
                 "cert_total": cert_total,
-                "cert_interest": cert_interest,
+                "cert_interest": cert_monthly_interest,
+                "cert_interest_total": cert_interest_total,
             }
         )
 
@@ -2485,9 +2614,11 @@ class CertificateReportView(View):
         from django.db.models import Sum, Count
 
         today = date.today()
-        certs = BankCertificate.objects.select_related("bank", "currency").all()
+        active_certs = BankCertificate.objects.select_related("bank", "currency").filter(
+            status__iexact="active"
+        )
 
-        agg = certs.aggregate(
+        agg = active_certs.aggregate(
             total_count=Count("id"),
             total_amount=Sum("amount"),
             total_interest=Sum("interest_value"),
@@ -2506,30 +2637,31 @@ class CertificateReportView(View):
         for label, low, high in bucket_days:
             if label == "overdue":
                 buckets[label] = [
-                    c.to_dict() for c in certs.filter(expiry_date__lt=today)
+                    c.to_dict()
+                    for c in active_certs.filter(expiry_date__lt=today)
                 ]
             else:
                 buckets[label] = [
                     c.to_dict()
-                    for c in certs.filter(
+                    for c in active_certs.filter(
                         expiry_date__gte=today + timedelta(days=low),
                         expiry_date__lte=today + timedelta(days=high),
                     )
                 ]
 
-        # By status
+        # By status (active certificates only)
         by_status = {}
-        for c in certs:
+        for c in active_certs:
             by_status[c.status] = by_status.get(c.status, {"count": 0, "total": 0})
             by_status[c.status]["count"] += 1
             by_status[c.status]["total"] += float(c.amount)
 
-        # Monthly interest cashflow (next 12 months)
+        # Monthly interest cashflow (next 12 months) for active certificates only
         monthly_cf = []
         for i in range(12):
             m_start = today.replace(day=1) + timedelta(days=32 * i)
             m_start = m_start.replace(day=1)
-            m_certs = certs.filter(
+            m_certs = active_certs.filter(
                 expiry_date__year=m_start.year,
                 expiry_date__month=m_start.month,
             )
@@ -2541,13 +2673,16 @@ class CertificateReportView(View):
                 }
             )
 
+        total_interest = float(agg["total_interest"] or 0)
+        monthly_interest = total_interest if total_interest else 0.0
+
         return JsonResponse(
             {
                 "summary": {
                     "total_count": agg["total_count"] or 0,
                     "total_amount": float(agg["total_amount"] or 0),
-                    "total_interest": float(agg["total_interest"] or 0),
-                    "monthly_interest": float(agg["total_interest"] or 0),
+                    "total_interest": total_interest,
+                    "monthly_interest": monthly_interest,
                 },
                 "buckets": buckets,
                 "by_status": by_status,
@@ -2640,7 +2775,8 @@ from core.models import SalaryEntry
 @method_decorator(csrf_exempt, name="dispatch")
 class CertificateForecastView(View):
     def get(self, request):
-        certs = BankCertificate.objects.filter(status="Active")
+        certs = BankCertificate.objects.select_related("bank", "currency").all()
+        active_certs = [c for c in certs if str(c.status or "").strip().lower() == "active"]
         today = date.today()
         cash_balance = 0
         certificate_balance = 0
@@ -2649,7 +2785,7 @@ class CertificateForecastView(View):
         forecast_180 = 0
         maturing_interest_30 = 0
         upcoming = []
-        for c in certs:
+        for c in active_certs:
             if not c.expiry_date:
                 continue
             maturity_value = float(c.amount)  # + float(c.interest_value)
@@ -2679,24 +2815,23 @@ class CertificateForecastView(View):
         egp_balances = BalanceEntry.objects.filter(currency__code="EGP")
         for b in egp_balances:
             if b.balance_type == "certificate":
-                certificate_balance += float(b.amount)
-            else:
-                cash_balance += float(b.amount)
+                continue
+            cash_balance += float(b.amount)
         upcoming.sort(key=lambda x: x["days_left"])
         nearest_maturity = upcoming[0]["days_left"] if upcoming else None
-        total_certificates = sum(float(c.amount) for c in certs)
+        total_certificates = sum(float(c.amount) for c in active_certs)
         from core.models import BalanceEntry as Balance
 
         balances = Balance.objects.all()
         cash_egp = 0
         foreign_currency_value = 0
-        certificate_balance = 0
+        certificate_balance = sum(float(c.amount or 0) for c in active_certs)
         gold_grams = 0
         for b in balances:
             currency = b.currency.code.upper() if b.currency else "EGP"
             amount = float(b.amount)
             if b.balance_type == "certificate":
-                certificate_balance += amount
+                continue
             elif currency == "EGP":
                 cash_egp += amount
             elif currency == "GOLD":
@@ -2747,7 +2882,7 @@ class CertificateForecastView(View):
             else 0
         )
 
-        monthly_certificate_income = sum(float(c.interest_value) for c in certs)
+        monthly_certificate_income = sum(float(c.interest_value) for c in active_certs)
         latest_salary = (
             SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
         )
@@ -2994,7 +3129,7 @@ class CertificateForecastView(View):
                 "gold_trend_90": round(gold_trend_90, 2),
                 "gold_trend_365": round(gold_trend_365, 2),
                 "avg_monthly_expenses": round(avg_monthly_expenses, 2),
-                "cash_coverage_months": round(cash_coverage_months, 1),
+                "cash_coverage_months": round(cash_coverage_months, 1) if cash_coverage_months is not None else None,
             }
         )
 

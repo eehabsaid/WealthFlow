@@ -1,11 +1,4 @@
 // advanced_reports.js — Advanced Reports & Analytics (Feature 4)
-// Salary, Company, Balance, and Certificate analytics dashboards
-
-'use strict';
-
-// ════════════════════════════════════════════════════════════════════════════
-// ADVANCED REPORTS RENDERING
-// ════════════════════════════════════════════════════════════════════════════
 
 async function renderAdvancedReports(tab) {
     tab = tab || 'salary';
@@ -27,15 +20,12 @@ async function renderAdvancedReports(tab) {
             </button>
         `).join('');
 
-    const advancedReportsTitle = t('nav_advanced_reports', 'Advanced Reports');
-    const advancedReportsSubtitle = t('advanced_reports_subtitle', 'Multi-dimensional analysis dashboards');
-
     mc.innerHTML = `
         <div class="page-header">
             <div>
-                <div class="page-title">📊 <span data-i18n="nav_advanced_reports">${advancedReportsTitle}</span></div>
+                <div class="page-title">📊 <span data-i18n="nav_advanced_reports"></span></div>
         
-                <div style="color:var(--text-muted);font-size:13px" data-i18n="advanced_reports_subtitle">${advancedReportsSubtitle}</div>
+                <div style="color:var(--text-muted);font-size:13px" data-i18n="advanced_reports_subtitle"></div>
             </div>
         </div>
         <div style="border-bottom:1px solid var(--border-color);margin-bottom:20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap">
@@ -52,8 +42,12 @@ async function renderAdvancedReports(tab) {
 }
 
 // ── Salary & Bonus Report ──────────────────────────────────────
-async function _renderSalaryReport() {
-    const res = await fetch('/api/reports/salary/');
+async function _renderSalaryReport(selectedYear = '', selectedCompany = '') {
+    const params = new URLSearchParams();
+    if (selectedYear) params.set('year', selectedYear);
+    if (selectedCompany) params.set('company_id', selectedCompany);
+
+    const res = await fetch('/api/reports/salary/?' + params);
     const d   = await res.json();
     const by_year = d.by_year || [];
     const g       = d.grand || {};
@@ -75,9 +69,9 @@ async function _renderSalaryReport() {
 
     // Filters
     const yearOpts = ['<option value="">All Years</option>',
-        ...d.years.map(y => `<option value="${y}">${y}</option>`)].join('');
+        ...d.years.map(y => `<option value="${y}" ${y === selectedYear ? 'selected' : ''}>${y}</option>`)].join('');
     const coOpts = ['<option value="">All Companies</option>',
-        ...(d.companies||[]).map(c => `<option value="${c.id}">${esc(c.name)}</option>`)].join('');
+        ...(d.companies||[]).map(c => `<option value="${c.id}" ${String(c.id) === selectedCompany ? 'selected' : ''}>${esc(c.name)}</option>`)].join('');
 
     // Table
     const rows = by_year.map(r => `
@@ -152,17 +146,7 @@ async function _renderSalaryReport() {
 async function _applySalaryFilter() {
     const year = document.getElementById('salRepYear')?.value || '';
     const co   = document.getElementById('salRepCompany')?.value || '';
-    const params = new URLSearchParams();
-    if (year) params.set('year', year);
-    if (co)   params.set('company_id', co);
-    const res = await fetch('/api/reports/salary/?' + params);
-    const d   = await res.json();
-    // Re-render table and KPIs only
-    const g = d.grand || {};
-    document.querySelectorAll('#reportContent .kpi-value').forEach((el, i) => {
-        const vals = [_fmt(g.total_paid), _fmt(g.total_bonus), _fmt(g.total_expected), g.paid_months||0];
-        if (vals[i] !== undefined) el.textContent = vals[i];
-    });
+    await _renderSalaryReport(year, co);
 }
 
 // ── Company Summary Report ─────────────────────────────────────
@@ -253,7 +237,7 @@ async function _renderBalanceReport() {
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
             ${_kpi('🏛️', 'bank_balance', _fmt(banks.reduce((s,b)=>s+b.total_egp,0)) + ' <span data-i18n="EGP"></span>', '')}
             ${_kpi('🏦', 'cert_balance', _fmt(d.cert_total) + ' <span data-i18n="EGP"></span>', '')}
-            ${_kpi('💹', 'total_monthly_interest', _fmt(d.cert_interest) + ' <span data-i18n="EGP"></span>', '')}
+            ${_kpi('💹', 'total_monthly_interest', _fmt(d.cert_interest) + ' <span data-i18n="EGP"></span>', '<span data-i18n="per_month">per month</span>')}
         </div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible;margin-bottom:16px">
             <div style="padding:14px 20px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border-color)" data-i18n="bank_accounts">Bank Accounts</div>
@@ -326,9 +310,9 @@ async function _renderCertReport() {
 
     document.getElementById('reportContent').innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
-            ${_kpi('🏦', 'total_certificates', s.total_count||0, '')}
-            ${_kpi('💵', 'total_amount', _fmt(s.total_amount) + ' <span data-i18n="EGP"></span>', '')}
-            ${_kpi('💹', 'total_monthly_interest', _fmt(s.monthly_interest) + ' <span data-i18n="EGP"></span>', '<span data-i18n="per_month">per month</span>')}
+            ${_kpi('🏦', 'total_certificates', s.total_count || 0, '')}
+            ${_kpi('💵', 'total_amount', `<span>${_fmt(s.total_amount)}</span> <span data-i18n="EGP">EGP</span>`, '')}
+            ${_kpi('💹', 'total_monthly_interest', `<span>${_fmt(s.monthly_interest)}</span> <span data-i18n="EGP">EGP</span>`, '<span data-i18n="per_month">per month</span>')}
         </div>
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">
             ${bucketCards}

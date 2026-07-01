@@ -140,6 +140,14 @@ class Bank(models.Model):
         return self.name
 
 
+def _is_certificate_active(certificate):
+    if certificate is None:
+        return False
+
+    status = str(getattr(certificate, "status", "") or "").strip().lower()
+    return status == "active"
+
+
 class BankCertificate(models.Model):
     bank = models.ForeignKey(
         Bank,
@@ -220,6 +228,29 @@ def handle_certificate_delete(sender, instance, **kwargs):
     _sync_certificate_balance(instance.bank_id, instance.currency_id)
 
 
+def sync_certificate_balance_entries():
+    for bank_id, currency_id in (
+        BankCertificate.objects.exclude(bank_id__isnull=True, currency_id__isnull=True)
+        .values_list("bank_id", "currency_id")
+        .distinct()
+    ):
+        _sync_certificate_balance(bank_id, currency_id)
+
+    for entry in BalanceEntry.objects.filter(balance_type="certificate"):
+        if not entry.bank_id or not entry.currency_id:
+            continue
+        active_total = sum(
+            float(c.amount or 0)
+            for c in BankCertificate.objects.filter(
+                bank_id=entry.bank_id,
+                currency_id=entry.currency_id,
+            )
+            if _is_certificate_active(c)
+        )
+        entry.amount = active_total
+        entry.save(update_fields=["amount"])
+
+
 def _sync_certificate_balance(bank_id, currency_id):
     """
     Internal transactional helper to safely aggregate matching certificate fields
@@ -228,11 +259,12 @@ def _sync_certificate_balance(bank_id, currency_id):
     if not bank_id or not currency_id:
         return
 
-    # Aggregate total sum of active/available certificates for this bank & currency combo
-    total_amount = BankCertificate.objects.filter(
-        bank_id=bank_id, 
-        currency_id=currency_id
-    ).aggregate(total=Sum('amount'))['total'] or 0
+    certs = BankCertificate.objects.filter(bank_id=bank_id, currency_id=currency_id)
+    total_amount = sum(
+        float(c.amount or 0)
+        for c in certs
+        if _is_certificate_active(c)
+    )
 
     if total_amount > 0:
         # Build standard engineering title syntax dynamically safely from foreign object tracking
