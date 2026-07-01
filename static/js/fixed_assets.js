@@ -64,9 +64,9 @@ function renderFixedAssetsList(assets) {
   if (!assetsArray || assetsArray.length === 0) {
     container.innerHTML = `
             <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
-                <div class="display-5 text-muted mb-3">🏢</div>
+                <div class="display-5 mb-3">🏢</div>
                 <h4 class="mt-2" data-i18n="no_fixed_assets">No Fixed Assets Registered</h4>
-                <p class="text-muted small mb-4" data-i18n="no_fixed_assets_desc">You haven't added any fixed assets or properties to your tracker portfolio yet.</p>
+                <p class="small mb-4" data-i18n="no_fixed_assets_desc">You haven't added any fixed assets or properties to your tracker portfolio yet.</p>
                 <button class="btn btn-sm btn-primary-custom" onclick="showFixedAssetModal()">
                     <i class="bi bi-plus-lg"></i> <span data-i18n="add_first_asset">Register Your First Asset</span>
                 </button>
@@ -620,11 +620,12 @@ async function showFixedAssetDetails(assetId) {
                             <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                                 <div class="card-body p-4">
                                     <h6 class="mb-3 fw-bold" data-i18n="general_information">General Information</h6>
-                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="asset_name">Asset Name</div><div class="col-7">${asset.name || '-'}</div></div>
-                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="asset_type">Asset Type</div><div class="col-7">${asset.asset_type || '-'}</div></div>
-                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="purchase_date">Purchase Date</div><div class="col-7">${asset.purchase_date || '-'}</div></div>
-                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="valuation_source">Valuation Source</div><div class="col-7">${asset.valuation_source || '-'}</div></div>
-                                    <div class="row"><div class="col-5 text-muted" data-i18n="notes">Notes</div><div class="col-7">${asset.notes || '-'}</div></div>
+                                                          
+                                    <div class="row mb-2"><div class="col-5" data-i18n="asset_name">Asset Name</div><div class="col-7">${asset.name || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="asset_type">Asset Type</div><div class="col-7">${asset.asset_type || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="purchase_date">Purchase Date</div><div class="col-7">${asset.purchase_date || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="valuation_source">Valuation Source</div><div class="col-7">${asset.valuation_source || '-'}</div></div>
+                                    <div class="row"><div class="col-5" data-i18n="notes">Notes</div><div class="col-7">${asset.notes || '-'}</div></div>
                                 </div>
                             </div>
                         </div>
@@ -632,12 +633,12 @@ async function showFixedAssetDetails(assetId) {
                             <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                                 <div class="card-body p-4">
                                     <h6 class="mb-3 fw-bold" data-i18n="valuation_summary">Valuation Summary</h6>
-                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="purchase_price_egp">Purchase Price (EGP)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price)}</div></div>
-                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="purchase_price_usd">Purchase Price (USD)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price_usd)}</div></div>
-                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="current_market_value">Current Market Value</div><div class="col-7 fw-bold">${fmt(asset.current_market_value)}</div></div>
-                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="last_valuation_date">Last Valuation Date</div><div class="col-7">${asset.last_valuation_date || '-'}</div></div>
-                                    <div class="row mb-2"><div class="col-5 text-muted" data-i18n="gain_loss">Gain (EGP)</div><div class="col-7 fw-bold ${gainClass}">${fmt(gainValue)}</div></div>
-                                    <div class="row"><div class="col-5 text-muted" data-i18n="gain_percent">Gain (%)</div><div class="col-7 fw-bold ${gainClass}">${asset.purchase_price ? fmtpresent((gainValue / asset.purchase_price) * 100) + '%' : '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_egp">Purchase Price (EGP)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_usd">Purchase Price (USD)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price_usd)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="current_market_value">Current Market Value</div><div class="col-7 fw-bold">${fmt(asset.current_market_value)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="last_valuation_date">Last Valuation Date</div><div class="col-7">${asset.last_valuation_date || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="gain_loss">Gain (EGP)</div><div class="col-7 fw-bold ${gainClass}">${fmt(gainValue)}</div></div>
+                                    <div class="row"><div class="col-5" data-i18n="gain_percent">Gain (%)</div><div class="col-7 fw-bold ${gainClass}">${asset.purchase_price ? fmtpresent((gainValue / asset.purchase_price) * 100) + '%' : '-'}</div></div>
                                 </div>
                             </div>
                         </div>
@@ -711,7 +712,7 @@ async function showFixedAssetDetails(assetId) {
                                         <div class="card-body p-4">
                                             <h6 class="mb-3 fw-bold" data-i18n="property_photos">Photo Gallery</h6>
                                             <div id="assetMainPhotoContainer" class="asset-main-photo-container mb-3">
-                                                ${photos.length ? `<img id="assetMainPhoto" src="${photos[0].url}" alt="Asset photo" class="img-fluid" style="max-height:100%;max-width:100%;cursor:pointer;" />` : `<div class="text-center text-muted" data-i18n="no_property_photos">No photos available</div>`}
+                                                ${photos.length ? `<img id="assetMainPhoto" src="${photos[0].url}" alt="Asset photo" class="img-fluid" style="max-height:100%;max-width:100%;cursor:pointer;" />` : `<div class="text-center" data-i18n="no_property_photos">No photos available</div>`}
                                             </div>
                                             <div class="asset-photo-grid">
                                                 ${photos.length ? photos.map((photo, index) => `
@@ -734,43 +735,52 @@ async function showFixedAssetDetails(assetId) {
                                 <div class="asset-renovation-card">
                                     <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
                                         <div>
-                                            <div class="small text-muted mb-2" data-i18n="date">Date</div>
+                                            <div class="small mb-2" data-i18n="date">Date</div>
                                             <div class="fw-semibold">${r.date || '-'}</div>
-                                            <div class="small text-muted mt-2" data-i18n="category">Category</div>
+                                            <div class="small mt-2" data-i18n="category">Category</div>
                                             <div>${r.category || '-'}</div>
                                         </div>
                                         <div class="text-md-end">
-                                            <div class="small text-muted mb-2" data-i18n="amount_usd">Amount USD</div>
+                                            <div class="small mb-2" data-i18n="amount_usd">Amount USD</div>
                                             <div class="fw-semibold">${fmt(r.amount_usd)}</div>
-                                            <div class="small text-muted mt-3" data-i18n="amount_egp">Amount EGP</div>
+                                            <div class="small mt-3" data-i18n="amount_egp">Amount EGP</div>
                                             <div class="fw-semibold">${fmt(r.amount_egp)}</div>
                                         </div>
                                     </div>
                                     <div class="mt-3">
-                                        <div class="small text-muted mb-1" data-i18n="description">Description</div>
+                                        <div class="small mb-1" data-i18n="description">Description</div>
                                         <div>${r.description || '-'}</div>
                                     </div>
                                     <div class="mt-3">
-                                        <div class="small text-muted mb-1" data-i18n="notes">Notes</div>
+                                        <div class="small mb-1" data-i18n="notes">Notes</div>
                                         <div>${r.notes || '-'}</div>
                                     </div>
                                 </div>
                             </div>
                         `).join('') : `
                             <div class="col-12">
-                                <div class="text-center text-muted py-5" data-i18n="no_renovations">No renovations registered.</div>
+                                <div class="text-center py-5" data-i18n="no_renovations">No renovations registered.</div>
                             </div>
                         `}
                         ${renovations.length ? `
                         <div class="col-12">
-                            <div class="asset-renovation-card asset-renovation-summary">
-                                <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-center">
-                                    <div class="fw-semibold" data-i18n="total_renovation_cost_usd">Total Renovation Cost USD</div>
-                                    <div class="text-end">
-                                        <div>${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_usd) || 0), 0))}</div>
-                                        <div class="text-muted small" data-i18n="amount_egp">Total EGP</div>
-                                        <div>${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_egp) || 0), 0))}</div>
+                            <div class="asset-renovation-card asset-renovation-summary" style="padding: 16px;">
+                                <div class="d-flex flex-column gap-2" style="width: 100%;">
+                                    
+                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                        <div class="fw-semibold" data-i18n="total_renovation_cost_usd">Total Renovation Cost USD</div>
+                                        <div class="text-end fw-semibold">
+                                            $${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_usd) || 0), 0))}
+                                        </div>
                                     </div>
+
+                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                        <div class="fw-semibold" data-i18n="amount_egp">Total EGP</div>
+                                        <div class="text-end fw-semibold">
+                                            ${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_egp) || 0), 0))} <span data-i18n="EGP">EGP</span>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -858,7 +868,7 @@ async function showFixedAssetDetails(assetId) {
       card.style.color = 'var(--text-primary)';
     });
 
-    document.querySelectorAll('#assetDetailsTabsContent .text-muted').forEach((el) => {
+    document.querySelectorAll('#assetDetailsTabsContent').forEach((el) => {
       el.style.color = 'var(--text-secondary)';
     });
   } catch (err) {
