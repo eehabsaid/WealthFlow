@@ -1,7 +1,12 @@
-/* ============================================================
+/* ════════════════════════════════════════════════════════════════════════════
    reports.js — Reports Page (Monthly / Yearly / Custom)
-   ============================================================ */
+   Income vs Expenses analysis and PDF export
+   ════════════════════════════════════════════════════════════════════════════ */
 "use strict";
+
+// ════════════════════════════════════════════════════════════════════════════
+// MODULE STATE
+// ════════════════════════════════════════════════════════════════════════════
 
 var currentReportYear = 2026;
 let _currentTab = "monthly";
@@ -20,6 +25,10 @@ const REPORT_MONTH_I18N_KEYS = [
   "month_december",
 ];
 
+// ════════════════════════════════════════════════════════════════════════════
+// REPORTS RENDERING
+// ════════════════════════════════════════════════════════════════════════════
+
 async function renderReports() {
   const mc = document.getElementById("main-content");
   const today = new Date();
@@ -28,18 +37,24 @@ async function renderReports() {
   const month = today.getMonth() + 1;
   _currentTab = "monthly";
 
+  const reportsTitle = t('reports_title', '📊 Reports');
+  const reportsDesc = t('reports_income_expenses_analysis', 'Income vs Expenses analysis and PDF export');
+  const monthlyText = t('tab_monthly', 'Monthly');
+  const yearlyText = t('tab_yearly', 'Yearly');
+  const customText = t('tab_custom_range', 'Custom Range');
+
   mc.innerHTML = `
     <div class="page-header">
       <div>
-        <div class="page-title" data-i18n="reports_title">📊 Reports</div>
-        <div class="page-subtitle" data-i18n="reports_income_expenses_analysis">Income vs Expenses analysis and PDF export</div>
+        <div class="page-title" data-i18n="reports_title">${reportsTitle}</div>
+        <div class="page-subtitle" data-i18n="reports_income_expenses_analysis">${reportsDesc}</div>
       </div>
     </div>
 
     <div class="settings-tabs mb-4">
-      <button class="settings-tab active" id="tabMonthly" onclick="switchReportTab('monthly')" data-i18n="tab_monthly">Monthly</button>
-      <button class="settings-tab" id="tabYearly"  onclick="switchReportTab('yearly')" data-i18n="tab_yearly">Yearly</button>
-      <button class="settings-tab" id="tabCustom"  onclick="switchReportTab('custom')" data-i18n="tab_custom_range">Custom Range</button>
+      <button class="settings-tab active" id="tabMonthly" onclick="switchReportTab('monthly')" data-i18n="tab_monthly">${monthlyText}</button>
+      <button class="settings-tab" id="tabYearly"  onclick="switchReportTab('yearly')" data-i18n="tab_yearly">${yearlyText}</button>
+      <button class="settings-tab" id="tabCustom"  onclick="switchReportTab('custom')" data-i18n="tab_custom_range">${customText}</button>
     </div>
 
     <div id="ctrlMonthly" class="report-controls mb-4">
@@ -48,6 +63,7 @@ async function renderReports() {
       </select>
       <select class="form-select" id="rMonth" style="width:auto" onchange="loadReportData()">
         ${monthOpts(month)}
+
       </select>
       <button class="btn-primary-custom" onclick="generatePDF('monthly')">
         <i class="bi bi-file-earmark-pdf"></i> <span data-i18n="generate_pdf">Generate PDF</span>
@@ -481,6 +497,10 @@ function drawTrendChart(monthly) {
   });
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// PDF GENERATION
+// ════════════════════════════════════════════════════════════════════════════
+
 async function generatePDF(type) {
   let year = parseInt(
     document.getElementById("rYear")?.value ||
@@ -510,10 +530,13 @@ async function generatePDF(type) {
   };
 
   const btn = event?.target;
+  const generatingText = t('generating', 'Generating…');
+  const generatePdfText = t('generate_pdf', 'Generate PDF');
+  
   if (btn) {
     btn.disabled = true;
     btn.innerHTML =
-      '<div class="spinner-border spinner-border-sm"></div> Generating…';
+      `<div class="spinner-border spinner-border-sm"></div> ${generatingText}`;
   }
 
   try {
@@ -525,7 +548,7 @@ async function generatePDF(type) {
 
     if (!res.ok) {
       const err = await res.json();
-      showToast("Error: " + (err.error || "Unknown error"), "error");
+      showToast(t('error_prefix', 'Error: ') + (err.error || t('unknown_error', 'Unknown error')), "error");
       return;
     }
 
@@ -538,17 +561,21 @@ async function generatePDF(type) {
     a.href = url;
     a.click();
     URL.revokeObjectURL(url);
-    showToast("PDF downloaded ✓", "success");
+    showToast(t('pdf_downloaded', 'PDF downloaded ✓'), "success");
   } catch (e) {
-    showToast("Network error: " + e.message, "error");
+    showToast(t('network_error_prefix', 'Network error: ') + e.message, "error");
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-file-earmark-pdf"></i> Generate PDF';
+      btn.innerHTML = `<i class="bi bi-file-earmark-pdf"></i> ${generatePdfText}`;
     }
   }
   applyTranslations();
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// UTILITY FUNCTIONS
+// ════════════════════════════════════════════════════════════════════════════
 
 function yearOpts(current) {
   let o = "";
@@ -571,7 +598,10 @@ function renderYearlyReport() {
   switchReportTab("yearly");
 }
 
-// Standard Window Object Mappings
+// ════════════════════════════════════════════════════════════════════════════
+// EXPORTS
+// ════════════════════════════════════════════════════════════════════════════
+
 window.editIncome = editIncome;
 window.switchReportTab = switchReportTab;
 window.switchTab = switchReportTab;
