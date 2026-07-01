@@ -1,4 +1,11 @@
 // advanced_reports.js — Advanced Reports & Analytics (Feature 4)
+// Salary, Company, Balance, and Certificate analytics dashboards
+
+'use strict';
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADVANCED REPORTS RENDERING
+// ════════════════════════════════════════════════════════════════════════════
 
 async function renderAdvancedReports(tab) {
     tab = tab || 'salary';
@@ -20,12 +27,15 @@ async function renderAdvancedReports(tab) {
             </button>
         `).join('');
 
+    const advancedReportsTitle = t('nav_advanced_reports', 'Advanced Reports');
+    const advancedReportsSubtitle = t('advanced_reports_subtitle', 'Multi-dimensional analysis dashboards');
+
     mc.innerHTML = `
         <div class="page-header">
             <div>
-                <div class="page-title">📊 <span data-i18n="nav_advanced_reports"></span></div>
+                <div class="page-title">📊 <span data-i18n="nav_advanced_reports">${advancedReportsTitle}</span></div>
         
-                <div style="color:var(--text-muted);font-size:13px" data-i18n="advanced_reports_subtitle"></div>
+                <div style="color:var(--text-muted);font-size:13px" data-i18n="advanced_reports_subtitle">${advancedReportsSubtitle}</div>
             </div>
         </div>
         <div style="border-bottom:1px solid var(--border-color);margin-bottom:20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap">
