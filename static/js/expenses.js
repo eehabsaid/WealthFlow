@@ -1,7 +1,11 @@
-/* ============================================================
+/* ════════════════════════════════════════════════════════════════════════════
    expenses.js — Expense Entries + Categories + Dashboard KPIs
-   ============================================================ */
+   ════════════════════════════════════════════════════════════════════════════ */
 "use strict";
+
+// ════════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════════════════════════════════════
 
 const MONTHS_NAMES = [
   "January",
@@ -38,9 +42,10 @@ const PAYMENT_METHODS = [
   { value: "Other", key: "payment_other" },
 ];
 
-/* ╔══════════════════════════════════════════════════════════╗
-   ║  EXPENSE ENTRIES PAGE                                    ║
-   ╚══════════════════════════════════════════════════════════╝ */
+// ════════════════════════════════════════════════════════════════════════════
+// EXPENSE ENTRIES PAGE
+// ════════════════════════════════════════════════════════════════════════════
+
 async function renderExpenses() {
   const mc = document.getElementById("main-content");
   mc.innerHTML = loadingHTML
@@ -612,6 +617,10 @@ async function addSubcategory(catId) {
   } else showToast("Error", "error");
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// SUBCATEGORY MANAGEMENT
+// ════════════════════════════════════════════════════════════════════════════
+
 async function saveSubcategory(subId) {
   const name = document.getElementById(`sub_${subId}`)?.value.trim();
   if (!name) return;
@@ -620,15 +629,19 @@ async function saveSubcategory(subId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
-  showToast("Saved ✓", "success");
+  showToast(t('saved', 'Saved ✓'), "success");
 }
 
 async function deleteSubcategory(subId, catId) {
-  if (!confirm("Delete this subcategory?")) return;
+  if (!confirm(t('confirm_delete_subcategory', 'Delete this subcategory?'))) return;
   await fetch(`/api/expense-subcategories/${subId}/`, { method: "DELETE" });
-  showToast("Deleted");
+  showToast(t('deleted', 'Deleted'), "success");
   showSubcategoryModal(catId);
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// EXPORTS
+// ════════════════════════════════════════════════════════════════════════════
 
 window.renderExpenses = renderExpenses;
 window.renderExpenseCategories = renderExpenseCategories;
