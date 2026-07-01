@@ -3324,24 +3324,6 @@ class FixedAssetDetailView(View):
         return JsonResponse({"deleted": pk})
 
 @method_decorator(csrf_exempt, name="dispatch")
-class AssetPhotoUploadView(View):
-
-    def post(self, request, pk):
-
-        asset = get_object_or_404(FixedAsset, pk=pk)
-
-        for file in request.FILES.getlist("photos"):
-
-            AssetPhoto.objects.create(
-                asset=asset,
-                image_data=file.read(),
-                filename=file.name,
-                mime_type=file.content_type,
-            )
-
-        return JsonResponse({"success": True})
-    
-@method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetPhotoView(View):
 
     def post(self, request, pk):

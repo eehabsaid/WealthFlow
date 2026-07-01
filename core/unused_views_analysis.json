@@ -1,0 +1,378 @@
+{
+  "unused": [
+    "AdminRequiredMixin",
+    "AssetPhotoUploadView"
+  ],
+  "usage": {
+    "ExportExcelWorkbookView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "AdminRequiredMixin": {
+      "refs": 0,
+      "files": []
+    },
+    "LoginAPIView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "SignupAPIView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "LogoutAPIView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "CurrentUserView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "UserListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "UserDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "UserPermissionListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "UserBulkActionView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "UserPermissionDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "PagePermissionChoicesView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "CompanyListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "CompanyDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "SalaryListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "SalaryDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "SalarySummaryView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "BankListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "BankDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "BankCertificateListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "BankCertificateDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "CurrencyListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "CurrencyDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "BalanceListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "BalanceDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "SettingsView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ExchangeRateListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ExchangeRateRefreshView": {
+      "refs": 2,
+      "files": [
+        "core\\urls.py",
+        "core\\management\\commands\\fetch_rates.py"
+      ]
+    },
+    "GoldPriceListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "GoldPriceRefreshView": {
+      "refs": 2,
+      "files": [
+        "core\\urls.py",
+        "core\\management\\commands\\fetch_rates.py"
+      ]
+    },
+    "ExpenseCategoryListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ExpenseCategoryDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ExpenseSubcategoryListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ExpenseSubcategoryDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ExpenseListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ExpenseDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ExpenseSummaryView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "GenerateReportView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "UpdateProfileView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ReminderRuleListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ReminderRuleDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ReminderCheckView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "ReminderLogListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "CertificateStatusListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "CertificateStatusDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "SalaryReportView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "BalanceReportView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "CertificateReportView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "DashboardSummaryView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "CertificateForecastView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "FixedAssetListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "FixedAssetDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "AssetPhotoUploadView": {
+      "refs": 0,
+      "files": []
+    },
+    "FixedAssetPhotoView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "AssetPhotoView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "AssetRenovationListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "AssetRenovationDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "AssetFurnitureListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "AssetFurnitureDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "AssetValuationHistoryListView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "AssetValuationHistoryDetailView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    },
+    "AssetSaleView": {
+      "refs": 1,
+      "files": [
+        "core\\urls.py"
+      ]
+    }
+  }
+}
