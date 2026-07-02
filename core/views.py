@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal, InvalidOperation
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -6,6 +7,7 @@ from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.db import transaction
 from django.db.models import Sum, Count
 from django.shortcuts import render, get_object_or_404, redirect
@@ -1128,6 +1130,8 @@ class GoldPriceRefreshView(View):
                     usd_per_oz=gp.usd_per_oz,
                     usd_to_egp=gp.usd_to_egp,
                 )
+
+            _refresh_all_gold_assets_from_live_prices()
             return JsonResponse({"gold": gp.to_dict()})
 
         except Exception as e:
@@ -2683,7 +2687,7 @@ class CertificateReportView(View):
             )
 
         total_interest = float(agg["total_interest"] or 0)
-        monthly_interest = total_interest if total_interest else 0.0
+        monthly_interest = (total_interest / 12.0) if total_interest else 0.0
 
         return JsonResponse(
             {
@@ -3151,6 +3155,169 @@ VEHICLE_ASSET_TYPES = {"Vehicles"}
 GOLD_ASSET_TYPES = {"Gold"}
 OTHER_ASSET_TYPES = {"Other Assets"}
 
+GOLD_UNIT_TO_GRAMS = {
+    "g": Decimal("1"),
+    "gm": Decimal("1"),
+    "gram": Decimal("1"),
+    "grams": Decimal("1"),
+    "kg": Decimal("1000"),
+    "kilogram": Decimal("1000"),
+    "kilograms": Decimal("1000"),
+    "oz": Decimal("31.1034768"),
+    "ounce": Decimal("31.1034768"),
+    "ounces": Decimal("31.1034768"),
+    "tola": Decimal("11.6638038"),
+}
+
+
+def _to_decimal(value, default="0"):
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(default)
+
+
+def _gold_unit_factor(unit_value):
+    normalized = str(unit_value or "gram").strip().lower()
+    return GOLD_UNIT_TO_GRAMS.get(normalized, Decimal("1"))
+
+
+def _gold_weight_in_grams(weight_value, unit_value):
+    return _to_decimal(weight_value) * _gold_unit_factor(unit_value)
+
+
+def _normalize_gold_purity(purity_value):
+    text = str(purity_value or "").strip().lower()
+    if "24" in text or "999" in text:
+        return "24k"
+    if "22" in text or "916" in text:
+        return "22k"
+    if "21" in text or "875" in text:
+        return "21k"
+    if "18" in text or "750" in text:
+        return "18k"
+    return "24k"
+
+
+def _gold_sell_price_per_gram(latest_gold_price, purity_key):
+    price_map = {
+        "24k": _to_decimal(latest_gold_price.carat_24k),
+        "22k": _to_decimal(latest_gold_price.carat_22k),
+        "21k": _to_decimal(latest_gold_price.carat_21k),
+        "18k": _to_decimal(latest_gold_price.carat_18k),
+    }
+    return price_map.get(purity_key, price_map["24k"])
+
+
+def _latest_gold_price():
+    return GoldPrice.objects.order_by("-fetched_at").first()
+
+
+def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None):
+    if asset.asset_type not in GOLD_ASSET_TYPES:
+        return
+
+    details = gold_details
+    if details is None:
+        details = getattr(asset, "gold_details", None)
+    if details is None:
+        return
+
+    latest_gold = latest_gold_price or _latest_gold_price()
+    if latest_gold is None:
+        return
+
+    usd_to_egp = _to_decimal(latest_gold.usd_to_egp)
+    if usd_to_egp > 0:
+        asset.purchase_usd_rate = usd_to_egp
+        asset.purchase_price_usd = _to_decimal(asset.purchase_price) / usd_to_egp
+
+    purity_key = _normalize_gold_purity(details.purity)
+    sell_price_per_gram = _gold_sell_price_per_gram(latest_gold, purity_key)
+    unit_factor = _gold_unit_factor(details.unit)
+    details.market_price = sell_price_per_gram * unit_factor
+
+    cashback_per_gram = _to_decimal(details.cashback_per_gram)
+    total_weight_grams = _gold_weight_in_grams(details.weight, details.unit)
+    asset.current_market_value = total_weight_grams * (sell_price_per_gram + cashback_per_gram)
+    asset.valuation_source = "Automatic"
+    asset.last_valuation_date = timezone.now().date()
+
+    details.save(update_fields=["market_price", "updated_at"])
+    asset.save(
+        update_fields=[
+            "purchase_usd_rate",
+            "purchase_price_usd",
+            "current_market_value",
+            "valuation_source",
+            "last_valuation_date",
+            "updated_at",
+        ]
+    )
+
+
+def _sync_gold_balance_from_assets():
+    gold_currency = Currency.objects.filter(code__iexact="gold").first()
+    if not gold_currency:
+        return
+
+    gold_assets = (
+        FixedAsset.objects.filter(asset_type__in=GOLD_ASSET_TYPES, status="Owned")
+        .select_related("gold_details")
+        .order_by("id")
+    )
+
+    total_gold_grams = Decimal("0")
+    for asset in gold_assets:
+        details = getattr(asset, "gold_details", None)
+        if details is None:
+            continue
+        total_gold_grams += _gold_weight_in_grams(details.weight, details.unit)
+
+    balance_qs = BalanceEntry.objects.filter(
+        balance_type=BalanceEntry.BalanceType.GOLD,
+        currency_id=gold_currency.id,
+    ).order_by("id")
+
+    if total_gold_grams > 0:
+        primary_entry = balance_qs.first()
+        defaults = {
+            "title": (gold_currency.name or "Gold"),
+            "bank": None,
+            "amount": total_gold_grams.quantize(Decimal("0.01")),
+            "notes": "",
+        }
+
+        if primary_entry:
+            for key, value in defaults.items():
+                setattr(primary_entry, key, value)
+            primary_entry.save()
+        else:
+            primary_entry = BalanceEntry.objects.create(
+                balance_type=BalanceEntry.BalanceType.GOLD,
+                currency_id=gold_currency.id,
+                **defaults,
+            )
+
+        balance_qs.exclude(pk=primary_entry.pk).delete()
+    else:
+        balance_qs.delete()
+
+
+def _refresh_all_gold_assets_from_live_prices():
+    latest_gold = _latest_gold_price()
+    if latest_gold is None:
+        return
+
+    gold_assets = FixedAsset.objects.filter(asset_type__in=GOLD_ASSET_TYPES).select_related("gold_details")
+    for asset in gold_assets:
+        details = getattr(asset, "gold_details", None)
+        if details is None:
+            continue
+        _refresh_gold_asset_pricing(asset, details, latest_gold)
+
+    _sync_gold_balance_from_assets()
+
 
 def _clear_non_selected_asset_details(asset):
     if asset.asset_type not in REAL_ESTATE_ASSET_TYPES and hasattr(asset, "real_estate"):
@@ -3195,17 +3362,19 @@ def _sync_gold_details(asset, details_data):
             asset.gold_details.delete()
         return
 
-    GoldDetails.objects.update_or_create(
+    details_obj, _ = GoldDetails.objects.update_or_create(
         asset=asset,
         defaults={
             "gold_type": details_data.get("gold_type", ""),
             "purity": details_data.get("purity", ""),
             "weight": details_data.get("weight", 0),
             "unit": details_data.get("unit", "gram"),
-            "market_price": details_data.get("market_price", 0),
+            "cashback_per_gram": details_data.get("cashback_per_gram", 0),
             "purchase_weight": details_data.get("purchase_weight", 0),
         },
     )
+
+    _refresh_gold_asset_pricing(asset, details_obj)
 
 
 def _sync_other_asset_details(asset, details_data):
@@ -3357,7 +3526,7 @@ def _sync_asset_furniture(asset, items):
 
 
 def _sync_asset_valuation_history(asset, items):
-    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES and asset.asset_type not in GOLD_ASSET_TYPES:
+    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES and asset.asset_type not in VEHICLE_ASSET_TYPES and asset.asset_type not in OTHER_ASSET_TYPES:
         AssetValuationHistory.objects.filter(asset=asset).delete()
         return
 
@@ -3491,6 +3660,7 @@ class FixedAssetListView(View):
         _sync_asset_furniture(asset, data.get("furniture", []))
         _sync_asset_valuation_history(asset, data.get("valuation_history", []))
         _clear_non_selected_asset_details(asset)
+        _sync_gold_balance_from_assets()
 
         return JsonResponse(asset.to_dict(), status=201)
     
@@ -3601,12 +3771,14 @@ class FixedAssetDetailView(View):
         _sync_asset_furniture(asset, data.get("furniture", []))
         _sync_asset_valuation_history(asset, data.get("valuation_history", []))
         _clear_non_selected_asset_details(asset)
+        _sync_gold_balance_from_assets()
 
         return JsonResponse(asset.to_dict())
 
     def delete(self, request, pk):
         asset = get_object_or_404(FixedAsset, pk=pk)
         asset.delete()
+        _sync_gold_balance_from_assets()
 
         return JsonResponse({"deleted": pk})
 
@@ -4002,11 +4174,17 @@ class AssetSaleView(View):
         asset = get_object_or_404(FixedAsset, pk=asset_id)
 
         data = json.loads(request.body)
+        sale_date_value = data.get("sale_date")
+        if isinstance(sale_date_value, str):
+            try:
+                sale_date_value = datetime.date.fromisoformat(sale_date_value)
+            except ValueError:
+                pass
 
         sale, created = AssetSale.objects.update_or_create(
             asset=asset,
             defaults={
-                "sale_date": data["sale_date"],
+                "sale_date": sale_date_value,
                 "sale_price": data["sale_price"],
                 "selling_expenses": data.get("selling_expenses", 0),
                 "net_sale_amount": data["net_sale_amount"],
@@ -4017,6 +4195,7 @@ class AssetSaleView(View):
 
         asset.status = "Sold"
         asset.save()
+        _sync_gold_balance_from_assets()
 
         return JsonResponse(
             sale.to_dict(),
@@ -4034,6 +4213,8 @@ class AssetSaleView(View):
         if asset.status == "Sold":
             asset.status = "Owned"
             asset.save()
+
+        _sync_gold_balance_from_assets()
 
         return JsonResponse({"deleted": True})
 

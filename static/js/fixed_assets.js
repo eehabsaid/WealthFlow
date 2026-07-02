@@ -13,6 +13,9 @@ let fixedAssetsState = {
   portfolioSnapshotLoading: false,
 };
 
+let latestGoldPriceCache = null;
+let latestGoldPriceFetchedAt = 0;
+
 const FIXED_ASSET_TYPES = {
   REAL_ESTATE: "Real Estate",
   VEHICLES: "Vehicles",
@@ -41,6 +44,61 @@ function isGoldAssetType(value) {
 
 function isOtherAssetType(value) {
   return value === FIXED_ASSET_TYPES.OTHER;
+}
+
+function getGoldUnitFactor(unitValue) {
+  const normalized = String(unitValue || "gram").trim().toLowerCase();
+  const map = {
+    g: 1,
+    gm: 1,
+    gram: 1,
+    grams: 1,
+    kg: 1000,
+    kilogram: 1000,
+    kilograms: 1000,
+    oz: 31.1034768,
+    ounce: 31.1034768,
+    ounces: 31.1034768,
+    tola: 11.6638038,
+  };
+  return map[normalized] || 1;
+}
+
+function normalizeGoldPurity(purityValue) {
+  const text = String(purityValue || "").trim().toLowerCase();
+  if (text.includes("24") || text.includes("999")) return "24k";
+  if (text.includes("22") || text.includes("916")) return "22k";
+  if (text.includes("21") || text.includes("875")) return "21k";
+  if (text.includes("18") || text.includes("750")) return "18k";
+  return "24k";
+}
+
+function getGoldSellPerGram(goldPayload, purityKey) {
+  if (!goldPayload) return 0;
+  const map = {
+    "24k": parseFloat(goldPayload.carat_24k) || 0,
+    "22k": parseFloat(goldPayload.carat_22k) || 0,
+    "21k": parseFloat(goldPayload.carat_21k) || 0,
+    "18k": parseFloat(goldPayload.carat_18k) || 0,
+  };
+  return map[purityKey] || map["24k"] || 0;
+}
+
+async function getLatestGoldPrice(force = false) {
+  const now = Date.now();
+  if (!force && latestGoldPriceCache && now - latestGoldPriceFetchedAt < 30000) {
+    return latestGoldPriceCache;
+  }
+
+  const response = await fetch("/api/gold/");
+  if (!response.ok) {
+    throw new Error(t("error_loading_gold_prices", "Failed to load gold prices."));
+  }
+
+  const data = await response.json();
+  latestGoldPriceCache = data?.gold || null;
+  latestGoldPriceFetchedAt = now;
+  return latestGoldPriceCache;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1299,7 +1357,7 @@ async function showFixedAssetModal(assetId = null) {
                             </div>
                         </div>
 
-                        <div class="row g-3 mb-3">
+                        <div class="row g-3 mb-3" id="valuation-source-row">
                             <div class="col-md-12">
                                 <label class="form-label text-light" data-i18n="valuation_source">Valuation Source</label>
                                 <select class="form-select" id="fa_val_source">
@@ -1487,8 +1545,10 @@ async function showFixedAssetModal(assetId = null) {
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="purity">Purity</label><input type="text" class="form-control" id="gd_purity"></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="weight">Weight</label><input type="number" step="0.0001" class="form-control" id="gd_weight" oninput="updateGoldValuation()"></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="unit">Unit</label><input type="text" class="form-control" id="gd_unit" value="gram"></div>
-                              <div class="col-md-4"><label class="form-label text-light" data-i18n="market_price">Market Price</label><input type="number" step="0.0001" class="form-control" id="gd_market_price" oninput="updateGoldValuation()"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="market_price">Market Price</label><input type="number" step="0.0001" class="form-control" id="gd_market_price" readonly></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="cashback_per_gram">Cashback per Gram</label><input type="number" step="0.0001" class="form-control" id="gd_cashback_per_gram" value="0" oninput="updateGoldValuation()"></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="purchase_weight">Purchase Weight</label><input type="number" step="0.0001" class="form-control" id="gd_purchase_weight"></div>
+                              <div class="col-12"><small class="text-light" style="opacity:.75;" data-i18n="auto_calculated_from_gold_prices">Auto-calculated from Gold Prices module (SELL + USD/EGP).</small></div>
                             </div>
                           </div>
                         </div>
@@ -1754,6 +1814,8 @@ async function showFixedAssetModal(assetId = null) {
   const monthlyRentField = document.getElementById("fa_monthly_rent");
   const remainingBalanceField = document.getElementById("fa_remaining_balance");
   const assetTypeField = document.getElementById("fa_type");
+  const goldPurityField = document.getElementById("gd_purity");
+  const goldUnitField = document.getElementById("gd_unit");
 
   if (statusField) {
     statusField.addEventListener("change", toggleSaleTabVisibility);
@@ -1784,6 +1846,14 @@ async function showFixedAssetModal(assetId = null) {
 
   if (assetTypeField) {
     assetTypeField.addEventListener("change", toggleRealEstateDependentTabs);
+  }
+
+  if (goldPurityField) {
+    goldPurityField.addEventListener("input", updateGoldValuation);
+  }
+
+  if (goldUnitField) {
+    goldUnitField.addEventListener("input", updateGoldValuation);
   }
 
   await loadFixedAssetBalanceOptions();
@@ -1955,7 +2025,7 @@ async function showFixedAssetDetails(assetId) {
         `
         : "";
 
-      const extraValuationTab = isGoldAssetType(asset.asset_type)
+      const extraValuationTab = !isGoldAssetType(asset.asset_type)
         ? `
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="asset-valuation-tab" data-bs-toggle="tab" data-bs-target="#asset-valuation-pane" type="button" role="tab" data-i18n="valuation_history">Valuation History</button>
@@ -1963,7 +2033,7 @@ async function showFixedAssetDetails(assetId) {
         `
         : "";
 
-      const extraValuationPane = isGoldAssetType(asset.asset_type)
+      const extraValuationPane = !isGoldAssetType(asset.asset_type)
         ? `
           <div class="tab-pane fade" id="asset-valuation-pane" role="tabpanel" aria-labelledby="asset-valuation-tab">
             <div class="row g-3">
@@ -2602,6 +2672,7 @@ async function loadFixedAsset(assetId) {
     document.getElementById("gd_weight").value = gold.weight || "";
     document.getElementById("gd_unit").value = gold.unit || "gram";
     document.getElementById("gd_market_price").value = gold.market_price || "";
+    document.getElementById("gd_cashback_per_gram").value = gold.cashback_per_gram || 0;
     document.getElementById("gd_purchase_weight").value = gold.purchase_weight || "";
 
     const other = asset.other_asset_details || {};
@@ -2728,6 +2799,74 @@ function updatePurchasePriceUSD() {
   }
 }
 
+function applyGoldReadOnlyState(isGold) {
+  const purchaseUsdRateField = document.getElementById("fa_purchase_usd_rate");
+  const purchaseUsdField = document.getElementById("fa_purchase_price_usd");
+  const currentMarketValueField = document.getElementById("fa_current_value");
+  const goldMarketPriceField = document.getElementById("gd_market_price");
+  const valuationSourceRow = document.getElementById("valuation-source-row");
+  const valuationSourceField = document.getElementById("fa_val_source");
+
+  if (purchaseUsdRateField) purchaseUsdRateField.readOnly = isGold;
+  if (purchaseUsdField) purchaseUsdField.readOnly = true;
+  if (currentMarketValueField) currentMarketValueField.readOnly = isGold;
+  if (goldMarketPriceField) goldMarketPriceField.readOnly = true;
+
+  if (valuationSourceRow) {
+    valuationSourceRow.classList.toggle("d-none", isGold);
+  }
+  if (valuationSourceField && isGold) {
+    valuationSourceField.value = "Automatic";
+  }
+}
+
+async function refreshGoldCalculatedFields(forcePriceFetch = false) {
+  if (!isGoldAssetType(document.getElementById("fa_type")?.value)) {
+    return;
+  }
+
+  try {
+    const gold = await getLatestGoldPrice(forcePriceFetch);
+    if (!gold) return;
+
+    const usdRate = parseFloat(gold.usd_to_egp) || 0;
+    const usdRateField = document.getElementById("fa_purchase_usd_rate");
+    if (usdRateField) {
+      usdRateField.value = usdRate > 0 ? usdRate.toFixed(6) : "";
+    }
+    updatePurchasePriceUSD();
+
+    const purity = document.getElementById("gd_purity")?.value || "24K";
+    const unit = document.getElementById("gd_unit")?.value || "gram";
+    const weight = parseFloat(document.getElementById("gd_weight")?.value) || 0;
+    const cashbackPerGram = parseFloat(document.getElementById("gd_cashback_per_gram")?.value) || 0;
+
+    const purityKey = normalizeGoldPurity(purity);
+    const sellPerGram = getGoldSellPerGram(gold, purityKey);
+    const unitFactor = getGoldUnitFactor(unit);
+    const marketPricePerUnit = sellPerGram * unitFactor;
+    const weightInGrams = weight * unitFactor;
+    const currentMarketValue = (sellPerGram + cashbackPerGram) * weightInGrams;
+
+    const marketPriceField = document.getElementById("gd_market_price");
+    if (marketPriceField) {
+      marketPriceField.value = marketPricePerUnit > 0 ? marketPricePerUnit.toFixed(4) : "";
+    }
+
+    const currentValueField = document.getElementById("fa_current_value");
+    if (currentValueField) {
+      currentValueField.value = currentMarketValue > 0 ? currentMarketValue.toFixed(2) : "0.00";
+    }
+
+    const valuationSourceField = document.getElementById("fa_val_source");
+    if (valuationSourceField) {
+      valuationSourceField.value = "Automatic";
+    }
+  } catch (err) {
+    showToast(err.message, "danger");
+  }
+}
+
 function updateNetSaleAmount() {
   const salePrice =
     parseFloat(document.getElementById("fa_sale_price")?.value) || 0;
@@ -2798,6 +2937,7 @@ function toggleRealEstateDependentTabs() {
   const isVehicle = isVehicleAssetType(assetType);
   const isGold = isGoldAssetType(assetType);
   const isOther = isOtherAssetType(assetType);
+  const supportsValuationHistory = isRealEstate || isVehicle || isOther;
   const mortgageTabItem = document.getElementById("mortgage-tab-item");
   const rentalTabItem = document.getElementById("rental-tab-item");
   const vehicleTabItem = document.getElementById("vehicle-tab-item");
@@ -2863,9 +3003,15 @@ function toggleRealEstateDependentTabs() {
     }
   });
 
-  [goldTabItem, goldPane, valuationTab, valuationPane].forEach((element) => {
+  [goldTabItem, goldPane].forEach((element) => {
     if (element) {
       element.classList.toggle("d-none", !isGold);
+    }
+  });
+
+  [valuationTab, valuationPane].forEach((element) => {
+    if (element) {
+      element.classList.toggle("d-none", !supportsValuationHistory);
     }
   });
 
@@ -2875,8 +3021,10 @@ function toggleRealEstateDependentTabs() {
     }
   });
 
+  applyGoldReadOnlyState(isGold);
+
   if (isGold) {
-    updateGoldValuation();
+    refreshGoldCalculatedFields();
   }
 
   [
@@ -3120,6 +3268,10 @@ async function saveFixedAsset(assetId = null) {
     status: assetStatus,
   };
 
+  if (isGold) {
+    payload.valuation_source = "Automatic";
+  }
+
   if (isRealEstate) {
     payload.real_estate_details = {
       country: document.getElementById("re_country").value,
@@ -3170,7 +3322,7 @@ async function saveFixedAsset(assetId = null) {
   payload.insurance = isVehicle ? collectInsurance() : [];
 
   payload.furniture = isRealEstate ? collectFurniture() : [];
-  payload.valuation_history = (isRealEstate || isGold) ? collectValuationHistory() : [];
+  payload.valuation_history = (isRealEstate || isVehicle || isOther) ? collectValuationHistory() : [];
 
   showLoading();
   try {
@@ -4033,7 +4185,7 @@ function collectGoldDetailsPayload() {
     purity: document.getElementById("gd_purity")?.value || "",
     weight: parseFloat(document.getElementById("gd_weight")?.value) || 0,
     unit: document.getElementById("gd_unit")?.value || "gram",
-    market_price: parseFloat(document.getElementById("gd_market_price")?.value) || 0,
+    cashback_per_gram: parseFloat(document.getElementById("gd_cashback_per_gram")?.value) || 0,
     purchase_weight: parseFloat(document.getElementById("gd_purchase_weight")?.value) || 0,
   };
 }
@@ -4054,12 +4206,7 @@ function updateGoldValuation() {
   if (!isGoldAssetType(document.getElementById("fa_type")?.value)) {
     return;
   }
-  const weight = parseFloat(document.getElementById("gd_weight")?.value) || 0;
-  const marketPrice = parseFloat(document.getElementById("gd_market_price")?.value) || 0;
-  const currentValue = document.getElementById("fa_current_value");
-  if (currentValue) {
-    currentValue.value = (weight * marketPrice).toFixed(2);
-  }
+  refreshGoldCalculatedFields();
 }
 
 function addMaintenanceRow(data = {}) {
