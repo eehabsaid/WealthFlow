@@ -653,6 +653,7 @@
   "cashback_per_gram": "Cashback per Gram",
   "auto_calculated_from_gold_prices": "Auto-calculated from Gold Prices module (SELL + USD/EGP).",
   "error_loading_gold_prices": "Failed to load gold prices.",
+  "error_loading_gold_types": "Failed to load gold types.",
   "error_loading_gold_purities": "Failed to load gold purities.",
   "purchase_weight": "Purchase Weight",
   "brand": "Brand",

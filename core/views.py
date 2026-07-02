@@ -2905,6 +2905,7 @@ class CertificateReportView(View):
             )
 
         total_interest = float(agg["total_interest"] or 0)
+        # Monthly interest: total annual interest divided by 12 months
         monthly_interest = (total_interest / 12.0) if total_interest else 0.0
 
         return JsonResponse(

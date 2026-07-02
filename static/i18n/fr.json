@@ -649,6 +649,7 @@
   "cashback_per_gram": "Cashback par gramme",
   "auto_calculated_from_gold_prices": "Calcul automatique depuis le module Prix de l'or (VENTE + USD/EGP).",
   "error_loading_gold_prices": "Impossible de charger les prix de l'or.",
+  "error_loading_gold_types": "Impossible de charger les types d'or.",
   "error_loading_gold_purities": "Impossible de charger les puretes d'or.",
   "purchase_weight": "Poids d'achat",
   "brand": "Marque",

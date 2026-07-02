@@ -15,6 +15,8 @@ let fixedAssetsState = {
 
 let latestGoldPriceCache = null;
 let latestGoldPriceFetchedAt = 0;
+let goldTypeSettingsCache = null;
+let goldTypeSettingsFetchedAt = 0;
 let goldPuritySettingsCache = null;
 let goldPuritySettingsFetchedAt = 0;
 
@@ -103,6 +105,23 @@ async function getLatestGoldPrice(force = false) {
   return latestGoldPriceCache;
 }
 
+async function getGoldTypeSettings(force = false) {
+  const now = Date.now();
+  if (!force && goldTypeSettingsCache && now - goldTypeSettingsFetchedAt < 30000) {
+    return goldTypeSettingsCache;
+  }
+
+  const response = await fetch("/api/settings/gold-types/");
+  if (!response.ok) {
+    throw new Error(t("error_loading_gold_types", "Failed to load gold types."));
+  }
+
+  const data = await response.json();
+  goldTypeSettingsCache = data?.items || [];
+  goldTypeSettingsFetchedAt = now;
+  return goldTypeSettingsCache;
+}
+
 async function getGoldPuritySettings(force = false) {
   const now = Date.now();
   if (!force && goldPuritySettingsCache && now - goldPuritySettingsFetchedAt < 30000) {
@@ -118,6 +137,70 @@ async function getGoldPuritySettings(force = false) {
   goldPuritySettingsCache = data?.items || [];
   goldPuritySettingsFetchedAt = now;
   return goldPuritySettingsCache;
+}
+
+async function populateGoldSettingsDropdowns(selectedGoldType = "", selectedPurity = "") {
+  const goldTypeSelect = document.getElementById("gd_gold_type");
+  const puritySelect = document.getElementById("gd_purity");
+  if (!goldTypeSelect || !puritySelect) return;
+
+  const fallbackType = String(selectedGoldType || "").trim();
+  const fallbackPurity = String(selectedPurity || "").trim();
+
+  try {
+    const [goldTypes, goldPurities] = await Promise.all([
+      getGoldTypeSettings(),
+      getGoldPuritySettings(),
+    ]);
+
+    const activeGoldTypes = (goldTypes || []).filter((item) => item && item.is_active);
+    const activePurities = (goldPurities || []).filter((item) => item && item.is_active);
+
+    goldTypeSelect.innerHTML = activeGoldTypes
+      .map((item) => `<option value="${item.name}">${item.name}</option>`)
+      .join("");
+
+    puritySelect.innerHTML = activePurities
+      .map((item) => `<option value="${item.key}">${item.label || item.key}</option>`)
+      .join("");
+
+    if (fallbackType) {
+      const hasType = activeGoldTypes.some((item) => String(item.name) === fallbackType);
+      if (!hasType) {
+        goldTypeSelect.insertAdjacentHTML("beforeend", `<option value="${fallbackType}">${fallbackType}</option>`);
+      }
+      goldTypeSelect.value = fallbackType;
+    } else if (goldTypeSelect.options.length) {
+      goldTypeSelect.selectedIndex = 0;
+    }
+
+    if (fallbackPurity) {
+      const normalizedFallbackPurity = normalizeGoldPurity(fallbackPurity);
+      const hasPurity = activePurities.some((item) => String(item.key || "").toLowerCase() === normalizedFallbackPurity);
+      if (!hasPurity) {
+        puritySelect.insertAdjacentHTML("beforeend", `<option value="${normalizedFallbackPurity}">${fallbackPurity}</option>`);
+      }
+      puritySelect.value = hasPurity ? normalizedFallbackPurity : normalizedFallbackPurity;
+    } else if (puritySelect.options.length) {
+      puritySelect.selectedIndex = 0;
+    }
+  } catch (error) {
+    showToast(error.message, "danger");
+
+    if (!goldTypeSelect.options.length) {
+      goldTypeSelect.innerHTML = `<option value="">${t("none_option", "--")}</option>`;
+    }
+    if (!puritySelect.options.length) {
+      puritySelect.innerHTML = `<option value="24k">24K</option>`;
+    }
+
+    if (fallbackType) {
+      goldTypeSelect.value = fallbackType;
+    }
+    if (fallbackPurity) {
+      puritySelect.value = normalizeGoldPurity(fallbackPurity);
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1560,8 +1643,8 @@ async function showFixedAssetModal(assetId = null) {
                         <div class="card border-0 shadow-sm bg-transparent">
                           <div class="card-body px-0 pt-2">
                             <div class="row g-3">
-                              <div class="col-md-4"><label class="form-label text-light" data-i18n="gold_type">Gold Type</label><input type="text" class="form-control" id="gd_gold_type"></div>
-                              <div class="col-md-4"><label class="form-label text-light" data-i18n="purity">Purity</label><input type="text" class="form-control" id="gd_purity"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="gold_type">Gold Type</label><select class="form-select" id="gd_gold_type"></select></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="purity">Purity</label><select class="form-select" id="gd_purity"></select></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="weight">Weight</label><input type="number" step="0.0001" class="form-control" id="gd_weight" oninput="updateGoldValuation()"></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="unit">Unit</label><input type="text" class="form-control" id="gd_unit" value="gram"></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="market_price">Market Price</label><input type="number" step="0.0001" class="form-control" id="gd_market_price" readonly></div>
@@ -1825,6 +1908,7 @@ async function showFixedAssetModal(assetId = null) {
 
   showModal(html);
   applyTranslations();
+  await populateGoldSettingsDropdowns();
   const propertyTab = document.getElementById("property-tab");
   const statusField = document.getElementById("fa_status");
   const salePriceField = document.getElementById("fa_sale_price");
@@ -1868,7 +1952,7 @@ async function showFixedAssetModal(assetId = null) {
   }
 
   if (goldPurityField) {
-    goldPurityField.addEventListener("input", updateGoldValuation);
+    goldPurityField.addEventListener("change", updateGoldValuation);
   }
 
   if (goldUnitField) {
@@ -2686,8 +2770,7 @@ async function loadFixedAsset(assetId) {
     document.getElementById("vd_color").value = vehicle.color || "";
 
     const gold = asset.gold_details || {};
-    document.getElementById("gd_gold_type").value = gold.gold_type || "";
-    document.getElementById("gd_purity").value = gold.purity || "";
+    await populateGoldSettingsDropdowns(gold.gold_type || "", gold.purity || "");
     document.getElementById("gd_weight").value = gold.weight || "";
     document.getElementById("gd_unit").value = gold.unit || "gram";
     document.getElementById("gd_market_price").value = gold.market_price || "";

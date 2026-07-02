@@ -649,6 +649,7 @@
   "cashback_per_gram": "كاش باك لكل جرام",
   "auto_calculated_from_gold_prices": "يتم الحساب تلقائيا من وحدة اسعار الذهب (سعر البيع + دولار/جنيه).",
   "error_loading_gold_prices": "تعذر تحميل اسعار الذهب.",
+  "error_loading_gold_types": "تعذر تحميل أنواع الذهب.",
   "error_loading_gold_purities": "تعذر تحميل عيارات الذهب.",
   "purchase_weight": "وزن الشراء",
   "brand": "العلامة",
