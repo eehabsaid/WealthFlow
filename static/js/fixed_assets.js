@@ -15,6 +15,8 @@ let fixedAssetsState = {
 
 let latestGoldPriceCache = null;
 let latestGoldPriceFetchedAt = 0;
+let goldPuritySettingsCache = null;
+let goldPuritySettingsFetchedAt = 0;
 
 const FIXED_ASSET_TYPES = {
   REAL_ESTATE: "Real Estate",
@@ -99,6 +101,23 @@ async function getLatestGoldPrice(force = false) {
   latestGoldPriceCache = data?.gold || null;
   latestGoldPriceFetchedAt = now;
   return latestGoldPriceCache;
+}
+
+async function getGoldPuritySettings(force = false) {
+  const now = Date.now();
+  if (!force && goldPuritySettingsCache && now - goldPuritySettingsFetchedAt < 30000) {
+    return goldPuritySettingsCache;
+  }
+
+  const response = await fetch("/api/settings/gold-purities/");
+  if (!response.ok) {
+    throw new Error(t("error_loading_gold_purities", "Failed to load gold purities."));
+  }
+
+  const data = await response.json();
+  goldPuritySettingsCache = data?.items || [];
+  goldPuritySettingsFetchedAt = now;
+  return goldPuritySettingsCache;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1546,7 +1565,7 @@ async function showFixedAssetModal(assetId = null) {
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="weight">Weight</label><input type="number" step="0.0001" class="form-control" id="gd_weight" oninput="updateGoldValuation()"></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="unit">Unit</label><input type="text" class="form-control" id="gd_unit" value="gram"></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="market_price">Market Price</label><input type="number" step="0.0001" class="form-control" id="gd_market_price" readonly></div>
-                              <div class="col-md-4"><label class="form-label text-light" data-i18n="cashback_per_gram">Cashback per Gram</label><input type="number" step="0.0001" class="form-control" id="gd_cashback_per_gram" value="0" oninput="updateGoldValuation()"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="cashback_per_gram">Cashback per Gram</label><input type="number" step="0.0001" class="form-control" id="gd_cashback_per_gram" value="0" readonly></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="purchase_weight">Purchase Weight</label><input type="number" step="0.0001" class="form-control" id="gd_purchase_weight"></div>
                               <div class="col-12"><small class="text-light" style="opacity:.75;" data-i18n="auto_calculated_from_gold_prices">Auto-calculated from Gold Prices module (SELL + USD/EGP).</small></div>
                             </div>
@@ -2839,9 +2858,12 @@ async function refreshGoldCalculatedFields(forcePriceFetch = false) {
     const purity = document.getElementById("gd_purity")?.value || "24K";
     const unit = document.getElementById("gd_unit")?.value || "gram";
     const weight = parseFloat(document.getElementById("gd_weight")?.value) || 0;
-    const cashbackPerGram = parseFloat(document.getElementById("gd_cashback_per_gram")?.value) || 0;
 
+    const puritySettings = await getGoldPuritySettings(forcePriceFetch);
     const purityKey = normalizeGoldPurity(purity);
+    const purityConfig = (puritySettings || []).find((item) => String(item.key || "").toLowerCase() === purityKey);
+    const cashbackPerGram = parseFloat(purityConfig?.cashback_per_gram) || 0;
+
     const sellPerGram = getGoldSellPerGram(gold, purityKey);
     const unitFactor = getGoldUnitFactor(unit);
     const marketPricePerUnit = sellPerGram * unitFactor;
@@ -2856,6 +2878,11 @@ async function refreshGoldCalculatedFields(forcePriceFetch = false) {
     const currentValueField = document.getElementById("fa_current_value");
     if (currentValueField) {
       currentValueField.value = currentMarketValue > 0 ? currentMarketValue.toFixed(2) : "0.00";
+    }
+
+    const cashbackField = document.getElementById("gd_cashback_per_gram");
+    if (cashbackField) {
+      cashbackField.value = cashbackPerGram.toFixed(4);
     }
 
     const valuationSourceField = document.getElementById("fa_val_source");

@@ -335,6 +335,7 @@ class BalanceEntry(models.Model):
     currency = models.ForeignKey(
         Currency, on_delete=models.CASCADE, null=True, blank=True
     )
+    purity = models.CharField(max_length=20, blank=True, default="")
     amount = models.DecimalField(max_digits=18, decimal_places=2, default=0)
     entry_date = models.DateField(auto_now_add=True)
     notes = models.TextField(blank=True)
@@ -354,6 +355,7 @@ class BalanceEntry(models.Model):
             "currency_symbol": self.currency.symbol if self.currency else "",
             "currency_flag": self.currency.flag if self.currency else "💱",
             "currency_name": self.currency.name if self.currency else "",
+            "purity": self.purity,
             "amount": float(self.amount),
             "notes": self.notes,
         }
@@ -406,6 +408,48 @@ class AppSettings(models.Model):
     def set(cls, key, value):
         obj, _ = cls.objects.update_or_create(key=key, defaults={"value": value})
         return obj
+
+
+class GoldTypeSetting(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "name"]
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "is_active": self.is_active,
+            "order": self.order,
+        }
+
+
+class GoldPuritySetting(models.Model):
+    key = models.CharField(max_length=20, unique=True)  # canonical: 24k, 22k, ...
+    label = models.CharField(max_length=50)
+    cashback_per_gram = models.DecimalField(max_digits=12, decimal_places=4, default=0)
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "key"]
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "key": self.key,
+            "label": self.label,
+            "cashback_per_gram": float(self.cashback_per_gram or 0),
+            "is_active": self.is_active,
+            "order": self.order,
+        }
 
 
 # ── Exchange Rates ────────────────────────────────────────────

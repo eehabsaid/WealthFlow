@@ -48,6 +48,8 @@ from .models import (
     AssetPhoto,
     AssetMortgage,
     AssetRental,
+    GoldTypeSetting,
+    GoldPuritySetting,
 
 )
 from django.core.paginator import Paginator, EmptyPage
@@ -773,6 +775,35 @@ class CurrencyDetailView(View):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class BalanceListView(View):
+    def _normalize_purity_key(self, purity_value):
+        text = str(purity_value or "").strip().lower()
+        if "24" in text or "999" in text:
+            return "24k"
+        if "22" in text or "916" in text:
+            return "22k"
+        if "21" in text or "875" in text:
+            return "21k"
+        if "18" in text or "750" in text:
+            return "18k"
+        return "24k"
+
+    def _cashback_per_gram_for_purity(self, purity_value):
+        key = self._normalize_purity_key(purity_value)
+        setting = GoldPuritySetting.objects.filter(key=key, is_active=True).first()
+        return float(setting.cashback_per_gram) if setting else 0.0
+
+    def _sell_per_gram_for_purity(self, latest_gold, purity_value):
+        if not latest_gold:
+            return 0.0
+        key = self._normalize_purity_key(purity_value)
+        if key == "22k":
+            return float(latest_gold.carat_22k or 0)
+        if key == "21k":
+            return float(latest_gold.carat_21k or 0)
+        if key == "18k":
+            return float(latest_gold.carat_18k or 0)
+        return float(latest_gold.carat_24k or 0)
+
     def get(self, request):
         entries = BalanceEntry.objects.select_related("bank", "currency").all()
         payload = []
@@ -794,15 +825,74 @@ class BalanceListView(View):
             else:
                 payload.append(entry.to_dict())
 
-        return JsonResponse({"entries": payload})
+        latest_gold = GoldPrice.objects.order_by("-fetched_at").first()
+        rates = {}
+        for rate in ExchangeRate.objects.order_by("currency_code", "-fetched_at"):
+            code = str(rate.currency_code or "").upper()
+            if code and code not in rates:
+                rates[code] = float(rate.buy_rate or 0)
+
+        totals_by_currency = {}
+        gold_value = 0.0
+
+        for item in payload:
+            code = str(item.get("currency_code") or "").upper()
+            amount = float(item.get("amount") or 0)
+            totals_by_currency[code] = totals_by_currency.get(code, 0.0) + amount
+
+            if code == "GOLD":
+                sell_per_gram = self._sell_per_gram_for_purity(latest_gold, item.get("purity"))
+                cashback_per_gram = self._cashback_per_gram_for_purity(item.get("purity"))
+                gold_value += amount * (sell_per_gram + cashback_per_gram)
+
+        certificate_egp = sum(
+            float(item.get("amount") or 0)
+            for item in payload
+            if str(item.get("balance_type") or "") == "certificate"
+        )
+        total_egp = totals_by_currency.get("EGP", 0.0)
+        cash_egp = total_egp - certificate_egp
+
+        usd_value = totals_by_currency.get("USD", 0.0) * rates.get("USD", 0.0)
+        eur_value = totals_by_currency.get("EUR", 0.0) * rates.get("EUR", 0.0)
+        sar_value = totals_by_currency.get("SAR", 0.0) * rates.get("SAR", 0.0)
+
+        grand_total = cash_egp + certificate_egp + usd_value + eur_value + sar_value + gold_value
+
+        return JsonResponse(
+            {
+                "entries": payload,
+                "summary": {
+                    "totals_by_currency": totals_by_currency,
+                    "cash_egp": round(cash_egp, 2),
+                    "certificate_egp": round(certificate_egp, 2),
+                    "usd_rate": rates.get("USD", 0.0),
+                    "eur_rate": rates.get("EUR", 0.0),
+                    "sar_rate": rates.get("SAR", 0.0),
+                    "usd_value": round(usd_value, 2),
+                    "eur_value": round(eur_value, 2),
+                    "sar_value": round(sar_value, 2),
+                    "gold_value": round(gold_value, 2),
+                    "grand_total": round(grand_total, 2),
+                },
+            }
+        )
 
     def post(self, request):
         data = json.loads(request.body)
+        balance_type = data["balance_type"]
+        purity = data.get("purity", "")
+        if balance_type == BalanceEntry.BalanceType.GOLD:
+            purity = _normalize_gold_purity(purity)
+        else:
+            purity = ""
+
         entry = BalanceEntry.objects.create(
             title=data["title"],
-            balance_type=data["balance_type"],
+            balance_type=balance_type,
             bank_id=data.get("bank_id"),
             currency_id=data.get("currency_id", 1),
+            purity=purity,
             amount=data.get("amount", 0),
             notes=data.get("notes", ""),
         )
@@ -821,9 +911,16 @@ class BalanceDetailView(View):
             "currency_id",
             "amount",
             "notes",
+            "purity",
         ]:
             if field in data:
                 setattr(entry, field, data[field])
+
+        if entry.balance_type == BalanceEntry.BalanceType.GOLD:
+            entry.purity = _normalize_gold_purity(entry.purity)
+        else:
+            entry.purity = ""
+
         entry.save()
         return JsonResponse(entry.to_dict())
 
@@ -843,6 +940,127 @@ class SettingsView(View):
         data = json.loads(request.body)
         obj = AppSettings.set(data["key"], data["value"])
         return JsonResponse({"key": obj.key, "value": obj.value})
+
+
+def _seed_gold_settings_defaults():
+    default_types = [
+        ("Coins", 1),
+        ("Bars", 2),
+        ("Jewelry", 3),
+    ]
+    for name, order in default_types:
+        GoldTypeSetting.objects.get_or_create(
+            name=name,
+            defaults={"is_active": True, "order": order},
+        )
+
+    default_purities = [
+        ("24k", "24K", 0),
+        ("22k", "22K", 0),
+        ("21k", "21K", 0),
+        ("18k", "18K", 0),
+    ]
+    for key, label, order in default_purities:
+        GoldPuritySetting.objects.get_or_create(
+            key=key,
+            defaults={
+                "label": label,
+                "cashback_per_gram": 0,
+                "is_active": True,
+                "order": order,
+            },
+        )
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class GoldTypeSettingsListView(View):
+    def get(self, request):
+        _seed_gold_settings_defaults()
+        rows = GoldTypeSetting.objects.all()
+        return JsonResponse({"items": [row.to_dict() for row in rows]})
+
+    def post(self, request):
+        data = json.loads(request.body)
+        item = GoldTypeSetting.objects.create(
+            name=(data.get("name") or "").strip(),
+            is_active=bool(data.get("is_active", True)),
+            order=int(data.get("order", 0) or 0),
+        )
+        return JsonResponse(item.to_dict(), status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class GoldTypeSettingsDetailView(View):
+    def put(self, request, pk):
+        item = get_object_or_404(GoldTypeSetting, pk=pk)
+        data = json.loads(request.body)
+        for field in ["name", "is_active", "order"]:
+            if field in data:
+                setattr(item, field, data[field])
+        item.save()
+        return JsonResponse(item.to_dict())
+
+    def delete(self, request, pk):
+        item = get_object_or_404(GoldTypeSetting, pk=pk)
+        item.is_active = False
+        item.save(update_fields=["is_active", "updated_at"])
+        return JsonResponse({"disabled": pk})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class GoldPuritySettingsListView(View):
+    def get(self, request):
+        _seed_gold_settings_defaults()
+        rows = GoldPuritySetting.objects.all()
+        return JsonResponse({"items": [row.to_dict() for row in rows]})
+
+    def post(self, request):
+        data = json.loads(request.body)
+        key = str(data.get("key") or "").strip().lower()
+        if key and not key.endswith("k"):
+            key = f"{key}k"
+        item = GoldPuritySetting.objects.create(
+            key=key,
+            label=(data.get("label") or "").strip() or key.upper(),
+            cashback_per_gram=Decimal(str(data.get("cashback_per_gram", 0) or 0)),
+            is_active=bool(data.get("is_active", True)),
+            order=int(data.get("order", 0) or 0),
+        )
+        return JsonResponse(item.to_dict(), status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class GoldPuritySettingsDetailView(View):
+    def put(self, request, pk):
+        item = get_object_or_404(GoldPuritySetting, pk=pk)
+        data = json.loads(request.body)
+
+        if "key" in data:
+            key = str(data.get("key") or "").strip().lower()
+            if key and not key.endswith("k"):
+                key = f"{key}k"
+            item.key = key
+
+        if "label" in data:
+            item.label = (data.get("label") or "").strip()
+
+        if "cashback_per_gram" in data:
+            item.cashback_per_gram = Decimal(str(data.get("cashback_per_gram") or 0))
+
+        if "is_active" in data:
+            item.is_active = bool(data.get("is_active"))
+
+        if "order" in data:
+            item.order = int(data.get("order") or 0)
+
+        item.save()
+        return JsonResponse(item.to_dict())
+
+    def delete(self, request, pk):
+        item = get_object_or_404(GoldPuritySetting, pk=pk)
+        item.is_active = False
+        item.save(update_fields=["is_active", "updated_at"])
+        return JsonResponse({"disabled": pk})
 
 
 # ── Exchange Rates views ──────────────────────────────────────
@@ -2687,7 +2905,7 @@ class CertificateReportView(View):
             )
 
         total_interest = float(agg["total_interest"] or 0)
-        monthly_interest = (total_interest) if total_interest else 0.0
+        monthly_interest = (total_interest / 12.0) if total_interest else 0.0
 
         return JsonResponse(
             {
@@ -2939,21 +3157,23 @@ class CertificateForecastView(View):
         future_cash_30 = cash_balance + forecast_30
         future_cash_90 = cash_balance + forecast_90
         future_cash_180 = cash_balance + forecast_180
-        from core.models import GoldPrice
-
         gold_value = 0
         gold_grams = 0
 
-        gold_balances = Balance.objects.filter(currency__code="Gold")
         latest_gold = GoldPrice.objects.order_by("-fetched_at").first()
 
-        if latest_gold:
-            gold_price = float(latest_gold.carat_24k)
+        for g in balances:
+            if not g.currency or str(g.currency.code or "").upper() != "GOLD":
+                continue
 
-            for g in gold_balances:
-                grams = float(g.amount)
-                gold_grams += grams
-                gold_value += grams * (gold_price + 28.5)
+            grams = float(g.amount or 0)
+            gold_grams += grams
+
+            if latest_gold:
+                purity_key = _normalize_gold_purity(getattr(g, "purity", ""))
+                sell_per_gram = float(_gold_sell_price_per_gram(latest_gold, purity_key))
+                cashback_per_gram = float(_gold_cashback_per_gram(purity_key))
+                gold_value += grams * (sell_per_gram + cashback_per_gram)
 
         from core.models import GoldPriceHistory
 
@@ -3209,6 +3429,14 @@ def _gold_sell_price_per_gram(latest_gold_price, purity_key):
     return price_map.get(purity_key, price_map["24k"])
 
 
+def _gold_cashback_per_gram(purity_value):
+    key = _normalize_gold_purity(purity_value)
+    setting = GoldPuritySetting.objects.filter(key=key, is_active=True).first()
+    if not setting:
+        return Decimal("0")
+    return _to_decimal(setting.cashback_per_gram)
+
+
 def _latest_gold_price():
     return GoldPrice.objects.order_by("-fetched_at").first()
 
@@ -3237,7 +3465,8 @@ def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None
     unit_factor = _gold_unit_factor(details.unit)
     details.market_price = sell_price_per_gram * unit_factor
 
-    cashback_per_gram = _to_decimal(details.cashback_per_gram)
+    cashback_per_gram = _gold_cashback_per_gram(details.purity)
+    details.cashback_per_gram = cashback_per_gram
     total_weight_grams = _gold_weight_in_grams(details.weight, details.unit)
     asset.current_market_value = total_weight_grams * (sell_price_per_gram + cashback_per_gram)
     asset.valuation_source = "Automatic"
@@ -3267,41 +3496,52 @@ def _sync_gold_balance_from_assets():
         .order_by("id")
     )
 
-    total_gold_grams = Decimal("0")
+    grams_by_purity = {}
     for asset in gold_assets:
         details = getattr(asset, "gold_details", None)
         if details is None:
             continue
-        total_gold_grams += _gold_weight_in_grams(details.weight, details.unit)
+        grams = _gold_weight_in_grams(details.weight, details.unit)
+        purity_key = _normalize_gold_purity(details.purity)
+        grams_by_purity[purity_key] = grams_by_purity.get(purity_key, Decimal("0")) + grams
 
     balance_qs = BalanceEntry.objects.filter(
         balance_type=BalanceEntry.BalanceType.GOLD,
         currency_id=gold_currency.id,
     ).order_by("id")
 
-    if total_gold_grams > 0:
-        primary_entry = balance_qs.first()
-        defaults = {
-            "title": (gold_currency.name or "Gold"),
-            "bank": None,
-            "amount": total_gold_grams.quantize(Decimal("0.01")),
-            "notes": "",
-        }
-
-        if primary_entry:
-            for key, value in defaults.items():
-                setattr(primary_entry, key, value)
-            primary_entry.save()
-        else:
-            primary_entry = BalanceEntry.objects.create(
-                balance_type=BalanceEntry.BalanceType.GOLD,
-                currency_id=gold_currency.id,
-                **defaults,
-            )
-
-        balance_qs.exclude(pk=primary_entry.pk).delete()
-    else:
+    if not grams_by_purity:
         balance_qs.delete()
+        return
+
+    existing_by_purity = {str(e.purity or "").lower(): e for e in balance_qs}
+    used_ids = []
+    for purity_key, grams in grams_by_purity.items():
+        entry = existing_by_purity.get(purity_key)
+        title = f"{gold_currency.name or 'Gold'} {purity_key.upper()}"
+        amount = grams.quantize(Decimal("0.01"))
+
+        if entry:
+            entry.title = title
+            entry.bank = None
+            entry.amount = amount
+            entry.notes = ""
+            entry.purity = purity_key
+            entry.save()
+            used_ids.append(entry.id)
+        else:
+            created = BalanceEntry.objects.create(
+                title=title,
+                balance_type=BalanceEntry.BalanceType.GOLD,
+                bank=None,
+                currency_id=gold_currency.id,
+                purity=purity_key,
+                amount=amount,
+                notes="",
+            )
+            used_ids.append(created.id)
+
+    balance_qs.exclude(id__in=used_ids).delete()
 
 
 def _refresh_all_gold_assets_from_live_prices():
@@ -3366,10 +3606,10 @@ def _sync_gold_details(asset, details_data):
         asset=asset,
         defaults={
             "gold_type": details_data.get("gold_type", ""),
-            "purity": details_data.get("purity", ""),
+            "purity": _normalize_gold_purity(details_data.get("purity", "")),
             "weight": details_data.get("weight", 0),
             "unit": details_data.get("unit", "gram"),
-            "cashback_per_gram": details_data.get("cashback_per_gram", 0),
+            "cashback_per_gram": _gold_cashback_per_gram(details_data.get("purity", "")),
             "purchase_weight": details_data.get("purchase_weight", 0),
         },
     )

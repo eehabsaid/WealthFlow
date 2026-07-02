@@ -51,6 +51,10 @@ urlpatterns = [
     # Reports
     path("api/reports/generate/", views.GenerateReportView.as_view()),
     path("api/settings/", views.SettingsView.as_view()),
+    path("api/settings/gold-types/", views.GoldTypeSettingsListView.as_view()),
+    path("api/settings/gold-types/<int:pk>/", views.GoldTypeSettingsDetailView.as_view()),
+    path("api/settings/gold-purities/", views.GoldPuritySettingsListView.as_view()),
+    path("api/settings/gold-purities/<int:pk>/", views.GoldPuritySettingsDetailView.as_view()),
     # excel export
     path("api/export/excel/", ExportExcelWorkbookView.as_view(), name="export_excel"),
     # ── Reminder Engine ──────────────────────────────────────────────────────

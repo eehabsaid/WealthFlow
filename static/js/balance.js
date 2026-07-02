@@ -16,20 +16,16 @@ async function renderBalance() {
     const mc = document.getElementById('main-content');
     mc.innerHTML = '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
 
-    const [bRes, bankRes, currRes, ratesRes, goldRes, forecastRes] = await Promise.all([
+    const [bRes, bankRes, currRes, forecastRes] = await Promise.all([
         fetch('/api/balance/'),
         fetch('/api/banks/'),
         fetch('/api/currencies/'),
-        fetch('/api/rates/'),
-        fetch('/api/gold/'),
         fetch('/api/certificate-forecast/'),
     ]);
 
     const bData = await bRes.json();
     const bankData = await bankRes.json();
     const currData = await currRes.json();
-    const ratesData = await ratesRes.json();
-    const goldData = await goldRes.json();
     const forecastData = await forecastRes.json();
 
     entries = bData.entries;
@@ -37,45 +33,21 @@ async function renderBalance() {
     _banks = bankData.banks;
     _currencies = currData.currencies || [];
 
-    const totals = {};
-    _currencies.forEach((c) => { totals[c.code] = 0; });
-    entries.forEach((e) => {
-        if (totals[e.currency_code] !== undefined) { 
-            totals[e.currency_code] += e.amount; 
-        }
-    });
+    const summary = bData.summary || {};
+    const totals = summary.totals_by_currency || {};
 
     const totalEGP = totals.EGP || 0;
-    const certificateEGP = entries
-        .filter(x => x.balance_type === 'certificate')
-        .reduce((sum, x) => sum + Number(x.amount), 0);
-
-    const cashEGP = totalEGP - certificateEGP;
-
-    const getRate = (code) => {
-        const rate = (ratesData.rates || []).find((r) => r.currency_code === code);
-        return rate ? Number(rate.buy_rate) : 0;
-    };
-
-    const usdAmount = totals['USD'] || 0;
-    const eurAmount = totals['EUR'] || 0;
-    const sarAmount = totals['SAR'] || 0;
-    const goldGrams = totals['Gold'] || 0;
-
-    const usdRate = getRate('USD');
-    const eurRate = getRate('EUR');
-    const sarRate = getRate('SAR');
-
-    const gold24kSell = goldData.gold ? Number(goldData.gold.carat_24k) : 0;
-    const goldValue = goldGrams > 0 ? goldGrams * (gold24kSell + 28.5) : 0;
-
-    const grandTotal =
-        cashEGP +
-        certificateEGP +
-        usdAmount * usdRate +
-        eurAmount * eurRate +
-        sarAmount * sarRate +
-        goldValue;
+    const cashEGP = summary.cash_egp || 0;
+    const certificateEGP = summary.certificate_egp || 0;
+    const usdAmount = totals.USD || 0;
+    const eurAmount = totals.EUR || 0;
+    const sarAmount = totals.SAR || 0;
+    const goldGrams = totals.GOLD || totals.Gold || 0;
+    const usdRate = summary.usd_rate || 0;
+    const eurRate = summary.eur_rate || 0;
+    const sarRate = summary.sar_rate || 0;
+    const goldValue = summary.gold_value || 0;
+    const grandTotal = summary.grand_total || 0;
 
     const editText = t('edit', 'Edit');
     const deleteText = t('delete', 'Delete');
@@ -87,16 +59,25 @@ async function renderBalance() {
     const actionsLabel = t('actions', 'Actions');
 
     const currencyCards = _currencies
-        .map((cur) => `
+    .map((cur) => {
+        // 1. Resolve key variations for Gold safely, fallback to cur.code for normal currencies
+        const lookupKey = (cur.code === 'GOLD' || cur.code === 'Gold') 
+            ? (totals.GOLD !== undefined ? 'GOLD' : 'Gold') 
+            : cur.code;
+
+        const cardValue = totals[lookupKey] || 0;
+
+        return `
             <div class="col-6 col-md-4 col-lg-2">
                 <div class="currency-card">
                     <div class="cur-flag">${cur.flag || '💱'}</div>
                     <div class="cur-code" data-i18n="${cur.code}">${cur.code}</div>
-                    <div class="cur-amount num-fmt" data-value="${totals[cur.code] || 0}">${fmt(totals[cur.code] || 0)}</div>
+                    <div class="cur-amount num-fmt" data-value="${cardValue}">${fmt(cardValue)}</div>
                 </div>
             </div>
-        `)
-        .join('');
+        `;
+    })
+    .join('');
 
     const bankMap = {};
     _banks.forEach((b) => { bankMap[b.id] = b.name; });
@@ -108,6 +89,7 @@ async function renderBalance() {
                 <td data-i18n-prefix="type_" data-i18n-value="${e.balance_type || ''}">${_t && _t['type_' + e.balance_type] ? _t['type_' + e.balance_type] : (e.balance_type || '')}</td>
                 <td data-i18n-prefix="bank_" data-i18n-value="${e.bank_name || ''}">${e.bank_name || '_'}</td>
                 <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${e.currency_flag} ${e.currency_code}</span></td>
+                <td>${e.balance_type === 'gold' ? (e.purity || '-') : '-'}</td>
                 <td class="text-end amt-positive num-fmt" data-value="${e.amount}">${fmt(e.amount)}</td>
                 <td>
                     <button class="btn-icon" onclick="showBalanceModal(${e.id})" title="${editText}"><i class="bi bi-pencil"></i></button>
@@ -119,7 +101,7 @@ async function renderBalance() {
 
     const balanceTitle = t('nav_balance', 'Balance');
     const grandTotalLabel = t('grand_total', 'Total All Balances (EGP equiv.)');
-    const formulaDesc = t('balance_formula_desc', '= EGP + (USD × rate) + (EUR × rate) + (SAR × rate) + (Gold × 24K sell price + 28.5)');
+    const formulaDesc = t('balance_formula_desc', '= EGP + (USD x rate) + (EUR x rate) + (SAR x rate) + Sum(Gold amount x (purity sell price + purity cashback))');
 
     mc.innerHTML = `
         <div class="page-header">
@@ -141,7 +123,7 @@ async function renderBalance() {
                 (<span class="num-fmt" data-value="${usdAmount}">${fmt(usdAmount)}</span> * <span class="num-fmt" data-value="${usdRate}">${fmt(usdRate)}</span>) + 
                 (<span class="num-fmt" data-value="${eurAmount}">${fmt(eurAmount)}</span> * <span class="num-fmt" data-value="${eurRate}">${fmt(eurRate)}</span>) + 
                 (<span class="num-fmt" data-value="${sarAmount}">${fmt(sarAmount)}</span> * <span class="num-fmt" data-value="${sarRate}">${fmt(sarRate)}</span>) + 
-                ((<span class="num-fmt" data-value="${goldGrams}">${fmt(goldGrams)}</span> * (<span class="num-fmt" data-value="${gold24kSell}">${fmt(gold24kSell)}</span> + 28.5))
+                <span class="num-fmt" data-value="${goldValue}">${fmt(goldValue)}</span>
             </div>
             <div style="margin-top:8px;color:var(--text-secondary);font-size:13px">
                 <span class="num-fmt" data-value="${totalEGP}">${fmt(totalEGP)}</span> + 
@@ -300,6 +282,7 @@ async function renderBalance() {
                             <th data-i18n="balance_type">${typeLabel}</th>
                             <th data-i18n="balance_bank">${bankLabel}</th>
                             <th data-i18n="balance_currency">${currencyLabel}</th>
+                            <th data-i18n="purity">${t('purity', 'Purity')}</th>
                             <th class="text-end" data-i18n="balance_amount">${amountLabel}</th>
                             <th data-i18n="actions">${actionsLabel}</th>
                         </tr>
@@ -325,6 +308,11 @@ async function showBalanceModal(entryId) {
         entry = data.entries.find((e) => e.id === entryId);
     }
     
+    const [purityRes] = await Promise.all([
+        fetch('/api/settings/gold-purities/'),
+    ]);
+    const purityData = await purityRes.json();
+
     const bankOpts = _banks.map((b) => `<option value="${b.id}" ${entry && entry.bank_id === b.id ? 'selected' : ''}>${b.name}</option>`).join('');
     const curOpts = _currencies.map((c) => {
         // Match your existing JSON translation keys
@@ -358,10 +346,16 @@ async function showBalanceModal(entryId) {
     const balanceCurrencyLabel = t('balance_currency', 'Currency');
     const balanceAmountLabel = t('balance_amount', 'Amount');
     const notesLabel = t('notes', 'Notes');
+    const purityLabel = t('purity', 'Purity');
     const selectTypeText = t('select_type', '— Select Type —');
     const noneOptionText = t('none_option', '— None —');
     const cancelText = t('btn_cancel', 'Cancel');
     const saveText = t('btn_save', 'Save');
+
+    const purityOpts = (purityData.items || [])
+        .filter(p => p.is_active)
+        .map((p) => `<option value="${p.key}" ${entry && String(entry.purity || '').toLowerCase() === String(p.key || '').toLowerCase() ? 'selected' : ''}>${p.label || p.key}</option>`)
+        .join('');
 
     const html = `
         <div class="modal-header">
@@ -377,6 +371,7 @@ async function showBalanceModal(entryId) {
                 <div class="col-6"><label data-i18n="balance_bank">${balanceBankLabel}</label><select class="form-select" id="bBank"><option value="" data-i18n="none_option">${noneOptionText}</option>${bankOpts}</select></div>
                 <div class="col-3"><label data-i18n="balance_currency">${balanceCurrencyLabel}</label><select class="form-select" id="bCurrency">${curOpts}</select></div>
                 <div class="col-3"><label data-i18n="balance_amount">${balanceAmountLabel}</label><input type="number" step="0.01" class="form-control" id="bAmount" value="${entry ? entry.amount : ''}"></div>
+                <div class="col-4" id="bPurityWrap"><label data-i18n="purity">${purityLabel}</label><select class="form-select" id="bPurity"><option value="">--</option>${purityOpts}</select></div>
                 <div class="col-12"><label data-i18n="notes">${notesLabel}</label><input type="text" class="form-control" id="bNotes" value="${entry ? entry.notes : ''}"></div>
             </div>
         </div>
@@ -387,6 +382,24 @@ async function showBalanceModal(entryId) {
     `;
 
     showModal(html);
+
+    const typeEl = document.getElementById('bbalance_type');
+    const purityWrap = document.getElementById('bPurityWrap');
+    const currencyEl = document.getElementById('bCurrency');
+
+    function toggleGoldFields() {
+        const isGold = typeEl && typeEl.value === 'gold';
+        if (purityWrap) purityWrap.style.display = isGold ? '' : 'none';
+
+        if (isGold && currencyEl) {
+            const goldOption = Array.from(currencyEl.options).find(opt => (opt.textContent || '').toLowerCase().includes('gold'));
+            if (goldOption) currencyEl.value = goldOption.value;
+        }
+    }
+
+    if (typeEl) typeEl.addEventListener('change', toggleGoldFields);
+    toggleGoldFields();
+
     applyTranslations();
 }
 
@@ -403,6 +416,7 @@ async function saveBalanceEntry(entryId) {
         balance_type: typeVal || null,
         bank_id: bankVal ? parseInt(bankVal) : null,
         currency_id: parseInt(document.getElementById('bCurrency').value) || 1,
+        purity: (typeVal === 'gold' ? (document.getElementById('bPurity')?.value || '') : ''),
         amount: parseFloat(document.getElementById('bAmount').value) || 0,
         notes: document.getElementById('bNotes').value,
     };
