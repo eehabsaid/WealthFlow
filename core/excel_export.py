@@ -754,13 +754,19 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
     bank_map = {b.id: b for b in BankModel.objects.all()}
 
     # Row 2: Home Balance
-    home = {
-        cur_map.get(be.currency_id, "?"): float(be.amount)
-        for be in balance_entries
-        if be.bank_id is None and be.title == "Home Balance"
-    }
+    # Separate cash and gold dynamically using a case-insensitive .lower() check
+    home_cash_entries = [be for be in balance_entries if be.bank_id is None and str(be.balance_type).strip().lower() == "cash"]
+    gold_entries = [be for be in balance_entries if str(be.balance_type).strip().lower() == "gold"]
 
-    ws.cell(row=2, column=1, value="Home Balance").font = _f(bold=True, name="Arial")
+    # Build the home dictionary with currency codes
+    home = {cur_map.get(be.currency_id, "?"): float(be.amount) for be in home_cash_entries}
+    
+    # Inject the gold value into the dictionary so home.get("Gold", 0) works perfectly
+    if gold_entries:
+        home["Gold"] = float(gold_entries[0].amount)
+
+    home_title = home_cash_entries[0].title if home_cash_entries else "Home Balance"
+    ws.cell(row=2, column=1, value=home_title).font = _f(bold=True, name="Arial")
     ws.cell(row=2, column=1).border = _thin()
 
     b2 = ws.cell(row=2, column=2, value=home.get("EGP", 0))
@@ -791,7 +797,7 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
     # Bank rows
     excel_row = 3
     for be in sorted(balance_entries, key=lambda b: b.id):
-        if be.title in ("Home Balance", "QNB Certificates Balance"):
+        if be.bank_id is None or str(be.balance_type).strip().lower() in ("certificate", "gold"):
             continue
         if cur_map.get(be.currency_id) != "EGP":
             continue
@@ -826,9 +832,10 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
 
     cert_count = BankCertificate.objects.filter(status__iexact="active").count()
     cr = excel_row
-    ws.cell(row=cr, column=1, value="QNB Certificates Balance").font = _f(
-        bold=True, name="Arial"
-    )
+    cert_entries = [be for be in balance_entries if str(be.balance_type).strip().lower() == "certificate"]
+    cert_title = cert_entries[0].title if cert_entries else "Certificates Balance"
+
+    ws.cell(row=cr, column=1, value=cert_title).font = _f(bold=True, name="Arial")
     ws.cell(row=cr, column=1).border = _thin()
     bc = ws.cell(
         row=cr, column=2, value=f"=SUM('Bank-Certificates'!A2:A{cert_count+1})"
