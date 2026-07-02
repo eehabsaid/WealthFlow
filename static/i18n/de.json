@@ -667,5 +667,9 @@
   "type": "Typ",
   "photos": "Fotos",
   "cash": "Bargeld",
-  "foreign_currency": "Fremdwährung"
+  "foreign_currency": "Fremdwährung",
+  "kpi_total_earned": "Gesamtverdienst",
+  "kpi_total_paid": "Gesamt Ausgezahlt",
+  "kpi_total_remaining": "Gesamt Verbleibend",
+  "kpi_work_months": "Gesamte Arbeitsmonate"
 }

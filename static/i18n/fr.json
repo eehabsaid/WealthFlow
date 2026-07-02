@@ -667,5 +667,9 @@
   "type": "Type",
   "photos": "Photos",
   "cash": "Espèces",
-  "foreign_currency": "Devise étrangère"
+  "foreign_currency": "Devise étrangère",
+  "kpi_total_earned": "Total Gagné",
+  "kpi_total_paid": "Total Payé",
+  "kpi_total_remaining": "Total Restant",
+  "kpi_work_months": "Total Mois de Travail"
 }

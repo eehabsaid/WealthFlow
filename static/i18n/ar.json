@@ -667,5 +667,9 @@
   "type": "النوع",
   "photos": "الصور",
   "cash": "نقدي",
-  "foreign_currency": "عملة أجنبية"
+  "foreign_currency": "عملة أجنبية",
+  "kpi_total_earned": "إجمالي المستحق",
+  "kpi_total_paid": "إجمالي المدفوع",
+  "kpi_total_remaining": "إجمالي المتبقي",
+  "kpi_work_months": "إجمالي أشهر العمل"
 }

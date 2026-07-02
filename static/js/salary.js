@@ -199,12 +199,14 @@ async function _renderDashboardEnhancements() {
 // ── KPI card helper ───────────────────────────────────────────────────────
 
 function kpiCard(label, value, icon, color) {
+    // Run the key through your global translation helper function t() so it drops the actual text inside the div
+    const titleText = typeof t === 'function' ? t(label, label) : label;
     return `
         <div class="col-6 col-lg-3">
             <div class="kpi-card">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
                     <i class="bi ${icon}" style="font-size:20px;color:${color}"></i>
-                    <div class="kpi-label" data-i18n="${label}"></div>
+                    <div class="kpi-label" data-i18n="${label}">${titleText}</div>
                 </div>
                 <div class="kpi-value" style="color:${color}">${value}</div>
             </div>
