@@ -684,10 +684,10 @@ def build_bank_certificates_sheet(ws, certs_qs):
         cell.alignment = _center()
         cell.border = _thin()
 
-    for i, cert in enumerate(certs_qs.order_by("issue_date"), 2):
+    for i, cert in enumerate(certs_qs.filter(status__iexact="active").order_by("issue_date"), 2):
         _apply_zebra_striping(ws, i, 6)  # No is_dark argument needed
         ws.cell(row=i, column=1, value=float(cert.amount)).number_format = FMT_EGP_CERT
-        ws.cell(row=i, column=2, value=float(cert.interest_rate)).number_format = (
+        ws.cell(row=i, column=2, value=float(cert.interest_rate) / 100).number_format = (
             FMT_PCT
         )
         ws.cell(row=i, column=3, value=f"=(A{i}*B{i})/12").number_format = (
@@ -824,7 +824,7 @@ def build_balance_sheet(ws, balance_entries, company_sheet_rows):
     # QNB Certificates formula row
     from core.models import BankCertificate
 
-    cert_count = BankCertificate.objects.count()
+    cert_count = BankCertificate.objects.filter(status__iexact="active").count()
     cr = excel_row
     ws.cell(row=cr, column=1, value="QNB Certificates Balance").font = _f(
         bold=True, name="Arial"
