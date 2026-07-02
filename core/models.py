@@ -3,16 +3,14 @@ from datetime import date, datetime
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from decimal import Decimal
 
 ASSET_TYPES = [
-    ("Apartment", "Apartment"),
-    ("Villa", "Villa"),
-    ("Land", "Land"),
-    ("Shop", "Shop"),
-    ("Office", "Office"),
-    ("Car", "Car"),
-    ("Other", "Other"),
+    ("Real Estate", "Real Estate"),
+    ("Vehicles", "Vehicles"),
+    ("Gold", "Gold"),
+    ("Other Assets", "Other Assets"),
 ]
 
 ASSET_STATUS = [
@@ -893,7 +891,35 @@ class FixedAsset(models.Model):
     class Meta:
         ordering = ["name"]
 
+    def _safe_related(self, attr_name):
+        try:
+            return getattr(self, attr_name)
+        except ObjectDoesNotExist:
+            return None
+        except Exception:
+            return None
+
+    def _get_related_details(self):
+        type_map = {
+            "Real Estate": "real_estate",
+            "Vehicles": "vehicle_details",
+            "Gold": "gold_details",
+            "Other Assets": "other_asset_details",
+        }
+        relation_name = type_map.get(self.asset_type)
+        if not relation_name:
+            return None
+        return self._safe_related(relation_name)
+
     def to_dict(self):
+        related_details = self._get_related_details()
+        real_estate = self._safe_related("real_estate")
+        vehicle_details = self._safe_related("vehicle_details")
+        gold_details = self._safe_related("gold_details")
+        other_asset_details = self._safe_related("other_asset_details")
+        sale = self._safe_related("sale")
+        mortgage = self._safe_related("mortgage")
+        rental = self._safe_related("rental")
         return {
             "id": self.id,
             "name": self.name,
@@ -916,16 +942,46 @@ class FixedAsset(models.Model):
             ),
             "notes": self.notes,
 
+            "details": related_details.to_dict() if related_details else None,
+
             # Related Models
             "real_estate": (
-                self.real_estate.to_dict()
-                if hasattr(self, "real_estate")
+                real_estate.to_dict()
+                if real_estate
+                else None
+            ),
+
+            "vehicle_details": (
+                vehicle_details.to_dict()
+                if vehicle_details
+                else None
+            ),
+
+            "gold_details": (
+                gold_details.to_dict()
+                if gold_details
+                else None
+            ),
+
+            "other_asset_details": (
+                other_asset_details.to_dict()
+                if other_asset_details
                 else None
             ),
 
             "renovations": [
                 item.to_dict()
                 for item in self.renovations.all()
+            ],
+
+            "maintenance": [
+                item.to_dict()
+                for item in self.maintenance.all()
+            ],
+
+            "insurance": [
+                item.to_dict()
+                for item in self.insurance.all()
             ],
 
             "furniture": [
@@ -939,20 +995,20 @@ class FixedAsset(models.Model):
             ],
 
             "sale": (
-                self.sale.to_dict()
-                if hasattr(self, "sale")
+                sale.to_dict()
+                if sale
                 else None
             ),
 
             "mortgage": (
-                self.mortgage.to_dict()
-                if hasattr(self, "mortgage")
+                mortgage.to_dict()
+                if mortgage
                 else None
             ),
 
             "rental": (
-                self.rental.to_dict()
-                if hasattr(self, "rental")
+                rental.to_dict()
+                if rental
                 else None
             ),
 
@@ -1062,6 +1118,161 @@ class RealEstateDetails(models.Model):
 
     def __str__(self):
         return f"{self.asset.name} Details"
+
+
+class VehicleDetails(models.Model):
+    asset = models.OneToOneField(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="vehicle_details",
+    )
+    brand = models.CharField(max_length=100, blank=True)
+    model = models.CharField(max_length=100, blank=True)
+    year = models.PositiveSmallIntegerField(null=True, blank=True)
+    vin = models.CharField(max_length=100, blank=True)
+    engine = models.CharField(max_length=100, blank=True)
+    transmission = models.CharField(max_length=100, blank=True)
+    fuel_type = models.CharField(max_length=50, blank=True)
+    mileage = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    plate_number = models.CharField(max_length=100, blank=True)
+    color = models.CharField(max_length=50, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def to_dict(self):
+        return {
+            "brand": self.brand,
+            "model": self.model,
+            "year": self.year,
+            "vin": self.vin,
+            "engine": self.engine,
+            "transmission": self.transmission,
+            "fuel_type": self.fuel_type,
+            "mileage": float(self.mileage or 0),
+            "plate_number": self.plate_number,
+            "color": self.color,
+        }
+
+
+class GoldDetails(models.Model):
+    asset = models.OneToOneField(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="gold_details",
+    )
+    gold_type = models.CharField(max_length=100, blank=True)
+    purity = models.CharField(max_length=50, blank=True)
+    weight = models.DecimalField(max_digits=12, decimal_places=4, default=0)
+    unit = models.CharField(max_length=20, default="gram")
+    market_price = models.DecimalField(max_digits=16, decimal_places=4, default=0)
+    purchase_weight = models.DecimalField(max_digits=12, decimal_places=4, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def to_dict(self):
+        weight = float(self.weight or 0)
+        market_price = float(self.market_price or 0)
+        purchase_weight = float(self.purchase_weight or 0)
+        return {
+            "gold_type": self.gold_type,
+            "purity": self.purity,
+            "weight": weight,
+            "unit": self.unit,
+            "market_price": market_price,
+            "purchase_weight": purchase_weight,
+            "current_valuation": weight * market_price,
+        }
+
+
+class OtherAssetDetails(models.Model):
+    asset = models.OneToOneField(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="other_asset_details",
+    )
+    category = models.CharField(max_length=100, blank=True)
+    manufacturer = models.CharField(max_length=100, blank=True)
+    model = models.CharField(max_length=100, blank=True)
+    serial_number = models.CharField(max_length=150, blank=True)
+    description = models.TextField(blank=True)
+    warranty_expiry = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def to_dict(self):
+        return {
+            "category": self.category,
+            "manufacturer": self.manufacturer,
+            "model": self.model,
+            "serial_number": self.serial_number,
+            "description": self.description,
+            "warranty_expiry": self.warranty_expiry.isoformat() if self.warranty_expiry else "",
+            "notes": self.notes,
+        }
+
+
+class AssetMaintenance(models.Model):
+    asset = models.ForeignKey(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="maintenance",
+    )
+    date = models.DateField()
+    maintenance_type = models.CharField(max_length=100)
+    cost = models.DecimalField(max_digits=16, decimal_places=2, default=0)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["date", "id"]
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "asset_id": self.asset_id,
+            "date": self.date.isoformat() if self.date else "",
+            "type": self.maintenance_type,
+            "cost": float(self.cost or 0),
+            "notes": self.notes,
+        }
+
+
+class AssetInsurance(models.Model):
+    asset = models.ForeignKey(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="insurance",
+    )
+    company = models.CharField(max_length=200)
+    policy_number = models.CharField(max_length=100, blank=True)
+    expiry_date = models.DateField(null=True, blank=True)
+    premium = models.DecimalField(max_digits=16, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["expiry_date", "id"]
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "asset_id": self.asset_id,
+            "company": self.company,
+            "policy_number": self.policy_number,
+            "expiry_date": self.expiry_date.isoformat() if self.expiry_date else "",
+            "premium": float(self.premium or 0),
+        }
 
 class AssetRenovation(models.Model):
     asset = models.ForeignKey(

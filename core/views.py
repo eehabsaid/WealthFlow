@@ -34,7 +34,12 @@ from .models import (
     SALARY_TRIGGER_CHOICES,
     FixedAsset,
     RealEstateDetails,
+    VehicleDetails,
+    GoldDetails,
+    OtherAssetDetails,
     AssetRenovation,
+    AssetMaintenance,
+    AssetInsurance,
     AssetFurniture,
     AssetValuationHistory,
     AssetSale,
@@ -3141,7 +3146,120 @@ class CertificateForecastView(View):
 # Fixed Assets APIs
 # ============================================================
 
-REAL_ESTATE_ASSET_TYPES = {"Apartment", "Villa", "Shop", "Office"}
+REAL_ESTATE_ASSET_TYPES = {"Real Estate"}
+VEHICLE_ASSET_TYPES = {"Vehicles"}
+GOLD_ASSET_TYPES = {"Gold"}
+OTHER_ASSET_TYPES = {"Other Assets"}
+
+
+def _clear_non_selected_asset_details(asset):
+    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES and hasattr(asset, "real_estate"):
+        asset.real_estate.delete()
+
+    if asset.asset_type not in VEHICLE_ASSET_TYPES and hasattr(asset, "vehicle_details"):
+        asset.vehicle_details.delete()
+
+    if asset.asset_type not in GOLD_ASSET_TYPES and hasattr(asset, "gold_details"):
+        asset.gold_details.delete()
+
+    if asset.asset_type not in OTHER_ASSET_TYPES and hasattr(asset, "other_asset_details"):
+        asset.other_asset_details.delete()
+
+
+def _sync_vehicle_details(asset, details_data):
+    if asset.asset_type not in VEHICLE_ASSET_TYPES or not details_data:
+        if hasattr(asset, "vehicle_details"):
+            asset.vehicle_details.delete()
+        return
+
+    VehicleDetails.objects.update_or_create(
+        asset=asset,
+        defaults={
+            "brand": details_data.get("brand", ""),
+            "model": details_data.get("model", ""),
+            "year": details_data.get("year") or None,
+            "vin": details_data.get("vin", ""),
+            "engine": details_data.get("engine", ""),
+            "transmission": details_data.get("transmission", ""),
+            "fuel_type": details_data.get("fuel_type", ""),
+            "mileage": details_data.get("mileage", 0),
+            "plate_number": details_data.get("plate_number", ""),
+            "color": details_data.get("color", ""),
+        },
+    )
+
+
+def _sync_gold_details(asset, details_data):
+    if asset.asset_type not in GOLD_ASSET_TYPES or not details_data:
+        if hasattr(asset, "gold_details"):
+            asset.gold_details.delete()
+        return
+
+    GoldDetails.objects.update_or_create(
+        asset=asset,
+        defaults={
+            "gold_type": details_data.get("gold_type", ""),
+            "purity": details_data.get("purity", ""),
+            "weight": details_data.get("weight", 0),
+            "unit": details_data.get("unit", "gram"),
+            "market_price": details_data.get("market_price", 0),
+            "purchase_weight": details_data.get("purchase_weight", 0),
+        },
+    )
+
+
+def _sync_other_asset_details(asset, details_data):
+    if asset.asset_type not in OTHER_ASSET_TYPES or not details_data:
+        if hasattr(asset, "other_asset_details"):
+            asset.other_asset_details.delete()
+        return
+
+    OtherAssetDetails.objects.update_or_create(
+        asset=asset,
+        defaults={
+            "category": details_data.get("category", ""),
+            "manufacturer": details_data.get("manufacturer", ""),
+            "model": details_data.get("model", ""),
+            "serial_number": details_data.get("serial_number", ""),
+            "description": details_data.get("description", ""),
+            "warranty_expiry": details_data.get("warranty_expiry") or None,
+            "notes": details_data.get("notes", ""),
+        },
+    )
+
+
+def _sync_asset_maintenance(asset, items):
+    AssetMaintenance.objects.filter(asset=asset).delete()
+    if asset.asset_type not in VEHICLE_ASSET_TYPES:
+        return
+
+    for item in items or []:
+        if not item.get("date"):
+            continue
+        AssetMaintenance.objects.create(
+            asset=asset,
+            date=item.get("date"),
+            maintenance_type=item.get("type", ""),
+            cost=item.get("cost", 0),
+            notes=item.get("notes", ""),
+        )
+
+
+def _sync_asset_insurance(asset, items):
+    AssetInsurance.objects.filter(asset=asset).delete()
+    if asset.asset_type not in VEHICLE_ASSET_TYPES:
+        return
+
+    for item in items or []:
+        if not item.get("company"):
+            continue
+        AssetInsurance.objects.create(
+            asset=asset,
+            company=item.get("company", ""),
+            policy_number=item.get("policy_number", ""),
+            expiry_date=item.get("expiry_date") or None,
+            premium=item.get("premium", 0),
+        )
 
 
 def _sync_asset_mortgage(asset, mortgage_data):
@@ -3217,6 +3335,10 @@ def _sync_asset_rental(asset, rental_data):
 
 
 def _sync_asset_furniture(asset, items):
+    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
+        AssetFurniture.objects.filter(asset=asset).delete()
+        return
+
     AssetFurniture.objects.filter(asset=asset).delete()
     for item in items or []:
         if not item.get("name"):
@@ -3235,6 +3357,10 @@ def _sync_asset_furniture(asset, items):
 
 
 def _sync_asset_valuation_history(asset, items):
+    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES and asset.asset_type not in GOLD_ASSET_TYPES:
+        AssetValuationHistory.objects.filter(asset=asset).delete()
+        return
+
     AssetValuationHistory.objects.filter(asset=asset).delete()
     created_items = []
     for item in items or []:
@@ -3282,6 +3408,9 @@ class FixedAssetListView(View):
     def post(self, request):
         data = json.loads(request.body)
         re = data.get("real_estate_details")
+        vehicle_details = data.get("vehicle_details")
+        gold_details = data.get("gold_details")
+        other_asset_details = data.get("other_asset_details")
 
         asset = FixedAsset.objects.create(
             name=data["name"],
@@ -3328,12 +3457,23 @@ class FixedAssetListView(View):
             has_land_share = re.get("has_land_share", False),
             land_share_ratio=re.get("land_share", ""),
             land_share_sqm=float(re.get("land_share_sqm") or 0),
+            latitude=re.get("latitude") or None,
+            longitude=re.get("longitude") or None,
+            licensed=re.get("licensed", False),
+            description=re.get("description", ""),
         )
+
+        _sync_vehicle_details(asset, vehicle_details)
+        _sync_gold_details(asset, gold_details)
+        _sync_other_asset_details(asset, other_asset_details)
 
         _sync_asset_mortgage(asset, data.get("mortgage_details"))
         _sync_asset_rental(asset, data.get("rental_details"))
 
         for item in data.get("renovations", []):
+
+            if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
+                break
 
             AssetRenovation.objects.create(
                 asset=asset,
@@ -3346,8 +3486,11 @@ class FixedAssetListView(View):
                 notes=item.get("notes", ""),
             )
 
+        _sync_asset_maintenance(asset, data.get("maintenance", []))
+        _sync_asset_insurance(asset, data.get("insurance", []))
         _sync_asset_furniture(asset, data.get("furniture", []))
         _sync_asset_valuation_history(asset, data.get("valuation_history", []))
+        _clear_non_selected_asset_details(asset)
 
         return JsonResponse(asset.to_dict(), status=201)
     
@@ -3362,6 +3505,9 @@ class FixedAssetDetailView(View):
         asset = get_object_or_404(FixedAsset, pk=pk)
 
         data = json.loads(request.body)
+        vehicle_details = data.get("vehicle_details")
+        gold_details = data.get("gold_details")
+        other_asset_details = data.get("other_asset_details")
 
         fields = [
             "name",
@@ -3423,9 +3569,19 @@ class FixedAssetDetailView(View):
             obj.description = re.get("description", "")
 
             obj.save()
+        elif asset.asset_type not in REAL_ESTATE_ASSET_TYPES and hasattr(asset, "real_estate"):
+            asset.real_estate.delete()
+
+        _sync_vehicle_details(asset, vehicle_details)
+        _sync_gold_details(asset, gold_details)
+        _sync_other_asset_details(asset, other_asset_details)
+
         AssetRenovation.objects.filter(asset=asset).delete()
 
         for item in data.get("renovations", []):
+
+            if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
+                break
 
             AssetRenovation.objects.create(
                 asset=asset,
@@ -3438,10 +3594,13 @@ class FixedAssetDetailView(View):
                 notes=item.get("notes", ""),
             )
 
+        _sync_asset_maintenance(asset, data.get("maintenance", []))
+        _sync_asset_insurance(asset, data.get("insurance", []))
         _sync_asset_mortgage(asset, data.get("mortgage_details"))
         _sync_asset_rental(asset, data.get("rental_details"))
         _sync_asset_furniture(asset, data.get("furniture", []))
         _sync_asset_valuation_history(asset, data.get("valuation_history", []))
+        _clear_non_selected_asset_details(asset)
 
         return JsonResponse(asset.to_dict())
 
@@ -3566,6 +3725,114 @@ class AssetRenovationDetailView(View):
 
     def delete(self, request, pk):
         item = get_object_or_404(AssetRenovation, pk=pk)
+        item.delete()
+
+        return JsonResponse({"deleted": pk})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetMaintenanceListView(View):
+
+    def get(self, request):
+        asset_id = request.GET.get("asset")
+
+        qs = AssetMaintenance.objects.all().order_by("date", "id")
+
+        if asset_id:
+            qs = qs.filter(asset_id=asset_id)
+
+        return JsonResponse({
+            "maintenance": [m.to_dict() for m in qs]
+        })
+
+    def post(self, request):
+        data = json.loads(request.body)
+
+        item = AssetMaintenance.objects.create(
+            asset_id=data["asset_id"],
+            date=data["date"],
+            maintenance_type=data["maintenance_type"],
+            cost=data.get("cost", 0),
+            notes=data.get("notes", ""),
+        )
+
+        return JsonResponse(item.to_dict(), status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetMaintenanceDetailView(View):
+
+    def put(self, request, pk):
+        item = get_object_or_404(AssetMaintenance, pk=pk)
+
+        data = json.loads(request.body)
+
+        fields = ["date", "maintenance_type", "cost", "notes"]
+
+        for field in fields:
+            if field in data:
+                setattr(item, field, data[field])
+
+        item.save()
+
+        return JsonResponse(item.to_dict())
+
+    def delete(self, request, pk):
+        item = get_object_or_404(AssetMaintenance, pk=pk)
+        item.delete()
+
+        return JsonResponse({"deleted": pk})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetInsuranceListView(View):
+
+    def get(self, request):
+        asset_id = request.GET.get("asset")
+
+        qs = AssetInsurance.objects.all().order_by("expiry_date", "id")
+
+        if asset_id:
+            qs = qs.filter(asset_id=asset_id)
+
+        return JsonResponse({
+            "insurance": [i.to_dict() for i in qs]
+        })
+
+    def post(self, request):
+        data = json.loads(request.body)
+
+        item = AssetInsurance.objects.create(
+            asset_id=data["asset_id"],
+            company=data["company"],
+            policy_number=data.get("policy_number", ""),
+            expiry_date=data.get("expiry_date") or None,
+            premium=data.get("premium", 0),
+        )
+
+        return JsonResponse(item.to_dict(), status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetInsuranceDetailView(View):
+
+    def put(self, request, pk):
+        item = get_object_or_404(AssetInsurance, pk=pk)
+
+        data = json.loads(request.body)
+
+        fields = ["company", "policy_number", "expiry_date", "premium"]
+
+        for field in fields:
+            if field in data:
+                setattr(item, field, data[field])
+
+        item.save()
+
+        return JsonResponse(item.to_dict())
+
+    def delete(self, request, pk):
+        item = get_object_or_404(AssetInsurance, pk=pk)
         item.delete()
 
         return JsonResponse({"deleted": pk})
@@ -3773,10 +4040,18 @@ class AssetSaleView(View):
 
 def _fixed_asset_report_queryset():
     return (
-        FixedAsset.objects.select_related("real_estate", "sale")
+        FixedAsset.objects.select_related(
+            "real_estate",
+            "vehicle_details",
+            "gold_details",
+            "other_asset_details",
+            "sale",
+        )
         .prefetch_related(
             "photos",
             "renovations",
+            "maintenance",
+            "insurance",
             "furniture",
             "valuation_history",
         )

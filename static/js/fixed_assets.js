@@ -13,6 +13,36 @@ let fixedAssetsState = {
   portfolioSnapshotLoading: false,
 };
 
+const FIXED_ASSET_TYPES = {
+  REAL_ESTATE: "Real Estate",
+  VEHICLES: "Vehicles",
+  GOLD: "Gold",
+  OTHER: "Other Assets",
+};
+
+function fixedAssetTypeToI18nKey(value) {
+  return `type_${String(value || "other")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_")}`;
+}
+
+function isRealEstateAssetType(value) {
+  return value === FIXED_ASSET_TYPES.REAL_ESTATE;
+}
+
+function isVehicleAssetType(value) {
+  return value === FIXED_ASSET_TYPES.VEHICLES;
+}
+
+function isGoldAssetType(value) {
+  return value === FIXED_ASSET_TYPES.GOLD;
+}
+
+function isOtherAssetType(value) {
+  return value === FIXED_ASSET_TYPES.OTHER;
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 // DATA FETCHING & ROUTING
 // ════════════════════════════════════════════════════════════════════════════
@@ -59,21 +89,21 @@ function renderFixedAssets(activeTab = "assets") {
 
   target.innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-3 pb-2" style="border-bottom: 1px solid var(--border-color); gap: 1rem;">
-            <h3 class="m-0 font-weight-bold" data-i18n="fixed_assets">Fixed Assets</h3>
+            <h3 class="m-0 font-weight-bold fixed-assets-heading" data-i18n="fixed_assets">Fixed Assets</h3>
             <div id="fixedAssetsHeaderAction"></div>
         </div>
         <div class="settings-tabs-container" style="border-bottom:1px solid var(--border-color);margin-bottom:20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap;">
             <button class="settings-tab ${fixedAssetsState.activeTab === "assets" ? "active" : ""}" onclick="switchFixedAssetsTab('assets')">
-                <span data-i18n="fixed_assets_tab_assets">Assets</span>
+                <span class="fixed-assets-tab-title" data-i18n="fixed_assets_tab_assets">Assets</span>
             </button>
             <button class="settings-tab ${fixedAssetsState.activeTab === "dashboard" ? "active" : ""}" onclick="switchFixedAssetsTab('dashboard')">
-                <span data-i18n="dashboard">Dashboard</span>
+                <span class="fixed-assets-tab-title" data-i18n="dashboard">Dashboard</span>
             </button>
             <button class="settings-tab ${fixedAssetsState.activeTab === "analytics" ? "active" : ""}" onclick="switchFixedAssetsTab('analytics')">
-                <span data-i18n="fixed_assets_tab_analytics">Analytics</span>
+                <span class="fixed-assets-tab-title" data-i18n="fixed_assets_tab_analytics">Analytics</span>
             </button>
             <button class="settings-tab ${fixedAssetsState.activeTab === "reports" ? "active" : ""}" onclick="switchFixedAssetsTab('reports')">
-                <span data-i18n="nav_reports">Reports</span>
+                <span class="fixed-assets-tab-title" data-i18n="nav_reports">Reports</span>
             </button>
         </div>
         <div id="fixedAssetsContainer"></div>
@@ -152,7 +182,7 @@ function renderActiveFixedAssetsTab() {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// LIST RENDERING (TABLE VIEW)
+// LIST RENDERING (CARD VIEW)
 // ════════════════════════════════════════════════════════════════════════════
 
 function renderFixedAssetsList(assets) {
@@ -165,8 +195,8 @@ function renderFixedAssetsList(assets) {
     container.innerHTML = `
             <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
                 <div class="display-5 mb-3">🏢</div>
-                <h4 class="mt-2" data-i18n="no_fixed_assets">No Fixed Assets Registered</h4>
-                <p class="small mb-4" data-i18n="no_fixed_assets_desc">You haven't added any fixed assets or properties to your tracker portfolio yet.</p>
+                <h4 class="mt-2 fixed-assets-empty-title" data-i18n="no_fixed_assets">No Fixed Assets Registered</h4>
+                <p class="small mb-4 fixed-assets-muted" data-i18n="no_fixed_assets_desc">You haven't added any fixed assets or properties to your tracker portfolio yet.</p>
                 <button class="btn btn-sm btn-primary-custom" onclick="showFixedAssetModal()">
                     <i class="bi bi-plus-lg"></i> <span data-i18n="add_first_asset">Register Your First Asset</span>
                 </button>
@@ -177,90 +207,52 @@ function renderFixedAssetsList(assets) {
   }
 
   let html = `
-  <div style="background:var(--bg-secondary);
-              border:1px solid var(--border-color);
-              border-radius:12px;
-              overflow:visible">
-
+    <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden;">
       <div class="table-container">
-
-          <table class="data-table">
-
-              <thead>
-                  <tr>
-                      <th data-i18n="asset_name">Asset Name</th>
-                      <th data-i18n="asset_type">Asset Type</th>
-                      <th data-i18n="purchase_date">Purchase Date</th>
-                      <th class="text-end" data-i18n="purchase_price_egp">Purchase Price (EGP)</th>
-                      <th class="text-end" data-i18n="current_market_value">Current Market Value</th>
-                      <th data-i18n="actions">Actions</th>
-                  </tr>
-              </thead>
-
-              <tbody>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th data-i18n="asset_name">Asset Name</th>
+              <th data-i18n="asset_type">Asset Type</th>
+              <th data-i18n="purchase_date">Purchase Date</th>
+              <th class="text-end" data-i18n="purchase_price_egp">Purchase Price (EGP)</th>
+              <th class="text-end" data-i18n="current_market_value">Current Market Value</th>
+              <th data-i18n="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
   `;
 
   assetsArray.forEach((asset) => {
-    const assetType = asset.asset_type || asset.type || "Other";
-    const typeKey = `type_${assetType.toLowerCase()}`;
+    const assetType = asset.asset_type || asset.type || FIXED_ASSET_TYPES.OTHER;
+    const typeKey = fixedAssetTypeToI18nKey(assetType);
 
     html += `
             <tr>
-                <td>${asset.name || "—"}</td>
-                <td>
-                    <span
-                        style="
-                            background:rgba(26,110,245,.15);
-                            color:var(--accent-primary);
-                            padding:2px 8px;
-                            border-radius:10px;
-                            font-size:11px;
-                            font-weight:700;
-                        "
-                        data-i18n="${typeKey}">
-                        ${assetType}
-                    </span>
-                </td>
-                <td>${asset.purchase_date || "—"}</td>
-                <td class="text-end">
-                    ${fmt(asset.purchase_price)}
-                </td>
-                <td class="text-end">
-                    <span style="color:#17a34a;font-weight:700">
-                        ${fmt(asset.current_market_value)}
-                    </span>
-                </td>
-                <td class="d-flex gap-2">
-
-                  <button class="btn-icon"
-                      title="View"
-                      onclick="showFixedAssetDetails(${asset.id})">
-                      <i class="bi bi-eye"></i>
-                  </button>
-
-                  <button class="btn-icon"
-                      title="Edit"
-                      onclick="showFixedAssetModal(${asset.id})">
-                      <i class="bi bi-pencil"></i>
-                  </button>
-
-                  <button class="btn-icon del"
-                      title="Delete"
-                      onclick="deleteFixedAsset(${asset.id})">
-                      <i class="bi bi-trash"></i>
-                  </button>
-
+              <td class="fixed-assets-card-title">${asset.name || "—"}</td>
+              <td>
+                <span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;" data-i18n="${typeKey}">${assetType}</span>
+              </td>
+              <td>${asset.purchase_date || "—"}</td>
+              <td class="text-end">${fmt(asset.purchase_price)}</td>
+              <td class="text-end">
+                <span style="color:#17a34a;font-weight:700">${fmt(asset.current_market_value)}</span>
+              </td>
+              <td class="d-flex gap-2">
+                <button class="btn-icon" title="View" onclick="showFixedAssetDetails(${asset.id})"><i class="bi bi-eye"></i></button>
+                <button class="btn-icon" title="Edit" onclick="showFixedAssetModal(${asset.id})"><i class="bi bi-pencil"></i></button>
+                <button class="btn-icon del" title="Delete" onclick="deleteFixedAsset(${asset.id})"><i class="bi bi-trash"></i></button>
               </td>
             </tr>
-            `;
+    `;
   });
 
   html += `
-                  </tbody>
-              </table>
-          </div>
+          </tbody>
+        </table>
       </div>
-      `;
+    </div>
+  `;
 
   container.innerHTML = html;
   applyTranslations();
@@ -276,8 +268,8 @@ function renderFixedAssetsDashboard(assets) {
     container.innerHTML = `
       <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
           <div class="display-5 mb-3">📈</div>
-          <h4 class="mt-2" style="color:var(--text-primary);" data-i18n="fixed_assets_dashboard_empty">No Dashboard Data</h4>
-          <p class="small mb-0" style="color:var(--text-secondary);" data-i18n="fixed_assets_dashboard_empty_desc">Add fixed assets to see your dashboard analytics.</p>
+          <h4 class="mt-2 fixed-assets-empty-title" data-i18n="fixed_assets_dashboard_empty">No Dashboard Data</h4>
+          <p class="small mb-0 fixed-assets-muted" data-i18n="fixed_assets_dashboard_empty_desc">Add fixed assets to see your dashboard analytics.</p>
       </div>
     `;
     applyTranslations();
@@ -298,19 +290,19 @@ function renderFixedAssetsDashboard(assets) {
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">
       <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
-        <div style="font-weight:700;color:var(--text-primary);margin-bottom:14px;" data-i18n="asset_allocation"></div>
+        <div class="fixed-assets-section-title" style="font-weight:700;margin-bottom:14px;" data-i18n="asset_allocation"></div>
         <div style="position:relative;height:280px;"><canvas id="fixedAssetsAllocationChart"></canvas></div>
       </div>
       <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
-        <div style="font-weight:700;color:var(--text-primary);margin-bottom:14px;" data-i18n="asset_type_distribution"></div>
+        <div class="fixed-assets-section-title" style="font-weight:700;margin-bottom:14px;" data-i18n="asset_type_distribution"></div>
         <div style="position:relative;height:280px;"><canvas id="fixedAssetsTypeChart"></canvas></div>
       </div>
       <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
-        <div style="font-weight:700;color:var(--text-primary);margin-bottom:14px;" data-i18n="portfolio_distribution"></div>
+        <div class="fixed-assets-section-title" style="font-weight:700;margin-bottom:14px;" data-i18n="portfolio_distribution"></div>
         <div style="position:relative;height:280px;"><canvas id="fixedAssetsPortfolioChart"></canvas></div>
       </div>
       <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
-        <div style="font-weight:700;color:var(--text-primary);margin-bottom:14px;" data-i18n="value_growth_over_time"></div>
+        <div class="fixed-assets-section-title" style="font-weight:700;margin-bottom:14px;" data-i18n="value_growth_over_time"></div>
         <div style="position:relative;height:280px;"><canvas id="fixedAssetsGrowthChart"></canvas></div>
       </div>
     </div>
@@ -330,8 +322,8 @@ function renderFixedAssetsAnalytics(assets) {
     container.innerHTML = `
       <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
           <div class="display-5 mb-3">📊</div>
-          <h4 class="mt-2" style="color:var(--text-primary);" data-i18n="fixed_assets_analytics_empty">No Analytics Data</h4>
-          <p class="small mb-0" style="color:var(--text-secondary);" data-i18n="fixed_assets_analytics_empty_desc">Add fixed assets to calculate analytics.</p>
+          <h4 class="mt-2 fixed-assets-empty-title" data-i18n="fixed_assets_analytics_empty">No Analytics Data</h4>
+          <p class="small mb-0 fixed-assets-muted" data-i18n="fixed_assets_analytics_empty_desc">Add fixed assets to calculate analytics.</p>
       </div>
     `;
     applyTranslations();
@@ -345,18 +337,20 @@ function renderFixedAssetsAnalytics(assets) {
   }
 
   const portfolioCards = renderFixedAssetsPortfolioCards(metrics, fixedAssetsState.portfolioSnapshot);
-  const tableRows = metrics.assetRows.map((row) => `
-    <tr>
-      <td>${row.name}</td>
-      <td data-i18n="type_${String(row.type || "other").toLowerCase()}">${row.type}</td>
-      <td class="text-end">${fmtpresent(row.roi)}%</td>
-      <td class="text-end">${fmtpresent(row.appreciation)}%</td>
-      <td class="text-end">${fmtpresent(row.annualReturn)}%</td>
-      <td class="text-end">${row.holdingPeriodLabel}</td>
-      <td class="text-end">${fmtpresent(row.renovationCostPercent)}%</td>
-      <td class="text-end ${row.gainAmount >= 0 ? "text-success" : "text-danger"}">${fmt(row.gainAmount)}</td>
-    </tr>
-  `).join("");
+  const tableRows = metrics.assetRows.length
+    ? metrics.assetRows.map((row) => `
+      <tr>
+        <td class="fixed-assets-card-title">${row.name}</td>
+        <td data-i18n="${fixedAssetTypeToI18nKey(row.type)}">${row.type}</td>
+        <td class="text-end">${fmtpresent(row.roi)}%</td>
+        <td class="text-end">${fmtpresent(row.appreciation)}%</td>
+        <td class="text-end">${fmtpresent(row.annualReturn)}%</td>
+        <td class="text-end">${row.holdingPeriodLabel}</td>
+        <td class="text-end">${fmtpresent(row.renovationCostPercent)}%</td>
+        <td class="text-end ${row.gainAmount >= 0 ? "text-success" : "text-danger"}">${fmt(row.gainAmount)}</td>
+      </tr>
+    `).join("")
+    : _noDataFixedAssets(8);
 
   container.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px;">
@@ -374,8 +368,8 @@ function renderFixedAssetsAnalytics(assets) {
       </div>
     </div>
 
-    <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible;">
-      <div style="padding:14px 20px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border-color);" data-i18n="per_asset_analytics"></div>
+    <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden;">
+      <div class="fixed-assets-section-title" style="padding:14px 20px;font-weight:700;border-bottom:1px solid var(--border-color);" data-i18n="per_asset_analytics"></div>
       <div class="table-container">
         <table class="data-table">
           <thead>
@@ -390,7 +384,7 @@ function renderFixedAssetsAnalytics(assets) {
               <th class="text-end" data-i18n="gain_amount">Gain Amount</th>
             </tr>
           </thead>
-          <tbody>${tableRows || _noDataFixedAssets(8)}</tbody>
+          <tbody>${tableRows}</tbody>
         </table>
       </div>
     </div>
@@ -410,8 +404,8 @@ function renderFixedAssetsReports(assets) {
     container.innerHTML = `
       <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
           <div class="display-5 mb-3">🗂️</div>
-          <h4 class="mt-2" style="color:var(--text-primary);" data-i18n="fixed_assets_reports_empty">No Reports Data</h4>
-          <p class="small mb-0" style="color:var(--text-secondary);" data-i18n="fixed_assets_reports_empty_desc">Add fixed assets to generate reports.</p>
+          <h4 class="mt-2 fixed-assets-empty-title" data-i18n="fixed_assets_reports_empty">No Reports Data</h4>
+          <p class="small mb-0 fixed-assets-muted" data-i18n="fixed_assets_reports_empty_desc">Add fixed assets to generate reports.</p>
       </div>
     `;
     applyTranslations();
@@ -425,8 +419,8 @@ function renderFixedAssetsReports(assets) {
   container.innerHTML = `
     <div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,1fr);gap:16px;align-items:start;">
       <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;">
-        <div style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:8px;" data-i18n="fixed_assets_reports_title"></div>
-        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;" data-i18n="fixed_assets_reports_subtitle"></div>
+        <div class="fixed-assets-section-title" style="font-size:18px;font-weight:700;margin-bottom:8px;" data-i18n="fixed_assets_reports_title"></div>
+        <div class="fixed-assets-section-note" style="font-size:13px;margin-bottom:18px;" data-i18n="fixed_assets_reports_subtitle"></div>
 
         <div class="row g-3 mb-3">
           <div class="col-md-6">
@@ -739,7 +733,7 @@ function renderFixedAssetsPlaceholder(titleKey, descKey) {
   container.innerHTML = `
     <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
         <div class="display-5 mb-3">🧭</div>
-        <h4 class="mt-2" style="color:var(--text-primary);" data-i18n="${titleKey}"></h4>
+        <h4 class="mt-2 fixed-assets-empty-title" data-i18n="${titleKey}"></h4>
         <p class="small mb-0" style="color:var(--text-secondary);" data-i18n="${descKey}"></p>
     </div>
   `;
@@ -1037,7 +1031,7 @@ async function showFixedAssetModal(assetId = null) {
 
   const html = `
         <div class="modal-header">
-            <h5 class="modal-title" data-i18n="${modalTitleKey}">${modalTitleDefault}</h5>
+            <h5 class="modal-title fixed-assets-heading" data-i18n="${modalTitleKey}">${modalTitleDefault}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body" style="max-height: 75vh; overflow-y: auto; overflow-x: hidden; padding: 1.5rem;">
@@ -1072,6 +1066,62 @@ async function showFixedAssetModal(assetId = null) {
                       </button>
                   </li>
 
+                    <li class="nav-item d-none" role="presentation" id="vehicle-tab-item">
+                      <button class="nav-link"
+                          id="vehicle-tab"
+                          data-bs-toggle="tab"
+                          data-bs-target="#vehicle-pane"
+                          type="button"
+                          role="tab"
+                          aria-controls="vehicle-pane"
+                          aria-selected="false"
+                          data-i18n="vehicle">
+                        Vehicle
+                      </button>
+                    </li>
+
+                    <li class="nav-item d-none" role="presentation" id="gold-tab-item">
+                      <button class="nav-link"
+                          id="gold-tab"
+                          data-bs-toggle="tab"
+                          data-bs-target="#gold-pane"
+                          type="button"
+                          role="tab"
+                          aria-controls="gold-pane"
+                          aria-selected="false"
+                          data-i18n="gold_details">
+                        Gold Details
+                      </button>
+                    </li>
+
+                    <li class="nav-item d-none" role="presentation" id="other-details-tab-item">
+                      <button class="nav-link"
+                          id="other-details-tab"
+                          data-bs-toggle="tab"
+                          data-bs-target="#other-details-pane"
+                          type="button"
+                          role="tab"
+                          aria-controls="other-details-pane"
+                          aria-selected="false"
+                          data-i18n="details">
+                        Details
+                      </button>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link"
+                          id="photos-tab"
+                          data-bs-toggle="tab"
+                          data-bs-target="#photos-pane"
+                          type="button"
+                          role="tab"
+                          aria-controls="photos-pane"
+                          aria-selected="false"
+                          data-i18n="photos">
+                        Photos
+                      </button>
+                    </li>
+
                   <li class="nav-item" role="presentation">
                       <button class="nav-link"
                               id="renovation-tab"
@@ -1085,6 +1135,34 @@ async function showFixedAssetModal(assetId = null) {
                           Renovations
                       </button>
                   </li>
+
+                        <li class="nav-item d-none" role="presentation" id="maintenance-tab-item">
+                          <button class="nav-link"
+                              id="maintenance-tab"
+                              data-bs-toggle="tab"
+                              data-bs-target="#maintenance-pane"
+                              type="button"
+                              role="tab"
+                              aria-controls="maintenance-pane"
+                              aria-selected="false"
+                              data-i18n="maintenance">
+                            Maintenance
+                          </button>
+                        </li>
+
+                        <li class="nav-item d-none" role="presentation" id="insurance-tab-item">
+                          <button class="nav-link"
+                              id="insurance-tab"
+                              data-bs-toggle="tab"
+                              data-bs-target="#insurance-pane"
+                              type="button"
+                              role="tab"
+                              aria-controls="insurance-pane"
+                              aria-selected="false"
+                              data-i18n="insurance">
+                            Insurance
+                          </button>
+                        </li>
 
                           <li class="nav-item" role="presentation">
                             <button class="nav-link"
@@ -1167,20 +1245,17 @@ async function showFixedAssetModal(assetId = null) {
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label text-light" data-i18n="asset_name">Asset Name</label>
-                                <input type="text" class="form-control" id="fa_name" required>
+                              <label class="form-label fixed-assets-section-title" data-i18n="asset_type">Asset Type</label>
+                              <select class="form-select" id="fa_type" onchange="toggleRealEstateFields()" required>
+                                  <option value="Real Estate" data-i18n="type_real_estate">Real Estate</option>
+                                  <option value="Vehicles" data-i18n="type_vehicles">Vehicles</option>
+                                  <option value="Gold" data-i18n="type_gold">Gold</option>
+                                  <option value="Other Assets" data-i18n="type_other_assets">Other Assets</option>
+                                </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label text-light" data-i18n="asset_type">Asset Type</label>
-                                <select class="form-select" id="fa_type" onchange="toggleRealEstateFields()" required>
-                                    <option value="Apartment" data-i18n="type_apartment">Apartment</option>
-                                    <option value="Villa" data-i18n="type_villa">Villa</option>
-                                    <option value="Land" data-i18n="type_land">Land</option>
-                                    <option value="Shop" data-i18n="type_shop">Shop</option>
-                                    <option value="Office" data-i18n="type_office">Office</option>
-                                    <option value="Car" data-i18n="type_car">Car</option>
-                                    <option value="Other" data-i18n="type_other">Other</option>
-                                </select>
+                              <label class="form-label fixed-assets-section-title" data-i18n="asset_name">Asset Name</label>
+                              <input type="text" class="form-control" id="fa_name" required>
                             </div>
                         </div>
 
@@ -1249,7 +1324,7 @@ async function showFixedAssetModal(assetId = null) {
                       aria-labelledby="property-tab">
 
                         <div id="realEstateSection">
-                            <h6 class="mb-3 font-weight-bold text-light" style="font-size: 0.95rem;" data-i18n="real_estate_details">Real Estate Technical Specifications</h6>
+                            <h6 class="mb-3 font-weight-bold fixed-assets-section-title" style="font-size: 0.95rem;" data-i18n="real_estate_details">Real Estate Technical Specifications</h6>
                             
                             <div class="row g-3 mb-3">
                                 <div class="col-sm-6 col-md-3"><input type="text" class="form-control" id="re_country" placeholder="Egypt" data-i18n-placeholder="country"></div>
@@ -1287,45 +1362,6 @@ async function showFixedAssetModal(assetId = null) {
                             </div>
 
                             <hr class="my-4">
-
-                            <div class="mb-3">
-
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-
-                                    <h5 class="mb-0"
-                                        data-i18n="property_photos">
-                                        Property Photos
-                                    </h5>
-
-                                    <button
-                                        type="button"
-                                        id="btnUploadPropertyPhoto"
-                                        class="btn btn-primary btn-sm">
-
-                                        <i class="bi bi-upload me-1"></i>
-
-                                        <span data-i18n="upload_photo">
-                                            Upload Photo
-                                        </span>
-
-                                    </button>
-
-                                </div>
-
-                                <input
-                                    type="file"
-                                    id="propertyPhotoInput"
-                                    accept="image/*"
-                                    multiple
-                                    style="display:none;">
-
-                                <div id="propertyPhotoGallery" class="row g-3">
-
-                                    
-
-                                </div>
-
-                            </div>
                             <div class="row g-3 mb-3">
                                 <div class="col-sm-6 col-md-4"><label class="form-label small text-light" data-i18n="apt_area">Property Area (Sqm)</label><input type="number" class="form-control" id="re_area"></div>
                                 <div class="col-sm-6 col-md-4"><label class="form-label small text-light" data-i18n="land_area">Land Plot Footprint (Sqm)</label><input type="number" class="form-control" id="re_land_area"></div>
@@ -1415,6 +1451,91 @@ async function showFixedAssetModal(assetId = null) {
                         
                   </div> <!-- End Property Tab -->
 
+                  <div class="tab-pane fade"
+                      id="vehicle-pane"
+                      role="tabpanel"
+                      aria-labelledby="vehicle-tab">
+
+                        <div class="card border-0 shadow-sm bg-transparent">
+                          <div class="card-body px-0 pt-2">
+                            <div class="row g-3">
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="brand">Brand</label><input type="text" class="form-control" id="vd_brand"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="model">Model</label><input type="text" class="form-control" id="vd_model"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="year">Year</label><input type="number" class="form-control" id="vd_year"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="vin">VIN</label><input type="text" class="form-control" id="vd_vin"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="engine">Engine</label><input type="text" class="form-control" id="vd_engine"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="transmission">Transmission</label><input type="text" class="form-control" id="vd_transmission"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="fuel_type">Fuel Type</label><input type="text" class="form-control" id="vd_fuel_type"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="mileage">Mileage</label><input type="number" step="0.01" class="form-control" id="vd_mileage"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="plate_number">Plate Number</label><input type="text" class="form-control" id="vd_plate_number"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="color">Color</label><input type="text" class="form-control" id="vd_color"></div>
+                            </div>
+                          </div>
+                        </div>
+
+                  </div> <!-- End Vehicle Tab -->
+
+                  <div class="tab-pane fade"
+                      id="gold-pane"
+                      role="tabpanel"
+                      aria-labelledby="gold-tab">
+
+                        <div class="card border-0 shadow-sm bg-transparent">
+                          <div class="card-body px-0 pt-2">
+                            <div class="row g-3">
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="gold_type">Gold Type</label><input type="text" class="form-control" id="gd_gold_type"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="purity">Purity</label><input type="text" class="form-control" id="gd_purity"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="weight">Weight</label><input type="number" step="0.0001" class="form-control" id="gd_weight" oninput="updateGoldValuation()"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="unit">Unit</label><input type="text" class="form-control" id="gd_unit" value="gram"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="market_price">Market Price</label><input type="number" step="0.0001" class="form-control" id="gd_market_price" oninput="updateGoldValuation()"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="purchase_weight">Purchase Weight</label><input type="number" step="0.0001" class="form-control" id="gd_purchase_weight"></div>
+                            </div>
+                          </div>
+                        </div>
+
+                  </div> <!-- End Gold Tab -->
+
+                  <div class="tab-pane fade"
+                      id="other-details-pane"
+                      role="tabpanel"
+                      aria-labelledby="other-details-tab">
+
+                        <div class="card border-0 shadow-sm bg-transparent">
+                          <div class="card-body px-0 pt-2">
+                            <div class="row g-3">
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="category">Category</label><input type="text" class="form-control" id="od_category"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="manufacturer">Manufacturer</label><input type="text" class="form-control" id="od_manufacturer"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="model">Model</label><input type="text" class="form-control" id="od_model"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="serial_number">Serial Number</label><input type="text" class="form-control" id="od_serial_number"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="warranty_expiry">Warranty Expiry</label><input type="date" class="form-control" id="od_warranty_expiry"></div>
+                              <div class="col-md-12"><label class="form-label text-light" data-i18n="description">Description</label><textarea class="form-control" id="od_description" rows="2"></textarea></div>
+                              <div class="col-md-12"><label class="form-label text-light" data-i18n="notes">Notes</label><textarea class="form-control" id="od_notes" rows="2"></textarea></div>
+                            </div>
+                          </div>
+                        </div>
+
+                  </div> <!-- End Other Details Tab -->
+
+                  <div class="tab-pane fade"
+                      id="photos-pane"
+                      role="tabpanel"
+                      aria-labelledby="photos-tab">
+
+                        <div class="card border-0 shadow-sm bg-transparent">
+                          <div class="card-body px-0 pt-2">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                              <h5 class="mb-0 fixed-assets-section-title" data-i18n="property_photos">Photo Gallery</h5>
+                              <button type="button" id="btnUploadPropertyPhoto" class="btn btn-primary btn-sm">
+                                <i class="bi bi-upload me-1"></i><span data-i18n="upload_photo">Upload Photo</span>
+                              </button>
+                            </div>
+                            <input type="file" id="propertyPhotoInput" accept="image/*" multiple style="display:none;">
+                            <div id="propertyPhotoGallery" class="row g-3"></div>
+                          </div>
+                        </div>
+
+                  </div> <!-- End Photos Tab -->
+
                   <!-- 3. RENOVATION TAB PANE -->
                   <div class="tab-pane fade"
                       id="renovation-pane"
@@ -1423,7 +1544,7 @@ async function showFixedAssetModal(assetId = null) {
 
                         <div class="card border-0 shadow-sm bg-transparent">
                             <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
-                                <h6 class="mb-0 font-weight-bold" style="color: var(--text-primary) !important;" data-i18n="renovation_history">Renovation History</h6>
+                                <h6 class="mb-0 font-weight-bold fixed-assets-section-title" data-i18n="renovation_history">Renovation History</h6>
                                 <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#renovationCollapse">
                                     <i class="bi bi-chevron-down"></i>
                                 </button>
@@ -1448,7 +1569,7 @@ async function showFixedAssetModal(assetId = null) {
 
                       <div class="card border-0 shadow-sm bg-transparent">
                         <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
-                          <h6 class="mb-0 font-weight-bold" style="color: var(--text-primary) !important;" data-i18n="furniture">Furniture</h6>
+                          <h6 class="mb-0 font-weight-bold fixed-assets-section-title" data-i18n="furniture">Furniture</h6>
                           <button type="button" class="btn btn-outline-primary btn-sm" onclick="addFurnitureRow()" data-i18n="add_furniture">
                             + Add Furniture
                           </button>
@@ -1467,7 +1588,7 @@ async function showFixedAssetModal(assetId = null) {
 
                       <div class="card border-0 shadow-sm bg-transparent">
                         <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
-                          <h6 class="mb-0 font-weight-bold" style="color: var(--text-primary) !important;" data-i18n="valuation_history">Valuation History</h6>
+                          <h6 class="mb-0 font-weight-bold fixed-assets-section-title" data-i18n="valuation_history">Valuation History</h6>
                           <button type="button" class="btn btn-outline-primary btn-sm" onclick="addValuationRow()" data-i18n="add_valuation">
                             + Add Valuation
                           </button>
@@ -1478,6 +1599,40 @@ async function showFixedAssetModal(assetId = null) {
                       </div>
 
                     </div> <!-- End Valuation Tab -->
+
+                    <div class="tab-pane fade"
+                      id="maintenance-pane"
+                      role="tabpanel"
+                      aria-labelledby="maintenance-tab">
+
+                      <div class="card border-0 shadow-sm bg-transparent">
+                        <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
+                          <h6 class="mb-0 font-weight-bold fixed-assets-section-title" data-i18n="maintenance">Maintenance</h6>
+                          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addMaintenanceRow()" data-i18n="add_maintenance">+ Add Maintenance</button>
+                        </div>
+                        <div class="card-body px-0 pt-2">
+                          <div id="maintenanceContainer" class="w-100"></div>
+                        </div>
+                      </div>
+
+                    </div> <!-- End Maintenance Tab -->
+
+                    <div class="tab-pane fade"
+                      id="insurance-pane"
+                      role="tabpanel"
+                      aria-labelledby="insurance-tab">
+
+                      <div class="card border-0 shadow-sm bg-transparent">
+                        <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
+                          <h6 class="mb-0 font-weight-bold fixed-assets-section-title" data-i18n="insurance">Insurance</h6>
+                          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addInsuranceRow()" data-i18n="add_insurance">+ Add Insurance</button>
+                        </div>
+                        <div class="card-body px-0 pt-2">
+                          <div id="insuranceContainer" class="w-100"></div>
+                        </div>
+                      </div>
+
+                    </div> <!-- End Insurance Tab -->
 
                     <div class="tab-pane fade"
                       id="mortgage-pane"
@@ -1632,6 +1787,12 @@ async function showFixedAssetModal(assetId = null) {
   }
 
   await loadFixedAssetBalanceOptions();
+  propertyPhotos = [];
+  renderPropertyPhotoGallery();
+  ["renovationContainer", "furnitureContainer", "valuationContainer", "maintenanceContainer", "insuranceContainer"].forEach((id) => {
+    const container = document.getElementById(id);
+    if (container) container.innerHTML = "";
+  });
   resetSaleForm();
   resetMortgageForm();
   resetRentalForm();
@@ -1669,6 +1830,11 @@ async function showFixedAssetDetails(assetId) {
     const renovations = asset.renovations || [];
     const furniture = asset.furniture || [];
     const valuationHistory = asset.valuation_history || [];
+    const maintenance = asset.maintenance || [];
+    const insurance = asset.insurance || [];
+    const vehicleDetails = asset.vehicle_details || {};
+    const goldDetails = asset.gold_details || {};
+    const otherDetails = asset.other_asset_details || {};
     const sale = asset.sale || null;
     const mortgage = asset.mortgage || null;
     const rental = asset.rental || null;
@@ -1702,9 +1868,201 @@ async function showFixedAssetDetails(assetId) {
     const gainClass = gainValue >= 0 ? 'text-success' : 'text-danger';
     let assetViewMap = null;
 
+    if (!isRealEstateAssetType(asset.asset_type)) {
+      const coreTabLabel = isVehicleAssetType(asset.asset_type)
+        ? t("vehicle", "Vehicle")
+        : isGoldAssetType(asset.asset_type)
+          ? t("gold_details", "Gold Details")
+          : t("details", "Details");
+
+      const coreTabPane = isVehicleAssetType(asset.asset_type)
+        ? `
+          <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+            <div class="card-body p-4">
+              <div class="row row-cols-1 row-cols-md-2 g-3">
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="brand">Brand</span><span class="value">${vehicleDetails.brand || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="model">Model</span><span class="value">${vehicleDetails.model || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="year">Year</span><span class="value">${vehicleDetails.year || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="vin">VIN</span><span class="value">${vehicleDetails.vin || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="engine">Engine</span><span class="value">${vehicleDetails.engine || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="transmission">Transmission</span><span class="value">${vehicleDetails.transmission || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="fuel_type">Fuel Type</span><span class="value">${vehicleDetails.fuel_type || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="mileage">Mileage</span><span class="value">${vehicleDetails.mileage || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="plate_number">Plate Number</span><span class="value">${vehicleDetails.plate_number || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="color">Color</span><span class="value">${vehicleDetails.color || '-'}</span></div></div>
+              </div>
+            </div>
+          </div>
+        `
+        : isGoldAssetType(asset.asset_type)
+          ? `
+          <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+            <div class="card-body p-4">
+              <div class="row row-cols-1 row-cols-md-2 g-3">
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="gold_type">Gold Type</span><span class="value">${goldDetails.gold_type || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="purity">Purity</span><span class="value">${goldDetails.purity || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="weight">Weight</span><span class="value">${goldDetails.weight || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="unit">Unit</span><span class="value">${goldDetails.unit || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="market_price">Market Price</span><span class="value">${fmt(goldDetails.market_price)}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="purchase_weight">Purchase Weight</span><span class="value">${goldDetails.purchase_weight || '-'}</span></div></div>
+              </div>
+            </div>
+          </div>
+        `
+          : `
+          <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+            <div class="card-body p-4">
+              <div class="row row-cols-1 row-cols-md-2 g-3">
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="category">Category</span><span class="value">${otherDetails.category || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="manufacturer">Manufacturer</span><span class="value">${otherDetails.manufacturer || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="model">Model</span><span class="value">${otherDetails.model || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="serial_number">Serial Number</span><span class="value">${otherDetails.serial_number || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="warranty_expiry">Warranty Expiry</span><span class="value">${otherDetails.warranty_expiry || '-'}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${otherDetails.notes || '-'}</span></div></div>
+                <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="description">Description</span><span class="value">${otherDetails.description || '-'}</span></div></div>
+              </div>
+            </div>
+          </div>
+        `;
+
+      const extraVehicleTabs = isVehicleAssetType(asset.asset_type)
+        ? `
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="asset-maintenance-tab" data-bs-toggle="tab" data-bs-target="#asset-maintenance-pane" type="button" role="tab" data-i18n="maintenance">Maintenance</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="asset-insurance-tab" data-bs-toggle="tab" data-bs-target="#asset-insurance-pane" type="button" role="tab" data-i18n="insurance">Insurance</button>
+          </li>
+        `
+        : "";
+
+      const extraVehiclePanes = isVehicleAssetType(asset.asset_type)
+        ? `
+          <div class="tab-pane fade" id="asset-maintenance-pane" role="tabpanel" aria-labelledby="asset-maintenance-tab">
+            <div class="row g-3">
+              ${(maintenance.length ? maintenance : [{ date: "-", type: "-", cost: 0, notes: "-" }]).map((item) => `
+                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${item.date || '-'}</div></div><div><div class="small" data-i18n="type">Type</div><div>${item.type || '-'}</div></div><div><div class="small" data-i18n="cost">Cost</div><div>${fmt(item.cost)}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${item.notes || '-'}</div></div></div></div></div>
+              `).join("")}
+            </div>
+          </div>
+          <div class="tab-pane fade" id="asset-insurance-pane" role="tabpanel" aria-labelledby="asset-insurance-tab">
+            <div class="row g-3">
+              ${(insurance.length ? insurance : [{ company: "-", policy_number: "-", expiry_date: "-", premium: 0 }]).map((item) => `
+                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="company">Company</div><div>${item.company || '-'}</div></div><div><div class="small" data-i18n="policy_number">Policy Number</div><div>${item.policy_number || '-'}</div></div><div><div class="small" data-i18n="expiry_date">Expiry Date</div><div>${item.expiry_date || '-'}</div></div><div><div class="small" data-i18n="premium">Premium</div><div>${fmt(item.premium)}</div></div></div></div></div>
+              `).join("")}
+            </div>
+          </div>
+        `
+        : "";
+
+      const extraValuationTab = isGoldAssetType(asset.asset_type)
+        ? `
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="asset-valuation-tab" data-bs-toggle="tab" data-bs-target="#asset-valuation-pane" type="button" role="tab" data-i18n="valuation_history">Valuation History</button>
+          </li>
+        `
+        : "";
+
+      const extraValuationPane = isGoldAssetType(asset.asset_type)
+        ? `
+          <div class="tab-pane fade" id="asset-valuation-pane" role="tabpanel" aria-labelledby="asset-valuation-tab">
+            <div class="row g-3">
+              ${(valuationHistory.length ? valuationHistory : [{ valuation_date: "-", market_value: 0, valuation_source: "-", notes: "-" }]).map((item) => `
+                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${item.valuation_date || '-'}</div></div><div><div class="small" data-i18n="current_market_value">Market Value</div><div>${fmt(item.market_value)}</div></div><div><div class="small" data-i18n="valuation_source">Valuation Source</div><div>${item.valuation_source || '-'}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${item.notes || '-'}</div></div></div></div></div>
+              `).join("")}
+            </div>
+          </div>
+        `
+        : "";
+
+      const html = `
+      <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fixed-assets-heading" data-i18n="asset_details">Asset Details</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body asset-modal-body p-0">
+        <div class="p-4">
+          <div class="asset-detail-header mb-4">
+            <h3 class="asset-title mb-1 fixed-assets-heading">${asset.name || '-'}</h3>
+            <span class="badge rounded-pill asset-type-badge" data-i18n="${fixedAssetTypeToI18nKey(asset.asset_type)}">${asset.asset_type || '-'}</span>
+          </div>
+          <ul class="nav nav-pills nav-fill mb-4 asset-detail-tabs" role="tablist">
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="asset-general-tab" data-bs-toggle="tab" data-bs-target="#asset-general-pane" type="button" role="tab" data-i18n="general">General</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="asset-core-tab" data-bs-toggle="tab" data-bs-target="#asset-core-pane" type="button" role="tab">${coreTabLabel}</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="asset-photos-tab" data-bs-toggle="tab" data-bs-target="#asset-photos-pane" type="button" role="tab" data-i18n="photos">Photos</button></li>
+            ${extraVehicleTabs}
+            ${extraValuationTab}
+            <li class="nav-item" role="presentation"><button class="nav-link" id="asset-sale-tab" data-bs-toggle="tab" data-bs-target="#asset-sale-pane" type="button" role="tab" data-i18n="sale">Sale</button></li>
+          </ul>
+          <div class="tab-content" id="assetDetailsTabsContent">
+            <div class="tab-pane fade show active" id="asset-general-pane" role="tabpanel" aria-labelledby="asset-general-tab">
+              <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-4">
+                <div class="row g-3">
+                  <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="purchase_price_egp">Purchase Price</span><span class="value">${fmt(asset.purchase_price)}</span></div></div>
+                  <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="current_market_value">Current Market Value</span><span class="value ${gainClass}">${fmt(asset.current_market_value)}</span></div></div>
+                  <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="purchase_date">Purchase Date</span><span class="value">${asset.purchase_date || '-'}</span></div></div>
+                  <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="gain_loss">Gain / Loss</span><span class="value ${gainClass}">${fmt(gainValue)}</span></div></div>
+                  <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${asset.notes || '-'}</span></div></div>
+                </div>
+              </div></div>
+            </div>
+            <div class="tab-pane fade" id="asset-core-pane" role="tabpanel" aria-labelledby="asset-core-tab">${coreTabPane}</div>
+            <div class="tab-pane fade" id="asset-photos-pane" role="tabpanel" aria-labelledby="asset-photos-tab">
+              <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-4">
+                <div id="assetMainPhotoContainer" class="asset-main-photo-container mb-3">
+                  ${photos.length ? `<img id="assetMainPhoto" src="${photos[0].url}" alt="Asset photo" class="img-fluid" style="max-height:100%;max-width:100%;cursor:pointer;" />` : `<div class="text-center" data-i18n="no_property_photos">No photos available</div>`}
+                </div>
+                <div class="asset-photo-grid">${photos.length ? photos.slice(1).map((photo, index) => `<button type="button" class="btn btn-sm asset-photo-thumbnail p-0" data-url="${photo.url}" aria-label="Photo ${index + 2}"><img src="${photo.url}" alt="Thumbnail ${index + 2}" /></button>`).join("") : ""}</div>
+              </div></div>
+            </div>
+            ${extraVehiclePanes}
+            ${extraValuationPane}
+            <div class="tab-pane fade" id="asset-sale-pane" role="tabpanel" aria-labelledby="asset-sale-tab">
+              <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-4">
+                ${sale ? `<div class="row g-3"><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="sale_date">Sale Date</span><span class="value">${sale.sale_date || '-'}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="sale_price_egp">Sale Price</span><span class="value">${fmt(sale.sale_price)}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="selling_expenses_egp">Selling Expenses</span><span class="value">${fmt(sale.selling_expenses)}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="net_sale_amount">Net Sale Amount</span><span class="value">${fmt(sale.net_sale_amount)}</span></div></div><div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${sale.notes || '-'}</span></div></div></div>` : `<div class="text-center" data-i18n="no_data">No data available</div>`}
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="close">Close</button></div>
+      <div id="assetPhotoOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-90 d-none" style="z-index:2000;"><div class="d-flex h-100 align-items-center justify-content-center"><img id="assetFullscreenImage" src="" alt="Fullscreen asset photo" class="img-fluid rounded" style="max-height:90%; max-width:90%;" /></div></div>
+      `;
+
+      showModal(html);
+      applyTranslations();
+
+      const mainPhoto = document.getElementById("assetMainPhoto");
+      const photoOverlay = document.getElementById("assetPhotoOverlay");
+      const fullscreenImage = document.getElementById("assetFullscreenImage");
+      if (mainPhoto) {
+        mainPhoto.addEventListener("click", () => {
+          fullscreenImage.src = mainPhoto.src;
+          photoOverlay?.classList.remove("d-none");
+        });
+      }
+      photoOverlay?.addEventListener("click", () => {
+        photoOverlay.classList.add("d-none");
+        fullscreenImage.src = "";
+      });
+
+      const assetPhotoThumbnails = document.querySelectorAll(".asset-photo-thumbnail");
+      assetPhotoThumbnails.forEach((thumb) => {
+        thumb.addEventListener("click", (e) => {
+          const url = e.currentTarget.dataset.url;
+          const mainImg = document.getElementById("assetMainPhoto");
+          if (mainImg) mainImg.src = url;
+          assetPhotoThumbnails.forEach((item) => item.classList.remove("active"));
+          e.currentTarget.classList.add("active");
+        });
+      });
+      hideLoading();
+      return;
+    }
+
     const html = `
     <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title" data-i18n="asset_details">Asset Details</h5>
+        <h5 class="modal-title fixed-assets-heading" data-i18n="asset_details">Asset Details</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
     </div>
 
@@ -1718,8 +2076,8 @@ async function showFixedAssetDetails(assetId) {
                     <div class="flex-fill">
                         <div class="d-flex flex-column flex-sm-row justify-content-between gap-3 align-items-start align-items-sm-center">
                             <div>
-                                <h3 class="asset-title mb-1">${asset.name || '-'}</h3>
-                                <span class="badge rounded-pill asset-type-badge" data-i18n="type_${(asset.asset_type || 'other').toLowerCase()}">${asset.asset_type || '-'}</span>
+                                <h3 class="asset-title mb-1 fixed-assets-heading">${asset.name || '-'}</h3>
+                                <span class="badge rounded-pill asset-type-badge" data-i18n="${fixedAssetTypeToI18nKey(asset.asset_type)}">${asset.asset_type || '-'}</span>
                             </div>
                             <div class="text-sm-end">
                                 <div class="small asset-label" data-i18n="current_market_value">Current Market Value</div>
@@ -1780,6 +2138,9 @@ async function showFixedAssetDetails(assetId) {
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="asset-property-tab" data-bs-toggle="tab" data-bs-target="#asset-property-pane" type="button" role="tab" aria-controls="asset-property-pane" aria-selected="false" data-i18n="property">Property</button>
                 </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="asset-photos-tab" data-bs-toggle="tab" data-bs-target="#asset-photos-pane" type="button" role="tab" aria-controls="asset-photos-pane" aria-selected="false" data-i18n="photos">Photos</button>
+              </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="asset-renovation-tab" data-bs-toggle="tab" data-bs-target="#asset-renovation-pane" type="button" role="tab" aria-controls="asset-renovation-pane" aria-selected="false" data-i18n="renovations">Renovations</button>
                 </li>
@@ -1793,11 +2154,15 @@ async function showFixedAssetDetails(assetId) {
                   <button class="nav-link" id="asset-valuation-tab" data-bs-toggle="tab" data-bs-target="#asset-valuation-pane" type="button" role="tab" aria-controls="asset-valuation-pane" aria-selected="false" data-i18n="valuation_history">Valuation History</button>
                 </li>
                 ` : ''}
-                ${sale ? `
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="asset-mortgage-tab" data-bs-toggle="tab" data-bs-target="#asset-mortgage-pane" type="button" role="tab" aria-controls="asset-mortgage-pane" aria-selected="false" data-i18n="mortgage">Mortgage</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="asset-rental-tab" data-bs-toggle="tab" data-bs-target="#asset-rental-pane" type="button" role="tab" aria-controls="asset-rental-pane" aria-selected="false" data-i18n="rental">Rental</button>
+                </li>
                 <li class="nav-item" role="presentation">
                   <button class="nav-link" id="asset-sale-tab" data-bs-toggle="tab" data-bs-target="#asset-sale-pane" type="button" role="tab" aria-controls="asset-sale-pane" aria-selected="false" data-i18n="sale">Sale</button>
                 </li>
-                ` : ''}
             </ul>
 
             <div class="tab-content" id="assetDetailsTabsContent">
@@ -1806,10 +2171,10 @@ async function showFixedAssetDetails(assetId) {
                         <div class="col-md-6">
                             <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                                 <div class="card-body p-4">
-                                    <h6 class="mb-3 fw-bold" data-i18n="general_information">General Information</h6>
+                                    <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="general_information">General Information</h6>
                                                           
-                                    <div class="row mb-2"><div class="col-5" data-i18n="asset_name">Asset Name</div><div class="col-7">${asset.name || '-'}</div></div>
-                                    <div class="row mb-2"><div class="col-5" data-i18n="asset_type">Asset Type</div><div class="col-7">${asset.asset_type || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5 fixed-assets-section-title" data-i18n="asset_type">Asset Type</div><div class="col-7">${asset.asset_type || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5 fixed-assets-section-title" data-i18n="asset_name">Asset Name</div><div class="col-7">${asset.name || '-'}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="purchase_date">Purchase Date</div><div class="col-7">${asset.purchase_date || '-'}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="valuation_source">Valuation Source</div><div class="col-7">${asset.valuation_source || '-'}</div></div>
                                     <div class="row"><div class="col-5" data-i18n="notes">Notes</div><div class="col-7">${asset.notes || '-'}</div></div>
@@ -1819,7 +2184,7 @@ async function showFixedAssetDetails(assetId) {
                         <div class="col-md-6">
                             <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                                 <div class="card-body p-4">
-                                    <h6 class="mb-3 fw-bold" data-i18n="valuation_summary">Valuation Summary</h6>
+                                    <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="valuation_summary">Valuation Summary</h6>
                                     <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_egp">Purchase Price (EGP)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_usd">Purchase Price (USD)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price_usd)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="current_market_value">Current Market Value</div><div class="col-7 fw-bold">${fmt(asset.current_market_value)}</div></div>
@@ -1836,7 +2201,7 @@ async function showFixedAssetDetails(assetId) {
                         <div class="col-xl-7">
                             <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                                 <div class="card-body p-4">
-                                    <h6 class="mb-3 fw-bold" data-i18n="property_details">Property Details</h6>
+                                    <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="property_details">Property Details</h6>
                                     <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3">
                                         <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="country">Country</span><span class="value">${asset.real_estate?.country || '-'}</span></div></div>
                                         <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="governorate">Governorate</span><span class="value">${asset.real_estate?.governorate || '-'}</span></div></div>
@@ -1864,7 +2229,7 @@ async function showFixedAssetDetails(assetId) {
                                 <div class="col-12">
                                     <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                                         <div class="card-body p-4">
-                                            <h6 class="mb-3 fw-bold" data-i18n="location">Location</h6>
+                                            <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="location">Location</h6>
                                             <div id="assetPropertyMap" class="asset-main-photo-container" style="height:280px;"></div>
                                         </div>
                                     </div>
@@ -1872,7 +2237,7 @@ async function showFixedAssetDetails(assetId) {
                                 <div class="col-md-6">
                                     <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                                         <div class="card-body p-4">
-                                            <h6 class="mb-3 fw-bold" data-i18n="utilities">Utilities</h6>
+                                            <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="utilities">Utilities</h6>
                                             <div class="d-flex flex-wrap gap-2">
                                               ${utilitiesBadges || `<span class="small" style="color:var(--text-secondary);" data-i18n="no_data">No data available</span>`}
                                             </div>
@@ -1882,33 +2247,34 @@ async function showFixedAssetDetails(assetId) {
                                 <div class="col-md-6">
                                     <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                                         <div class="card-body p-4">
-                                            <h6 class="mb-3 fw-bold" data-i18n="features">Features</h6>
+                                            <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="features">Features</h6>
                                             <div class="d-flex flex-wrap gap-2">
                                               ${featuresBadges || `<span class="small" style="color:var(--text-secondary);" data-i18n="no_data">No data available</span>`}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12">
-                                    <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
-                                        <div class="card-body p-4">
-                                            <h6 class="mb-3 fw-bold" data-i18n="property_photos">Photo Gallery</h6>
-                                            <div id="assetMainPhotoContainer" class="asset-main-photo-container mb-3">
-                                                ${photos.length ? `<img id="assetMainPhoto" src="${photos[0].url}" alt="Asset photo" class="img-fluid" style="max-height:100%;max-width:100%;cursor:pointer;" />` : `<div class="text-center" data-i18n="no_property_photos">No photos available</div>`}
-                                            </div>
-                                            <div class="asset-photo-grid">
-                                              ${photos.length ? photos.slice(1).map((photo, index) => `
-                                                <button type="button" class="btn btn-sm asset-photo-thumbnail p-0" data-url="${photo.url}" aria-label="Photo ${index + 2}">
-                                                  <img src="${photo.url}" alt="Thumbnail ${index + 2}" />
-                                                    </button>
-                                                `).join('') : ''}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="tab-pane fade" id="asset-photos-pane" role="tabpanel" aria-labelledby="asset-photos-tab">
+                  <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                    <div class="card-body p-4">
+                      <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="property_photos">Photo Gallery</h6>
+                      <div id="assetMainPhotoContainer" class="asset-main-photo-container mb-3" style="justify-content:center;">
+                        ${photos.length ? `<img id="assetMainPhoto" src="${photos[0].url}" alt="Asset photo" class="img-fluid" style="max-height:100%;max-width:100%;cursor:pointer;" />` : `<div class="text-center" data-i18n="no_property_photos">No photos available</div>`}
+                      </div>
+                      <div class="asset-photo-grid">
+                        ${photos.length ? photos.slice(1).map((photo, index) => `
+                          <button type="button" class="btn btn-sm asset-photo-thumbnail p-0" data-url="${photo.url}" aria-label="Photo ${index + 2}">
+                            <img src="${photo.url}" alt="Thumbnail ${index + 2}" />
+                          </button>
+                        `).join('') : ''}
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="tab-pane fade" id="asset-renovation-pane" role="tabpanel" aria-labelledby="asset-renovation-tab">
                     <div class="row g-3">
@@ -2024,31 +2390,68 @@ async function showFixedAssetDetails(assetId) {
                     </div>
                   </div>
                   ` : ''}
-                  ${sale ? `
+                  <div class="tab-pane fade" id="asset-mortgage-pane" role="tabpanel" aria-labelledby="asset-mortgage-tab">
+                    <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                      <div class="card-body p-4">
+                        ${mortgage ? `
+                          <div class="row g-3">
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="loan_amount">Loan Amount</span><span class="value">${fmt(mortgage.loan_amount)}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="remaining_balance">Remaining Balance</span><span class="value">${fmt(mortgage.remaining_balance)}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="monthly_installment">Monthly Installment</span><span class="value">${fmt(mortgage.monthly_installment)}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="interest_rate">Interest Rate</span><span class="value">${fmtpresent(mortgage.interest_rate)}%</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="start_date">Start Date</span><span class="value">${mortgage.start_date || '-'}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="end_date">End Date</span><span class="value">${mortgage.end_date || '-'}</span></div></div>
+                            <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="net_equity">Net Equity</span><span class="value">${fmt(mortgage.net_equity)}</span></div></div>
+                          </div>
+                        ` : `<div class="text-center py-4" style="color:var(--text-secondary);" data-i18n="no_data">No data available</div>`}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="tab-pane fade" id="asset-rental-pane" role="tabpanel" aria-labelledby="asset-rental-tab">
+                    <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
+                      <div class="card-body p-4">
+                        ${rental ? `
+                          <div class="row g-3">
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="monthly_rent">Monthly Rent</span><span class="value">${fmt(rental.monthly_rent)}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="annual_rent">Annual Rent</span><span class="value">${fmt(rental.annual_rent)}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="occupancy_rate">Occupancy Rate</span><span class="value">${fmtpresent(rental.occupancy_rate)}%</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="rental_yield">Rental Yield</span><span class="value">${fmtpresent(rental.rental_yield)}%</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="tenant_name_optional">Tenant Name</span><span class="value">${rental.tenant_name || '-'}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="contract_start">Contract Start</span><span class="value">${rental.contract_start || '-'}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="contract_end">Contract End</span><span class="value">${rental.contract_end || '-'}</span></div></div>
+                            <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${rental.notes || '-'}</span></div></div>
+                          </div>
+                        ` : `<div class="text-center py-4" style="color:var(--text-secondary);" data-i18n="no_data">No data available</div>`}
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="tab-pane fade" id="asset-sale-pane" role="tabpanel" aria-labelledby="asset-sale-tab">
                     <div class="row g-3">
                       <div class="col-md-6">
                         <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                           <div class="card-body p-4">
-                            <h6 class="mb-3 fw-bold" data-i18n="sale_information">Sale Information</h6>
-                            <div class="row mb-2"><div class="col-5" data-i18n="sale_date">Sale Date</div><div class="col-7">${sale.sale_date || '-'}</div></div>
-                            <div class="row mb-2"><div class="col-5" data-i18n="sale_price_egp">Sale Price</div><div class="col-7 fw-bold">${fmt(sale.sale_price)}</div></div>
-                            <div class="row mb-2"><div class="col-5" data-i18n="selling_expenses_egp">Selling Expenses</div><div class="col-7">${fmt(sale.selling_expenses)}</div></div>
-                            <div class="row"><div class="col-5" data-i18n="net_sale_amount">Net Sale Amount</div><div class="col-7 fw-bold">${fmt(sale.net_sale_amount)}</div></div>
+                            <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="sale_information">Sale Information</h6>
+                            ${sale ? `
+                              <div class="row mb-2"><div class="col-5" data-i18n="sale_date">Sale Date</div><div class="col-7">${sale.sale_date || '-'}</div></div>
+                              <div class="row mb-2"><div class="col-5" data-i18n="sale_price_egp">Sale Price</div><div class="col-7 fw-bold">${fmt(sale.sale_price)}</div></div>
+                              <div class="row mb-2"><div class="col-5" data-i18n="selling_expenses_egp">Selling Expenses</div><div class="col-7">${fmt(sale.selling_expenses)}</div></div>
+                              <div class="row"><div class="col-5" data-i18n="net_sale_amount">Net Sale Amount</div><div class="col-7 fw-bold">${fmt(sale.net_sale_amount)}</div></div>
+                            ` : `<div class="text-center py-4" style="color:var(--text-secondary);" data-i18n="no_data">No data available</div>`}
                           </div>
                         </div>
                       </div>
                       <div class="col-md-6">
                         <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                           <div class="card-body p-4">
-                            <h6 class="mb-3 fw-bold" data-i18n="notes">Notes</h6>
-                            <div>${sale.notes || '-'}</div>
+                            <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="notes">Notes</h6>
+                            <div>${sale?.notes || '-'}</div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  ` : ''}
             </div>
             <div id="assetPhotoOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-90 d-none" style="z-index:2000;">
                 <div class="d-flex h-100 align-items-center justify-content-center">
@@ -2149,7 +2552,7 @@ async function loadFixedAsset(assetId) {
     const asset = await response.json();
 
     document.getElementById("fa_name").value = asset.name || "";
-    document.getElementById("fa_type").value = asset.asset_type || "Apartment";
+    document.getElementById("fa_type").value = asset.asset_type || FIXED_ASSET_TYPES.REAL_ESTATE;
     document.getElementById("fa_status").value = asset.status || "Owned";
     document.getElementById("fa_purchase_date").value =
       asset.purchase_date || "";
@@ -2180,6 +2583,37 @@ async function loadFixedAsset(assetId) {
     renderPropertyPhotoGallery();
 
     toggleRealEstateDependentTabs();
+
+    const vehicle = asset.vehicle_details || {};
+    document.getElementById("vd_brand").value = vehicle.brand || "";
+    document.getElementById("vd_model").value = vehicle.model || "";
+    document.getElementById("vd_year").value = vehicle.year || "";
+    document.getElementById("vd_vin").value = vehicle.vin || "";
+    document.getElementById("vd_engine").value = vehicle.engine || "";
+    document.getElementById("vd_transmission").value = vehicle.transmission || "";
+    document.getElementById("vd_fuel_type").value = vehicle.fuel_type || "";
+    document.getElementById("vd_mileage").value = vehicle.mileage || "";
+    document.getElementById("vd_plate_number").value = vehicle.plate_number || "";
+    document.getElementById("vd_color").value = vehicle.color || "";
+
+    const gold = asset.gold_details || {};
+    document.getElementById("gd_gold_type").value = gold.gold_type || "";
+    document.getElementById("gd_purity").value = gold.purity || "";
+    document.getElementById("gd_weight").value = gold.weight || "";
+    document.getElementById("gd_unit").value = gold.unit || "gram";
+    document.getElementById("gd_market_price").value = gold.market_price || "";
+    document.getElementById("gd_purchase_weight").value = gold.purchase_weight || "";
+
+    const other = asset.other_asset_details || {};
+    document.getElementById("od_category").value = other.category || "";
+    document.getElementById("od_manufacturer").value = other.manufacturer || "";
+    document.getElementById("od_model").value = other.model || "";
+    document.getElementById("od_serial_number").value = other.serial_number || "";
+    document.getElementById("od_warranty_expiry").value = other.warranty_expiry || "";
+    document.getElementById("od_description").value = other.description || "";
+    document.getElementById("od_notes").value = other.notes || "";
+
+    updateGoldValuation();
 
     if (asset.real_estate) {
       const re = asset.real_estate;
@@ -2258,6 +2692,18 @@ async function loadFixedAsset(assetId) {
     if (valuationContainer) {
       valuationContainer.innerHTML = "";
       (asset.valuation_history || []).forEach((item) => addValuationRow(item));
+    }
+
+    const maintenanceContainer = document.getElementById("maintenanceContainer");
+    if (maintenanceContainer) {
+      maintenanceContainer.innerHTML = "";
+      (asset.maintenance || []).forEach((item) => addMaintenanceRow(item));
+    }
+
+    const insuranceContainer = document.getElementById("insuranceContainer");
+    if (insuranceContainer) {
+      insuranceContainer.innerHTML = "";
+      (asset.insurance || []).forEach((item) => addInsuranceRow(item));
     }
   } catch (err) {
     showToast(err.message, "danger");
@@ -2348,22 +2794,107 @@ function toggleSaleTabVisibility() {
 
 function toggleRealEstateDependentTabs() {
   const assetType = document.getElementById("fa_type")?.value;
-  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(assetType);
+  const isRealEstate = isRealEstateAssetType(assetType);
+  const isVehicle = isVehicleAssetType(assetType);
+  const isGold = isGoldAssetType(assetType);
+  const isOther = isOtherAssetType(assetType);
   const mortgageTabItem = document.getElementById("mortgage-tab-item");
   const rentalTabItem = document.getElementById("rental-tab-item");
+  const vehicleTabItem = document.getElementById("vehicle-tab-item");
+  const goldTabItem = document.getElementById("gold-tab-item");
+  const otherDetailsTabItem = document.getElementById("other-details-tab-item");
+  const renovationTab = document.getElementById("renovation-tab")?.closest("li");
+  const furnitureTab = document.getElementById("furniture-tab")?.closest("li");
+  const valuationTab = document.getElementById("valuation-tab")?.closest("li");
+  const maintenanceTabItem = document.getElementById("maintenance-tab-item");
+  const insuranceTabItem = document.getElementById("insurance-tab-item");
   const mortgagePane = document.getElementById("mortgage-pane");
   const rentalPane = document.getElementById("rental-pane");
+  const propertyTab = document.getElementById("property-tab")?.closest("li");
+  const propertyPane = document.getElementById("property-pane");
+  const vehiclePane = document.getElementById("vehicle-pane");
+  const goldPane = document.getElementById("gold-pane");
+  const otherDetailsPane = document.getElementById("other-details-pane");
+  const renovationPane = document.getElementById("renovation-pane");
+  const furniturePane = document.getElementById("furniture-pane");
+  const valuationPane = document.getElementById("valuation-pane");
+  const maintenancePane = document.getElementById("maintenance-pane");
+  const insurancePane = document.getElementById("insurance-pane");
   const generalTabButton = document.getElementById("general-tab");
 
-  [mortgageTabItem, rentalTabItem, mortgagePane, rentalPane].forEach((element) => {
+  [
+    propertyTab,
+    propertyPane,
+    mortgageTabItem,
+    rentalTabItem,
+    mortgagePane,
+    rentalPane,
+    renovationTab,
+    renovationPane,
+    furnitureTab,
+    furniturePane,
+    vehicleTabItem,
+    vehiclePane,
+    maintenanceTabItem,
+    maintenancePane,
+    insuranceTabItem,
+    insurancePane,
+    goldTabItem,
+    goldPane,
+    otherDetailsTabItem,
+    otherDetailsPane,
+    valuationTab,
+    valuationPane,
+  ].forEach((element) => {
+    if (element) {
+      element.classList.add("d-none");
+    }
+  });
+
+  [propertyTab, propertyPane, renovationTab, renovationPane, furnitureTab, furniturePane, valuationTab, valuationPane, mortgageTabItem, mortgagePane, rentalTabItem, rentalPane].forEach((element) => {
     if (element) {
       element.classList.toggle("d-none", !isRealEstate);
     }
   });
 
-  ["mortgage-tab", "rental-tab"].forEach((tabId) => {
+  [vehicleTabItem, vehiclePane, maintenanceTabItem, maintenancePane, insuranceTabItem, insurancePane].forEach((element) => {
+    if (element) {
+      element.classList.toggle("d-none", !isVehicle);
+    }
+  });
+
+  [goldTabItem, goldPane, valuationTab, valuationPane].forEach((element) => {
+    if (element) {
+      element.classList.toggle("d-none", !isGold);
+    }
+  });
+
+  [otherDetailsTabItem, otherDetailsPane].forEach((element) => {
+    if (element) {
+      element.classList.toggle("d-none", !isOther);
+    }
+  });
+
+  if (isGold) {
+    updateGoldValuation();
+  }
+
+  [
+    "mortgage-tab",
+    "rental-tab",
+    "property-tab",
+    "renovation-tab",
+    "furniture-tab",
+    "valuation-tab",
+    "vehicle-tab",
+    "maintenance-tab",
+    "insurance-tab",
+    "gold-tab",
+    "other-details-tab",
+  ].forEach((tabId) => {
     const tab = document.getElementById(tabId);
-    if (!isRealEstate && tab?.classList.contains("active") && generalTabButton) {
+    const hiddenParent = tab?.closest("li")?.classList.contains("d-none");
+    if (hiddenParent && tab?.classList.contains("active") && generalTabButton) {
       bootstrap.Tab.getOrCreateInstance(generalTabButton).show();
     }
   });
@@ -2567,9 +3098,10 @@ async function saveFixedAsset(assetId = null) {
 
   const assetType = document.getElementById("fa_type").value;
   const assetStatus = document.getElementById("fa_status").value;
-  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(
-    assetType,
-  );
+  const isRealEstate = isRealEstateAssetType(assetType);
+  const isVehicle = isVehicleAssetType(assetType);
+  const isGold = isGoldAssetType(assetType);
+  const isOther = isOtherAssetType(assetType);
 
   const payload = {
     name: document.getElementById("fa_name").value,
@@ -2625,12 +3157,20 @@ async function saveFixedAsset(assetId = null) {
     payload.rental_details = collectRentalPayload();
     payload.renovations = collectRenovations();
   } else {
+    payload.real_estate_details = null;
     payload.mortgage_details = null;
     payload.rental_details = null;
+    payload.renovations = [];
   }
 
-  payload.furniture = collectFurniture();
-  payload.valuation_history = collectValuationHistory();
+  payload.vehicle_details = isVehicle ? collectVehicleDetailsPayload() : null;
+  payload.gold_details = isGold ? collectGoldDetailsPayload() : null;
+  payload.other_asset_details = isOther ? collectOtherAssetDetailsPayload() : null;
+  payload.maintenance = isVehicle ? collectMaintenance() : [];
+  payload.insurance = isVehicle ? collectInsurance() : [];
+
+  payload.furniture = isRealEstate ? collectFurniture() : [];
+  payload.valuation_history = (isRealEstate || isGold) ? collectValuationHistory() : [];
 
   showLoading();
   try {
@@ -2671,7 +3211,11 @@ async function saveFixedAsset(assetId = null) {
                 throw new Error("Failed to upload property photo.");
 
             const uploadedPhoto = await uploadResponse.json();
-            propertyPhotos.push(uploadedPhoto);
+            if (Array.isArray(uploadedPhoto)) {
+              propertyPhotos.push(...uploadedPhoto);
+            } else if (uploadedPhoto) {
+              propertyPhotos.push(uploadedPhoto);
+            }
         }
 
         renderPropertyPhotoGallery();
@@ -2756,24 +3300,11 @@ function showSaleModal(assetId, assetName, currentMarketValue) {
                                 General Information
                             </h6>
 
-                            <table class="table table-borderless table-sm mb-0">
-
-                                <tr>
-                                    <td data-i18n="asset_type">Asset Type</td>
-                                    <td id="details_asset_type" class="text-end fw-bold"></td>
-                                </tr>
-
-                                <tr>
-                                    <td data-i18n="purchase_date">Purchase Date</td>
-                                    <td id="details_purchase_date" class="text-end"></td>
-                                </tr>
-
-                                <tr>
-                                    <td data-i18n="valuation_source">Valuation Source</td>
-                                    <td id="details_valuation_source" class="text-end"></td>
-                                </tr>
-
-                            </table>
+                            <div class="d-grid gap-2">
+                              <div class="d-flex justify-content-between"><span data-i18n="asset_type">Asset Type</span><span id="details_asset_type" class="fw-bold"></span></div>
+                              <div class="d-flex justify-content-between"><span data-i18n="purchase_date">Purchase Date</span><span id="details_purchase_date"></span></div>
+                              <div class="d-flex justify-content-between"><span data-i18n="valuation_source">Valuation Source</span><span id="details_valuation_source"></span></div>
+                            </div>
 
                         </div>
 
@@ -2792,24 +3323,11 @@ function showSaleModal(assetId, assetName, currentMarketValue) {
                                 Financial Information
                             </h6>
 
-                            <table class="table table-borderless table-sm mb-0">
-
-                                <tr>
-                                    <td data-i18n="purchase_price_egp">Purchase Price</td>
-                                    <td id="details_purchase_price" class="text-end fw-bold"></td>
-                                </tr>
-
-                                <tr>
-                                    <td data-i18n="purchase_price_usd">Purchase USD</td>
-                                    <td id="details_purchase_usd" class="text-end"></td>
-                                </tr>
-
-                                <tr>
-                                    <td data-i18n="last_valuation_date">Last Valuation</td>
-                                    <td id="details_last_valuation" class="text-end"></td>
-                                </tr>
-
-                            </table>
+                            <div class="d-grid gap-2">
+                              <div class="d-flex justify-content-between"><span data-i18n="purchase_price_egp">Purchase Price</span><span id="details_purchase_price" class="fw-bold"></span></div>
+                              <div class="d-flex justify-content-between"><span data-i18n="purchase_price_usd">Purchase USD</span><span id="details_purchase_usd"></span></div>
+                              <div class="d-flex justify-content-between"><span data-i18n="last_valuation_date">Last Valuation</span><span id="details_last_valuation"></span></div>
+                            </div>
 
                         </div>
 
@@ -2891,9 +3409,7 @@ async function submitAssetSale(assetId) {
 function toggleRealEstateFields() {
   const assetType = document.getElementById("fa_type").value;
   const reSection = document.getElementById("realEstateSection");
-  const isRealEstate = ["Apartment", "Villa", "Shop", "Office"].includes(
-    assetType,
-  );
+  const isRealEstate = isRealEstateAssetType(assetType);
 
   if (reSection) {
     reSection.style.display = isRealEstate ? "block" : "none";
@@ -3494,6 +4010,120 @@ function collectValuationHistory() {
     });
   });
   return valuationHistory;
+}
+
+function collectVehicleDetailsPayload() {
+  return {
+    brand: document.getElementById("vd_brand")?.value || "",
+    model: document.getElementById("vd_model")?.value || "",
+    year: parseInt(document.getElementById("vd_year")?.value, 10) || null,
+    vin: document.getElementById("vd_vin")?.value || "",
+    engine: document.getElementById("vd_engine")?.value || "",
+    transmission: document.getElementById("vd_transmission")?.value || "",
+    fuel_type: document.getElementById("vd_fuel_type")?.value || "",
+    mileage: parseFloat(document.getElementById("vd_mileage")?.value) || 0,
+    plate_number: document.getElementById("vd_plate_number")?.value || "",
+    color: document.getElementById("vd_color")?.value || "",
+  };
+}
+
+function collectGoldDetailsPayload() {
+  return {
+    gold_type: document.getElementById("gd_gold_type")?.value || "",
+    purity: document.getElementById("gd_purity")?.value || "",
+    weight: parseFloat(document.getElementById("gd_weight")?.value) || 0,
+    unit: document.getElementById("gd_unit")?.value || "gram",
+    market_price: parseFloat(document.getElementById("gd_market_price")?.value) || 0,
+    purchase_weight: parseFloat(document.getElementById("gd_purchase_weight")?.value) || 0,
+  };
+}
+
+function collectOtherAssetDetailsPayload() {
+  return {
+    category: document.getElementById("od_category")?.value || "",
+    manufacturer: document.getElementById("od_manufacturer")?.value || "",
+    model: document.getElementById("od_model")?.value || "",
+    serial_number: document.getElementById("od_serial_number")?.value || "",
+    description: document.getElementById("od_description")?.value || "",
+    warranty_expiry: document.getElementById("od_warranty_expiry")?.value || null,
+    notes: document.getElementById("od_notes")?.value || "",
+  };
+}
+
+function updateGoldValuation() {
+  if (!isGoldAssetType(document.getElementById("fa_type")?.value)) {
+    return;
+  }
+  const weight = parseFloat(document.getElementById("gd_weight")?.value) || 0;
+  const marketPrice = parseFloat(document.getElementById("gd_market_price")?.value) || 0;
+  const currentValue = document.getElementById("fa_current_value");
+  if (currentValue) {
+    currentValue.value = (weight * marketPrice).toFixed(2);
+  }
+}
+
+function addMaintenanceRow(data = {}) {
+  const container = document.getElementById("maintenanceContainer");
+  if (!container) return;
+
+  const row = document.createElement("div");
+  row.className = "row g-2 mb-3 maintenance-row";
+  row.innerHTML = `
+    <div class="col-md-3"><label class="form-label small" data-i18n="date">Date</label><input type="date" class="form-control maintenance-date" value="${data.date || ""}"></div>
+    <div class="col-md-3"><label class="form-label small" data-i18n="type">Type</label><input type="text" class="form-control maintenance-type" value="${data.type || ""}"></div>
+    <div class="col-md-3"><label class="form-label small" data-i18n="cost">Cost</label><input type="number" step="0.01" class="form-control maintenance-cost" value="${data.cost || ""}"></div>
+    <div class="col-md-2"><label class="form-label small" data-i18n="notes">Notes</label><input type="text" class="form-control maintenance-notes" value="${data.notes || ""}"></div>
+    <div class="col-md-1"><label class="form-label small">&nbsp;</label><button type="button" class="btn btn-danger w-100" onclick="this.closest('.maintenance-row').remove()"><i class="bi bi-trash"></i></button></div>
+  `;
+  container.appendChild(row);
+  applyTranslations();
+}
+
+function collectMaintenance() {
+  const items = [];
+  document.querySelectorAll(".maintenance-row").forEach((row) => {
+    const date = row.querySelector(".maintenance-date")?.value;
+    if (!date) return;
+    items.push({
+      date,
+      type: row.querySelector(".maintenance-type")?.value || "",
+      cost: parseFloat(row.querySelector(".maintenance-cost")?.value) || 0,
+      notes: row.querySelector(".maintenance-notes")?.value || "",
+    });
+  });
+  return items;
+}
+
+function addInsuranceRow(data = {}) {
+  const container = document.getElementById("insuranceContainer");
+  if (!container) return;
+
+  const row = document.createElement("div");
+  row.className = "row g-2 mb-3 insurance-row";
+  row.innerHTML = `
+    <div class="col-md-3"><label class="form-label small" data-i18n="company">Company</label><input type="text" class="form-control insurance-company" value="${data.company || ""}"></div>
+    <div class="col-md-3"><label class="form-label small" data-i18n="policy_number">Policy Number</label><input type="text" class="form-control insurance-policy" value="${data.policy_number || ""}"></div>
+    <div class="col-md-3"><label class="form-label small" data-i18n="expiry_date">Expiry Date</label><input type="date" class="form-control insurance-expiry" value="${data.expiry_date || ""}"></div>
+    <div class="col-md-2"><label class="form-label small" data-i18n="premium">Premium</label><input type="number" step="0.01" class="form-control insurance-premium" value="${data.premium || ""}"></div>
+    <div class="col-md-1"><label class="form-label small">&nbsp;</label><button type="button" class="btn btn-danger w-100" onclick="this.closest('.insurance-row').remove()"><i class="bi bi-trash"></i></button></div>
+  `;
+  container.appendChild(row);
+  applyTranslations();
+}
+
+function collectInsurance() {
+  const items = [];
+  document.querySelectorAll(".insurance-row").forEach((row) => {
+    const company = row.querySelector(".insurance-company")?.value;
+    if (!company) return;
+    items.push({
+      company,
+      policy_number: row.querySelector(".insurance-policy")?.value || "",
+      expiry_date: row.querySelector(".insurance-expiry")?.value || null,
+      premium: parseFloat(row.querySelector(".insurance-premium")?.value) || 0,
+    });
+  });
+  return items;
 }
 
 // ════════════════════════════════════════════════════════════════════════════

@@ -95,6 +95,22 @@ urlpatterns = [
         views.AssetValuationHistoryDetailView.as_view(),
     ),
     path(
+        "api/asset-maintenance/",
+        views.AssetMaintenanceListView.as_view(),
+    ),
+    path(
+        "api/asset-maintenance/<int:pk>/",
+        views.AssetMaintenanceDetailView.as_view(),
+    ),
+    path(
+        "api/asset-insurance/",
+        views.AssetInsuranceListView.as_view(),
+    ),
+    path(
+        "api/asset-insurance/<int:pk>/",
+        views.AssetInsuranceDetailView.as_view(),
+    ),
+    path(
         "api/fixed-assets/<int:asset_id>/sale/",
         views.AssetSaleView.as_view(),
     ),

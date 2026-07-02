@@ -1319,6 +1319,21 @@ body { overflow-x: hidden; }
     border-color: var(--accent-primary);
 }
 
+.fixed-assets-heading,
+.fixed-assets-section-title,
+.fixed-assets-tab-title,
+.fixed-assets-empty-title,
+.fixed-assets-card-title,
+.asset-detail-title,
+.asset-detail-subtitle{
+  color: var(--text-primary) !important;
+}
+
+.fixed-assets-muted,
+.fixed-assets-section-note{
+  color: var(--text-secondary) !important;
+}
+
 .asset-attribute-row{
     display: flex;
     flex-direction: column;
