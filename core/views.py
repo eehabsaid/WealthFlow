@@ -25,6 +25,7 @@ from .models import (
     ExpenseSubcategory,
     Expense,
     BankCertificate,
+    BankCertificateInterestHistory,
     _is_certificate_active,
     PagePermission,
     PAGE_PERMISSION_CHOICES,
@@ -738,6 +739,31 @@ class BankCertificateDetailView(View):
         certificate = get_object_or_404(BankCertificate, pk=pk)
         certificate.delete()
         return JsonResponse({"deleted": pk})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class BankCertificateInterestHistoryView(View):
+    def get(self, request, certificate_id):
+        certificate = get_object_or_404(BankCertificate, pk=certificate_id)
+        rows = (
+            BankCertificateInterestHistory.objects.select_related("bank", "currency")
+            .filter(certificate_id=certificate_id)
+            .order_by("-posting_date", "-id")
+        )
+
+        start = request.GET.get("start")
+        end = request.GET.get("end")
+        if start:
+            rows = rows.filter(posting_date__gte=start)
+        if end:
+            rows = rows.filter(posting_date__lte=end)
+
+        return JsonResponse(
+            {
+                "certificate": certificate.to_dict(),
+                "items": [row.to_dict() for row in rows],
+            }
+        )
 
 
 @method_decorator(csrf_exempt, name="dispatch")

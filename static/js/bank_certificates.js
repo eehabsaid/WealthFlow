@@ -30,6 +30,7 @@ async function renderBankCertificates() {
 
     const editTitle = t('edit', 'Edit');
     const deleteTitle = t('delete', 'Delete');
+    const historyTitle = t('interest_history', 'Interest History');
 
     const rows = certificates
         .map(
@@ -48,6 +49,7 @@ async function renderBankCertificates() {
                 <td>${c.status || '—'}</td>
                 <td>
                     <button class="btn-icon" onclick="showBankCertificateModal(${c.id})" title="${editTitle}"><i class="bi bi-pencil"></i></button>
+                    <button class="btn-icon" onclick="showBankCertificateInterestHistory(${c.id})" title="${historyTitle}"><i class="bi bi-clock-history"></i></button>
                     <button class="btn-icon del" onclick="deleteBankCertificate(${c.id})" title="${deleteTitle}"><i class="bi bi-trash"></i></button>
                 </td>
             </tr>`,
@@ -373,3 +375,89 @@ function calculateCertificateInterest() {
     // Populate field locked to standard financial decimal precision
     document.getElementById('bcInterestValue').value = computedValue.toFixed(2);
 }
+
+async function showBankCertificateInterestHistory(certificateId) {
+    const res = await fetch(`/api/bank-certificates/${certificateId}/interest-history/`);
+    if (!res.ok) {
+        showToast(t('error_loading_interest_history', 'Error loading interest history'), 'error');
+        return;
+    }
+
+    const data = await res.json();
+    const certificate = data.certificate || {};
+    const items = data.items || [];
+
+    const rows = items.length
+        ? items.map((item) => `
+            <tr data-posting-date="${item.posting_date || ''}">
+                <td>${item.posting_date || '—'}</td>
+                <td>${item.posting_period || '—'}</td>
+                <td class="text-end">${fmt(item.interest_amount || 0)}</td>
+                <td>${item.bank_name || '—'}</td>
+                <td>${item.currency_code || '—'}</td>
+                <td>${item.created_at ? new Date(item.created_at).toLocaleString() : '—'}</td>
+            </tr>
+        `).join('')
+        : `<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--text-muted)" data-i18n="no_interest_history">No interest history yet.</td></tr>`;
+
+    const certTitle = certificate.bank_name
+        ? `${certificate.bank_name} - ${certificate.currency_code || ''}`
+        : (certificate.id ? `#${certificate.id}` : '');
+
+    showModal(`
+        <div class="modal-header">
+            <h5 class="modal-title" data-i18n="interest_history">Interest History</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="closeModal()"></button>
+        </div>
+        <div class="modal-body">
+            <div style="margin-bottom:10px;color:var(--text-secondary);font-size:13px;">
+                <span data-i18n="certificate">Certificate</span>: ${certTitle || '—'}
+            </div>
+            <div class="row g-2" style="margin-bottom:10px;">
+                <div class="col-sm-6">
+                    <label class="form-label" data-i18n="start_date">Start Date</label>
+                    <input type="date" class="form-control" id="interestHistoryStart" oninput="filterBankCertificateInterestHistoryRows()">
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label" data-i18n="end_date">End Date</label>
+                    <input type="date" class="form-control" id="interestHistoryEnd" oninput="filterBankCertificateInterestHistoryRows()">
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="posting_date">Posting Date</th>
+                            <th data-i18n="posting_period">Posting Period</th>
+                            <th class="text-end" data-i18n="interest_amount">Interest Amount</th>
+                            <th data-i18n="bank">Bank</th>
+                            <th data-i18n="currency">Currency</th>
+                            <th data-i18n="created_at">Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="interestHistoryRows">${rows}</tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary-custom" data-bs-dismiss="modal" onclick="closeModal()" data-i18n="btn_close">Close</button>
+        </div>
+    `);
+    applyTranslations();
+}
+
+function filterBankCertificateInterestHistoryRows() {
+    const start = document.getElementById('interestHistoryStart')?.value || '';
+    const end = document.getElementById('interestHistoryEnd')?.value || '';
+    const rows = document.querySelectorAll('#interestHistoryRows tr[data-posting-date]');
+
+    rows.forEach((row) => {
+        const postingDate = row.getAttribute('data-posting-date') || '';
+        const inStart = !start || postingDate >= start;
+        const inEnd = !end || postingDate <= end;
+        row.style.display = inStart && inEnd ? '' : 'none';
+    });
+}
+
+window.showBankCertificateInterestHistory = showBankCertificateInterestHistory;
+window.filterBankCertificateInterestHistoryRows = filterBankCertificateInterestHistoryRows;

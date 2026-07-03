@@ -33,6 +33,10 @@ urlpatterns = [
     path("api/banks/<int:pk>/", views.BankDetailView.as_view()),
     path("api/bank-certificates/", views.BankCertificateListView.as_view()),
     path("api/bank-certificates/<int:pk>/", views.BankCertificateDetailView.as_view()),
+    path(
+        "api/bank-certificates/<int:certificate_id>/interest-history/",
+        views.BankCertificateInterestHistoryView.as_view(),
+    ),
     path("api/currencies/", views.CurrencyListView.as_view()),
     path("api/currencies/<int:pk>/", views.CurrencyDetailView.as_view()),
     path("api/balance/", views.BalanceListView.as_view()),
