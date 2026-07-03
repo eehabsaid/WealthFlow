@@ -34,25 +34,36 @@ async function renderBankCertificates() {
 
     const rows = certificates
         .map(
-            (c) => `
-            <tr>
-                <td>${c.bank_name || '—'}</td>
-                <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${c.currency_flag} ${c.currency_code || '—'}</span></td>
-                <td>${c.issue_date || '—'}</td>
-                <td>${c.expiry_date || '—'}</td>
-                <td>${fmt(c.amount)}</td>
-                <td>${c.interest_rate ? c.interest_rate : '—'}</td>
-                <td>${c.interest_value ? fmt(c.interest_value) : '—'}</td>
-                <td class="local-freq-field" data-freq="${c.frequency || ''}">
-                  ${c.frequency ? c.frequency.replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()) : '—'}
-                </td>
-                <td>${c.status || '—'}</td>
-                <td>
-                    <button class="btn-icon" onclick="showBankCertificateModal(${c.id})" title="${editTitle}"><i class="bi bi-pencil"></i></button>
-                    <button class="btn-icon" onclick="showBankCertificateInterestHistory(${c.id})" title="${historyTitle}"><i class="bi bi-clock-history"></i></button>
-                    <button class="btn-icon del" onclick="deleteBankCertificate(${c.id})" title="${deleteTitle}"><i class="bi bi-trash"></i></button>
-                </td>
-            </tr>`,
+            (c) => {
+                const isClosed = String(c.status || '').trim().toLowerCase() === 'closed';
+                
+                // Apply the background tint, explicit red text color, and semi-bold font to every cell if closed
+                const tdStyle = isClosed 
+                    ? 'style="background-color: rgba(255, 77, 109, 0.05) !important; color: var(--accent-red) !important; font-weight: 700 !important;"' 
+                    : '';
+
+                return `
+                <tr>
+                    <td ${tdStyle}>${c.bank_name || '—'}</td>
+                    <td ${tdStyle}><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${c.currency_flag} ${c.currency_code || '—'}</span></td>
+                    <td ${tdStyle}>${c.issue_date || '—'}</td>
+                    <td ${tdStyle}>${c.expiry_date || '—'}</td>
+                    <td ${tdStyle} class="text-end">${fmt(c.amount)}</td>
+                    <td ${tdStyle}>${c.interest_rate ? c.interest_rate : '—'}</td>
+                    <td ${tdStyle}>${c.interest_value ? fmt(c.interest_value) : '—'}</td>
+                    <td ${tdStyle} class="local-freq-field" data-freq="${c.frequency || ''}">
+                    ${c.frequency ? c.frequency.replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()) : '—'}
+                    </td>
+                    <td ${tdStyle}>
+                        ${c.status || '—'}
+                    </td>
+                    <td ${tdStyle}>
+                        <button class="btn-icon" onclick="showBankCertificateModal(${c.id})" title="${editTitle}"><i class="bi bi-pencil"></i></button>
+                        <button class="btn-icon" onclick="showBankCertificateInterestHistory(${c.id})" title="${historyTitle}"><i class="bi bi-clock-history"></i></button>
+                        <button class="btn-icon del" onclick="deleteBankCertificate(${c.id})" title="${deleteTitle}"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`;
+            }
         )
         .join('');
 
