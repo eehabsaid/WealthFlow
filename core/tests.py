@@ -282,3 +282,64 @@ class ExpenseBalanceIntegrationTest(TestCase):
         self.qnb_entry.refresh_from_db()
         self.assertEqual(float(self.qnb_entry.amount), 5000.0)
         self.assertFalse(Expense.objects.filter(pk=expense_id).exists())
+
+    def test_create_expense_rejected_when_balance_would_be_negative(self):
+        response = self.client.post(
+            "/api/expenses/",
+            data=json.dumps(
+                {
+                    "date": "2026-07-01",
+                    "category_id": self.category.id,
+                    "amount": 2500,
+                    "currency_id": self.currency_egp.id,
+                    "payment_method": "Cash",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json().get("error"), "insufficient_balance")
+        self.cash_entry.refresh_from_db()
+        self.assertEqual(float(self.cash_entry.amount), 2000.0)
+        self.assertEqual(Expense.objects.count(), 0)
+
+    def test_edit_expense_rejected_when_new_deduction_would_be_negative(self):
+        create_response = self.client.post(
+            "/api/expenses/",
+            data=json.dumps(
+                {
+                    "date": "2026-07-01",
+                    "category_id": self.category.id,
+                    "amount": 200,
+                    "currency_id": self.currency_egp.id,
+                    "payment_method": "Card",
+                    "bank_id": self.bank_qnb.id,
+                }
+            ),
+            content_type="application/json",
+        )
+        self.assertEqual(create_response.status_code, 201)
+        expense_id = create_response.json()["id"]
+
+        edit_response = self.client.put(
+            f"/api/expenses/{expense_id}/",
+            data=json.dumps(
+                {
+                    "amount": 6000,
+                    "payment_method": "Card",
+                    "bank_id": self.bank_qnb.id,
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(edit_response.status_code, 400)
+        self.assertEqual(edit_response.json().get("error"), "insufficient_balance")
+
+        self.qnb_entry.refresh_from_db()
+        self.assertEqual(float(self.qnb_entry.amount), 4800.0)
+
+        exp = Expense.objects.get(pk=expense_id)
+        self.assertEqual(float(exp.amount), 200.0)
+        self.assertEqual(exp.bank_id, self.bank_qnb.id)

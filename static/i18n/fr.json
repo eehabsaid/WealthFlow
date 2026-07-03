@@ -324,6 +324,7 @@
   "select_bank_account": "Sélectionnez le compte bancaire",
   "bank_account_required": "Le compte bancaire est obligatoire pour paiement Banque/Carte",
   "matching_balance_not_found": "Aucune entrée de solde correspondante trouvée",
+  "insufficient_balance": "Solde insuffisant",
   "error_saving_expense": "Erreur lors de l'enregistrement de la dépense",
   "error_deleting_expense": "Erreur lors de la suppression de la dépense",
   "expense_categories": "Catégories de dépenses",

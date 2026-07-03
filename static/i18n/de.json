@@ -324,6 +324,7 @@
   "select_bank_account": "Bankkonto auswählen",
   "bank_account_required": "Bankkonto ist für Bank-/Kartenzahlung erforderlich",
   "matching_balance_not_found": "Kein passender Saldoeintrag gefunden",
+  "insufficient_balance": "Unzureichendes Guthaben",
   "error_saving_expense": "Fehler beim Speichern der Ausgabe",
   "error_deleting_expense": "Fehler beim Löschen der Ausgabe",
   "expense_categories": "Ausgabenkategorien",

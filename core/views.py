@@ -1481,6 +1481,9 @@ def _apply_expense_balance_delta(payment_method, bank_id, amount_delta):
     if not entry:
         raise ValueError("matching_balance_entry_not_found")
 
+    if delta < 0 and (Decimal(entry.amount or 0) + delta) < 0:
+        raise ValueError("insufficient_balance")
+
     entry.amount = Decimal(entry.amount or 0) + delta
     entry.save(update_fields=["amount"])
 
@@ -1541,6 +1544,14 @@ class ExpenseListView(View):
         d = _date.fromisoformat(data["date"])
         try:
             with transaction.atomic():
+                amount_value = Decimal(str(data.get("amount", 0) or 0))
+                if _expense_affects_balance(payment_method):
+                    target_entry = _get_target_cash_balance_entry(payment_method, bank_id)
+                    if not target_entry:
+                        raise ValueError("matching_balance_entry_not_found")
+                    if amount_value > Decimal(target_entry.amount or 0):
+                        raise ValueError("insufficient_balance")
+
                 exp = Expense.objects.create(
                     date=d,
                     year=d.year,
@@ -1561,6 +1572,14 @@ class ExpenseListView(View):
                     {
                         "error": "Matching balance entry not found",
                         "error_key": "matching_balance_not_found",
+                    },
+                    status=400,
+                )
+            if str(exc) == "insufficient_balance":
+                return JsonResponse(
+                    {
+                        "error": "insufficient_balance",
+                        "error_key": "insufficient_balance",
                     },
                     status=400,
                 )
@@ -1616,6 +1635,21 @@ class ExpenseDetailView(View):
 
         try:
             with transaction.atomic():
+                next_amount = Decimal(exp.amount or 0)
+                if _expense_affects_balance(exp.payment_method):
+                    next_target = _get_target_cash_balance_entry(exp.payment_method, exp.bank_id)
+                    if not next_target:
+                        raise ValueError("matching_balance_entry_not_found")
+
+                    available_balance = Decimal(next_target.amount or 0)
+                    if _expense_affects_balance(previous_method):
+                        previous_target = _get_target_cash_balance_entry(previous_method, previous_bank_id)
+                        if previous_target and previous_target.id == next_target.id:
+                            available_balance += previous_amount
+
+                    if next_amount > available_balance:
+                        raise ValueError("insufficient_balance")
+
                 _apply_expense_balance_delta(previous_method, previous_bank_id, previous_amount)
                 exp.save()
                 _apply_expense_balance_delta(exp.payment_method, exp.bank_id, -Decimal(exp.amount or 0))
@@ -1625,6 +1659,14 @@ class ExpenseDetailView(View):
                     {
                         "error": "Matching balance entry not found",
                         "error_key": "matching_balance_not_found",
+                    },
+                    status=400,
+                )
+            if str(exc) == "insufficient_balance":
+                return JsonResponse(
+                    {
+                        "error": "insufficient_balance",
+                        "error_key": "insufficient_balance",
                     },
                     status=400,
                 )

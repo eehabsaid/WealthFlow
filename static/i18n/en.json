@@ -324,6 +324,7 @@
   "select_bank_account": "Select bank account",
   "bank_account_required": "Bank account is required for Bank/Card payments",
   "matching_balance_not_found": "Matching balance entry not found",
+  "insufficient_balance": "Insufficient balance",
   "error_saving_expense": "Error saving expense",
   "error_deleting_expense": "Error deleting expense",
   "expense_categories": "Expense Categories",

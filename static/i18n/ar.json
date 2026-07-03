@@ -324,6 +324,7 @@
   "select_bank_account": "اختر الحساب البنكي",
   "bank_account_required": "الحساب البنكي مطلوب لطرق الدفع بنك/بطاقة",
   "matching_balance_not_found": "تعذر العثور على رصيد مطابق",
+  "insufficient_balance": "الرصيد غير كافٍ",
   "error_saving_expense": "خطأ أثناء حفظ المصروف",
   "error_deleting_expense": "خطأ أثناء حذف المصروف",
   "expense_categories": "فئات المصاريف",
