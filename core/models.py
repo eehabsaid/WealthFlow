@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from decimal import Decimal
+from django.db.models import Case, Value, When
 
 ASSET_TYPES = [
     ("Real Estate", "Real Estate"),
@@ -170,7 +171,21 @@ class BankCertificate(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["-issue_date", "bank__name"]
+            # 1. Primary Sort: Convert status to lowercase and sink "closed" to the bottom
+            # 2. Secondary Sort: Main timeline sequence by Issue Date (Descending)
+            # 3. Tertiary Sub-Sort: Exact day component of the Issue Date (Ascending)
+            # 4. Fallback Sort: Alphabetical order by Bank Name
+            ordering = [
+                Case(
+                    When(status__iexact="closed", then=Value(1)),
+                    # Or using Lower function explicitly if needed for older versions:
+                    # When(status=Lower(Value("closed")), then=Value(1)),
+                    default=Value(0),
+                    output_field=models.IntegerField(),
+                ),
+                "issue_date__day",
+                "bank__name",
+            ]
 
     def to_dict(self):
         return {
