@@ -355,7 +355,12 @@ function showModal(html) {
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">${html}</div>
         </div>`;
-    new bootstrap.Modal(el).show();
+    bootstrap.Modal.getInstance(el)?.dispose();
+    const modal = new bootstrap.Modal(el, {
+        backdrop: 'static',
+        keyboard: false,
+    });
+    modal.show();
 }
 
 function closeModal() {

@@ -4521,7 +4521,8 @@ def _fixed_asset_user_text(value, lang):
     if value in (None, ""):
         return "-"
     text = str(value)
-    return format_arabic(text) if lang == "ar" else text
+    has_arabic = any("\u0600" <= ch <= "\u06FF" for ch in text)
+    return format_arabic(text) if lang == "ar" or has_arabic else text
 
 
 def _fixed_asset_pdf_table(rows, col_widths, font_name):
@@ -4724,10 +4725,13 @@ class FixedAssetPdfReportView(View):
         scope = context["scope"]
 
         font_path = os.path.join(settings.BASE_DIR, "static", "fonts", "arial.ttf")
-        if lang == "ar" and os.path.exists(font_path):
+        font_exists = os.path.exists(font_path)
+        if font_exists:
             pdfmetrics.registerFont(TTFont("ArabicFont", font_path))
 
-        font_name = "ArabicFont" if lang == "ar" and os.path.exists(font_path) else "Helvetica"
+        # Always prefer Arabic-capable font when available so mixed-language
+        # content (e.g., Arabic names in EN report) renders correctly.
+        font_name = "ArabicFont" if font_exists else "Helvetica"
         font_name_bold = "ArabicFont" if font_name == "ArabicFont" else "Helvetica-Bold"
 
         buffer = io.BytesIO()

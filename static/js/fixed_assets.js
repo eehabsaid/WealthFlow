@@ -5,6 +5,7 @@ let propertyMarker = null;
 let propertyPhotos = [];
 let currentEditingAssetId = null;
 let fixedAssetBalanceOptions = [];
+let goldPurityReturnContext = null;
 let fixedAssetsState = {
   activeTab: "assets",
   assets: [],
@@ -75,6 +76,48 @@ function normalizeGoldPurity(purityValue) {
   if (text.includes("21") || text.includes("875")) return "21k";
   if (text.includes("18") || text.includes("750")) return "18k";
   return "24k";
+}
+
+function buildDashboardAnalyticsAssets(assets) {
+  const source = normalizeFixedAssetsData(assets);
+  const groupedGoldMap = {};
+  const nonGoldAssets = [];
+
+  source.forEach((asset) => {
+    const assetType = asset.asset_type || asset.type;
+    if (!isGoldAssetType(assetType)) {
+      nonGoldAssets.push(asset);
+      return;
+    }
+
+    const purityKey = normalizeGoldPurity(asset?.gold_details?.purity || asset?.purity || "24k");
+    if (!groupedGoldMap[purityKey]) {
+      groupedGoldMap[purityKey] = {
+        ...asset,
+        id: `gold-group-${purityKey}`,
+        name: `${t("type_gold", "Gold")} ${purityKey.toUpperCase()}`,
+        asset_type: FIXED_ASSET_TYPES.GOLD,
+        purchase_price: 0,
+        current_market_value: 0,
+        purchase_date: asset.purchase_date || null,
+        renovations: [],
+      };
+    }
+
+    groupedGoldMap[purityKey].purchase_price += parseFloat(asset.purchase_price) || 0;
+    groupedGoldMap[purityKey].current_market_value += parseFloat(asset.current_market_value) || 0;
+
+    if (asset.purchase_date) {
+      const currentDate = new Date(groupedGoldMap[purityKey].purchase_date || asset.purchase_date).getTime();
+      const candidateDate = new Date(asset.purchase_date).getTime();
+      if (!Number.isNaN(candidateDate) && (Number.isNaN(currentDate) || candidateDate < currentDate)) {
+        groupedGoldMap[purityKey].purchase_date = asset.purchase_date;
+      }
+    }
+  });
+
+  const groupedGoldAssets = Object.values(groupedGoldMap);
+  return [...nonGoldAssets, ...groupedGoldAssets];
 }
 
 function getGoldSellPerGram(goldPayload, purityKey) {
@@ -350,6 +393,8 @@ function renderFixedAssetsList(assets) {
   if (!container) return;
 
   const assetsArray = normalizeFixedAssetsData(assets);
+  const goldAssets = assetsArray.filter((asset) => isGoldAssetType(asset.asset_type || asset.type));
+  const nonGoldAssets = assetsArray.filter((asset) => !isGoldAssetType(asset.asset_type || asset.type));
 
   if (!assetsArray || assetsArray.length === 0) {
     container.innerHTML = `
@@ -366,6 +411,35 @@ function renderFixedAssetsList(assets) {
     return;
   }
 
+  const groupedGoldMap = {};
+  goldAssets.forEach((asset) => {
+    const purityKey = normalizeGoldPurity(asset?.gold_details?.purity || asset?.purity || "24k");
+    const weight = parseFloat(asset?.gold_details?.weight) || 0;
+    const unit = asset?.gold_details?.unit || "gram";
+    const weightInGrams = weight * getGoldUnitFactor(unit);
+
+    if (!groupedGoldMap[purityKey]) {
+      groupedGoldMap[purityKey] = {
+        purity_key: purityKey,
+        purity_label: purityKey.toUpperCase(),
+        total_weight_grams: 0,
+        total_purchase_value: 0,
+        total_current_market_value: 0,
+        purchases_count: 0,
+      };
+    }
+
+    groupedGoldMap[purityKey].total_weight_grams += weightInGrams;
+    groupedGoldMap[purityKey].total_purchase_value += parseFloat(asset.purchase_price) || 0;
+    groupedGoldMap[purityKey].total_current_market_value += parseFloat(asset.current_market_value) || 0;
+    groupedGoldMap[purityKey].purchases_count += 1;
+  });
+
+  const groupedGoldRows = Object.values(groupedGoldMap).sort((a, b) => {
+    const rank = { "24k": 1, "22k": 2, "21k": 3, "18k": 4 };
+    return (rank[a.purity_key] || 99) - (rank[b.purity_key] || 99);
+  });
+
   let html = `
     <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:hidden;">
       <div class="table-container">
@@ -374,16 +448,39 @@ function renderFixedAssetsList(assets) {
             <tr>
               <th data-i18n="asset_name">Asset Name</th>
               <th data-i18n="asset_type">Asset Type</th>
-              <th data-i18n="purchase_date">Purchase Date</th>
-              <th class="text-end" data-i18n="purchase_price_egp">Purchase Price (EGP)</th>
+              <th data-i18n="purity">Purity</th>
+              <th class="text-end" data-i18n="total_weight">Total Weight</th>
+              <th class="text-end" data-i18n="total_purchase_value">Total Purchase Value</th>
               <th class="text-end" data-i18n="current_market_value">Current Market Value</th>
+              <th class="text-end" data-i18n="number_of_purchases">Number of Purchases</th>
               <th data-i18n="actions">Actions</th>
             </tr>
           </thead>
           <tbody>
   `;
 
-  assetsArray.forEach((asset) => {
+  groupedGoldRows.forEach((grouped) => {
+    html += `
+            <tr>
+              <td class="fixed-assets-card-title">${t("type_gold", "Gold")}</td>
+              <td>
+                <span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;" data-i18n="type_gold">${t("type_gold", "Gold")}</span>
+              </td>
+              <td>${grouped.purity_label}</td>
+              <td class="text-end">${fmt(grouped.total_weight_grams)}</td>
+              <td class="text-end">${fmt(grouped.total_purchase_value)}</td>
+              <td class="text-end">
+                <span style="color:#17a34a;font-weight:700">${fmt(grouped.total_current_market_value)}</span>
+              </td>
+              <td class="text-end">${fmtInt(grouped.purchases_count)}</td>
+              <td class="d-flex gap-2">
+                <button class="btn-icon" title="${t("view", "View")}" onclick="showGoldPurityGroupDetails('${grouped.purity_key}')"><i class="bi bi-eye"></i></button>
+              </td>
+            </tr>
+    `;
+  });
+
+  nonGoldAssets.forEach((asset) => {
     const assetType = asset.asset_type || asset.type || FIXED_ASSET_TYPES.OTHER;
     const typeKey = fixedAssetTypeToI18nKey(assetType);
 
@@ -393,11 +490,13 @@ function renderFixedAssetsList(assets) {
               <td>
                 <span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;" data-i18n="${typeKey}">${assetType}</span>
               </td>
-              <td>${asset.purchase_date || "—"}</td>
+              <td>—</td>
+              <td class="text-end">—</td>
               <td class="text-end">${fmt(asset.purchase_price)}</td>
               <td class="text-end">
                 <span style="color:#17a34a;font-weight:700">${fmt(asset.current_market_value)}</span>
               </td>
+              <td class="text-end">1</td>
               <td class="d-flex gap-2">
                 <button class="btn-icon" title="View" onclick="showFixedAssetDetails(${asset.id})"><i class="bi bi-eye"></i></button>
                 <button class="btn-icon" title="Edit" onclick="showFixedAssetModal(${asset.id})"><i class="bi bi-pencil"></i></button>
@@ -418,11 +517,80 @@ function renderFixedAssetsList(assets) {
   applyTranslations();
 }
 
+function showGoldPurityGroupDetails(purityKey) {
+  const normalizedPurity = normalizeGoldPurity(purityKey || "24k");
+  setGoldPurityReturnContext(normalizedPurity);
+  const purchases = normalizeFixedAssetsData(fixedAssetsState.assets).filter((asset) => {
+    if (!isGoldAssetType(asset.asset_type || asset.type)) return false;
+    const assetPurity = normalizeGoldPurity(asset?.gold_details?.purity || asset?.purity || "24k");
+    return assetPurity === normalizedPurity;
+  });
+
+  if (!purchases.length) {
+    showToast(t("no_gold_purchases_for_purity", "No gold purchases found for this purity."), "warning");
+    return;
+  }
+
+  const rows = purchases
+    .sort((a, b) => (String(b.purchase_date || "")).localeCompare(String(a.purchase_date || "")))
+    .map((asset) => {
+      const weight = parseFloat(asset?.gold_details?.weight) || 0;
+      const unit = asset?.gold_details?.unit || "gram";
+      return `
+        <tr>
+          <td>${asset.name || "—"}</td>
+          <td>${asset.purchase_date || "—"}</td>
+          <td>${fmt(weight)} ${unit}</td>
+          <td class="text-end">${fmt(asset.purchase_price)}</td>
+          <td class="text-end">${fmt(asset.current_market_value)}</td>
+          <td class="d-flex gap-2">
+            <button class="btn-icon" title="${t("view", "View")}" onclick="openGoldPurchaseDetails(${asset.id}, '${normalizedPurity}')"><i class="bi bi-eye"></i></button>
+            <button class="btn-icon" title="${t("edit", "Edit")}" onclick="openGoldPurchaseEditor(${asset.id}, '${normalizedPurity}')"><i class="bi bi-pencil"></i></button>
+            <button class="btn-icon del" title="${t("delete", "Delete")}" onclick="deleteFixedAssetFromGoldGroup(${asset.id}, '${normalizedPurity}')"><i class="bi bi-trash"></i></button>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  const html = `
+    <div class="modal-header">
+      <h5 class="modal-title" data-i18n="gold_purity_group_details">${t("gold_purity_group_details", "Gold Purity Details")}: ${normalizedPurity.toUpperCase()}</h5>
+      <button type="button" class="btn-close btn-close-white" onclick="clearGoldPurityReturnContext(); closeModal()"></button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:12px;font-weight:600;color:var(--text-secondary);">
+        <span data-i18n="number_of_purchases">${t("number_of_purchases", "Number of Purchases")}</span>: ${fmtInt(purchases.length)}
+      </div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th data-i18n="asset_name">${t("asset_name", "Asset Name")}</th>
+              <th data-i18n="purchase_date">${t("purchase_date", "Purchase Date")}</th>
+              <th data-i18n="weight">${t("weight", "Weight")}</th>
+              <th class="text-end" data-i18n="purchase_price_egp">${t("purchase_price_egp", "Purchase Price (EGP)")}</th>
+              <th class="text-end" data-i18n="current_market_value">${t("current_market_value", "Current Market Value")}</th>
+              <th data-i18n="actions">${t("actions", "Actions")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  showModal(html);
+  applyTranslations();
+}
+
 function renderFixedAssetsDashboard(assets) {
   const container = document.getElementById("fixedAssetsContainer");
   if (!container) return;
 
-  const assetsArray = normalizeFixedAssetsData(assets);
+  const assetsArray = buildDashboardAnalyticsAssets(assets);
 
   if (!assetsArray.length) {
     container.innerHTML = `
@@ -476,7 +644,7 @@ function renderFixedAssetsAnalytics(assets) {
   const container = document.getElementById("fixedAssetsContainer");
   if (!container) return;
 
-  const assetsArray = normalizeFixedAssetsData(assets);
+  const assetsArray = buildDashboardAnalyticsAssets(assets);
 
   if (!assetsArray.length) {
     container.innerHTML = `
@@ -1178,11 +1346,59 @@ function _noDataFixedAssets(cols) {
   return `<tr><td colspan="${cols}" style="text-align:center;padding:28px;color:var(--text-secondary)" data-i18n="no_data">${t("no_data", "No data available")}</td></tr>`;
 }
 
+function setGoldPurityReturnContext(purityKey) {
+  if (!purityKey) {
+    goldPurityReturnContext = null;
+    return;
+  }
+  goldPurityReturnContext = normalizeGoldPurity(purityKey);
+}
+
+function clearGoldPurityReturnContext() {
+  goldPurityReturnContext = null;
+}
+
+function handleAssetWindowClose() {
+  const returnPurity = goldPurityReturnContext;
+  closeModal();
+  if (returnPurity) {
+    setTimeout(() => {
+      showGoldPurityGroupDetails(returnPurity);
+    }, 160);
+  }
+}
+
+function openGoldPurchaseDetails(assetId, purityKey) {
+  setGoldPurityReturnContext(purityKey);
+  showFixedAssetDetails(assetId, { returnPurityKey: purityKey });
+}
+
+function openGoldPurchaseEditor(assetId, purityKey) {
+  setGoldPurityReturnContext(purityKey);
+  showFixedAssetModal(assetId, { returnPurityKey: purityKey });
+}
+
+async function deleteFixedAssetFromGoldGroup(assetId, purityKey) {
+  setGoldPurityReturnContext(purityKey);
+  const deleted = await deleteFixedAsset(assetId);
+  if (deleted) {
+    setTimeout(() => {
+      showGoldPurityGroupDetails(purityKey);
+    }, 200);
+  }
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 // MODALS & ACTIONS
 // ════════════════════════════════════════════════════════════════════════════
 
-async function showFixedAssetModal(assetId = null) {
+async function showFixedAssetModal(assetId = null, options = {}) {
+  if (options?.returnPurityKey) {
+    setGoldPurityReturnContext(options.returnPurityKey);
+  } else {
+    clearGoldPurityReturnContext();
+  }
+
   const isEdit = assetId !== null;
   const modalTitleKey = isEdit ? "edit_fixed_asset" : "add_fixed_asset";
   const modalTitleDefault = isEdit
@@ -1192,7 +1408,7 @@ async function showFixedAssetModal(assetId = null) {
   const html = `
         <div class="modal-header">
             <h5 class="modal-title fixed-assets-heading" data-i18n="${modalTitleKey}">${modalTitleDefault}</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close btn-close-white" onclick="handleAssetWindowClose()"></button>
         </div>
         <div class="modal-body" style="max-height: 75vh; overflow-y: auto; overflow-x: hidden; padding: 1.5rem;">
           <form id="fixedAssetForm">
@@ -1901,7 +2117,7 @@ async function showFixedAssetModal(assetId = null) {
           </form>
         </div>
         <div class="modal-footer">
-            <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+            <button class="btn-secondary-custom" onclick="handleAssetWindowClose()" data-i18n="cancel">Cancel</button>
             <button class="btn-primary-custom" onclick="saveFixedAsset(${assetId})" data-i18n="save">Save</button>
         </div>
     `;
@@ -1989,7 +2205,13 @@ async function showFixedAssetModal(assetId = null) {
   }
 }
 
-async function showFixedAssetDetails(assetId) {
+async function showFixedAssetDetails(assetId, options = {}) {
+  if (options?.returnPurityKey) {
+    setGoldPurityReturnContext(options.returnPurityKey);
+  } else {
+    clearGoldPurityReturnContext();
+  }
+
   showLoading();
 
   try {
@@ -2151,7 +2373,7 @@ async function showFixedAssetDetails(assetId) {
       const html = `
       <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fixed-assets-heading" data-i18n="asset_details">Asset Details</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          <button type="button" class="btn-close btn-close-white" onclick="handleAssetWindowClose()"></button>
       </div>
       <div class="modal-body asset-modal-body p-0">
         <div class="p-4">
@@ -2198,7 +2420,7 @@ async function showFixedAssetDetails(assetId) {
           </div>
         </div>
       </div>
-      <div class="modal-footer"><button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="close">Close</button></div>
+      <div class="modal-footer"><button class="btn-secondary-custom" onclick="handleAssetWindowClose()" data-i18n="close">Close</button></div>
       <div id="assetPhotoOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-90 d-none" style="z-index:2000;"><div class="d-flex h-100 align-items-center justify-content-center"><img id="assetFullscreenImage" src="" alt="Fullscreen asset photo" class="img-fluid rounded" style="max-height:90%; max-width:90%;" /></div></div>
       `;
 
@@ -2236,7 +2458,7 @@ async function showFixedAssetDetails(assetId) {
     const html = `
     <div class="modal-header border-0 pb-0">
         <h5 class="modal-title fixed-assets-heading" data-i18n="asset_details">Asset Details</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white" onclick="handleAssetWindowClose()"></button>
     </div>
 
     <div class="modal-body asset-modal-body p-0">
@@ -2635,7 +2857,7 @@ async function showFixedAssetDetails(assetId) {
     </div>
 
     <div class="modal-footer">
-        <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="close">Close</button>
+        <button class="btn-secondary-custom" onclick="handleAssetWindowClose()" data-i18n="close">Close</button>
     </div>
 `;
 
@@ -3491,8 +3713,17 @@ async function saveFixedAsset(assetId = null) {
       "success",
     );
 
+    const returnPurity = goldPurityReturnContext;
+
     closeModal(); // Call global dynamic closing match
-    fetchAndRenderFixedAssets();
+    await fetchAndRenderFixedAssets();
+
+    if (returnPurity) {
+      setTimeout(() => {
+        showGoldPurityGroupDetails(returnPurity);
+      }, 180);
+    }
+
     document.getElementById("propertyPhotoInput").value = "";
   } catch (err) {
     showToast(err.message, "danger");
@@ -3512,8 +3743,10 @@ async function deleteFixedAsset(assetId) {
     if (!response.ok) throw new Error("Failed to delete fixed asset");
     showToast("Asset deleted successfully", "success");
     fetchAndRenderFixedAssets();
+    return true;
   } catch (err) {
     showToast(err.message, "danger");
+    return false;
   } finally {
     hideLoading();
   }
@@ -4392,6 +4625,12 @@ window.switchFixedAssetsTab = switchFixedAssetsTab;
 window.toggleFixedAssetsReportScope = toggleFixedAssetsReportScope;
 window.downloadFixedAssetsReport = downloadFixedAssetsReport;
 window.showFixedAssetModal = showFixedAssetModal;
+window.showGoldPurityGroupDetails = showGoldPurityGroupDetails;
+window.openGoldPurchaseDetails = openGoldPurchaseDetails;
+window.openGoldPurchaseEditor = openGoldPurchaseEditor;
+window.deleteFixedAssetFromGoldGroup = deleteFixedAssetFromGoldGroup;
+window.handleAssetWindowClose = handleAssetWindowClose;
+window.clearGoldPurityReturnContext = clearGoldPurityReturnContext;
 window.showSaleModal = showSaleModal;
 
 if (window.location.hash === "#fixed-assets") {
