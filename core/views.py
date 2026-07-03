@@ -139,6 +139,12 @@ def month_sort_key(entry_dict):
         return len(MONTH_ORDER)
 
 
+def _run_certificate_interest_sync():
+    from .services.certificate_interest_service import CertificateInterestService
+
+    return CertificateInterestService().synchronize()
+
+
 @login_required(login_url="/accounts/login/")
 def index(request):
     return render(request, "index.html")
@@ -805,6 +811,7 @@ class BalanceListView(View):
         return float(latest_gold.carat_24k or 0)
 
     def get(self, request):
+        _run_certificate_interest_sync()
         entries = BalanceEntry.objects.select_related("bank", "currency").all()
         payload = []
         for entry in entries:
@@ -2949,6 +2956,7 @@ class BalanceReportView(View):
     """Balance summary across banks and currencies."""
 
     def get(self, request):
+        _run_certificate_interest_sync()
         from django.db.models import Sum
 
         entries = BalanceEntry.objects.select_related("bank", "currency").all()
@@ -3106,6 +3114,7 @@ class DashboardSummaryView(View):
     """Enhanced dashboard summary — salary KPIs + cert maturity + balance."""
 
     def get(self, request):
+        _run_certificate_interest_sync()
         from datetime import date, timedelta
         from django.db.models import Sum, Count, Q
 
@@ -3185,6 +3194,7 @@ from core.models import SalaryEntry
 @method_decorator(csrf_exempt, name="dispatch")
 class CertificateForecastView(View):
     def get(self, request):
+        _run_certificate_interest_sync()
         certs = BankCertificate.objects.select_related("bank", "currency").all()
         active_certs = [c for c in certs if str(c.status or "").strip().lower() == "active"]
         today = date.today()
