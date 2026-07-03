@@ -1429,10 +1429,66 @@ class ExpenseSubcategoryDetailView(View):
         return JsonResponse({"deleted": pk})
 
 
+def _normalize_expense_payment_method(method_value):
+    method = str(method_value or "").strip().lower()
+    if method == "cash":
+        return "cash"
+    if method in {"bank", "bank transfer", "bank_transfer"}:
+        return "bank"
+    if method == "card":
+        return "card"
+    return method
+
+
+def _expense_requires_bank(method_value):
+    return _normalize_expense_payment_method(method_value) in {"bank", "card"}
+
+
+def _expense_affects_balance(method_value):
+    return _normalize_expense_payment_method(method_value) in {"cash", "bank", "card"}
+
+
+def _get_target_cash_balance_entry(payment_method, bank_id):
+    qs = BalanceEntry.objects.select_for_update().filter(
+        balance_type=BalanceEntry.BalanceType.CASH,
+    )
+    egp_or_cash_qs = qs.filter(
+        Q(currency__code__iexact="EGP")
+        | Q(currency__code__iexact="CASH")
+        | Q(currency__name__iexact="Cash")
+    )
+    if egp_or_cash_qs.exists():
+        qs = egp_or_cash_qs
+
+    normalized_method = _normalize_expense_payment_method(payment_method)
+    if normalized_method == "cash":
+        qs = qs.filter(bank__isnull=True)
+    else:
+        qs = qs.filter(bank_id=bank_id)
+
+    return qs.order_by("id").first()
+
+
+def _apply_expense_balance_delta(payment_method, bank_id, amount_delta):
+    if not _expense_affects_balance(payment_method):
+        return
+
+    delta = Decimal(str(amount_delta or 0))
+    if delta == 0:
+        return
+
+    entry = _get_target_cash_balance_entry(payment_method, bank_id)
+    if not entry:
+        raise ValueError("matching_balance_entry_not_found")
+
+    entry.amount = Decimal(entry.amount or 0) + delta
+    entry.save(update_fields=["amount"])
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class ExpenseListView(View):
     def get(self, request):
-        qs = Expense.objects.select_related("category", "subcategory", "currency").all()
+        qs = Expense.objects.select_related("category", "subcategory", "currency", "bank").all()
 
         year = request.GET.get("year")
         month = request.GET.get("month")
@@ -1469,19 +1525,47 @@ class ExpenseListView(View):
         data = json.loads(request.body)
         from datetime import date as _date
 
+        payment_method = data.get("payment_method", "Cash")
+        bank_id = data.get("bank_id")
+        if _expense_requires_bank(payment_method) and not bank_id:
+            return JsonResponse(
+                {
+                    "error": "Bank account is required for this payment method",
+                    "error_key": "bank_account_required",
+                },
+                status=400,
+            )
+        if _normalize_expense_payment_method(payment_method) == "cash":
+            bank_id = None
+
         d = _date.fromisoformat(data["date"])
-        exp = Expense.objects.create(
-            date=d,
-            year=d.year,
-            month=d.month,
-            category_id=data.get("category_id"),
-            subcategory_id=data.get("subcategory_id"),
-            description=data.get("description", ""),
-            amount=data.get("amount", 0),
-            currency_id=data.get("currency_id"),
-            payment_method=data.get("payment_method", "Cash"),
-            notes=data.get("notes", ""),
-        )
+        try:
+            with transaction.atomic():
+                exp = Expense.objects.create(
+                    date=d,
+                    year=d.year,
+                    month=d.month,
+                    category_id=data.get("category_id"),
+                    subcategory_id=data.get("subcategory_id"),
+                    description=data.get("description", ""),
+                    amount=data.get("amount", 0),
+                    currency_id=data.get("currency_id"),
+                    bank_id=bank_id,
+                    payment_method=payment_method,
+                    notes=data.get("notes", ""),
+                )
+                _apply_expense_balance_delta(exp.payment_method, exp.bank_id, -exp.amount)
+        except ValueError as exc:
+            if str(exc) == "matching_balance_entry_not_found":
+                return JsonResponse(
+                    {
+                        "error": "Matching balance entry not found",
+                        "error_key": "matching_balance_not_found",
+                    },
+                    status=400,
+                )
+            raise
+
         return JsonResponse(exp.to_dict(), status=201)
 
 
@@ -1490,6 +1574,11 @@ class ExpenseDetailView(View):
     def put(self, request, pk):
         exp = get_object_or_404(Expense, pk=pk)
         data = json.loads(request.body)
+
+        previous_amount = Decimal(exp.amount or 0)
+        previous_method = exp.payment_method
+        previous_bank_id = exp.bank_id
+
         if "date" in data:
             from datetime import date as _date
 
@@ -1497,23 +1586,70 @@ class ExpenseDetailView(View):
             exp.date = d
             exp.year = d.year
             exp.month = d.month
+
+        next_method = data.get("payment_method", exp.payment_method)
+        next_bank_id = data.get("bank_id", exp.bank_id)
+        if _expense_requires_bank(next_method) and not next_bank_id:
+            return JsonResponse(
+                {
+                    "error": "Bank account is required for this payment method",
+                    "error_key": "bank_account_required",
+                },
+                status=400,
+            )
+
         for f in [
             "category_id",
             "subcategory_id",
             "description",
             "amount",
             "currency_id",
+            "bank_id",
             "payment_method",
             "notes",
         ]:
             if f in data:
                 setattr(exp, f, data[f])
-        exp.save()
+
+        if _normalize_expense_payment_method(exp.payment_method) == "cash":
+            exp.bank_id = None
+
+        try:
+            with transaction.atomic():
+                _apply_expense_balance_delta(previous_method, previous_bank_id, previous_amount)
+                exp.save()
+                _apply_expense_balance_delta(exp.payment_method, exp.bank_id, -Decimal(exp.amount or 0))
+        except ValueError as exc:
+            if str(exc) == "matching_balance_entry_not_found":
+                return JsonResponse(
+                    {
+                        "error": "Matching balance entry not found",
+                        "error_key": "matching_balance_not_found",
+                    },
+                    status=400,
+                )
+            raise
+
         return JsonResponse(exp.to_dict())
 
     def delete(self, request, pk):
         exp = get_object_or_404(Expense, pk=pk)
-        exp.delete()
+
+        try:
+            with transaction.atomic():
+                _apply_expense_balance_delta(exp.payment_method, exp.bank_id, Decimal(exp.amount or 0))
+                exp.delete()
+        except ValueError as exc:
+            if str(exc) == "matching_balance_entry_not_found":
+                return JsonResponse(
+                    {
+                        "error": "Matching balance entry not found",
+                        "error_key": "matching_balance_not_found",
+                    },
+                    status=400,
+                )
+            raise
+
         return JsonResponse({"deleted": pk})
 
 

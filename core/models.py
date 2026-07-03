@@ -655,6 +655,13 @@ class Expense(models.Model):
     currency = models.ForeignKey(
         Currency, on_delete=models.SET_NULL, null=True, blank=True
     )
+    bank = models.ForeignKey(
+        Bank,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="expenses",
+    )
     payment_method = models.CharField(
         max_length=50,
         blank=True,
@@ -688,6 +695,8 @@ class Expense(models.Model):
             "amount": float(self.amount),
             "currency_code": self.currency.code if self.currency else "EGP",
             "currency_symbol": self.currency.symbol if self.currency else "ج.م",
+            "bank_id": self.bank_id,
+            "bank_name": self.bank.name if self.bank else "",
             "payment_method": self.payment_method,
             "notes": self.notes,
         }

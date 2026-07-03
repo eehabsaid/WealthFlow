@@ -38,6 +38,7 @@ const MONTH_I18N_KEYS = [
 const PAYMENT_METHODS = [
   { value: "Cash", key: "payment_cash" },
   { value: "Card", key: "payment_card" },
+  { value: "Bank", key: "payment_bank" },
   { value: "Bank Transfer", key: "payment_bank_transfer" },
   { value: "Other", key: "payment_other" },
 ];
@@ -53,23 +54,27 @@ async function renderExpenses() {
     : '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
 
   const today = new Date();
-  const [entRes, catRes, curRes] = await Promise.all([
+  const [entRes, catRes, curRes, bankRes] = await Promise.all([
     fetch(
       `/api/expenses/?year=${today.getFullYear()}&month=${today.getMonth() + 1}`,
     ),
     fetch("/api/expense-categories/"),
     fetch("/api/currencies/"),
+    fetch("/api/banks/"),
   ]);
   const entData = await entRes.json();
   const catData = await catRes.json();
   const curData = await curRes.json();
+  const bankData = await bankRes.json();
 
   const entries = entData.entries || [];
   const categories = catData.categories || [];
   const currencies = curData.currencies || [];
+  const banks = (bankData.banks || []).filter((b) => b.is_active !== false);
 
   window._expCategories = categories;
   window._expCurrencies = currencies;
+  window._expBanks = banks;
 
   // KPI cards
   const totalExp = entries.reduce((s, e) => s + e.amount, 0);
@@ -256,6 +261,7 @@ async function showExpenseModal(expId) {
 
   const cats = window._expCategories || [];
   const curs = window._expCurrencies || [];
+  const banks = window._expBanks || [];
   const today = new Date().toISOString().split("T")[0];
 
   const catOpts = cats
@@ -274,6 +280,11 @@ async function showExpenseModal(expId) {
     (m) =>
       `<option value="${m.value}" ${exp && exp.payment_method === m.value ? "selected" : ""} data-i18n="${m.key}">${m.value}</option>`,
   ).join("");
+  const bankOpts = banks
+    .map(
+      (b) => `<option value="${b.id}" ${exp && exp.bank_id === b.id ? "selected" : ""}>${b.name}</option>`,
+    )
+    .join("");
 
   showModal(`
     <div class="modal-header">
@@ -307,7 +318,14 @@ async function showExpenseModal(expId) {
       </div>
       <div class="col-sm-6">
         <label class="form-label" data-i18n="payment_method">Payment Method</label>
-        <select class="form-select" id="eMethod">${methOpts}</select>
+        <select class="form-select" id="eMethod" onchange="toggleExpenseBankField()">${methOpts}</select>
+      </div>
+      <div class="col-sm-6 d-none" id="eBankWrap">
+        <label class="form-label"><span data-i18n="bank_account">Bank Account</span> *</label>
+        <select class="form-select" id="eBank">
+          <option value="" data-i18n="select_bank_account">Select bank account</option>
+          ${bankOpts}
+        </select>
       </div>
       <div class="col-sm-6">
         <label class="form-label" data-i18n="currency">Currency</label>
@@ -325,7 +343,38 @@ async function showExpenseModal(expId) {
 
   // Populate subcategories
   updateSubcategories(exp ? exp.subcategory_id : null);
+  toggleExpenseBankField();
   applyTranslations();
+}
+
+function isExpenseBankRequired(methodValue) {
+  const normalized = String(methodValue || "").trim().toLowerCase();
+  return normalized === "bank" || normalized === "bank transfer" || normalized === "card";
+}
+
+function toggleExpenseBankField() {
+  const methodEl = document.getElementById("eMethod");
+  const bankWrap = document.getElementById("eBankWrap");
+  const bankEl = document.getElementById("eBank");
+  if (!methodEl || !bankWrap || !bankEl) return;
+
+  const required = isExpenseBankRequired(methodEl.value);
+  bankWrap.classList.toggle("d-none", !required);
+  bankEl.required = required;
+  if (!required) {
+    bankEl.value = "";
+  }
+}
+
+async function refreshFinancialViewsAfterExpenseChange() {
+  const route = window.location.hash.replace("#", "");
+  if (route === "balance" && typeof renderBalance === "function") {
+    await renderBalance();
+    return;
+  }
+  if (route === "dashboard" && typeof renderDashboard === "function") {
+    await renderDashboard();
+  }
 }
 
 function updateSubcategories(selectedSubId) {
@@ -348,13 +397,21 @@ function updateSubcategories(selectedSubId) {
 }
 
 async function saveExpense(expId) {
+  const paymentMethod = document.getElementById("eMethod").value;
+  const bankId = parseInt(document.getElementById("eBank")?.value) || null;
+  if (isExpenseBankRequired(paymentMethod) && !bankId) {
+    showToast(t("bank_account_required", "Bank account is required for Bank/Card payments"), "error");
+    return;
+  }
+
   const body = {
     date: document.getElementById("eDate").value,
     amount: parseFloat(document.getElementById("eAmount").value) || 0,
     category_id: parseInt(document.getElementById("eCat").value) || null,
     subcategory_id: parseInt(document.getElementById("eSubcat").value) || null,
     description: document.getElementById("eDesc").value.trim(),
-    payment_method: document.getElementById("eMethod").value,
+    payment_method: paymentMethod,
+    bank_id: bankId,
     currency_id: parseInt(document.getElementById("eCurrency").value) || null,
     notes: document.getElementById("eNotes").value.trim(),
   };
@@ -369,16 +426,44 @@ async function saveExpense(expId) {
     closeModal();
     showToast("Expense saved ✓", "success");
     renderExpenses();
+    refreshFinancialViewsAfterExpenseChange();
   } else {
-    showToast("Error saving expense", "error");
+    let errorMsg = t("error_saving_expense", "Error saving expense");
+    try {
+      const payload = await res.json();
+      if (payload?.error_key) {
+        errorMsg = t(payload.error_key, payload.error || errorMsg);
+      } else if (payload?.error) {
+        errorMsg = payload.error;
+      }
+    } catch (_) {
+      // keep fallback message
+    }
+    showToast(errorMsg, "error");
   }
 }
 
 async function deleteExpense(id) {
   if (!confirm("Delete this expense?")) return;
-  await fetch(`/api/expenses/${id}/`, { method: "DELETE" });
+  const res = await fetch(`/api/expenses/${id}/`, { method: "DELETE" });
+  if (!res.ok) {
+    let errorMsg = t("error_deleting_expense", "Error deleting expense");
+    try {
+      const payload = await res.json();
+      if (payload?.error_key) {
+        errorMsg = t(payload.error_key, payload.error || errorMsg);
+      } else if (payload?.error) {
+        errorMsg = payload.error;
+      }
+    } catch (_) {
+      // keep fallback message
+    }
+    showToast(errorMsg, "error");
+    return;
+  }
   showToast("Deleted");
   renderExpenses();
+  refreshFinancialViewsAfterExpenseChange();
 }
 
 /* ── Export CSV ─────────────────────────────────────────────── */
@@ -648,6 +733,7 @@ window.renderExpenseCategories = renderExpenseCategories;
 window.showExpenseModal = showExpenseModal;
 window.saveExpense = saveExpense;
 window.deleteExpense = deleteExpense;
+window.toggleExpenseBankField = toggleExpenseBankField;
 window.applyExpenseFilters = applyExpenseFilters;
 window.exportExpenses = exportExpenses;
 window.updateSubcategories = updateSubcategories;
