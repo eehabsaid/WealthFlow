@@ -14,6 +14,7 @@ from core.models import (
     Currency,
     Expense,
     ExpenseCategory,
+    FixedAsset,
     SalaryEntry,
 )
 from core.services.certificate_interest_service import CertificateInterestService
@@ -493,3 +494,75 @@ class CertificateInterestSynchronizationTest(TestCase):
         self.assertEqual(float(self.cash_balance.amount), 1075.0)
         certificate.refresh_from_db()
         self.assertEqual(certificate.last_interest_posted_date, date(2026, 10, 2))
+
+
+class NetWorthIntegrationTest(TestCase):
+    def setUp(self):
+        self.currency = Currency.objects.create(code="EGP", symbol="L", name="Egyptian Pound")
+        BalanceEntry.objects.create(
+            title="Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            currency=self.currency,
+            amount=1000,
+        )
+
+    def test_balance_grand_total_includes_fixed_assets_current_market_value(self):
+        FixedAsset.objects.create(
+            name="Apartment",
+            asset_type="Real Estate",
+            status="Owned",
+            purchase_date=date(2024, 1, 1),
+            purchase_price=500000,
+            current_market_value=800000,
+        )
+
+        response = self.client.get("/api/balance/")
+        self.assertEqual(response.status_code, 200)
+        summary = response.json().get("summary", {})
+
+        self.assertEqual(summary.get("fixed_assets_total"), 800000.0)
+        self.assertEqual(summary.get("grand_total"), 1000.0)
+        self.assertEqual(summary.get("net_worth"), 801000.0)
+        expected_formula_total = (
+            float((summary.get("totals_by_currency") or {}).get("EGP") or 0)
+            + float(summary.get("usd_value") or 0)
+            + float(summary.get("eur_value") or 0)
+            + float(summary.get("sar_value") or 0)
+            + float(summary.get("gold_value") or 0)
+        )
+        self.assertEqual(summary.get("grand_total"), expected_formula_total)
+
+    def test_certificate_forecast_exposes_fixed_assets_snapshot(self):
+        FixedAsset.objects.create(
+            name="Car",
+            asset_type="Vehicles",
+            status="Owned",
+            purchase_date=date(2025, 6, 1),
+            purchase_price=300000,
+            current_market_value=250000,
+        )
+
+        response = self.client.get("/api/certificate-forecast/")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+
+        self.assertIn("fixed_assets_balance", payload)
+        self.assertIn("fixed_assets_snapshot", payload)
+        self.assertGreaterEqual(float(payload.get("fixed_assets_balance") or 0), 250000.0)
+
+    def test_fixed_assets_list_returns_portfolio_snapshot(self):
+        FixedAsset.objects.create(
+            name="Studio",
+            asset_type="Other Assets",
+            status="Owned",
+            purchase_date=date(2025, 1, 1),
+            purchase_price=100000,
+            current_market_value=120000,
+        )
+
+        response = self.client.get("/api/fixed-assets/")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+
+        self.assertIn("portfolio_snapshot", payload)
+        self.assertEqual(payload["portfolio_snapshot"]["total_fixed_assets_value"], 120000.0)

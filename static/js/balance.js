@@ -48,6 +48,9 @@ async function renderBalance() {
     const sarRate = summary.sar_rate || 0;
     const goldValue = summary.gold_value || 0;
     const grandTotal = summary.grand_total || 0;
+    const netWorth = summary.net_worth || grandTotal || 0;
+    const allocationValues = summary.allocation_values || {};
+    const cashAllocationValue = (allocationValues.type_cash || 0) + (allocationValues.type_bank || 0);
 
     const editText = t('edit', 'Edit');
     const deleteText = t('delete', 'Delete');
@@ -137,7 +140,7 @@ async function renderBalance() {
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="financial_intelligence">Financial Intelligence</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:20px;">
-                <div><div class="kpi-label" data-i18n="net_worth">Net Worth</div><div class="kpi-value num-fmtpresent" data-value="${grandTotal}">${fmtpresent(grandTotal)}</div></div>
+                <div><div class="kpi-label" data-i18n="net_worth">Net Worth</div><div class="kpi-value num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)}</div></div>
                 <div><div class="kpi-label" data-i18n="liquid_cash">Liquid Cash</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.cash_balance || 0}">${fmtpresent(forecastData.cash_balance || 0)}</div></div>
                 <div><div class="kpi-label" data-i18n="certificate_investments">Certificate Investments</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.certificate_balance || 0}">${fmtpresent(forecastData.certificate_balance || 0)}</div></div>
                 <div><div class="kpi-label" data-i18n="foreign_currency_value">Foreign Currency Value</div><div class="kpi-value num-fmtpresent" data-value="${usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate}">${fmtpresent(usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate)}</div></div>
@@ -256,10 +259,12 @@ async function renderBalance() {
 
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="asset_allocation">Asset Allocation</div>
-            ${renderAllocationBar('cash', forecastData.cash_balance || 0, grandTotal)}
-            ${renderAllocationBar('foreign_currency', (forecastData.foreign_currency_ratio / 100) * grandTotal, grandTotal)}
-            ${renderAllocationBar('bank_certificates', forecastData.certificate_balance || 0, grandTotal)}
-            ${renderAllocationBar('Gold', goldValue, grandTotal)}
+            ${renderAllocationBar('type_cash', cashAllocationValue, netWorth)}
+            ${renderAllocationBar('bank_certificates', allocationValues.bank_certificates || 0, netWorth)}
+            ${renderAllocationBar('type_gold', allocationValues.type_gold || goldValue, netWorth)}
+            ${renderAllocationBar('type_real_estate', allocationValues.type_real_estate || 0, netWorth)}
+            ${renderAllocationBar('type_vehicles', allocationValues.type_vehicles || 0, netWorth)}
+            ${renderAllocationBar('type_other_assets', allocationValues.type_other_assets || 0, netWorth)}
         </div>
 
         <div class="kpi-card mb-4">

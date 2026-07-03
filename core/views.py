@@ -85,6 +85,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from arabic_reshaper import reshape
 from bidi.algorithm import get_display
 from django.views.decorators.http import require_http_methods
+from core.services.net_worth_service import NetWorthService
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ExportExcelWorkbookView(View):
@@ -838,78 +839,7 @@ class BalanceListView(View):
 
     def get(self, request):
         _run_certificate_interest_sync()
-        entries = BalanceEntry.objects.select_related("bank", "currency").all()
-        payload = []
-        for entry in entries:
-            if entry.balance_type == "certificate":
-                active_total = sum(
-                    float(c.amount or 0)
-                    for c in BankCertificate.objects.filter(
-                        bank_id=entry.bank_id,
-                        currency_id=entry.currency_id,
-                    )
-                    if _is_certificate_active(c)
-                )
-                if active_total <= 0:
-                    continue
-                item = entry.to_dict()
-                item["amount"] = active_total
-                payload.append(item)
-            else:
-                payload.append(entry.to_dict())
-
-        latest_gold = GoldPrice.objects.order_by("-fetched_at").first()
-        rates = {}
-        for rate in ExchangeRate.objects.order_by("currency_code", "-fetched_at"):
-            code = str(rate.currency_code or "").upper()
-            if code and code not in rates:
-                rates[code] = float(rate.buy_rate or 0)
-
-        totals_by_currency = {}
-        gold_value = 0.0
-
-        for item in payload:
-            code = str(item.get("currency_code") or "").upper()
-            amount = float(item.get("amount") or 0)
-            totals_by_currency[code] = totals_by_currency.get(code, 0.0) + amount
-
-            if code == "GOLD":
-                sell_per_gram = self._sell_per_gram_for_purity(latest_gold, item.get("purity"))
-                cashback_per_gram = self._cashback_per_gram_for_purity(item.get("purity"))
-                gold_value += amount * (sell_per_gram + cashback_per_gram)
-
-        certificate_egp = sum(
-            float(item.get("amount") or 0)
-            for item in payload
-            if str(item.get("balance_type") or "") == "certificate"
-        )
-        total_egp = totals_by_currency.get("EGP", 0.0)
-        cash_egp = total_egp - certificate_egp
-
-        usd_value = totals_by_currency.get("USD", 0.0) * rates.get("USD", 0.0)
-        eur_value = totals_by_currency.get("EUR", 0.0) * rates.get("EUR", 0.0)
-        sar_value = totals_by_currency.get("SAR", 0.0) * rates.get("SAR", 0.0)
-
-        grand_total = cash_egp + certificate_egp + usd_value + eur_value + sar_value + gold_value
-
-        return JsonResponse(
-            {
-                "entries": payload,
-                "summary": {
-                    "totals_by_currency": totals_by_currency,
-                    "cash_egp": round(cash_egp, 2),
-                    "certificate_egp": round(certificate_egp, 2),
-                    "usd_rate": rates.get("USD", 0.0),
-                    "eur_rate": rates.get("EUR", 0.0),
-                    "sar_rate": rates.get("SAR", 0.0),
-                    "usd_value": round(usd_value, 2),
-                    "eur_value": round(eur_value, 2),
-                    "sar_value": round(sar_value, 2),
-                    "gold_value": round(gold_value, 2),
-                    "grand_total": round(grand_total, 2),
-                },
-            }
-        )
+        return JsonResponse(NetWorthService().balance_payload())
 
     def post(self, request):
         data = json.loads(request.body)
@@ -3013,27 +2943,9 @@ class BalanceReportView(View):
         for e in home:
             by_currency.append(e.to_dict())
 
-        # Certificate totals (active certificates only, converted to EGP when possible)
-        from django.db.models import Sum as S
-        from core.models import ExchangeRate
-
-        cert_total = 0.0
-        cert_interest_total = 0.0
-        active_certs = BankCertificate.objects.filter(status__iexact="active")
-        for cert in active_certs:
-            amount = float(cert.amount or 0)
-            interest = float(cert.interest_value or 0)
-            if cert.currency and cert.currency.code.upper() != "EGP":
-                rate = (
-                    ExchangeRate.objects.filter(currency_code=cert.currency.code)
-                    .order_by("-fetched_at")
-                    .first()
-                )
-                if rate:
-                    amount *= float(rate.buy_rate)
-                    interest *= float(rate.buy_rate)
-            cert_total += amount
-            cert_interest_total += interest
+        net_worth_data = NetWorthService().portfolio_components()
+        cert_total = float(net_worth_data["certificate_total_egp"])
+        cert_interest_total = float(net_worth_data["certificate_interest_total_egp"])
 
         cert_monthly_interest = cert_interest_total if cert_interest_total else 0.0
 
@@ -3044,6 +2956,8 @@ class BalanceReportView(View):
                 "cert_total": cert_total,
                 "cert_interest": cert_monthly_interest,
                 "cert_interest_total": cert_interest_total,
+                "fixed_assets_total": float(net_worth_data["fixed_assets_total_egp"]),
+                "net_worth": float(net_worth_data["net_worth_egp"]),
             }
         )
 
@@ -3117,10 +3031,7 @@ class CertificateReportView(View):
             )
 
         total_interest = float(agg["total_interest"] or 0)
-        # Monthly interest: total annual interest already divided by 12 months, 
-        # so no need to devide by 12 again. 
-        # Just return the total interest as monthly interest if it exists, otherwise 0.
-        monthly_interest = (total_interest) if total_interest else 0.0
+        monthly_interest = (total_interest / 12) if total_interest else 0.0
 
         return JsonResponse(
             {
@@ -3193,6 +3104,8 @@ class DashboardSummaryView(View):
             or 0
         )
 
+        net_worth = NetWorthService().portfolio_components()
+
         return JsonResponse(
             {
                 "salary": {
@@ -3211,6 +3124,11 @@ class DashboardSummaryView(View):
                 "active_reminders": active_reminders,
                 "egp_balance": egp_balance,
                 "expiry_warning_days": expiring_soon_days,
+                "net_worth": {
+                    "total": float(net_worth["net_worth_egp"]),
+                    "liquid_assets": float(net_worth["liquid_assets_total_egp"]),
+                    "fixed_assets": float(net_worth["fixed_assets_total_egp"]),
+                },
             }
         )
 
@@ -3223,365 +3141,7 @@ from core.models import SalaryEntry
 class CertificateForecastView(View):
     def get(self, request):
         _run_certificate_interest_sync()
-        certs = BankCertificate.objects.select_related("bank", "currency").all()
-        active_certs = [c for c in certs if str(c.status or "").strip().lower() == "active"]
-        today = date.today()
-        cash_balance = 0
-        certificate_balance = 0
-        forecast_30 = 0
-        forecast_90 = 0
-        forecast_180 = 0
-        maturing_interest_30 = 0
-        upcoming = []
-        for c in active_certs:
-            if not c.expiry_date:
-                continue
-            maturity_value = float(c.amount)  # + float(c.interest_value)
-            days_left = (c.expiry_date - today).days
-            if days_left < 0:
-                continue
-            if days_left <= 30:
-                forecast_30 += maturity_value
-                maturing_interest_30 += float(c.interest_value)
-            if days_left <= 90:
-                forecast_90 += maturity_value
-            if days_left <= 180:
-                forecast_180 += maturity_value
-            upcoming.append(
-                {
-                    "id": c.id,
-                    "bank": c.bank.name if c.bank else "",
-                    "expiry_date": c.expiry_date.isoformat(),
-                    "amount": float(c.amount),
-                    "interest": float(c.interest_value),
-                    "maturity_value": maturity_value,
-                    "days_left": days_left,
-                }
-            )
-        from core.models import BalanceEntry
-
-        egp_balances = BalanceEntry.objects.filter(currency__code="EGP")
-        for b in egp_balances:
-            if b.balance_type == "certificate":
-                continue
-            cash_balance += float(b.amount)
-        upcoming.sort(key=lambda x: x["days_left"])
-        nearest_maturity = upcoming[0]["days_left"] if upcoming else None
-        total_certificates = sum(float(c.amount) for c in active_certs)
-        from core.models import BalanceEntry as Balance
-
-        balances = Balance.objects.all()
-        cash_egp = 0
-        foreign_currency_value = 0
-        certificate_balance = sum(float(c.amount or 0) for c in active_certs)
-        gold_grams = 0
-        for b in balances:
-            currency = b.currency.code.upper() if b.currency else "EGP"
-            amount = float(b.amount)
-            if b.balance_type == "certificate":
-                continue
-            elif currency == "EGP":
-                cash_egp += amount
-            elif currency == "GOLD":
-                gold_grams += amount
-            else:
-
-                from core.models import ExchangeRate
-
-                rate = (
-                    ExchangeRate.objects.filter(
-                        currency_code=b.currency.code
-                    )
-                    .order_by("-fetched_at")
-                    .first()
-                )
-
-                if rate:
-                    foreign_currency_value += amount * float(rate.buy_rate)
-
-        total_portfolio = (
-            cash_egp
-            + foreign_currency_value
-            + certificate_balance
-        )
-        
-        cash_pct = cash_egp / total_portfolio * 100 if total_portfolio else 0
-        cert_pct = total_certificates / total_portfolio * 100 if total_portfolio else 0
-        from django.db.models import Sum
-        from datetime import timedelta
-
-        last_90_days = today - timedelta(days=90)
-
-        expenses = Expense.objects.filter(date__gte=last_90_days)
-
-        total_expenses = float(
-            expenses.aggregate(total=Sum("amount"))["total"] or 0
-        )
-
-        months_with_expenses = len(
-            set(
-                expenses.values_list("year", "month")
-            )
-        )
-
-        avg_monthly_expenses = (
-            total_expenses / months_with_expenses
-            if months_with_expenses > 0
-            else 0
-        )
-
-        monthly_certificate_income = sum(float(c.interest_value) for c in active_certs)
-        latest_salary = (
-            SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
-        )
-        monthly_salary = float(latest_salary.paid) if latest_salary else 0
-        total_monthly_income = monthly_salary + monthly_certificate_income
-        cash_coverage_months = (
-            cash_balance / avg_monthly_expenses
-            if avg_monthly_expenses > 0
-            else None
-        )
-
-        certificate_income_ratio = (
-            (monthly_certificate_income / total_monthly_income) * 100
-            if total_monthly_income > 0
-            else 0
-        )
-        investment_recommendations = []
-        financial_recommendations = []
-        if cash_pct > 40:
-            financial_recommendations.append("recommend_idle_cash")
-        if cert_pct > 70:
-            financial_recommendations.append("recommend_certificate_concentration")
-        if nearest_maturity is not None:
-
-            if nearest_maturity <= 7:
-                investment_recommendations.append({
-                    "key": "recommend_maturity_very_soon",
-                    "days_left": nearest_maturity,
-                })
-
-            elif nearest_maturity <= 30:
-                investment_recommendations.append({
-                    "key": "recommend_maturity_soon",
-                    "days_left": nearest_maturity,
-                })
-        if forecast_90 > forecast_30 * 2:
-            investment_recommendations.append("recommend_large_maturity_90")
-        liquidity_ratio = (forecast_30 / forecast_180) * 100 if forecast_180 > 0 else 0
-        if forecast_180 > 0 and liquidity_ratio < 25:
-            financial_recommendations.append("recommend_low_liquidity")
-        future_cash_30 = cash_balance + forecast_30
-        future_cash_90 = cash_balance + forecast_90
-        future_cash_180 = cash_balance + forecast_180
-        gold_value = 0
-        gold_grams = 0
-
-        latest_gold = GoldPrice.objects.order_by("-fetched_at").first()
-
-        for g in balances:
-            if not g.currency or str(g.currency.code or "").upper() != "GOLD":
-                continue
-
-            grams = float(g.amount or 0)
-            gold_grams += grams
-
-            if latest_gold:
-                purity_key = _normalize_gold_purity(getattr(g, "purity", ""))
-                sell_per_gram = float(_gold_sell_price_per_gram(latest_gold, purity_key))
-                cashback_per_gram = float(_gold_cashback_per_gram(purity_key))
-                gold_value += grams * (sell_per_gram + cashback_per_gram)
-
-        from core.models import GoldPriceHistory
-
-        gold_trend_pct = 0
-        history = list(GoldPriceHistory.objects.order_by("-timestamp")[:7])
-        if len(history) >= 2:
-            latest_price = float(history[0].carat_21k)
-            avg_price = sum(float(x.carat_21k) for x in history) / len(history)
-
-            if avg_price > 0:
-                gold_trend_pct = ((latest_price - avg_price) / avg_price) * 100
-
-        total_assets = (
-            cash_balance
-            + foreign_currency_value
-            + certificate_balance
-            + gold_value
-        )
-
-        if total_assets <= 0:
-            total_assets = 1
-
-        cash_ratio = (cash_balance / total_assets) * 100
-
-        foreign_currency_ratio = (
-            foreign_currency_value / total_assets
-        ) * 100
-
-        certificate_ratio = (
-            certificate_balance / total_assets
-        ) * 100
-
-        gold_ratio = (
-            gold_value / total_assets
-        ) * 100
-        from core.models import GoldPriceHistory
-
-        gold_trend_30 = 0
-        gold_trend_90 = 0
-        gold_trend_365 = 0
-        gold_history = GoldPriceHistory.objects.order_by("-timestamp")
-        if gold_history.count() > 30:
-            latest = float(gold_history.first().carat_21k)
-            old_30 = float(gold_history[29].carat_21k)
-            gold_trend_30 = ((latest - old_30) / old_30) * 100
-        if gold_history.count() > 90:
-            latest = float(gold_history.first().carat_21k)
-            old_90 = float(gold_history[89].carat_21k)
-            gold_trend_90 = ((latest - old_90) / old_90) * 100
-        if gold_history.count() > 250:
-            latest = float(gold_history.first().carat_21k)
-            old_365 = float(gold_history[249].carat_21k)
-            gold_trend_365 = ((latest - old_365) / old_365) * 100
-
-        if cash_ratio > 60:
-            financial_recommendations.append("recommend_high_cash_position")
-
-        if foreign_currency_ratio > 40:
-            financial_recommendations.append("recommend_high_foreign_currency_exposure")
-
-        if cash_coverage_months is not None:
-
-            if cash_coverage_months < 3:
-                financial_recommendations.append(
-                    "recommend_low_emergency_fund"
-                )
-
-            elif (
-                cash_coverage_months > 12
-                and cash_ratio > 25
-            ):
-                financial_recommendations.append(
-                    "recommend_excess_cash"
-                )
-
-        if gold_trend_30 > 15:
-            investment_recommendations.append("recommend_gold_strong_uptrend")
-
-        elif gold_trend_30 > 5:
-            investment_recommendations.append("recommend_gold_uptrend")
-        elif gold_trend_30 < -15:
-            investment_recommendations.append("recommend_gold_strong_downtrend")
-        elif gold_trend_30 < -5:
-            investment_recommendations.append("recommend_gold_downtrend")
-        else:
-            investment_recommendations.append("recommend_gold_neutral")
-        if certificate_ratio < 20:
-            financial_recommendations.append("recommend_low_certificate_allocation")
-
-        if not financial_recommendations:
-            financial_recommendations.append("recommend_asset_allocation_balanced")
-        action_plan = ""
-        if forecast_30 > 0:
-            available_capital = cash_balance + forecast_30
-            income_loss_ratio = (
-                (maturing_interest_30 / total_monthly_income) * 100
-                if total_monthly_income > 0
-                else 0
-            )
-            if income_loss_ratio > 20:
-                action_plan = {"key": "action_renew_certificate"}
-            elif (
-                certificate_ratio > 45
-                or certificate_income_ratio > 30
-            ):
-                if gold_trend_365 > 15 and gold_trend_30 < -10:
-                    gold_amount = round(available_capital * 0.40, 0)
-                    certificate_amount = round(available_capital * 0.30, 0)
-                    cash_amount = round(available_capital * 0.30, 0)
-                    action_plan = {
-                        "key": "action_gold_certificate_cash",
-                        "gold_amount": gold_amount,
-                        "certificate_amount": certificate_amount,
-                        "cash_amount": cash_amount,
-                    }
-                elif gold_trend_365 > 15 and gold_trend_30 > 0:
-                    gold_amount = round(available_capital * 0.60, 0)
-                    certificate_amount = round(available_capital * 0.20, 0)
-                    cash_amount = round(available_capital * 0.20, 0)
-                    action_plan = {
-                        "key": "action_gold_certificate_cash",
-                        "gold_amount": gold_amount,
-                        "certificate_amount": certificate_amount,
-                        "cash_amount": cash_amount,
-                    }
-                elif gold_trend_365 < 5:
-                    gold_amount = round(available_capital * 0.20, 0)
-                    certificate_amount = round(available_capital * 0.50, 0)
-                    cash_amount = round(available_capital * 0.30, 0)
-                    action_plan = {
-                        "key": "action_gold_certificate_cash",
-                        "gold_amount": gold_amount,
-                        "certificate_amount": certificate_amount,
-                        "cash_amount": cash_amount,
-                    }
-            elif gold_ratio < 10:
-                if gold_trend_30 < -15:
-                    gold_amount = round(available_capital * 0.80, 0)
-                    cash_amount = round(available_capital * 0.20, 0)
-                elif gold_trend_30 < -5:
-                    gold_amount = round(available_capital * 0.70, 0)
-                    cash_amount = round(available_capital * 0.30, 0)
-                else:
-                    gold_amount = round(available_capital * 0.60, 0)
-                    cash_amount = round(available_capital * 0.40, 0)
-                action_plan = {
-                    "key": "action_gold_cash",
-                    "gold_amount": gold_amount,
-                    "cash_amount": cash_amount,
-                }
-            else:
-                gold_amount = round(available_capital * 0.50, 0)
-                certificate_amount = round(available_capital * 0.50, 0)
-                action_plan = {
-                    "key": "action_gold_certificate",
-                    "gold_amount": gold_amount,
-                    "certificate_amount": certificate_amount,
-                }
-        
-        return JsonResponse(
-            {
-                "cash_balance": cash_balance,
-                "certificate_balance": certificate_balance,
-                "future_cash_30": future_cash_30,
-                "future_cash_90": future_cash_90,
-                "future_cash_180": future_cash_180,
-                "forecast_30": forecast_30,
-                "forecast_90": forecast_90,
-                "forecast_180": forecast_180,
-                "upcoming": upcoming[:10],
-                "cash_ratio": round(cash_ratio, 1),
-                "foreign_currency_ratio": round(foreign_currency_ratio, 1),
-                "certificate_ratio": round(certificate_ratio, 1),
-                "gold_ratio": round(gold_ratio, 1),
-                "gold_value": round(gold_value, 2),
-                "gold_grams": round(gold_grams, 3),
-                "gold_trend_pct": round(gold_trend_pct, 2),
-                "investment_recommendations": investment_recommendations,
-                "financial_recommendations": financial_recommendations,
-                "action_plan": action_plan,
-                "monthly_salary": round(monthly_salary, 2),
-                "monthly_certificate_income": round(monthly_certificate_income, 2),
-                "total_monthly_income": round(total_monthly_income, 2),
-                "certificate_income_ratio": round(certificate_income_ratio, 1),
-                "gold_trend_30": round(gold_trend_30, 2),
-                "gold_trend_90": round(gold_trend_90, 2),
-                "gold_trend_365": round(gold_trend_365, 2),
-                "avg_monthly_expenses": round(avg_monthly_expenses, 2),
-                "cash_coverage_months": round(cash_coverage_months, 1) if cash_coverage_months is not None else None,
-            }
-        )
+        return JsonResponse(NetWorthService().certificate_forecast_payload(today=date.today()))
 
 # ============================================================
 # Fixed Assets APIs
@@ -4025,9 +3585,11 @@ class FixedAssetListView(View):
         if status:
             qs = qs.filter(status=status)
 
+        service = NetWorthService()
         return JsonResponse(
             {
-                "assets": [a.to_dict() for a in qs]
+                "assets": [a.to_dict() for a in qs],
+                "portfolio_snapshot": service.fixed_assets_snapshot(),
             }
         )
 
@@ -4720,6 +4282,7 @@ def _fixed_asset_report_context(request):
         "lang": lang,
         "t": t,
         "assets": assets,
+        "portfolio_snapshot": NetWorthService().fixed_assets_snapshot(),
     }
 
 
@@ -4939,6 +4502,7 @@ class FixedAssetPdfReportView(View):
         t = context["t"]
         assets = context["assets"]
         scope = context["scope"]
+        portfolio_snapshot = context.get("portfolio_snapshot") or {}
 
         font_path = os.path.join(settings.BASE_DIR, "static", "fonts", "arial.ttf")
         font_exists = os.path.exists(font_path)
@@ -4996,6 +4560,26 @@ class FixedAssetPdfReportView(View):
             report_title = f"{report_title} - {_fixed_asset_user_text(assets[0].name, lang)}"
 
         story = [Paragraph(report_title, title_style), Spacer(1, 0.35 * cm)]
+
+        if scope == "portfolio":
+            summary_rows = [
+                [
+                    _fixed_asset_report_label(t, lang, "total_fixed_assets_value", "Total Fixed Assets"),
+                    f"{float(portfolio_snapshot.get('total_fixed_assets_value') or 0):,.2f}",
+                ],
+                [
+                    _fixed_asset_report_label(t, lang, "net_worth", "Net Worth"),
+                    f"{float(portfolio_snapshot.get('total_net_worth') or 0):,.2f}",
+                ],
+                [
+                    _fixed_asset_report_label(t, lang, "net_worth_contribution", "Net Worth Contribution"),
+                    f"{float(portfolio_snapshot.get('net_worth_contribution') or 0):,.2f}%",
+                ],
+            ]
+            story.append(Paragraph(_fixed_asset_report_label(t, lang, "portfolio_distribution", "Portfolio Distribution"), heading_style))
+            story.append(_fixed_asset_pdf_table(summary_rows, [7 * cm, 8.5 * cm], font_name))
+            story.append(Spacer(1, 0.35 * cm))
+
         for index, asset in enumerate(assets):
             story.extend(
                 _build_fixed_asset_pdf_story(
@@ -5041,6 +4625,7 @@ class FixedAssetExcelReportView(View):
         t = context["t"]
         assets = context["assets"]
         scope = context["scope"]
+        portfolio_snapshot = context.get("portfolio_snapshot") or {}
 
         wb = openpyxl.Workbook()
         summary_ws = wb.active
@@ -5086,6 +4671,21 @@ class FixedAssetExcelReportView(View):
                     data.get("notes"),
                 ]
             )
+
+        if scope == "portfolio":
+            summary_ws.append([])
+            summary_ws.append([
+                _fixed_asset_report_label(t, lang, "total_fixed_assets_value", "Total Fixed Assets"),
+                float(portfolio_snapshot.get("total_fixed_assets_value") or 0),
+            ])
+            summary_ws.append([
+                _fixed_asset_report_label(t, lang, "net_worth", "Net Worth"),
+                float(portfolio_snapshot.get("total_net_worth") or 0),
+            ])
+            summary_ws.append([
+                _fixed_asset_report_label(t, lang, "net_worth_contribution", "Net Worth Contribution"),
+                float(portfolio_snapshot.get("net_worth_contribution") or 0),
+            ])
 
         collections = [
             (

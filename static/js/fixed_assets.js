@@ -259,6 +259,7 @@ async function fetchAndRenderFixedAssets() {
     if (!response.ok) throw new Error("Failed to load fixed assets");
     const data = await response.json();
     fixedAssetsState.assets = normalizeFixedAssetsData(data);
+    fixedAssetsState.portfolioSnapshot = data?.portfolio_snapshot || null;
     fixedAssetsState.isLoading = false;
     renderActiveFixedAssetsTab();
   } catch (err) {
@@ -660,10 +661,6 @@ function renderFixedAssetsAnalytics(assets) {
 
   const metrics = getFixedAssetsAnalyticsMetrics(assetsArray);
 
-  if (!fixedAssetsState.portfolioSnapshot && !fixedAssetsState.portfolioSnapshotLoading) {
-    loadFixedAssetsPortfolioSnapshot();
-  }
-
   const portfolioCards = renderFixedAssetsPortfolioCards(metrics, fixedAssetsState.portfolioSnapshot);
   const tableRows = metrics.assetRows.length
     ? metrics.assetRows.map((row) => `
@@ -972,35 +969,11 @@ async function loadFixedAssetsPortfolioSnapshot() {
   fixedAssetsState.portfolioSnapshotLoading = true;
 
   try {
-    const response = await fetch("/api/certificate-forecast/");
+    const response = await fetch("/api/fixed-assets/");
     if (!response.ok) throw new Error("Failed to load analytics snapshot");
 
     const data = await response.json();
-    const ratio = (parseFloat(data.foreign_currency_ratio) || 0) / 100;
-    const cashValue = parseFloat(data.cash_balance) || 0;
-    const certificateValue = parseFloat(data.certificate_balance) || 0;
-    const goldValue = parseFloat(data.gold_value) || 0;
-    const knownLiquidValue = cashValue + certificateValue + goldValue;
-    const foreignCurrencyValue = ratio >= 1
-      ? 0
-      : ratio > 0
-        ? (ratio * knownLiquidValue) / (1 - ratio)
-        : 0;
-    const liquidAssetsValue = knownLiquidValue + foreignCurrencyValue;
-    const fixedAssetsValue = fixedAssetsState.assets.reduce(
-      (sum, asset) => sum + (parseFloat(asset.current_market_value) || 0),
-      0,
-    );
-    const totalNetWorth = liquidAssetsValue + fixedAssetsValue;
-
-    fixedAssetsState.portfolioSnapshot = {
-      liquidAssetsValue,
-      fixedAssetsValue,
-      totalNetWorth,
-      fixedAssetsRatio: totalNetWorth > 0 ? (fixedAssetsValue / totalNetWorth) * 100 : 0,
-      liquidAssetsRatio: totalNetWorth > 0 ? (liquidAssetsValue / totalNetWorth) * 100 : 0,
-      netWorthContribution: totalNetWorth > 0 ? (fixedAssetsValue / totalNetWorth) * 100 : 0,
-    };
+    fixedAssetsState.portfolioSnapshot = data?.portfolio_snapshot || null;
   } catch (err) {
     fixedAssetsState.portfolioSnapshot = null;
     console.error(err);
