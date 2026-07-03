@@ -386,6 +386,12 @@ async function showBankCertificateInterestHistory(certificateId) {
     const data = await res.json();
     const certificate = data.certificate || {};
     const items = data.items || [];
+    const totalRecords = items.length;
+    const totalInterestPaid = items.reduce((sum, item) => sum + (parseFloat(item.interest_amount) || 0), 0);
+
+    const prettyIssueDate = formatCertificateHistoryDate(certificate.issue_date);
+    const prettyNextPosting = getCertificateNextPostingDate(certificate, items);
+    const prettyFrequency = formatCertificateFrequencyLabel(certificate.frequency || '');
 
     const rows = items.length
         ? items.map((item) => `
@@ -404,6 +410,47 @@ async function showBankCertificateInterestHistory(certificateId) {
         ? `${certificate.bank_name} - ${certificate.currency_code || ''}`
         : (certificate.id ? `#${certificate.id}` : '');
 
+    const summaryRows = `
+        <div class="row g-2" style="margin-bottom:12px;">
+            <div class="col-md-4">
+                <div style="padding:10px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-secondary);">
+                    <div style="font-size:11px;color:var(--text-secondary);" data-i18n="certificate">Certificate</div>
+                    <div style="font-weight:700;color:var(--text-primary);">${certificate.bank_name || certTitle || '—'}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div style="padding:10px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-secondary);">
+                    <div style="font-size:11px;color:var(--text-secondary);" data-i18n="issue_date">Issue Date</div>
+                    <div style="font-weight:700;color:var(--text-primary);">${prettyIssueDate}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div style="padding:10px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-secondary);">
+                    <div style="font-size:11px;color:var(--text-secondary);" data-i18n="frequency">Frequency</div>
+                    <div style="font-weight:700;color:var(--text-primary);">${prettyFrequency}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div style="padding:10px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-secondary);">
+                    <div style="font-size:11px;color:var(--text-secondary);" data-i18n="monthly_interest">Monthly Interest</div>
+                    <div style="font-weight:700;color:var(--text-primary);">${fmt(parseFloat(certificate.interest_value) || 0)}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div style="padding:10px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-secondary);">
+                    <div style="font-size:11px;color:var(--text-secondary);" data-i18n="total_posted">Total Posted</div>
+                    <div style="font-weight:700;color:var(--text-primary);">${fmt(totalInterestPaid)}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div style="padding:10px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-secondary);">
+                    <div style="font-size:11px;color:var(--text-secondary);" data-i18n="next_posting">Next Posting</div>
+                    <div style="font-weight:700;color:var(--text-primary);">${prettyNextPosting}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
     showModal(`
         <div class="modal-header">
             <h5 class="modal-title" data-i18n="interest_history">Interest History</h5>
@@ -413,6 +460,7 @@ async function showBankCertificateInterestHistory(certificateId) {
             <div style="margin-bottom:10px;color:var(--text-secondary);font-size:13px;">
                 <span data-i18n="certificate">Certificate</span>: ${certTitle || '—'}
             </div>
+            ${summaryRows}
             <div class="row g-2" style="margin-bottom:10px;">
                 <div class="col-sm-6">
                     <label class="form-label" data-i18n="start_date">Start Date</label>
@@ -438,12 +486,100 @@ async function showBankCertificateInterestHistory(certificateId) {
                     <tbody id="interestHistoryRows">${rows}</tbody>
                 </table>
             </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;padding:10px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-secondary);">
+                <div><span data-i18n="total_records">Total Records</span> : <strong>${totalRecords}</strong></div>
+                <div><span data-i18n="total_interest_paid">Total Interest Paid</span> : <strong>${fmt(totalInterestPaid)}</strong></div>
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn-secondary-custom" data-bs-dismiss="modal" onclick="closeModal()" data-i18n="btn_close">Close</button>
         </div>
     `);
     applyTranslations();
+}
+
+function formatCertificateHistoryDate(value) {
+    if (!value) return '—';
+    const dt = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(dt.getTime())) return value;
+    const day = String(dt.getDate()).padStart(2, '0');
+    const month = dt.toLocaleString(undefined, { month: 'short' });
+    const year = dt.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+function formatCertificateFrequencyLabel(value) {
+    const freq = String(value || '').trim().toLowerCase();
+    if (freq === 'monthly') return t('freq_monthly', 'Monthly');
+    if (freq === 'quarterly') return t('freq_quarterly', 'Quarterly');
+    if (freq === 'semi_annually' || freq === 'semi-annually' || freq === 'semi annually' || freq === 'semiannual') return t('freq_semi_annually', 'Semi-Annually');
+    if (freq === 'annually' || freq === 'annual' || freq === 'yearly') return t('freq_annually', 'Annually');
+    if (freq === 'at_maturity') return t('freq_at_maturity', 'At Maturity');
+    return value || '—';
+}
+
+function addMonthsKeepDay(baseDate, months) {
+    const d = new Date(baseDate.getTime());
+    const targetMonth = d.getMonth() + months;
+    const targetYear = d.getFullYear() + Math.floor(targetMonth / 12);
+    const month = ((targetMonth % 12) + 12) % 12;
+    const day = d.getDate();
+    const lastDay = new Date(targetYear, month + 1, 0).getDate();
+    return new Date(targetYear, month, Math.min(day, lastDay));
+}
+
+function formatCertificateHistoryDateFromDate(dateObj) {
+    if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return '—';
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = dateObj.toLocaleString(undefined, { month: 'short' });
+    const year = dateObj.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+function getCertificateNextPostingDate(certificate, items) {
+    const status = String(certificate.status || '').trim().toLowerCase();
+    if (status !== 'active') return '—';
+
+    const issue = certificate.issue_date ? new Date(`${certificate.issue_date}T00:00:00`) : null;
+    if (!issue || Number.isNaN(issue.getTime())) return '—';
+
+    const frequency = String(certificate.frequency || '').trim().toLowerCase();
+    const stepMonthsMap = {
+        monthly: 1,
+        quarterly: 3,
+        semi_annually: 6,
+        'semi-annually': 6,
+        'semi annually': 6,
+        semiannual: 6,
+        annually: 12,
+        annual: 12,
+        yearly: 12,
+    };
+
+    if (frequency === 'at_maturity') {
+        return formatCertificateHistoryDate(certificate.expiry_date);
+    }
+
+    const stepMonths = stepMonthsMap[frequency];
+    if (!stepMonths) return '—';
+
+    let baseline = issue;
+    if (items && items.length) {
+        const latest = items
+            .map((x) => x.posting_date)
+            .filter(Boolean)
+            .sort()
+            .slice(-1)[0];
+        if (latest) {
+            const latestDt = new Date(`${latest}T00:00:00`);
+            if (!Number.isNaN(latestDt.getTime())) {
+                baseline = latestDt;
+            }
+        }
+    }
+
+    const nextPosting = addMonthsKeepDay(baseline, stepMonths);
+    return formatCertificateHistoryDateFromDate(nextPosting);
 }
 
 function filterBankCertificateInterestHistoryRows() {
