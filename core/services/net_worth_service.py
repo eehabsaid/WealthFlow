@@ -549,16 +549,22 @@ class NetWorthService:
         certificate_income_ratio = (monthly_certificate_income / total_monthly_income) * 100 if total_monthly_income > 0 else 0
 
         investment_recommendations: List[object] = []
-        financial_critical: List[str] = []
-        financial_optimization: List[str] = []
-        financial_positive: List[str] = []
+        financial_recommendations: List[str] = []
         investment_recommendation_details: List[dict] = []
         financial_recommendation_details: List[dict] = []
+
+        def _fmt_money(value: float) -> str:
+            return f"{value:,.2f}"
+
+        def _fmt_pct(value: float, digits: int = 2) -> str:
+            return f"{value:.{digits}f}"
 
         def _add_investment_recommendation(
             rec: object,
             reason_key: str,
             reason_params: Dict[str, float | int],
+            text: str,
+            reason_text: str,
             priority: str = "medium",
         ) -> None:
             investment_recommendations.append(rec)
@@ -574,22 +580,29 @@ class NetWorthService:
                     "params": params,
                     "reason_key": reason_key,
                     "reason_params": reason_params,
+                    "text": text,
+                    "reason_text": reason_text,
                     "priority": priority,
                 }
             )
 
-        def _add_financial_recommendation_detail(
+        def _add_financial_recommendation(
             key: str,
             reason_key: str,
             reason_params: Dict[str, float | int],
+            text: str,
+            reason_text: str,
             priority: str,
         ) -> None:
+            self._append_unique(financial_recommendations, key)
             financial_recommendation_details.append(
                 {
                     "key": key,
                     "params": {},
                     "reason_key": reason_key,
                     "reason_params": reason_params,
+                    "text": text,
+                    "reason_text": reason_text,
                     "priority": priority,
                 }
             )
@@ -604,7 +617,15 @@ class NetWorthService:
                         "forecast_30": round(forecast_30, 2),
                         "forecast_90": round(forecast_90, 2),
                     },
-                    "high",
+                    text=(
+                        f"A certificate matures in {nearest_maturity} days. "
+                        f"Expected inflow: {_fmt_money(forecast_30)} EGP (30d), {_fmt_money(forecast_90)} EGP (90d)."
+                    ),
+                    reason_text=(
+                        f"Short maturity window improves near-term liquidity planning with a visible 90-day inflow pipeline "
+                        f"of {_fmt_money(forecast_90)} EGP."
+                    ),
+                    priority="high",
                 )
             elif nearest_maturity <= 30:
                 _add_investment_recommendation(
@@ -615,7 +636,14 @@ class NetWorthService:
                         "forecast_30": round(forecast_30, 2),
                         "forecast_90": round(forecast_90, 2),
                     },
-                    "medium",
+                    text=(
+                        f"A certificate matures in {nearest_maturity} days. "
+                        f"Expected inflow: {_fmt_money(forecast_30)} EGP (30d), {_fmt_money(forecast_90)} EGP (90d)."
+                    ),
+                    reason_text=(
+                        f"The maturity profile supports liquidity and optional reinvestment decisions over the next quarter."
+                    ),
+                    priority="medium",
                 )
 
         if forecast_90 > (forecast_30 + max(obligations_30, 1)) * 1.8:
@@ -627,7 +655,14 @@ class NetWorthService:
                     "forecast_90": round(forecast_90, 2),
                     "forecast_180": round(forecast_180, 2),
                 },
-                "medium",
+                text=(
+                    f"Maturity inflows are front-loaded to the coming quarter: "
+                    f"30d {_fmt_money(forecast_30)} EGP, 90d {_fmt_money(forecast_90)} EGP, 180d {_fmt_money(forecast_180)} EGP."
+                ),
+                reason_text=(
+                    "You can stage renewals and diversification gradually instead of concentrating decisions on a single date."
+                ),
+                priority="medium",
             )
 
         liquidity_coverage_90 = cash_balance / obligations_90 if obligations_90 > 0 else 999.0
@@ -636,20 +671,6 @@ class NetWorthService:
             (cash_balance < obligations_90 * 0.85 and (cash_balance + forecast_30) < obligations_90)
             or (liquidity_coverage_90 < 1.1 and maturity_support_30 < 1.0)
         )
-        if low_liquidity_flag:
-            self._append_unique(financial_critical, "recommend_low_liquidity")
-            _add_financial_recommendation_detail(
-                "recommend_low_liquidity",
-                "recommend_reason_liquidity_pressure",
-                {
-                    "liquid_assets": round(cash_balance, 2),
-                    "monthly_expenses": round(avg_monthly_expenses, 2),
-                    "cash_coverage": round(cash_coverage_months or 0, 1),
-                    "future_cash_30": round(cash_balance + forecast_30 + monthly_rental_income, 2),
-                    "future_cash_90": round(cash_balance + forecast_90 + (monthly_rental_income * 3), 2),
-                },
-                "high",
-            )
 
         future_cash_30 = cash_balance + forecast_30 + monthly_rental_income
         future_cash_90 = cash_balance + forecast_90 + (monthly_rental_income * 3)
@@ -701,8 +722,31 @@ class NetWorthService:
 
         if cash_coverage_months is not None and cash_coverage_months < 3:
             low_liquidity_flag = True
-            self._append_unique(financial_critical, "recommend_low_emergency_fund")
-            _add_financial_recommendation_detail(
+
+        if low_liquidity_flag:
+            _add_financial_recommendation(
+                "recommend_low_liquidity",
+                "recommend_reason_liquidity_pressure",
+                {
+                    "liquid_assets": round(cash_balance, 2),
+                    "monthly_expenses": round(avg_monthly_expenses, 2),
+                    "cash_coverage": round(cash_coverage_months or 0, 1),
+                    "future_cash_30": round(future_cash_30, 2),
+                    "future_cash_90": round(future_cash_90, 2),
+                },
+                text=(
+                    f"Liquidity is tight: liquid assets {_fmt_money(cash_balance)} EGP cover about "
+                    f"{_fmt_pct(cash_coverage_months or 0, 1)} months of expenses."
+                ),
+                reason_text=(
+                    f"Monthly expenses are {_fmt_money(avg_monthly_expenses)} EGP, while projected cash is "
+                    f"{_fmt_money(future_cash_30)} EGP (30d) and {_fmt_money(future_cash_90)} EGP (90d)."
+                ),
+                priority="high",
+            )
+
+        if cash_coverage_months is not None and cash_coverage_months < 3:
+            _add_financial_recommendation(
                 "recommend_low_emergency_fund",
                 "recommend_reason_cash_coverage",
                 {
@@ -710,86 +754,13 @@ class NetWorthService:
                     "monthly_expenses": round(avg_monthly_expenses, 2),
                     "cash_coverage": round(cash_coverage_months, 1),
                 },
-                "high",
-            )
-
-        if not low_liquidity_flag and cash_coverage_months is not None and cash_coverage_months > 10:
-            dominant_non_cash_ratio = max(certificate_ratio, gold_ratio, fixed_assets_ratio, foreign_currency_ratio)
-            if cash_ratio > dominant_non_cash_ratio + 8:
-                self._append_unique(financial_optimization, "recommend_idle_cash")
-                _add_financial_recommendation_detail(
-                    "recommend_idle_cash",
-                    "recommend_reason_excess_liquidity",
-                    {
-                        "liquid_assets": round(cash_balance, 2),
-                        "monthly_expenses": round(avg_monthly_expenses, 2),
-                        "cash_coverage": round(cash_coverage_months, 1),
-                    },
-                    "medium",
-                )
-            if cash_ratio > 55:
-                self._append_unique(financial_optimization, "recommend_high_cash_position")
-                _add_financial_recommendation_detail(
-                    "recommend_high_cash_position",
-                    "recommend_reason_excess_liquidity",
-                    {
-                        "liquid_assets": round(cash_balance, 2),
-                        "monthly_expenses": round(avg_monthly_expenses, 2),
-                        "cash_coverage": round(cash_coverage_months, 1),
-                    },
-                    "medium",
-                )
-            if cash_coverage_months > 14:
-                self._append_unique(financial_optimization, "recommend_excess_cash")
-                _add_financial_recommendation_detail(
-                    "recommend_excess_cash",
-                    "recommend_reason_excess_liquidity",
-                    {
-                        "liquid_assets": round(cash_balance, 2),
-                        "monthly_expenses": round(avg_monthly_expenses, 2),
-                        "cash_coverage": round(cash_coverage_months, 1),
-                    },
-                    "medium",
-                )
-
-        if foreign_currency_ratio > max(certificate_ratio, gold_ratio) + 10 and foreign_currency_ratio > 30:
-            self._append_unique(financial_optimization, "recommend_high_foreign_currency_exposure")
-            _add_financial_recommendation_detail(
-                "recommend_high_foreign_currency_exposure",
-                "recommend_reason_foreign_exposure",
-                {
-                    "foreign_ratio": round(foreign_currency_ratio, 1),
-                    "gold_ratio": round(gold_ratio, 1),
-                    "certificate_ratio": round(certificate_ratio, 1),
-                },
-                "medium",
-            )
-
-        dominant_ratio = max(cash_ratio, foreign_currency_ratio, certificate_ratio, gold_ratio, fixed_assets_ratio)
-        if certificate_ratio == dominant_ratio and certificate_ratio > 35 and (certificate_ratio - max(cash_ratio, gold_ratio, foreign_currency_ratio)) > 12:
-            self._append_unique(financial_optimization, "recommend_certificate_concentration")
-            _add_financial_recommendation_detail(
-                "recommend_certificate_concentration",
-                "recommend_reason_certificate_concentration",
-                {
-                    "certificate_ratio": round(certificate_ratio, 1),
-                    "cash_ratio": round(cash_ratio, 1),
-                    "gold_ratio": round(gold_ratio, 1),
-                },
-                "medium",
-            )
-
-        min_certificate_ratio = max(8.0, min(20.0, (gold_ratio + fixed_assets_ratio) * 0.25))
-        if certificate_ratio < min_certificate_ratio:
-            self._append_unique(financial_optimization, "recommend_low_certificate_allocation")
-            _add_financial_recommendation_detail(
-                "recommend_low_certificate_allocation",
-                "recommend_reason_low_certificate_allocation",
-                {
-                    "certificate_ratio": round(certificate_ratio, 1),
-                    "target_ratio": round(min_certificate_ratio, 1),
-                },
-                "medium",
+                text=(
+                    f"Emergency coverage is below target at {_fmt_pct(cash_coverage_months, 1)} months."
+                ),
+                reason_text=(
+                    f"Build a larger reserve before increasing risk exposure in gold or long-dated allocations."
+                ),
+                priority="high",
             )
 
         trend_components: List[Tuple[float, float]] = []
@@ -840,24 +811,89 @@ class NetWorthService:
             "gold_signal": round(gold_signal, 2),
         }
 
-        if gold_signal >= strong_band:
-            _add_investment_recommendation("recommend_gold_strong_uptrend", "recommend_reason_gold_signal", gold_reason_params, "medium")
-        elif gold_signal >= neutral_band:
-            _add_investment_recommendation("recommend_gold_uptrend", "recommend_reason_gold_signal", gold_reason_params, "medium")
-        elif gold_signal <= -strong_band:
-            _add_investment_recommendation("recommend_gold_strong_downtrend", "recommend_reason_gold_signal", gold_reason_params, "medium")
-        elif gold_signal <= -neutral_band:
-            _add_investment_recommendation("recommend_gold_downtrend", "recommend_reason_gold_signal", gold_reason_params, "medium")
+        gold_trend_state = "Sideways"
+        if gold_volatility >= max(2.8, neutral_band * 0.9) and abs(gold_signal) < strong_band:
+            gold_trend_state = "High Volatility"
+        elif gold_signal >= strong_band or (gold_trend_30 >= 8 and gold_ma_gap_pct >= 1.0):
+            gold_trend_state = "Strong Uptrend"
+        elif gold_signal >= neutral_band or (gold_trend_30 >= 2 and gold_ma_gap_pct > 0):
+            gold_trend_state = "Moderate Uptrend"
+        elif gold_signal <= -strong_band or (gold_trend_90 <= -18 and gold_ma_gap_pct < -1.0):
+            gold_trend_state = "Strong Downtrend"
+        elif gold_signal <= -neutral_band or (gold_trend_90 <= -12 and gold_ma_gap_pct < 0):
+            gold_trend_state = "Moderate Downtrend"
+
+        if gold_trend_90 <= -12 and gold_trend_state in {"Sideways", "Moderate Uptrend"}:
+            gold_trend_state = "Moderate Downtrend"
+
+        gold_text = (
+            f"Gold trend: {gold_trend_state}. "
+            f"7d {_fmt_pct(gold_trend_7)}%, 30d {_fmt_pct(gold_trend_30)}%, 90d {_fmt_pct(gold_trend_90)}%, "
+            f"MA(7) {_fmt_money(gold_ma_short)}, MA(30) {_fmt_money(gold_ma_long)}, gap {_fmt_pct(gold_ma_gap_pct)}%."
+        )
+        if gold_trend_state == "Strong Uptrend":
+            gold_text += (
+                " Momentum is broad-based; consider a measured increase in gold allocation if liquidity remains comfortable."
+            )
+        elif gold_trend_state == "Moderate Uptrend":
+            gold_text += " Trend is constructive; keep allocation and add gradually on pullbacks rather than in one step."
+        elif gold_trend_state == "Strong Downtrend":
+            gold_text += " Downtrend is pronounced; avoid aggressive additions and prioritize capital preservation."
+        elif gold_trend_state == "Moderate Downtrend":
+            gold_text += " Trend is soft; keep exposure controlled and use only phased entries if rebalancing is needed."
+        elif gold_trend_state == "High Volatility":
+            gold_text += " Price action is choppy; use smaller staged entries and avoid lump-sum timing risk."
         else:
-            _add_investment_recommendation("recommend_gold_neutral", "recommend_reason_gold_signal", gold_reason_params, "low")
+            gold_text += " Market is range-bound; maintain strategic allocation and rebalance only if weights drift."
 
-        financial_recommendations: List[str] = []
-        financial_recommendations.extend(financial_critical)
-        financial_recommendations.extend(financial_optimization)
+        if gold_ratio < 8 and not low_liquidity_flag:
+            gold_text += f" Current gold weight {_fmt_pct(gold_ratio)}% is low versus portfolio risk-balancing needs."
+        elif gold_ratio > 28:
+            gold_text += f" Current gold weight {_fmt_pct(gold_ratio)}% is elevated; avoid increasing concentration."
 
-        if not financial_recommendations:
-            financial_positive.append("recommend_asset_allocation_balanced")
-            _add_financial_recommendation_detail(
+        _add_investment_recommendation(
+            {
+                "key": "recommend_gold_dynamic",
+                "trend": gold_trend_state,
+            },
+            "recommend_reason_gold_signal",
+            gold_reason_params,
+            text=gold_text,
+            reason_text=(
+                f"Gold signal {_fmt_pct(gold_signal)} with volatility {_fmt_pct(gold_volatility)}%; "
+                f"current allocation {_fmt_pct(gold_ratio)}%."
+            ),
+            priority="medium" if gold_trend_state in {"Strong Uptrend", "Strong Downtrend", "High Volatility"} else "low",
+        )
+
+        net_income_buffer = total_monthly_income - avg_monthly_expenses
+        projected_obligation_cover_90 = (future_cash_90 / obligations_90) if obligations_90 > 0 else 999.0
+        liquidity_strength = (cash_coverage_months or 0.0)
+
+        strengths: List[str] = []
+        if liquidity_strength >= 6:
+            strengths.append(f"liquidity coverage is {_fmt_pct(liquidity_strength, 1)} months")
+        if net_income_buffer > 0:
+            strengths.append(f"monthly surplus is {_fmt_money(net_income_buffer)} EGP")
+        if comp["net_worth_egp"] > 0 and fixed_assets_ratio >= 20:
+            strengths.append(f"net worth is {_fmt_money(comp['net_worth_egp'])} EGP with diversified fixed assets")
+        if future_cash_90 >= cash_balance:
+            strengths.append("future cash projection is stable to improving over 90 days")
+
+        pressure_points: List[str] = []
+        if low_liquidity_flag:
+            pressure_points.append("near-term liquidity pressure is elevated")
+        if net_income_buffer < 0:
+            pressure_points.append(f"monthly cash flow is negative by {_fmt_money(abs(net_income_buffer))} EGP")
+        if projected_obligation_cover_90 < 1.0:
+            pressure_points.append("90-day cash projection does not fully cover expected obligations")
+        if certificate_income_ratio > 45:
+            pressure_points.append(
+                f"income is concentrated in certificates ({_fmt_pct(certificate_income_ratio, 1)}% of recurring income)"
+            )
+
+        if strengths:
+            _add_financial_recommendation(
                 "recommend_asset_allocation_balanced",
                 "recommend_reason_balanced_portfolio",
                 {
@@ -865,10 +901,141 @@ class NetWorthService:
                     "certificate_ratio": round(certificate_ratio, 1),
                     "gold_ratio": round(gold_ratio, 1),
                 },
-                "low",
+                text=(
+                    "Overall financial health is "
+                    + ("strong" if len(strengths) >= 3 and not pressure_points else "stable")
+                    + ": "
+                    + "; ".join(strengths[:3])
+                    + "."
+                ),
+                reason_text=(
+                    f"Allocation mix: cash {_fmt_pct(cash_ratio, 1)}%, certificates {_fmt_pct(certificate_ratio, 1)}%, "
+                    f"gold {_fmt_pct(gold_ratio, 1)}%, fixed assets {_fmt_pct(fixed_assets_ratio, 1)}%."
+                ),
+                priority="low",
             )
 
-        financial_recommendations.extend(financial_positive)
+        if pressure_points:
+            _add_financial_recommendation(
+                "recommend_low_liquidity" if low_liquidity_flag else "recommend_cashflow_attention",
+                "recommend_reason_liquidity_pressure",
+                {
+                    "liquid_assets": round(cash_balance, 2),
+                    "monthly_expenses": round(avg_monthly_expenses, 2),
+                    "cash_coverage": round(cash_coverage_months or 0, 1),
+                    "future_cash_30": round(future_cash_30, 2),
+                    "future_cash_90": round(future_cash_90, 2),
+                },
+                text=(
+                    "Financial pressure points need attention: " + "; ".join(pressure_points[:3]) + "."
+                ),
+                reason_text=(
+                    "Prioritize short-term resilience before increasing long-term risk allocations."
+                ),
+                priority="high" if low_liquidity_flag else "medium",
+            )
+
+        dominant_non_cash_ratio = max(certificate_ratio, gold_ratio, fixed_assets_ratio, foreign_currency_ratio)
+        excess_liquidity = (
+            not low_liquidity_flag
+            and cash_coverage_months is not None
+            and cash_coverage_months > 10
+            and (cash_ratio > dominant_non_cash_ratio + 8 or cash_ratio > 55)
+        )
+        if excess_liquidity:
+            _add_financial_recommendation(
+                "recommend_idle_cash",
+                "recommend_reason_excess_liquidity",
+                {
+                    "liquid_assets": round(cash_balance, 2),
+                    "monthly_expenses": round(avg_monthly_expenses, 2),
+                    "cash_coverage": round(cash_coverage_months or 0, 1),
+                },
+                text=(
+                    f"Liquidity is comfortably above requirements ({_fmt_pct(cash_coverage_months or 0, 1)} months); "
+                    "consider deploying part of excess cash gradually into diversified return-generating assets."
+                ),
+                reason_text=(
+                    f"Cash weight is {_fmt_pct(cash_ratio, 1)}% versus certificates {_fmt_pct(certificate_ratio, 1)}% "
+                    f"and gold {_fmt_pct(gold_ratio, 1)}%."
+                ),
+                priority="medium",
+            )
+
+        if foreign_currency_ratio > max(certificate_ratio, gold_ratio) + 10 and foreign_currency_ratio > 30:
+            _add_financial_recommendation(
+                "recommend_high_foreign_currency_exposure",
+                "recommend_reason_foreign_exposure",
+                {
+                    "foreign_ratio": round(foreign_currency_ratio, 1),
+                    "gold_ratio": round(gold_ratio, 1),
+                    "certificate_ratio": round(certificate_ratio, 1),
+                },
+                text=(
+                    f"Foreign-currency exposure is elevated at {_fmt_pct(foreign_currency_ratio, 1)}%; "
+                    "rebalance gradually to reduce concentration risk."
+                ),
+                reason_text=(
+                    f"Current mix vs alternatives: gold {_fmt_pct(gold_ratio, 1)}%, certificates {_fmt_pct(certificate_ratio, 1)}%."
+                ),
+                priority="medium",
+            )
+
+        dominant_ratio = max(cash_ratio, foreign_currency_ratio, certificate_ratio, gold_ratio, fixed_assets_ratio)
+        if certificate_ratio == dominant_ratio and certificate_ratio > 35 and (certificate_ratio - max(cash_ratio, gold_ratio, foreign_currency_ratio)) > 12:
+            _add_financial_recommendation(
+                "recommend_certificate_concentration",
+                "recommend_reason_certificate_concentration",
+                {
+                    "certificate_ratio": round(certificate_ratio, 1),
+                    "cash_ratio": round(cash_ratio, 1),
+                    "gold_ratio": round(gold_ratio, 1),
+                },
+                text=(
+                    f"Certificate allocation is concentrated at {_fmt_pct(certificate_ratio, 1)}%; "
+                    "reduce single-asset dependence by rebalancing future maturities."
+                ),
+                reason_text=(
+                    f"Relative weights are cash {_fmt_pct(cash_ratio, 1)}% and gold {_fmt_pct(gold_ratio, 1)}%."
+                ),
+                priority="medium",
+            )
+
+        min_certificate_ratio = max(8.0, min(20.0, (gold_ratio + fixed_assets_ratio) * 0.25))
+        if certificate_ratio < min_certificate_ratio:
+            _add_financial_recommendation(
+                "recommend_low_certificate_allocation",
+                "recommend_reason_low_certificate_allocation",
+                {
+                    "certificate_ratio": round(certificate_ratio, 1),
+                    "target_ratio": round(min_certificate_ratio, 1),
+                },
+                text=(
+                    f"Certificate allocation is {_fmt_pct(certificate_ratio, 1)}%, below the target band around "
+                    f"{_fmt_pct(min_certificate_ratio, 1)}%."
+                ),
+                reason_text=(
+                    "A moderate increase in certificates can improve income stability and reduce return volatility."
+                ),
+                priority="medium",
+            )
+
+        if not financial_recommendations:
+            _add_financial_recommendation(
+                "recommend_asset_allocation_balanced",
+                "recommend_reason_balanced_portfolio",
+                {
+                    "cash_ratio": round(cash_ratio, 1),
+                    "certificate_ratio": round(certificate_ratio, 1),
+                    "gold_ratio": round(gold_ratio, 1),
+                },
+                text="Financial position is balanced with healthy liquidity, income coverage, and diversified assets.",
+                reason_text=(
+                    f"Cash {_fmt_pct(cash_ratio, 1)}%, certificates {_fmt_pct(certificate_ratio, 1)}%, gold {_fmt_pct(gold_ratio, 1)}%, "
+                    f"fixed assets {_fmt_pct(fixed_assets_ratio, 1)}%."
+                ),
+                priority="low",
+            )
 
         action_plan: dict = {}
         available_capital = max(cash_balance + forecast_30, 0.0)
@@ -930,6 +1097,28 @@ class NetWorthService:
         elif gold_signal >= neutral_band or gold_signal <= -neutral_band:
             action_reason_key = "action_reason_gold_tilt"
 
+        action_reason_text = (
+            f"Allocation context: cash {_fmt_pct(cash_ratio, 1)}%, gold {_fmt_pct(gold_ratio, 1)}%, "
+            f"certificates {_fmt_pct(certificate_ratio, 1)}%. "
+        )
+        if action_plan.get("key") == "action_renew_certificate":
+            action_reason_text += (
+                f"Certificate maturity impact on income is material ({_fmt_pct(income_loss_ratio, 1)}% of monthly income), "
+                "so preserving income continuity is prioritized."
+            )
+        elif low_liquidity_flag:
+            action_reason_text += (
+                f"Liquidity protection takes priority because cash coverage is {_fmt_pct(cash_coverage_months or 0, 1)} months "
+                f"with near-term projected cash {_fmt_money(future_cash_30)} EGP (30d)."
+            )
+        elif gold_trend_state in {"Strong Uptrend", "Moderate Uptrend", "Strong Downtrend", "Moderate Downtrend", "High Volatility"}:
+            action_reason_text += (
+                f"Gold signal is {_fmt_pct(gold_signal)} ({gold_trend_state}), so the split is aimed at balancing trend opportunity "
+                "with concentration and liquidity risk."
+            )
+        else:
+            action_reason_text += "Portfolio is broadly balanced, so this action keeps diversification while preserving flexibility."
+
         action_plan["reason_key"] = action_reason_key
         action_plan["reason_params"] = {
             "cash_ratio": round(cash_ratio, 1),
@@ -938,6 +1127,7 @@ class NetWorthService:
             "cash_coverage": round(cash_coverage_months or 0, 1),
             "gold_signal": round(gold_signal, 2),
         }
+        action_plan["reason_text"] = action_reason_text
 
         snapshot = self.fixed_assets_snapshot()
 

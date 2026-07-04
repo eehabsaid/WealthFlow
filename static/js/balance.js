@@ -99,13 +99,162 @@ async function renderBalance() {
             reason_params: {},
         }));
 
-    const actionReasonText = forecastData.action_plan?.reason_key
-        ? resolveI18nTemplate(
-            forecastData.action_plan.reason_key,
-            forecastData.action_plan.reason_key,
-            forecastData.action_plan.reason_params || {},
-        )
+    const actionReasonText = forecastData.action_plan?.reason_text
+        ? (forecastData.action_plan?.reason_key
+            ? resolveI18nTemplate(
+                forecastData.action_plan.reason_key,
+                forecastData.action_plan.reason_text,
+                forecastData.action_plan.reason_params || {},
+            )
+            : forecastData.action_plan.reason_text)
+        : (forecastData.action_plan?.reason_key
+            ? resolveI18nTemplate(
+                forecastData.action_plan.reason_key,
+                forecastData.action_plan.reason_key,
+                forecastData.action_plan.reason_params || {},
+            )
+            : '');
+
+    const goldDetail = investmentDetails.find((item) => {
+        const key = String(item.key || '').toLowerCase();
+        return key.includes('gold');
+    }) || null;
+
+    const getRecommendationText = (item) => {
+        if (!item) return '';
+        if (item.key) {
+            return resolveI18nTemplate(item.key, item.text || item.key, item.params || {});
+        }
+        return item.text || '';
+    };
+
+    const getReasonText = (item) => {
+        if (!item) return '';
+        if (item.reason_key) {
+            return resolveI18nTemplate(item.reason_key, item.reason_text || item.reason_key, item.reason_params || {});
+        }
+        return item.reason_text || '';
+    };
+
+    const goldRecommendationText = goldDetail
+        ? getRecommendationText(goldDetail)
         : '';
+    const goldReasonText = goldDetail
+        ? getReasonText(goldDetail)
+        : '';
+
+    const inferredTrend = (() => {
+        const t90 = Number(forecastData.gold_trend_90 || 0);
+        const gap = Number(forecastData.gold_ma_gap_pct || 0);
+        const v = Math.abs(Number(forecastData.gold_signal || 0));
+        if (v >= 3 && Number(forecastData.gold_trend_7 || 0) >= 0 && Number(forecastData.gold_trend_30 || 0) >= 0 && t90 >= 0 && gap >= 0) {
+            if (v >= 8) return 'Strong Uptrend';
+            return 'Moderate Uptrend';
+        }
+        if (v >= 3 && Number(forecastData.gold_trend_7 || 0) <= 0 && Number(forecastData.gold_trend_30 || 0) <= 0 && t90 <= 0 && gap <= 0) {
+            if (v >= 8) return 'Strong Downtrend';
+            return 'Moderate Downtrend';
+        }
+        if (v < 3 && Math.abs(Number(forecastData.gold_trend_30 || 0)) < 4 && Math.abs(Number(forecastData.gold_trend_90 || 0)) < 8) {
+            return 'Sideways';
+        }
+        if (Math.abs(Number(forecastData.gold_trend_7 || 0)) > 3 && Math.abs(Number(forecastData.gold_trend_30 || 0)) < 3) {
+            return 'High Volatility';
+        }
+        if (v >= 8 && t90 > 0 && gap > 0) return 'Strong Uptrend';
+        if (v >= 3 && t90 > 0 && gap >= 0) return 'Moderate Uptrend';
+        if (v >= 8 && t90 < 0 && gap < 0) return 'Strong Downtrend';
+        if (v >= 3 && t90 < 0 && gap <= 0) return 'Moderate Downtrend';
+        return 'Sideways';
+    })();
+
+    const trendLabelKey = (() => {
+        const trend = String(inferredTrend || '').toLowerCase();
+        if (trend.includes('strong uptrend')) return 'trend_strong_uptrend';
+        if (trend.includes('moderate uptrend')) return 'trend_moderate_uptrend';
+        if (trend.includes('strong downtrend')) return 'trend_strong_downtrend';
+        if (trend.includes('moderate downtrend')) return 'trend_moderate_downtrend';
+        if (trend.includes('high volatility')) return 'trend_high_volatility';
+        return 'trend_sideways';
+    })();
+    const localizedTrendLabel = t(trendLabelKey, inferredTrend || 'Sideways');
+
+    const trendMeta = (() => {
+        const trend = inferredTrend;
+        if (/strong\s*up|moderate\s*up/i.test(trend)) return { icon: '📈', cls: 'fi-positive' };
+        if (/strong\s*down|moderate\s*down/i.test(trend)) return { icon: '📉', cls: 'fi-negative' };
+        if (/volatility/i.test(trend)) return { icon: '⚠️', cls: 'fi-warning' };
+        return { icon: '➖', cls: 'fi-neutral' };
+    })();
+
+    const netMonthlySurplus = Number(forecastData.total_monthly_income || 0) - Number(forecastData.avg_monthly_expenses || 0);
+
+    const diversificationLabel = (() => {
+        const ratios = [
+            Number(forecastData.cash_ratio || 0),
+            Number(forecastData.certificate_ratio || 0),
+            Number(forecastData.gold_ratio || 0),
+            Number(forecastData.fixed_assets_ratio || 0),
+        ];
+        const maxWeight = Math.max(...ratios);
+        if (maxWeight <= 45) return t('diversification_balanced', 'Balanced');
+        if (maxWeight <= 60) return t('diversification_moderate_concentration', 'Moderate Concentration');
+        return t('diversification_high_concentration', 'High Concentration');
+    })();
+
+    const priorityRank = { high: 3, medium: 2, low: 1 };
+    const worstPriority = (financialDetails || []).reduce((acc, item) => {
+        const p = priorityRank[String(item.priority || '').toLowerCase()] || 0;
+        return Math.max(acc, p);
+    }, 0);
+    const hasBalancedKey = (financialDetails || []).some((item) => String(item.key || '') === 'recommend_asset_allocation_balanced');
+    const financialHealth = (() => {
+        if (worstPriority >= 3) return { label: t('status_critical', 'Critical'), icon: '🔴', cls: 'fi-negative' };
+        if (worstPriority === 2) return { label: t('status_warning', 'Warning'), icon: '🟠', cls: 'fi-warning' };
+        if (hasBalancedKey && (forecastData.cash_coverage_months || 0) >= 6 && netMonthlySurplus >= 0) {
+            return { label: t('status_excellent', 'Excellent'), icon: '🟢', cls: 'fi-positive' };
+        }
+        return { label: t('status_good', 'Good'), icon: '🟦', cls: 'fi-neutral' };
+    })();
+
+    const labelGoldMarketAnalysis = t('gold_market_analysis', 'Gold Market Analysis');
+    const labelTrend = t('trend_label', 'Trend');
+    const labelSevenDayChange = t('seven_day_change', '7-Day Change');
+    const labelThirtyDayChange = t('thirty_day_change', '30-Day Change');
+    const labelNinetyDayChange = t('ninety_day_change', '90-Day Change');
+    const labelMa7 = t('ma_short_label', 'MA(7)');
+    const labelMa30 = t('ma_long_label', 'MA(30)');
+    const labelMaGap = t('ma_gap_label', 'MA Gap');
+    const labelCurrentAllocation = t('current_allocation', 'Current Allocation');
+    const labelRecommendation = t('recommendation_label', 'Recommendation');
+    const labelSuggestedAllocation = t('suggested_allocation', 'Suggested Allocation');
+    const labelFinancialHealth = t('financial_health_label', 'Financial Health');
+    const labelFinancialHealthOverview = t('financial_health_overview', 'Financial Health Overview');
+    const labelNetWorth = t('net_worth', 'Net Worth');
+    const labelLiquidityCoverage = t('liquidity_coverage', 'Liquidity Coverage');
+    const labelMonthlySurplus = t('monthly_surplus', 'Monthly Surplus');
+    const labelDiversification = t('diversification_label', 'Diversification');
+    const labelCash = t('label_cash', 'Cash');
+    const labelCertificates = t('label_certificates', 'Certificates');
+    const labelGold = t('label_gold', 'Gold');
+    const labelFixedAssets = t('label_fixed_assets', 'Fixed Assets');
+    const labelMonths = t('months', 'months');
+    const labelEgp = t('EGP', 'EGP');
+
+    const topFinancialItem = [...(financialDetails || [])]
+        .sort((a, b) => (priorityRank[String(b.priority || '').toLowerCase()] || 0) - (priorityRank[String(a.priority || '').toLowerCase()] || 0))[0] || null;
+    const financialParagraph = topFinancialItem
+        ? getRecommendationText(topFinancialItem)
+        : '';
+    const financialReason = topFinancialItem
+        ? getReasonText(topFinancialItem)
+        : '';
+
+    const suggestedAllocations = [
+        { icon: '🥇', label: t('gold_value', 'Gold'), value: Number(forecastData.action_plan?.gold_amount || 0) },
+        { icon: '🏦', label: t('certificate_investments', 'Certificates'), value: Number(forecastData.action_plan?.certificate_amount || 0) },
+        { icon: '💰', label: t('liquid_cash', 'Cash'), value: Number(forecastData.action_plan?.cash_amount || 0) },
+    ].filter((row) => row.value > 0 || forecastData.action_plan?.key === 'action_gold_cash');
 
     const currencyCards = _currencies
     .map((cur) => {
@@ -231,35 +380,77 @@ async function renderBalance() {
             </div>
         </div>
 
-        <div class="kpi-card mb-4">
+        <div class="kpi-card mb-4 fi-boardroom-card fi-investment-card">
             <div class="kpi-label" data-i18n="investment_recommendations">Investment Recommendations</div>
+            <div class="fi-emphasis-band fi-emphasis-gold"><span class="fi-band-icon">📊</span><span>${labelGoldMarketAnalysis}</span></div>
+            <div class="fi-section-title">${labelGoldMarketAnalysis}</div>
+            <div class="fi-metric-grid">
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelTrend}</span><span class="fi-trend-pill ${trendMeta.cls}">${trendMeta.icon} ${localizedTrendLabel}</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelSevenDayChange}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.gold_trend_7 || 0}">${fmt(forecastData.gold_trend_7 || 0)}%</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelThirtyDayChange}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.gold_trend_30 || 0}">${fmt(forecastData.gold_trend_30 || 0)}%</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelNinetyDayChange}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.gold_trend_90 || 0}">${fmt(forecastData.gold_trend_90 || 0)}%</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelMa7}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.gold_ma_short || 0}">${fmt(forecastData.gold_ma_short || 0)}</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelMa30}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.gold_ma_long || 0}">${fmt(forecastData.gold_ma_long || 0)}</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelMaGap}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.gold_ma_gap_pct || 0}">${fmt(forecastData.gold_ma_gap_pct || 0)}%</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelCurrentAllocation}</span><span class="fi-metric-value fi-accent num-fmt" data-value="${forecastData.gold_ratio || 0}">${fmt(forecastData.gold_ratio || 0)}%</span></div>
+            </div>
+            <div class="fi-section-title">${labelRecommendation}</div>
+            <div class="fi-paragraph">${goldRecommendationText || t('recommend_gold_neutral', 'Keep current gold allocation and rebalance gradually as trends evolve.')}</div>
+            ${goldReasonText ? `<div class="fi-sub-paragraph">${goldReasonText}</div>` : ''}
             <div style="margin-top:15px">
-                ${investmentDetails.map((item) => {
+                ${investmentDetails.filter((item) => String(item.key || '') !== 'recommend_gold_dynamic').map((item) => {
                     const itemKey = item.key;
                     const itemParams = item.params || {};
-                    const resolvedText = resolveI18nTemplate(itemKey, itemKey, itemParams);
-                    const reasonText = item.reason_key
-                        ? resolveI18nTemplate(item.reason_key, item.reason_key, item.reason_params || {})
-                        : '';
+                    const resolvedText = getRecommendationText(item);
+                    const reasonText = getReasonText(item);
                     const itemParamsEncoded = encodeI18nParams(itemParams);
                     const reasonParamsEncoded = encodeI18nParams(item.reason_params || {});
 
-                    return `<div style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">
-                        <div data-i18n-key="${itemKey}" data-i18n-params="${itemParamsEncoded}">${resolvedText}</div>
-                        ${reasonText ? `<div data-i18n-key="${item.reason_key}" data-i18n-params="${reasonParamsEncoded}" style="margin-top:6px;color:var(--text-muted);font-size:12px">${reasonText}</div>` : ''}
+                    return `<div class="fi-note-card">
+                        <div ${item.key ? `data-i18n-key="${itemKey}" data-i18n-params="${itemParamsEncoded}"` : ''}>${resolvedText}</div>
+                        ${reasonText ? `<div ${item.reason_key ? `data-i18n-key="${item.reason_key}" data-i18n-params="${reasonParamsEncoded}"` : ''} class="fi-sub-paragraph">${reasonText}</div>` : ''}
                     </div>`;
                 }).join('')}
             </div>
         </div>
 
-        <div class="kpi-card mb-4">
+        <div class="kpi-card mb-4 fi-boardroom-card fi-action-card">
             <div class="kpi-label" data-i18n="recommended_action">Recommended Action</div>
-            ${actionReasonText ? `<div data-i18n-key="${forecastData.action_plan.reason_key}" data-i18n-params="${encodeI18nParams(forecastData.action_plan.reason_params || {})}" style="margin-top:12px;color:var(--text-muted);font-size:13px">${actionReasonText}</div>` : ''}
+            <div class="row g-3 fi-card-grid">
+                <div class="col-12 col-lg-6">
+                    <div class="fi-sub-card h-100">
+                        <div class="fi-emphasis-band fi-emphasis-neutral"><span class="fi-band-icon">🧭</span><span>${labelCurrentAllocation}</span></div>
+                        <div class="fi-section-title">${labelCurrentAllocation}</div>
+                        <div class="fi-metric-grid">
+                            <div class="fi-metric-row"><span class="fi-metric-label fi-label-with-icon"><span>💰</span><span>${labelCash}</span></span><span class="fi-metric-value num-fmt" data-value="${forecastData.cash_ratio || 0}">${fmt(forecastData.cash_ratio || 0)}%</span></div>
+                            <div class="fi-metric-row"><span class="fi-metric-label fi-label-with-icon"><span>🏦</span><span>${labelCertificates}</span></span><span class="fi-metric-value num-fmt" data-value="${forecastData.certificate_ratio || 0}">${fmt(forecastData.certificate_ratio || 0)}%</span></div>
+                            <div class="fi-metric-row"><span class="fi-metric-label fi-label-with-icon"><span>🥇</span><span>${labelGold}</span></span><span class="fi-metric-value num-fmt" data-value="${forecastData.gold_ratio || 0}">${fmt(forecastData.gold_ratio || 0)}%</span></div>
+                            <div class="fi-metric-row"><span class="fi-metric-label fi-label-with-icon"><span>🏠</span><span>${labelFixedAssets}</span></span><span class="fi-metric-value num-fmt" data-value="${forecastData.fixed_assets_ratio || 0}">${fmt(forecastData.fixed_assets_ratio || 0)}%</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="fi-sub-card h-100">
+                        <div class="fi-emphasis-band fi-emphasis-primary"><span class="fi-band-icon">🎯</span><span>${labelSuggestedAllocation}</span></div>
+                        <div class="fi-section-title">${labelSuggestedAllocation}</div>
+                        <div class="fi-highlight-stack">
+                            ${suggestedAllocations.map((row) => `
+                                <div class="fi-highlight-row">
+                                    <div class="fi-metric-label fi-label-with-icon"><span>${row.icon}</span><span>${row.label}</span></div>
+                                    <div class="fi-metric-value fi-accent num-fmtpresent" data-value="${row.value}">${fmtpresent(row.value)} ${labelEgp}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            ${actionReasonText ? `<div ${forecastData.action_plan?.reason_key ? `data-i18n-key="${forecastData.action_plan.reason_key}" data-i18n-params="${encodeI18nParams(forecastData.action_plan.reason_params || {})}"` : ''} class="fi-paragraph" style="margin-top:16px;">${actionReasonText}</div>` : ''}
             <div data-i18n-key="${forecastData.action_plan?.key || ''}"
                  data-gold-amount="${forecastData.action_plan?.gold_amount || 0}"
                  data-cash-amount="${forecastData.action_plan?.cash_amount || 0}"
                  data-certificate-amount="${forecastData.action_plan?.certificate_amount || 0}"
-                 style="margin-top:15px;font-weight:600;">
+                 class="fi-sub-paragraph"
+                 style="margin-top:10px;">
                 ${
                     forecastData.action_plan?.key
                         ? (_t[forecastData.action_plan.key] || forecastData.action_plan.key)
@@ -311,23 +502,25 @@ async function renderBalance() {
             ${renderAllocationBar('type_other_assets', allocationValues.type_other_assets || 0, netWorth)}
         </div>
 
-        <div class="kpi-card mb-4">
+        <div class="kpi-card mb-4 fi-boardroom-card fi-financial-card">
             <div class="kpi-label" data-i18n="financial_recommendations">Financial Recommendations</div>
-            <div style="margin-top:15px">
-                ${financialDetails.map((item) => {
-                    const text = resolveI18nTemplate(item.key, item.key, item.params || {});
-                    const reasonText = item.reason_key
-                        ? resolveI18nTemplate(item.reason_key, item.reason_key, item.reason_params || {})
-                        : '';
+            <div class="fi-emphasis-band fi-emphasis-health"><span class="fi-band-icon">📌</span><span>${labelFinancialHealthOverview}</span></div>
+            <div class="fi-section-title">${labelFinancialHealth}</div>
+            <div class="fi-badge-row"><span class="fi-status-badge ${financialHealth.cls}">${financialHealth.icon} ${financialHealth.label}</span></div>
+            <div class="fi-metric-grid">
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelNetWorth}</span><span class="fi-metric-value fi-accent num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)} ${labelEgp}</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelLiquidityCoverage}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.cash_coverage_months || 0}">${fmt(forecastData.cash_coverage_months || 0)} ${labelMonths}</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelMonthlySurplus}</span><span class="fi-metric-value ${netMonthlySurplus >= 0 ? 'fi-positive' : 'fi-negative'} num-fmtpresent" data-value="${netMonthlySurplus}">${fmtpresent(netMonthlySurplus)} ${labelEgp}</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelDiversification}</span><span class="fi-metric-value">${diversificationLabel}</span></div>
+            </div>
+            <div class="fi-section-title">${labelRecommendation}</div>
+            <div class="fi-paragraph">${financialParagraph || t('recommend_asset_allocation_balanced', 'Financial position is balanced with healthy liquidity and diversified assets.')}</div>
+            ${financialReason ? `<div class="fi-sub-paragraph">${financialReason}</div>` : ''}
+            <div class="fi-list-compact" style="margin-top:12px">
+                ${financialDetails.slice(0, 3).map((item) => {
+                    const text = getRecommendationText(item);
                     const itemParamsEncoded = encodeI18nParams(item.params || {});
-                    const reasonParamsEncoded = encodeI18nParams(item.reason_params || {});
-
-                    return `
-                        <div data-i18n-key="${item.key}" data-i18n-params="${itemParamsEncoded}" style="padding:12px; margin-bottom:10px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">
-                            <div>${text}</div>
-                            ${reasonText ? `<div data-i18n-key="${item.reason_key}" data-i18n-params="${reasonParamsEncoded}" style="margin-top:6px;color:var(--text-muted);font-size:12px">${reasonText}</div>` : ''}
-                        </div>
-                    `;
+                    return `<div ${item.key ? `data-i18n-key="${item.key}" data-i18n-params="${itemParamsEncoded}"` : ''} class="fi-note-card">${text}</div>`;
                 }).join('')}
             </div>
         </div>

@@ -34,6 +34,13 @@ async function loadLanguage(code) {
             body:    JSON.stringify({ key: 'active_language', value: code }),
         });
 
+        // Re-render active route so runtime-computed labels update immediately.
+        if (typeof window.route === 'function') {
+            window.route();
+        }
+
+        document.dispatchEvent(new CustomEvent('languageChanged', { detail: { code } }));
+
     } catch (e) {
         console.warn('Language load failed:', e);
     }

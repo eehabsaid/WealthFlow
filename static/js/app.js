@@ -24,6 +24,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     route();
 });
 
+document.addEventListener('languageChanged', () => {
+    if (typeof route === 'function') {
+        route();
+    }
+});
+
 async function initApp() {
     const [cRes, bRes, meRes, profileRes] = await Promise.all([
         fetch('/api/companies/'),
@@ -319,6 +325,8 @@ function route() {
 
     applyTranslations();
 }
+
+window.route = route;
 
 function navigate(route) {
     window.location.hash = route;
