@@ -37,7 +37,7 @@ async function renderBalance() {
     const totals = summary.totals_by_currency || {};
 
     const totalEGP = totals.EGP || 0;
-    const cashEGP = summary.cash_egp || 0;
+    const cashEGP = summary.liquid_egp_cash ?? summary.cash_egp ?? 0;
     const certificateEGP = summary.certificate_egp || 0;
     const usdAmount = totals.USD || 0;
     const eurAmount = totals.EUR || 0;
@@ -143,6 +143,7 @@ async function renderBalance() {
                 <div><div class="kpi-label" data-i18n="net_worth">Net Worth</div><div class="kpi-value num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)}</div></div>
                 <div><div class="kpi-label" data-i18n="liquid_cash">Liquid Cash</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.cash_balance || 0}">${fmtpresent(forecastData.cash_balance || 0)}</div></div>
                 <div><div class="kpi-label" data-i18n="certificate_investments">Certificate Investments</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.certificate_balance || 0}">${fmtpresent(forecastData.certificate_balance || 0)}</div></div>
+                <div><div class="kpi-label" data-i18n="liquid_egp_cash">Liquid EGP CASH</div><div class="kpi-value num-fmtpresent" data-value="${cashEGP}">${fmtpresent(cashEGP)}</div></div>
                 <div><div class="kpi-label" data-i18n="foreign_currency_value">Foreign Currency Value</div><div class="kpi-value num-fmtpresent" data-value="${usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate}">${fmtpresent(usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate)}</div></div>
                 <div><div class="kpi-label" data-i18n="gold_value">Gold Value</div><div class="kpi-value num-fmtpresent" data-value="${goldValue}">${fmtpresent(goldValue)}</div></div>
                 <div><div class="kpi-label" data-i18n="monthly_salary">Monthly Salary</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_salary || 0}">${fmtpresent(forecastData.monthly_salary || 0)}</div></div>

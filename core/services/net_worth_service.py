@@ -220,6 +220,63 @@ class NetWorthService:
 
         return self._cached("fixed_assets_breakdown", _load)
 
+    def _strict_liquid_assets_egp(self) -> float:
+        """
+        Liquidity definition for recommendation calibration:
+        - Source: BalanceEntry only
+        - Filter: balance_type = Cash and currency != Gold (case-insensitive)
+        - Conversion: latest BUY rate only for non-EGP rows
+        """
+        rates = self._latest_rates()
+        total = 0.0
+
+        rows = (
+            BalanceEntry.objects.select_related("currency")
+            .filter(balance_type__iexact=BalanceEntry.BalanceType.CASH)
+            .exclude(currency__code__iexact="GOLD")
+        )
+
+        for row in rows:
+            code = str(getattr(row.currency, "code", "") or "").upper()
+            amount = _to_float(row.amount)
+            if code == "EGP":
+                total += amount
+            elif code:
+                total += amount * _to_float(rates.get(code))
+
+        return total
+
+    def _strict_egp_cash_balance(self) -> float:
+        """
+        Strict EGP cash for Financial Intelligence card:
+        - Source: BalanceEntry only
+        - Filter: balance_type = cash AND currency = EGP (case-insensitive)
+        - Includes both bank and non-bank rows
+        """
+        agg = (
+            BalanceEntry.objects.filter(
+                balance_type__iexact=BalanceEntry.BalanceType.CASH,
+                currency__code__iexact="EGP",
+            ).aggregate(total=Sum("amount"))
+        )
+        return _to_float(agg.get("total"))
+
+    def _gold_trend_change(self, history: List[GoldPriceHistory], window_days: int) -> float:
+        if len(history) < 2:
+            return 0.0
+
+        latest = _to_float(history[0].carat_21k)
+        idx = min(len(history) - 1, max(window_days - 1, 1))
+        baseline = _to_float(history[idx].carat_21k)
+        if baseline <= 0:
+            return 0.0
+
+        return ((latest - baseline) / baseline) * 100
+
+    def _append_unique(self, items: List[str], value: str) -> None:
+        if value not in items:
+            items.append(value)
+
     def portfolio_components(self) -> dict:
         def _build():
             rates = self._latest_rates()
@@ -319,6 +376,7 @@ class NetWorthService:
         comp = self.portfolio_components()
         rates = comp["rates"]
         totals_by_currency = comp["totals_by_currency"]
+        liquid_egp_cash = self._strict_egp_cash_balance()
 
         usd_amount = _to_float(totals_by_currency.get("USD"))
         eur_amount = _to_float(totals_by_currency.get("EUR"))
@@ -345,6 +403,7 @@ class NetWorthService:
             "summary": {
                 "totals_by_currency": totals_by_currency,
                 "cash_egp": round(comp["cash_egp_legacy"], 2),
+                "liquid_egp_cash": round(liquid_egp_cash, 2),
                 "certificate_egp": round(comp["certificate_egp_legacy"], 2),
                 "usd_rate": usd_rate,
                 "eur_rate": eur_rate,
@@ -417,18 +476,8 @@ class NetWorthService:
         rental_service = FinancialSyncService()
         monthly_rental_income = _to_float(rental_service.period_rental_income_total("month"))
 
-        # Future cash position must stay liquid-only (EGP cash/bank rows, excluding cert/gold).
-        cash_balance = 0.0
-        for item in comp["entries"]:
-            balance_type = str(item.get("balance_type") or "")
-            code = str(item.get("currency_code") or "").upper()
-            if balance_type == BalanceEntry.BalanceType.CERTIFICATE:
-                continue
-            if code == "GOLD":
-                continue
-            if code != "EGP":
-                continue
-            cash_balance += _to_float(item.get("amount"))
+        # Liquidity is calibrated from BalanceEntry cash rows only and converted to EGP via BUY rates.
+        cash_balance = self._strict_liquid_assets_egp()
 
         certificate_balance = _to_float(comp["certificate_total_egp"])
 
@@ -488,6 +537,8 @@ class NetWorthService:
         total_expenses = _to_float(expenses.aggregate(total=Sum("amount"))["total"])
         months_with_expenses = len(set(expenses.values_list("year", "month")))
         avg_monthly_expenses = total_expenses / months_with_expenses if months_with_expenses > 0 else 0
+        obligations_30 = avg_monthly_expenses
+        obligations_90 = avg_monthly_expenses * 3
 
         monthly_certificate_income = _to_float(comp["certificate_interest_total_egp"])
         latest_salary = SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
@@ -498,12 +549,9 @@ class NetWorthService:
         certificate_income_ratio = (monthly_certificate_income / total_monthly_income) * 100 if total_monthly_income > 0 else 0
 
         investment_recommendations: List[object] = []
-        financial_recommendations: List[str] = []
-
-        if certificate_ratio > 70:
-            financial_recommendations.append("recommend_certificate_concentration")
-        if fixed_assets_ratio > 70:
-            financial_recommendations.append("recommend_certificate_concentration")
+        financial_critical: List[str] = []
+        financial_optimization: List[str] = []
+        financial_positive: List[str] = []
 
         if nearest_maturity is not None:
             if nearest_maturity <= 7:
@@ -511,13 +559,17 @@ class NetWorthService:
             elif nearest_maturity <= 30:
                 investment_recommendations.append({"key": "recommend_maturity_soon", "days_left": nearest_maturity})
 
-        if forecast_90 > forecast_30 * 2:
+        if forecast_90 > (forecast_30 + max(obligations_30, 1)) * 1.8:
             investment_recommendations.append("recommend_large_maturity_90")
 
-        liquidity_ratio = (forecast_30 / forecast_180) * 100 if forecast_180 > 0 else 0
-        low_liquidity_flag = forecast_180 > 0 and liquidity_ratio < 25
+        liquidity_coverage_90 = cash_balance / obligations_90 if obligations_90 > 0 else 999.0
+        maturity_support_30 = (cash_balance + forecast_30 + monthly_rental_income) / obligations_30 if obligations_30 > 0 else 999.0
+        low_liquidity_flag = obligations_30 > 0 and (
+            (cash_balance < obligations_90 * 0.85 and (cash_balance + forecast_30) < obligations_90)
+            or (liquidity_coverage_90 < 1.1 and maturity_support_30 < 1.0)
+        )
         if low_liquidity_flag:
-            financial_recommendations.append("recommend_low_liquidity")
+            self._append_unique(financial_critical, "recommend_low_liquidity")
 
         future_cash_30 = cash_balance + forecast_30 + monthly_rental_income
         future_cash_90 = cash_balance + forecast_90 + (monthly_rental_income * 3)
@@ -531,107 +583,137 @@ class NetWorthService:
             if avg_price > 0:
                 gold_trend_pct = ((latest_price - avg_price) / avg_price) * 100
 
-        gold_trend_30 = 0
-        gold_trend_90 = 0
-        gold_trend_365 = 0
+        gold_trend_30 = 0.0
+        gold_trend_90 = 0.0
+        gold_trend_365 = 0.0
         gold_history = list(GoldPriceHistory.objects.order_by("-timestamp")[:250])
 
-        if len(gold_history) > 30:
-            latest = _to_float(gold_history[0].carat_21k)
-            old_30 = _to_float(gold_history[29].carat_21k)
-            if old_30:
-                gold_trend_30 = ((latest - old_30) / old_30) * 100
-        if len(gold_history) > 90:
-            latest = _to_float(gold_history[0].carat_21k)
-            old_90 = _to_float(gold_history[89].carat_21k)
-            if old_90:
-                gold_trend_90 = ((latest - old_90) / old_90) * 100
-        if len(gold_history) > 250:
-            latest = _to_float(gold_history[0].carat_21k)
-            old_365 = _to_float(gold_history[249].carat_21k)
-            if old_365:
-                gold_trend_365 = ((latest - old_365) / old_365) * 100
+        if len(gold_history) > 1:
+            gold_trend_30 = self._gold_trend_change(gold_history, 30)
+            gold_trend_90 = self._gold_trend_change(gold_history, 90)
+            gold_trend_365 = self._gold_trend_change(gold_history, 365)
 
-        if cash_ratio > 40 and not low_liquidity_flag:
-            financial_recommendations.append("recommend_idle_cash")
+        if cash_coverage_months is not None and cash_coverage_months < 3:
+            low_liquidity_flag = True
+            self._append_unique(financial_critical, "recommend_low_emergency_fund")
 
-        if cash_ratio > 60 and not low_liquidity_flag:
-            financial_recommendations.append("recommend_high_cash_position")
-        if foreign_currency_ratio > 40:
-            financial_recommendations.append("recommend_high_foreign_currency_exposure")
+        if not low_liquidity_flag and cash_coverage_months is not None and cash_coverage_months > 10:
+            dominant_non_cash_ratio = max(certificate_ratio, gold_ratio, fixed_assets_ratio, foreign_currency_ratio)
+            if cash_ratio > dominant_non_cash_ratio + 8:
+                self._append_unique(financial_optimization, "recommend_idle_cash")
+            if cash_ratio > 55:
+                self._append_unique(financial_optimization, "recommend_high_cash_position")
+            if cash_coverage_months > 14:
+                self._append_unique(financial_optimization, "recommend_excess_cash")
 
-        if cash_coverage_months is not None:
-            if cash_coverage_months < 3:
-                low_liquidity_flag = True
-                financial_recommendations.append("recommend_low_emergency_fund")
-            elif cash_coverage_months > 12 and cash_ratio > 25 and not low_liquidity_flag:
-                financial_recommendations.append("recommend_excess_cash")
+        if foreign_currency_ratio > max(certificate_ratio, gold_ratio) + 10 and foreign_currency_ratio > 30:
+            self._append_unique(financial_optimization, "recommend_high_foreign_currency_exposure")
 
-        if gold_trend_30 > 15:
+        dominant_ratio = max(cash_ratio, foreign_currency_ratio, certificate_ratio, gold_ratio, fixed_assets_ratio)
+        if certificate_ratio == dominant_ratio and certificate_ratio > 35 and (certificate_ratio - max(cash_ratio, gold_ratio, foreign_currency_ratio)) > 12:
+            self._append_unique(financial_optimization, "recommend_certificate_concentration")
+
+        min_certificate_ratio = max(8.0, min(20.0, (gold_ratio + fixed_assets_ratio) * 0.25))
+        if certificate_ratio < min_certificate_ratio:
+            self._append_unique(financial_optimization, "recommend_low_certificate_allocation")
+
+        trend_components: List[Tuple[float, float]] = []
+        if len(gold_history) >= 5:
+            trend_components.append((gold_trend_30, 0.5))
+        if len(gold_history) >= 15:
+            trend_components.append((gold_trend_90, 0.3))
+        if len(gold_history) >= 60:
+            trend_components.append((gold_trend_365, 0.2))
+
+        if trend_components:
+            total_weight = sum(weight for _, weight in trend_components)
+            trend_signal = sum(value * weight for value, weight in trend_components) / total_weight if total_weight > 0 else 0.0
+        else:
+            trend_signal = gold_trend_pct
+
+        allocation_liquidity_adjustment = 0.0
+        if low_liquidity_flag:
+            allocation_liquidity_adjustment -= 2.0
+        if gold_ratio > 25:
+            allocation_liquidity_adjustment -= 2.0
+        if certificate_ratio > 45:
+            allocation_liquidity_adjustment -= 1.0
+        if foreign_currency_ratio > 35:
+            allocation_liquidity_adjustment -= 0.5
+        if gold_ratio < 10 and obligations_90 > 0 and cash_balance > obligations_90 * 1.25:
+            allocation_liquidity_adjustment += 1.0
+
+        gold_signal = trend_signal + allocation_liquidity_adjustment
+        if gold_signal >= 10:
             investment_recommendations.append("recommend_gold_strong_uptrend")
-        elif gold_trend_30 > 5:
+        elif gold_signal >= 4:
             investment_recommendations.append("recommend_gold_uptrend")
-        elif gold_trend_30 < -15:
+        elif gold_signal <= -10:
             investment_recommendations.append("recommend_gold_strong_downtrend")
-        elif gold_trend_30 < -5:
+        elif gold_signal <= -4:
             investment_recommendations.append("recommend_gold_downtrend")
         else:
             investment_recommendations.append("recommend_gold_neutral")
 
-        if certificate_ratio < 20:
-            financial_recommendations.append("recommend_low_certificate_allocation")
+        financial_recommendations: List[str] = []
+        financial_recommendations.extend(financial_critical)
+        financial_recommendations.extend(financial_optimization)
 
         if not financial_recommendations:
-            financial_recommendations.append("recommend_asset_allocation_balanced")
+            financial_positive.append("recommend_asset_allocation_balanced")
 
-        action_plan = ""
-        if forecast_30 > 0:
-            available_capital = cash_balance + forecast_30
-            income_loss_ratio = (maturing_interest_30 / total_monthly_income) * 100 if total_monthly_income > 0 else 0
-            if income_loss_ratio > 20:
+        financial_recommendations.extend(financial_positive)
+
+        action_plan: dict = {}
+        available_capital = max(cash_balance + forecast_30, 0.0)
+        if available_capital <= 0:
+            available_capital = max(total_monthly_income, 0.0)
+
+        income_loss_ratio = (maturing_interest_30 / total_monthly_income) * 100 if total_monthly_income > 0 else 0
+        if income_loss_ratio > 20 and certificate_balance > 0:
+            action_plan = {"key": "action_renew_certificate"}
+        elif low_liquidity_flag:
+            action_plan = {
+                "key": "action_gold_cash",
+                "gold_amount": round(available_capital * 0.20, 0),
+                "cash_amount": round(available_capital * 0.80, 0),
+            }
+        elif certificate_ratio > 40 or certificate_income_ratio > 30:
+            action_plan = {
+                "key": "action_gold_certificate_cash",
+                "gold_amount": round(available_capital * 0.30, 0),
+                "certificate_amount": round(available_capital * 0.35, 0),
+                "cash_amount": round(available_capital * 0.35, 0),
+            }
+        elif gold_signal >= 6:
+            action_plan = {
+                "key": "action_gold_certificate",
+                "gold_amount": round(available_capital * 0.60, 0),
+                "certificate_amount": round(available_capital * 0.40, 0),
+            }
+        elif gold_signal <= -6:
+            action_plan = {
+                "key": "action_gold_certificate_cash",
+                "gold_amount": round(available_capital * 0.20, 0),
+                "certificate_amount": round(available_capital * 0.45, 0),
+                "cash_amount": round(available_capital * 0.35, 0),
+            }
+        elif available_capital > 0:
+            action_plan = {
+                "key": "action_gold_cash",
+                "gold_amount": round(available_capital * 0.50, 0),
+                "cash_amount": round(available_capital * 0.50, 0),
+            }
+
+        # Recommended action must never be empty.
+        if not action_plan:
+            if certificate_balance > 0:
                 action_plan = {"key": "action_renew_certificate"}
-            elif certificate_ratio > 45 or certificate_income_ratio > 30:
-                if gold_trend_365 > 15 and gold_trend_30 < -10:
-                    action_plan = {
-                        "key": "action_gold_certificate_cash",
-                        "gold_amount": round(available_capital * 0.40, 0),
-                        "certificate_amount": round(available_capital * 0.30, 0),
-                        "cash_amount": round(available_capital * 0.30, 0),
-                    }
-                elif gold_trend_365 > 15 and gold_trend_30 > 0:
-                    action_plan = {
-                        "key": "action_gold_certificate_cash",
-                        "gold_amount": round(available_capital * 0.60, 0),
-                        "certificate_amount": round(available_capital * 0.20, 0),
-                        "cash_amount": round(available_capital * 0.20, 0),
-                    }
-                elif gold_trend_365 < 5:
-                    action_plan = {
-                        "key": "action_gold_certificate_cash",
-                        "gold_amount": round(available_capital * 0.20, 0),
-                        "certificate_amount": round(available_capital * 0.50, 0),
-                        "cash_amount": round(available_capital * 0.30, 0),
-                    }
-            elif gold_ratio < 10:
-                if gold_trend_30 < -15:
-                    gold_amount = round(available_capital * 0.80, 0)
-                    cash_amount = round(available_capital * 0.20, 0)
-                elif gold_trend_30 < -5:
-                    gold_amount = round(available_capital * 0.70, 0)
-                    cash_amount = round(available_capital * 0.30, 0)
-                else:
-                    gold_amount = round(available_capital * 0.60, 0)
-                    cash_amount = round(available_capital * 0.40, 0)
-                action_plan = {
-                    "key": "action_gold_cash",
-                    "gold_amount": gold_amount,
-                    "cash_amount": cash_amount,
-                }
             else:
                 action_plan = {
-                    "key": "action_gold_certificate",
-                    "gold_amount": round(available_capital * 0.50, 0),
-                    "certificate_amount": round(available_capital * 0.50, 0),
+                    "key": "action_gold_cash",
+                    "gold_amount": 0,
+                    "cash_amount": 0,
                 }
 
         snapshot = self.fixed_assets_snapshot()
