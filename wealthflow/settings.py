@@ -1,5 +1,5 @@
 """
-Django settings for salary_tracker project.
+Django settings for wealthflow project.
 """
 
 import os
@@ -36,7 +36,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "salary_tracker.urls"
+ROOT_URLCONF = "wealthflow.urls"
 
 TEMPLATES = [
     {
@@ -53,7 +53,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "salary_tracker.wsgi.application"
+WSGI_APPLICATION = "wealthflow.wsgi.application"
 
 DATABASES = {
     "default": {

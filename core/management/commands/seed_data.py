@@ -170,7 +170,7 @@ SETTINGS_DATA = [
         {"code": "en", "label": "English", "rtl": False},
         {"code": "ar", "label": "\u0627\u0644\u0639\u0631\u0628\u064a\u0629", "rtl": True},
     ])},
-    {"key": "app_title", "value": "Salary & Balance Tracker"},
+    {"key": "app_title", "value": "WealthFlow"},
 ]
 
 

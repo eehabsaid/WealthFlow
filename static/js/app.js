@@ -68,7 +68,7 @@ function renderSidebar() {
         <div class="sidebar-brand">
             <div class="brand-icon">💰</div>
             <div class="brand-text">
-                <span data-i18n="app_title">Salary &amp; Balance Tracker</span>
+                <span data-i18n="app_title">WealthFlow</span>
             </div>
         </div>
         <nav class="sidebar-nav">
