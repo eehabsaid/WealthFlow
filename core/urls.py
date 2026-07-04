@@ -146,5 +146,17 @@ urlpatterns = [
         "api/certificate-forecast/",
         views.CertificateForecastView.as_view(),
     ),
+    path(
+        "api/documents/categories/",
+        views.DocumentCategoriesView.as_view(),
+    ),
+    path(
+        "api/documents/file/<int:document_id>/",
+        views.DocumentFileView.as_view(),
+    ),
+    path(
+        "api/documents/<str:parent_type>/<int:parent_id>/",
+        views.DocumentListUploadView.as_view(),
+    ),
     path('api/', include('i18n_manager.urls')),
 ]

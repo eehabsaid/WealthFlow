@@ -696,5 +696,22 @@
   "kpi_total_earned": "إجمالي المستحق",
   "kpi_total_paid": "إجمالي المدفوع",
   "kpi_total_remaining": "إجمالي المتبقي",
-  "kpi_work_months": "إجمالي أشهر العمل"
+  "kpi_work_months": "إجمالي أشهر العمل",
+  "documents_title": "المستندات",
+  "documents_none": "لا توجد مستندات بعد",
+  "documents_allowed_hint": "المسموح: PDF، DOC، DOCX، XLS، XLSX، JPG، PNG",
+  "documents_save_first": "احفظ هذا السجل أولا لإدارة المستندات.",
+  "documents_error_loading": "تعذر تحميل المستندات",
+  "document_name": "الملف",
+  "document_category": "الفئة",
+  "file_size": "الحجم",
+  "download": "تنزيل",
+  "replace": "استبدال",
+  "document_uploaded": "تم رفع المستند",
+  "document_replaced": "تم استبدال المستند",
+  "document_deleted": "تم حذف المستند",
+  "confirm_delete_document": "هل تريد حذف هذا المستند؟",
+  "upload_failed": "فشل الرفع",
+  "error_deleting": "خطأ أثناء الحذف",
+  "file_required": "يرجى اختيار ملف"
 }

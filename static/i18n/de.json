@@ -696,5 +696,22 @@
   "kpi_total_earned": "Gesamtverdienst",
   "kpi_total_paid": "Gesamt Ausgezahlt",
   "kpi_total_remaining": "Gesamt Verbleibend",
-  "kpi_work_months": "Gesamte Arbeitsmonate"
+  "kpi_work_months": "Gesamte Arbeitsmonate",
+  "documents_title": "Dokumente",
+  "documents_none": "Noch keine Dokumente",
+  "documents_allowed_hint": "Erlaubt: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG",
+  "documents_save_first": "Speichern Sie diesen Eintrag zuerst, um Dokumente zu verwalten.",
+  "documents_error_loading": "Dokumente konnten nicht geladen werden",
+  "document_name": "Datei",
+  "document_category": "Kategorie",
+  "file_size": "Groesse",
+  "download": "Herunterladen",
+  "replace": "Ersetzen",
+  "document_uploaded": "Dokument hochgeladen",
+  "document_replaced": "Dokument ersetzt",
+  "document_deleted": "Dokument geloescht",
+  "confirm_delete_document": "Dieses Dokument loeschen?",
+  "upload_failed": "Upload fehlgeschlagen",
+  "error_deleting": "Fehler beim Loeschen",
+  "file_required": "Bitte waehlen Sie eine Datei aus"
 }

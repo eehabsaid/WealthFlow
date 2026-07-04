@@ -696,5 +696,22 @@
   "kpi_total_earned": "Total Gagné",
   "kpi_total_paid": "Total Payé",
   "kpi_total_remaining": "Total Restant",
-  "kpi_work_months": "Total Mois de Travail"
+  "kpi_work_months": "Total Mois de Travail",
+  "documents_title": "Documents",
+  "documents_none": "Aucun document pour le moment",
+  "documents_allowed_hint": "Autorises : PDF, DOC, DOCX, XLS, XLSX, JPG, PNG",
+  "documents_save_first": "Enregistrez d'abord cet element pour gerer les documents.",
+  "documents_error_loading": "Impossible de charger les documents",
+  "document_name": "Fichier",
+  "document_category": "Categorie",
+  "file_size": "Taille",
+  "download": "Telecharger",
+  "replace": "Remplacer",
+  "document_uploaded": "Document telecharge",
+  "document_replaced": "Document remplace",
+  "document_deleted": "Document supprime",
+  "confirm_delete_document": "Supprimer ce document ?",
+  "upload_failed": "Echec du telechargement",
+  "error_deleting": "Erreur lors de la suppression",
+  "file_required": "Veuillez choisir un fichier"
 }

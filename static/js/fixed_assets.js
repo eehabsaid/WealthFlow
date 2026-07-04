@@ -1373,6 +1373,7 @@ async function showFixedAssetModal(assetId = null, options = {}) {
   }
 
   const isEdit = assetId !== null;
+  currentEditingAssetId = isEdit ? assetId : null;
   const modalTitleKey = isEdit ? "edit_fixed_asset" : "add_fixed_asset";
   const modalTitleDefault = isEdit
     ? "Edit Asset Details"
@@ -1580,6 +1581,20 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                                 aria-selected="false"
                                 data-i18n="sale">
                               Sale
+                            </button>
+                          </li>
+
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link"
+                                id="documents-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#documents-pane"
+                                type="button"
+                                role="tab"
+                                aria-controls="documents-pane"
+                                aria-selected="false"
+                                data-i18n="documents_title">
+                              Documents
                             </button>
                           </li>
               </ul>
@@ -2093,6 +2108,15 @@ async function showFixedAssetModal(assetId = null, options = {}) {
 
                     </div> <!-- End Sale Tab -->
 
+                    <div class="tab-pane fade"
+                      id="documents-pane"
+                      role="tabpanel"
+                      aria-labelledby="documents-tab">
+
+                      <div id="fixedAssetDocumentManagerContainer"></div>
+
+                    </div> <!-- End Documents Tab -->
+
               </div> <!-- End Tab Content -->
 
           </form>
@@ -2154,6 +2178,15 @@ async function showFixedAssetModal(assetId = null, options = {}) {
 
   if (goldUnitField) {
     goldUnitField.addEventListener("input", updateGoldValuation);
+  }
+
+  if (window.DocumentManager) {
+    window.DocumentManager.init({
+      containerId: "fixedAssetDocumentManagerContainer",
+      parentType: "fixed_asset",
+      parentId: assetId,
+      disabledMessage: t("documents_save_first", "Save this record first to manage documents."),
+    });
   }
 
   await loadFixedAssetBalanceOptions();

@@ -195,6 +195,7 @@ async function showBankCertificateModal(certificateId) {
                 <div class="col-6"><label data-i18n="notes">${notesLabel}</label>
                 <textarea class="form-control" id="bcNotes" rows="2">${certificate ? certificate.notes : ''}</textarea></div>
             </div>
+            <div class="mt-3" id="certificateDocumentManagerContainer"></div>
         </div>
         <div class="modal-footer">
             <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="btn_cancel">${cancelText}</button>
@@ -202,6 +203,15 @@ async function showBankCertificateModal(certificateId) {
         </div>`;
     showModal(html);
     applyTranslations();
+
+    if (window.DocumentManager) {
+        window.DocumentManager.init({
+            containerId: 'certificateDocumentManagerContainer',
+            parentType: 'bank_certificate',
+            parentId: certificateId,
+            disabledMessage: t('documents_save_first', 'Save this record first to manage documents.'),
+        });
+    }
 
     // --- ADD EVENT LISTENERS FOR LIVE CALCULATION ---
     const inputsToWatch = ['bcAmount', 'bcInterestRate', 'bcFrequency', 'bcIssue', 'bcExpiry'];

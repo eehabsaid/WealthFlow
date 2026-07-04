@@ -250,6 +250,15 @@ async function showGoldTypeModal(itemId) {
         </div>
     `);
     applyTranslations();
+
+    if (window.DocumentManager) {
+        window.DocumentManager.init({
+            containerId: 'bankDocumentManagerContainer',
+            parentType: 'bank',
+            parentId: bankId,
+            disabledMessage: t('documents_save_first', 'Save this record first to manage documents.'),
+        });
+    }
 }
 
 async function saveGoldType(itemId) {
@@ -909,12 +918,22 @@ async function showBankModal(bankId) {
                     <input class="form-control" id="bnCustName" value="${b?.customer_name || ''}">
                 </div>
             </div>
+            <div class="mt-3" id="bankDocumentManagerContainer"></div>
         </div>
         <div class="modal-footer">
             <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="cancel_button">Cancel</button>
             <button class="btn-primary-custom" onclick="saveBank(${bankId})" data-i18n="save_button">Save</button>
         </div>`);
     applyTranslations();
+
+    if (window.DocumentManager) {
+        window.DocumentManager.init({
+            containerId: 'bankDocumentManagerContainer',
+            parentType: 'bank',
+            parentId: bankId,
+            disabledMessage: t('documents_save_first', 'Save this record first to manage documents.'),
+        });
+    }
 }
 
 async function saveBank(bankId) {

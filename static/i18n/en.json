@@ -696,5 +696,22 @@
   "kpi_total_earned": "Total Earned",
   "kpi_total_paid": "Total Paid",
   "kpi_total_remaining": "Total Remaining",
-  "kpi_work_months": "Total Work Months"
+  "kpi_work_months": "Total Work Months",
+  "documents_title": "Documents",
+  "documents_none": "No documents yet",
+  "documents_allowed_hint": "Allowed: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG",
+  "documents_save_first": "Save this record first to manage documents.",
+  "documents_error_loading": "Failed to load documents",
+  "document_name": "File",
+  "document_category": "Category",
+  "file_size": "Size",
+  "download": "Download",
+  "replace": "Replace",
+  "document_uploaded": "Document uploaded",
+  "document_replaced": "Document replaced",
+  "document_deleted": "Document deleted",
+  "confirm_delete_document": "Delete this document?",
+  "upload_failed": "Upload failed",
+  "error_deleting": "Error deleting",
+  "file_required": "Please choose a file"
 }
