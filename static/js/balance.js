@@ -61,6 +61,52 @@ async function renderBalance() {
     const amountLabel = t('balance_amount', 'Amount');
     const actionsLabel = t('actions', 'Actions');
 
+    const resolveI18nTemplate = (key, fallback, params = {}) => {
+        let text = t(key, fallback || key);
+        Object.entries(params || {}).forEach(([paramKey, rawValue]) => {
+            let valueText = rawValue;
+            const num = Number(rawValue);
+            if (Number.isFinite(num)) {
+                if (/days/i.test(paramKey)) {
+                    valueText = fmtInt(num);
+                } else if (/(ratio|trend|signal|gap|coverage|pct)/i.test(paramKey)) {
+                    valueText = fmt(num);
+                } else {
+                    valueText = fmtpresent(num);
+                }
+            }
+            text = text.split(`{${paramKey}}`).join(String(valueText));
+        });
+        return text;
+    };
+
+    const encodeI18nParams = (params = {}) => encodeURIComponent(JSON.stringify(params || {}));
+
+    const investmentDetails = (forecastData.investment_recommendation_details || []).length
+        ? (forecastData.investment_recommendation_details || [])
+        : (forecastData.investment_recommendations || []).map((r) => {
+            const key = typeof r === 'object' && r.key ? r.key : r;
+            const params = typeof r === 'object' && r.days_left != null ? { days_left: r.days_left } : {};
+            return { key, params, reason_key: '', reason_params: {} };
+        });
+
+    const financialDetails = (forecastData.financial_recommendation_details || []).length
+        ? (forecastData.financial_recommendation_details || [])
+        : (forecastData.financial_recommendations || []).map((key) => ({
+            key,
+            params: {},
+            reason_key: '',
+            reason_params: {},
+        }));
+
+    const actionReasonText = forecastData.action_plan?.reason_key
+        ? resolveI18nTemplate(
+            forecastData.action_plan.reason_key,
+            forecastData.action_plan.reason_key,
+            forecastData.action_plan.reason_params || {},
+        )
+        : '';
+
     const currencyCards = _currencies
     .map((cur) => {
         // 1. Resolve key variations for Gold safely, fallback to cur.code for normal currencies
@@ -188,24 +234,19 @@ async function renderBalance() {
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="investment_recommendations">Investment Recommendations</div>
             <div style="margin-top:15px">
-                ${(forecastData.investment_recommendations || []).map((r) => {
-                    const itemKey = typeof r === 'object' && r.key ? r.key : r;
-                    const itemText = typeof r === 'object' && r.key
-                        ? (t(itemKey, itemKey) || itemKey)
-                        : (t(itemKey, itemKey) || itemKey);
-                    const fallbackText = typeof r === 'object' && r.days_left != null
-                        ? (r.days_left > 1 ? `A certificate will mature in ${r.days_left} days.` : `A certificate will mature in ${r.days_left} day.`)
-                        : itemText;
-                    const resolvedText = typeof r === 'object' && r.key
-                        ? (itemKey === 'recommend_maturity_soon' || itemKey === 'recommend_maturity_very_soon'
-                            ? (t(itemKey, fallbackText).replace('{days_left}', r.days_left))
-                            : t(itemKey, fallbackText))
-                        : t(itemKey, fallbackText);
+                ${investmentDetails.map((item) => {
+                    const itemKey = item.key;
+                    const itemParams = item.params || {};
+                    const resolvedText = resolveI18nTemplate(itemKey, itemKey, itemParams);
+                    const reasonText = item.reason_key
+                        ? resolveI18nTemplate(item.reason_key, item.reason_key, item.reason_params || {})
+                        : '';
+                    const itemParamsEncoded = encodeI18nParams(itemParams);
+                    const reasonParamsEncoded = encodeI18nParams(item.reason_params || {});
 
-                    return `<div
-                        data-i18n-key="${itemKey}"
-                        style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">
-                        ${resolvedText}
+                    return `<div style="padding:10px; margin-bottom:8px; border-radius:8px; background:var(--bg-secondary); border:1px solid var(--border-color);">
+                        <div data-i18n-key="${itemKey}" data-i18n-params="${itemParamsEncoded}">${resolvedText}</div>
+                        ${reasonText ? `<div data-i18n-key="${item.reason_key}" data-i18n-params="${reasonParamsEncoded}" style="margin-top:6px;color:var(--text-muted);font-size:12px">${reasonText}</div>` : ''}
                     </div>`;
                 }).join('')}
             </div>
@@ -213,6 +254,7 @@ async function renderBalance() {
 
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="recommended_action">Recommended Action</div>
+            ${actionReasonText ? `<div data-i18n-key="${forecastData.action_plan.reason_key}" data-i18n-params="${encodeI18nParams(forecastData.action_plan.reason_params || {})}" style="margin-top:12px;color:var(--text-muted);font-size:13px">${actionReasonText}</div>` : ''}
             <div data-i18n-key="${forecastData.action_plan?.key || ''}"
                  data-gold-amount="${forecastData.action_plan?.gold_amount || 0}"
                  data-cash-amount="${forecastData.action_plan?.cash_amount || 0}"
@@ -272,11 +314,21 @@ async function renderBalance() {
         <div class="kpi-card mb-4">
             <div class="kpi-label" data-i18n="financial_recommendations">Financial Recommendations</div>
             <div style="margin-top:15px">
-                ${(forecastData.financial_recommendations || []).map((r) => `
-                    <div data-i18n-key="${r}" style="padding:12px; margin-bottom:10px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">
-                        ${t(r, r)}
-                    </div>
-                `).join('')}
+                ${financialDetails.map((item) => {
+                    const text = resolveI18nTemplate(item.key, item.key, item.params || {});
+                    const reasonText = item.reason_key
+                        ? resolveI18nTemplate(item.reason_key, item.reason_key, item.reason_params || {})
+                        : '';
+                    const itemParamsEncoded = encodeI18nParams(item.params || {});
+                    const reasonParamsEncoded = encodeI18nParams(item.reason_params || {});
+
+                    return `
+                        <div data-i18n-key="${item.key}" data-i18n-params="${itemParamsEncoded}" style="padding:12px; margin-bottom:10px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">
+                            <div>${text}</div>
+                            ${reasonText ? `<div data-i18n-key="${item.reason_key}" data-i18n-params="${reasonParamsEncoded}" style="margin-top:6px;color:var(--text-muted);font-size:12px">${reasonText}</div>` : ''}
+                        </div>
+                    `;
+                }).join('')}
             </div>
         </div>
 

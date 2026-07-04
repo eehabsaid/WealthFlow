@@ -48,6 +48,44 @@ function applyTranslations() {
     if (!_t) return;
     const lang = document.documentElement.lang || 'en';
 
+    const formatTemplateValue = (name, value) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return String(value ?? '');
+        if (/days/i.test(name)) return fmtInt(num);
+        if (/(ratio|trend|signal|gap|coverage|pct)/i.test(name)) return fmt(num);
+        return fmtpresent(num);
+    };
+
+    const parseI18nParams = (raw) => {
+        if (!raw) return {};
+        const candidates = [raw];
+        try {
+            const decoded = decodeURIComponent(raw);
+            if (decoded !== raw) candidates.push(decoded);
+        } catch (_) {
+            // Keep raw as the only candidate.
+        }
+
+        for (const candidate of candidates) {
+            try {
+                const parsed = JSON.parse(candidate);
+                if (parsed && typeof parsed === 'object') return parsed;
+            } catch (_) {
+                // Try next candidate.
+            }
+        }
+        return {};
+    };
+
+    const applyTemplateParams = (text, params) => {
+        let out = String(text ?? '');
+        Object.entries(params || {}).forEach(([name, value]) => {
+            const replacement = formatTemplateValue(name, value);
+            out = out.split(`{${name}}`).join(replacement);
+        });
+        return out;
+    };
+
     // 1. Static text — [data-i18n]
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -68,15 +106,21 @@ function applyTranslations() {
 
         let text = _t[key];
 
+        const templateParams = {
+            ...parseI18nParams(el.getAttribute('data-i18n-params')),
+        };
+
         const goldAmt  = el.getAttribute('data-gold-amount');
         const cashAmt  = el.getAttribute('data-cash-amount');
         const certAmt  = el.getAttribute('data-certificate-amount');
         const daysLeft = el.getAttribute('data-days-left');
 
-        if (goldAmt  !== null) text = text.replace('{gold_amount}',        fmtpresent(goldAmt));
-        if (cashAmt  !== null) text = text.replace('{cash_amount}',        fmtpresent(cashAmt));
-        if (certAmt  !== null) text = text.replace('{certificate_amount}', fmtpresent(certAmt));
-        if (daysLeft !== null) text = text.replace('{days_left}',          daysLeft);
+        if (goldAmt  !== null) templateParams.gold_amount = goldAmt;
+        if (cashAmt  !== null) templateParams.cash_amount = cashAmt;
+        if (certAmt  !== null) templateParams.certificate_amount = certAmt;
+        if (daysLeft !== null) templateParams.days_left = daysLeft;
+
+        text = applyTemplateParams(text, templateParams);
 
         el.textContent = text;
     });

@@ -552,15 +552,83 @@ class NetWorthService:
         financial_critical: List[str] = []
         financial_optimization: List[str] = []
         financial_positive: List[str] = []
+        investment_recommendation_details: List[dict] = []
+        financial_recommendation_details: List[dict] = []
+
+        def _add_investment_recommendation(
+            rec: object,
+            reason_key: str,
+            reason_params: Dict[str, float | int],
+            priority: str = "medium",
+        ) -> None:
+            investment_recommendations.append(rec)
+            key = rec.get("key") if isinstance(rec, dict) else str(rec)
+            params: Dict[str, float | int] = {}
+            if isinstance(rec, dict):
+                for field in ["days_left"]:
+                    if field in rec:
+                        params[field] = cast(float | int, rec[field])
+            investment_recommendation_details.append(
+                {
+                    "key": key,
+                    "params": params,
+                    "reason_key": reason_key,
+                    "reason_params": reason_params,
+                    "priority": priority,
+                }
+            )
+
+        def _add_financial_recommendation_detail(
+            key: str,
+            reason_key: str,
+            reason_params: Dict[str, float | int],
+            priority: str,
+        ) -> None:
+            financial_recommendation_details.append(
+                {
+                    "key": key,
+                    "params": {},
+                    "reason_key": reason_key,
+                    "reason_params": reason_params,
+                    "priority": priority,
+                }
+            )
 
         if nearest_maturity is not None:
             if nearest_maturity <= 7:
-                investment_recommendations.append({"key": "recommend_maturity_very_soon", "days_left": nearest_maturity})
+                _add_investment_recommendation(
+                    {"key": "recommend_maturity_very_soon", "days_left": nearest_maturity},
+                    "recommend_reason_maturity_window",
+                    {
+                        "days_left": nearest_maturity,
+                        "forecast_30": round(forecast_30, 2),
+                        "forecast_90": round(forecast_90, 2),
+                    },
+                    "high",
+                )
             elif nearest_maturity <= 30:
-                investment_recommendations.append({"key": "recommend_maturity_soon", "days_left": nearest_maturity})
+                _add_investment_recommendation(
+                    {"key": "recommend_maturity_soon", "days_left": nearest_maturity},
+                    "recommend_reason_maturity_window",
+                    {
+                        "days_left": nearest_maturity,
+                        "forecast_30": round(forecast_30, 2),
+                        "forecast_90": round(forecast_90, 2),
+                    },
+                    "medium",
+                )
 
         if forecast_90 > (forecast_30 + max(obligations_30, 1)) * 1.8:
-            investment_recommendations.append("recommend_large_maturity_90")
+            _add_investment_recommendation(
+                "recommend_large_maturity_90",
+                "recommend_reason_large_maturity",
+                {
+                    "forecast_30": round(forecast_30, 2),
+                    "forecast_90": round(forecast_90, 2),
+                    "forecast_180": round(forecast_180, 2),
+                },
+                "medium",
+            )
 
         liquidity_coverage_90 = cash_balance / obligations_90 if obligations_90 > 0 else 999.0
         maturity_support_30 = (cash_balance + forecast_30 + monthly_rental_income) / obligations_30 if obligations_30 > 0 else 999.0
@@ -570,6 +638,18 @@ class NetWorthService:
         )
         if low_liquidity_flag:
             self._append_unique(financial_critical, "recommend_low_liquidity")
+            _add_financial_recommendation_detail(
+                "recommend_low_liquidity",
+                "recommend_reason_liquidity_pressure",
+                {
+                    "liquid_assets": round(cash_balance, 2),
+                    "monthly_expenses": round(avg_monthly_expenses, 2),
+                    "cash_coverage": round(cash_coverage_months or 0, 1),
+                    "future_cash_30": round(cash_balance + forecast_30 + monthly_rental_income, 2),
+                    "future_cash_90": round(cash_balance + forecast_90 + (monthly_rental_income * 3), 2),
+                },
+                "high",
+            )
 
         future_cash_30 = cash_balance + forecast_30 + monthly_rental_income
         future_cash_90 = cash_balance + forecast_90 + (monthly_rental_income * 3)
@@ -586,36 +666,131 @@ class NetWorthService:
         gold_trend_30 = 0.0
         gold_trend_90 = 0.0
         gold_trend_365 = 0.0
+        gold_trend_7 = 0.0
+        gold_ma_short = 0.0
+        gold_ma_long = 0.0
+        gold_ma_gap_pct = 0.0
+        gold_volatility = 0.0
         gold_history = list(GoldPriceHistory.objects.order_by("-timestamp")[:250])
 
         if len(gold_history) > 1:
+            gold_trend_7 = self._gold_trend_change(gold_history, 7)
             gold_trend_30 = self._gold_trend_change(gold_history, 30)
             gold_trend_90 = self._gold_trend_change(gold_history, 90)
             gold_trend_365 = self._gold_trend_change(gold_history, 365)
 
+            short_window = gold_history[: min(len(gold_history), 7)]
+            long_window = gold_history[: min(len(gold_history), 30)]
+            if short_window:
+                gold_ma_short = sum(_to_float(item.carat_21k) for item in short_window) / len(short_window)
+            if long_window:
+                gold_ma_long = sum(_to_float(item.carat_21k) for item in long_window) / len(long_window)
+            if gold_ma_long > 0:
+                gold_ma_gap_pct = ((gold_ma_short - gold_ma_long) / gold_ma_long) * 100
+
+            change_points: List[float] = []
+            for idx in range(len(gold_history) - 1):
+                current_price = _to_float(gold_history[idx].carat_21k)
+                prev_price = _to_float(gold_history[idx + 1].carat_21k)
+                if prev_price > 0:
+                    change_points.append(abs((current_price - prev_price) / prev_price) * 100)
+                if len(change_points) >= 45:
+                    break
+            if change_points:
+                gold_volatility = sum(change_points) / len(change_points)
+
         if cash_coverage_months is not None and cash_coverage_months < 3:
             low_liquidity_flag = True
             self._append_unique(financial_critical, "recommend_low_emergency_fund")
+            _add_financial_recommendation_detail(
+                "recommend_low_emergency_fund",
+                "recommend_reason_cash_coverage",
+                {
+                    "liquid_assets": round(cash_balance, 2),
+                    "monthly_expenses": round(avg_monthly_expenses, 2),
+                    "cash_coverage": round(cash_coverage_months, 1),
+                },
+                "high",
+            )
 
         if not low_liquidity_flag and cash_coverage_months is not None and cash_coverage_months > 10:
             dominant_non_cash_ratio = max(certificate_ratio, gold_ratio, fixed_assets_ratio, foreign_currency_ratio)
             if cash_ratio > dominant_non_cash_ratio + 8:
                 self._append_unique(financial_optimization, "recommend_idle_cash")
+                _add_financial_recommendation_detail(
+                    "recommend_idle_cash",
+                    "recommend_reason_excess_liquidity",
+                    {
+                        "liquid_assets": round(cash_balance, 2),
+                        "monthly_expenses": round(avg_monthly_expenses, 2),
+                        "cash_coverage": round(cash_coverage_months, 1),
+                    },
+                    "medium",
+                )
             if cash_ratio > 55:
                 self._append_unique(financial_optimization, "recommend_high_cash_position")
+                _add_financial_recommendation_detail(
+                    "recommend_high_cash_position",
+                    "recommend_reason_excess_liquidity",
+                    {
+                        "liquid_assets": round(cash_balance, 2),
+                        "monthly_expenses": round(avg_monthly_expenses, 2),
+                        "cash_coverage": round(cash_coverage_months, 1),
+                    },
+                    "medium",
+                )
             if cash_coverage_months > 14:
                 self._append_unique(financial_optimization, "recommend_excess_cash")
+                _add_financial_recommendation_detail(
+                    "recommend_excess_cash",
+                    "recommend_reason_excess_liquidity",
+                    {
+                        "liquid_assets": round(cash_balance, 2),
+                        "monthly_expenses": round(avg_monthly_expenses, 2),
+                        "cash_coverage": round(cash_coverage_months, 1),
+                    },
+                    "medium",
+                )
 
         if foreign_currency_ratio > max(certificate_ratio, gold_ratio) + 10 and foreign_currency_ratio > 30:
             self._append_unique(financial_optimization, "recommend_high_foreign_currency_exposure")
+            _add_financial_recommendation_detail(
+                "recommend_high_foreign_currency_exposure",
+                "recommend_reason_foreign_exposure",
+                {
+                    "foreign_ratio": round(foreign_currency_ratio, 1),
+                    "gold_ratio": round(gold_ratio, 1),
+                    "certificate_ratio": round(certificate_ratio, 1),
+                },
+                "medium",
+            )
 
         dominant_ratio = max(cash_ratio, foreign_currency_ratio, certificate_ratio, gold_ratio, fixed_assets_ratio)
         if certificate_ratio == dominant_ratio and certificate_ratio > 35 and (certificate_ratio - max(cash_ratio, gold_ratio, foreign_currency_ratio)) > 12:
             self._append_unique(financial_optimization, "recommend_certificate_concentration")
+            _add_financial_recommendation_detail(
+                "recommend_certificate_concentration",
+                "recommend_reason_certificate_concentration",
+                {
+                    "certificate_ratio": round(certificate_ratio, 1),
+                    "cash_ratio": round(cash_ratio, 1),
+                    "gold_ratio": round(gold_ratio, 1),
+                },
+                "medium",
+            )
 
         min_certificate_ratio = max(8.0, min(20.0, (gold_ratio + fixed_assets_ratio) * 0.25))
         if certificate_ratio < min_certificate_ratio:
             self._append_unique(financial_optimization, "recommend_low_certificate_allocation")
+            _add_financial_recommendation_detail(
+                "recommend_low_certificate_allocation",
+                "recommend_reason_low_certificate_allocation",
+                {
+                    "certificate_ratio": round(certificate_ratio, 1),
+                    "target_ratio": round(min_certificate_ratio, 1),
+                },
+                "medium",
+            )
 
         trend_components: List[Tuple[float, float]] = []
         if len(gold_history) >= 5:
@@ -643,17 +818,38 @@ class NetWorthService:
         if gold_ratio < 10 and obligations_90 > 0 and cash_balance > obligations_90 * 1.25:
             allocation_liquidity_adjustment += 1.0
 
+        trend_signal = (
+            (gold_trend_7 * 0.35)
+            + (gold_trend_30 * 0.40)
+            + (gold_trend_90 * 0.25)
+            + (gold_ma_gap_pct * 0.60)
+        )
+
         gold_signal = trend_signal + allocation_liquidity_adjustment
-        if gold_signal >= 10:
-            investment_recommendations.append("recommend_gold_strong_uptrend")
-        elif gold_signal >= 4:
-            investment_recommendations.append("recommend_gold_uptrend")
-        elif gold_signal <= -10:
-            investment_recommendations.append("recommend_gold_strong_downtrend")
-        elif gold_signal <= -4:
-            investment_recommendations.append("recommend_gold_downtrend")
+        neutral_band = max(1.5, min(5.0, gold_volatility * 2.5))
+        strong_band = neutral_band * 2.2
+
+        gold_reason_params = {
+            "trend_7": round(gold_trend_7, 2),
+            "trend_30": round(gold_trend_30, 2),
+            "trend_90": round(gold_trend_90, 2),
+            "ma_short": round(gold_ma_short, 2),
+            "ma_long": round(gold_ma_long, 2),
+            "ma_gap": round(gold_ma_gap_pct, 2),
+            "gold_ratio": round(gold_ratio, 1),
+            "gold_signal": round(gold_signal, 2),
+        }
+
+        if gold_signal >= strong_band:
+            _add_investment_recommendation("recommend_gold_strong_uptrend", "recommend_reason_gold_signal", gold_reason_params, "medium")
+        elif gold_signal >= neutral_band:
+            _add_investment_recommendation("recommend_gold_uptrend", "recommend_reason_gold_signal", gold_reason_params, "medium")
+        elif gold_signal <= -strong_band:
+            _add_investment_recommendation("recommend_gold_strong_downtrend", "recommend_reason_gold_signal", gold_reason_params, "medium")
+        elif gold_signal <= -neutral_band:
+            _add_investment_recommendation("recommend_gold_downtrend", "recommend_reason_gold_signal", gold_reason_params, "medium")
         else:
-            investment_recommendations.append("recommend_gold_neutral")
+            _add_investment_recommendation("recommend_gold_neutral", "recommend_reason_gold_signal", gold_reason_params, "low")
 
         financial_recommendations: List[str] = []
         financial_recommendations.extend(financial_critical)
@@ -661,6 +857,16 @@ class NetWorthService:
 
         if not financial_recommendations:
             financial_positive.append("recommend_asset_allocation_balanced")
+            _add_financial_recommendation_detail(
+                "recommend_asset_allocation_balanced",
+                "recommend_reason_balanced_portfolio",
+                {
+                    "cash_ratio": round(cash_ratio, 1),
+                    "certificate_ratio": round(certificate_ratio, 1),
+                    "gold_ratio": round(gold_ratio, 1),
+                },
+                "low",
+            )
 
         financial_recommendations.extend(financial_positive)
 
@@ -716,6 +922,23 @@ class NetWorthService:
                     "cash_amount": 0,
                 }
 
+        action_reason_key = "action_reason_rebalance_mix"
+        if action_plan.get("key") == "action_renew_certificate":
+            action_reason_key = "action_reason_renew_certificate"
+        elif low_liquidity_flag:
+            action_reason_key = "action_reason_liquidity_protection"
+        elif gold_signal >= neutral_band or gold_signal <= -neutral_band:
+            action_reason_key = "action_reason_gold_tilt"
+
+        action_plan["reason_key"] = action_reason_key
+        action_plan["reason_params"] = {
+            "cash_ratio": round(cash_ratio, 1),
+            "gold_ratio": round(gold_ratio, 1),
+            "certificate_ratio": round(certificate_ratio, 1),
+            "cash_coverage": round(cash_coverage_months or 0, 1),
+            "gold_signal": round(gold_signal, 2),
+        }
+
         snapshot = self.fixed_assets_snapshot()
 
         return {
@@ -752,10 +975,17 @@ class NetWorthService:
             "gold_trend_30": round(gold_trend_30, 2),
             "gold_trend_90": round(gold_trend_90, 2),
             "gold_trend_365": round(gold_trend_365, 2),
+            "gold_trend_7": round(gold_trend_7, 2),
+            "gold_ma_short": round(gold_ma_short, 2),
+            "gold_ma_long": round(gold_ma_long, 2),
+            "gold_ma_gap_pct": round(gold_ma_gap_pct, 2),
+            "gold_signal": round(gold_signal, 2),
             "avg_monthly_expenses": round(avg_monthly_expenses, 2),
             "cash_coverage_months": round(cash_coverage_months, 1) if cash_coverage_months is not None else None,
             "allocation_values": comp["allocation_values"],
             "allocation_percentages": comp["allocation_percentages"],
+            "investment_recommendation_details": investment_recommendation_details,
+            "financial_recommendation_details": financial_recommendation_details,
             "fixed_assets_snapshot": snapshot,
             "expiry_warning_days": int(AppSettings.get("cert_expiry_warning_days", "30") or 30),
         }
