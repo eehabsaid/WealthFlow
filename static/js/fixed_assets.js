@@ -1991,6 +1991,10 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                       aria-labelledby="mortgage-tab">
 
                       <div class="card border-0 shadow-sm bg-transparent">
+                        <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
+                          <h6 class="mb-0 font-weight-bold fixed-assets-section-title" data-i18n="mortgage">Mortgage</h6>
+                          <button type="button" class="btn btn-danger btn-sm" onclick="deleteMortgageDetails()" data-i18n="delete">Delete</button>
+                        </div>
                         <div class="card-body px-0 pt-2">
                           <div class="row g-3 mb-3">
                             <div class="col-md-6"><label class="form-label text-light" data-i18n="loan_amount">Loan Amount</label><input type="number" step="0.01" class="form-control" id="fa_loan_amount"></div>
@@ -2016,6 +2020,10 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                       aria-labelledby="rental-tab">
 
                       <div class="card border-0 shadow-sm bg-transparent">
+                        <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
+                          <h6 class="mb-0 font-weight-bold fixed-assets-section-title" data-i18n="rental">Rental</h6>
+                          <button type="button" class="btn btn-danger btn-sm" onclick="deleteRentalDetails()" data-i18n="delete">Delete</button>
+                        </div>
                         <div class="card-body px-0 pt-2">
                           <div class="row g-3 mb-3">
                             <div class="col-md-4"><label class="form-label text-light" data-i18n="monthly_rent">Monthly Rent</label><input type="number" step="0.01" class="form-control" id="fa_monthly_rent" oninput="updateRentalSummary()"></div>
@@ -3381,6 +3389,14 @@ function resetMortgageForm() {
   if (netEquityField) netEquityField.value = "";
 }
 
+async function deleteMortgageDetails() {
+  resetMortgageForm();
+  updateMortgageSummary();
+  if (currentEditingAssetId !== null && currentEditingAssetId !== undefined) {
+    await saveFixedAsset(currentEditingAssetId);
+  }
+}
+
 function populateMortgageForm(mortgage) {
   resetMortgageForm();
   if (!mortgage) return;
@@ -3433,6 +3449,14 @@ function resetRentalForm() {
     const field = document.getElementById(id);
     if (field) field.value = "";
   });
+}
+
+async function deleteRentalDetails() {
+  resetRentalForm();
+  updateRentalSummary();
+  if (currentEditingAssetId !== null && currentEditingAssetId !== undefined) {
+    await saveFixedAsset(currentEditingAssetId);
+  }
 }
 
 function populateRentalForm(rental) {

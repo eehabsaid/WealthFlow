@@ -147,6 +147,7 @@ async function renderBalance() {
                 <div><div class="kpi-label" data-i18n="gold_value">Gold Value</div><div class="kpi-value num-fmtpresent" data-value="${goldValue}">${fmtpresent(goldValue)}</div></div>
                 <div><div class="kpi-label" data-i18n="monthly_salary">Monthly Salary</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_salary || 0}">${fmtpresent(forecastData.monthly_salary || 0)}</div></div>
                 <div><div class="kpi-label" data-i18n="certificate_income">Certificate Income</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_certificate_income || 0}">${fmtpresent(forecastData.monthly_certificate_income || 0)}</div></div>
+                <div><div class="kpi-label" data-i18n="monthly_rental_income">Rental Income</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_rental_income || 0}">${fmtpresent(forecastData.monthly_rental_income || 0)}</div></div>
                 <div><div class="kpi-label" data-i18n="income_dependency">Income Dependency</div><div class="kpi-value"><span class="num-fmtint" data-value="${forecastData.certificate_income_ratio || 0}">${fmtInt(forecastData.certificate_income_ratio || 0)}</span>%</div></div>
                 <div>
                     <div class="kpi-label" data-i18n="monthly_expenses">Monthly Expenses</div>

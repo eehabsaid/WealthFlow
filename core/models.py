@@ -147,6 +147,14 @@ def _is_certificate_active(certificate):
     return status == "active"
 
 
+def _date_to_iso(value):
+    if isinstance(value, (date, datetime)):
+        return value.isoformat()
+    if value:
+        return str(value)
+    return ""
+
+
 class BankCertificate(models.Model):
     bank = models.ForeignKey(
         Bank,
@@ -256,7 +264,7 @@ class BankCertificateInterestHistory(models.Model):
         }
 
 from django.db.models import Sum
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from datetime import date, datetime
 
@@ -1734,10 +1742,24 @@ class AssetMortgage(models.Model):
             "remaining_balance": remaining_balance,
             "monthly_installment": float(self.monthly_installment or 0),
             "interest_rate": float(self.interest_rate or 0),
-            "start_date": self.start_date.isoformat() if self.start_date else "",
-            "end_date": self.end_date.isoformat() if self.end_date else "",
+            "start_date": _date_to_iso(self.start_date),
+            "end_date": _date_to_iso(self.end_date),
             "net_equity": current_market_value - remaining_balance,
         }
+
+
+@receiver(post_save, sender=AssetMortgage)
+def handle_asset_mortgage_save(sender, instance, **kwargs):
+    from core.services.financial_sync_service import FinancialSyncService
+
+    FinancialSyncService().sync_mortgage_balance(instance)
+
+
+@receiver(post_delete, sender=AssetMortgage)
+def handle_asset_mortgage_delete(sender, instance, **kwargs):
+    from core.services.financial_sync_service import FinancialSyncService
+
+    FinancialSyncService().sync_deleted_mortgage_balance(instance)
 
 
 class AssetRental(models.Model):
@@ -1779,7 +1801,47 @@ class AssetRental(models.Model):
             "occupancy_rate": float(self.occupancy_rate or 0),
             "rental_yield": rental_yield,
             "tenant_name": self.tenant_name,
-            "contract_start": self.contract_start.isoformat() if self.contract_start else "",
-            "contract_end": self.contract_end.isoformat() if self.contract_end else "",
+            "contract_start": _date_to_iso(self.contract_start),
+            "contract_end": _date_to_iso(self.contract_end),
             "notes": self.notes,
         }
+
+
+@receiver(post_save, sender=AssetRental)
+def handle_asset_rental_save(sender, instance, **kwargs):
+    from core.services.financial_sync_service import FinancialSyncService
+
+    FinancialSyncService().sync_rental_balance(instance)
+
+
+@receiver(post_delete, sender=AssetRental)
+def handle_asset_rental_delete(sender, instance, **kwargs):
+    from core.services.financial_sync_service import FinancialSyncService
+
+    FinancialSyncService().sync_deleted_rental_balance(instance)
+
+
+@receiver(pre_save, sender=AssetSale)
+def handle_asset_sale_pre_save(sender, instance, **kwargs):
+    if not instance.pk:
+        instance._previous_deposit_balance_id = None
+        instance._previous_net_sale_amount = Decimal("0")
+        return
+
+    previous = AssetSale.objects.filter(pk=instance.pk).first()
+    instance._previous_deposit_balance_id = previous.deposit_balance_id if previous else None
+    instance._previous_net_sale_amount = previous.net_sale_amount if previous else Decimal("0")
+
+
+@receiver(post_save, sender=AssetSale)
+def handle_asset_sale_save(sender, instance, created, **kwargs):
+    from core.services.financial_sync_service import FinancialSyncService
+
+    FinancialSyncService().sync_asset_sale_balance(instance)
+
+
+@receiver(post_delete, sender=AssetSale)
+def handle_asset_sale_delete(sender, instance, **kwargs):
+    from core.services.financial_sync_service import FinancialSyncService
+
+    FinancialSyncService().sync_deleted_asset_sale_balance(instance)

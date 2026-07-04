@@ -9,6 +9,9 @@ from django.db.models import Sum, Q
 from core.models import (
     AppSettings,
     BalanceEntry,
+    Currency,
+    AssetMortgage,
+    AssetRental,
     BankCertificate,
     ExchangeRate,
     Expense,
@@ -19,6 +22,7 @@ from core.models import (
     SalaryEntry,
     _is_certificate_active,
 )
+from core.services.financial_sync_service import FinancialSyncService
 
 
 REAL_ESTATE_ASSET_TYPES = {"Real Estate"}
@@ -125,6 +129,63 @@ class NetWorthService:
         def _load():
             entries = list(BalanceEntry.objects.select_related("bank", "currency").all())
             cert_map = self._certificate_projection_map()
+            egp_currency = Currency.objects.filter(code__iexact="EGP").first()
+            virtual_entries: List[dict] = []
+
+            def _virtual_entry(title: str, amount: float, source_key: str) -> dict:
+                currency = egp_currency
+                return {
+                    "id": f"virtual-{source_key}",
+                    "title": title,
+                    "balance_type": BalanceEntry.BalanceType.CASH,
+                    "bank_id": None,
+                    "bank_name": "",
+                    "currency_id": currency.id if currency else None,
+                    "currency_code": currency.code if currency else "EGP",
+                    "currency_symbol": currency.symbol if currency else "",
+                    "currency_flag": currency.flag if currency else "💱",
+                    "currency_name": currency.name if currency else "Egyptian Pound",
+                    "purity": "",
+                    "amount": round(amount, 2),
+                    "notes": "",
+                }
+
+            rental_qs = (
+                AssetRental.objects.select_related("asset")
+                .filter(asset__asset_type__in=REAL_ESTATE_ASSET_TYPES, asset__status="Owned")
+                .order_by("id")
+            )
+            for rental in rental_qs:
+                monthly_rent = _to_float(rental.monthly_rent)
+                occupancy_rate = _to_float(rental.occupancy_rate)
+                rental_income = monthly_rent * occupancy_rate / 100.0
+                if rental_income <= 0:
+                    continue
+                virtual_entries.append(
+                    _virtual_entry(
+                        f"{rental.asset.name} Rental Income",
+                        rental_income,
+                        f"rental-income-{rental.id}",
+                    )
+                )
+
+            mortgage_qs = (
+                AssetMortgage.objects.select_related("asset")
+                .filter(asset__asset_type__in=REAL_ESTATE_ASSET_TYPES, asset__status="Owned")
+                .order_by("id")
+            )
+            for mortgage in mortgage_qs:
+                remaining_balance = _to_float(mortgage.remaining_balance)
+                if remaining_balance <= 0:
+                    continue
+                virtual_entries.append(
+                    _virtual_entry(
+                        f"{mortgage.asset.name} Mortgage Liability",
+                        -remaining_balance,
+                        f"mortgage-liability-{mortgage.id}",
+                    )
+                )
+
             payload = []
             for entry in entries:
                 if entry.balance_type == BalanceEntry.BalanceType.CERTIFICATE:
@@ -137,6 +198,7 @@ class NetWorthService:
                     payload.append(item)
                 else:
                     payload.append(entry.to_dict())
+            payload.extend(virtual_entries)
             return payload
 
         return self._cached("projected_entries", _load)
@@ -351,6 +413,8 @@ class NetWorthService:
 
         comp = self.portfolio_components()
         active_certs = self._active_certificates()
+        rental_service = FinancialSyncService()
+        monthly_rental_income = _to_float(rental_service.period_rental_income_total("month"))
 
         # Future cash position must stay liquid-only (EGP cash/bank rows, excluding cert/gold).
         cash_balance = 0.0
@@ -427,7 +491,7 @@ class NetWorthService:
         monthly_certificate_income = _to_float(comp["certificate_interest_total_egp"])
         latest_salary = SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
         monthly_salary = _to_float(latest_salary.paid) if latest_salary else 0
-        total_monthly_income = monthly_salary + monthly_certificate_income
+        total_monthly_income = monthly_salary + monthly_certificate_income + monthly_rental_income
 
         cash_coverage_months = cash_balance / avg_monthly_expenses if avg_monthly_expenses > 0 else None
         certificate_income_ratio = (monthly_certificate_income / total_monthly_income) * 100 if total_monthly_income > 0 else 0
@@ -454,9 +518,9 @@ class NetWorthService:
         if low_liquidity_flag:
             financial_recommendations.append("recommend_low_liquidity")
 
-        future_cash_30 = cash_balance + forecast_30
-        future_cash_90 = cash_balance + forecast_90
-        future_cash_180 = cash_balance + forecast_180
+        future_cash_30 = cash_balance + forecast_30 + monthly_rental_income
+        future_cash_90 = cash_balance + forecast_90 + (monthly_rental_income * 3)
+        future_cash_180 = cash_balance + forecast_180 + (monthly_rental_income * 6)
 
         gold_trend_pct = 0
         history = list(GoldPriceHistory.objects.order_by("-timestamp")[:7])
@@ -599,6 +663,7 @@ class NetWorthService:
             "action_plan": action_plan,
             "monthly_salary": round(monthly_salary, 2),
             "monthly_certificate_income": round(monthly_certificate_income, 2),
+            "monthly_rental_income": round(monthly_rental_income, 2),
             "total_monthly_income": round(total_monthly_income, 2),
             "certificate_income_ratio": round(certificate_income_ratio, 1),
             "gold_trend_30": round(gold_trend_30, 2),

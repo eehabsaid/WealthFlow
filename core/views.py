@@ -86,6 +86,7 @@ from arabic_reshaper import reshape
 from bidi.algorithm import get_display
 from django.views.decorators.http import require_http_methods
 from core.services.net_worth_service import NetWorthService
+from core.services.financial_sync_service import FinancialSyncService
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ExportExcelWorkbookView(View):
@@ -145,6 +146,19 @@ def _run_certificate_interest_sync():
     from .services.certificate_interest_service import CertificateInterestService
 
     return CertificateInterestService().synchronize()
+
+
+def _parse_iso_date(value):
+    if not value:
+        return None
+    if isinstance(value, datetime.date):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.date.fromisoformat(value)
+        except ValueError:
+            return value
+    return value
 
 
 @login_required(login_url="/accounts/login/")
@@ -1735,6 +1749,7 @@ class ExpenseSummaryView(View):
 
         salary_amount = 0.0
         total_interest = 0.0
+        rental_income = 0.0
 
         if month:
             target_year = int(year) if year else datetime.date.today().year
@@ -1761,6 +1776,7 @@ class ExpenseSummaryView(View):
                 for c in certs
                 if _includes_in_period(c, start_date, end_date)
             )
+            rental_income = float(FinancialSyncService().period_rental_income_total("month"))
         elif year:
             salary_amount = float(
                 SalaryEntry.objects.filter(year=int(year)).aggregate(total=Sum("paid"))["total"]
@@ -1773,6 +1789,7 @@ class ExpenseSummaryView(View):
                 for c in certs
                 if _includes_in_period(c, start_date, end_date)
             )
+            rental_income = float(FinancialSyncService().period_rental_income_total("year"))
         else:
             today = datetime.date.today()
             start_date, end_date = _month_bounds(today.year, today.month)
@@ -1782,8 +1799,9 @@ class ExpenseSummaryView(View):
                 for c in BankCertificate.objects.all()
                 if _includes_in_period(c, start_date, end_date)
             )
+            rental_income = float(FinancialSyncService().period_rental_income_total("month"))
 
-        total_income = salary_amount + total_interest
+        total_income = salary_amount + total_interest + rental_income
 
         return JsonResponse(
             {
@@ -1794,6 +1812,7 @@ class ExpenseSummaryView(View):
                     "total_income": total_income,
                     "total_salary": salary_amount,
                     "total_interest": total_interest,
+                    "total_rental_income": rental_income,
                 },
             }
         )
@@ -3478,8 +3497,8 @@ def _sync_asset_mortgage(asset, mortgage_data):
             "remaining_balance": mortgage_data.get("remaining_balance", 0),
             "monthly_installment": mortgage_data.get("monthly_installment", 0),
             "interest_rate": mortgage_data.get("interest_rate", 0),
-            "start_date": mortgage_data.get("start_date") or None,
-            "end_date": mortgage_data.get("end_date") or None,
+            "start_date": _parse_iso_date(mortgage_data.get("start_date")),
+            "end_date": _parse_iso_date(mortgage_data.get("end_date")),
         },
     )
 
@@ -3513,8 +3532,8 @@ def _sync_asset_rental(asset, rental_data):
             "monthly_rent": rental_data.get("monthly_rent", 0),
             "occupancy_rate": rental_data.get("occupancy_rate", 0),
             "tenant_name": rental_data.get("tenant_name", ""),
-            "contract_start": rental_data.get("contract_start") or None,
-            "contract_end": rental_data.get("contract_end") or None,
+            "contract_start": _parse_iso_date(rental_data.get("contract_start")),
+            "contract_end": _parse_iso_date(rental_data.get("contract_end")),
             "notes": rental_data.get("notes", ""),
         },
     )
