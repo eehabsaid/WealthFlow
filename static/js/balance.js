@@ -332,51 +332,128 @@ async function renderBalance() {
             </div>
         </div>
         
-        <div class="kpi-card mb-4">
+        <div class="kpi-card mb-4 fi-intelligence-card">
             <div class="kpi-label" data-i18n="financial_intelligence">Financial Intelligence</div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:20px;">
-                <div><div class="kpi-label" data-i18n="net_worth">Net Worth</div><div class="kpi-value num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)}</div></div>
-                <div><div class="kpi-label" data-i18n="liquid_cash">Liquid Cash</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.cash_balance || 0}">${fmtpresent(forecastData.cash_balance || 0)}</div></div>
-                <div><div class="kpi-label" data-i18n="certificate_investments">Certificate Investments</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.certificate_balance || 0}">${fmtpresent(forecastData.certificate_balance || 0)}</div></div>
-                <div><div class="kpi-label" data-i18n="liquid_egp_cash">Liquid EGP CASH</div><div class="kpi-value num-fmtpresent" data-value="${cashEGP}">${fmtpresent(cashEGP)}</div></div>
-                <div><div class="kpi-label" data-i18n="foreign_currency_value">Foreign Currency Value</div><div class="kpi-value num-fmtpresent" data-value="${usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate}">${fmtpresent(usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate)}</div></div>
-                <div><div class="kpi-label" data-i18n="gold_value">Gold Value</div><div class="kpi-value num-fmtpresent" data-value="${goldValue}">${fmtpresent(goldValue)}</div></div>
-                <div><div class="kpi-label" data-i18n="monthly_salary">Monthly Salary</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_salary || 0}">${fmtpresent(forecastData.monthly_salary || 0)}</div></div>
-                <div><div class="kpi-label" data-i18n="certificate_income">Certificate Income</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_certificate_income || 0}">${fmtpresent(forecastData.monthly_certificate_income || 0)}</div></div>
-                <div><div class="kpi-label" data-i18n="monthly_rental_income">Rental Income</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.monthly_rental_income || 0}">${fmtpresent(forecastData.monthly_rental_income || 0)}</div></div>
-                <div><div class="kpi-label" data-i18n="income_dependency">Income Dependency</div><div class="kpi-value"><span class="num-fmtint" data-value="${forecastData.certificate_income_ratio || 0}">${fmtInt(forecastData.certificate_income_ratio || 0)}</span>%</div></div>
-                <div>
-                    <div class="kpi-label" data-i18n="monthly_expenses">Monthly Expenses</div>
-                    <div class="kpi-value num-fmtpresent" data-value="${forecastData.avg_monthly_expenses || 0}">
-                        ${fmtpresent(forecastData.avg_monthly_expenses || 0)}
-                    </div>
+            <div class="fi-metric-card-grid">
+                <div class="fi-metric-tile fi-priority">
+                    <div class="fi-metric-icon">💎</div>
+                    <div class="fi-metric-title" data-i18n="net_worth">Net Worth</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
                 </div>
-                <div>
-                    <div class="kpi-label" data-i18n="cash_coverage">Cash Coverage</div>
-                    <div class="kpi-value">
-                        <span class="num-fmt" data-value="${forecastData.cash_coverage_months || 0}">${fmt(forecastData.cash_coverage_months || 0)}</span>
-                        <span data-i18n="months">months</span>
-                    </div>
+                <div class="fi-metric-tile fi-priority">
+                    <div class="fi-metric-icon">💰</div>
+                    <div class="fi-metric-title" data-i18n="liquid_cash">Liquid Cash</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.cash_balance || 0}">${fmtpresent(forecastData.cash_balance || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-metric-tile">
+                    <div class="fi-metric-icon">🏦</div>
+                    <div class="fi-metric-title" data-i18n="certificate_investments">Certificate Investments</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.certificate_balance || 0}">${fmtpresent(forecastData.certificate_balance || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-metric-tile">
+                    <div class="fi-metric-icon">💵</div>
+                    <div class="fi-metric-title" data-i18n="liquid_egp_cash">Liquid EGP CASH</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${cashEGP}">${fmtpresent(cashEGP)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-metric-tile">
+                    <div class="fi-metric-icon">🌍</div>
+                    <div class="fi-metric-title" data-i18n="foreign_currency_value">Foreign Currency Value</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate}">${fmtpresent(usdAmount * usdRate + eurAmount * eurRate + sarAmount * sarRate)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-metric-tile">
+                    <div class="fi-metric-icon">🥇</div>
+                    <div class="fi-metric-title" data-i18n="gold_value">Gold Value</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${goldValue}">${fmtpresent(goldValue)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-metric-tile fi-priority">
+                    <div class="fi-metric-icon">👤</div>
+                    <div class="fi-metric-title" data-i18n="monthly_salary">Monthly Salary</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.monthly_salary || 0}">${fmtpresent(forecastData.monthly_salary || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-metric-tile">
+                    <div class="fi-metric-icon">🏛️</div>
+                    <div class="fi-metric-title" data-i18n="certificate_income">Certificate Income</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.monthly_certificate_income || 0}">${fmtpresent(forecastData.monthly_certificate_income || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-metric-tile">
+                    <div class="fi-metric-icon">🏠</div>
+                    <div class="fi-metric-title" data-i18n="monthly_rental_income">Rental Income</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.monthly_rental_income || 0}">${fmtpresent(forecastData.monthly_rental_income || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-metric-tile">
+                    <div class="fi-metric-icon">📊</div>
+                    <div class="fi-metric-title" data-i18n="income_dependency">Income Dependency</div>
+                    <div class="fi-metric-main"><span class="num-fmt" data-value="${forecastData.certificate_income_ratio || 0}">${fmt(forecastData.certificate_income_ratio || 0)}</span>%</div>
+                    <div class="fi-metric-sub" data-i18n="certificate_income">Certificate Income</div>
+                </div>
+                <div class="fi-metric-tile fi-priority fi-expense-tile">
+                    <div class="fi-metric-icon">🧾</div>
+                    <div class="fi-metric-title" data-i18n="monthly_expenses">Monthly Expenses</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.avg_monthly_expenses || 0}">${fmtpresent(forecastData.avg_monthly_expenses || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-metric-tile">
+                    <div class="fi-metric-icon">🛡️</div>
+                    <div class="fi-metric-title" data-i18n="cash_coverage">Cash Coverage</div>
+                    <div class="fi-metric-main"><span class="num-fmt" data-value="${forecastData.cash_coverage_months || 0}">${fmt(forecastData.cash_coverage_months || 0)}</span></div>
+                    <div class="fi-metric-sub" data-i18n="months">Months</div>
                 </div>
             </div>
         </div>
 
-        <div class="kpi-card mb-4">
+        <div class="kpi-card mb-4 fi-forecast-card">
             <div class="kpi-label" data-i18n="certificate_forecast">Certificate Forecast</div>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:20px;">
-                <div><div class="kpi-label" data-i18n="next_30_days">Next 30 Days</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.forecast_30 || 0}">${fmtpresent(forecastData.forecast_30 || 0)}</div></div>
-                <div><div class="kpi-label" data-i18n="next_90_days">Next 90 Days</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.forecast_90 || 0}">${fmtpresent(forecastData.forecast_90 || 0)}</div></div>
-                <div><div class="kpi-label" data-i18n="next_180_days">Next 180 Days</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.forecast_180 || 0}">${fmtpresent(forecastData.forecast_180 || 0)}</div></div>
+            <div class="fi-amount-grid fi-amount-grid-3">
+                <div class="fi-amount-tile ${Number(forecastData.forecast_30 || 0) > 0 ? 'fi-up' : ''}">
+                    <div class="fi-amount-caption" data-i18n="next_30_days">Next 30 Days</div>
+                    <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.forecast_30 || 0}">${fmtpresent(forecastData.forecast_30 || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-amount-tile ${Number(forecastData.forecast_90 || 0) > 0 ? 'fi-up' : ''}">
+                    <div class="fi-amount-caption" data-i18n="next_90_days">Next 90 Days</div>
+                    <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.forecast_90 || 0}">${fmtpresent(forecastData.forecast_90 || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-amount-tile ${Number(forecastData.forecast_180 || 0) > 0 ? 'fi-up' : ''}">
+                    <div class="fi-amount-caption" data-i18n="next_180_days">Next 180 Days</div>
+                    <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.forecast_180 || 0}">${fmtpresent(forecastData.forecast_180 || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
             </div>
         </div>
 
-        <div class="kpi-card mb-4">
+        <div class="kpi-card mb-4 fi-cash-position-card">
             <div class="kpi-label" data-i18n="future_cash_position">Future Cash Position</div>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:20px;">
-                <div><div class="kpi-label" data-i18n="current_cash">Current Cash</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.cash_balance || 0}">${fmtpresent(forecastData.cash_balance || 0)}</div></div>
-                <div><div class="kpi-label" data-i18n="cash_after_30_days">Cash After 30 Days</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.future_cash_30 || 0}">${fmtpresent(forecastData.future_cash_30 || 0)}</div></div>
-                <div><div class="kpi-label" data-i18n="cash_after_90_days">Cash After 90 Days</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.future_cash_90 || 0}">${fmtpresent(forecastData.future_cash_90 || 0)}</div></div>
-                <div><div class="kpi-label" data-i18n="cash_after_180_days">Cash After 180 Days</div><div class="kpi-value num-fmtpresent" data-value="${forecastData.future_cash_180 || 0}">${fmtpresent(forecastData.future_cash_180 || 0)}</div></div>
+            <div class="fi-amount-grid fi-amount-grid-4">
+                <div class="fi-amount-tile">
+                    <div class="fi-amount-caption" data-i18n="current_cash">Current Cash</div>
+                    <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.cash_balance || 0}">${fmtpresent(forecastData.cash_balance || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-amount-tile">
+                    <div class="fi-amount-caption" data-i18n="cash_after_30_days">Cash After 30 Days</div>
+                    <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.future_cash_30 || 0}">${fmtpresent(forecastData.future_cash_30 || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-amount-tile">
+                    <div class="fi-amount-caption" data-i18n="cash_after_90_days">Cash After 90 Days</div>
+                    <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.future_cash_90 || 0}">${fmtpresent(forecastData.future_cash_90 || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
+                <div class="fi-amount-tile">
+                    <div class="fi-amount-caption" data-i18n="cash_after_180_days">Cash After 180 Days</div>
+                    <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.future_cash_180 || 0}">${fmtpresent(forecastData.future_cash_180 || 0)}</div>
+                    <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                </div>
             </div>
         </div>
 
@@ -395,20 +472,16 @@ async function renderBalance() {
                 <div class="fi-metric-row"><span class="fi-metric-label">${labelCurrentAllocation}</span><span class="fi-metric-value fi-accent num-fmt" data-value="${forecastData.gold_ratio || 0}">${fmt(forecastData.gold_ratio || 0)}%</span></div>
             </div>
             <div class="fi-section-title">${labelRecommendation}</div>
-            <div class="fi-paragraph">${goldRecommendationText || t('recommend_gold_neutral', 'Keep current gold allocation and rebalance gradually as trends evolve.')}</div>
-            ${goldReasonText ? `<div class="fi-sub-paragraph">${goldReasonText}</div>` : ''}
+            <div class="fi-info-box">${goldRecommendationText || t('recommend_gold_neutral', 'Keep current gold allocation and rebalance gradually as trends evolve.')}</div>
             <div style="margin-top:15px">
                 ${investmentDetails.filter((item) => String(item.key || '') !== 'recommend_gold_dynamic').map((item) => {
                     const itemKey = item.key;
                     const itemParams = item.params || {};
                     const resolvedText = getRecommendationText(item);
-                    const reasonText = getReasonText(item);
                     const itemParamsEncoded = encodeI18nParams(itemParams);
-                    const reasonParamsEncoded = encodeI18nParams(item.reason_params || {});
 
                     return `<div class="fi-note-card">
                         <div ${item.key ? `data-i18n-key="${itemKey}" data-i18n-params="${itemParamsEncoded}"` : ''}>${resolvedText}</div>
-                        ${reasonText ? `<div ${item.reason_key ? `data-i18n-key="${item.reason_key}" data-i18n-params="${reasonParamsEncoded}"` : ''} class="fi-sub-paragraph">${reasonText}</div>` : ''}
                     </div>`;
                 }).join('')}
             </div>
@@ -437,7 +510,10 @@ async function renderBalance() {
                             ${suggestedAllocations.map((row) => `
                                 <div class="fi-highlight-row">
                                     <div class="fi-metric-label fi-label-with-icon"><span>${row.icon}</span><span>${row.label}</span></div>
-                                    <div class="fi-metric-value fi-accent num-fmtpresent" data-value="${row.value}">${fmtpresent(row.value)} ${labelEgp}</div>
+                                    <div class="fi-metric-value fi-accent fi-value-inline">
+                                        <span class="num-fmtpresent" data-value="${row.value}">${fmtpresent(row.value)}</span>
+                                        <span class="fi-value-unit" data-i18n="EGP">${labelEgp}</span>
+                                    </div>
                                 </div>
                             `).join('')}
                         </div>
@@ -449,7 +525,7 @@ async function renderBalance() {
                  data-gold-amount="${forecastData.action_plan?.gold_amount || 0}"
                  data-cash-amount="${forecastData.action_plan?.cash_amount || 0}"
                  data-certificate-amount="${forecastData.action_plan?.certificate_amount || 0}"
-                 class="fi-sub-paragraph"
+                 class="fi-allocation-sentence"
                  style="margin-top:10px;">
                 ${
                     forecastData.action_plan?.key
@@ -508,16 +584,15 @@ async function renderBalance() {
             <div class="fi-section-title">${labelFinancialHealth}</div>
             <div class="fi-badge-row"><span class="fi-status-badge ${financialHealth.cls}">${financialHealth.icon} ${financialHealth.label}</span></div>
             <div class="fi-metric-grid">
-                <div class="fi-metric-row"><span class="fi-metric-label">${labelNetWorth}</span><span class="fi-metric-value fi-accent num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)} ${labelEgp}</span></div>
-                <div class="fi-metric-row"><span class="fi-metric-label">${labelLiquidityCoverage}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.cash_coverage_months || 0}">${fmt(forecastData.cash_coverage_months || 0)} ${labelMonths}</span></div>
-                <div class="fi-metric-row"><span class="fi-metric-label">${labelMonthlySurplus}</span><span class="fi-metric-value ${netMonthlySurplus >= 0 ? 'fi-positive' : 'fi-negative'} num-fmtpresent" data-value="${netMonthlySurplus}">${fmtpresent(netMonthlySurplus)} ${labelEgp}</span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelNetWorth}</span><span class="fi-metric-value fi-accent fi-value-inline"><span class="num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)}</span><span class="fi-value-unit" data-i18n="EGP">${labelEgp}</span></span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelLiquidityCoverage}</span><span class="fi-metric-value fi-value-inline"><span class="num-fmt" data-value="${forecastData.cash_coverage_months || 0}">${fmt(forecastData.cash_coverage_months || 0)}</span><span class="fi-value-unit" data-i18n="months">${labelMonths}</span></span></div>
+                <div class="fi-metric-row"><span class="fi-metric-label">${labelMonthlySurplus}</span><span class="fi-metric-value ${netMonthlySurplus >= 0 ? 'fi-positive' : 'fi-negative'} fi-value-inline"><span class="num-fmtpresent" data-value="${netMonthlySurplus}">${fmtpresent(netMonthlySurplus)}</span><span class="fi-value-unit" data-i18n="EGP">${labelEgp}</span></span></div>
                 <div class="fi-metric-row"><span class="fi-metric-label">${labelDiversification}</span><span class="fi-metric-value">${diversificationLabel}</span></div>
             </div>
             <div class="fi-section-title">${labelRecommendation}</div>
-            <div class="fi-paragraph">${financialParagraph || t('recommend_asset_allocation_balanced', 'Financial position is balanced with healthy liquidity and diversified assets.')}</div>
-            ${financialReason ? `<div class="fi-sub-paragraph">${financialReason}</div>` : ''}
+            <div class="fi-info-box">${financialParagraph || t('recommend_asset_allocation_balanced', 'Financial position is balanced with healthy liquidity and diversified assets.')}</div>
             <div class="fi-list-compact" style="margin-top:12px">
-                ${financialDetails.slice(0, 3).map((item) => {
+                ${financialDetails.slice(1, 4).map((item) => {
                     const text = getRecommendationText(item);
                     const itemParamsEncoded = encodeI18nParams(item.params || {});
                     return `<div ${item.key ? `data-i18n-key="${item.key}" data-i18n-params="${itemParamsEncoded}"` : ''} class="fi-note-card">${text}</div>`;
@@ -544,6 +619,60 @@ async function renderBalance() {
             </div>
         </div>
     `;
+
+    // Re-layout executive cards to match the target board layout without changing any calculations.
+    const safeInsert = (parent, child, beforeNode = null) => {
+        if (!parent || !child) return;
+        if (parent === child || child.contains(parent)) return;
+        if (beforeNode && beforeNode.parentNode === parent) {
+            parent.insertBefore(child, beforeNode);
+        } else {
+            parent.appendChild(child);
+        }
+    };
+
+    const financialIntelligenceCard = mc.querySelector('[data-i18n="financial_intelligence"]')?.closest('.kpi-card');
+    const financialCard = mc.querySelector('.fi-financial-card');
+    const actionCard = mc.querySelector('.fi-action-card');
+    const investmentCard = mc.querySelector('.fi-investment-card');
+
+    if (financialIntelligenceCard && financialCard && actionCard && investmentCard) {
+        const topGridParent = financialIntelligenceCard.parentNode;
+        const topGridAnchor = financialIntelligenceCard;
+        const topGrid = document.createElement('div');
+        topGrid.className = 'row g-3 mb-4 fi-top-grid';
+
+        [financialCard, actionCard, investmentCard].forEach((card) => {
+            const col = document.createElement('div');
+            col.className = 'col-12 col-xl-4';
+            card.classList.remove('mb-4');
+            card.classList.add('h-100');
+            col.appendChild(card);
+            topGrid.appendChild(col);
+        });
+
+        safeInsert(topGridParent, topGrid, topGridAnchor);
+    }
+
+    const certificateForecastCard = mc.querySelector('[data-i18n="certificate_forecast"]')?.closest('.kpi-card');
+    const futureCashCard = mc.querySelector('[data-i18n="future_cash_position"]')?.closest('.kpi-card');
+    if (certificateForecastCard && futureCashCard) {
+        const cashGridParent = certificateForecastCard.parentNode;
+        const cashGridAnchor = futureCashCard.nextSibling;
+        const cashGrid = document.createElement('div');
+        cashGrid.className = 'row g-3 mb-4 fi-cash-grid';
+
+        [certificateForecastCard, futureCashCard].forEach((card) => {
+            const col = document.createElement('div');
+            col.className = 'col-12 col-xl-6';
+            card.classList.remove('mb-4');
+            card.classList.add('h-100');
+            col.appendChild(card);
+            cashGrid.appendChild(col);
+        });
+
+        safeInsert(cashGridParent, cashGrid, cashGridAnchor);
+    }
 
     applyTranslations();
 }
