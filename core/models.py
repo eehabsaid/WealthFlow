@@ -804,6 +804,9 @@ class UserProfile(models.Model):
 
 REMINDER_TYPE_CHOICES = [
     ("cert_maturity", "Certificate Maturity"),
+    ("insurance_expiry", "Insurance Expiry"),
+    ("vehicle_license_expiry", "Vehicle License Expiry"),
+    ("property_tax_reminder", "Property Tax Reminder"),
     ("salary_unpaid", "Salary Unpaid"),
     ("salary_day", "Salary Day"),
     ("custom", "Custom"),
@@ -1189,6 +1192,24 @@ class RealEstateDetails(models.Model):
 
     finishing_level = models.CharField(max_length=100, blank=True)
 
+    last_estimated_market_price = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+
+    last_valuation_date = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    valuation_provider = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
     furnished_status = models.CharField(
         max_length=50,
         choices=[
@@ -1230,6 +1251,9 @@ class RealEstateDetails(models.Model):
             "longitude": float(self.longitude) if self.longitude else None,
             "licensed": self.licensed,
             "description": self.description,
+            "last_estimated_market_price": float(self.last_estimated_market_price) if self.last_estimated_market_price is not None else None,
+            "last_valuation_date": self.last_valuation_date.isoformat() if self.last_valuation_date else "",
+            "valuation_provider": self.valuation_provider,
         }
 
     def __str__(self):
@@ -1251,6 +1275,7 @@ class VehicleDetails(models.Model):
     fuel_type = models.CharField(max_length=50, blank=True)
     mileage = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     plate_number = models.CharField(max_length=100, blank=True)
+    license_expiry_date = models.DateField(null=True, blank=True)
     color = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1269,6 +1294,7 @@ class VehicleDetails(models.Model):
             "fuel_type": self.fuel_type,
             "mileage": float(self.mileage or 0),
             "plate_number": self.plate_number,
+            "license_expiry_date": self.license_expiry_date.isoformat() if self.license_expiry_date else "",
             "color": self.color,
         }
 

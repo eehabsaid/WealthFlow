@@ -1,16 +1,21 @@
 import json
+from io import StringIO
 from datetime import date
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from core.models import (
+    AppSettings,
+    AssetInsurance,
     BalanceEntry,
     Bank,
     BankCertificate,
     BankCertificateInterestHistory,
+    CertificateStatus,
     Company,
     Currency,
     Expense,
@@ -19,9 +24,17 @@ from core.models import (
     AssetMortgage,
     AssetRental,
     AssetSale,
+    RealEstateDetails,
+    ReminderLog,
+    ReminderRule,
     SalaryEntry,
+    VehicleDetails,
 )
+from core.services.certificate_automation_service import CertificateAutomationService
 from core.services.certificate_interest_service import CertificateInterestService
+from core.services.property_valuation_service import PropertyValuationService
+from core.services.reminder_automation_service import ReminderAutomationService
+from core.services.scheduler_service import SchedulerService
 
 
 class BalanceRecommendationTranslationsTest(SimpleTestCase):
@@ -807,3 +820,289 @@ class DocumentManagementApiTest(TestCase):
         )
         self.assertEqual(invalid_response.status_code, 400)
         self.assertEqual(invalid_response.json().get("error"), "invalid_file_type")
+
+
+class CertificateAutomationServiceTest(TestCase):
+    def setUp(self):
+        self.currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
+        self.bank = Bank.objects.create(name="QNB")
+
+    def test_close_matured_certificates_uses_closed_lookup_and_skips_non_active(self):
+        CertificateStatus.objects.create(name="cLoSeD", is_terminal=True, order=1)
+
+        active_matured = BankCertificate.objects.create(
+            bank=self.bank,
+            currency=self.currency,
+            issue_date=date(2026, 1, 1),
+            expiry_date=date(2026, 7, 1),
+            amount=1000,
+            interest_value=10,
+            status="Active",
+        )
+        already_closed = BankCertificate.objects.create(
+            bank=self.bank,
+            currency=self.currency,
+            issue_date=date(2026, 1, 1),
+            expiry_date=date(2026, 7, 1),
+            amount=1000,
+            interest_value=10,
+            status="CLOSED",
+        )
+        inactive_matured = BankCertificate.objects.create(
+            bank=self.bank,
+            currency=self.currency,
+            issue_date=date(2026, 1, 1),
+            expiry_date=date(2026, 7, 1),
+            amount=1000,
+            interest_value=10,
+            status="Renewed",
+        )
+
+        result = CertificateAutomationService().close_matured_certificates(today=date(2026, 7, 4))
+
+        active_matured.refresh_from_db()
+        already_closed.refresh_from_db()
+        inactive_matured.refresh_from_db()
+
+        self.assertEqual(result.closed_certificates, 1)
+        self.assertEqual(active_matured.status, "cLoSeD")
+        self.assertEqual(already_closed.status, "CLOSED")
+        self.assertEqual(inactive_matured.status, "Renewed")
+
+
+class ReminderAutomationServiceTest(TestCase):
+    def setUp(self):
+        self.asset = FixedAsset.objects.create(
+            name="Test Vehicle",
+            asset_type="Vehicles",
+            status="Owned",
+            purchase_date=date(2026, 1, 1),
+            purchase_price=100000,
+            current_market_value=90000,
+        )
+        self.vehicle = VehicleDetails.objects.create(
+            asset=self.asset,
+            brand="Toyota",
+            plate_number="ABC-123",
+            license_expiry_date=date(2026, 7, 7),
+        )
+        self.insurance = AssetInsurance.objects.create(
+            asset=self.asset,
+            company="Insurer",
+            policy_number="P-1",
+            expiry_date=date(2026, 7, 9),
+            premium=1000,
+        )
+
+    def test_service_generates_insurance_and_vehicle_license_reminders_without_duplicates(self):
+        insurance_rule = ReminderRule.objects.create(
+            name="Insurance expiry",
+            rule_type="insurance_expiry",
+            days_before=10,
+        )
+        vehicle_rule = ReminderRule.objects.create(
+            name="Vehicle license expiry",
+            rule_type="vehicle_license_expiry",
+            days_before=10,
+        )
+
+        result = ReminderAutomationService().evaluate(today=date(2026, 7, 4))
+        self.assertEqual(result.count, 2)
+        self.assertEqual(ReminderLog.objects.count(), 2)
+
+        second = ReminderAutomationService().evaluate(today=date(2026, 7, 4))
+        self.assertEqual(second.count, 0)
+        self.assertEqual(ReminderLog.objects.filter(rule=insurance_rule).count(), 1)
+        self.assertEqual(ReminderLog.objects.filter(rule=vehicle_rule).count(), 1)
+
+    def test_reminder_check_view_uses_service_output(self):
+        ReminderRule.objects.create(
+            name="Vehicle license expiry",
+            rule_type="vehicle_license_expiry",
+            days_before=10,
+        )
+
+        response = self.client.get("/api/reminders/check/")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["count"], 1)
+        self.assertEqual(payload["reminders"][0]["rule_type"], "vehicle_license_expiry")
+
+    def test_property_tax_reminder_uses_due_date_settings_and_avoids_duplicates(self):
+        real_estate_asset = FixedAsset.objects.create(
+            name="Taxed Apartment",
+            asset_type="Real Estate",
+            status="Owned",
+            purchase_date=date(2026, 1, 1),
+            purchase_price=300000,
+            current_market_value=500000,
+        )
+        details = RealEstateDetails.objects.create(
+            asset=real_estate_asset,
+            country="Egypt",
+            city="Cairo",
+            governorate="Cairo",
+            area_m2=85,
+        )
+        rule = ReminderRule.objects.create(
+            name="Property tax",
+            rule_type="property_tax_reminder",
+            days_before=10,
+        )
+
+        AppSettings.set("property_tax_due_month", "7")
+        AppSettings.set("property_tax_due_day", "10")
+        AppSettings.set("property_tax_countries", "[\"Egypt\"]")
+
+        first = ReminderAutomationService().evaluate(today=date(2026, 7, 4))
+        self.assertEqual(first.count, 1)
+        self.assertEqual(first.reminders[0]["rule_type"], "property_tax_reminder")
+        self.assertEqual(first.reminders[0]["related_id"], details.id)
+        self.assertEqual(first.reminders[0]["days_left"], 6)
+
+        second = ReminderAutomationService().evaluate(today=date(2026, 7, 4))
+        self.assertEqual(second.count, 0)
+        self.assertEqual(
+            ReminderLog.objects.filter(
+                rule=rule,
+                related_model="RealEstateDetails",
+                related_id=details.id,
+            ).count(),
+            1,
+        )
+
+
+class PropertyValuationServiceTest(TestCase):
+    def setUp(self):
+        self.asset = FixedAsset.objects.create(
+            name="Apartment",
+            asset_type="Real Estate",
+            status="Owned",
+            purchase_date=date(2026, 1, 1),
+            purchase_price=500000,
+            current_market_value=600000,
+        )
+        self.details = RealEstateDetails.objects.create(
+            asset=self.asset,
+            city="Cairo",
+            governorate="Cairo",
+            area_m2=100,
+        )
+
+    def test_refresh_asset_updates_from_configured_provider(self):
+        AppSettings.set(
+            "property_valuation_rate_map",
+            json.dumps({"by_city": {"Cairo": 42000}}),
+        )
+
+        updated, provider_name = PropertyValuationService().refresh_asset(self.asset, today=date(2026, 7, 4))
+
+        self.asset.refresh_from_db()
+        self.details.refresh_from_db()
+
+        self.assertTrue(updated)
+        self.assertEqual(provider_name, "configured_market_rate")
+        self.assertEqual(float(self.asset.current_market_value), 4200000.0)
+        self.assertEqual(float(self.details.last_estimated_market_price), 4200000.0)
+        self.assertEqual(self.details.valuation_provider, "configured_market_rate")
+
+    def test_refresh_asset_preserves_manual_value_when_unavailable(self):
+        updated, provider_name = PropertyValuationService().refresh_asset(self.asset, today=date(2026, 7, 4))
+
+        self.asset.refresh_from_db()
+        self.details.refresh_from_db()
+
+        self.assertFalse(updated)
+        self.assertIsNone(provider_name)
+        self.assertEqual(float(self.asset.current_market_value), 600000.0)
+        self.assertEqual(self.details.valuation_provider, "")
+
+    def test_manual_refresh_endpoint_updates_asset(self):
+        AppSettings.set(
+            "property_valuation_rate_map",
+            json.dumps({"by_governorate": {"Cairo": 40000}}),
+        )
+
+        response = self.client.post(f"/api/fixed-assets/{self.asset.id}/valuation/refresh/")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["updated"])
+        self.assertEqual(payload["provider"], "configured_market_rate")
+
+    @patch("core.services.property_valuation_service.request.urlopen")
+    def test_refresh_asset_uses_external_provider_when_enabled(self, mock_urlopen):
+        AppSettings.set("property_valuation_external_enabled", "true")
+        AppSettings.set(
+            "property_valuation_external_url",
+            "https://example.com/valuation?city={city}&area={area_m2}",
+        )
+        AppSettings.set("property_valuation_external_result_path", "estimated_price")
+
+        response = MagicMock()
+        response.read.return_value = b'{"estimated_price": 5100000}'
+        mock_urlopen.return_value.__enter__.return_value = response
+
+        updated, provider_name = PropertyValuationService().refresh_asset(
+            self.asset,
+            today=date(2026, 7, 4),
+        )
+
+        self.asset.refresh_from_db()
+        self.details.refresh_from_db()
+
+        self.assertTrue(updated)
+        self.assertEqual(provider_name, "external_api")
+        self.assertEqual(float(self.asset.current_market_value), 5100000.0)
+        self.assertEqual(self.details.valuation_provider, "external_api")
+
+
+class SchedulerAutomationCommandTest(TestCase):
+    def test_scheduler_lists_expected_jobs(self):
+        jobs = {item["job_id"] for item in SchedulerService().list_jobs()}
+        self.assertEqual(
+            jobs,
+            {
+                "reminders",
+                "certificate_maturity",
+                "certificate_interest",
+                "exchange_rates",
+                "gold_prices",
+                "property_valuation",
+            },
+        )
+
+    @patch("core.services.scheduler_service.PropertyValuationService.refresh_all")
+    @patch("core.services.scheduler_service.GoldValuationService.refresh_latest_prices")
+    @patch("core.services.scheduler_service.ExchangeRateService.refresh_latest_rates")
+    @patch("core.services.scheduler_service.CertificateInterestService.synchronize")
+    @patch("core.services.scheduler_service.CertificateAutomationService.close_matured_certificates")
+    @patch("core.services.scheduler_service.ReminderAutomationService.evaluate")
+    def test_run_automation_command_executes_registered_jobs(
+        self,
+        mock_reminders,
+        mock_cert_maturity,
+        mock_cert_interest,
+        mock_rates,
+        mock_gold,
+        mock_property,
+    ):
+        class ResultWrapper:
+            def __init__(self, payload):
+                self.payload = payload
+
+            def to_dict(self):
+                return self.payload
+
+        mock_reminders.return_value = ResultWrapper({"count": 1})
+        mock_cert_maturity.return_value = ResultWrapper({"closed_certificates": 1})
+        mock_cert_interest.return_value = ResultWrapper({"posted_periods": 0})
+        mock_rates.return_value = ResultWrapper({"saved": 18})
+        mock_gold.return_value = ResultWrapper({"saved": 1})
+        mock_property.return_value = ResultWrapper({"updated_assets": 0})
+
+        output = StringIO()
+        call_command("run_automation", "--today", "2026-07-04", stdout=output)
+        payload = json.loads(output.getvalue())
+
+        self.assertEqual(len(payload), 6)
+        self.assertTrue(all(item["success"] for item in payload))

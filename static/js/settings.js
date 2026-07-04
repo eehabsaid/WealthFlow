@@ -126,7 +126,7 @@ function saveAppSetting(key, value) {
     fetch('/api/settings/', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ [key]: value }),
+        body:    JSON.stringify({ key, value }),
     }).then(() => showToast(t('settings_saved', 'Settings saved ✓')));
 }
 
@@ -135,16 +135,25 @@ function saveAppSetting(key, value) {
 // ════════════════════════════════════════════════════════════════════════════
 
 async function renderGoldSettings() {
-    const [typesRes, puritiesRes] = await Promise.all([
+    const [typesRes, puritiesRes, settingsRes] = await Promise.all([
         fetch('/api/settings/gold-types/'),
         fetch('/api/settings/gold-purities/'),
+        fetch('/api/settings/'),
     ]);
 
     const typeData = await typesRes.json();
     const purityData = await puritiesRes.json();
+    const settingsData = await settingsRes.json();
 
     const types = typeData.items || [];
     const purities = purityData.items || [];
+    const currentRateMap = settingsData?.settings?.property_valuation_rate_map || '';
+    const providerOrder = settingsData?.settings?.property_valuation_provider_order || 'external_api,configured_market_rate';
+    const externalEnabled = (settingsData?.settings?.property_valuation_external_enabled || 'false') === 'true';
+    const externalUrl = settingsData?.settings?.property_valuation_external_url || '';
+    const externalResultPath = settingsData?.settings?.property_valuation_external_result_path || 'estimated_price';
+    const externalTimeout = settingsData?.settings?.property_valuation_external_timeout_secs || '8';
+    const externalHeaders = settingsData?.settings?.property_valuation_external_headers || '';
 
     const typeRows = types.map(item => `
         <tr>
@@ -219,6 +228,50 @@ async function renderGoldSettings() {
                 </table>
             </div>
         </div>
+
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:14px;margin-top:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px;flex-wrap:wrap;">
+                <div>
+                    <div style="font-weight:600;color:var(--text-secondary)" data-i18n="property_valuation_settings">${t('property_valuation_settings', 'Property Valuation Settings')}</div>
+                    <div style="font-size:12px;color:var(--text-muted)" data-i18n="property_valuation_rate_map_hint">${t('property_valuation_rate_map_hint', 'Provide JSON with by_city, by_governorate, and optional default EGP-per-square-meter rates.')}</div>
+                </div>
+                <button class="btn-primary-custom" onclick="savePropertyValuationSettings()" data-i18n="save_property_valuation_settings">${t('save_property_valuation_settings', 'Save Valuation Settings')}</button>
+            </div>
+            <div class="row g-3" style="margin-bottom:12px;">
+                <div class="col-md-4">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="property_valuation_provider_order">${t('property_valuation_provider_order', 'Provider Order')}</label>
+                    <select id="propertyValuationProviderOrder" class="form-select">
+                        <option value="external_api,configured_market_rate" ${providerOrder === 'external_api,configured_market_rate' ? 'selected' : ''}>${t('provider_order_external_first', 'External API then Configured Rate')}</option>
+                        <option value="configured_market_rate,external_api" ${providerOrder === 'configured_market_rate,external_api' ? 'selected' : ''}>${t('provider_order_configured_first', 'Configured Rate then External API')}</option>
+                        <option value="configured_market_rate" ${providerOrder === 'configured_market_rate' ? 'selected' : ''}>${t('provider_order_configured_only', 'Configured Rate Only')}</option>
+                        <option value="external_api" ${providerOrder === 'external_api' ? 'selected' : ''}>${t('provider_order_external_only', 'External API Only')}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="property_valuation_external_enabled">${t('property_valuation_external_enabled', 'External Enabled')}</label>
+                    <select id="propertyValuationExternalEnabled" class="form-select">
+                        <option value="true" ${externalEnabled ? 'selected' : ''}>${t('yes', 'Yes')}</option>
+                        <option value="false" ${!externalEnabled ? 'selected' : ''}>${t('no', 'No')}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="property_valuation_external_timeout">${t('property_valuation_external_timeout', 'External Timeout (seconds)')}</label>
+                    <input id="propertyValuationExternalTimeout" class="form-control" type="number" min="1" step="1" value="${externalTimeout}">
+                </div>
+                <div class="col-md-3">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="property_valuation_external_result_path">${t('property_valuation_external_result_path', 'External Result Path')}</label>
+                    <input id="propertyValuationExternalResultPath" class="form-control" type="text" value="${externalResultPath}" placeholder="estimated_price">
+                </div>
+            </div>
+            <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="property_valuation_external_url">${t('property_valuation_external_url', 'External API URL Template')}</label>
+            <input id="propertyValuationExternalUrl" class="form-control" type="text" value="${externalUrl}" placeholder="https://api.example.com/valuation?city={city}&area={area_m2}">
+
+            <label style="display:block;margin-top:12px;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="property_valuation_external_headers">${t('property_valuation_external_headers', 'External Headers (JSON)')}</label>
+            <textarea id="propertyValuationExternalHeaders" class="form-control" rows="4" spellcheck="false" placeholder='{"Authorization":"Bearer token"}'>${externalHeaders}</textarea>
+
+            <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="property_valuation_rate_map">${t('property_valuation_rate_map', 'Property Valuation Rate Map')}</label>
+            <textarea id="propertyValuationRateMap" class="form-control" rows="8" spellcheck="false" placeholder='{"by_city":{"Cairo":42000},"by_governorate":{"Giza":35000},"default":30000}'>${currentRateMap}</textarea>
+        </div>
     `;
 
     applyTranslations();
@@ -250,14 +303,69 @@ async function showGoldTypeModal(itemId) {
         </div>
     `);
     applyTranslations();
+}
 
-    if (window.DocumentManager) {
-        window.DocumentManager.init({
-            containerId: 'bankDocumentManagerContainer',
-            parentType: 'bank',
-            parentId: bankId,
-            disabledMessage: t('documents_save_first', 'Save this record first to manage documents.'),
-        });
+async function savePropertyValuationSettings() {
+    const textarea = document.getElementById('propertyValuationRateMap');
+    const raw = textarea?.value?.trim() || '';
+    const providerOrder = document.getElementById('propertyValuationProviderOrder')?.value || 'external_api,configured_market_rate';
+    const externalEnabled = document.getElementById('propertyValuationExternalEnabled')?.value || 'false';
+    const externalUrl = document.getElementById('propertyValuationExternalUrl')?.value?.trim() || '';
+    const externalResultPath = document.getElementById('propertyValuationExternalResultPath')?.value?.trim() || 'estimated_price';
+    const externalTimeout = document.getElementById('propertyValuationExternalTimeout')?.value?.trim() || '8';
+    const externalHeadersRaw = document.getElementById('propertyValuationExternalHeaders')?.value?.trim() || '';
+
+    if (raw) {
+        try {
+            JSON.parse(raw);
+        } catch (error) {
+            showToast(t('invalid_property_valuation_rate_map', 'Property valuation rate map must be valid JSON.'), 'error');
+            return;
+        }
+    }
+
+    if (externalEnabled === 'true' && !externalUrl) {
+        showToast(t('invalid_property_valuation_external_url', 'External URL is required when external valuation is enabled.'), 'error');
+        return;
+    }
+
+    if (externalHeadersRaw) {
+        try {
+            const parsedHeaders = JSON.parse(externalHeadersRaw);
+            if (!parsedHeaders || Array.isArray(parsedHeaders) || typeof parsedHeaders !== 'object') {
+                throw new Error('invalid_headers');
+            }
+        } catch (error) {
+            showToast(t('invalid_property_valuation_external_headers', 'External headers must be a valid JSON object.'), 'error');
+            return;
+        }
+    }
+
+    if (!Number.isFinite(Number(externalTimeout)) || Number(externalTimeout) <= 0) {
+        showToast(t('invalid_property_valuation_external_timeout', 'External timeout must be a positive number.'), 'error');
+        return;
+    }
+
+    const settingsToSave = [
+        ['property_valuation_rate_map', raw],
+        ['property_valuation_provider_order', providerOrder],
+        ['property_valuation_external_enabled', externalEnabled],
+        ['property_valuation_external_url', externalUrl],
+        ['property_valuation_external_result_path', externalResultPath],
+        ['property_valuation_external_timeout_secs', String(externalTimeout)],
+        ['property_valuation_external_headers', externalHeadersRaw],
+    ];
+
+    const responses = await Promise.all(settingsToSave.map(([key, value]) => fetch('/api/settings/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value }),
+    })));
+
+    if (responses.every(r => r.ok)) {
+        showToast(t('property_valuation_settings_saved', 'Property valuation settings saved.'), 'success');
+    } else {
+        showToast(t('error_saving_property_valuation_settings', 'Failed to save property valuation settings.'), 'error');
     }
 }
 

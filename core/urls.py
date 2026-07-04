@@ -143,6 +143,10 @@ urlpatterns = [
         views.FixedAssetExcelReportView.as_view(),
     ),
     path(
+        "api/fixed-assets/<int:pk>/valuation/refresh/",
+        views.FixedAssetValuationRefreshView.as_view(),
+    ),
+    path(
         "api/certificate-forecast/",
         views.CertificateForecastView.as_view(),
     ),

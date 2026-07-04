@@ -1,3 +1,5 @@
+# pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
+
 import json
 from decimal import Decimal, InvalidOperation
 from django.contrib.auth import authenticate, get_user_model, login, logout
@@ -90,6 +92,10 @@ from django.views.decorators.http import require_http_methods
 from core.services.net_worth_service import NetWorthService
 from core.services.financial_sync_service import FinancialSyncService
 from core.services.document_service import DocumentService
+from core.services.exchange_rate_service import ExchangeRateService
+from core.services.gold_valuation_service import GoldValuationService
+from core.services.property_valuation_service import PropertyValuationService
+from core.services.reminder_automation_service import ReminderAutomationService
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ExportExcelWorkbookView(View):
@@ -1077,67 +1083,9 @@ class ExchangeRateRefreshView(View):
     """Calls open.er-api.com and saves latest rates to DB."""
 
     def post(self, request):
-        import urllib.request as _ur
-        import json as _json
-        import decimal
-
-        CURRENCY_NAMES = {
-            "USD": "US Dollar",
-            "EUR": "Euro",
-            "GBP": "Pound Sterling",
-            "SAR": "Saudi Riyal",
-            "AED": "UAE Dirham",
-            "KWD": "Kuwaiti Dinar",
-            "CAD": "Canadian Dollar",
-            "CHF": "Swiss Franc",
-            "JPY": "Japanese Yen",
-            "CNY": "Chinese Yuan",
-            "QAR": "Qatari Riyal",
-            "BHD": "Bahraini Dinar",
-            "OMR": "Omani Riyal",
-            "JOD": "Jordanian Dinar",
-            "NOK": "Norwegian Krone",
-            "SEK": "Swedish Krona",
-            "DKK": "Danish Krone",
-            "AUD": "Australian Dollar",
-        }
-
         try:
-            url = "https://open.er-api.com/v6/latest/EGP"
-            req = _ur.Request(url, headers={"User-Agent": "SalaryTracker/1.0"})
-            with _ur.urlopen(req, timeout=15) as resp:
-                data = _json.loads(resp.read().decode())
-
-            if data.get("result") != "success":
-                return JsonResponse({"error": "API returned non-success"}, status=502)
-
-            rates_raw = data.get("rates", {})  # all rates are X per 1 EGP
-            saved = 0
-            with transaction.atomic():
-                ExchangeRate.objects.all().delete()
-                for code, name in CURRENCY_NAMES.items():
-                    if code not in rates_raw:
-                        continue
-                    # rates_raw[code] = how many <code> per 1 EGP
-                    # We want EGP per 1 <code>  (buy rate)
-                    egp_per_unit = (
-                        1.0 / float(rates_raw[code]) if float(rates_raw[code]) else 0
-                    )
-                    # Apply a typical 0.5% spread for buy/sell simulation
-                    spread = egp_per_unit * 0.005
-                    ExchangeRate.objects.create(
-                        currency_code=code,
-                        currency_name=name,
-                        buy_rate=round(egp_per_unit - spread, 6),
-                        sell_rate=round(egp_per_unit + spread, 6),
-                        mid_rate=round(egp_per_unit, 6),
-                        source="open.er-api.com",
-                    )
-                    saved += 1
-
-            return JsonResponse(
-                {"saved": saved, "message": f"Fetched {saved} currencies"}
-            )
+            result = ExchangeRateService().refresh_latest_rates().to_dict()
+            return JsonResponse({**result, "message": f"Fetched {result['saved']} currencies"})
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=502)
@@ -1167,171 +1115,10 @@ class GoldPriceRefreshView(View):
         return self.post(request)
 
     def post(self, request):
-        import urllib.request as _ur
-        import json as _json
-        from html.parser import HTMLParser
-        import re
-
-        class GoldTableParser(HTMLParser):
-            def __init__(self):
-                super().__init__()
-                self.in_table = False
-                self.in_tr = False
-                self.in_td = False
-                self.current_cell = None
-                self.current_row = []
-                self.rows = []
-
-            def handle_starttag(self, tag, attrs):
-                if tag == "table" and not self.in_table:
-                    self.in_table = True
-                    return
-                if not self.in_table:
-                    return
-                if tag == "tr":
-                    self.in_tr = True
-                    self.current_row = []
-                elif self.in_tr and tag == "td":
-                    self.in_td = True
-                    self.current_cell = {"text": "", "data_val": None}
-                    attrs = dict(attrs)
-                    if "data-val" in attrs:
-                        self.current_cell["data_val"] = attrs["data-val"]
-
-            def handle_data(self, data):
-                if self.in_td and self.current_cell is not None:
-                    self.current_cell["text"] += data
-
-            def handle_endtag(self, tag):
-                if tag == "td" and self.in_td:
-                    self.current_row.append(self.current_cell)
-                    self.in_td = False
-                    self.current_cell = None
-                elif tag == "tr" and self.in_tr:
-                    if self.current_row:
-                        self.rows.append(self.current_row)
-                    self.in_tr = False
-                elif tag == "table" and self.in_table:
-                    self.in_table = False
-
         try:
-            import ssl as _ssl
-
-            # goldbullioneg.com has an expired SSL cert — bypass verification for this trusted source
-            _ctx = _ssl.create_default_context()
-            _ctx.check_hostname = False
-            _ctx.verify_mode = _ssl.CERT_NONE
-
-            # Step 1: Scrape gold prices directly from goldbullioneg.com (EGP table)
-            page_url = "https://goldbullioneg.com/%D8%A3%D8%B3%D8%B9%D8%A7%D8%B1-%D8%A7%D9%84%D8%B0%D9%87%D8%A8/"
-            req = _ur.Request(page_url, headers={"User-Agent": "SalaryTracker/1.0"})
-            with _ur.urlopen(req, timeout=15, context=_ctx) as resp:
-                page_html = resp.read().decode("utf-8", errors="ignore")
-
-            parser = GoldTableParser()
-            parser.feed(page_html)
-
-            if not parser.rows or len(parser.rows) < 8:
-                return JsonResponse(
-                    {
-                        "error": "Unable to parse complete gold price table from goldbullioneg.com"
-                    },
-                    status=502,
-                )
-
-            prices_egp = {}  # {carat: {'buy': X, 'sell': Y}}
-            usd_to_egp = None
-            usd_per_oz = None
-
-            for idx, row in enumerate(parser.rows):
-                if len(row) < 3:
-                    continue
-                label = (row[0]["text"] or "").strip()
-                buy_val = (row[1]["data_val"] or row[1]["text"] or "").strip()
-                sell_val = (row[2]["data_val"] or row[2]["text"] or "").strip()
-
-                if not buy_val or not sell_val:
-                    continue
-
-                try:
-                    buy_num = float(buy_val.replace(",", ""))
-                    sell_num = float(sell_val.replace(",", ""))
-                except ValueError:
-                    continue
-
-                # Check for karat prices (جرام عيار X)
-                karat_match = re.search(r"عيار\s*([0-9]{1,2})", label)
-                if karat_match:
-                    carat = int(karat_match.group(1))
-                    prices_egp[carat] = {"buy": buy_num, "sell": sell_num}
-                    continue
-
-                # Check for USD/EGP rate (الدولار)
-                if "دولار" in label.lower():
-                    usd_to_egp = sell_num
-                    continue
-
-                # Check for USD spot price per ounce (الأونصة)
-                if "أونصة" in label.lower() or "ounce" in label.lower():
-                    usd_per_oz = sell_num
-                    continue
-
-            if not all(k in prices_egp for k in (24, 22, 21, 18)):
-                return JsonResponse(
-                    {"error": "Missing required karat prices from goldbullioneg.com"},
-                    status=502,
-                )
-
-            if usd_to_egp is None:
-                return JsonResponse(
-                    {"error": "Could not find USD/EGP rate on goldbullioneg.com"},
-                    status=502,
-                )
-
-            if usd_per_oz is None:
-                return JsonResponse(
-                    {"error": "Could not find USD/oz spot price on goldbullioneg.com"},
-                    status=502,
-                )
-
-            # Calculate USD per gram from the EGP per gram (using sell price)
-            usd_gram_24k = prices_egp[24]["sell"] / usd_to_egp if usd_to_egp else 0
-
-            from datetime import timedelta
-            from django.utils import timezone
-
-            with transaction.atomic():
-
-                GoldPrice.objects.all().delete()
-
-                gp = GoldPrice.objects.create(
-                    carat_24k=round(prices_egp[24]["sell"], 2),
-                    carat_22k=round(prices_egp[22]["sell"], 2),
-                    carat_21k=round(prices_egp[21]["sell"], 2),
-                    carat_18k=round(prices_egp[18]["sell"], 2),
-                    carat_24k_buy=round(prices_egp[24]["buy"], 2),
-                    carat_22k_buy=round(prices_egp[22]["buy"], 2),
-                    carat_21k_buy=round(prices_egp[21]["buy"], 2),
-                    carat_18k_buy=round(prices_egp[18]["buy"], 2),
-                    usd_gram_24k=round(usd_gram_24k, 6),
-                    usd_per_oz=round(usd_per_oz, 4),
-                    usd_to_egp=round(usd_to_egp, 6),
-                    source_gold="goldbullioneg.com",
-                    source_fx="goldbullioneg.com",
-                )
-
-                GoldPriceHistory.objects.create(
-                    carat_24k=gp.carat_24k,
-                    carat_21k=gp.carat_21k,
-                    carat_18k=gp.carat_18k,
-                    usd_gram_24k=gp.usd_gram_24k,
-                    usd_per_oz=gp.usd_per_oz,
-                    usd_to_egp=gp.usd_to_egp,
-                )
-
-            _refresh_all_gold_assets_from_live_prices()
-            return JsonResponse({"gold": gp.to_dict()})
-
+            result = GoldValuationService().refresh_latest_prices().to_dict()
+            latest = GoldPrice.objects.order_by("-fetched_at").first()
+            return JsonResponse({**result, "gold": latest.to_dict() if latest else None})
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=502)
 
@@ -2605,161 +2392,23 @@ class ReminderCheckView(View):
     """Called on page load — evaluates all active rules and returns due reminders."""
 
     def get(self, request):
-        from datetime import date, timedelta
-        import calendar as cal
+        result = ReminderAutomationService().evaluate(today=timezone.localdate()).to_dict()
+        return JsonResponse(result)
 
-        today = date.today()
-        results = []
-        rules = ReminderRule.objects.filter(is_active=True)
 
-        for rule in rules:
-
-            # ── Certificate Maturity ────────────────────────────
-            if rule.rule_type == "cert_maturity":
-                target = today + timedelta(days=rule.days_before)
-                certs = BankCertificate.objects.filter(expiry_date=target)
-                # Also check any cert expiring in ≤ days_before that hasn't fired today
-                certs_range = BankCertificate.objects.filter(
-                    expiry_date__gte=today,
-                    expiry_date__lte=target,
-                )
-                for cert in certs_range:
-                    days_left = (cert.expiry_date - today).days
-                    # Only fire if within days_before window and not already logged today
-                    already = ReminderLog.objects.filter(
-                        rule=rule,
-                        related_model="BankCertificate",
-                        related_id=cert.id,
-                        fired_on=today,
-                    ).exists()
-                    if not already:
-                        bank_name = cert.bank.name if cert.bank else "Unknown"
-                        msg = (
-                            f"Certificate at {bank_name} of "
-                            f"{float(cert.amount):,.2f} expires in {days_left} day(s) "
-                            f"on {cert.expiry_date}."
-                        )
-                        ReminderLog.objects.get_or_create(
-                            rule=rule,
-                            related_model="BankCertificate",
-                            related_id=cert.id,
-                            fired_on=today,
-                            defaults={"message": msg},
-                        )
-                        results.append(
-                            {
-                                "rule_id": rule.id,
-                                "rule_name": rule.name,
-                                "rule_type": rule.rule_type,
-                                "message": msg,
-                                "related_id": cert.id,
-                                "link": "bank-certificates",
-                                "days_left": days_left,
-                            }
-                        )
-
-            # ── Salary Unpaid ───────────────────────────────────
-            elif rule.rule_type == "salary_unpaid":
-                trigger_day = _salary_trigger_day(rule, today)
-                if today.day >= trigger_day:
-                    # Check if current month has any unpaid salary entry
-                    unpaid = SalaryEntry.objects.filter(
-                        year=today.year,
-                        month=today.month,
-                        paid=0,
-                    ).exists()
-                    if unpaid:
-                        already = ReminderLog.objects.filter(
-                            rule=rule,
-                            related_model="SalaryEntry",
-                            related_id=0,
-                            fired_on=today,
-                        ).exists()
-                        if not already:
-                            msg = (
-                                rule.salary_message
-                                or "This month has unpaid salary entries."
-                            )
-                            ReminderLog.objects.get_or_create(
-                                rule=rule,
-                                related_model="SalaryEntry",
-                                related_id=0,
-                                fired_on=today,
-                                defaults={"message": msg},
-                            )
-                            results.append(
-                                {
-                                    "rule_id": rule.id,
-                                    "rule_name": rule.name,
-                                    "rule_type": rule.rule_type,
-                                    "message": msg,
-                                    "link": "salary",
-                                }
-                            )
-
-            # ── Salary Day ──────────────────────────────────────
-            elif rule.rule_type == "salary_day":
-                trigger_day = _salary_trigger_day(rule, today)
-                if today.day >= trigger_day:
-                    already = ReminderLog.objects.filter(
-                        rule=rule,
-                        related_model="SalaryDay",
-                        related_id=today.month,
-                        fired_on=today,
-                    ).exists()
-                    if not already:
-                        msg = (
-                            rule.salary_message
-                            or f'Salary day reminder for {today.strftime("%B %Y")}.'
-                        )
-                        ReminderLog.objects.get_or_create(
-                            rule=rule,
-                            related_model="SalaryDay",
-                            related_id=today.month,
-                            fired_on=today,
-                            defaults={"message": msg},
-                        )
-                        results.append(
-                            {
-                                "rule_id": rule.id,
-                                "rule_name": rule.name,
-                                "rule_type": rule.rule_type,
-                                "message": msg,
-                                "link": "salary",
-                            }
-                        )
-
-            # ── Custom (future-ready, no hardcoded logic) ───────
-            elif rule.rule_type == "custom":
-                # Custom rules fire based on salary_day as a day-of-month trigger
-                trigger_day = _salary_trigger_day(rule, today)
-                if today.day >= trigger_day:
-                    already = ReminderLog.objects.filter(
-                        rule=rule,
-                        related_model="Custom",
-                        related_id=today.month,
-                        fired_on=today,
-                    ).exists()
-                    if not already:
-                        msg = rule.salary_message or rule.name
-                        ReminderLog.objects.get_or_create(
-                            rule=rule,
-                            related_model="Custom",
-                            related_id=today.month,
-                            fired_on=today,
-                            defaults={"message": msg},
-                        )
-                        results.append(
-                            {
-                                "rule_id": rule.id,
-                                "rule_name": rule.name,
-                                "rule_type": rule.rule_type,
-                                "message": msg,
-                                "link": "",
-                            }
-                        )
-
-        return JsonResponse({"reminders": results, "count": len(results)})
+@method_decorator(csrf_exempt, name="dispatch")
+class FixedAssetValuationRefreshView(View):
+    def post(self, request, pk):
+        asset = get_object_or_404(FixedAsset, pk=pk)
+        updated, provider_name = PropertyValuationService().refresh_asset(asset, today=timezone.localdate())
+        asset.refresh_from_db()
+        return JsonResponse(
+            {
+                "updated": updated,
+                "provider": provider_name,
+                "asset": asset.to_dict(),
+            }
+        )
 
 
 def _salary_trigger_day(rule, today):
@@ -3053,7 +2702,7 @@ class CertificateReportView(View):
             )
 
         total_interest = float(agg["total_interest"] or 0)
-        monthly_interest = (total_interest / 12) if total_interest else 0.0
+        monthly_interest = (total_interest) if total_interest else 0.0
 
         return JsonResponse(
             {
@@ -3390,6 +3039,7 @@ def _sync_vehicle_details(asset, details_data):
             "fuel_type": details_data.get("fuel_type", ""),
             "mileage": details_data.get("mileage", 0),
             "plate_number": details_data.get("plate_number", ""),
+            "license_expiry_date": _parse_iso_date(details_data.get("license_expiry_date")),
             "color": details_data.get("color", ""),
         },
     )
@@ -4775,7 +4425,10 @@ class FixedAssetExcelReportView(View):
 
         wb = openpyxl.Workbook()
         summary_ws = wb.active
-        summary_ws.title = "Summary"
+        if summary_ws is None:
+            summary_ws = wb.create_sheet(title="Summary")
+        else:
+            summary_ws.title = "Summary"
 
         header_font = Font(bold=True)
 

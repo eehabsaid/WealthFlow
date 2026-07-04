@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
-from typing import Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple, TypeVar, cast
 
 from django.db.models import Sum, Q
 
@@ -28,6 +28,7 @@ from core.services.financial_sync_service import FinancialSyncService
 REAL_ESTATE_ASSET_TYPES = {"Real Estate"}
 VEHICLE_ASSET_TYPES = {"Vehicles"}
 OTHER_ASSET_TYPES = {"Other Assets"}
+T = TypeVar("T")
 
 
 def _to_float(value) -> float:
@@ -59,12 +60,12 @@ def _normalize_gold_purity(purity_value) -> str:
 
 class NetWorthService:
     def __init__(self):
-        self._cache: Dict[str, object] = {}
+        self._cache: Dict[str, Any] = {}
 
-    def _cached(self, key: str, producer):
+    def _cached(self, key: str, producer: Callable[[], T]) -> T:
         if key not in self._cache:
             self._cache[key] = producer()
-        return self._cache[key]
+        return cast(T, self._cache[key])
 
     def _latest_rates(self) -> Dict[str, float]:
         def _load():

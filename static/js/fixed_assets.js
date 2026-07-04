@@ -1725,6 +1725,30 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                                 </div>
                             </div>
 
+                            <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:14px;margin-bottom:16px;">
+                              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+                                <div>
+                                  <div style="font-weight:600;color:var(--text-secondary);" data-i18n="property_valuation">Property Valuation</div>
+                                  <div style="font-size:12px;color:var(--text-muted);" data-i18n="property_valuation_desc">Automatic estimate is applied only when a configured provider can value this property.</div>
+                                </div>
+                                <button type="button" class="btn-primary-custom" id="btnRefreshPropertyValuation" data-i18n="refresh_property_valuation">Refresh Valuation</button>
+                              </div>
+                              <div class="row g-3">
+                                <div class="col-md-4">
+                                  <label class="form-label small text-light" data-i18n="last_estimated_market_price">Last Estimated Market Price</label>
+                                  <input type="number" step="0.01" class="form-control" id="re_last_estimated_market_price" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                  <label class="form-label small text-light" data-i18n="last_valuation_date">Last Valuation Date</label>
+                                  <input type="date" class="form-control" id="re_last_valuation_date" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                  <label class="form-label small text-light" data-i18n="valuation_provider">Valuation Provider</label>
+                                  <input type="text" class="form-control" id="re_valuation_provider" readonly>
+                                </div>
+                              </div>
+                            </div>
+
                             <hr class="my-4">
                             <div class="row g-3 mb-3">
                                 <div class="col-sm-6 col-md-4"><label class="form-label small text-light" data-i18n="apt_area">Property Area (Sqm)</label><input type="number" class="form-control" id="re_area"></div>
@@ -1832,6 +1856,7 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="fuel_type">Fuel Type</label><input type="text" class="form-control" id="vd_fuel_type"></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="mileage">Mileage</label><input type="number" step="0.01" class="form-control" id="vd_mileage"></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="plate_number">Plate Number</label><input type="text" class="form-control" id="vd_plate_number"></div>
+                              <div class="col-md-4"><label class="form-label text-light" data-i18n="vehicle_license_expiry">Vehicle License Expiry</label><input type="date" class="form-control" id="vd_license_expiry_date"></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="color">Color</label><input type="text" class="form-control" id="vd_color"></div>
                             </div>
                           </div>
@@ -2213,9 +2238,63 @@ async function showFixedAssetModal(assetId = null, options = {}) {
   document
     .getElementById("btnLocateProperty")
     .addEventListener("click", locatePropertyOnMap);
+  const refreshValuationButton = document.getElementById("btnRefreshPropertyValuation");
+  if (refreshValuationButton) {
+    refreshValuationButton.addEventListener("click", refreshPropertyValuation);
+  }
   initializePropertyMap();
   if (isEdit) {
     await loadFixedAsset(assetId);
+  }
+}
+
+function populatePropertyValuationFields(realEstate = {}) {
+  const estimateField = document.getElementById("re_last_estimated_market_price");
+  const dateField = document.getElementById("re_last_valuation_date");
+  const providerField = document.getElementById("re_valuation_provider");
+
+  if (estimateField) {
+    const value = realEstate?.last_estimated_market_price;
+    estimateField.value = value !== null && value !== undefined && value !== "" ? value : "";
+  }
+  if (dateField) {
+    dateField.value = realEstate?.last_valuation_date || "";
+  }
+  if (providerField) {
+    providerField.value = realEstate?.valuation_provider || "";
+  }
+}
+
+async function refreshPropertyValuation() {
+  if (!currentEditingAssetId) {
+    showToast(t("save_asset_before_valuation", "Save this asset first before refreshing valuation."), "warning");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/fixed-assets/${currentEditingAssetId}/valuation/refresh/`, {
+      method: "POST",
+    });
+    const payload = await response.json();
+
+    if (!response.ok) {
+      throw new Error(payload.error || t("error_refreshing_property_valuation", "Failed to refresh property valuation."));
+    }
+
+    const asset = payload.asset || {};
+    const realEstate = asset.real_estate || {};
+    document.getElementById("fa_current_value").value = asset.current_market_value || 0;
+    document.getElementById("fa_last_valuation_date").value = asset.last_valuation_date || "";
+    document.getElementById("fa_val_source").value = asset.valuation_source || "Manual";
+    populatePropertyValuationFields(realEstate);
+
+    if (payload.updated) {
+      showToast(t("property_valuation_refreshed", "Property valuation refreshed."), "success");
+    } else {
+      showToast(t("property_valuation_unavailable", "No automatic valuation was available for this property."), "warning");
+    }
+  } catch (error) {
+    showToast(error.message || t("error_refreshing_property_valuation", "Failed to refresh property valuation."), "error");
   }
 }
 
@@ -3003,6 +3082,7 @@ async function loadFixedAsset(assetId) {
     document.getElementById("vd_fuel_type").value = vehicle.fuel_type || "";
     document.getElementById("vd_mileage").value = vehicle.mileage || "";
     document.getElementById("vd_plate_number").value = vehicle.plate_number || "";
+    document.getElementById("vd_license_expiry_date").value = vehicle.license_expiry_date || "";
     document.getElementById("vd_color").value = vehicle.color || "";
 
     const gold = asset.gold_details || {};
@@ -3026,6 +3106,7 @@ async function loadFixedAsset(assetId) {
 
     if (asset.real_estate) {
       const re = asset.real_estate;
+      populatePropertyValuationFields(re);
       document.getElementById("re_country").value = re.country || "";
       document.getElementById("re_governorate").value = re.governorate || "";
       document.getElementById("re_city").value = re.city || "";
@@ -3068,6 +3149,8 @@ async function loadFixedAsset(assetId) {
 
         initializePropertyMap(lat, lng);
       }
+    } else {
+      populatePropertyValuationFields({});
     }
 
     // ---------- Renovations ----------
@@ -4548,6 +4631,7 @@ function collectVehicleDetailsPayload() {
     fuel_type: document.getElementById("vd_fuel_type")?.value || "",
     mileage: parseFloat(document.getElementById("vd_mileage")?.value) || 0,
     plate_number: document.getElementById("vd_plate_number")?.value || "",
+    license_expiry_date: document.getElementById("vd_license_expiry_date")?.value || null,
     color: document.getElementById("vd_color")?.value || "",
   };
 }
@@ -4618,6 +4702,11 @@ function addInsuranceRow(data = {}) {
   const container = document.getElementById("insuranceContainer");
   if (!container) return;
 
+  const insuranceId = data.id || null;
+  const documentsButton = insuranceId
+    ? `<button type="button" class="btn btn-outline-secondary w-100" onclick="openInsuranceDocumentsModal(${insuranceId})" data-i18n="documents_title">Documents</button>`
+    : `<button type="button" class="btn btn-outline-secondary w-100" onclick="showToast(t('documents_save_first', 'Save this record first to manage documents.'), 'warning')" data-i18n="documents_title">Documents</button>`;
+
   const row = document.createElement("div");
   row.className = "row g-2 mb-3 insurance-row";
   row.innerHTML = `
@@ -4625,10 +4714,41 @@ function addInsuranceRow(data = {}) {
     <div class="col-md-3"><label class="form-label small" data-i18n="policy_number">Policy Number</label><input type="text" class="form-control insurance-policy" value="${data.policy_number || ""}"></div>
     <div class="col-md-3"><label class="form-label small" data-i18n="expiry_date">Expiry Date</label><input type="date" class="form-control insurance-expiry" value="${data.expiry_date || ""}"></div>
     <div class="col-md-2"><label class="form-label small" data-i18n="premium">Premium</label><input type="number" step="0.01" class="form-control insurance-premium" value="${data.premium || ""}"></div>
+    <div class="col-md-2"><label class="form-label small">&nbsp;</label>${documentsButton}</div>
     <div class="col-md-1"><label class="form-label small">&nbsp;</label><button type="button" class="btn btn-danger w-100" onclick="this.closest('.insurance-row').remove()"><i class="bi bi-trash"></i></button></div>
   `;
   container.appendChild(row);
   applyTranslations();
+}
+
+function openInsuranceDocumentsModal(insuranceId) {
+  if (!insuranceId) {
+    showToast(t("documents_save_first", "Save this record first to manage documents."), "warning");
+    return;
+  }
+
+  showModal(`
+    <div class="modal-header">
+      <h5 class="modal-title" data-i18n="documents_title">${t("documents_title", "Documents")}</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <div id="insuranceDocumentManagerContainer"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="close">${t("close", "Close")}</button>
+    </div>
+  `);
+  applyTranslations();
+
+  if (window.DocumentManager) {
+    window.DocumentManager.init({
+      containerId: "insuranceDocumentManagerContainer",
+      parentType: "asset_insurance",
+      parentId: insuranceId,
+      disabledMessage: t("documents_save_first", "Save this record first to manage documents."),
+    });
+  }
 }
 
 function collectInsurance() {
@@ -4662,6 +4782,8 @@ window.deleteFixedAssetFromGoldGroup = deleteFixedAssetFromGoldGroup;
 window.handleAssetWindowClose = handleAssetWindowClose;
 window.clearGoldPurityReturnContext = clearGoldPurityReturnContext;
 window.showSaleModal = showSaleModal;
+window.openInsuranceDocumentsModal = openInsuranceDocumentsModal;
+window.refreshPropertyValuation = refreshPropertyValuation;
 
 if (window.location.hash === "#fixed-assets") {
   renderFixedAssets();
