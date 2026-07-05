@@ -45,6 +45,7 @@ PAGE_PERMISSION_CHOICES = [
     ("reports", "Reports"),
     ("fixed_assets", "Fixed Assets"),
     ("advanced_reports", "Advanced Reports"),
+    ("financial_advisor", "Financial Advisor"),
 ]
 
 
