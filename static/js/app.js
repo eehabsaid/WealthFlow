@@ -860,6 +860,7 @@ function toggleTheme() {
     html.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
     _updateThemeBtn(next);
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: next } }));
 }
 
 function _updateThemeBtn(theme) {

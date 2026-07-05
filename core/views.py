@@ -99,6 +99,7 @@ from core.services.property_valuation_service import PropertyValuationService
 from core.services.reminder_automation_service import ReminderAutomationService
 from core.services.auth_workflow_service import AuthWorkflowService, EmailTemplateService
 from core.services.cash_flow_forecast_service import CashFlowForecastService
+from core.services.wealth_growth_forecast_service import WealthGrowthForecastService
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ExportExcelWorkbookView(View):
@@ -3084,6 +3085,18 @@ class CashFlowForecastView(View):
 
         _run_certificate_interest_sync()
         payload = CashFlowForecastService(today=date.today()).payload()
+        return JsonResponse(payload)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class WealthGrowthForecastView(View):
+    def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+
+        _run_certificate_interest_sync()
+        payload = WealthGrowthForecastService(today=date.today()).payload()
         return JsonResponse(payload)
 
 # ============================================================

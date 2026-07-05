@@ -20,6 +20,9 @@ const FINANCIAL_ADVISOR_TABS = [
 const FINANCIAL_ADVISOR_ACTIVE_TAB_KEY = "wf_financial_advisor_active_tab";
 let _cashFlowForecastLoaded = false;
 let _cashFlowForecastData = null;
+let _wealthGrowthForecastLoaded = false;
+let _wealthGrowthForecastData = null;
+let _wealthGrowthForecastThemeListenerAttached = false;
 
 function _cashFlowPaneId() {
   return "fa-pane-cash-flow-forecast";
@@ -31,6 +34,23 @@ function _money(value) {
 
 function _eventTranslationKey(eventType) {
   return `cash_flow_event_${eventType || "none"}`;
+}
+
+function _wealthComponentTitle(key) {
+  return {
+    liquid_cash: "wealth_growth_component_liquid_cash",
+    fixed_assets: "wealth_growth_component_fixed_assets",
+    gold: "wealth_growth_component_gold",
+    certificates: "wealth_growth_component_certificates",
+  }[key] || key;
+}
+
+function _scenarioTitle(key) {
+  return {
+    conservative: "wealth_growth_scenario_conservative",
+    expected: "wealth_growth_scenario_expected",
+    optimistic: "wealth_growth_scenario_optimistic",
+  }[key] || key;
 }
 
 function _renderCashFlowLoading() {
@@ -55,6 +75,274 @@ function _renderCashFlowError() {
     </div>
   `;
   applyTranslations();
+}
+
+function _renderWealthGrowthLoading() {
+  const pane = document.getElementById("fa-pane-wealth-growth-forecast");
+  if (!pane) return;
+
+  pane.innerHTML = `
+    <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
+      <div class="card-body" style="padding:24px; color:var(--text-secondary);" data-i18n="wealth_growth_loading"></div>
+    </div>
+  `;
+  applyTranslations();
+}
+
+function _renderWealthGrowthError() {
+  const pane = document.getElementById("fa-pane-wealth-growth-forecast");
+  if (!pane) return;
+
+  pane.innerHTML = `
+    <div class="alert alert-danger" style="background:var(--bg-secondary); border-color:var(--border-color); color:var(--text-primary);">
+      <span data-i18n="wealth_growth_error"></span>
+    </div>
+  `;
+  applyTranslations();
+}
+
+function _destroyChart(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || !window.Chart) return;
+  const existing = Chart.getChart(canvas);
+  if (existing) existing.destroy();
+}
+
+function _themeColor(variableName, fallback) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+  return value || fallback;
+}
+
+function _pageDirection() {
+  const htmlDir = (document.documentElement.getAttribute("dir") || "ltr").toLowerCase();
+  return htmlDir === "rtl" ? "rtl" : "ltr";
+}
+
+function _drawWealthGrowthChart(data) {
+  const canvas = document.getElementById("wealthGrowthChart");
+  if (!canvas || !window.Chart) return;
+
+  _destroyChart("wealthGrowthChart");
+
+  const direction = _pageDirection();
+  const isRTL = direction === "rtl";
+  const primaryText = _themeColor("--text-primary", "#e8f0fe");
+  const secondaryText = _themeColor("--text-secondary", "#7b93c9");
+  const gridColor = "rgba(123, 147, 201, 0.16)";
+
+  canvas.setAttribute("dir", direction);
+  canvas.style.direction = direction;
+  const chartWrapper = canvas.parentElement;
+  if (chartWrapper) {
+    chartWrapper.setAttribute("dir", direction);
+  }
+
+  const labels = data.month_labels || [];
+  const series = data.series || {};
+  const conservative = (series.conservative?.points || []).map((p) => p.net_worth);
+  const expected = (series.expected?.points || []).map((p) => p.net_worth);
+  const optimistic = (series.optimistic?.points || []).map((p) => p.net_worth);
+
+  new Chart(canvas, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        { label: t("wealth_growth_scenario_conservative", "Conservative"), data: conservative, borderColor: "#6c757d", backgroundColor: "rgba(108,117,125,0.12)", tension: 0.3, pointRadius: 2, borderWidth: 2 },
+        { label: t("wealth_growth_scenario_expected", "Expected"), data: expected, borderColor: "#1a6ef5", backgroundColor: "rgba(26,110,245,0.12)", tension: 0.3, pointRadius: 2, borderWidth: 2 },
+        { label: t("wealth_growth_scenario_optimistic", "Optimistic"), data: optimistic, borderColor: "#20c997", backgroundColor: "rgba(32,201,151,0.12)", tension: 0.3, pointRadius: 2, borderWidth: 2 },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { rtl: isRTL, reverse: isRTL, labels: { color: primaryText, textDirection: direction } },
+        tooltip: {
+          rtl: isRTL,
+          textDirection: direction,
+          titleColor: primaryText,
+          bodyColor: primaryText,
+          backgroundColor: "rgba(13, 21, 48, 0.96)",
+          borderColor: gridColor,
+          borderWidth: 1,
+          callbacks: { label: (ctx) => `${ctx.dataset.label}: ${fmt(ctx.raw)}` },
+        },
+      },
+      scales: {
+        x: { reverse: isRTL, ticks: { color: secondaryText, textDirection: direction }, grid: { color: gridColor } },
+        y: { position: isRTL ? "right" : "left", ticks: { color: secondaryText, align: isRTL ? "end" : "start" }, grid: { color: gridColor } },
+      },
+    },
+  });
+}
+
+function _attachWealthGrowthThemeListener() {
+  if (_wealthGrowthForecastThemeListenerAttached) return;
+  window.addEventListener("themeChanged", () => {
+    if (_wealthGrowthForecastLoaded && _wealthGrowthForecastData) {
+      _renderWealthGrowthForecast(_wealthGrowthForecastData);
+    }
+  });
+  _wealthGrowthForecastThemeListenerAttached = true;
+}
+
+function _renderWealthGrowthForecast(payload) {
+  const pane = document.getElementById("fa-pane-wealth-growth-forecast");
+  if (!pane) return;
+
+  const current = payload?.current_net_worth || 0;
+  const checkpoints = payload?.checkpoints || {};
+  const breakdown = payload?.breakdown || {};
+  const summary = payload?.summary || {};
+  const scenarioCards = payload?.scenario_cards || {};
+
+  const periodCards = [
+    { key: "wealth_growth_current_net_worth", value: checkpoints.current || 0 },
+    { key: "wealth_growth_end_next_month", value: checkpoints.next_month || 0 },
+    { key: "wealth_growth_end_third_month", value: checkpoints.month_3 || 0 },
+    { key: "wealth_growth_end_sixth_month", value: checkpoints.month_6 || 0 },
+    { key: "wealth_growth_end_twelfth_month", value: checkpoints.month_12 || 0 },
+  ];
+
+  const scenarioCardKeys = ["conservative", "expected", "optimistic"];
+
+  const scenarioCardsHtml = scenarioCardKeys.map((key) => {
+    const card = scenarioCards[key] || {};
+    return `
+      <div class="col-12 col-md-4">
+        <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.25); box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset;">
+          <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="${_scenarioTitle(key)}"></div>
+          <div style="color:var(--text-primary); font-size:12px; margin-bottom:8px; opacity:0.9;" data-i18n="wealth_growth_scenario_label"></div>
+          <div class="asset-summary-value" style="font-size:1.5rem; color:var(--text-primary);">${_money(card.forecast || 0)}</div>
+          <div style="margin-top:8px; color:var(--text-primary); font-size:12px;">
+            <span data-i18n="wealth_growth_difference"></span>: ${_money(card.difference || 0)}
+          </div>
+          <div style="color:var(--text-primary); font-size:12px;">
+            <span data-i18n="wealth_growth_growth_pct"></span>: ${fmtpresent(card.growth_pct || 0)}%
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const breakdownKeys = ["liquid_cash", "fixed_assets", "gold", "certificates"];
+  const breakdownHtml = breakdownKeys.map((key) => {
+    const item = breakdown[key] || {};
+    return `
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.18); box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset;">
+          <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="${_wealthComponentTitle(key)}"></div>
+          <div style="display:grid;gap:6px;">
+            <div style="color:var(--text-primary);"><span style="font-weight:600;" data-i18n="wealth_growth_current"></span>: ${_money(item.current || 0)}</div>
+            <div style="color:var(--text-primary);"><span style="font-weight:600;" data-i18n="wealth_growth_forecast"></span>: ${_money(item.forecast || 0)}</div>
+            <div style="color:var(--text-primary);"><span style="font-weight:600;" data-i18n="wealth_growth_difference"></span>: ${_money(item.difference || 0)}</div>
+            <div style="color:var(--text-primary);"><span style="font-weight:600;" data-i18n="wealth_growth_growth_pct"></span>: ${fmtpresent(item.growth_pct || 0)}%</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const insightKey = summary.insight_key || "wealth_growth_insight_balanced";
+
+  pane.innerHTML = `
+    <div class="card border-0 mb-4" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
+      <div class="card-body" style="padding:16px; height:360px;">
+        <div style="color:var(--text-primary); font-weight:700; margin-bottom:12px;" data-i18n="wealth_growth_chart_title"></div>
+        <div style="height:300px; position:relative;">
+          <canvas id="wealthGrowthChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      ${periodCards.map((card) => `
+        <div class="col-12 col-sm-6 col-xl">
+          <div class="asset-summary-card h-100" style="background:var(--bg-secondary);">
+            <div class="asset-summary-label" data-i18n="${card.key}"></div>
+            <div class="asset-summary-value">${_money(card.value)}</div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="row g-3 mb-4">
+      ${scenarioCardsHtml}
+    </div>
+
+    <div class="row g-3 mb-4">
+      ${breakdownHtml}
+    </div>
+
+    <div class="card border-0 mb-4" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
+      <div class="card-body" style="padding:20px;">
+        <div style="color:var(--text-primary); font-weight:700; margin-bottom:12px;" data-i18n="wealth_growth_summary_title"></div>
+        <div class="row g-3">
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.18);">
+              <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="wealth_growth_expected_increase"></div>
+              <div class="asset-summary-value" style="font-size:1.5rem; color:var(--text-primary);">${_money(summary.expected_net_worth_increase || 0)}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.18);">
+              <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="wealth_growth_expected_growth_pct"></div>
+              <div class="asset-summary-value" style="font-size:1.5rem; color:var(--text-primary);">${fmtpresent(summary.expected_growth_pct || 0)}%</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.18);">
+              <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="wealth_growth_monthly_increase"></div>
+              <div class="asset-summary-value" style="font-size:1.5rem; color:var(--text-primary);">${_money(summary.estimated_monthly_wealth_increase || 0)}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-xl-6">
+            <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.18);">
+              <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="wealth_growth_largest_appreciating_asset"></div>
+              <div class="asset-summary-value" style="font-size:1.35rem; color:var(--text-primary);" data-i18n="${_wealthComponentTitle(summary.largest_appreciating_asset?.key || 'liquid_cash')}"></div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-xl-6">
+            <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.18);">
+              <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="wealth_growth_fastest_growing_category"></div>
+              <div class="asset-summary-value" style="font-size:1.35rem; color:var(--text-primary);" data-i18n="${_wealthComponentTitle(summary.fastest_growing_asset_category?.key || 'liquid_cash')}"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-info" style="background:var(--bg-secondary); border-color:var(--border-color); color:var(--text-primary);">
+      <span data-i18n="${insightKey}"></span>
+    </div>
+  `;
+
+  applyTranslations();
+  _drawWealthGrowthChart(payload);
+  _attachWealthGrowthThemeListener();
+}
+
+async function loadWealthGrowthForecast(force = false) {
+  if (_wealthGrowthForecastData && !force) {
+    _renderWealthGrowthForecast(_wealthGrowthForecastData);
+    _wealthGrowthForecastLoaded = true;
+    return;
+  }
+
+  _renderWealthGrowthLoading();
+  try {
+    const response = await fetch("/api/financial-advisor/wealth-growth-forecast/");
+    if (!response.ok) {
+      throw new Error("wealth_growth_fetch_failed");
+    }
+    const payload = await response.json();
+    _wealthGrowthForecastData = payload;
+    _renderWealthGrowthForecast(payload);
+    _wealthGrowthForecastLoaded = true;
+  } catch (error) {
+    _renderWealthGrowthError();
+  }
 }
 
 function _renderCashFlowForecast(payload) {
@@ -243,16 +531,21 @@ function renderFinancialAdvisor() {
       aria-labelledby="fa-tab-${tab.id}"
       tabindex="0"
     >
+        ${tab.id === "wealth-growth-forecast" ? `
+        <div id="fa-wealth-growth-content"></div>
+        ` : ""}
       ${tab.id === "cash-flow-forecast" ? `
       <div id="fa-cash-flow-content"></div>
       ` : `
+        ${tab.id === "wealth-growth-forecast" ? "" : `
       <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
         <div class="card-body" style="padding:24px;">
           <h5 style="color:var(--text-primary); margin-bottom:10px;" data-i18n="financial_advisor_feature_coming_soon"></h5>
           <p style="color:var(--text-secondary); margin:0;" data-i18n="financial_advisor_next_phase_description"></p>
         </div>
       </div>
-      `}
+        `}
+        `}
     </div>
   `).join("");
 
@@ -293,6 +586,8 @@ function renderFinancialAdvisor() {
         }
         if (targetSelector === `#${_cashFlowPaneId()}`) {
           loadCashFlowForecast();
+        } else if (targetSelector === "#fa-pane-wealth-growth-forecast") {
+          loadWealthGrowthForecast();
         }
       });
     });
@@ -300,6 +595,8 @@ function renderFinancialAdvisor() {
 
   if (activeTabId === "cash-flow-forecast") {
     loadCashFlowForecast();
+  } else if (activeTabId === "wealth-growth-forecast") {
+    loadWealthGrowthForecast();
   }
 }
 
