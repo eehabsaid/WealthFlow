@@ -10,6 +10,7 @@ let _companies   = [];
 let _banks       = [];
 let _activeRoute = '';
 let _allowedPages = [];
+let _appInitialized = false;
 
 window.translations = {};
 
@@ -21,12 +22,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyStoredTheme();
     await loadLanguage(localStorage.getItem('lang') || 'en');
     await initApp();
+    _appInitialized = true;
+    window.__wfRouterReady = true;
     window.addEventListener('hashchange', route);
     route();
 });
 
 document.addEventListener('languageChanged', () => {
-    if (typeof route === 'function') {
+    if (_appInitialized && typeof route === 'function') {
         route();
     }
 });
@@ -470,8 +473,13 @@ const ROUTES = {
 };
 
 function route() {
+    if (!_appInitialized) {
+        return;
+    }
+
     const requested = window.location.hash.replace('#', '');
-    const hash = requested || (shouldShowWelcomeOnly() ? 'welcome' : getFirstAllowedRoute());
+    const storedRoute = localStorage.getItem('wf_last_route') || '';
+    const hash = requested || storedRoute || (shouldShowWelcomeOnly() ? 'welcome' : getFirstAllowedRoute());
 
     if (shouldShowWelcomeOnly() && hash !== 'welcome') {
         navigate('welcome');
@@ -492,6 +500,7 @@ function route() {
     }
 
     _activeRoute = hash;
+    localStorage.setItem('wf_last_route', hash);
 
     // Highlight active nav item
     document.querySelectorAll('.nav-item').forEach(el =>
@@ -528,6 +537,7 @@ function route() {
 window.route = route;
 
 function navigate(route) {
+    localStorage.setItem('wf_last_route', route);
     window.location.hash = route;
     closeMobileSidebar();
     // Force hash re-trigger in case hash hasn't changed

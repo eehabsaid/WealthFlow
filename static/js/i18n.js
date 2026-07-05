@@ -35,7 +35,7 @@ async function loadLanguage(code) {
         });
 
         // Re-render active route so runtime-computed labels update immediately.
-        if (typeof window.route === 'function') {
+        if (window.__wfRouterReady && typeof window.route === 'function') {
             window.route();
         }
 

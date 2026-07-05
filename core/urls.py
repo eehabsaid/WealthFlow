@@ -163,6 +163,10 @@ urlpatterns = [
         views.CertificateForecastView.as_view(),
     ),
     path(
+        "api/financial-advisor/cash-flow-forecast/",
+        views.CashFlowForecastView.as_view(),
+    ),
+    path(
         "api/documents/categories/",
         views.DocumentCategoriesView.as_view(),
     ),

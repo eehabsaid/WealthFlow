@@ -98,6 +98,7 @@ from core.services.gold_valuation_service import GoldValuationService
 from core.services.property_valuation_service import PropertyValuationService
 from core.services.reminder_automation_service import ReminderAutomationService
 from core.services.auth_workflow_service import AuthWorkflowService, EmailTemplateService
+from core.services.cash_flow_forecast_service import CashFlowForecastService
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ExportExcelWorkbookView(View):
@@ -3072,6 +3073,18 @@ class CertificateForecastView(View):
     def get(self, request):
         _run_certificate_interest_sync()
         return JsonResponse(NetWorthService().certificate_forecast_payload(today=date.today()))
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class CashFlowForecastView(View):
+    def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+
+        _run_certificate_interest_sync()
+        payload = CashFlowForecastService(today=date.today()).payload()
+        return JsonResponse(payload)
 
 # ============================================================
 # Fixed Assets APIs
