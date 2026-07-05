@@ -781,6 +781,7 @@ class UserProfile(models.Model):
     avatar_b64 = models.TextField(blank=True, default="")
     # avatar_b64 stores: "data:image/jpeg;base64,/9j/4AAQ..." (full data URL)
     bio = models.TextField(blank=True)
+    birthday = models.DateField(null=True, blank=True)
     email_verified = models.BooleanField(default=True)
     account_status = models.CharField(max_length=50, default="active")
     status_reason = models.TextField(blank=True, default="")
@@ -824,6 +825,7 @@ class UserProfile(models.Model):
             "full_name": self.full_name,
             "avatar_url": self.avatar_url(),
             "bio": self.bio,
+            "birthday": self.birthday.isoformat() if self.birthday else "",
             "email_verified": self.email_verified,
             "account_status": self.account_status,
             "status_reason": self.status_reason,

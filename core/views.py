@@ -2482,7 +2482,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 class UpdateProfileView(View):
     """
     GET  /api/auth/profile/          — get current user profile
-    POST /api/auth/profile/          — update full_name / bio
+    POST /api/auth/profile/          — update full_name / bio / birthday
     POST /api/auth/profile/avatar/   — upload profile picture (multipart)
     """
 
@@ -2542,6 +2542,20 @@ class UpdateProfileView(View):
             request.user.save(update_fields=["first_name", "last_name"])
         if "bio" in data:
             profile.bio = data["bio"]
+        if "birthday" in data:
+            raw_birthday = data.get("birthday")
+            if raw_birthday in (None, ""):
+                profile.birthday = None
+            elif isinstance(raw_birthday, str):
+                try:
+                    parsed_birthday = datetime.date.fromisoformat(raw_birthday.strip())
+                except ValueError:
+                    return JsonResponse({"error": "Invalid birthday format. Use YYYY-MM-DD."}, status=400)
+                if parsed_birthday > timezone.localdate():
+                    return JsonResponse({"error": "Birthday cannot be in the future."}, status=400)
+                profile.birthday = parsed_birthday
+            else:
+                return JsonResponse({"error": "Invalid birthday format. Use YYYY-MM-DD."}, status=400)
 
         profile.save()
         return JsonResponse(
