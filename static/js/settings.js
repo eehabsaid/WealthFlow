@@ -4,6 +4,7 @@
 
 // ── Module state ──────────────────────────────────────────────────────────
 let globalLangs = [];
+let usersLoadRequestId = 0;
 
 // ════════════════════════════════════════════════════════════════════════════
 // MAIN ROUTER
@@ -17,6 +18,7 @@ async function renderSettings(route) {
         banks:             'banks',
         currency:          'currency',
         users:             'users',
+        emailtemplates:    'emailtemplates',
         translationcoverage: 'translationcoverage',
         translations:      'translations',
         reminders:         'reminders',
@@ -37,6 +39,7 @@ async function renderSettings(route) {
         { id: 'banks',              i18n: 'settings_banks',             fallback: 'Banks',             route: 'settings-banks'              },
         { id: 'currency',           i18n: 'settings_currency',          fallback: 'Currency',          route: 'settings-currency'           },
         { id: 'users',              i18n: 'settings_users',             fallback: 'Users',             route: 'settings-users'              },
+        { id: 'emailtemplates',     i18n: 'settings_email_templates',   fallback: 'Email Templates',   route: 'settings-emailtemplates'     },
         { id: 'translations',       i18n: 'settings_translations',      fallback: 'Translations',      route: 'settings-translations'       },
         { id: 'translationcoverage',i18n: 'settings_translation_coverage', fallback: 'Translation Coverage', route: 'settings-translationcoverage' },
         { id: 'reminders',          i18n: 'tab_reminders',              fallback: 'Reminders',         route: 'settings-reminders'          },
@@ -72,6 +75,7 @@ async function renderSettings(route) {
         companies:          renderCompanySettings,
         currency:           renderCurrencySettings,
         users:              renderUserSettings,
+        emailtemplates:     renderEmailTemplateSettings,
         translations:       renderTranslationSettings,
         translationcoverage:renderTranslationCoverage,
         reminders:          renderReminderSettings,
@@ -122,12 +126,340 @@ async function renderDashboardSettings() {
     applyTranslations();
 }
 
+function applySmtpPreset(provider) {
+    const host = document.getElementById('smtpHost');
+    const port = document.getElementById('smtpPort');
+    const tls = document.getElementById('smtpUseTls');
+    const ssl = document.getElementById('smtpUseSsl');
+
+    if (!host || !port || !tls || !ssl) {
+        return;
+    }
+
+    if (provider === 'gmail') {
+        host.value = 'smtp.gmail.com';
+        port.value = '587';
+        tls.value = 'true';
+        ssl.value = 'false';
+        return;
+    }
+
+    if (provider === 'outlook') {
+        host.value = 'smtp-mail.outlook.com';
+        port.value = '587';
+        tls.value = 'true';
+        ssl.value = 'false';
+    }
+}
+
+async function saveSmtpSettingsFromGui() {
+    const host = (document.getElementById('smtpHost')?.value || '').trim();
+    const port = (document.getElementById('smtpPort')?.value || '').trim();
+    const username = (document.getElementById('smtpUsername')?.value || '').trim();
+    const password = (document.getElementById('smtpPassword')?.value || '').trim();
+    const senderEmail = (document.getElementById('smtpSenderEmail')?.value || '').trim();
+    const adminEmail = (document.getElementById('smtpAdminEmail')?.value || '').trim();
+    const useTls = document.getElementById('smtpUseTls')?.value === 'true' ? 'true' : 'false';
+    const useSsl = document.getElementById('smtpUseSsl')?.value === 'true' ? 'true' : 'false';
+
+    if (!host || !port || !username || !password || !senderEmail) {
+        showToast(t('smtp_required_fields', 'Please fill sender email, SMTP host, port, username, and password.'), 'error');
+        return;
+    }
+
+    if (!/^\d+$/.test(port)) {
+        showToast(t('smtp_port_invalid', 'SMTP port must be a valid number.'), 'error');
+        return;
+    }
+
+    if (useTls === 'true' && useSsl === 'true') {
+        showToast(t('smtp_tls_ssl_conflict', 'Enable either TLS or SSL, not both at the same time.'), 'error');
+        return;
+    }
+
+    const payload = [
+        ['sender_email', senderEmail],
+        ['administrator_notification_email', adminEmail],
+        ['smtp_host', host],
+        ['smtp_port', port],
+        ['smtp_username', username],
+        ['smtp_password', password],
+        ['smtp_use_tls', useTls],
+        ['smtp_use_ssl', useSsl],
+    ];
+
+    try {
+        for (const [key, value] of payload) {
+            const res = await fetch('/api/settings/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key, value }),
+            });
+            if (!res.ok) {
+                throw new Error(`save_failed_${key}`);
+            }
+        }
+        showToast(t('settings_saved', 'Settings saved ✓'));
+    } catch {
+        showToast(t('settings_save_failed', 'Save failed'), 'error');
+    }
+}
+
+async function testSmtpSettingsFromGui() {
+    const host = (document.getElementById('smtpHost')?.value || '').trim();
+    const port = (document.getElementById('smtpPort')?.value || '').trim();
+    const username = (document.getElementById('smtpUsername')?.value || '').trim();
+    const password = (document.getElementById('smtpPassword')?.value || '').trim();
+    const senderEmail = (document.getElementById('smtpSenderEmail')?.value || '').trim();
+    const adminEmail = (document.getElementById('smtpAdminEmail')?.value || '').trim();
+    const testRecipient = (document.getElementById('smtpTestRecipient')?.value || '').trim();
+    const useTls = document.getElementById('smtpUseTls')?.value === 'true' ? 'true' : 'false';
+    const useSsl = document.getElementById('smtpUseSsl')?.value === 'true' ? 'true' : 'false';
+
+    if (!host || !port || !username || !password || !senderEmail) {
+        showToast(t('smtp_required_fields', 'Please fill sender email, SMTP host, port, username, and password.'), 'error');
+        return;
+    }
+
+    if (!/^\d+$/.test(port)) {
+        showToast(t('smtp_port_invalid', 'SMTP port must be a valid number.'), 'error');
+        return;
+    }
+
+    if (useTls === 'true' && useSsl === 'true') {
+        showToast(t('smtp_tls_ssl_conflict', 'Enable either TLS or SSL, not both at the same time.'), 'error');
+        return;
+    }
+
+    const payload = [
+        ['sender_email', senderEmail],
+        ['administrator_notification_email', adminEmail],
+        ['smtp_host', host],
+        ['smtp_port', port],
+        ['smtp_username', username],
+        ['smtp_password', password],
+        ['smtp_use_tls', useTls],
+        ['smtp_use_ssl', useSsl],
+    ];
+
+    try {
+        for (const [key, value] of payload) {
+            const saveRes = await fetch('/api/settings/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key, value }),
+            });
+            if (!saveRes.ok) {
+                throw new Error(`save_failed_${key}`);
+            }
+        }
+
+        const testRes = await fetch('/api/settings/email-test/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to_email: testRecipient }),
+        });
+        const data = await testRes.json();
+        const messageKey = data.message_key || 'smtp_test_error_generic';
+        if (data.ok) {
+            showToast(t(messageKey, 'SMTP test email sent successfully.'), 'success');
+            return;
+        }
+        showToast(t(messageKey, 'SMTP test failed.'), 'error');
+    } catch {
+        showToast(t('smtp_test_error_generic', 'SMTP test failed. Please verify your settings and provider policy.'), 'error');
+    }
+}
+
 function saveAppSetting(key, value) {
     fetch('/api/settings/', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ key, value }),
     }).then(() => showToast(t('settings_saved', 'Settings saved ✓')));
+}
+
+async function renderEmailTemplateSettings() {
+    const lang = currentLang ? currentLang() : (localStorage.getItem('lang') || 'en');
+    const [templatesRes, settingsRes] = await Promise.all([
+        fetch(`/api/settings/email-templates/?lang=${encodeURIComponent(lang)}`),
+        fetch('/api/settings/'),
+    ]);
+    const data = await templatesRes.json();
+    const settingsData = await settingsRes.json();
+    const s = settingsData.settings || {};
+    const smtpPort = s.smtp_port || '587';
+    const smtpTls = s.smtp_use_tls !== 'false';
+    const smtpSsl = s.smtp_use_ssl === 'true';
+    const rows = (data.items || []).map((item) => `
+        <tr>
+            <td data-i18n="email_template_${item.key}_name">${t(`email_template_${item.key}_name`, item.key)}</td>
+            <td>${item.subject || ''}</td>
+            <td>${item.description || ''}</td>
+            <td>${item.updated_at ? new Date(item.updated_at).toLocaleString(lang) : '—'}</td>
+            <td>
+                <button class="btn-icon" onclick="showEmailTemplateModal(${item.id})" data-i18n-title="edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn-icon" onclick="showEmailTemplateModal(${item.id}, true)" data-i18n-title="preview"><i class="bi bi-eye"></i></button>
+            </td>
+        </tr>
+    `).join('');
+
+    document.getElementById('settingsContent').innerHTML = `
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+                <div>
+                    <div style="font-weight:700;color:var(--text-primary);" data-i18n="smtp_settings">${t('smtp_settings', 'SMTP Settings')}</div>
+                    <div style="font-size:12px;color:var(--text-muted);" data-i18n="smtp_settings_desc">${t('smtp_settings_desc', 'Configure provider credentials used for verification, approval, and password reset emails.')}</div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn-secondary-custom" onclick="applySmtpPreset('gmail')" data-i18n="smtp_preset_gmail">${t('smtp_preset_gmail', 'Use Gmail Preset')}</button>
+                    <button class="btn-secondary-custom" onclick="applySmtpPreset('outlook')" data-i18n="smtp_preset_outlook">${t('smtp_preset_outlook', 'Use Outlook Preset')}</button>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_sender_email">${t('smtp_sender_email', 'Sender Email')}</label>
+                    <input id="smtpSenderEmail" class="form-control" type="email" value="${s.sender_email || ''}" placeholder="noreply@example.com">
+                </div>
+                <div class="col-md-6">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_admin_email">${t('smtp_admin_email', 'Administrator Notification Email')}</label>
+                    <input id="smtpAdminEmail" class="form-control" type="email" value="${s.administrator_notification_email || ''}" placeholder="admin@example.com">
+                </div>
+                <div class="col-md-4">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_host">${t('smtp_host', 'SMTP Host')}</label>
+                    <input id="smtpHost" class="form-control" type="text" value="${s.smtp_host || ''}" placeholder="smtp.gmail.com">
+                </div>
+                <div class="col-md-2">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_port">${t('smtp_port', 'Port')}</label>
+                    <input id="smtpPort" class="form-control" type="number" min="1" max="65535" step="1" value="${smtpPort}">
+                </div>
+                <div class="col-md-3">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_use_tls">${t('smtp_use_tls', 'Use TLS')}</label>
+                    <select id="smtpUseTls" class="form-select">
+                        <option value="true" ${smtpTls ? 'selected' : ''}>${t('yes', 'Yes')}</option>
+                        <option value="false" ${!smtpTls ? 'selected' : ''}>${t('no', 'No')}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_use_ssl">${t('smtp_use_ssl', 'Use SSL')}</label>
+                    <select id="smtpUseSsl" class="form-select">
+                        <option value="true" ${smtpSsl ? 'selected' : ''}>${t('yes', 'Yes')}</option>
+                        <option value="false" ${!smtpSsl ? 'selected' : ''}>${t('no', 'No')}</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_username">${t('smtp_username', 'SMTP Username')}</label>
+                    <input id="smtpUsername" class="form-control" type="text" value="${s.smtp_username || ''}" placeholder="username or API key id">
+                </div>
+                <div class="col-md-6">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_password">${t('smtp_password', 'SMTP Password')}</label>
+                    <input id="smtpPassword" class="form-control" type="password" value="${s.smtp_password || ''}" placeholder="app password or API key">
+                </div>
+                <div class="col-md-6">
+                    <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_test_recipient">${t('smtp_test_recipient', 'SMTP Test Recipient')}</label>
+                    <input id="smtpTestRecipient" class="form-control" type="email" value="${s.administrator_notification_email || s.sender_email || ''}" placeholder="recipient@example.com">
+                </div>
+            </div>
+            <div style="margin-top:10px;font-size:12px;color:var(--text-muted);" data-i18n="smtp_tls_ssl_hint">${t('smtp_tls_ssl_hint', 'Use either TLS or SSL based on your provider. For most providers, TLS=true and SSL=false with port 587.')}</div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+                <button class="btn-secondary-custom" onclick="renderEmailTemplateSettings()" data-i18n="reload">${t('reload', 'Reload')}</button>
+                <button class="btn-secondary-custom" onclick="testSmtpSettingsFromGui()" data-i18n="smtp_test_button">${t('smtp_test_button', 'Send Test Email')}</button>
+                <button class="btn-primary-custom" onclick="saveSmtpSettingsFromGui()" data-i18n="save_smtp_settings">${t('save_smtp_settings', 'Save SMTP Settings')}</button>
+            </div>
+        </div>
+
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_email_templates">${t('settings_email_templates', 'Email Templates')}</div>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="email_template_name">${t('email_template_name', 'Template Name')}</th>
+                            <th data-i18n="email_template_subject">${t('email_template_subject', 'Subject')}</th>
+                            <th data-i18n="description">${t('description', 'Description')}</th>
+                            <th data-i18n="last_updated">${t('last_updated', 'Last Updated')}</th>
+                            <th data-i18n="actions">${t('actions', 'Actions')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    applyTranslations();
+}
+
+async function showEmailTemplateModal(templateId, previewOnly = false) {
+    const lang = currentLang ? currentLang() : (localStorage.getItem('lang') || 'en');
+    const res = await fetch(`/api/settings/email-templates/${templateId}/?lang=${encodeURIComponent(lang)}`);
+    const item = await res.json();
+    const sample = {
+        UserName: 'Ehab',
+        Email: 'ehab@example.com',
+        VerificationLink: 'https://wealthflow.example/verify/token',
+        PasswordResetLink: 'https://wealthflow.example/reset/token',
+        ApprovalDate: '2026-07-05',
+        AppName: 'WealthFlow',
+        CurrentYear: '2026',
+    };
+    const renderPreview = (text) => Object.entries(sample).reduce((out, [key, value]) => out.split(`{{${key}}}`).join(value), String(text || ''));
+
+    showModal(`
+        <div class="modal-header">
+            <h5 class="modal-title" data-i18n="email_template_editor">${t('email_template_editor', 'Email Template Editor')}</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <div style="margin-bottom:12px;color:var(--text-secondary);font-weight:600;" data-i18n="email_template_${item.key}_name">${t(`email_template_${item.key}_name`, item.key)}</div>
+            <div class="mb-3">
+                <label data-i18n="email_template_subject">${t('email_template_subject', 'Subject')}</label>
+                <input id="emailTemplateSubject" class="form-control" value="${(item.subject || '').replace(/"/g, '&quot;')}" ${previewOnly ? 'disabled' : ''}>
+            </div>
+            <div class="mb-3">
+                <label data-i18n="email_template_body">${t('email_template_body', 'Email Body')}</label>
+                <textarea id="emailTemplateBody" class="form-control" rows="10" ${previewOnly ? 'disabled' : ''}>${item.body || ''}</textarea>
+            </div>
+            <div style="margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="email_template_preview">${t('email_template_preview', 'Preview')}</div>
+            <div id="emailTemplatePreview" style="white-space:pre-wrap;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:10px;padding:12px;line-height:1.7;">${renderPreview(item.body || '')}</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="btn_cancel">${t('btn_cancel', 'Cancel')}</button>
+            ${previewOnly ? '' : `<button class="btn-primary-custom" onclick="saveEmailTemplate(${item.id})" data-i18n="btn_save">${t('btn_save', 'Save')}</button>`}
+        </div>
+    `);
+    applyTranslations();
+
+    const bodyEl = document.getElementById('emailTemplateBody');
+    const subjectEl = document.getElementById('emailTemplateSubject');
+    const previewEl = document.getElementById('emailTemplatePreview');
+    const updatePreview = () => {
+        previewEl.textContent = `${renderPreview(subjectEl.value || '')}\n\n${renderPreview(bodyEl.value || '')}`.trim();
+    };
+    if (bodyEl && subjectEl && !previewOnly) {
+        bodyEl.addEventListener('input', updatePreview);
+        subjectEl.addEventListener('input', updatePreview);
+        updatePreview();
+    }
+}
+
+async function saveEmailTemplate(templateId) {
+    const lang = currentLang ? currentLang() : (localStorage.getItem('lang') || 'en');
+    const subject = document.getElementById('emailTemplateSubject')?.value || '';
+    const body = document.getElementById('emailTemplateBody')?.value || '';
+    const res = await fetch(`/api/settings/email-templates/${templateId}/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lang, subject, body }),
+    });
+    if (!res.ok) {
+        showToast(t('settings_save_failed', 'Save failed'), 'error');
+        return;
+    }
+    closeModal();
+    showToast(t('settings_saved', 'Settings saved ✓'));
+    renderEmailTemplateSettings();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1088,7 +1420,14 @@ async function renderUserSettings() {
 }
 
 async function loadUsers({ page = 1, pageSize = 10, q = '' } = {}) {
-    document.getElementById('settingsContent').innerHTML = `
+    const container = document.getElementById('settingsContent');
+    if (!container) {
+        return;
+    }
+
+    const requestId = ++usersLoadRequestId;
+
+    container.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_users">Users</div>
             <div style="display:flex;gap:8px">
@@ -1121,6 +1460,8 @@ async function loadUsers({ page = 1, pageSize = 10, q = '' } = {}) {
                     <th></th>
                     <th data-i18n="user_username">Username</th>
                     <th data-i18n="user_email">Email</th>
+                    <th data-i18n="auth_email_verified_label">Email Verified</th>
+                    <th data-i18n="auth_account_status_label">Account Status</th>
                     <th data-i18n="user_is_active">Active</th>
                     <th data-i18n="user_roles">Roles</th>
                     <th data-i18n="actions">Actions</th>
@@ -1136,17 +1477,40 @@ async function loadUsers({ page = 1, pageSize = 10, q = '' } = {}) {
             </select>
         </div>`;
 
-    document.getElementById('usersPageSize').value = pageSize;
+    const pageSizeEl = document.getElementById('usersPageSize');
+    if (pageSizeEl) {
+        pageSizeEl.value = pageSize;
+    }
 
     const resp = await fetch(`/api/users/?page=${page}&page_size=${pageSize}&q=${encodeURIComponent(q)}`);
     const data = await resp.json();
 
-    document.getElementById('usersTableBody').innerHTML = (data.users || []).map(u => `
+    if (requestId !== usersLoadRequestId) {
+        return;
+    }
+
+    const usersTableBody = document.getElementById('usersTableBody');
+    if (!usersTableBody) {
+        return;
+    }
+
+    const statusKeyForUser = (user) => {
+        const status = String(user.account_status || 'active');
+        if (status === 'pending_email_verification') return 'auth_status_verify_email';
+        if (status === 'pending_admin_approval') return 'auth_status_pending_admin_approval';
+        if (status === 'rejected') return 'auth_status_rejected';
+        if (status === 'disabled') return 'auth_status_disabled';
+        return 'auth_status_active_label';
+    };
+
+    usersTableBody.innerHTML = (data.users || []).map(u => `
         <tr>
             <td><input type="checkbox" class="user-select" data-id="${u.id}"></td>
             <td>${u.username}</td>
             <td>${u.email || '—'}</td>
-            <td data-i18n="${u.is_active ? 'user_is_active' : 'user_is_inactive'}"></td>
+            <td data-i18n="${u.email_verified ? 'yes' : 'no'}">${u.email_verified ? t('yes', 'Yes') : t('no', 'No')}</td>
+            <td data-i18n="${statusKeyForUser(u)}">${t(statusKeyForUser(u), u.account_status || 'active')}</td>
+            <td data-i18n="${u.is_active ? 'active' : 'inactive'}">${u.is_active ? t('active', 'Active') : t('inactive', 'Inactive')}</td>
             <td>
                 ${u.is_staff     ? '<span data-i18n="user_is_staff">Staff</span> ' : ''}
                 ${u.is_superuser ? '<span data-i18n="user_is_superuser">Superuser</span>' : ''}
@@ -1256,10 +1620,15 @@ async function showPermissionsModal(userId) {
 }
 
 function handleUserSearch() {
+    const pageSizeEl = document.getElementById('usersPageSize');
+    const qEl = document.getElementById('userSearch');
+    if (!pageSizeEl || !qEl) {
+        return;
+    }
     loadUsers({
         page:     1,
-        pageSize: document.getElementById('usersPageSize').value,
-        q:        document.getElementById('userSearch').value,
+        pageSize: pageSizeEl.value,
+        q:        qEl.value,
     });
 }
 
@@ -1293,8 +1662,13 @@ async function applyBulkAction() {
         const d = await res.json();
         if (res.ok) {
             showToast(`${d.changed || 0} users updated`);
-            loadUsers({ page: 1, pageSize: document.getElementById('usersPageSize').value,
-                        q: document.getElementById('userSearch').value });
+            const pageSizeEl = document.getElementById('usersPageSize');
+            const qEl = document.getElementById('userSearch');
+            loadUsers({
+                page: 1,
+                pageSize: pageSizeEl ? pageSizeEl.value : 10,
+                q: qEl ? qEl.value : '',
+            });
         } else showToast(d.error || 'Bulk action failed', 'error');
     } catch (e) { showToast('Network error', 'error'); }
 }

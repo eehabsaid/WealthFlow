@@ -55,6 +55,7 @@ from .models import (
     AssetRental,
     GoldTypeSetting,
     GoldPuritySetting,
+    EmailTemplate,
 
 )
 from django.core.paginator import Paginator, EmptyPage
@@ -96,6 +97,7 @@ from core.services.exchange_rate_service import ExchangeRateService
 from core.services.gold_valuation_service import GoldValuationService
 from core.services.property_valuation_service import PropertyValuationService
 from core.services.reminder_automation_service import ReminderAutomationService
+from core.services.auth_workflow_service import AuthWorkflowService, EmailTemplateService
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ExportExcelWorkbookView(View):
@@ -192,6 +194,7 @@ class AdminRequiredMixin(UserPassesTestMixin):
 
 
 def _build_user_dict(user):
+    profile = AuthWorkflowService.get_profile(user)
     return {
         "id": user.id,
         "username": user.username,
@@ -199,52 +202,234 @@ def _build_user_dict(user):
         "is_active": user.is_active,
         "is_staff": user.is_staff,
         "is_superuser": user.is_superuser,
+        "email_verified": profile.email_verified,
+        "account_status": profile.account_status,
     }
 
 
 def _get_user_allowed_pages(user):
+    if user.is_staff or user.is_superuser:
+        return PAGE_PERMISSION_KEYS
     return [perm.page for perm in user.page_permissions.all()]
+
+
+def _request_lang(request):
+    return (
+        request.POST.get("lang", "").strip()
+        or request.GET.get("lang", "").strip()
+        or request.COOKIES.get("wf_lang", "").strip()
+        or AppSettings.get("active_language", "en")
+        or "en"
+    )
+
+
+def _render_auth(request, template_name, extra_context=None):
+    context = {"lang_code": _request_lang(request)}
+    if extra_context:
+        context.update(extra_context)
+    response = render(request, template_name, context)
+    response.set_cookie("wf_lang", context["lang_code"], max_age=31536000, samesite="Lax")
+    return response
+
+
+def _render_auth_status(request, *, title_key, message_key, tone="info", cta_href="", cta_key=""):
+    return _render_auth(
+        request,
+        "auth_status.html",
+        {
+            "title_key": title_key,
+            "message_key": message_key,
+            "tone": tone,
+            "cta_href": cta_href,
+            "cta_key": cta_key,
+        },
+    )
 
 
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
+        lang = _request_lang(request)
+        user_for_status = User.objects.filter(username=username).first()
+        if user_for_status is not None:
+            block_key = AuthWorkflowService.get_login_block(user_for_status)
+            if block_key != "auth_error_invalid_login":
+                return _render_auth(request, "login.html", {"error_key": block_key, "prefill_username": username})
         user = authenticate(request, username=username, password=password)
         if user is not None:
+            profile = AuthWorkflowService.get_profile(user)
+            profile.preferred_language = lang
+            profile.save(update_fields=["preferred_language", "updated_at"])
             login(request, user)
-            return redirect("/")
-        return render(request, "login.html", {"error": "Invalid username or password"})
-    return render(request, "login.html")
+            response = redirect("/")
+            response.set_cookie("wf_lang", lang, max_age=31536000, samesite="Lax")
+            return response
+        return _render_auth(request, "login.html", {"error_key": "auth_error_invalid_login", "prefill_username": username})
+    return _render_auth(request, "login.html")
 
 
 def signup_view(request):
     if request.method == "POST":
-        username = request.POST.get("username", "").strip()
-        email = request.POST.get("email", "").strip()
-        password = request.POST.get("password", "")
-        confirm_password = request.POST.get("confirm_password", "")
-
-        if not username or not email or not password:
-            return render(request, "signup.html", {"error": "All fields are required"})
-        if password != confirm_password:
-            return render(request, "signup.html", {"error": "Passwords do not match"})
-        if User.objects.filter(username=username).exists():
-            return render(
-                request, "signup.html", {"error": "Username is already taken"}
-            )
-        if User.objects.filter(email=email).exists():
-            return render(
-                request, "signup.html", {"error": "Email is already registered"}
-            )
-
-        user = User.objects.create_user(
-            username=username, email=email, password=password
+        result = AuthWorkflowService.register_user(
+            request,
+            username=request.POST.get("username", ""),
+            email=request.POST.get("email", ""),
+            password=request.POST.get("password", ""),
+            confirm_password=request.POST.get("confirm_password", ""),
+            full_name=request.POST.get("full_name", ""),
+            lang=_request_lang(request),
         )
-        login(request, user)
-        return redirect("/")
+        context = {
+            "prefill_username": request.POST.get("username", "").strip(),
+            "prefill_email": request.POST.get("email", "").strip(),
+            "prefill_full_name": request.POST.get("full_name", "").strip(),
+        }
+        if result.ok:
+            context["success_key"] = result.message_key
+            return _render_auth(request, "signup.html", context)
 
-    return render(request, "signup.html")
+        context["error_key"] = result.error_key
+        if result.extra:
+            context.update(result.extra)
+        return _render_auth(request, "signup.html", context)
+
+    return _render_auth(request, "signup.html")
+
+
+def forgot_password_view(request):
+    if request.method == "POST":
+        if request.content_type == "application/json":
+            data = json.loads(request.body.decode("utf-8") if isinstance(request.body, bytes) else request.body)
+            identifier = data.get("email", "") or data.get("identifier", "")
+        else:
+            identifier = request.POST.get("email", "") or request.POST.get("identifier", "")
+        result = AuthWorkflowService.request_password_reset(request, identifier=identifier, lang=_request_lang(request))
+        if request.path.startswith("/api/"):
+            status_code = 200 if result.ok else 400
+            payload = {"message_key": result.message_key} if result.ok else {"error_key": result.error_key, "error": result.error_key}
+            return JsonResponse(payload, status=status_code)
+        return _render_auth(
+            request,
+            "forgot_password.html",
+            {
+                "success_key": result.message_key if result.ok else "",
+                "error_key": result.error_key if not result.ok else "",
+                "prefill_email": identifier.strip(),
+            },
+        )
+    return _render_auth(request, "forgot_password.html", {"prefill_email": request.GET.get("email", "").strip()})
+
+
+def reset_password_view(request, token):
+    if request.method == "GET":
+        resolved_token, error_key = AuthWorkflowService.resolve_token(token, "password_reset")
+        if resolved_token is None:
+            return _render_auth_status(
+                request,
+                title_key="auth_reset_password_heading",
+                message_key=error_key,
+                tone="danger",
+                cta_href="/accounts/forgot-password/",
+                cta_key="auth_forgot_password_button",
+            )
+        return _render_auth(request, "reset_password.html", {"reset_token": token})
+
+    if request.method == "POST":
+        result = AuthWorkflowService.reset_password(
+            token,
+            password=request.POST.get("password", ""),
+            confirm_password=request.POST.get("confirm_password", ""),
+        )
+        if result.ok:
+            return _render_auth_status(
+                request,
+                title_key="auth_reset_password_heading",
+                message_key=result.message_key,
+                tone="success",
+                cta_href="/accounts/login/",
+                cta_key="auth_login_button",
+            )
+        return _render_auth(request, "reset_password.html", {"error_key": result.error_key, "reset_token": token})
+    return _render_auth(request, "reset_password.html", {"reset_token": token})
+
+
+def verify_email_view(request, token):
+    result = AuthWorkflowService.verify_email(request, token)
+    if result.ok:
+        return _render_auth_status(
+            request,
+            title_key="auth_verify_email_title",
+            message_key=result.message_key,
+            tone="success",
+            cta_href="/accounts/pending-approval/",
+            cta_key="auth_pending_approval_cta",
+        )
+    return _render_auth_status(
+        request,
+        title_key="auth_verify_email_title",
+        message_key=result.error_key,
+        tone="danger",
+        cta_href="/accounts/login/",
+        cta_key="auth_login_button",
+    )
+
+
+def pending_approval_view(request):
+    return _render_auth_status(
+        request,
+        title_key="auth_pending_approval_title",
+        message_key="auth_status_pending_admin_approval",
+        tone="info",
+        cta_href="/accounts/login/",
+        cta_key="auth_login_button",
+    )
+
+
+def account_rejected_view(request):
+    return _render_auth_status(
+        request,
+        title_key="auth_account_rejected_title",
+        message_key="auth_status_rejected",
+        tone="danger",
+        cta_href="/accounts/forgot-password/",
+        cta_key="auth_forgot_password_button",
+    )
+
+
+def account_disabled_view(request):
+    return _render_auth_status(
+        request,
+        title_key="auth_account_disabled_title",
+        message_key="auth_status_disabled",
+        tone="danger",
+        cta_href="/accounts/login/",
+        cta_key="auth_login_button",
+    )
+
+
+def admin_approve_account_view(request, token):
+    result = AuthWorkflowService.approve_user(token, actor=request.user if request.user.is_authenticated else None)
+    return _render_auth_status(
+        request,
+        title_key="auth_admin_approval_title",
+        message_key=result.message_key if result.ok else result.error_key,
+        tone="success" if result.ok else "danger",
+        cta_href="/accounts/login/",
+        cta_key="auth_login_button",
+    )
+
+
+def admin_reject_account_view(request, token):
+    result = AuthWorkflowService.reject_user(token, actor=request.user if request.user.is_authenticated else None)
+    return _render_auth_status(
+        request,
+        title_key="auth_admin_rejection_title",
+        message_key=result.message_key if result.ok else result.error_key,
+        tone="danger" if result.ok else "danger",
+        cta_href="/accounts/login/",
+        cta_key="auth_login_button",
+    )
 
 
 def logout_view(request):
@@ -265,9 +450,17 @@ class LoginAPIView(View):
         )
         username = data.get("username", "").strip()
         password = data.get("password", "")
+        user_for_status = User.objects.filter(username=username).first()
+        if user_for_status is not None:
+            block_key = AuthWorkflowService.get_login_block(user_for_status)
+            if block_key != "auth_error_invalid_login":
+                return JsonResponse({"error_key": block_key, "error": block_key}, status=400)
         user = authenticate(request, username=username, password=password)
         if user is None:
-            return JsonResponse({"error": "Invalid credentials"}, status=400)
+            return JsonResponse({"error_key": "auth_error_invalid_login", "error": "auth_error_invalid_login"}, status=400)
+        profile = AuthWorkflowService.get_profile(user)
+        profile.preferred_language = str(data.get("lang", "") or profile.preferred_language or "en")
+        profile.save(update_fields=["preferred_language", "updated_at"])
         login(request, user)
         return JsonResponse(
             {
@@ -288,32 +481,21 @@ class SignupAPIView(View):
             if isinstance(request.body, bytes)
             else request.body
         )
-        username = data.get("username", "").strip()
-        email = data.get("email", "").strip()
-        password = data.get("password", "")
-        confirm_password = data.get("confirm_password", "")
-
-        if not username or not email or not password:
-            return JsonResponse(
-                {"error": "Username, email and password are required"}, status=400
-            )
-        if password != confirm_password:
-            return JsonResponse({"error": "Passwords do not match"}, status=400)
-        if User.objects.filter(username=username).exists():
-            return JsonResponse({"error": "Username is already taken"}, status=400)
-        if User.objects.filter(email=email).exists():
-            return JsonResponse({"error": "Email is already registered"}, status=400)
-
-        user = User.objects.create_user(
-            username=username, email=email, password=password
+        result = AuthWorkflowService.register_user(
+            request,
+            username=data.get("username", ""),
+            email=data.get("email", ""),
+            password=data.get("password", ""),
+            confirm_password=data.get("confirm_password", ""),
+            full_name=data.get("full_name", ""),
+            lang=str(data.get("lang", "") or "en"),
         )
-        login(request, user)
-        return JsonResponse(
-            {
-                "user": _build_user_dict(user),
-                "allowed_pages": _get_user_allowed_pages(user),
-            }
-        )
+        if not result.ok:
+            payload = {"error_key": result.error_key, "error": result.error_key}
+            if result.extra:
+                payload.update(result.extra)
+            return JsonResponse(payload, status=400)
+        return JsonResponse({"message_key": result.message_key}, status=201)
 
 
 class LogoutAPIView(View):
@@ -392,6 +574,10 @@ class UserListView(AdminRequiredMixin, View):
         user.is_staff = data.get("is_staff", False)
         user.is_superuser = data.get("is_superuser", False)
         user.save()
+        if user.is_active:
+            AuthWorkflowService.enable_user(user, actor=request.user)
+        else:
+            AuthWorkflowService.disable_user(user, actor=request.user)
         return JsonResponse({"user": _build_user_dict(user)}, status=201)
 
 
@@ -406,6 +592,7 @@ class UserDetailView(AdminRequiredMixin, View):
 
     def put(self, request, pk):
         user = get_object_or_404(User, pk=pk)
+        original_is_active = user.is_active
         data = json.loads(
             request.body.decode("utf-8")
             if isinstance(request.body, bytes)
@@ -417,6 +604,11 @@ class UserDetailView(AdminRequiredMixin, View):
         if data.get("password"):
             user.set_password(data["password"])
         user.save()
+        if "is_active" in data and data["is_active"] != original_is_active:
+            if data["is_active"]:
+                AuthWorkflowService.enable_user(user, actor=request.user)
+            else:
+                AuthWorkflowService.disable_user(user, actor=request.user)
         return JsonResponse({"user": _build_user_dict(user)})
 
     def delete(self, request, pk):
@@ -478,9 +670,13 @@ class UserBulkActionView(AdminRequiredMixin, View):
             changed = users.count()
             users.delete()
         elif action == "activate":
-            changed = users.update(is_active=True)
+            changed = users.count()
+            for user in users:
+                AuthWorkflowService.enable_user(user, actor=request.user)
         elif action == "deactivate":
-            changed = users.update(is_active=False)
+            changed = users.count()
+            for user in users:
+                AuthWorkflowService.disable_user(user, actor=request.user)
         elif action == "set_staff":
             val = bool(data.get("value"))
             changed = users.update(is_staff=val)
@@ -926,6 +1122,55 @@ class SettingsView(View):
         data = json.loads(request.body)
         obj = AppSettings.set(data["key"], data["value"])
         return JsonResponse({"key": obj.key, "value": obj.value})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class EmailTemplateListView(AdminRequiredMixin, View):
+    def get(self, request):
+        lang = request.GET.get("lang", "en")
+        return JsonResponse({"items": EmailTemplateService.list_templates(lang)})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class EmailTemplateDetailView(AdminRequiredMixin, View):
+    def get(self, request, pk):
+        lang = request.GET.get("lang", "en")
+        template = get_object_or_404(EmailTemplate, pk=pk)
+        EmailTemplateService.ensure_defaults()
+        return JsonResponse(template.to_dict(lang))
+
+    def put(self, request, pk):
+        template = get_object_or_404(EmailTemplate, pk=pk)
+        data = json.loads(request.body)
+        lang = str(data.get("lang", "en") or "en")
+        updated = EmailTemplateService.update_template(
+            template,
+            lang=lang,
+            subject=(data.get("subject") or "").strip(),
+            body=(data.get("body") or "").strip(),
+        )
+        return JsonResponse(updated.to_dict(lang))
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class EmailSettingsTestView(AdminRequiredMixin, View):
+    def post(self, request):
+        data = json.loads(request.body or "{}")
+        recipient = (data.get("to_email") or "").strip()
+        if not recipient:
+            recipient = (
+                AppSettings.get("administrator_notification_email", "").strip()
+                or AppSettings.get("sender_email", "").strip()
+            )
+
+        ok, message_key = AuthWorkflowService.send_smtp_test_email(to_email=recipient)
+        return JsonResponse(
+            {
+                "ok": ok,
+                "message_key": message_key,
+            },
+            status=200 if ok else 400,
+        )
 
 
 def _seed_gold_settings_defaults():

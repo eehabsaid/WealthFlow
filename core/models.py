@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 from decimal import Decimal
 from django.db.models import Case, Value, When
 
@@ -30,6 +31,7 @@ PAGE_PERMISSION_CHOICES = [
     ("dashboard", "Dashboard"),
     ("companies", "Companies"),
     ("salary", "Salary"),
+    ("all_companies", "All Companies"),
     ("banks", "Banks"),
     ("bank_certificates", "Bank Certificates"),
     ("currencies", "Currencies"),
@@ -41,6 +43,8 @@ PAGE_PERMISSION_CHOICES = [
     ("user_management", "User Management"),
     ("expenses", "Expenses"),
     ("reports", "Reports"),
+    ("fixed_assets", "Fixed Assets"),
+    ("advanced_reports", "Advanced Reports"),
 ]
 
 
@@ -777,6 +781,34 @@ class UserProfile(models.Model):
     avatar_b64 = models.TextField(blank=True, default="")
     # avatar_b64 stores: "data:image/jpeg;base64,/9j/4AAQ..." (full data URL)
     bio = models.TextField(blank=True)
+    email_verified = models.BooleanField(default=True)
+    account_status = models.CharField(max_length=50, default="active")
+    status_reason = models.TextField(blank=True, default="")
+    preferred_language = models.CharField(max_length=10, blank=True, default="")
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_user_profiles",
+    )
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    rejected_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="rejected_user_profiles",
+    )
+    disabled_at = models.DateTimeField(null=True, blank=True)
+    disabled_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="disabled_user_profiles",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -792,10 +824,119 @@ class UserProfile(models.Model):
             "full_name": self.full_name,
             "avatar_url": self.avatar_url(),
             "bio": self.bio,
+            "email_verified": self.email_verified,
+            "account_status": self.account_status,
+            "status_reason": self.status_reason,
+            "preferred_language": self.preferred_language,
         }
 
     def __str__(self):
         return f"Profile({self.user.username})"
+
+
+AUTH_ACCOUNT_STATUS_CHOICES = [
+    ("pending_email_verification", "Pending Email Verification"),
+    ("pending_admin_approval", "Pending Administrator Approval"),
+    ("active", "Active"),
+    ("rejected", "Rejected"),
+    ("disabled", "Disabled"),
+]
+
+AUTH_TOKEN_PURPOSE_CHOICES = [
+    ("email_verification", "Email Verification"),
+    ("password_reset", "Password Reset"),
+    ("admin_approve", "Administrator Approval"),
+    ("admin_reject", "Administrator Rejection"),
+]
+
+AUTH_AUDIT_EVENT_CHOICES = [
+    ("registration", "Registration"),
+    ("email_verified", "Email Verified"),
+    ("admin_approved", "Administrator Approved"),
+    ("admin_rejected", "Administrator Rejected"),
+    ("account_disabled", "Account Disabled"),
+    ("account_reenabled", "Account Re-enabled"),
+    ("password_reset_requested", "Password Reset Requested"),
+    ("password_reset_completed", "Password Reset Completed"),
+]
+
+
+class AuthToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="auth_tokens")
+    purpose = models.CharField(max_length=50, choices=AUTH_TOKEN_PURPOSE_CHOICES)
+    token_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def is_expired(self):
+        return bool(self.expires_at and timezone.now() >= self.expires_at)
+
+    def is_usable(self):
+        return self.used_at is None and not self.is_expired()
+
+    def __str__(self):
+        return f"AuthToken({self.user.username}, {self.purpose})"
+
+
+class EmailTemplate(models.Model):
+    key = models.CharField(max_length=100, unique=True)
+    subject_translations = models.JSONField(default=dict, blank=True)
+    body_translations = models.JSONField(default=dict, blank=True)
+    description_translations = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["key"]
+
+    def get_subject(self, lang="en"):
+        return (self.subject_translations or {}).get(lang) or (self.subject_translations or {}).get("en", "")
+
+    def get_body(self, lang="en"):
+        return (self.body_translations or {}).get(lang) or (self.body_translations or {}).get("en", "")
+
+    def get_description(self, lang="en"):
+        return (self.description_translations or {}).get(lang) or (self.description_translations or {}).get("en", "")
+
+    def to_dict(self, lang="en"):
+        return {
+            "id": self.id,
+            "key": self.key,
+            "subject": self.get_subject(lang),
+            "body": self.get_body(lang),
+            "description": self.get_description(lang),
+            "subject_translations": self.subject_translations or {},
+            "body_translations": self.body_translations or {},
+            "description_translations": self.description_translations or {},
+            "updated_at": self.updated_at.isoformat() if self.updated_at else "",
+        }
+
+    def __str__(self):
+        return self.key
+
+
+class AuthAuditLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="auth_audit_logs")
+    actor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="auth_audit_actions",
+    )
+    event_type = models.CharField(max_length=50, choices=AUTH_AUDIT_EVENT_CHOICES)
+    details = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return f"AuthAuditLog({self.user.username}, {self.event_type})"
 
 
 # ════════════════════════════════════════════════════════════

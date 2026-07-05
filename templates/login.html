@@ -1,10 +1,10 @@
 {% load static %}
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang_code|default:'en' }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Login — WealthFlow</title>
+    <title data-i18n="auth_login_page_title">Login - WealthFlow</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -175,43 +175,69 @@
       .mb-form {
         margin-bottom: 18px;
       }
+      .auth-lang {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 18px;
+      }
+      .auth-lang select {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
     </style>
   </head>
   <body>
     <div class="auth-card">
+      <div class="auth-lang">
+        <select id="authLanguageSelect" aria-label="Language selector">
+          <option value="en">English</option>
+          <option value="ar">العربية</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
       <div class="auth-logo">
         <div class="logo-icon">💰</div>
-        <h1>WealthFlow</h1>
-        <p>Sign in to your account</p>
+        <h1 data-i18n="auth_brand_name">WealthFlow</h1>
+        <p data-i18n="auth_login_subtitle">Sign in to your account</p>
       </div>
 
-      {% if error %}
+      {% if error_key %}
       <div class="alert-dark-danger">
-        <i class="bi bi-exclamation-circle"></i> {{ error }}
+        <i class="bi bi-exclamation-circle"></i>
+        <span data-i18n="{{ error_key }}">{{ error_key }}</span>
       </div>
       {% endif %}
 
       <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="lang" value="{{ lang_code|default:'en' }}" class="lang-hidden-input" />
         <div class="mb-form">
-          <label class="form-label">Username</label>
+          <label class="form-label" data-i18n="auth_username_label">Username</label>
           <input
             type="text"
             name="username"
             class="form-control"
+            data-i18n-placeholder="auth_username_placeholder"
             placeholder="Enter your username"
+            value="{{ prefill_username|default:'' }}"
             required
             autofocus
           />
         </div>
         <div class="mb-form">
-          <label class="form-label">Password</label>
+          <label class="form-label" data-i18n="auth_password_label">Password</label>
           <div class="input-group">
             <input
               type="password"
               name="password"
               id="passwordInput"
               class="form-control"
+              data-i18n-placeholder="auth_password_placeholder"
               placeholder="Enter your password"
               required
             />
@@ -221,17 +247,23 @@
           </div>
         </div>
         <button type="submit" class="btn-submit">
-          <i class="bi bi-box-arrow-in-right"></i> Sign In
+          <i class="bi bi-box-arrow-in-right"></i>
+          <span data-i18n="auth_login_button">Sign In</span>
         </button>
       </form>
 
+      <div class="auth-footer" style="margin-top: 16px">
+        <a href="/accounts/forgot-password/" data-i18n="auth_forgot_password_button">Forgot Password</a>
+      </div>
+
       <hr class="auth-divider" />
       <div class="auth-footer">
-        Don't have an account?
-        <a href="/accounts/signup/">Create one</a>
+        <span data-i18n="auth_login_no_account">Don't have an account?</span>
+        <a href="/accounts/signup/" data-i18n="auth_create_account_link">Create one</a>
       </div>
     </div>
 
+    <script src="{% static 'js/auth_i18n.js' %}"></script>
     <script>
       function togglePassword() {
         const inp = document.getElementById("passwordInput");

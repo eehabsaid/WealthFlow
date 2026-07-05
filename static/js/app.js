@@ -9,6 +9,7 @@
 let _companies   = [];
 let _banks       = [];
 let _activeRoute = '';
+let _allowedPages = [];
 
 window.translations = {};
 
@@ -44,6 +45,7 @@ async function initApp() {
 
     _companies = cData.companies || [];
     _banks     = bData.banks     || [];
+    _allowedPages = meData.allowed_pages || [];
 
     // Merge user info from both endpoints
     window._currentUser = { ...meData.user, ...pData.profile };
@@ -55,6 +57,118 @@ async function initApp() {
     setTimeout(() => {
         if (typeof checkReminders === 'function') checkReminders();
     }, 2000);
+}
+
+function isPrivilegedUser() {
+    const u = window._currentUser || {};
+    return !!(u.is_staff || u.is_superuser);
+}
+
+function canAccessAny(requiredKeys) {
+    if (isPrivilegedUser()) {
+        return true;
+    }
+    const allowed = new Set(_allowedPages || []);
+    return requiredKeys.some((key) => allowed.has(key));
+}
+
+function hasAnyAssignedPageAccess() {
+    if (isPrivilegedUser()) {
+        return true;
+    }
+    return (_allowedPages || []).length > 0;
+}
+
+function shouldShowWelcomeOnly() {
+    return !hasAnyAssignedPageAccess();
+}
+
+function routeAllowed(hash) {
+    if (isPrivilegedUser()) {
+        return true;
+    }
+    if (hash === 'welcome') {
+        return true;
+    }
+    if (hash === 'dashboard') {
+        return canAccessAny(['dashboard']);
+    }
+    if (hash === 'balance') {
+        return canAccessAny(['balance']);
+    }
+    if (hash === 'bank-certificates') {
+        return canAccessAny(['bank_certificates']);
+    }
+    if (hash === 'fixed-assets') {
+        return canAccessAny(['fixed_assets']);
+    }
+    if (hash === 'all-companies') {
+        return canAccessAny(['all_companies', 'salary']);
+    }
+    if (hash.startsWith('salary-')) {
+        return canAccessAny(['salary']);
+    }
+    if (hash === 'exchange-rates') {
+        return canAccessAny(['exchange_rates']);
+    }
+    if (hash === 'gold-price') {
+        return canAccessAny(['gold_price']);
+    }
+    if (hash === 'expenses') {
+        return canAccessAny(['expenses']);
+    }
+    if (hash === 'expense-categories') {
+        return canAccessAny(['expense-categories']);
+    }
+    if (hash === 'reports') {
+        return canAccessAny(['reports']);
+    }
+    if (hash === 'advanced-reports') {
+        return canAccessAny(['advanced_reports']);
+    }
+    if (hash.startsWith('settings')) {
+        return canAccessAny(['settings', 'user_management']);
+    }
+    return false;
+}
+
+function getFirstAllowedRoute() {
+    const candidates = [
+        'dashboard',
+        'balance',
+        'bank-certificates',
+        'fixed-assets',
+        'all-companies',
+        'exchange-rates',
+        'gold-price',
+        'expenses',
+        'expense-categories',
+        'reports',
+        'advanced-reports',
+        'settings-languages',
+    ];
+    for (const candidate of candidates) {
+        if (routeAllowed(candidate)) {
+            return candidate;
+        }
+    }
+    return 'welcome';
+}
+
+function renderWelcomePage() {
+    const main = document.getElementById('main-content');
+    if (!main) {
+        return;
+    }
+    main.innerHTML = `
+        <div style="min-height:60vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+            <div style="max-width:760px;width:100%;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:14px;padding:28px;">
+                <div style="font-size:26px;font-weight:800;color:var(--text-primary);margin-bottom:10px;" data-i18n="welcome_page_title">Welcome to WealthFlow</div>
+                <div style="font-size:14px;color:var(--text-secondary);line-height:1.8;" data-i18n="welcome_page_message">Your account is active, but no page permissions are assigned yet. Please contact your administrator to grant access from Manage Permissions.</div>
+            </div>
+        </div>
+    `;
+    applyTranslations();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -70,6 +184,21 @@ function renderSidebar() {
             <span>${c.display_name}</span>
         </button>`).join('');
 
+    const canSalary = canAccessAny(['salary']);
+    const canDashboard = canAccessAny(['dashboard']);
+    const canBalance = canAccessAny(['balance']);
+    const canBankCertificates = canAccessAny(['bank_certificates']);
+    const canFixedAssets = canAccessAny(['fixed_assets']);
+    const canExchangeRates = canAccessAny(['exchange_rates']);
+    const canGoldPrice = canAccessAny(['gold_price']);
+    const canExpenses = canAccessAny(['expenses']);
+    const canExpenseCategories = canAccessAny(['expense-categories']);
+    const canReports = canAccessAny(['reports']);
+    const canAdvancedReports = canAccessAny(['advanced_reports']);
+    const canSettings = canAccessAny(['settings', 'user_management']);
+
+    const showWelcomeOnly = shouldShowWelcomeOnly();
+
     sidebar.innerHTML = `
         <div class="sidebar-brand">
             <div class="brand-icon">💰</div>
@@ -79,12 +208,20 @@ function renderSidebar() {
         </div>
         <nav class="sidebar-nav">
 
+            ${showWelcomeOnly ? `
+            <button class="nav-item" data-route="welcome" onclick="navigate('welcome')">
+                <i class="bi bi-house-heart"></i>
+                <span data-i18n="welcome_page_nav">Welcome</span>
+            </button>` : ''}
+
+            ${!showWelcomeOnly && canDashboard ? `
             <button class="nav-item" onclick="navigate('dashboard')">
                 <i class="bi bi-speedometer2"></i>
                 <span data-i18n="nav_dashboard">Dashboard</span>
-            </button>
+            </button>` : ''}
 
             <!-- Salary section -->
+            ${!showWelcomeOnly && canSalary ? `
             <div class="nav-section-header" onclick="toggleSection(this)"
                  style="cursor:pointer;padding:10px;display:flex;justify-content:space-between">
                 <span data-i18n="nav_salary">Salary</span>
@@ -96,64 +233,75 @@ function renderSidebar() {
                     <i class="bi bi-building"></i>
                     <span data-i18n="nav_all_companies">All Companies</span>
                 </button>
-            </div>
+            </div>` : ''}
 
-            <div style="border-top:1px solid var(--border-color);margin:10px 0"></div>
+            ${!showWelcomeOnly ? '<div style="border-top:1px solid var(--border-color);margin:10px 0"></div>' : ''}
 
+            ${!showWelcomeOnly && canBalance ? `
             <button class="nav-item" onclick="navigate('balance')">
                 <i class="bi bi-wallet2"></i>
                 <span data-i18n="nav_balance">Balance</span>
-            </button>
+            </button>` : ''}
+            ${!showWelcomeOnly && canBankCertificates ? `
             <button class="nav-item" onclick="navigate('bank-certificates')">
                 <i class="bi bi-file-earmark-text"></i>
                 <span data-i18n="nav_bank_certificates">Bank Certificates</span>
-            </button>
+            </button>` : ''}
+            ${!showWelcomeOnly && canFixedAssets ? `
             <button class="nav-item" onclick="navigate('fixed-assets')">
                 <i class="bi bi-house-door"></i>
                 <span data-i18n="nav_fixed_assets">Fixed Assets</span>
-            </button>
+            </button>` : ''}
+            ${!showWelcomeOnly && canExchangeRates ? `
             <button class="nav-item" onclick="navigate('exchange-rates')">
                 <i class="bi bi-currency-exchange"></i>
                 <span data-i18n="nav_exchange_rates">Exchange Rates</span>
-            </button>
+            </button>` : ''}
+            ${!showWelcomeOnly && canGoldPrice ? `
             <button class="nav-item" onclick="navigate('gold-price')">
                 <i class="bi bi-brilliance"></i>
                 <span data-i18n="nav_gold_price">Gold Price</span>
-            </button>
+            </button>` : ''}
 
-            <div style="border-top:1px solid var(--border-color);margin:10px 0"></div>
+            ${!showWelcomeOnly && (canExpenses || canExpenseCategories || canReports || canAdvancedReports) ? '<div style="border-top:1px solid var(--border-color);margin:10px 0"></div>' : ''}
 
             <!-- Expenses & Reports section -->
+            ${!showWelcomeOnly && (canExpenses || canExpenseCategories || canReports || canAdvancedReports) ? `
             <div class="nav-section-header" onclick="toggleSection(this)"
                  style="cursor:pointer;padding:10px;display:flex;justify-content:space-between">
                 <span data-i18n="nav_expenses_reports">Expenses &amp; Reports</span>
                 <i class="bi bi-chevron-down chevron-icon"></i>
             </div>
             <div class="nav-section-content">
+                ${canExpenses ? `
                 <button class="nav-item" onclick="navigate('expenses')">
                     <i class="bi bi-receipt"></i>
                     <span data-i18n="nav_expenses">Expenses</span>
-                </button>
+                </button>` : ''}
+                ${canExpenseCategories ? `
                 <button class="nav-item" onclick="navigate('expense-categories')">
                     <i class="bi bi-tag"></i>
                     <span data-i18n="nav_expense_categories">Categories</span>
-                </button>
+                </button>` : ''}
+                ${canReports ? `
                 <button class="nav-item" onclick="navigate('reports')">
                     <i class="bi bi-graph-up"></i>
                     <span data-i18n="nav_reports">Reports</span>
-                </button>
+                </button>` : ''}
+                ${canAdvancedReports ? `
                 <button class="nav-item" onclick="navigate('advanced-reports')">
                     <i class="bi bi-bar-chart-line"></i>
                     <span data-i18n="nav_advanced_reports">Advanced Reports</span>
-                </button>
-            </div>
+                </button>` : ''}
+            </div>` : ''}
 
-            <div style="border-top:1px solid var(--border-color);margin:10px 0"></div>
+            ${!showWelcomeOnly && canSettings ? '<div style="border-top:1px solid var(--border-color);margin:10px 0"></div>' : ''}
 
+            ${!showWelcomeOnly && canSettings ? `
             <button class="nav-item" onclick="navigate('settings-languages')">
                 <i class="bi bi-gear"></i>
                 <span data-i18n="nav_settings">Settings</span>
-            </button>
+            </button>` : ''}
 
         </nav>`;
 
@@ -296,7 +444,22 @@ const ROUTES = {
 };
 
 function route() {
-    const hash = window.location.hash.replace('#', '') || 'dashboard';
+    const requested = window.location.hash.replace('#', '');
+    const hash = requested || (shouldShowWelcomeOnly() ? 'welcome' : getFirstAllowedRoute());
+
+    if (shouldShowWelcomeOnly() && hash !== 'welcome') {
+        navigate('welcome');
+        return;
+    }
+
+    if (!routeAllowed(hash)) {
+        const fallback = getFirstAllowedRoute();
+        if (hash !== fallback) {
+            navigate(fallback);
+            return;
+        }
+    }
+
     _activeRoute = hash;
 
     // Highlight active nav item
@@ -311,6 +474,11 @@ function route() {
         if (addBtn) addBtn.style.display = r.add ? 'inline-flex' : 'none';
         if (bc) { bc.setAttribute('data-i18n', r.key); bc.textContent = ''; }
         r.fn();
+
+    } else if (hash === 'welcome') {
+        if (addBtn) addBtn.style.display = 'none';
+        if (bc) { bc.removeAttribute('data-i18n'); bc.textContent = t('welcome_page_nav', 'Welcome'); }
+        renderWelcomePage();
 
     } else if (hash.startsWith('salary-')) {
         if (addBtn) addBtn.style.display = 'inline-flex';

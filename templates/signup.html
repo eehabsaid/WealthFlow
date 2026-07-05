@@ -1,10 +1,10 @@
 {% load static %}
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang_code|default:'en' }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sign Up — WealthFlow</title>
+    <title data-i18n="auth_signup_page_title">Sign Up - WealthFlow</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -197,67 +197,123 @@
           background 0.3s;
         border-radius: 2px;
       }
+      .auth-lang {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 18px;
+      }
+      .auth-lang select {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .alert-dark-success {
+        background: rgba(0, 214, 143, 0.1);
+        border: 1px solid rgba(0, 214, 143, 0.35);
+        color: #7ef2c6;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 13px;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
     </style>
   </head>
   <body>
     <div class="auth-card">
+      <div class="auth-lang">
+        <select id="authLanguageSelect" aria-label="Language selector">
+          <option value="en">English</option>
+          <option value="ar">العربية</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
       <div class="auth-logo">
         <div class="logo-icon">💰</div>
-        <h1>Create Account</h1>
-        <p>Join WealthFlow</p>
+        <h1 data-i18n="auth_signup_heading">Create Account</h1>
+        <p data-i18n="auth_signup_subtitle">Join WealthFlow</p>
       </div>
 
-      {% if error %}
+      {% if error_key %}
       <div class="alert-dark-danger">
-        <i class="bi bi-exclamation-circle"></i> {{ error }}
+        <i class="bi bi-exclamation-circle"></i>
+        <span data-i18n="{{ error_key }}">{{ error_key }}</span>
+      </div>
+      {% endif %}
+
+      {% if success_key %}
+      <div class="alert-dark-success">
+        <i class="bi bi-check-circle"></i>
+        <span data-i18n="{{ success_key }}">{{ success_key }}</span>
+      </div>
+      {% endif %}
+
+      {% if show_forgot_password %}
+      <div class="auth-footer" style="margin-bottom: 18px">
+        <a href="/accounts/forgot-password/?email={{ prefill_email|urlencode }}" data-i18n="auth_forgot_password_button">Forgot Password</a>
       </div>
       {% endif %}
 
       <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="lang" value="{{ lang_code|default:'en' }}" class="lang-hidden-input" />
 
         <div class="mb-form">
           <label class="form-label">
-            Full Name <span class="optional-tag">(optional)</span>
+            <span data-i18n="auth_full_name_label">Full Name</span>
+            <span class="optional-tag" data-i18n="auth_optional_label">(optional)</span>
           </label>
           <input
             type="text"
             name="full_name"
             class="form-control"
+            data-i18n-placeholder="auth_full_name_placeholder"
             placeholder="e.g. Ehab Mohamed"
+            value="{{ prefill_full_name|default:'' }}"
           />
         </div>
 
         <div class="mb-form">
-          <label class="form-label">Username</label>
+          <label class="form-label" data-i18n="auth_username_label">Username</label>
           <input
             type="text"
             name="username"
             class="form-control"
+            data-i18n-placeholder="auth_signup_username_placeholder"
             placeholder="Choose a username"
+            value="{{ prefill_username|default:'' }}"
             required
           />
         </div>
 
         <div class="mb-form">
-          <label class="form-label">Email</label>
+          <label class="form-label" data-i18n="auth_email_label">Email</label>
           <input
             type="email"
             name="email"
             class="form-control"
+            data-i18n-placeholder="auth_email_placeholder"
             placeholder="your@email.com"
+            value="{{ prefill_email|default:'' }}"
             required
           />
         </div>
 
         <div class="mb-form">
-          <label class="form-label">Password</label>
+          <label class="form-label" data-i18n="auth_password_label">Password</label>
           <div class="input-group">
             <input
               type="password"
               name="password"
               id="pw1"
               class="form-control"
+              data-i18n-placeholder="auth_signup_password_placeholder"
               placeholder="At least 8 characters"
               required
               oninput="checkStrength(this.value)"
@@ -276,13 +332,14 @@
         </div>
 
         <div class="mb-form">
-          <label class="form-label">Confirm Password</label>
+          <label class="form-label" data-i18n="auth_confirm_password_label">Confirm Password</label>
           <div class="input-group">
             <input
               type="password"
               name="confirm_password"
               id="pw2"
               class="form-control"
+              data-i18n-placeholder="auth_confirm_password_placeholder"
               placeholder="Repeat password"
               required
             />
@@ -297,16 +354,19 @@
         </div>
 
         <button type="submit" class="btn-submit">
-          <i class="bi bi-person-plus"></i> Create Account
+          <i class="bi bi-person-plus"></i>
+          <span data-i18n="auth_signup_button">Create Account</span>
         </button>
       </form>
 
       <hr class="auth-divider" />
       <div class="auth-footer">
-        Already have an account? <a href="/accounts/login/">Sign in</a>
+        <span data-i18n="auth_signup_have_account">Already have an account?</span>
+        <a href="/accounts/login/" data-i18n="auth_login_button">Sign in</a>
       </div>
     </div>
 
+    <script src="{% static 'js/auth_i18n.js' %}"></script>
     <script>
       function togglePw(id, iconId) {
         const inp = document.getElementById(id);
