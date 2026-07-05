@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import calendar
 from datetime import date
-from decimal import Decimal, InvalidOperation
 from typing import Dict, List
 
-from core.models import BankCertificate, FixedAsset, GoldPriceHistory, _is_certificate_active
+from core.models import BankCertificate, _is_certificate_active
 from core.services.cash_flow_forecast_service import CashFlowForecastService
 from core.services.net_worth_service import NetWorthService
 
@@ -180,25 +179,58 @@ class WealthGrowthForecastService:
         increase = final - current
         growth_pct = (increase / current * 100.0) if current > 0 else 0.0
 
+        non_cash_breakdown = {
+            key: data for key, data in breakdown.items() if key != "liquid_cash"
+        }
         positive_components = [
             (key, data["difference"], data["growth_pct"])
-            for key, data in breakdown.items()
+            for key, data in non_cash_breakdown.items()
             if _to_float(data["difference"]) > 0
         ]
-        largest_appreciating_asset = max(positive_components, key=lambda item: item[1], default=("liquid_cash", 0.0, 0.0))
-        fastest_growing_category = max(positive_components, key=lambda item: item[2], default=("liquid_cash", 0.0, 0.0))
+        largest_appreciating_asset = max(positive_components, key=lambda item: item[1], default=("none", 0.0, 0.0))
+        fastest_growing_category = max(positive_components, key=lambda item: item[2], default=("none", 0.0, 0.0))
+
+        cashflow_driver_totals: Dict[str, float] = {}
+        for month in portfolio.get("cash_timeline", []):
+            for event in month.get("events", []):
+                event_type = str(event.get("type") or "")
+                amount = _to_float(event.get("amount"))
+                if amount <= 0:
+                    continue
+                cashflow_driver_totals[event_type] = cashflow_driver_totals.get(event_type, 0.0) + amount
+
+        driver_candidates = {
+            "salary": cashflow_driver_totals.get("salary", 0.0),
+            "certificates": (
+                cashflow_driver_totals.get("certificate_interest", 0.0)
+                + cashflow_driver_totals.get("certificate_maturity", 0.0)
+            ),
+            "rental_income": cashflow_driver_totals.get("rental_income", 0.0),
+            "asset_sale": cashflow_driver_totals.get("asset_sale", 0.0),
+            "gold": max(0.0, _to_float(breakdown.get("gold", {}).get("difference"))),
+            "fixed_assets": max(0.0, _to_float(breakdown.get("fixed_assets", {}).get("difference"))),
+        }
+        largest_driver_key, largest_driver_amount = max(
+            driver_candidates.items(),
+            key=lambda item: item[1],
+            default=("none", 0.0),
+        )
 
         insight_key = "wealth_growth_insight_balanced"
-        if increase <= 0:
+        if increase <= 0 or largest_driver_amount <= 0:
             insight_key = "wealth_growth_insight_flat"
-        elif largest_appreciating_asset[0] == "gold":
+        elif largest_driver_key == "salary":
+            insight_key = "wealth_growth_insight_salary"
+        elif largest_driver_key == "rental_income":
+            insight_key = "wealth_growth_insight_rental_income"
+        elif largest_driver_key == "asset_sale":
+            insight_key = "wealth_growth_insight_asset_sale"
+        elif largest_driver_key == "gold":
             insight_key = "wealth_growth_insight_gold"
-        elif largest_appreciating_asset[0] == "certificates":
+        elif largest_driver_key == "certificates":
             insight_key = "wealth_growth_insight_certificates"
-        elif largest_appreciating_asset[0] == "fixed_assets":
+        elif largest_driver_key == "fixed_assets":
             insight_key = "wealth_growth_insight_fixed_assets"
-        else:
-            insight_key = "wealth_growth_insight_liquid_cash"
 
         return {
             "expected_net_worth_increase": round(increase, 2),
@@ -210,6 +242,10 @@ class WealthGrowthForecastService:
             "fastest_growing_asset_category": {
                 "key": fastest_growing_category[0],
                 "growth_pct": round(_to_float(fastest_growing_category[2]), 2),
+            },
+            "largest_growth_driver": {
+                "key": largest_driver_key,
+                "amount": round(_to_float(largest_driver_amount), 2),
             },
             "estimated_monthly_wealth_increase": round(increase / 12.0 if increase else 0.0, 2),
             "insight_key": insight_key,

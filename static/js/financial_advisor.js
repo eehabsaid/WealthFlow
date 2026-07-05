@@ -38,6 +38,7 @@ function _eventTranslationKey(eventType) {
 
 function _wealthComponentTitle(key) {
   return {
+    none: "wealth_growth_component_none",
     liquid_cash: "wealth_growth_component_liquid_cash",
     fixed_assets: "wealth_growth_component_fixed_assets",
     gold: "wealth_growth_component_gold",
