@@ -83,12 +83,29 @@ function shouldShowWelcomeOnly() {
     return !hasAnyAssignedPageAccess();
 }
 
+function permissionToRoute(pageKey) {
+    if (pageKey === 'dashboard') return 'dashboard';
+    if (pageKey === 'balance') return 'balance';
+    if (pageKey === 'bank_certificates') return 'bank-certificates';
+    if (pageKey === 'fixed_assets') return 'fixed-assets';
+    if (pageKey === 'all_companies' || pageKey === 'salary') return 'all-companies';
+    if (pageKey === 'exchange_rates') return 'exchange-rates';
+    if (pageKey === 'gold_price') return 'gold-price';
+    if (pageKey === 'expenses') return 'expenses';
+    if (pageKey === 'expense-categories') return 'expense-categories';
+    if (pageKey === 'reports') return 'reports';
+    if (pageKey === 'advanced_reports') return 'advanced-reports';
+    if (pageKey === 'settings') return 'settings-languages';
+    if (pageKey === 'user_management') return 'settings-users';
+    return '';
+}
+
 function routeAllowed(hash) {
     if (isPrivilegedUser()) {
         return true;
     }
     if (hash === 'welcome') {
-        return true;
+        return shouldShowWelcomeOnly();
     }
     if (hash === 'dashboard') {
         return canAccessAny(['dashboard']);
@@ -133,20 +150,19 @@ function routeAllowed(hash) {
 }
 
 function getFirstAllowedRoute() {
-    const candidates = [
-        'dashboard',
-        'balance',
-        'bank-certificates',
-        'fixed-assets',
-        'all-companies',
-        'exchange-rates',
-        'gold-price',
-        'expenses',
-        'expense-categories',
-        'reports',
-        'advanced-reports',
-        'settings-languages',
-    ];
+    if (isPrivilegedUser()) {
+        return 'dashboard';
+    }
+
+    // For normal users, homepage should be one of the assigned pages.
+    for (const pageKey of (_allowedPages || [])) {
+        const route = permissionToRoute(pageKey);
+        if (route && routeAllowed(route)) {
+            return route;
+        }
+    }
+
+    const candidates = ['dashboard', 'balance', 'bank-certificates', 'fixed-assets', 'all-companies', 'exchange-rates', 'gold-price', 'expenses', 'expense-categories', 'reports', 'advanced-reports', 'settings-languages'];
     for (const candidate of candidates) {
         if (routeAllowed(candidate)) {
             return candidate;
@@ -449,6 +465,11 @@ function route() {
 
     if (shouldShowWelcomeOnly() && hash !== 'welcome') {
         navigate('welcome');
+        return;
+    }
+
+    if (!shouldShowWelcomeOnly() && hash === 'welcome') {
+        navigate(getFirstAllowedRoute());
         return;
     }
 
