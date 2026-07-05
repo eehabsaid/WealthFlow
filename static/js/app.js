@@ -110,6 +110,9 @@ function routeAllowed(hash) {
     if (hash === 'dashboard') {
         return canAccessAny(['dashboard']);
     }
+    if (hash === 'financial-advisor') {
+        return !shouldShowWelcomeOnly();
+    }
     if (hash === 'balance') {
         return canAccessAny(['balance']);
     }
@@ -162,7 +165,7 @@ function getFirstAllowedRoute() {
         }
     }
 
-    const candidates = ['dashboard', 'balance', 'bank-certificates', 'fixed-assets', 'all-companies', 'exchange-rates', 'gold-price', 'expenses', 'expense-categories', 'reports', 'advanced-reports', 'settings-languages'];
+    const candidates = ['dashboard', 'financial-advisor', 'balance', 'bank-certificates', 'fixed-assets', 'all-companies', 'exchange-rates', 'gold-price', 'expenses', 'expense-categories', 'reports', 'advanced-reports', 'settings-languages'];
     for (const candidate of candidates) {
         if (routeAllowed(candidate)) {
             return candidate;
@@ -234,6 +237,12 @@ function renderSidebar() {
             <button class="nav-item" onclick="navigate('dashboard')">
                 <i class="bi bi-speedometer2"></i>
                 <span data-i18n="nav_dashboard">Dashboard</span>
+            </button>` : ''}
+
+            ${!showWelcomeOnly ? `
+            <button class="nav-item" onclick="navigate('financial-advisor')">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span data-i18n="nav_financial_advisor">Financial Advisor</span>
             </button>` : ''}
 
             <!-- Salary section -->
@@ -447,6 +456,7 @@ async function loadLangMenu() {
 // Route definitions: hash → { i18nKey, addBtn, render }
 const ROUTES = {
     'dashboard':          { key: 'nav_dashboard',         add: false, fn: () => renderDashboard()     },
+    'financial-advisor':  { key: 'nav_financial_advisor', add: false, fn: () => renderFinancialAdvisor() },
     'balance':            { key: 'nav_balance',           add: true,  fn: () => renderBalance()       },
     'bank-certificates':  { key: 'nav_bank_certificates', add: true,  fn: () => renderBankCertificates() },
     'all-companies':      { key: 'nav_all_companies',     add: true,  fn: () => renderAllCompanies()  },
