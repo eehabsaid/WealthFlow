@@ -68,10 +68,10 @@ function _renderCashFlowForecast(payload) {
 
   const cards = [
     { key: "cash_flow_card_current", value: cp.current || 0 },
-    { key: "cash_flow_card_30", value: cp.days_30 || 0 },
-    { key: "cash_flow_card_90", value: cp.days_90 || 0 },
-    { key: "cash_flow_card_180", value: cp.days_180 || 0 },
-    { key: "cash_flow_card_365", value: cp.days_365 || 0 },
+    { key: "cash_flow_card_next_month", value: cp.next_month || 0 },
+    { key: "cash_flow_card_month_3", value: cp.month_3 || 0 },
+    { key: "cash_flow_card_month_6", value: cp.month_6 || 0 },
+    { key: "cash_flow_card_month_12", value: cp.month_12 || 0 },
   ];
 
   const cardsHtml = cards.map((card) => `

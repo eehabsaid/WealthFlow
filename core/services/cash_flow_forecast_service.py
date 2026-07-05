@@ -382,6 +382,22 @@ class CashFlowForecastService:
         out.sort(key=lambda item: (item["date"], item["type"]))
         return out
 
+    def _month_based_checkpoints(self, current_cash: float, timeline: List[dict]) -> Dict[str, float]:
+        def _ending_cash_at(month_offset: int) -> float:
+            if not timeline:
+                return current_cash
+
+            index = min(max(month_offset, 0), len(timeline) - 1)
+            return _to_float(timeline[index].get("ending_cash"))
+
+        return {
+            "current": round(current_cash, 2),
+            "next_month": round(_ending_cash_at(1), 2),
+            "month_3": round(_ending_cash_at(3), 2),
+            "month_6": round(_ending_cash_at(6), 2),
+            "month_12": round(_ending_cash_at(12), 2),
+        }
+
     def payload(self) -> dict:
         baseline = self._net_worth_service.certificate_forecast_payload(today=self.today)
         current_cash = _to_float(baseline.get("cash_balance"))
@@ -390,6 +406,7 @@ class CashFlowForecastService:
         checkpoints = self._checkpoints(current_cash, events)
         timeline = self._timeline(current_cash, events)
         timeline_events = self._timeline_events(timeline)
+        month_based_checkpoints = self._month_based_checkpoints(current_cash, timeline)
 
         total_increase = sum(event["amount"] for event in timeline_events if event["amount"] > 0)
         total_decrease = abs(sum(event["amount"] for event in timeline_events if event["amount"] < 0))
@@ -449,17 +466,15 @@ class CashFlowForecastService:
             },
         }
 
-        checkpoint_values = {
-            "current": round(current_cash, 2),
-            "days_30": round(checkpoints.get(30, current_cash), 2),
-            "days_90": round(checkpoints.get(90, current_cash), 2),
-            "days_180": round(checkpoints.get(180, current_cash), 2),
-            "days_365": round(checkpoints.get(365, current_cash), 2),
-        }
-
         return {
             "as_of": self.today.isoformat(),
-            "checkpoints": checkpoint_values,
+            "checkpoints": month_based_checkpoints,
+            "day_checkpoints": {
+                "days_30": round(checkpoints.get(30, current_cash), 2),
+                "days_90": round(checkpoints.get(90, current_cash), 2),
+                "days_180": round(checkpoints.get(180, current_cash), 2),
+                "days_365": round(checkpoints.get(365, current_cash), 2),
+            },
             "timeline": timeline,
             "summary": summary,
             "warnings": warnings,
