@@ -4,25 +4,33 @@
 "use strict";
 
 const FINANCIAL_ADVISOR_TABS = [
-  { id: "overview", key: "financial_advisor_tab_overview" },
-  { id: "cash-flow-forecast", key: "financial_advisor_tab_cash_flow_forecast" },
-  { id: "wealth-growth-forecast", key: "financial_advisor_tab_wealth_growth_forecast" },
-  { id: "portfolio-optimizer", key: "financial_advisor_tab_portfolio_optimizer" },
+  { id: "overview", key: "financial_advisor_tab_overview", shortKey: "financial_advisor_tab_overview" },
+  { id: "cash-flow-forecast", key: "financial_advisor_tab_cash_flow_forecast", shortKey: "financial_advisor_tab_cash_flow" },
+  { id: "wealth-growth-forecast", key: "financial_advisor_tab_wealth_growth_forecast", shortKey: "financial_advisor_tab_wealth_growth" },
+  { id: "portfolio-optimizer", key: "financial_advisor_tab_portfolio_optimizer", shortKey: "financial_advisor_tab_portfolio" },
   { id: "goal-planning", key: "financial_advisor_tab_goal_planning" },
   { id: "risk-analysis", key: "financial_advisor_tab_risk_analysis" },
   { id: "spending-intelligence", key: "financial_advisor_tab_spending_intelligence" },
-  { id: "opportunity-detection", key: "financial_advisor_tab_opportunity_detection" },
-  { id: "market-intelligence", key: "financial_advisor_tab_market_intelligence" },
+  { id: "opportunity-detection", key: "financial_advisor_tab_opportunity_detection", shortKey: "financial_advisor_tab_opportunities" },
+  { id: "market-intelligence", key: "financial_advisor_tab_market_intelligence", shortKey: "financial_advisor_tab_performance" },
   { id: "ai-financial-advisor", key: "financial_advisor_tab_ai_financial_advisor" },
   { id: "what-if-simulator", key: "financial_advisor_tab_what_if_simulator" },
 ];
 
 const FINANCIAL_ADVISOR_ACTIVE_TAB_KEY = "wf_financial_advisor_active_tab";
+const FINANCIAL_ADVISOR_PRIMARY_TAB_IDS = [
+  "overview",
+  "cash-flow-forecast",
+  "wealth-growth-forecast",
+  "portfolio-optimizer",
+];
+
 let _cashFlowForecastLoaded = false;
 let _cashFlowForecastData = null;
 let _wealthGrowthForecastLoaded = false;
 let _wealthGrowthForecastData = null;
 let _wealthGrowthForecastThemeListenerAttached = false;
+let _financialAdvisorMenuEventsAbortController = null;
 
 function _cashFlowPaneId() {
   return "fa-pane-cash-flow-forecast";
@@ -509,10 +517,13 @@ function renderFinancialAdvisor() {
   const savedTab = sessionStorage.getItem(FINANCIAL_ADVISOR_ACTIVE_TAB_KEY) || "overview";
   const hasSavedTab = FINANCIAL_ADVISOR_TABS.some((tab) => tab.id === savedTab);
   const activeTabId = hasSavedTab ? savedTab : "overview";
+  const primaryTabs = FINANCIAL_ADVISOR_TABS.filter((tab) => FINANCIAL_ADVISOR_PRIMARY_TAB_IDS.includes(tab.id));
+  const overflowTabs = FINANCIAL_ADVISOR_TABS.filter((tab) => !FINANCIAL_ADVISOR_PRIMARY_TAB_IDS.includes(tab.id));
+  const overflowHasActive = overflowTabs.some((tab) => tab.id === activeTabId);
 
-  const tabsNav = FINANCIAL_ADVISOR_TABS.map((tab, index) => `
+  const renderTabButton = (tab, cssClass) => `
     <button
-      class="settings-tab ${tab.id === activeTabId ? "active" : ""}"
+      class="${cssClass} ${tab.id === activeTabId ? "active" : ""}"
       id="fa-tab-${tab.id}"
       data-bs-toggle="pill"
       data-bs-target="#fa-pane-${tab.id}"
@@ -520,9 +531,12 @@ function renderFinancialAdvisor() {
       role="tab"
       aria-controls="fa-pane-${tab.id}"
       aria-selected="${tab.id === activeTabId ? "true" : "false"}"
-      data-i18n="${tab.key}"
+      data-i18n="${tab.shortKey || tab.key}"
     ></button>
-  `).join("");
+  `;
+
+  const primaryTabsNav = primaryTabs.map((tab) => renderTabButton(tab, "financial-advisor-tab")).join("");
+  const overflowTabsNav = overflowTabs.map((tab) => renderTabButton(tab, "financial-advisor-dropdown-item")).join("");
 
   const tabsContent = FINANCIAL_ADVISOR_TABS.map((tab, index) => `
     <div
@@ -562,8 +576,27 @@ function renderFinancialAdvisor() {
 
     <div class="card border-0" style="background:var(--bg-primary); border:1px solid var(--border-color);">
       <div class="card-body" style="padding:16px;">
-        <div style="border-bottom:1px solid var(--border-color);margin-bottom:20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap" id="financialAdvisorTabs" role="tablist">
-          ${tabsNav}
+        <div class="financial-advisor-tabs-shell">
+          <div class="financial-advisor-tabs-row" id="financialAdvisorTabs" role="tablist">
+            <div class="financial-advisor-main-tabs">
+              ${primaryTabsNav}
+            </div>
+            <div class="financial-advisor-more-wrap ${overflowHasActive ? "active" : ""}" id="financialAdvisorMoreWrap">
+              <button
+                class="financial-advisor-tab financial-advisor-more-toggle ${overflowHasActive ? "active" : ""}"
+                id="financialAdvisorMoreBtn"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                <span data-i18n="financial_advisor_tab_more"></span>
+                <i class="bi bi-chevron-down financial-advisor-more-icon"></i>
+              </button>
+              <div class="financial-advisor-more-menu" id="financialAdvisorMoreMenu" role="menu">
+                ${overflowTabsNav}
+              </div>
+            </div>
+          </div>
         </div>
         <div class="tab-content" id="financialAdvisorTabsContent">
           ${tabsContent}
@@ -575,6 +608,69 @@ function renderFinancialAdvisor() {
   applyTranslations();
 
   const tabsContainer = document.getElementById("financialAdvisorTabs");
+  const moreWrap = document.getElementById("financialAdvisorMoreWrap");
+  const moreBtn = document.getElementById("financialAdvisorMoreBtn");
+  const moreMenu = document.getElementById("financialAdvisorMoreMenu");
+
+  const closeMoreMenu = () => {
+    if (!moreWrap || !moreBtn) return;
+    moreWrap.classList.remove("open");
+    moreBtn.setAttribute("aria-expanded", "false");
+  };
+
+  const openMoreMenu = () => {
+    if (!moreWrap || !moreBtn) return;
+    moreWrap.classList.add("open");
+    moreBtn.setAttribute("aria-expanded", "true");
+  };
+
+  const syncMoreActiveState = () => {
+    if (!moreWrap || !moreBtn) return;
+    const hasOverflowActive = overflowTabs.some((tab) => {
+      const tabButton = document.getElementById(`fa-tab-${tab.id}`);
+      return tabButton?.classList.contains("active");
+    });
+    moreWrap.classList.toggle("active", hasOverflowActive);
+    moreBtn.classList.toggle("active", hasOverflowActive);
+  };
+
+  if (_financialAdvisorMenuEventsAbortController) {
+    _financialAdvisorMenuEventsAbortController.abort();
+  }
+  _financialAdvisorMenuEventsAbortController = new AbortController();
+  const menuEventsSignal = _financialAdvisorMenuEventsAbortController.signal;
+
+  if (moreBtn && moreWrap && moreMenu) {
+    moreBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (moreWrap.classList.contains("open")) {
+        closeMoreMenu();
+      } else {
+        openMoreMenu();
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!moreWrap.contains(target)) {
+        closeMoreMenu();
+      }
+    }, { signal: menuEventsSignal });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeMoreMenu();
+      }
+    }, { signal: menuEventsSignal });
+
+    moreMenu.querySelectorAll('[data-bs-toggle="pill"]').forEach((menuTab) => {
+      menuTab.addEventListener("click", () => {
+        closeMoreMenu();
+      });
+    });
+  }
+
   if (tabsContainer) {
     tabsContainer.querySelectorAll('[data-bs-toggle="pill"]').forEach((tabButton) => {
       tabButton.addEventListener("shown.bs.tab", (event) => {
@@ -590,9 +686,13 @@ function renderFinancialAdvisor() {
         } else if (targetSelector === "#fa-pane-wealth-growth-forecast") {
           loadWealthGrowthForecast();
         }
+        closeMoreMenu();
+        syncMoreActiveState();
       });
     });
   }
+
+  syncMoreActiveState();
 
   if (activeTabId === "cash-flow-forecast") {
     loadCashFlowForecast();

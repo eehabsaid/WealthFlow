@@ -14,7 +14,7 @@ async function renderAdvancedReports(tab) {
         ];
 
         const tabBar = tabs.map(tb => `
-            <button class="settings-tab ${tab === tb.id ? 'active' : ''}"
+            <button class="wf-tab ${tab === tb.id ? 'active' : ''}"
                 onclick="renderAdvancedReports('${tb.id}');closeMobileSidebar && closeMobileSidebar()">
                 ${tb.icon} <span data-i18n="${tb.key}"></span>
             </button>
@@ -28,12 +28,23 @@ async function renderAdvancedReports(tab) {
                 <div style="color:var(--text-muted);font-size:13px" data-i18n="advanced_reports_subtitle"></div>
             </div>
         </div>
-        <div style="border-bottom:1px solid var(--border-color);margin-bottom:20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap">
-            ${tabBar}
+        <div class="wf-tabs-shell">
+          <div class="wf-tabs-row" id="advancedReportsTabsBar">
+              ${tabBar}
+          </div>
         </div>
         <div id="reportContent"></div>`;
 
     applyTranslations();
+    if (typeof window.initTabsWithMoreMenu === 'function') {
+        window.initTabsWithMoreMenu({
+            containerId: 'advancedReportsTabsBar',
+            visibleCount: 4,
+            moreLabel: t('financial_advisor_tab_more', 'More'),
+            tabSelector: '.wf-tab',
+            activeClass: 'active',
+        });
+    }
 
     if (tab === 'salary')       await _renderSalaryReport();
     else if (tab === 'company') await _renderCompanyReport();

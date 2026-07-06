@@ -4,7 +4,10 @@ let propertyMap = null;
 let propertyMarker = null;
 let propertyPhotos = [];
 let currentEditingAssetId = null;
-let fixedAssetBalanceOptions = [];
+let currentAssetHasPurchaseSync = false;
+let fixedAssetSyncCurrencies = [];
+let fixedAssetSyncBanks = [];
+const FIXED_ASSET_PAYMENT_METHODS = ["Cash", "Card", "Bank", "Bank Transfer"];
 let goldPurityReturnContext = null;
 let fixedAssetsState = {
   activeTab: "assets",
@@ -570,7 +573,7 @@ function showGoldPurityGroupDetails(purityKey) {
               <th data-i18n="asset_name">${t("asset_name", "Asset Name")}</th>
               <th data-i18n="purchase_date">${t("purchase_date", "Purchase Date")}</th>
               <th data-i18n="weight">${t("weight", "Weight")}</th>
-              <th class="text-end" data-i18n="purchase_price_egp">${t("purchase_price_egp", "Purchase Price (EGP)")}</th>
+              <th class="text-end" data-i18n="purchase_price_egp">${t("purchase_price_egp", "Purchase Price")}</th>
               <th class="text-end" data-i18n="current_market_value">${t("current_market_value", "Current Market Value")}</th>
               <th data-i18n="actions">${t("actions", "Actions")}</th>
             </tr>
@@ -1374,6 +1377,7 @@ async function showFixedAssetModal(assetId = null, options = {}) {
 
   const isEdit = assetId !== null;
   currentEditingAssetId = isEdit ? assetId : null;
+  currentAssetHasPurchaseSync = false;
   const modalTitleKey = isEdit ? "edit_fixed_asset" : "add_fixed_asset";
   const modalTitleDefault = isEdit
     ? "Edit Asset Details"
@@ -1634,15 +1638,22 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                             </div>
 
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <label class="form-label text-light" data-i18n="purchase_price_egp">Purchase Price (EGP)</label>
+                          <div class="col-md-3">
+                            <label class="form-label text-light" data-i18n="purchase_currency">Purchase Currency</label>
+                            <select class="form-select" id="fa_purchase_currency" onchange="handlePurchaseCurrencyChange()" required></select>
+                          </div>
+                          <div class="col-md-3">
+                            <label class="form-label text-light" data-i18n="purchase_price_egp">Purchase Price</label>
                                 <input type="number" step="0.01" class="form-control" oninput="updatePurchasePriceUSD()" id="fa_purchase_price" required>
                             </div>
-                            <div class="col-md-4">
+                          <div class="col-md-3">
                                 <label class="form-label text-light" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
-                                <input type="number" step="0.0001" class="form-control" oninput="updatePurchasePriceUSD()" id="fa_purchase_usd_rate" required>
+                            <div class="input-group">
+                              <input type="number" step="0.00001" class="form-control" oninput="updatePurchasePriceUSD()" id="fa_purchase_usd_rate" required>
+                              <button type="button" class="btn btn-outline-secondary" onclick="fillCurrentUsdRate()" data-i18n="current_rate_btn">Now</button>
                             </div>
-                            <div class="col-md-4">
+                            </div>
+                          <div class="col-md-3">
                                 <label class="form-label text-light" data-i18n="purchase_price_usd">Purchase Price (USD)</label>
                                 <input type="number" step="0.01" class="form-control" id="fa_purchase_price_usd" readonly>
                             </div>
@@ -1661,6 +1672,17 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                                 <label class="form-label text-light" data-i18n="last_valuation_date">Last Valuation Date</label>
                                 <input type="date" class="form-control" id="fa_last_valuation_date" required>
                             </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm bg-transparent mb-3">
+                          <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
+                            <h6 class="mb-0 font-weight-bold fixed-assets-section-title" data-i18n="payment_information">Payment Information</h6>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPurchasePaymentRow()" data-i18n="add_payment_source">+ Add Payment Source</button>
+                          </div>
+                          <div class="card-body px-0 pt-2">
+                            <div id="purchasePaymentsContainer" class="w-100"></div>
+                            <div class="small text-light mt-2" style="opacity:0.8;" data-i18n="purchase_payment_total_hint">Total payment sources must equal Purchase Price.</div>
+                          </div>
                         </div>
 
                         <div class="row g-3 mb-3" id="valuation-source-row">
@@ -2116,9 +2138,17 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                           </div>
 
                           <div class="row g-3 mb-3">
-                            <div class="col-md-12">
-                              <label class="form-label text-light" data-i18n="deposit_balance">Deposit Balance</label>
-                              <select class="form-select" id="fa_deposit_balance"></select>
+                            <div class="col-md-4">
+                              <label class="form-label text-light" data-i18n="currency">Currency</label>
+                              <select class="form-select" id="fa_deposit_currency"></select>
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label text-light" data-i18n="deposit_method">Deposit Method</label>
+                              <select class="form-select" id="fa_deposit_method" onchange="toggleSaleDepositBankField()"></select>
+                            </div>
+                            <div class="col-md-4" id="faDepositBankWrap">
+                              <label class="form-label text-light" data-i18n="bank">Bank</label>
+                              <select class="form-select" id="fa_deposit_bank"></select>
                             </div>
                           </div>
 
@@ -2214,7 +2244,9 @@ async function showFixedAssetModal(assetId = null, options = {}) {
     });
   }
 
-  await loadFixedAssetBalanceOptions();
+  await loadFixedAssetSyncDropdownData();
+  resetPurchasePaymentsForm();
+  addPurchasePaymentRow();
   propertyPhotos = [];
   renderPropertyPhotoGallery();
   ["renovationContainer", "furnitureContainer", "valuationContainer", "maintenanceContainer", "insuranceContainer"].forEach((id) => {
@@ -2222,6 +2254,7 @@ async function showFixedAssetModal(assetId = null, options = {}) {
     if (container) container.innerHTML = "";
   });
   resetSaleForm();
+  toggleSaleDepositBankField();
   resetMortgageForm();
   resetRentalForm();
   toggleSaleTabVisibility();
@@ -2245,6 +2278,8 @@ async function showFixedAssetModal(assetId = null, options = {}) {
   initializePropertyMap();
   if (isEdit) {
     await loadFixedAsset(assetId);
+  } else {
+    maybeRefreshPurchaseUsdRateOnLoad();
   }
 }
 
@@ -2673,7 +2708,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                             <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                                 <div class="card-body p-4">
                                     <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="valuation_summary">Valuation Summary</h6>
-                                    <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_egp">Purchase Price (EGP)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_egp">Purchase Price</div><div class="col-7 fw-bold">${fmt(asset.purchase_price)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_usd">Purchase Price (USD)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price_usd)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="current_market_value">Current Market Value</div><div class="col-7 fw-bold">${fmt(asset.current_market_value)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="last_valuation_date">Last Valuation Date</div><div class="col-7">${asset.last_valuation_date || '-'}</div></div>
@@ -2779,7 +2814,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                                         <div class="text-md-end">
                                             <div class="small mb-2" data-i18n="amount_usd">Amount USD</div>
                                             <div class="fw-semibold">${fmt(r.amount_usd)}</div>
-                                            <div class="small mt-3" data-i18n="amount_egp">Amount EGP</div>
+                                            <div class="small mt-3" data-i18n="amount_egp">Amount</div>
                                             <div class="fw-semibold">${fmt(r.amount_egp)}</div>
                                         </div>
                                     </div>
@@ -2811,7 +2846,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                                     </div>
 
                                     <div class="d-flex justify-content-between align-items-center w-100">
-                                        <div class="fw-semibold" data-i18n="amount_egp">Total EGP</div>
+                                        <div class="fw-semibold" data-i18n="amount_egp">Amount</div>
                                         <div class="text-end fw-semibold">
                                             ${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_egp) || 0), 0))} <span data-i18n="EGP">EGP</span>
                                         </div>
@@ -2835,7 +2870,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                                 <div class="fw-semibold">${item.name || '-'}</div>
                               </div>
                               <div class="text-end">
-                                <div class="small mb-1" data-i18n="amount_egp">Amount EGP</div>
+                                <div class="small mb-1" data-i18n="amount_egp">Amount</div>
                                 <div class="fw-semibold">${fmt(item.amount_egp)}</div>
                               </div>
                             </div>
@@ -3050,7 +3085,10 @@ async function loadFixedAsset(assetId) {
       asset.purchase_usd_rate || 1;
     document.getElementById("fa_purchase_price_usd").value =
       asset.purchase_price_usd || 0;
-    updatePurchasePriceUSD();
+    const existingPurchasePayments = Array.isArray(asset.purchase_payments) ? asset.purchase_payments : [];
+    currentAssetHasPurchaseSync = existingPurchasePayments.length > 0;
+    populatePurchasePaymentsForm(existingPurchasePayments, asset.purchase_price || 0, false);
+    maybeRefreshPurchaseUsdRateOnLoad();
     document.getElementById("fa_current_value").value =
       asset.current_market_value || 0;
     document.getElementById("fa_last_valuation_date").value =
@@ -3205,18 +3243,116 @@ async function loadFixedAsset(assetId) {
 }
 
 function updatePurchasePriceUSD() {
-  const egp =
+  const purchasePrice =
     parseFloat(document.getElementById("fa_purchase_price").value) || 0;
   const rate =
     parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0;
+  const purchaseCurrencyCode = getSelectedPurchaseCurrencyCode();
   const usdField = document.getElementById("fa_purchase_price_usd");
 
   if (!usdField) return;
 
+  if (purchaseCurrencyCode === "USD") {
+    usdField.value = purchasePrice > 0 ? purchasePrice.toFixed(2) : "0.00";
+    return;
+  }
+
+  if (purchaseCurrencyCode === "EGP") {
+    if (rate > 0) {
+      usdField.value = (purchasePrice / rate).toFixed(2);
+    } else {
+      usdField.value = "";
+    }
+    return;
+  }
+
   if (rate > 0) {
-    usdField.value = (egp / rate).toFixed(2);
+    usdField.value = (purchasePrice * rate).toFixed(2);
   } else {
     usdField.value = "";
+  }
+}
+
+function getSelectedPurchaseCurrency() {
+  const selectedId = parseInt(document.getElementById("fa_purchase_currency")?.value, 10) || null;
+  if (!selectedId) return null;
+  return fixedAssetSyncCurrencies.find((item) => parseInt(item?.id, 10) === selectedId) || null;
+}
+
+function getSelectedPurchaseCurrencyCode() {
+  return String(getSelectedPurchaseCurrency()?.code || "").toUpperCase();
+}
+
+function getRateToEgp(row) {
+  return parseFloat(row?.buy_rate) || 0;
+}
+
+function applyPurchaseUsdRateByCurrency(rates) {
+  const purchaseCurrencyCode = getSelectedPurchaseCurrencyCode();
+  const usdRateField = document.getElementById("fa_purchase_usd_rate");
+  if (!usdRateField) return;
+
+  if (purchaseCurrencyCode === "USD") {
+    usdRateField.value = "1.00000";
+    updatePurchasePriceUSD();
+    return;
+  }
+
+  const usd = rates.find((item) => String(item?.currency_code || "").toUpperCase() === "USD");
+  const usdBuyRate = getRateToEgp(usd);
+  if (!usdBuyRate) {
+    throw new Error(t("error_loading_rates", "Error loading exchange rates."));
+  }
+
+  if (purchaseCurrencyCode === "EGP") {
+    // Base currency is not stored in exchange-rate table; use implicit buy_rate = 1.00.
+    const rate = usdBuyRate;
+    usdRateField.value = rate.toFixed(5);
+    updatePurchasePriceUSD();
+    return;
+  }
+
+  let currencyBuyRate = 1;
+  if (purchaseCurrencyCode && purchaseCurrencyCode !== "EGP") {
+    const selectedCurrency = rates.find((item) => String(item?.currency_code || "").toUpperCase() === purchaseCurrencyCode);
+    currencyBuyRate = getRateToEgp(selectedCurrency);
+    if (!currencyBuyRate) {
+      throw new Error(t("error_loading_rates", "Error loading exchange rates."));
+    }
+  }
+
+  const rate = currencyBuyRate / usdBuyRate;
+  usdRateField.value = rate.toFixed(5);
+  updatePurchasePriceUSD();
+}
+
+async function handlePurchaseCurrencyChange() {
+  const purchaseCurrencyCode = getSelectedPurchaseCurrencyCode();
+  const usdRateField = document.getElementById("fa_purchase_usd_rate");
+  if (!usdRateField) return;
+
+  const isGold = isGoldAssetType(document.getElementById("fa_type")?.value);
+  if (purchaseCurrencyCode === "USD") {
+    usdRateField.value = "1.00000";
+    if (!isGold) {
+      usdRateField.readOnly = true;
+    }
+    updatePurchasePriceUSD();
+    return;
+  } else if (!isGold) {
+    usdRateField.readOnly = false;
+  }
+
+  try {
+    const response = await fetch("/api/rates/");
+    if (!response.ok) {
+      throw new Error(t("error_loading_rates", "Error loading exchange rates."));
+    }
+    const payload = await response.json();
+    const rates = Array.isArray(payload?.rates) ? payload.rates : [];
+    applyPurchaseUsdRateByCurrency(rates);
+  } catch (error) {
+    showToast(error.message, "danger");
   }
 }
 
@@ -3250,12 +3386,9 @@ async function refreshGoldCalculatedFields(forcePriceFetch = false) {
     const gold = await getLatestGoldPrice(forcePriceFetch);
     if (!gold) return;
 
-    const usdRate = parseFloat(gold.usd_to_egp) || 0;
-    const usdRateField = document.getElementById("fa_purchase_usd_rate");
-    if (usdRateField) {
-      usdRateField.value = usdRate > 0 ? usdRate.toFixed(6) : "";
-    }
-    updatePurchasePriceUSD();
+    // Do not overwrite existing USD rate for gold on load/edit.
+    // Only populate when missing/invalid (same behavior as other asset types).
+    maybeRefreshPurchaseUsdRateOnLoad();
 
     const purity = document.getElementById("gd_purity")?.value || "24K";
     const unit = document.getElementById("gd_unit")?.value || "gram";
@@ -3308,20 +3441,207 @@ function updateNetSaleAmount() {
   netSaleField.value = (salePrice - sellingExpenses).toFixed(2);
 }
 
+function shouldRequireBankForMethod(methodValue) {
+  const normalized = String(methodValue || "").trim().toLowerCase();
+  return normalized !== "cash";
+}
+
+function renderPaymentMethodOptions(selected = "Cash") {
+  return FIXED_ASSET_PAYMENT_METHODS
+    .map((method) => {
+      const key = `payment_${method.toLowerCase().replace(/\s+/g, "_")}`;
+      return `<option value="${method}" ${String(selected) === method ? "selected" : ""} data-i18n="${key}">${t(key, method)}</option>`;
+    })
+    .join("");
+}
+
+function isMonetaryCurrency(currency) {
+  const code = String(currency?.code || "").trim().toUpperCase();
+  const name = String(currency?.name || "").trim().toLowerCase();
+  return !["GOLD", "XAU", "CASH"].includes(code) && !name.includes("gold");
+}
+
+function getMonetaryCurrencies() {
+  return fixedAssetSyncCurrencies.filter((currency) => isMonetaryCurrency(currency));
+}
+
+function renderCurrencyOptions(selectedCurrencyId = "") {
+  return fixedAssetSyncCurrencies
+    .map((currency) => {
+      const selected = String(selectedCurrencyId) === String(currency.id) ? "selected" : "";
+      return `<option value="${currency.id}" ${selected}>${currency.code}</option>`;
+    })
+    .join("");
+}
+
+function renderMonetaryCurrencyOptions(selectedCurrencyId = "") {
+  return getMonetaryCurrencies()
+    .map((currency) => {
+      const selected = String(selectedCurrencyId) === String(currency.id) ? "selected" : "";
+      return `<option value="${currency.id}" ${selected}>${currency.code}</option>`;
+    })
+    .join("");
+}
+
+function getDefaultMonetaryCurrencyId() {
+  const monetaryCurrencies = getMonetaryCurrencies();
+  const egp = monetaryCurrencies.find((row) => String(row.code).toUpperCase() === "EGP");
+  return (egp || monetaryCurrencies[0] || {}).id || "";
+}
+
+function getDefaultPurchaseCurrencyId() {
+  return getDefaultMonetaryCurrencyId();
+}
+
+function renderBankOptions(selectedBankId = "") {
+  const rows = [`<option value="">${t("none_option", "--")}</option>`];
+  fixedAssetSyncBanks.forEach((bank) => {
+    const selected = String(selectedBankId) === String(bank.id) ? "selected" : "";
+    rows.push(`<option value="${bank.id}" ${selected}>${bank.name}</option>`);
+  });
+  return rows.join("");
+}
+
+function addPurchasePaymentRow(initial = {}) {
+  const container = document.getElementById("purchasePaymentsContainer");
+  if (!container) return;
+
+  const method = initial.payment_method || "Cash";
+  const bankId = initial.bank_id || "";
+  const amount = initial.amount ?? "";
+
+  const row = document.createElement("div");
+  row.className = "row g-2 align-items-end mb-2 purchase-payment-row";
+  row.innerHTML = `
+    <div class="col-md-4">
+      <label class="form-label text-light" data-i18n="payment_method">Payment Method</label>
+      <select class="form-select purchase-method" onchange="togglePurchasePaymentBankField(this)">${renderPaymentMethodOptions(method)}</select>
+    </div>
+    <div class="col-md-3 purchase-bank-wrap">
+      <label class="form-label text-light" data-i18n="bank">Bank</label>
+      <select class="form-select purchase-bank">${renderBankOptions(bankId)}</select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label text-light" data-i18n="amount">Amount</label>
+      <input type="number" step="0.01" class="form-control purchase-amount" value="${amount}">
+    </div>
+    <div class="col-md-1 d-grid">
+      <button type="button" class="btn btn-outline-danger" onclick="removePurchasePaymentRow(this)"><i class="bi bi-trash"></i></button>
+    </div>
+  `;
+
+  container.appendChild(row);
+  togglePurchasePaymentBankField(row.querySelector(".purchase-method"));
+  applyTranslations();
+}
+
+function removePurchasePaymentRow(button) {
+  const row = button?.closest(".purchase-payment-row");
+  if (!row) return;
+  row.remove();
+}
+
+function togglePurchasePaymentBankField(methodSelect) {
+  const row = methodSelect?.closest(".purchase-payment-row");
+  if (!row) return;
+  const method = methodSelect.value;
+  const bankWrap = row.querySelector(".purchase-bank-wrap");
+  const bankSelect = row.querySelector(".purchase-bank");
+  const required = shouldRequireBankForMethod(method);
+
+  if (bankWrap) bankWrap.classList.toggle("d-none", !required);
+  if (bankSelect) {
+    bankSelect.required = required;
+    if (!required) bankSelect.value = "";
+  }
+}
+
+function resetPurchasePaymentsForm() {
+  const container = document.getElementById("purchasePaymentsContainer");
+  if (!container) return;
+  container.innerHTML = "";
+}
+
+function populatePurchasePaymentsForm(rows, fallbackAmount = 0, defaultIfEmpty = true) {
+  resetPurchasePaymentsForm();
+  const values = Array.isArray(rows) ? rows : [];
+  const purchaseCurrencySelect = document.getElementById("fa_purchase_currency");
+
+  if (purchaseCurrencySelect) {
+    const fromRows = values.find((item) => item && item.currency_id)?.currency_id;
+    purchaseCurrencySelect.value = String(fromRows || getDefaultPurchaseCurrencyId() || "");
+  }
+
+  if (!values.length) {
+    if (defaultIfEmpty) {
+      addPurchasePaymentRow({ amount: fallbackAmount || "" });
+    }
+    return;
+  }
+  values.forEach((row) => addPurchasePaymentRow(row));
+}
+
+function collectPurchasePaymentsPayload() {
+  const rows = Array.from(document.querySelectorAll("#purchasePaymentsContainer .purchase-payment-row"));
+  return rows.map((row) => ({
+    payment_method: row.querySelector(".purchase-method")?.value || "Cash",
+    bank_id: parseInt(row.querySelector(".purchase-bank")?.value, 10) || null,
+    amount: parseFloat(row.querySelector(".purchase-amount")?.value) || 0,
+  }));
+}
+
+function validatePurchasePayments(purchasePrice) {
+  const purchaseCurrencyId = parseInt(document.getElementById("fa_purchase_currency")?.value, 10) || null;
+  if (!purchaseCurrencyId) {
+    throw new Error(t("currency_required", "Currency is required."));
+  }
+
+  const rows = collectPurchasePaymentsPayload();
+  if (!rows.length) {
+    if (currentEditingAssetId !== null && !currentAssetHasPurchaseSync) {
+      return [];
+    }
+    throw new Error(t("purchase_payment_required", "Add at least one payment source."));
+  }
+
+  rows.forEach((row) => {
+    if (shouldRequireBankForMethod(row.payment_method) && !row.bank_id) {
+      throw new Error(t("bank_account_required", "Bank account is required for this payment method"));
+    }
+    if (!row.amount || row.amount <= 0) {
+      throw new Error(t("amount_required", "Amount is required."));
+    }
+  });
+
+  const total = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+  if (Math.abs(total - purchasePrice) > 0.01) {
+    throw new Error(t("purchase_payment_total_mismatch", "Total payment sources must equal purchase price."));
+  }
+
+  return rows;
+}
+
 function resetSaleForm() {
   const saleDateField = document.getElementById("fa_sale_date");
   const salePriceField = document.getElementById("fa_sale_price");
   const sellingExpensesField = document.getElementById("fa_selling_expenses");
   const saleNotesField = document.getElementById("fa_sale_notes");
-  const balanceSelect = document.getElementById("fa_deposit_balance");
+  const currencySelect = document.getElementById("fa_deposit_currency");
+  const methodSelect = document.getElementById("fa_deposit_method");
+  const bankSelect = document.getElementById("fa_deposit_bank");
+
+  const defaultCurrency = getDefaultMonetaryCurrencyId();
 
   if (saleDateField) saleDateField.value = "";
   if (salePriceField) salePriceField.value = "";
   if (sellingExpensesField) sellingExpensesField.value = "0";
   if (saleNotesField) saleNotesField.value = "";
-  if (balanceSelect) balanceSelect.value = "";
+  if (currencySelect) currencySelect.value = String(defaultCurrency || "");
+  if (methodSelect) methodSelect.value = "Cash";
+  if (bankSelect) bankSelect.value = "";
 
   updateNetSaleAmount();
+  toggleSaleDepositBankField();
 }
 
 function populateSaleForm(sale) {
@@ -3335,11 +3655,48 @@ function populateSaleForm(sale) {
     sale.selling_expenses || 0;
   document.getElementById("fa_sale_notes").value = sale.notes || "";
 
-  if (sale.deposit_balance_id !== null && sale.deposit_balance_id !== undefined) {
-    document.getElementById("fa_deposit_balance").value = String(sale.deposit_balance_id);
+  if (sale.deposit_currency_id !== null && sale.deposit_currency_id !== undefined) {
+    document.getElementById("fa_deposit_currency").value = String(sale.deposit_currency_id);
+  }
+  if (sale.deposit_method) {
+    document.getElementById("fa_deposit_method").value = sale.deposit_method;
+  }
+  if (sale.deposit_bank_id !== null && sale.deposit_bank_id !== undefined) {
+    document.getElementById("fa_deposit_bank").value = String(sale.deposit_bank_id);
   }
 
   updateNetSaleAmount();
+  toggleSaleDepositBankField();
+}
+
+function maybeRefreshPurchaseUsdRateOnLoad() {
+  const usdRateField = document.getElementById("fa_purchase_usd_rate");
+  if (!usdRateField) return;
+
+  const currentValue = String(usdRateField.value ?? "").trim();
+  const numericRate = parseFloat(currentValue);
+
+  // Keep existing stored/manual value; refresh only when missing or invalid.
+  if (!currentValue || !Number.isFinite(numericRate) || numericRate <= 0) {
+    handlePurchaseCurrencyChange();
+    return;
+  }
+
+  updatePurchasePriceUSD();
+}
+
+function toggleSaleDepositBankField() {
+  const methodEl = document.getElementById("fa_deposit_method");
+  const wrap = document.getElementById("faDepositBankWrap");
+  const bankEl = document.getElementById("fa_deposit_bank");
+  if (!methodEl || !wrap || !bankEl) return;
+
+  const required = shouldRequireBankForMethod(methodEl.value);
+  wrap.classList.toggle("d-none", !required);
+  bankEl.required = required;
+  if (!required) {
+    bankEl.value = "";
+  }
 }
 
 function toggleSaleTabVisibility() {
@@ -3599,30 +3956,64 @@ function collectRentalPayload() {
   };
 }
 
-async function loadFixedAssetBalanceOptions() {
-  const balanceSelect = document.getElementById("fa_deposit_balance");
-  if (!balanceSelect) return;
+async function loadFixedAssetSyncDropdownData() {
+  if (!fixedAssetSyncCurrencies.length || !fixedAssetSyncBanks.length) {
+    const [currRes, bankRes] = await Promise.all([
+      fetch("/api/currencies/"),
+      fetch("/api/banks/"),
+    ]);
 
-  if (fixedAssetBalanceOptions.length === 0) {
-    const response = await fetch("/api/balance/");
-    if (!response.ok) {
-      throw new Error(t("error_loading_balances", "Error loading balances"));
+    if (!currRes.ok) {
+      throw new Error(t("error_loading_currencies", "Error loading currencies"));
+    }
+    if (!bankRes.ok) {
+      throw new Error(t("error_loading_banks", "Error loading banks"));
     }
 
-    const data = await response.json();
-    fixedAssetBalanceOptions = Array.isArray(data.entries) ? data.entries : [];
+    const currData = await currRes.json();
+    const bankData = await bankRes.json();
+
+    fixedAssetSyncCurrencies = Array.isArray(currData.currencies) ? currData.currencies : [];
+    fixedAssetSyncBanks = Array.isArray(bankData.banks) ? bankData.banks.filter((b) => b?.is_active !== false) : [];
   }
 
-  const options = [
-    `<option value="">${t("no_deposit_balance", "No deposit balance")}</option>`,
-    ...fixedAssetBalanceOptions.map((entry) => {
-      const bankPart = entry.bank_name ? ` - ${entry.bank_name}` : "";
-      const currencyPart = entry.currency_code ? ` (${entry.currency_code})` : "";
-      return `<option value="${entry.id}">${entry.title}${bankPart}${currencyPart}</option>`;
-    }),
-  ];
+  const saleCurrency = document.getElementById("fa_deposit_currency");
+  if (saleCurrency) {
+    saleCurrency.innerHTML = renderMonetaryCurrencyOptions();
+  }
 
-  balanceSelect.innerHTML = options.join("");
+  const purchaseCurrency = document.getElementById("fa_purchase_currency");
+  if (purchaseCurrency) {
+    purchaseCurrency.innerHTML = renderMonetaryCurrencyOptions();
+    purchaseCurrency.value = String(getDefaultPurchaseCurrencyId() || "");
+  }
+
+  const saleMethod = document.getElementById("fa_deposit_method");
+  if (saleMethod) {
+    saleMethod.innerHTML = renderPaymentMethodOptions("Cash");
+  }
+
+  const saleBank = document.getElementById("fa_deposit_bank");
+  if (saleBank) {
+    saleBank.innerHTML = renderBankOptions();
+  }
+}
+
+async function fillCurrentUsdRate() {
+  const usdRateField = document.getElementById("fa_purchase_usd_rate");
+  if (!usdRateField) return;
+
+  try {
+    const response = await fetch("/api/rates/");
+    if (!response.ok) {
+      throw new Error(t("error_loading_rates", "Error loading exchange rates."));
+    }
+    const payload = await response.json();
+    const rates = Array.isArray(payload?.rates) ? payload.rates : [];
+    applyPurchaseUsdRateByCurrency(rates);
+  } catch (error) {
+    showToast(error.message, "danger");
+  }
 }
 
 function collectSalePayload() {
@@ -3633,8 +4024,12 @@ function collectSalePayload() {
       parseFloat(document.getElementById("fa_selling_expenses").value) || 0,
     net_sale_amount:
       parseFloat(document.getElementById("fa_net_sale_amount").value) || 0,
-    deposit_balance_id:
-      parseInt(document.getElementById("fa_deposit_balance").value, 10) || null,
+    deposit_currency_id:
+      parseInt(document.getElementById("fa_deposit_currency").value, 10) || null,
+    deposit_method:
+      document.getElementById("fa_deposit_method").value || "Cash",
+    deposit_bank_id:
+      parseInt(document.getElementById("fa_deposit_bank").value, 10) || null,
     notes: document.getElementById("fa_sale_notes").value,
   };
 }
@@ -3649,6 +4044,17 @@ function validateSaleForm() {
 
   if (salePrice <= 0) {
     throw new Error(t("sale_price_required", "Sale price must be greater than zero"));
+  }
+
+  const depositCurrencyId = parseInt(document.getElementById("fa_deposit_currency")?.value, 10) || null;
+  const depositMethod = document.getElementById("fa_deposit_method")?.value || "Cash";
+  const depositBankId = parseInt(document.getElementById("fa_deposit_bank")?.value, 10) || null;
+
+  if (!depositCurrencyId) {
+    throw new Error(t("currency_required", "Currency is required."));
+  }
+  if (shouldRequireBankForMethod(depositMethod) && !depositBankId) {
+    throw new Error(t("bank_account_required", "Bank account is required for this payment method"));
   }
 }
 
@@ -3666,7 +4072,18 @@ async function syncAssetSale(assetId, status) {
     });
 
     if (!response.ok) {
-      throw new Error(t("error_saving_sale", "Error saving sale information"));
+      let message = t("error_saving_sale", "Error saving sale information");
+      try {
+        const payload = await response.json();
+        if (payload?.error_key) {
+          message = t(payload.error_key, payload.error || message);
+        } else if (payload?.error) {
+          message = payload.error;
+        }
+      } catch (_) {
+        // Keep fallback message.
+      }
+      throw new Error(message);
     }
 
     return;
@@ -3680,7 +4097,37 @@ async function syncAssetSale(assetId, status) {
   });
 
   if (!response.ok && response.status !== 404) {
-    throw new Error(t("error_removing_sale", "Error removing sale information"));
+    let message = t("error_removing_sale", "Error removing sale information");
+    try {
+      const payload = await response.json();
+      if (payload?.error_key) {
+        message = t(payload.error_key, payload.error || message);
+      } else if (payload?.error) {
+        message = payload.error;
+      }
+    } catch (_) {
+      // Keep fallback message.
+    }
+    throw new Error(message);
+  }
+}
+
+async function refreshFinancialViewsAfterAssetChange() {
+  const route = window.location.hash.replace("#", "");
+  if (route === "balance" && typeof renderBalance === "function") {
+    await renderBalance();
+    return;
+  }
+  if (route === "dashboard" && typeof renderDashboard === "function") {
+    await renderDashboard();
+    return;
+  }
+  if (route === "reports" && typeof renderReports === "function") {
+    await renderReports();
+    return;
+  }
+  if (route === "financial-advisor" && typeof renderFinancialAdvisor === "function") {
+    await renderFinancialAdvisor();
   }
 }
 
@@ -3695,15 +4142,35 @@ async function saveFixedAsset(assetId = null) {
   const isVehicle = isVehicleAssetType(assetType);
   const isGold = isGoldAssetType(assetType);
   const isOther = isOtherAssetType(assetType);
+  const purchasePrice = parseFloat(document.getElementById("fa_purchase_price").value) || 0;
+
+  let purchasePayments = [];
+  try {
+    purchasePayments = validatePurchasePayments(purchasePrice);
+  } catch (validationError) {
+    showToast(validationError.message, "danger");
+    return;
+  }
+
+  const purchaseCurrencyCode = getSelectedPurchaseCurrencyCode();
+  const uiUsdRate = parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0;
+  const backendUsdRate =
+    purchaseCurrencyCode === "USD"
+      ? 1
+      : purchaseCurrencyCode === "EGP"
+        ? (uiUsdRate > 0 ? uiUsdRate : 1)
+        : (uiUsdRate > 0 ? (1 / uiUsdRate) : 1);
 
   const payload = {
     name: document.getElementById("fa_name").value,
     asset_type: assetType,
     purchase_date: document.getElementById("fa_purchase_date").value,
-    purchase_price:
-      parseFloat(document.getElementById("fa_purchase_price").value) || 0,
-    purchase_usd_rate:
-      parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 1,
+    purchase_price: purchasePrice,
+    purchase_usd_rate: backendUsdRate,
+    purchase_price_usd:
+      parseFloat(document.getElementById("fa_purchase_price_usd").value) || 0,
+    purchase_currency_id:
+      parseInt(document.getElementById("fa_purchase_currency").value, 10) || null,
     current_market_value:
       parseFloat(document.getElementById("fa_current_value").value) || 0,
     valuation_source: document.getElementById("fa_val_source").value,
@@ -3711,6 +4178,7 @@ async function saveFixedAsset(assetId = null) {
       document.getElementById("fa_last_valuation_date").value || null,
     notes: document.getElementById("fa_notes").value,
     status: assetStatus,
+    purchase_payments: purchasePayments,
   };
 
   if (isGold) {
@@ -3780,7 +4248,20 @@ async function saveFixedAsset(assetId = null) {
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) throw new Error("Error saving fixed asset");
+    if (!response.ok) {
+      let message = t("error_saving_fixed_asset", "Error saving fixed asset");
+      try {
+        const errorPayload = await response.json();
+        if (errorPayload?.error_key) {
+          message = t(errorPayload.error_key, errorPayload.error || message);
+        } else if (errorPayload?.error) {
+          message = errorPayload.error;
+        }
+      } catch (_) {
+        // Keep fallback message.
+      }
+      throw new Error(message);
+    }
 
     const savedAsset = await response.json();
 
@@ -3830,6 +4311,7 @@ async function saveFixedAsset(assetId = null) {
 
     closeModal(); // Call global dynamic closing match
     await fetchAndRenderFixedAssets();
+    await refreshFinancialViewsAfterAssetChange();
 
     if (returnPurity) {
       setTimeout(() => {
@@ -3856,6 +4338,7 @@ async function deleteFixedAsset(assetId) {
     if (!response.ok) throw new Error("Failed to delete fixed asset");
     showToast("Asset deleted successfully", "success");
     fetchAndRenderFixedAssets();
+    refreshFinancialViewsAfterAssetChange();
     return true;
   } catch (err) {
     showToast(err.message, "danger");
@@ -4426,7 +4909,7 @@ function addRenovationRow(data = {}) {
 
             <label class="form-label small"
                    data-i18n="amount">
-                Amount (EGP)
+              Amount
             </label>
 
             <input
@@ -4547,7 +5030,7 @@ function addFurnitureRow(data = {}) {
     <div class="col-md-3"><label class="form-label small" data-i18n="asset_name">Name</label><input type="text" class="form-control furniture-name" value="${data.name || ""}"></div>
     <div class="col-md-2"><label class="form-label small" data-i18n="category">Category</label><input type="text" class="form-control furniture-category" value="${data.category || ""}"></div>
     <div class="col-md-2"><label class="form-label small" data-i18n="purchase_date">Purchase Date</label><input type="date" class="form-control furniture-purchase-date" value="${data.purchase_date || ""}"></div>
-    <div class="col-md-2"><label class="form-label small" data-i18n="amount_egp">Amount EGP</label><input type="number" step="0.01" class="form-control furniture-egp" value="${data.amount_egp || ""}" oninput="updateFurnitureUSD(this)"></div>
+    <div class="col-md-2"><label class="form-label small" data-i18n="amount_egp">Amount</label><input type="number" step="0.01" class="form-control furniture-egp" value="${data.amount_egp || ""}" oninput="updateFurnitureUSD(this)"></div>
     <div class="col-md-2"><label class="form-label small" data-i18n="amount_usd">Amount USD</label><input type="number" step="0.01" class="form-control furniture-usd" value="${data.amount_usd || ""}" readonly></div>
     <div class="col-md-1"><label class="form-label small">&nbsp;</label><button type="button" class="btn btn-danger w-100" onclick="this.closest('.furniture-row').remove()"><i class="bi bi-trash"></i></button></div>
     <div class="col-md-2"><label class="form-label small" data-i18n="purchase_usd_rate">USD Exchange Rate</label><input type="number" step="0.0001" class="form-control furniture-usd-rate" value="${data.usd_rate || document.getElementById("fa_purchase_usd_rate")?.value || ""}" oninput="updateFurnitureUSD(this)"></div>

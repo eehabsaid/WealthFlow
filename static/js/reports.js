@@ -51,10 +51,12 @@ async function renderReports() {
       </div>
     </div>
 
-    <div class="settings-tabs mb-4">
-      <button class="settings-tab active" id="tabMonthly" onclick="switchReportTab('monthly')" data-i18n="tab_monthly">${monthlyText}</button>
-      <button class="settings-tab" id="tabYearly"  onclick="switchReportTab('yearly')" data-i18n="tab_yearly">${yearlyText}</button>
-      <button class="settings-tab" id="tabCustom"  onclick="switchReportTab('custom')" data-i18n="tab_custom_range">${customText}</button>
+    <div class="wf-tabs-shell mb-4">
+      <div class="wf-tabs-row" id="reportsTabsBar">
+        <button class="wf-tab active" id="tabMonthly" onclick="switchReportTab('monthly')" data-i18n="tab_monthly">${monthlyText}</button>
+        <button class="wf-tab" id="tabYearly"  onclick="switchReportTab('yearly')" data-i18n="tab_yearly">${yearlyText}</button>
+        <button class="wf-tab" id="tabCustom"  onclick="switchReportTab('custom')" data-i18n="tab_custom_range">${customText}</button>
+      </div>
     </div>
 
     <div id="ctrlMonthly" class="report-controls mb-4">
@@ -113,6 +115,15 @@ async function renderReports() {
     </div>`;
 
   applyTranslations();
+  if (typeof window.initTabsWithMoreMenu === 'function') {
+    window.initTabsWithMoreMenu({
+      containerId: 'reportsTabsBar',
+      visibleCount: 4,
+      moreLabel: t('financial_advisor_tab_more', 'More'),
+      tabSelector: '.wf-tab',
+      activeClass: 'active',
+    });
+  }
   await loadReportData();
 }
 

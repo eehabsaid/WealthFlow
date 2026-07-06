@@ -49,6 +49,7 @@ from .models import (
     AssetInsurance,
     AssetFurniture,
     AssetValuationHistory,
+    AssetPurchasePayment,
     AssetSale,
     AssetPhoto,
     AssetMortgage,
@@ -2963,7 +2964,8 @@ class CertificateReportView(View):
             )
 
         total_interest = float(agg["total_interest"] or 0)
-        monthly_interest = (total_interest) if total_interest else 0.0
+        # Keep monthly interest aligned with historical report expectations.
+        monthly_interest = (total_interest / 12.0) if total_interest else 0.0
 
         return JsonResponse(
             {
@@ -3107,6 +3109,19 @@ REAL_ESTATE_ASSET_TYPES = {"Real Estate"}
 VEHICLE_ASSET_TYPES = {"Vehicles"}
 GOLD_ASSET_TYPES = {"Gold"}
 OTHER_ASSET_TYPES = {"Other Assets"}
+
+ASSET_PAYMENT_METHOD_CASH = "Cash"
+ASSET_PAYMENT_METHOD_CARD = "Card"
+ASSET_PAYMENT_METHOD_BANK = "Bank"
+ASSET_PAYMENT_METHOD_BANK_TRANSFER = "Bank Transfer"
+
+ASSET_PAYMENT_METHOD_NORMALIZED = {
+    "cash": ASSET_PAYMENT_METHOD_CASH,
+    "card": ASSET_PAYMENT_METHOD_CARD,
+    "bank": ASSET_PAYMENT_METHOD_BANK,
+    "bank transfer": ASSET_PAYMENT_METHOD_BANK_TRANSFER,
+    "bank_transfer": ASSET_PAYMENT_METHOD_BANK_TRANSFER,
+}
 
 GOLD_UNIT_TO_GRAMS = {
     "g": Decimal("1"),
@@ -3527,6 +3542,199 @@ def _sync_asset_valuation_history(asset, items):
         asset.save()
 
 
+def _normalize_asset_payment_method(method_value):
+    normalized = str(method_value or "").strip().lower()
+    return ASSET_PAYMENT_METHOD_NORMALIZED.get(normalized, ASSET_PAYMENT_METHOD_CASH)
+
+
+def _asset_payment_requires_bank(method_value):
+    return _normalize_asset_payment_method(method_value) != ASSET_PAYMENT_METHOD_CASH
+
+
+def _asset_payment_currency_required(currency_id):
+    return currency_id is not None and str(currency_id).strip() != ""
+
+
+def _default_egp_currency_id():
+    currency = Currency.objects.filter(code__iexact="EGP").order_by("id").first()
+    return currency.id if currency else None
+
+
+def _normalize_purchase_payments_payload(rows, purchase_price, purchase_currency_id=None, allow_empty=False):
+    normalized_rows = []
+    running_total = Decimal("0")
+    resolved_currency_id = purchase_currency_id
+
+    if rows is None:
+        rows = []
+
+    if not isinstance(rows, list):
+        raise ValueError("purchase_payments_invalid")
+
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("purchase_payments_invalid")
+
+        row_currency_id = row.get("currency_id")
+        if not _asset_payment_currency_required(resolved_currency_id) and _asset_payment_currency_required(row_currency_id):
+            resolved_currency_id = row_currency_id
+
+        payment_method = _normalize_asset_payment_method(row.get("payment_method"))
+        bank_id = row.get("bank_id")
+        if _asset_payment_requires_bank(payment_method) and not bank_id:
+            raise ValueError("bank_account_required")
+        if payment_method == ASSET_PAYMENT_METHOD_CASH:
+            bank_id = None
+
+        amount = _to_decimal(row.get("amount"), default="0")
+        if amount <= 0:
+            raise ValueError("amount_required")
+
+        normalized_rows.append(
+            {
+                "currency_id": None,
+                "payment_method": payment_method,
+                "bank_id": int(bank_id) if bank_id else None,
+                "amount": amount,
+            }
+        )
+        running_total += amount
+
+    if not _asset_payment_currency_required(resolved_currency_id):
+        if allow_empty and not normalized_rows:
+            return []
+        resolved_currency_id = _default_egp_currency_id()
+        if not resolved_currency_id:
+            raise ValueError("currency_required")
+
+    resolved_currency_id = int(resolved_currency_id)
+    for row in normalized_rows:
+        row["currency_id"] = resolved_currency_id
+
+    if not normalized_rows:
+        if allow_empty:
+            return []
+
+        return [
+            {
+                "currency_id": resolved_currency_id,
+                "payment_method": ASSET_PAYMENT_METHOD_CASH,
+                "bank_id": None,
+                "amount": _to_decimal(purchase_price),
+            }
+        ]
+
+    target_total = _to_decimal(purchase_price)
+    if running_total.quantize(Decimal("0.01")) != target_total.quantize(Decimal("0.01")):
+        raise ValueError("purchase_payment_total_mismatch")
+
+    return normalized_rows
+
+
+def _get_asset_cash_balance_entry(currency_id, bank_id):
+    qs = BalanceEntry.objects.select_for_update().filter(
+        balance_type=BalanceEntry.BalanceType.CASH,
+        currency_id=currency_id,
+    )
+    if bank_id:
+        qs = qs.filter(bank_id=bank_id)
+    else:
+        qs = qs.filter(bank__isnull=True)
+    return qs.order_by("id").first()
+
+
+def _apply_asset_balance_delta(currency_id, payment_method, bank_id, amount_delta):
+    delta = _to_decimal(amount_delta)
+    if delta == 0:
+        return
+
+    resolved_method = _normalize_asset_payment_method(payment_method)
+    resolved_bank_id = bank_id if _asset_payment_requires_bank(resolved_method) else None
+
+    entry = _get_asset_cash_balance_entry(currency_id, resolved_bank_id)
+    if not entry:
+        raise ValueError("matching_balance_entry_not_found")
+
+    next_amount = _to_decimal(entry.amount) + delta
+    if next_amount < 0:
+        raise ValueError("insufficient_balance")
+
+    entry.amount = next_amount
+    entry.save(update_fields=["amount"])
+
+
+def _apply_asset_purchase_rows_delta(rows, sign):
+    sign_multiplier = Decimal("1") if sign >= 0 else Decimal("-1")
+    for row in rows:
+        _apply_asset_balance_delta(
+            currency_id=row.get("currency_id"),
+            payment_method=row.get("payment_method"),
+            bank_id=row.get("bank_id"),
+            amount_delta=sign_multiplier * _to_decimal(row.get("amount")),
+        )
+
+
+def _purchase_rows_from_instances(instances):
+    return [
+        {
+            "currency_id": item.currency_id,
+            "payment_method": item.payment_method,
+            "bank_id": item.bank_id,
+            "amount": _to_decimal(item.amount),
+        }
+        for item in instances
+    ]
+
+
+def _sync_asset_purchase_payments(asset, rows):
+    AssetPurchasePayment.objects.filter(asset=asset).delete()
+    for row in rows:
+        AssetPurchasePayment.objects.create(
+            asset=asset,
+            currency_id=row["currency_id"],
+            payment_method=row["payment_method"],
+            bank_id=row.get("bank_id"),
+            amount=row["amount"],
+        )
+
+
+def _resolve_sale_deposit_values(data, existing_sale=None):
+    fallback_currency_id = _default_egp_currency_id()
+
+    existing_currency_id = existing_sale.deposit_currency_id if existing_sale else None
+    currency_id = data.get("deposit_currency_id", existing_currency_id or fallback_currency_id)
+    if not _asset_payment_currency_required(currency_id):
+        raise ValueError("currency_required")
+
+    existing_method = existing_sale.deposit_method if existing_sale else ASSET_PAYMENT_METHOD_CASH
+    method = _normalize_asset_payment_method(data.get("deposit_method", existing_method))
+
+    existing_bank_id = existing_sale.deposit_bank_id if existing_sale else None
+    bank_id = data.get("deposit_bank_id", existing_bank_id)
+    if _asset_payment_requires_bank(method) and not bank_id:
+        raise ValueError("bank_account_required")
+    if method == ASSET_PAYMENT_METHOD_CASH:
+        bank_id = None
+
+    return {
+        "deposit_currency_id": int(currency_id),
+        "deposit_method": method,
+        "deposit_bank_id": int(bank_id) if bank_id else None,
+    }
+
+
+def _sale_payment_row(sale):
+    currency_id = sale.deposit_currency_id or _default_egp_currency_id()
+    method = _normalize_asset_payment_method(sale.deposit_method or ASSET_PAYMENT_METHOD_CASH)
+    bank_id = sale.deposit_bank_id if _asset_payment_requires_bank(method) else None
+    return {
+        "currency_id": currency_id,
+        "payment_method": method,
+        "bank_id": bank_id,
+        "amount": _to_decimal(sale.net_sale_amount),
+    }
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetListView(View):
 
@@ -3557,86 +3765,101 @@ class FixedAssetListView(View):
         gold_details = data.get("gold_details")
         other_asset_details = data.get("other_asset_details")
 
-        asset = FixedAsset.objects.create(
-            name=data["name"],
-            asset_type=data["asset_type"],
-            status=data.get("status", "Owned"),
-            purchase_date=data["purchase_date"],
-            purchase_price=data.get("purchase_price", 0),
-            purchase_usd_rate=data.get("purchase_usd_rate", 0),
-            purchase_price_usd=data.get("purchase_price_usd", 0),
-            current_market_value=data.get("current_market_value", 0),
-            valuation_source=data.get("valuation_source", "Manual"),
-            last_valuation_date=data.get("last_valuation_date") or None,
-            notes=data.get("notes", ""),
-        )
+        purchase_rows_raw = data.get("purchase_payments", [])
 
-        if re:
-            RealEstateDetails.objects.create(
-            asset=asset,
-            country=re.get("country", "Egypt"),
-            governorate=re.get("governorate", ""),
-            city=re.get("city", ""),
-            district=re.get("district", ""),
-            full_address=re.get("address", ""),
+        try:
+            with transaction.atomic():
+                purchase_rows = _normalize_purchase_payments_payload(
+                    purchase_rows_raw,
+                    data.get("purchase_price", 0),
+                    purchase_currency_id=data.get("purchase_currency_id"),
+                )
 
-            area_m2=re.get("apartment_area", 0),
+                asset = FixedAsset.objects.create(
+                    name=data["name"],
+                    asset_type=data["asset_type"],
+                    status=data.get("status", "Owned"),
+                    purchase_date=data["purchase_date"],
+                    purchase_price=data.get("purchase_price", 0),
+                    purchase_usd_rate=data.get("purchase_usd_rate", 0),
+                    purchase_price_usd=data.get("purchase_price_usd", 0),
+                    current_market_value=data.get("current_market_value", 0),
+                    valuation_source=data.get("valuation_source", "Manual"),
+                    last_valuation_date=data.get("last_valuation_date") or None,
+                    notes=data.get("notes", ""),
+                )
 
-            bedrooms=re.get("rooms", 0),
-            bathrooms=re.get("bathrooms", 0),
+                if re:
+                    RealEstateDetails.objects.create(
+                        asset=asset,
+                        country=re.get("country", "Egypt"),
+                        governorate=re.get("governorate", ""),
+                        city=re.get("city", ""),
+                        district=re.get("district", ""),
+                        full_address=re.get("address", ""),
+                        area_m2=re.get("apartment_area", 0),
+                        bedrooms=re.get("rooms", 0),
+                        bathrooms=re.get("bathrooms", 0),
+                        floor_number=re.get("floor", 0),
+                        building_floors=re.get("building_floors", 0),
+                        build_year=re.get("building_year") or None,
+                        facing=re.get("facades", ""),
+                        finishing_level=re.get("finishing_level", ""),
+                        electricity_meter_private=re.get("electricity", False),
+                        water_meter_private=re.get("water", False),
+                        has_gas=re.get("gas", False),
+                        has_elevator=re.get("elevator", False),
+                        has_garage=re.get("garage", False),
+                        has_land_share=re.get("has_land_share", False),
+                        land_share_ratio=re.get("land_share", ""),
+                        land_share_sqm=float(re.get("land_share_sqm") or 0),
+                        latitude=re.get("latitude") or None,
+                        longitude=re.get("longitude") or None,
+                        licensed=re.get("licensed", False),
+                        description=re.get("description", ""),
+                    )
 
-            floor_number=re.get("floor", 0),
-            building_floors=re.get("building_floors", 0),
-            build_year=re.get("building_year") or None,
+                _sync_vehicle_details(asset, vehicle_details)
+                _sync_gold_details(asset, gold_details)
+                _sync_other_asset_details(asset, other_asset_details)
 
-            facing=re.get("facades", ""),
-            finishing_level=re.get("finishing_level", ""),
-            
+                _sync_asset_mortgage(asset, data.get("mortgage_details"))
+                _sync_asset_rental(asset, data.get("rental_details"))
 
-            electricity_meter_private=re.get("electricity", False),
-            water_meter_private=re.get("water", False),
-            has_gas=re.get("gas", False),
+                for item in data.get("renovations", []):
+                    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
+                        break
 
-            has_elevator=re.get("elevator", False),
-            has_garage=re.get("garage", False),
-            has_land_share = re.get("has_land_share", False),
-            land_share_ratio=re.get("land_share", ""),
-            land_share_sqm=float(re.get("land_share_sqm") or 0),
-            latitude=re.get("latitude") or None,
-            longitude=re.get("longitude") or None,
-            licensed=re.get("licensed", False),
-            description=re.get("description", ""),
-        )
+                    AssetRenovation.objects.create(
+                        asset=asset,
+                        date=item.get("date") or None,
+                        category=item.get("category", ""),
+                        description=item.get("description", ""),
+                        amount_egp=item.get("amount_egp", 0),
+                        usd_rate=item.get("usd_rate", 0),
+                        amount_usd=item.get("amount_usd", 0),
+                        notes=item.get("notes", ""),
+                    )
 
-        _sync_vehicle_details(asset, vehicle_details)
-        _sync_gold_details(asset, gold_details)
-        _sync_other_asset_details(asset, other_asset_details)
+                _sync_asset_maintenance(asset, data.get("maintenance", []))
+                _sync_asset_insurance(asset, data.get("insurance", []))
+                _sync_asset_furniture(asset, data.get("furniture", []))
+                _sync_asset_valuation_history(asset, data.get("valuation_history", []))
+                _clear_non_selected_asset_details(asset)
 
-        _sync_asset_mortgage(asset, data.get("mortgage_details"))
-        _sync_asset_rental(asset, data.get("rental_details"))
+                _apply_asset_purchase_rows_delta(purchase_rows, sign=-1)
+                _sync_asset_purchase_payments(asset, purchase_rows)
 
-        for item in data.get("renovations", []):
+                _sync_gold_balance_from_assets()
 
-            if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
-                break
-
-            AssetRenovation.objects.create(
-                asset=asset,
-                date=item.get("date") or None,
-                category=item.get("category", ""),
-                description=item.get("description", ""),
-                amount_egp=item.get("amount_egp", 0),
-                usd_rate=item.get("usd_rate", 0),
-                amount_usd=item.get("amount_usd", 0),
-                notes=item.get("notes", ""),
+        except ValueError as exc:
+            return JsonResponse(
+                {
+                    "error": str(exc),
+                    "error_key": str(exc),
+                },
+                status=400,
             )
-
-        _sync_asset_maintenance(asset, data.get("maintenance", []))
-        _sync_asset_insurance(asset, data.get("insurance", []))
-        _sync_asset_furniture(asset, data.get("furniture", []))
-        _sync_asset_valuation_history(asset, data.get("valuation_history", []))
-        _clear_non_selected_asset_details(asset)
-        _sync_gold_balance_from_assets()
 
         return JsonResponse(asset.to_dict(), status=201)
     
@@ -3669,92 +3892,152 @@ class FixedAssetDetailView(View):
             "notes",
         ]
 
-        for field in fields:
-            if field in data:
-                setattr(asset, field, data[field])
+        previous_rows = _purchase_rows_from_instances(
+            AssetPurchasePayment.objects.filter(asset=asset).order_by("id")
+        )
 
-        asset.save()
+        purchase_rows_payload_present = "purchase_payments" in data
+        purchase_rows_raw = data.get("purchase_payments", [])
 
-        re = data.get("real_estate_details")
+        try:
+            with transaction.atomic():
+                if purchase_rows_payload_present:
+                    allow_empty = len(previous_rows) == 0
+                    purchase_rows = _normalize_purchase_payments_payload(
+                        purchase_rows_raw,
+                        data.get("purchase_price", asset.purchase_price),
+                        purchase_currency_id=data.get("purchase_currency_id"),
+                        allow_empty=allow_empty,
+                    )
+                else:
+                    purchase_rows = previous_rows
 
-        if re:
-            obj, _ = RealEstateDetails.objects.get_or_create(asset=asset)
+                if previous_rows:
+                    _apply_asset_purchase_rows_delta(previous_rows, sign=1)
 
-            obj.country = re.get("country", "Egypt")
-            obj.governorate = re.get("governorate", "")
-            obj.city = re.get("city", "")
-            obj.district = re.get("district", "")
-            obj.full_address = re.get("address", "")
+                for field in fields:
+                    if field in data:
+                        setattr(asset, field, data[field])
 
-            obj.area_m2 = re.get("apartment_area", 0)
+                asset.save()
 
-            obj.bedrooms = re.get("rooms", 0)
-            obj.bathrooms = re.get("bathrooms", 0)
+                re = data.get("real_estate_details")
 
-            obj.floor_number = re.get("floor", 0)
-            obj.building_floors = re.get("building_floors", 0)
-            obj.build_year = re.get("building_year") or None
+                if re:
+                    obj, _ = RealEstateDetails.objects.get_or_create(asset=asset)
 
-            obj.facing = re.get("facades", "")
+                    obj.country = re.get("country", "Egypt")
+                    obj.governorate = re.get("governorate", "")
+                    obj.city = re.get("city", "")
+                    obj.district = re.get("district", "")
+                    obj.full_address = re.get("address", "")
 
-            obj.furnished_status = re.get("furnished_status", "Unfurnished")
-            obj.finishing_level = re.get("finishing_level", "")
+                    obj.area_m2 = re.get("apartment_area", 0)
 
-            obj.electricity_meter_private = re.get("electricity", False)
-            obj.water_meter_private = re.get("water", False)
-            obj.has_gas = re.get("gas", False)
+                    obj.bedrooms = re.get("rooms", 0)
+                    obj.bathrooms = re.get("bathrooms", 0)
 
-            obj.has_elevator = re.get("elevator", False)
-            obj.has_garage = re.get("garage", False)
-            obj.has_land_share = re.get("has_land_share", False)
-            obj.land_share_ratio = re.get("land_share", "")
-            obj.land_share_sqm = float(re.get("land_share_sqm") or 0)
-            obj.latitude = re.get("latitude") or None
-            obj.longitude = re.get("longitude") or None
-            obj.licensed = re.get("licensed", False)
-            obj.description = re.get("description", "")
+                    obj.floor_number = re.get("floor", 0)
+                    obj.building_floors = re.get("building_floors", 0)
+                    obj.build_year = re.get("building_year") or None
 
-            obj.save()
-        elif asset.asset_type not in REAL_ESTATE_ASSET_TYPES and hasattr(asset, "real_estate"):
-            asset.real_estate.delete()
+                    obj.facing = re.get("facades", "")
 
-        _sync_vehicle_details(asset, vehicle_details)
-        _sync_gold_details(asset, gold_details)
-        _sync_other_asset_details(asset, other_asset_details)
+                    obj.furnished_status = re.get("furnished_status", "Unfurnished")
+                    obj.finishing_level = re.get("finishing_level", "")
 
-        AssetRenovation.objects.filter(asset=asset).delete()
+                    obj.electricity_meter_private = re.get("electricity", False)
+                    obj.water_meter_private = re.get("water", False)
+                    obj.has_gas = re.get("gas", False)
 
-        for item in data.get("renovations", []):
+                    obj.has_elevator = re.get("elevator", False)
+                    obj.has_garage = re.get("garage", False)
+                    obj.has_land_share = re.get("has_land_share", False)
+                    obj.land_share_ratio = re.get("land_share", "")
+                    obj.land_share_sqm = float(re.get("land_share_sqm") or 0)
+                    obj.latitude = re.get("latitude") or None
+                    obj.longitude = re.get("longitude") or None
+                    obj.licensed = re.get("licensed", False)
+                    obj.description = re.get("description", "")
 
-            if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
-                break
+                    obj.save()
+                elif asset.asset_type not in REAL_ESTATE_ASSET_TYPES and hasattr(asset, "real_estate"):
+                    asset.real_estate.delete()
 
-            AssetRenovation.objects.create(
-                asset=asset,
-                date=item.get("date") or None,
-                category=item.get("category", ""),
-                description=item.get("description", ""),
-                amount_egp=item.get("amount_egp", 0),
-                usd_rate=item.get("usd_rate", 0),
-                amount_usd=item.get("amount_usd", 0),
-                notes=item.get("notes", ""),
+                _sync_vehicle_details(asset, vehicle_details)
+                _sync_gold_details(asset, gold_details)
+                _sync_other_asset_details(asset, other_asset_details)
+
+                AssetRenovation.objects.filter(asset=asset).delete()
+
+                for item in data.get("renovations", []):
+                    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
+                        break
+
+                    AssetRenovation.objects.create(
+                        asset=asset,
+                        date=item.get("date") or None,
+                        category=item.get("category", ""),
+                        description=item.get("description", ""),
+                        amount_egp=item.get("amount_egp", 0),
+                        usd_rate=item.get("usd_rate", 0),
+                        amount_usd=item.get("amount_usd", 0),
+                        notes=item.get("notes", ""),
+                    )
+
+                _sync_asset_maintenance(asset, data.get("maintenance", []))
+                _sync_asset_insurance(asset, data.get("insurance", []))
+                _sync_asset_mortgage(asset, data.get("mortgage_details"))
+                _sync_asset_rental(asset, data.get("rental_details"))
+                _sync_asset_furniture(asset, data.get("furniture", []))
+                _sync_asset_valuation_history(asset, data.get("valuation_history", []))
+                _clear_non_selected_asset_details(asset)
+
+                if purchase_rows_payload_present:
+                    if purchase_rows:
+                        _apply_asset_purchase_rows_delta(purchase_rows, sign=-1)
+                        _sync_asset_purchase_payments(asset, purchase_rows)
+                    else:
+                        AssetPurchasePayment.objects.filter(asset=asset).delete()
+                elif previous_rows:
+                    _apply_asset_purchase_rows_delta(previous_rows, sign=-1)
+
+                _sync_gold_balance_from_assets()
+
+        except ValueError as exc:
+            return JsonResponse(
+                {
+                    "error": str(exc),
+                    "error_key": str(exc),
+                },
+                status=400,
             )
-
-        _sync_asset_maintenance(asset, data.get("maintenance", []))
-        _sync_asset_insurance(asset, data.get("insurance", []))
-        _sync_asset_mortgage(asset, data.get("mortgage_details"))
-        _sync_asset_rental(asset, data.get("rental_details"))
-        _sync_asset_furniture(asset, data.get("furniture", []))
-        _sync_asset_valuation_history(asset, data.get("valuation_history", []))
-        _clear_non_selected_asset_details(asset)
-        _sync_gold_balance_from_assets()
 
         return JsonResponse(asset.to_dict())
 
     def delete(self, request, pk):
         asset = get_object_or_404(FixedAsset, pk=pk)
-        asset.delete()
-        _sync_gold_balance_from_assets()
+
+        purchase_rows = _purchase_rows_from_instances(
+            AssetPurchasePayment.objects.filter(asset=asset).order_by("id")
+        )
+
+        try:
+            with transaction.atomic():
+                # Reverse only when this asset has explicit payment-source rows.
+                if purchase_rows:
+                    _apply_asset_purchase_rows_delta(purchase_rows, sign=1)
+
+                asset.delete()
+                _sync_gold_balance_from_assets()
+        except ValueError as exc:
+            return JsonResponse(
+                {
+                    "error": str(exc),
+                    "error_key": str(exc),
+                },
+                status=400,
+            )
 
         return JsonResponse({"deleted": pk})
 
@@ -4281,26 +4564,58 @@ class AssetSaleView(View):
             except ValueError:
                 pass
 
-        sale, created = AssetSale.objects.update_or_create(
-            asset=asset,
-            defaults={
-                "sale_date": sale_date_value,
-                "sale_price": data["sale_price"],
-                "selling_expenses": data.get("selling_expenses", 0),
-                "net_sale_amount": data["net_sale_amount"],
-                "deposit_balance_id": data.get("deposit_balance_id"),
-                "notes": data.get("notes", ""),
-            },
-        )
+        existing_sale = getattr(asset, "sale", None)
 
-        asset.status = "Sold"
-        asset.save()
-        _sync_gold_balance_from_assets()
+        try:
+            with transaction.atomic():
+                if existing_sale is not None:
+                    previous_row = _sale_payment_row(existing_sale)
+                    _apply_asset_balance_delta(
+                        currency_id=previous_row["currency_id"],
+                        payment_method=previous_row["payment_method"],
+                        bank_id=previous_row["bank_id"],
+                        amount_delta=-_to_decimal(previous_row["amount"]),
+                    )
 
-        return JsonResponse(
-            sale.to_dict(),
-            status=201 if created else 200,
-        )
+                deposit_values = _resolve_sale_deposit_values(data, existing_sale=existing_sale)
+
+                sale, created = AssetSale.objects.update_or_create(
+                    asset=asset,
+                    defaults={
+                        "sale_date": sale_date_value,
+                        "sale_price": data["sale_price"],
+                        "selling_expenses": data.get("selling_expenses", 0),
+                        "net_sale_amount": data["net_sale_amount"],
+                        "deposit_balance_id": data.get("deposit_balance_id"),
+                        "deposit_currency_id": deposit_values["deposit_currency_id"],
+                        "deposit_method": deposit_values["deposit_method"],
+                        "deposit_bank_id": deposit_values["deposit_bank_id"],
+                        "notes": data.get("notes", ""),
+                    },
+                )
+
+                current_row = _sale_payment_row(sale)
+                _apply_asset_balance_delta(
+                    currency_id=current_row["currency_id"],
+                    payment_method=current_row["payment_method"],
+                    bank_id=current_row["bank_id"],
+                    amount_delta=_to_decimal(current_row["amount"]),
+                )
+
+                asset.status = "Sold"
+                asset.save()
+                _sync_gold_balance_from_assets()
+
+        except ValueError as exc:
+            return JsonResponse(
+                {
+                    "error": str(exc),
+                    "error_key": str(exc),
+                },
+                status=400,
+            )
+
+        return JsonResponse(sale.to_dict(), status=201 if created else 200)
 
     def delete(self, request, asset_id):
         asset = get_object_or_404(FixedAsset, pk=asset_id)
@@ -4308,13 +4623,32 @@ class AssetSaleView(View):
         if not hasattr(asset, "sale"):
             return JsonResponse({}, status=404)
 
-        asset.sale.delete()
+        try:
+            with transaction.atomic():
+                sale_row = _sale_payment_row(asset.sale)
+                _apply_asset_balance_delta(
+                    currency_id=sale_row["currency_id"],
+                    payment_method=sale_row["payment_method"],
+                    bank_id=sale_row["bank_id"],
+                    amount_delta=-_to_decimal(sale_row["amount"]),
+                )
 
-        if asset.status == "Sold":
-            asset.status = "Owned"
-            asset.save()
+                asset.sale.delete()
 
-        _sync_gold_balance_from_assets()
+                if asset.status == "Sold":
+                    asset.status = "Owned"
+                    asset.save()
+
+                _sync_gold_balance_from_assets()
+
+        except ValueError as exc:
+            return JsonResponse(
+                {
+                    "error": str(exc),
+                    "error_key": str(exc),
+                },
+                status=400,
+            )
 
         return JsonResponse({"deleted": True})
 

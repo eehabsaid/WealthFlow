@@ -1212,6 +1212,312 @@ body {
   margin-left: 10px;
 }
 
+/* ── Shared Tabs (Option 2: Visible + More) ── */
+.wf-tabs-shell {
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.wf-tabs-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  position: relative;
+  flex-wrap: nowrap;
+}
+
+.wf-main-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.wf-tab,
+.wf-dropdown-item {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #94a3b8;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.wf-tab:hover,
+.wf-dropdown-item:hover {
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.wf-tab.active,
+.wf-dropdown-item.active {
+  color: #0ea5e9;
+  border-bottom-color: #0ea5e9;
+}
+
+.wf-more-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.wf-more-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.wf-more-icon {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.wf-more-wrap.open .wf-more-icon {
+  transform: rotate(180deg);
+}
+
+.wf-more-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 30;
+  min-width: 220px;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid #334155;
+  background: #1a254a;
+  padding: 8px 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: all 0.3s;
+}
+
+.wf-more-wrap.open .wf-more-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.wf-dropdown-item {
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: none;
+  display: block;
+}
+
+.wf-dropdown-item.active {
+  background: rgba(14, 165, 233, 0.14);
+}
+
+[data-theme="light"] .wf-tab,
+[data-theme="light"] .wf-dropdown-item {
+  color: #64748b;
+}
+
+[data-theme="light"] .wf-tab:hover,
+[data-theme="light"] .wf-dropdown-item:hover {
+  color: #334155;
+  background: rgba(100, 116, 139, 0.08);
+}
+
+[data-theme="light"] .wf-tab.active,
+[data-theme="light"] .wf-dropdown-item.active {
+  color: #0ea5e9;
+  border-bottom-color: #0ea5e9;
+}
+
+[data-theme="light"] .wf-more-menu {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+@media (max-width: 991.98px) {
+  .wf-tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .wf-main-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .wf-tab {
+    text-align: center;
+    padding: 10px 12px;
+  }
+
+  .wf-more-wrap {
+    align-self: flex-end;
+  }
+}
+
+/* ── Financial Advisor Tabs (Option 2: Visible + More) ── */
+.financial-advisor-tabs-shell {
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.financial-advisor-tabs-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  position: relative;
+  flex-wrap: nowrap;
+}
+
+.financial-advisor-main-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.financial-advisor-tab,
+.financial-advisor-dropdown-item {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #94a3b8;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.financial-advisor-tab:hover,
+.financial-advisor-dropdown-item:hover {
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.financial-advisor-tab.active,
+.financial-advisor-dropdown-item.active {
+  color: #0ea5e9;
+  border-bottom-color: #0ea5e9;
+}
+
+.financial-advisor-more-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.financial-advisor-more-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.financial-advisor-more-icon {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.financial-advisor-more-wrap.open .financial-advisor-more-icon {
+  transform: rotate(180deg);
+}
+
+.financial-advisor-more-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 30;
+  min-width: 220px;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid #334155;
+  background: #1a254a;
+  padding: 8px 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: all 0.3s;
+}
+
+.financial-advisor-more-wrap.open .financial-advisor-more-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.financial-advisor-dropdown-item {
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: none;
+  display: block;
+}
+
+.financial-advisor-dropdown-item.active {
+  background: rgba(14, 165, 233, 0.14);
+}
+
+[data-theme="light"] .financial-advisor-tab,
+[data-theme="light"] .financial-advisor-dropdown-item {
+  color: #64748b;
+}
+
+[data-theme="light"] .financial-advisor-tab:hover,
+[data-theme="light"] .financial-advisor-dropdown-item:hover {
+  color: #334155;
+  background: rgba(100, 116, 139, 0.08);
+}
+
+[data-theme="light"] .financial-advisor-tab.active,
+[data-theme="light"] .financial-advisor-dropdown-item.active {
+  color: #0ea5e9;
+  border-bottom-color: #0ea5e9;
+}
+
+[data-theme="light"] .financial-advisor-more-menu {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+@media (max-width: 991.98px) {
+  .financial-advisor-tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .financial-advisor-main-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .financial-advisor-tab {
+    text-align: center;
+    padding: 10px 12px;
+  }
+
+  .financial-advisor-more-wrap {
+    align-self: flex-end;
+  }
+}
+
 /* The inline div wrapping all .settings-tab buttons gets scroll on mobile */
 @media (max-width: 991.98px) {
 

@@ -51,7 +51,7 @@ async function renderSettings(route) {
     const tabBar = tabs.map(tab => {
         const label = t(tab.i18n, tab.fallback || tab.id);
         return `
-        <button class="settings-tab ${activeTab === tab.id ? 'active' : ''}"
+        <button class="wf-tab ${activeTab === tab.id ? 'active' : ''}"
             onclick="navigate('${tab.route}')"
             data-i18n="${tab.i18n}">
             ${label}
@@ -62,13 +62,23 @@ async function renderSettings(route) {
         <div class="page-header">
             <div><div class="page-title" data-i18n="nav_settings">Settings</div></div>
         </div>
-        <div style="border-bottom:1px solid var(--border-color);margin-bottom:20px;
-                    display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap">
-            ${tabBar}
+        <div class="wf-tabs-shell">
+          <div class="wf-tabs-row" id="settingsTabsBar">
+              ${tabBar}
+          </div>
         </div>
         <div id="settingsContent"></div>`;
 
     applyTranslations();
+    if (typeof window.initTabsWithMoreMenu === 'function') {
+        window.initTabsWithMoreMenu({
+            containerId: 'settingsTabsBar',
+            visibleCount: 4,
+            moreLabel: t('financial_advisor_tab_more', 'More'),
+            tabSelector: '.wf-tab',
+            activeClass: 'active',
+        });
+    }
 
     const renderers = {
         languages:          renderLanguageSettings,
