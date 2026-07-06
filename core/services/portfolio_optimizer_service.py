@@ -45,6 +45,16 @@ class PortfolioOptimizerService:
         "other_assets": AllocationBand(0.0, 15.0),
     }
 
+    HOLDING_ORDER = [
+        "cash",
+        "banks",
+        "certificates",
+        "gold",
+        "real_estate",
+        "vehicles",
+        "other_assets",
+    ]
+
     def __init__(self, *, today: date | None = None):
         self.today = today or date.today()
         self.net_worth = NetWorthService()
@@ -125,15 +135,19 @@ class PortfolioOptimizerService:
         distance = 0.0
         if pct < band.min_pct:
             distance = band.min_pct - pct
+            status_key = "portfolio_optimizer_status_below_range"
         elif pct > band.max_pct:
             distance = pct - band.max_pct
+            status_key = "portfolio_optimizer_status_above_range"
+        else:
+            status_key = "portfolio_optimizer_status_in_range"
         if distance <= 2.0:
-            return "warning", "portfolio_optimizer_status_close"
-        return "danger", "portfolio_optimizer_status_outside"
+            return "warning", status_key
+        return "danger", status_key
 
     def _allocation_cards(self, values: Dict[str, float], percentages: Dict[str, float]) -> List[dict]:
         cards: List[dict] = []
-        for key in ["cash", "banks", "certificates", "gold", "real_estate", "vehicles", "other_assets"]:
+        for key in self.HOLDING_ORDER:
             band = self.RECOMMENDED_BANDS[key]
             pct = _to_float(percentages.get(key))
             status, status_key = self._status_for_band(pct, band)
@@ -207,39 +221,69 @@ class PortfolioOptimizerService:
 
     def _top_assets(self, comp: dict, total_portfolio: float) -> List[dict]:
         rows: List[dict] = []
+        rates = comp.get("rates", {})
 
-        for asset in FixedAsset.objects.filter(status="Owned").order_by("-current_market_value", "name"):
-            current_value = _to_float(asset.current_market_value)
-            purchase_value = _to_float(asset.purchase_price)
-            gain_value = current_value - purchase_value
+        fixed_assets = list(FixedAsset.objects.filter(status="Owned").order_by("name"))
+        by_type: Dict[str, List[FixedAsset]] = {
+            "Real Estate": [],
+            "Vehicles": [],
+            "Gold": [],
+            "Other Assets": [],
+        }
+        for asset in fixed_assets:
+            by_type.setdefault(str(asset.asset_type or "Other Assets"), []).append(asset)
+
+        def _asset_group(group_key: str, type_name: str, default_name_key: str):
+            items = by_type.get(group_key, [])
+            if not items:
+                return
+            count = len(items)
+            total_value = sum(_to_float(item.current_market_value) for item in items)
+            total_purchase = sum(_to_float(item.purchase_price) for item in items)
+            gain = total_value - total_purchase
+            if count == 1:
+                name = items[0].name
+            else:
+                name = f"{type_name} ({count})"
             rows.append(
                 {
-                    "asset": asset.name,
-                    "type": asset.asset_type,
-                    "value": round(current_value, 2),
-                    "portfolio_pct": round((current_value / total_portfolio) * 100.0 if total_portfolio > 0 else 0.0, 2),
-                    "gain": round(gain_value, 2),
-                    "gain_pct": round((gain_value / purchase_value) * 100.0, 2) if purchase_value > 0 else 0.0,
+                    "asset": name,
+                    "asset_name_key": default_name_key if count == 0 else "",
+                    "type": type_name,
+                    "value": round(total_value, 2),
+                    "portfolio_pct": round((total_value / total_portfolio) * 100.0 if total_portfolio > 0 else 0.0, 2),
+                    "gain": round(gain, 2),
+                    "gain_pct": round((gain / total_purchase) * 100.0, 2) if total_purchase > 0 else 0.0,
+                    "count": count,
                 }
             )
 
-        for cert in BankCertificate.objects.select_related("currency", "bank").all():
-            if not _is_certificate_active(cert):
-                continue
-            code = str(cert.currency.code if cert.currency else "EGP").upper()
-            amount = _to_float(cert.amount)
-            converted = amount
-            if code != "EGP":
-                converted = amount * _to_float(comp.get("rates", {}).get(code))
-            bank_name = cert.bank.name if cert.bank else "-"
+        _asset_group("Real Estate", "Real Estate", "portfolio_optimizer_asset_real_estate")
+        _asset_group("Vehicles", "Vehicles", "portfolio_optimizer_asset_vehicles")
+        _asset_group("Gold", "Gold Holdings", "portfolio_optimizer_asset_gold")
+        _asset_group("Other Assets", "Other Assets", "portfolio_optimizer_asset_other_assets")
+
+        active_certs = [c for c in BankCertificate.objects.select_related("currency").all() if _is_certificate_active(c)]
+        cert_count = len(active_certs)
+        if cert_count > 0:
+            cert_value = 0.0
+            cert_gain = 0.0
+            for cert in active_certs:
+                code = str(cert.currency.code if cert.currency else "EGP").upper()
+                amount = _to_float(cert.amount)
+                converted = amount if code == "EGP" else amount * _to_float(rates.get(code))
+                cert_value += converted
+                cert_gain += _to_float(cert.interest_value)
             rows.append(
                 {
-                    "asset": f"{bank_name} Certificate",
+                    "asset": f"Certificates ({cert_count})",
+                    "asset_name_key": "",
                     "type": "Certificates",
-                    "value": round(converted, 2),
-                    "portfolio_pct": round((converted / total_portfolio) * 100.0 if total_portfolio > 0 else 0.0, 2),
-                    "gain": round(_to_float(cert.interest_value), 2),
+                    "value": round(cert_value, 2),
+                    "portfolio_pct": round((cert_value / total_portfolio) * 100.0 if total_portfolio > 0 else 0.0, 2),
+                    "gain": round(cert_gain, 2),
                     "gain_pct": 0.0,
+                    "count": cert_count,
                 }
             )
 
@@ -308,17 +352,20 @@ class PortfolioOptimizerService:
         if real_estate_pct > 70.0:
             add("portfolio_optimizer_rec_real_estate_too_high", "medium", real_estate_pct)
         elif real_estate_pct >= 30.0:
-            add("portfolio_optimizer_rec_real_estate_strength", "low", real_estate_pct)
+            add("portfolio_optimizer_rec_real_estate_strength", "info", real_estate_pct)
         if vehicle_pct > 20.0:
             add("portfolio_optimizer_rec_vehicles_too_high", "low", vehicle_pct)
         if cert_pct > 50.0:
             add("portfolio_optimizer_rec_certificates_too_high", "medium", cert_pct)
 
         if largest_concentration <= 50.0:
-            add("portfolio_optimizer_rec_no_concentration_risk", "low", largest_concentration)
+            add("portfolio_optimizer_rec_no_concentration_risk", "info", largest_concentration)
 
         if not recommendations:
-            add("portfolio_optimizer_rec_well_positioned", "low")
+            add("portfolio_optimizer_rec_well_positioned", "info")
+
+        priority_rank = {"high": 0, "medium": 1, "low": 2, "info": 3}
+        recommendations.sort(key=lambda item: priority_rank.get(str(item.get("severity")), 99))
 
         return recommendations
 
@@ -408,6 +455,51 @@ class PortfolioOptimizerService:
             "gain": round(_to_float(best.get("gain")), 2),
         }
 
+    def _diversification_rating(self, *, asset_classes_owned: int, largest_concentration_pct: float, liquid_pct: float, diversification_metric: float) -> str:
+        score = 0
+        if asset_classes_owned >= 4:
+            score += 3
+        elif asset_classes_owned == 3:
+            score += 2
+        elif asset_classes_owned == 2:
+            score += 1
+
+        if largest_concentration_pct <= 35:
+            score += 3
+        elif largest_concentration_pct <= 50:
+            score += 2
+        elif largest_concentration_pct <= 65:
+            score += 1
+
+        if 15 <= liquid_pct <= 35:
+            score += 2
+        elif 10 <= liquid_pct <= 45:
+            score += 1
+
+        if diversification_metric >= 75:
+            score += 2
+        elif diversification_metric >= 55:
+            score += 1
+
+        if score >= 8:
+            return "portfolio_optimizer_diversification_excellent"
+        if score >= 6:
+            return "portfolio_optimizer_diversification_good"
+        if score >= 4:
+            return "portfolio_optimizer_diversification_moderate"
+        return "portfolio_optimizer_diversification_weak"
+
+    def _health_explanation_key(self, *, score: float, emergency_months: float, largest_concentration_pct: float, asset_classes_owned: int, gold_pct: float) -> str:
+        if score >= 85 and emergency_months >= 6 and largest_concentration_pct <= 50 and asset_classes_owned >= 2:
+            return "portfolio_optimizer_health_explain_strong"
+        if emergency_months < 6:
+            return "portfolio_optimizer_health_explain_liquidity_gap"
+        if gold_pct < self.RECOMMENDED_BANDS["gold"].min_pct:
+            return "portfolio_optimizer_health_explain_gold_low"
+        if largest_concentration_pct > 50:
+            return "portfolio_optimizer_health_explain_concentration"
+        return "portfolio_optimizer_health_explain_balanced"
+
     def payload(self) -> dict:
         comp = self.net_worth.portfolio_components()
         total_portfolio = _to_float(comp.get("net_worth_egp"))
@@ -478,6 +570,12 @@ class PortfolioOptimizerService:
         )
         largest_category_pct = _to_float(allocation_percentages.get(largest_category_key))
         largest_category_label = self.ALLOCATION_LABELS.get(largest_category_key, "portfolio_optimizer_asset_cash")
+        diversification_rating_key = self._diversification_rating(
+            asset_classes_owned=categories_owned,
+            largest_concentration_pct=largest_category_pct,
+            liquid_pct=liquid_pct,
+            diversification_metric=diversification_metric,
+        )
 
         largest_bank = bank_exposure[0] if bank_exposure else {"bank_name": "-", "value": 0.0}
         largest_currency = currency_exposure[0] if currency_exposure else {"code": "EGP", "value": 0.0}
@@ -490,11 +588,13 @@ class PortfolioOptimizerService:
             recommendations.append(
                 {
                     "key": "portfolio_optimizer_rec_upcoming_maturities_boost_liquidity",
-                    "severity": "low",
-                    "severity_key": "portfolio_optimizer_severity_low",
+                    "severity": "info",
+                    "severity_key": "portfolio_optimizer_severity_info",
                     "metric_value": round(maturity_egp_90, 2),
                 }
             )
+        priority_rank = {"high": 0, "medium": 1, "low": 2, "info": 3}
+        recommendations.sort(key=lambda item: priority_rank.get(str(item.get("severity")), 99))
         opportunities = self._opportunities(allocation_percentages, recommendations, comp)
 
         chart_labels = [
@@ -521,6 +621,13 @@ class PortfolioOptimizerService:
             "health": {
                 "score": health_score,
                 "label_key": self._health_label_key(health_score),
+                "explanation_key": self._health_explanation_key(
+                    score=health_score,
+                    emergency_months=emergency_months,
+                    largest_concentration_pct=largest_category_pct,
+                    asset_classes_owned=categories_owned,
+                    gold_pct=_to_float(allocation_percentages.get("gold")),
+                ),
                 "metrics": {
                     "liquidity": round(liquidity_metric, 2),
                     "fixed_assets": round(fixed_metric, 2),
@@ -548,6 +655,7 @@ class PortfolioOptimizerService:
                     "percentage": round(largest_category_pct, 2),
                 },
                 "largest_currency_exposure": largest_currency,
+                "portfolio_diversification_rating": diversification_rating_key,
             },
             "recommendations": recommendations,
             "asset_breakdown": top_assets,

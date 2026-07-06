@@ -1817,6 +1817,12 @@ body {
   background: rgba(107, 183, 255, 0.12);
 }
 
+.portfolio-badge-info {
+  color: #6b7f99;
+  border-color: rgba(107, 127, 153, 0.45);
+  background: rgba(107, 127, 153, 0.1);
+}
+
 .portfolio-table {
   margin-bottom: 0;
   --bs-table-bg: transparent;
@@ -2086,6 +2092,12 @@ body {
   color: #1d4ed8;
   border-color: #bcd2ff;
   background: #eef4ff;
+}
+
+[data-theme="light"] .portfolio-badge-info {
+  color: #475569;
+  border-color: #cbd5e1;
+  background: #f8fafc;
 }
 
 /* The inline div wrapping all .settings-tab buttons gets scroll on mobile */
