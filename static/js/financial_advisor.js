@@ -410,7 +410,7 @@ function _renderPortfolioOptimizer(payload) {
               <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_bank_accounts_used"></span><strong>${Number(diversification.bank_accounts_used || 0)}</strong></div>
               <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_asset_concentration"></span><strong>${fmtpresent(Number(diversification?.largest_asset_concentration?.percentage || 0))}%</strong></div>
               <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_bank_concentration"></span><strong>${diversification?.largest_bank_concentration?.bank_name || "-"}</strong></div>
-              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_asset_type"></span><strong data-i18n="${diversification?.largest_asset_type || "portfolio_optimizer_asset_cash"}"></strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_portfolio_allocation"></span><strong data-i18n="${diversification?.largest_portfolio_allocation?.label_key || diversification?.largest_asset_type || "portfolio_optimizer_asset_cash"}"></strong></div>
               <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_currency_exposure"></span><strong>${diversification?.largest_currency_exposure?.code || "-"}</strong></div>
             </div>
           </div>
@@ -430,7 +430,7 @@ function _renderPortfolioOptimizer(payload) {
               <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_asset"></span><strong>${concentration?.largest_asset?.asset || "-"}</strong></div>
               <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_bank"></span><strong>${concentration?.largest_bank?.bank_name || "-"}</strong></div>
               <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_balance"></span><strong>${concentration?.largest_balance?.title || "-"}</strong></div>
-              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_exposure"></span><strong data-i18n="${concentration?.largest_exposure?.label_key || "portfolio_optimizer_asset_cash"}"></strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_highest_appreciating_asset"></span><strong>${concentration?.highest_appreciating_asset?.asset || "-"}${Number(concentration?.highest_appreciating_asset?.gain_pct || 0) > 0 ? ` (${fmtpresent(Number(concentration?.highest_appreciating_asset?.gain_pct || 0))}%)` : ""}</strong></div>
               <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_concentration_pct"></span><strong>${fmtpresent(Number(concentration?.largest_concentration_pct || 0))}%</strong></div>
             </div>
             ${concentration?.warning ? `<div class="portfolio-warning" data-i18n="portfolio_optimizer_concentration_warning"></div>` : `<div class="portfolio-healthy" data-i18n="portfolio_optimizer_concentration_ok"></div>`}

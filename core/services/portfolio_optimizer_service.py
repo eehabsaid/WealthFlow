@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 
 from django.db.models import Sum
 
-from core.models import BankCertificate, BalanceEntry, Expense, FixedAsset, _is_certificate_active
+from core.models import BankCertificate, BalanceEntry, Expense, FixedAsset, SalaryEntry, _is_certificate_active
 from core.services.net_worth_service import NetWorthService
 
 
@@ -89,7 +89,8 @@ class PortfolioOptimizerService:
             distance = low - value_pct
         else:
             distance = value_pct - high
-        penalty = min(100.0, (distance / spread) * 120.0)
+        # Keep penalties moderate so one drifted band does not collapse a strong portfolio score.
+        penalty = min(100.0, (distance / spread) * 75.0)
         return max(0.0, 100.0 - penalty)
 
     def _emergency_fund_months(self, liquid_value: float, monthly_expenses: float) -> float:
@@ -292,25 +293,61 @@ class PortfolioOptimizerService:
         vehicle_pct = _to_float(percentages.get("vehicles"))
         cert_pct = _to_float(percentages.get("certificates"))
 
+        largest_concentration = max((_to_float(value) for value in percentages.values()), default=0.0)
+        recommended_gold_min = self.RECOMMENDED_BANDS["gold"].min_pct
+        recommended_cash_max = self.RECOMMENDED_BANDS["cash"].max_pct
+
         if emergency_months < 6.0:
             add("portfolio_optimizer_rec_emergency_fund_low", "high", emergency_months)
-        if cash_pct > 35.0:
+        if cash_pct > recommended_cash_max:
             add("portfolio_optimizer_rec_cash_too_high", "medium", cash_pct)
-        if gold_pct < 8.0:
+        if 0.0 < gold_pct < recommended_gold_min:
             add("portfolio_optimizer_rec_gold_too_low", "medium", gold_pct)
         if gold_pct > 30.0:
             add("portfolio_optimizer_rec_gold_too_high", "medium", gold_pct)
         if real_estate_pct > 70.0:
             add("portfolio_optimizer_rec_real_estate_too_high", "medium", real_estate_pct)
+        elif real_estate_pct >= 30.0:
+            add("portfolio_optimizer_rec_real_estate_strength", "low", real_estate_pct)
         if vehicle_pct > 20.0:
             add("portfolio_optimizer_rec_vehicles_too_high", "low", vehicle_pct)
         if cert_pct > 50.0:
             add("portfolio_optimizer_rec_certificates_too_high", "medium", cert_pct)
 
+        if largest_concentration <= 50.0:
+            add("portfolio_optimizer_rec_no_concentration_risk", "low", largest_concentration)
+
         if not recommendations:
-            add("portfolio_optimizer_rec_balanced", "low")
+            add("portfolio_optimizer_rec_well_positioned", "low")
 
         return recommendations
+
+    def _upcoming_certificate_maturity_egp(self, comp: dict, days: int = 90) -> float:
+        rates = comp.get("rates", {})
+        end_date = self.today + timedelta(days=days)
+        total = 0.0
+
+        certs = BankCertificate.objects.select_related("currency").all()
+        for cert in certs:
+            if not _is_certificate_active(cert) or not cert.expiry_date:
+                continue
+            if cert.expiry_date < self.today or cert.expiry_date > end_date:
+                continue
+
+            code = str(cert.currency.code if cert.currency else "EGP").upper()
+            amount = _to_float(cert.amount)
+            if code == "EGP":
+                total += amount
+            else:
+                total += amount * _to_float(rates.get(code))
+
+        return total
+
+    def _latest_monthly_income(self) -> float:
+        latest_salary = SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
+        salary_value = _to_float(latest_salary.paid) if latest_salary else 0.0
+        certificate_income = _to_float(self.net_worth.portfolio_components().get("certificate_interest_total_egp"))
+        return salary_value + certificate_income
 
     def _opportunities(self, percentages: Dict[str, float], recommendations: List[dict], comp: dict) -> List[dict]:
         opportunities: List[dict] = []
@@ -328,23 +365,48 @@ class PortfolioOptimizerService:
             )
 
         recommendation_keys = {item["key"] for item in recommendations}
+        cash_pct = _to_float(percentages.get("cash"))
+        gold_pct = _to_float(percentages.get("gold"))
+        emergency_months = self._emergency_fund_months(
+            _to_float(comp.get("allocation_values", {}).get("type_cash"))
+            + _to_float(comp.get("allocation_values", {}).get("type_bank"))
+            + _to_float(comp.get("allocation_values", {}).get("bank_certificates")),
+            self._monthly_expense_average(),
+        )
+
+        maturity_egp_90 = self._upcoming_certificate_maturity_egp(comp, days=90)
+        concentration_pct = max((_to_float(value) for value in percentages.values()), default=0.0)
 
         if "portfolio_optimizer_rec_cash_too_high" in recommendation_keys:
             add("portfolio_optimizer_opp_reduce_idle_cash", "portfolio_optimizer_opp_impact_idle_cash", "medium")
-        if "portfolio_optimizer_rec_certificates_too_high" in recommendation_keys:
+        if "portfolio_optimizer_rec_certificates_too_high" in recommendation_keys and concentration_pct > 35.0:
             add("portfolio_optimizer_opp_diversify_certificates", "portfolio_optimizer_opp_impact_reduce_concentration", "low")
         if "portfolio_optimizer_rec_gold_too_low" in recommendation_keys:
             add("portfolio_optimizer_opp_increase_gold", "portfolio_optimizer_opp_impact_gold_balance", "medium")
         if "portfolio_optimizer_rec_vehicles_too_high" in recommendation_keys:
             add("portfolio_optimizer_opp_reduce_vehicle_exposure", "portfolio_optimizer_opp_impact_rebalance_assets", "low")
 
-        mortgage_total = _to_float(
-            comp.get("fixed_assets", {}).get("real_estate", 0)
-        )
-        if mortgage_total > 0:
+        if maturity_egp_90 > 0:
+            add("portfolio_optimizer_opp_reinvest_maturities", "portfolio_optimizer_opp_impact_reinvest_maturities", "low")
+
+        if emergency_months < 6.0 and cash_pct < 20.0:
             add("portfolio_optimizer_opp_improve_liquidity", "portfolio_optimizer_opp_impact_cash_buffer", "low")
 
+        if not opportunities and cash_pct > self.RECOMMENDED_BANDS["cash"].max_pct and gold_pct < self.RECOMMENDED_BANDS["gold"].min_pct:
+            add("portfolio_optimizer_opp_shift_cash_to_gold", "portfolio_optimizer_opp_impact_balance_allocation", "medium")
+
         return opportunities[:5]
+
+    def _highest_appreciating_asset(self, top_assets: List[dict]) -> dict:
+        if not top_assets:
+            return {"asset": "-", "gain_pct": 0.0, "gain": 0.0}
+
+        best = max(top_assets, key=lambda item: _to_float(item.get("gain_pct")))
+        return {
+            "asset": best.get("asset") or "-",
+            "gain_pct": round(_to_float(best.get("gain_pct")), 2),
+            "gain": round(_to_float(best.get("gain")), 2),
+        }
 
     def payload(self) -> dict:
         comp = self.net_worth.portfolio_components()
@@ -356,11 +418,15 @@ class PortfolioOptimizerService:
         liquid_for_emergency = allocation_values["cash"] + allocation_values["banks"] + allocation_values["certificates"]
         emergency_months = self._emergency_fund_months(liquid_for_emergency, monthly_expenses)
 
+        liquid_pct = _to_float(allocation_percentages.get("cash")) + _to_float(allocation_percentages.get("banks"))
+
         liquidity_metric = self._score_range_metric(
-            _to_float(allocation_percentages.get("cash")) + _to_float(allocation_percentages.get("banks")),
+            liquid_pct,
             15.0,
             30.0,
         )
+        if liquid_pct > 30.0 and emergency_months >= 6.0:
+            liquidity_metric = max(liquidity_metric, 88.0 - min((liquid_pct - 30.0) * 0.65, 18.0))
         fixed_metric = self._score_range_metric(
             _to_float(allocation_percentages.get("real_estate"))
             + _to_float(allocation_percentages.get("vehicles"))
@@ -379,11 +445,27 @@ class PortfolioOptimizerService:
             + (emergency_metric * 0.20)
             + (diversification_metric * 0.20)
         )
+        monthly_income = self._latest_monthly_income()
+        monthly_cash_flow = monthly_income - monthly_expenses
+        if monthly_cash_flow > 0:
+            weighted_score += min(4.0, (monthly_cash_flow / max(monthly_expenses, 1.0)) * 4.0)
         health_score = round(max(0.0, min(100.0, weighted_score)), 1)
 
         allocation_cards = self._allocation_cards(allocation_values, allocation_percentages)
 
-        categories_owned = len([value for value in allocation_values.values() if value > 0])
+        # Asset classes count only fixed-asset classes (Cash/Banks/Certificates are excluded).
+        categories_owned = len(
+            [
+                value
+                for value in [
+                    _to_float(allocation_values.get("real_estate")),
+                    _to_float(allocation_values.get("vehicles")),
+                    _to_float(allocation_values.get("gold")),
+                    _to_float(allocation_values.get("other_assets")),
+                ]
+                if value > 0
+            ]
+        )
         bank_exposure = self._bank_exposure(comp)
         currency_exposure = self._currency_exposure(comp)
         top_assets = self._top_assets(comp, total_portfolio)
@@ -400,8 +482,19 @@ class PortfolioOptimizerService:
         largest_bank = bank_exposure[0] if bank_exposure else {"bank_name": "-", "value": 0.0}
         largest_currency = currency_exposure[0] if currency_exposure else {"code": "EGP", "value": 0.0}
         largest_asset = top_assets[0] if top_assets else {"asset": "-", "value": 0.0}
+        highest_appreciating_asset = self._highest_appreciating_asset(top_assets)
 
         recommendations = self._recommendations(allocation_percentages, emergency_months)
+        maturity_egp_90 = self._upcoming_certificate_maturity_egp(comp, days=90)
+        if maturity_egp_90 > 0:
+            recommendations.append(
+                {
+                    "key": "portfolio_optimizer_rec_upcoming_maturities_boost_liquidity",
+                    "severity": "low",
+                    "severity_key": "portfolio_optimizer_severity_low",
+                    "metric_value": round(maturity_egp_90, 2),
+                }
+            )
         opportunities = self._opportunities(allocation_percentages, recommendations, comp)
 
         chart_labels = [
@@ -450,6 +543,10 @@ class PortfolioOptimizerService:
                 },
                 "largest_bank_concentration": largest_bank,
                 "largest_asset_type": largest_category_label,
+                "largest_portfolio_allocation": {
+                    "label_key": largest_category_label,
+                    "percentage": round(largest_category_pct, 2),
+                },
                 "largest_currency_exposure": largest_currency,
             },
             "recommendations": recommendations,
@@ -466,6 +563,7 @@ class PortfolioOptimizerService:
                     "label_key": largest_category_label,
                     "value": round(_to_float(allocation_values.get(largest_category_key)), 2),
                 },
+                "highest_appreciating_asset": highest_appreciating_asset,
                 "largest_concentration_pct": round(largest_category_pct, 2),
                 "warning": largest_category_pct > 50.0,
             },
