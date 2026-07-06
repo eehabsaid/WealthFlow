@@ -320,7 +320,7 @@ function _renderPortfolioOptimizer(payload) {
   const concentration = payload?.concentration || {};
   const opportunities = payload?.opportunities || [];
   const expenseBaseline = payload?.expense_baseline || {};
-  const cards = allocation.cards || [];
+  const cards = (allocation.cards || []).filter((card) => card.key !== "banks");
 
   const scoreValue = Number(health.score || 0);
   const scoreRing = `conic-gradient(#34c759 ${Math.max(0, Math.min(100, scoreValue))}%, rgba(123,147,201,0.20) 0)`;
