@@ -30,6 +30,8 @@ let _cashFlowForecastData = null;
 let _wealthGrowthForecastLoaded = false;
 let _wealthGrowthForecastData = null;
 let _wealthGrowthForecastThemeListenerAttached = false;
+let _portfolioOptimizerLoaded = false;
+let _portfolioOptimizerData = null;
 let _financialAdvisorMenuEventsAbortController = null;
 
 function _cashFlowPaneId() {
@@ -81,6 +83,28 @@ function _renderCashFlowError() {
   pane.innerHTML = `
     <div class="alert alert-danger" style="background:var(--bg-secondary); border-color:var(--border-color); color:var(--text-primary);">
       <span data-i18n="cash_flow_error"></span>
+    </div>
+  `;
+  applyTranslations();
+}
+
+function _renderPortfolioOptimizerLoading() {
+  const pane = document.getElementById("fa-pane-portfolio-optimizer");
+  if (!pane) return;
+  pane.innerHTML = `
+    <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
+      <div class="card-body" style="padding:24px; color:var(--text-secondary);" data-i18n="portfolio_optimizer_loading"></div>
+    </div>
+  `;
+  applyTranslations();
+}
+
+function _renderPortfolioOptimizerError() {
+  const pane = document.getElementById("fa-pane-portfolio-optimizer");
+  if (!pane) return;
+  pane.innerHTML = `
+    <div class="alert alert-danger" style="background:var(--bg-secondary); border-color:var(--border-color); color:var(--text-primary);">
+      <span data-i18n="portfolio_optimizer_error"></span>
     </div>
   `;
   applyTranslations();
@@ -194,6 +218,297 @@ function _attachWealthGrowthThemeListener() {
     }
   });
   _wealthGrowthForecastThemeListenerAttached = true;
+}
+
+function _drawPortfolioAllocationChart(payload) {
+  const canvasId = "portfolioAllocationChart";
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || !window.Chart) return;
+
+  _destroyChart(canvasId);
+
+  const direction = _pageDirection();
+  const isRTL = direction === "rtl";
+  const primaryText = _themeColor("--text-primary", "#e8f0fe");
+  const gridColor = "rgba(123, 147, 201, 0.16)";
+
+  const labels = (payload?.allocation_chart?.labels || []).map((labelKey) => t(labelKey, labelKey));
+  const values = payload?.allocation_chart?.values || [];
+
+  new Chart(canvas, {
+    type: "doughnut",
+    data: {
+      labels,
+      datasets: [
+        {
+          data: values,
+          borderColor: "rgba(13, 21, 48, 0.9)",
+          borderWidth: 2,
+          backgroundColor: [
+            "#50d890",
+            "#4f8ff7",
+            "#8c7cf0",
+            "#f3c846",
+            "#3ddc84",
+            "#5da9ff",
+            "#b178ff",
+          ],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "62%",
+      plugins: {
+        legend: {
+          position: "right",
+          rtl: isRTL,
+          reverse: isRTL,
+          labels: {
+            color: primaryText,
+            boxWidth: 12,
+            usePointStyle: true,
+            pointStyle: "circle",
+            textDirection: direction,
+          },
+        },
+        tooltip: {
+          rtl: isRTL,
+          textDirection: direction,
+          titleColor: primaryText,
+          bodyColor: primaryText,
+          backgroundColor: "rgba(13, 21, 48, 0.96)",
+          borderColor: gridColor,
+          borderWidth: 1,
+          callbacks: {
+            label: (ctx) => {
+              const total = values.reduce((sum, x) => sum + Number(x || 0), 0);
+              const raw = Number(ctx.raw || 0);
+              const pct = total > 0 ? (raw / total) * 100 : 0;
+              return `${ctx.label}: ${fmt(raw)} (${fmtpresent(pct)}%)`;
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+function _portfolioSeverityClass(severity) {
+  if (severity === "high") return "portfolio-badge-high";
+  if (severity === "medium") return "portfolio-badge-medium";
+  return "portfolio-badge-low";
+}
+
+function _portfolioStatusClass(status) {
+  if (status === "good") return "portfolio-status-good";
+  if (status === "warning") return "portfolio-status-warning";
+  return "portfolio-status-danger";
+}
+
+function _renderPortfolioOptimizer(payload) {
+  const pane = document.getElementById("fa-pane-portfolio-optimizer");
+  if (!pane) return;
+
+  const health = payload?.health || {};
+  const allocation = payload?.allocation || {};
+  const diversification = payload?.diversification || {};
+  const recommendations = payload?.recommendations || [];
+  const breakdown = payload?.asset_breakdown || [];
+  const concentration = payload?.concentration || {};
+  const opportunities = payload?.opportunities || [];
+  const expenseBaseline = payload?.expense_baseline || {};
+  const cards = allocation.cards || [];
+
+  const scoreValue = Number(health.score || 0);
+  const scoreRing = `conic-gradient(#34c759 ${Math.max(0, Math.min(100, scoreValue))}%, rgba(123,147,201,0.20) 0)`;
+
+  const allocationCardsHtml = cards.map((card) => `
+    <div class="portfolio-allocation-card ${_portfolioStatusClass(card.status)}">
+      <div class="portfolio-allocation-title" data-i18n="${card.label_key}"></div>
+      <div class="portfolio-allocation-value">${fmt(Number(card.value || 0))}</div>
+      <div class="portfolio-allocation-pct">${fmtpresent(Number(card.percentage || 0))}%</div>
+      <div class="portfolio-allocation-range">
+        <span data-i18n="portfolio_optimizer_recommended"></span>
+        <span>${fmtpresent(Number(card.recommended_min || 0))}% - ${fmtpresent(Number(card.recommended_max || 0))}%</span>
+      </div>
+      <div class="portfolio-allocation-status ${_portfolioStatusClass(card.status)}" data-i18n="${card.status_key}"></div>
+    </div>
+  `).join("");
+
+  const recommendationsHtml = recommendations.map((item) => `
+    <div class="portfolio-rec-item">
+      <div class="portfolio-rec-text" data-i18n="${item.key}"></div>
+      <span class="portfolio-severity-badge ${_portfolioSeverityClass(item.severity)}" data-i18n="${item.severity_key}"></span>
+    </div>
+  `).join("");
+
+  const breakdownRows = breakdown.length
+    ? breakdown.map((item) => `
+      <tr>
+        <td>${item.asset || "-"}</td>
+        <td>${item.type || "-"}</td>
+        <td>${fmt(Number(item.value || 0))}</td>
+        <td>${fmtpresent(Number(item.portfolio_pct || 0))}%</td>
+        <td class="${Number(item.gain || 0) >= 0 ? "portfolio-gain-up" : "portfolio-gain-down"}">${Number(item.gain || 0) >= 0 ? "+" : ""}${fmt(Number(item.gain || 0))}</td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="5" class="text-center" data-i18n="portfolio_optimizer_empty_assets"></td></tr>`;
+
+  const opportunitiesHtml = opportunities.length
+    ? opportunities.map((item) => `
+      <div class="portfolio-opp-item">
+        <div>
+          <div class="portfolio-opp-title" data-i18n="${item.key}"></div>
+          <div class="portfolio-opp-impact" data-i18n="${item.impact_key}"></div>
+        </div>
+        <span class="portfolio-severity-badge ${_portfolioSeverityClass(item.severity)}" data-i18n="${item.severity_key}"></span>
+      </div>
+    `).join("")
+    : `<div class="portfolio-empty-state" data-i18n="portfolio_optimizer_no_opportunities"></div>`;
+
+  pane.innerHTML = `
+    <div class="portfolio-optimizer-wrap">
+      <div class="portfolio-optimizer-header">
+        <div>
+          <h4 data-i18n="financial_advisor_tab_portfolio_optimizer"></h4>
+          <p data-i18n="portfolio_optimizer_subtitle"></p>
+        </div>
+        <div class="portfolio-optimizer-date">
+          <span data-i18n="portfolio_optimizer_as_of"></span>
+          <strong>${payload?.as_of || "-"}</strong>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-xl-3">
+          <div class="portfolio-card portfolio-health-card h-100">
+            <div class="portfolio-card-title" data-i18n="portfolio_optimizer_health_score"></div>
+            <div class="portfolio-score-ring" style="background:${scoreRing};">
+              <div class="portfolio-score-center">${Math.round(scoreValue)}</div>
+            </div>
+            <div class="portfolio-score-label" data-i18n="${health.label_key || "portfolio_optimizer_health_attention"}"></div>
+            <div class="portfolio-score-footnote" data-i18n="portfolio_optimizer_health_note"></div>
+          </div>
+        </div>
+
+        <div class="col-12 col-xl-9">
+          <div class="portfolio-card h-100">
+            <div class="portfolio-card-title" data-i18n="portfolio_optimizer_allocation"></div>
+            <div class="portfolio-allocation-grid">${allocationCardsHtml}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-4">
+          <div class="portfolio-card h-100">
+            <div class="portfolio-card-title" data-i18n="portfolio_optimizer_diversification_analysis"></div>
+            <div class="portfolio-kv-list">
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_asset_classes_owned"></span><strong>${Number(diversification.asset_classes_owned || 0)}</strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_bank_accounts_used"></span><strong>${Number(diversification.bank_accounts_used || 0)}</strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_asset_concentration"></span><strong>${fmtpresent(Number(diversification?.largest_asset_concentration?.percentage || 0))}%</strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_bank_concentration"></span><strong>${diversification?.largest_bank_concentration?.bank_name || "-"}</strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_asset_type"></span><strong data-i18n="${diversification?.largest_asset_type || "portfolio_optimizer_asset_cash"}"></strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_currency_exposure"></span><strong>${diversification?.largest_currency_exposure?.code || "-"}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+          <div class="portfolio-card h-100">
+            <div class="portfolio-card-title" data-i18n="portfolio_optimizer_ai_recommendations"></div>
+            <div class="portfolio-rec-list">${recommendationsHtml}</div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+          <div class="portfolio-card h-100">
+            <div class="portfolio-card-title" data-i18n="portfolio_optimizer_concentration_analysis"></div>
+            <div class="portfolio-kv-list">
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_asset"></span><strong>${concentration?.largest_asset?.asset || "-"}</strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_bank"></span><strong>${concentration?.largest_bank?.bank_name || "-"}</strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_balance"></span><strong>${concentration?.largest_balance?.title || "-"}</strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_exposure"></span><strong data-i18n="${concentration?.largest_exposure?.label_key || "portfolio_optimizer_asset_cash"}"></strong></div>
+              <div class="portfolio-kv-row"><span data-i18n="portfolio_optimizer_largest_concentration_pct"></span><strong>${fmtpresent(Number(concentration?.largest_concentration_pct || 0))}%</strong></div>
+            </div>
+            ${concentration?.warning ? `<div class="portfolio-warning" data-i18n="portfolio_optimizer_concentration_warning"></div>` : `<div class="portfolio-healthy" data-i18n="portfolio_optimizer_concentration_ok"></div>`}
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-7">
+          <div class="portfolio-card h-100">
+            <div class="portfolio-card-title" data-i18n="portfolio_optimizer_asset_breakdown"></div>
+            <div class="table-responsive">
+              <table class="table table-sm portfolio-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="portfolio_optimizer_col_asset"></th>
+                    <th data-i18n="portfolio_optimizer_col_type"></th>
+                    <th data-i18n="portfolio_optimizer_col_value"></th>
+                    <th data-i18n="portfolio_optimizer_col_portfolio_pct"></th>
+                    <th data-i18n="portfolio_optimizer_col_gain"></th>
+                  </tr>
+                </thead>
+                <tbody>${breakdownRows}</tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+          <div class="portfolio-card h-100">
+            <div class="portfolio-card-title" data-i18n="portfolio_optimizer_allocation_chart"></div>
+            <div class="portfolio-chart-wrap">
+              <canvas id="portfolioAllocationChart"></canvas>
+            </div>
+            <div class="portfolio-chart-footnote" data-i18n="portfolio_optimizer_chart_note"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="portfolio-card">
+            <div class="portfolio-card-title" data-i18n="portfolio_optimizer_opportunities"></div>
+            <div class="portfolio-opp-list">${opportunitiesHtml}</div>
+            <div class="portfolio-baseline-row">
+              <span><span data-i18n="portfolio_optimizer_avg_monthly_expenses"></span>: <strong>${fmt(Number(expenseBaseline.avg_monthly_expenses || 0))}</strong></span>
+              <span><span data-i18n="portfolio_optimizer_emergency_months"></span>: <strong>${fmtpresent(Number(expenseBaseline.emergency_fund_months || 0))}</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  applyTranslations();
+  _drawPortfolioAllocationChart(payload);
+}
+
+async function loadPortfolioOptimizer(force = false) {
+  if (_portfolioOptimizerData && !force) {
+    _renderPortfolioOptimizer(_portfolioOptimizerData);
+    _portfolioOptimizerLoaded = true;
+    return;
+  }
+
+  _renderPortfolioOptimizerLoading();
+  try {
+    const response = await fetch("/api/financial-advisor/portfolio-optimizer/");
+    if (!response.ok) {
+      throw new Error("portfolio_optimizer_fetch_failed");
+    }
+    const payload = await response.json();
+    _portfolioOptimizerData = payload;
+    _renderPortfolioOptimizer(payload);
+    _portfolioOptimizerLoaded = true;
+  } catch (error) {
+    _renderPortfolioOptimizerError();
+  }
 }
 
 function _renderWealthGrowthForecast(payload) {
@@ -538,31 +853,45 @@ function renderFinancialAdvisor() {
   const primaryTabsNav = primaryTabs.map((tab) => renderTabButton(tab, "financial-advisor-tab")).join("");
   const overflowTabsNav = overflowTabs.map((tab) => renderTabButton(tab, "financial-advisor-dropdown-item")).join("");
 
-  const tabsContent = FINANCIAL_ADVISOR_TABS.map((tab, index) => `
-    <div
-      class="tab-pane fade ${tab.id === activeTabId ? "show active" : ""}"
-      id="fa-pane-${tab.id}"
-      role="tabpanel"
-      aria-labelledby="fa-tab-${tab.id}"
-      tabindex="0"
-    >
-        ${tab.id === "wealth-growth-forecast" ? `
-        <div id="fa-wealth-growth-content"></div>
-        ` : ""}
-      ${tab.id === "cash-flow-forecast" ? `
-      <div id="fa-cash-flow-content"></div>
-      ` : `
-        ${tab.id === "wealth-growth-forecast" ? "" : `
-      <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
-        <div class="card-body" style="padding:24px;">
-          <h5 style="color:var(--text-primary); margin-bottom:10px;" data-i18n="financial_advisor_feature_coming_soon"></h5>
-          <p style="color:var(--text-secondary); margin:0;" data-i18n="financial_advisor_next_phase_description"></p>
+  const renderTabPane = (tab) => {
+    const paneId = `fa-pane-${tab.id}`;
+    const isActive = tab.id === activeTabId ? "show active" : "";
+
+    if (tab.id === "cash-flow-forecast") {
+      return `
+        <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
+          <div id="fa-cash-flow-content"></div>
+        </div>
+      `;
+    }
+
+    if (tab.id === "wealth-growth-forecast") {
+      return `
+        <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
+          <div id="fa-wealth-growth-content"></div>
+        </div>
+      `;
+    }
+
+    if (tab.id === "portfolio-optimizer") {
+      return `
+        <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0"></div>
+      `;
+    }
+
+    return `
+      <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
+        <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
+          <div class="card-body" style="padding:24px;">
+            <h5 style="color:var(--text-primary); margin-bottom:10px;" data-i18n="financial_advisor_feature_coming_soon"></h5>
+            <p style="color:var(--text-secondary); margin:0;" data-i18n="financial_advisor_next_phase_description"></p>
+          </div>
         </div>
       </div>
-        `}
-        `}
-    </div>
-  `).join("");
+    `;
+  };
+
+  const tabsContent = FINANCIAL_ADVISOR_TABS.map((tab) => renderTabPane(tab)).join("");
 
   main.innerHTML = `
     <div class="page-header">
@@ -708,6 +1037,8 @@ function renderFinancialAdvisor() {
           loadCashFlowForecast();
         } else if (targetSelector === "#fa-pane-wealth-growth-forecast") {
           loadWealthGrowthForecast();
+        } else if (targetSelector === "#fa-pane-portfolio-optimizer") {
+          loadPortfolioOptimizer();
         }
         closeMoreMenu();
         syncMoreActiveState();
@@ -721,6 +1052,8 @@ function renderFinancialAdvisor() {
     loadCashFlowForecast();
   } else if (activeTabId === "wealth-growth-forecast") {
     loadWealthGrowthForecast();
+  } else if (activeTabId === "portfolio-optimizer") {
+    loadPortfolioOptimizer();
   }
 }
 
