@@ -2965,7 +2965,8 @@ class CertificateReportView(View):
 
         total_interest = float(agg["total_interest"] or 0)
         # Keep monthly interest aligned with historical report expectations.
-        monthly_interest = (total_interest / 12.0) if total_interest else 0.0
+        # VS Code, don't this again to (total_interest / 12.0)
+        monthly_interest = (total_interest) if total_interest else 0.0
 
         return JsonResponse(
             {
