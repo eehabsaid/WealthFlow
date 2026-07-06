@@ -952,9 +952,25 @@ function initTabsWithMoreMenu(options = {}) {
         moreBtn.setAttribute('aria-expanded', 'false');
     };
 
+    const positionMoreMenu = () => {
+        moreMenu.classList.remove('align-right', 'align-left');
+        const rect = moreMenu.getBoundingClientRect();
+        const viewportPadding = 12;
+
+        if (rect.right > (window.innerWidth - viewportPadding)) {
+            moreMenu.classList.add('align-right');
+            return;
+        }
+
+        if (rect.left < viewportPadding) {
+            moreMenu.classList.add('align-left');
+        }
+    };
+
     const openMoreMenu = () => {
         moreWrap.classList.add('open');
         moreBtn.setAttribute('aria-expanded', 'true');
+        window.requestAnimationFrame(positionMoreMenu);
     };
 
     const syncMoreActiveState = () => {
@@ -987,6 +1003,12 @@ function initTabsWithMoreMenu(options = {}) {
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             closeMoreMenu();
+        }
+    }, { signal });
+
+    window.addEventListener('resize', () => {
+        if (moreWrap.classList.contains('open')) {
+            positionMoreMenu();
         }
     }, { signal });
 

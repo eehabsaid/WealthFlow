@@ -1308,6 +1308,16 @@ body {
   transform: translateY(0);
 }
 
+.wf-more-menu.align-right {
+  right: 0;
+  left: auto;
+}
+
+.wf-more-menu.align-left {
+  left: 0;
+  right: auto;
+}
+
 .wf-dropdown-item {
   width: 100%;
   text-align: left;
@@ -1318,6 +1328,15 @@ body {
 
 .wf-dropdown-item.active {
   background: rgba(14, 165, 233, 0.14);
+}
+
+[dir="rtl"] .wf-more-menu {
+  left: 0;
+  right: auto;
+}
+
+[dir="rtl"] .wf-dropdown-item {
+  text-align: right;
 }
 
 [data-theme="light"] .wf-tab,
@@ -1461,6 +1480,16 @@ body {
   transform: translateY(0);
 }
 
+.financial-advisor-more-menu.align-right {
+  right: 0;
+  left: auto;
+}
+
+.financial-advisor-more-menu.align-left {
+  left: 0;
+  right: auto;
+}
+
 .financial-advisor-dropdown-item {
   width: 100%;
   text-align: left;
@@ -1471,6 +1500,15 @@ body {
 
 .financial-advisor-dropdown-item.active {
   background: rgba(14, 165, 233, 0.14);
+}
+
+[dir="rtl"] .financial-advisor-more-menu {
+  left: 0;
+  right: auto;
+}
+
+[dir="rtl"] .financial-advisor-dropdown-item {
+  text-align: right;
 }
 
 [data-theme="light"] .financial-advisor-tab,

@@ -618,10 +618,27 @@ function renderFinancialAdvisor() {
     moreBtn.setAttribute("aria-expanded", "false");
   };
 
+  const positionMoreMenu = () => {
+    if (!moreMenu) return;
+    moreMenu.classList.remove("align-right", "align-left");
+    const rect = moreMenu.getBoundingClientRect();
+    const viewportPadding = 12;
+
+    if (rect.right > (window.innerWidth - viewportPadding)) {
+      moreMenu.classList.add("align-right");
+      return;
+    }
+
+    if (rect.left < viewportPadding) {
+      moreMenu.classList.add("align-left");
+    }
+  };
+
   const openMoreMenu = () => {
     if (!moreWrap || !moreBtn) return;
     moreWrap.classList.add("open");
     moreBtn.setAttribute("aria-expanded", "true");
+    window.requestAnimationFrame(positionMoreMenu);
   };
 
   const syncMoreActiveState = () => {
@@ -661,6 +678,12 @@ function renderFinancialAdvisor() {
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         closeMoreMenu();
+      }
+    }, { signal: menuEventsSignal });
+
+    window.addEventListener("resize", () => {
+      if (moreWrap.classList.contains("open")) {
+        positionMoreMenu();
       }
     }, { signal: menuEventsSignal });
 
