@@ -415,7 +415,7 @@ function _renderGoalPlanning(payload) {
 
       <div class="row g-3 mb-3">
         <div class="col-12 col-lg-6">
-          <div class="portfolio-card h-100">
+          <div class="portfolio-card goal-insights-card h-100">
             <div class="portfolio-card-title" data-i18n="goal_planning_insights_title"></div>
             <div class="portfolio-rec-list">
               ${insights.map((item) => `
