@@ -2351,6 +2351,41 @@ body {
   position: relative;
 }
 
+.goal-chart-center {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  width: 112px;
+  min-height: 52px;
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--text-primary);
+  line-height: 1.15;
+  text-align: center;
+  pointer-events: none;
+}
+
+.goal-chart-center span {
+  max-width: 100%;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: normal;
+}
+
+.goal-chart-center strong {
+  max-width: 100%;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 .goal-milestone-list {
   display: grid;
   gap: 8px;

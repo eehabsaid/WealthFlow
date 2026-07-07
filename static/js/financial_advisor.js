@@ -213,7 +213,7 @@ function _drawGoalTypeChart(payload) {
   const gridColor = "rgba(123, 147, 201, 0.16)";
 
   const items = payload?.distribution?.by_type || [];
-  const labels = items.map((item) => item.label || t("goal_planning_not_available", "N/A"));
+  const labels = items.map((item) => item.label || t("goal_planning_not_available"));
   const values = items.map((item) => Number(item.value_egp || 0));
 
   new Chart(canvas, {
@@ -301,12 +301,36 @@ function _renderGoalPlanning(payload) {
       </div>
 
       <div class="goal-kpi-grid mb-3">
-        <div class="goal-kpi-card"><span data-i18n="goal_planning_total_goals"></span><strong>${Number(summary.total_goals || 0)}</strong><small data-i18n="goal_planning_all_goals"></small></div>
-        <div class="goal-kpi-card"><span data-i18n="goal_planning_achieved_goals"></span><strong>${completedCount}</strong><small>${fmtpresent(completedPct)}%</small></div>
-        <div class="goal-kpi-card"><span data-i18n="goal_planning_on_track_goals"></span><strong>${onTrackCount}</strong><small>${fmtpresent(onTrackPct)}%</small></div>
-        <div class="goal-kpi-card"><span data-i18n="goal_planning_at_risk_goals"></span><strong>${atRiskCount}</strong><small>${fmtpresent(atRiskPct)}%</small></div>
-        <div class="goal-kpi-card"><span data-i18n="goal_planning_total_target"></span><strong>${fmt(totalTarget)}</strong><small data-i18n="goal_planning_goal_value"></small></div>
-        <div class="goal-kpi-card"><span data-i18n="goal_planning_total_saved"></span><strong>${fmt(totalSaved)}</strong><small>${fmtpresent(savedTargetPct)}% <span data-i18n="goal_planning_of_target"></span></small></div>
+        <div class="goal-kpi-card">
+          <div class="goal-kpi-head"><span class="goal-kpi-icon" aria-hidden="true"><i class="bi bi-bullseye"></i></span><span data-i18n="goal_planning_total_goals"></span></div>
+          <strong>${Number(summary.total_goals || 0)}</strong>
+          <small data-i18n="goal_planning_all_goals"></small>
+        </div>
+        <div class="goal-kpi-card">
+          <div class="goal-kpi-head"><span class="goal-kpi-icon" aria-hidden="true"><i class="bi bi-check2-circle"></i></span><span data-i18n="goal_planning_achieved_goals"></span></div>
+          <strong>${completedCount}</strong>
+          <small>${fmtpresent(completedPct)}%</small>
+        </div>
+        <div class="goal-kpi-card">
+          <div class="goal-kpi-head"><span class="goal-kpi-icon" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span><span data-i18n="goal_planning_on_track_goals"></span></div>
+          <strong>${onTrackCount}</strong>
+          <small>${fmtpresent(onTrackPct)}%</small>
+        </div>
+        <div class="goal-kpi-card">
+          <div class="goal-kpi-head"><span class="goal-kpi-icon" aria-hidden="true"><i class="bi bi-exclamation-triangle"></i></span><span data-i18n="goal_planning_at_risk_goals"></span></div>
+          <strong>${atRiskCount}</strong>
+          <small>${fmtpresent(atRiskPct)}%</small>
+        </div>
+        <div class="goal-kpi-card">
+          <div class="goal-kpi-head"><span class="goal-kpi-icon" aria-hidden="true"><i class="bi bi-wallet2"></i></span><span data-i18n="goal_planning_total_target"></span></div>
+          <strong>${fmt(totalTarget)}</strong>
+          <small data-i18n="goal_planning_goal_value"></small>
+        </div>
+        <div class="goal-kpi-card">
+          <div class="goal-kpi-head"><span class="goal-kpi-icon" aria-hidden="true"><i class="bi bi-piggy-bank"></i></span><span data-i18n="goal_planning_total_saved"></span></div>
+          <strong>${fmt(totalSaved)}</strong>
+          <small>${fmtpresent(savedTargetPct)}% <span data-i18n="goal_planning_of_target"></span></small>
+        </div>
       </div>
 
       <div class="row g-3 mb-3">
@@ -314,36 +338,36 @@ function _renderGoalPlanning(payload) {
           <div class="portfolio-card h-100">
             <div class="goal-toolbar mb-2">
               <div class="goal-toolbar-left">
-                <input id="goalSearchInput" class="form-control form-control-sm" type="text" placeholder="${_escapeHtml(t("goal_planning_search_placeholder", "Search goals..."))}">
+                <input id="goalSearchInput" class="form-control form-control-sm" type="text" placeholder="${_escapeHtml(t("goal_planning_search_placeholder"))}">
                 <select id="goalTypeFilter" class="form-select form-select-sm">
-                  <option value="all">${_escapeHtml(t("goal_planning_filter_all_categories", "All categories"))}</option>
+                  <option value="all">${_escapeHtml(t("goal_planning_filter_all_categories"))}</option>
                   ${Array.from(new Set(goals.map((goal) => String(goal.goal_type || "").trim()).filter(Boolean))).sort().map((goalType) => `<option value="${_escapeHtml(goalType)}">${_escapeHtml(goalType)}</option>`).join("")}
                 </select>
                 <select id="goalStatusFilter" class="form-select form-select-sm">
-                  <option value="all">${_escapeHtml(t("goal_planning_filter_all_statuses", "All statuses"))}</option>
-                  <option value="on_track">${_escapeHtml(t("goal_planning_status_on_track", "On Track"))}</option>
-                  <option value="watch">${_escapeHtml(t("goal_planning_status_needs_attention", "Needs Attention"))}</option>
-                  <option value="at_risk">${_escapeHtml(t("goal_planning_status_at_risk", "At Risk"))}</option>
-                  <option value="critical">${_escapeHtml(t("goal_planning_status_overdue", "Overdue"))}</option>
-                  <option value="achieved">${_escapeHtml(t("goal_planning_status_achieved", "Achieved"))}</option>
+                  <option value="all">${_escapeHtml(t("goal_planning_filter_all_statuses"))}</option>
+                  <option value="on_track">${_escapeHtml(t("goal_planning_status_on_track"))}</option>
+                  <option value="watch">${_escapeHtml(t("goal_planning_status_needs_attention"))}</option>
+                  <option value="at_risk">${_escapeHtml(t("goal_planning_status_at_risk"))}</option>
+                  <option value="critical">${_escapeHtml(t("goal_planning_status_overdue"))}</option>
+                  <option value="achieved">${_escapeHtml(t("goal_planning_status_achieved"))}</option>
                 </select>
                 <select id="goalPriorityFilter" class="form-select form-select-sm">
-                  <option value="all">${_escapeHtml(t("goal_planning_filter_all_priorities", "All priorities"))}</option>
-                  <option value="High">${_escapeHtml(t("goal_planning_priority_high", "High"))}</option>
-                  <option value="Medium">${_escapeHtml(t("goal_planning_priority_medium", "Medium"))}</option>
-                  <option value="Low">${_escapeHtml(t("goal_planning_priority_low", "Low"))}</option>
+                  <option value="all">${_escapeHtml(t("goal_planning_filter_all_priorities"))}</option>
+                  <option value="High">${_escapeHtml(t("goal_planning_priority_high"))}</option>
+                  <option value="Medium">${_escapeHtml(t("goal_planning_priority_medium"))}</option>
+                  <option value="Low">${_escapeHtml(t("goal_planning_priority_low"))}</option>
                 </select>
                 <select id="goalDueDateFilter" class="form-select form-select-sm">
-                  <option value="all">${_escapeHtml(t("goal_planning_filter_all_due_dates", "All due dates"))}</option>
-                  <option value="6">${_escapeHtml(t("goal_planning_filter_due_6", "Due in 6 months"))}</option>
-                  <option value="12">${_escapeHtml(t("goal_planning_filter_due_12", "Due in 12 months"))}</option>
-                  <option value="24">${_escapeHtml(t("goal_planning_filter_due_24", "Due in 24 months"))}</option>
+                  <option value="all">${_escapeHtml(t("goal_planning_filter_all_due_dates"))}</option>
+                  <option value="6">${_escapeHtml(t("goal_planning_filter_due_6"))}</option>
+                  <option value="12">${_escapeHtml(t("goal_planning_filter_due_12"))}</option>
+                  <option value="24">${_escapeHtml(t("goal_planning_filter_due_24"))}</option>
                 </select>
                 <select id="goalSortBy" class="form-select form-select-sm">
-                  <option value="priority">${_escapeHtml(t("goal_planning_sort_priority", "Sort: Priority"))}</option>
-                  <option value="deadline">${_escapeHtml(t("goal_planning_sort_deadline", "Sort: Deadline"))}</option>
-                  <option value="progress">${_escapeHtml(t("goal_planning_sort_progress", "Sort: Progress"))}</option>
-                  <option value="remaining">${_escapeHtml(t("goal_planning_sort_remaining", "Sort: Remaining"))}</option>
+                  <option value="priority">${_escapeHtml(t("goal_planning_sort_priority"))}</option>
+                  <option value="deadline">${_escapeHtml(t("goal_planning_sort_deadline"))}</option>
+                  <option value="progress">${_escapeHtml(t("goal_planning_sort_progress"))}</option>
+                  <option value="remaining">${_escapeHtml(t("goal_planning_sort_remaining"))}</option>
                 </select>
               </div>
             </div>
@@ -357,6 +381,10 @@ function _renderGoalPlanning(payload) {
             <div class="portfolio-card-title" data-i18n="goal_planning_distribution_title"></div>
             <div class="goal-chart-wrap">
               <canvas id="goalPlanningTypeChart"></canvas>
+              <div class="goal-chart-center" aria-hidden="true">
+                <span data-i18n="goal_planning_total_target"></span>
+                <strong>${fmt(totalTarget)}</strong>
+              </div>
             </div>
           </div>
 
@@ -369,14 +397,14 @@ function _renderGoalPlanning(payload) {
               ${milestones.length ? milestones.map((item) => `
                 <div class="goal-milestone-item">
                   <div>
-                    <div class="goal-milestone-title">${_escapeHtml(item.goal_name || t("goal_planning_not_available", "N/A"))}</div>
+                    <div class="goal-milestone-title">${_escapeHtml(item.goal_name || t("goal_planning_not_available"))}</div>
                     <div class="goal-milestone-meta">
                       <span data-i18n="goal_planning_target_date"></span>: ${_escapeHtml(item.target_date || "-")}
                     </div>
                   </div>
                   <div class="goal-milestone-side">
                     <span class="portfolio-severity-badge portfolio-badge-info" data-i18n="${item.priority_key || "goal_planning_priority_medium"}"></span>
-                    <small>${fmt(Number(item.monthly_required_egp || 0))}/mo</small>
+                    <small><span data-i18n="goal_planning_monthly_required"></span>: ${fmt(Number(item.monthly_required_egp || 0))} / <span data-i18n="goal_planning_months_short"></span></small>
                   </div>
                 </div>
               `).join("") : `<div class="portfolio-empty-state" data-i18n="goal_planning_no_milestones"></div>`}
@@ -391,7 +419,8 @@ function _renderGoalPlanning(payload) {
             <div class="portfolio-card-title" data-i18n="goal_planning_insights_title"></div>
             <div class="portfolio-rec-list">
               ${insights.map((item) => `
-                <div class="portfolio-rec-item">
+                <div class="portfolio-rec-item goal-insight-item">
+                  <span class="goal-insight-icon" aria-hidden="true"><i class="bi bi-stars"></i></span>
                   <div class="portfolio-rec-text" data-i18n="${item.key}"></div>
                   <span class="portfolio-severity-badge ${_goalSeverityClass(item.severity)}" data-i18n="${item.severity_key}"></span>
                 </div>
@@ -451,9 +480,9 @@ function _renderGoalPlanning(payload) {
                 <div class="col-12 col-md-4">
                   <label class="form-label" data-i18n="goal_planning_field_priority"></label>
                   <select class="form-select" id="goalPriorityInput">
-                    <option value="High">${_escapeHtml(t("goal_planning_priority_high", "High"))}</option>
-                    <option value="Medium">${_escapeHtml(t("goal_planning_priority_medium", "Medium"))}</option>
-                    <option value="Low">${_escapeHtml(t("goal_planning_priority_low", "Low"))}</option>
+                    <option value="High">${_escapeHtml(t("goal_planning_priority_high"))}</option>
+                    <option value="Medium">${_escapeHtml(t("goal_planning_priority_medium"))}</option>
+                    <option value="Low">${_escapeHtml(t("goal_planning_priority_low"))}</option>
                   </select>
                 </div>
                 <div class="col-12 col-md-4">
@@ -529,7 +558,7 @@ function _renderGoalPlanning(payload) {
             <div class="goal-card-heading">
               <div class="goal-type-icon"><i class="bi ${_goalTypeIcon(goal.goal_type)}"></i></div>
               <div>
-              <div class="goal-card-title">${_escapeHtml(goal.name || t("goal_planning_not_available", "N/A"))}</div>
+              <div class="goal-card-title">${_escapeHtml(goal.name || t("goal_planning_not_available"))}</div>
               <div class="goal-card-sub">${_escapeHtml(goal.goal_type || "-")}</div>
               </div>
             </div>
@@ -558,7 +587,7 @@ function _renderGoalPlanning(payload) {
           </div>
 
           <div class="goal-progress-track">
-            <div class="goal-progress-fill" style="width:${Math.max(0, Math.min(100, Number(goal.progress_pct || 0)))}%"></div>
+            <div class="goal-progress-fill" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.max(0, Math.min(100, Number(goal.progress_pct || 0)))}" style="--goal-progress:${Math.max(0, Math.min(100, Number(goal.progress_pct || 0)))}%"></div>
           </div>
           <div class="goal-progress-label">${fmtpresent(Number(goal.progress_pct || 0))}%</div>
 
@@ -566,8 +595,8 @@ function _renderGoalPlanning(payload) {
             <span class="portfolio-severity-badge portfolio-badge-info" data-i18n="${goal.priority_key || "goal_planning_priority_medium"}"></span>
             <div class="goal-actions">
               <button class="btn btn-sm btn-outline-info" type="button" data-goal-action="view" data-goal-id="${goal.id}" data-i18n="goal_planning_view_details"></button>
-              <button class="btn btn-sm btn-outline-light" data-goal-action="edit" data-goal-id="${goal.id}" data-i18n="btn_edit"></button>
-              <button class="btn btn-sm btn-outline-danger" data-goal-action="delete" data-goal-id="${goal.id}" data-i18n="btn_delete"></button>
+              <button class="btn btn-sm btn-outline-light" type="button" data-goal-action="edit" data-goal-id="${goal.id}" data-i18n="btn_edit"></button>
+              <button class="btn btn-sm btn-outline-danger" type="button" data-goal-action="delete" data-goal-id="${goal.id}" data-i18n="btn_delete"></button>
             </div>
           </div>
         </div>
@@ -599,7 +628,7 @@ function _renderGoalPlanning(payload) {
   }
   if (linkedAssetSelect) {
     linkedAssetSelect.innerHTML = `
-      <option value="">${_escapeHtml(t("goal_planning_none", "None"))}</option>
+      <option value="">${_escapeHtml(t("goal_planning_none"))}</option>
       ${(meta.assets || []).map((item) => `<option value="${item.id}">${_escapeHtml(item.name || "-")}</option>`).join("")}
     `;
   }
@@ -671,26 +700,26 @@ function _renderGoalPlanning(payload) {
           const rawGoal = (data.goals || []).find((item) => Number(item.id) === goalId);
           if (rawGoal) openGoalModal(rawGoal);
         } catch (_error) {
-          showToast(t("goal_planning_error", "Unable to load goal planning."), "error");
+          showToast(t("goal_planning_error"), "error");
         }
         return;
       }
 
       if (action === "view") {
-        showToast(`${t("goal_planning_target_amount", "Target")}: ${fmt(Number((goals.find((goal) => Number(goal.id) === goalId)?.target_amount_egp) || 0))}`);
+        showToast(`${t("goal_planning_target_amount")}: ${fmt(Number((goals.find((goal) => Number(goal.id) === goalId)?.target_amount_egp) || 0))}`);
         return;
       }
 
       if (action === "delete") {
-        const okay = window.confirm(t("goal_planning_delete_confirm", "Delete this goal?"));
+        const okay = window.confirm(t("goal_planning_delete_confirm"));
         if (!okay) return;
         try {
           const response = await fetch(`/api/goals/${goalId}/`, { method: "DELETE" });
           if (!response.ok) throw new Error("goal_delete_failed");
           await loadGoalPlanning(true);
-          showToast(t("goal_planning_deleted", "Goal deleted"));
+          showToast(t("goal_planning_deleted"));
         } catch (_error) {
-          showToast(t("goal_planning_save_error", "Unable to save goal"), "error");
+          showToast(t("goal_planning_save_error"), "error");
         }
       }
     });
@@ -725,7 +754,7 @@ function _renderGoalPlanning(payload) {
       };
 
       if (!payloadBody.name || !payloadBody.goal_type) {
-        showToast(t("goal_planning_validation_required", "Please fill required fields."), "error");
+        showToast(t("goal_planning_validation_required"), "error");
         return;
       }
 
@@ -742,9 +771,9 @@ function _renderGoalPlanning(payload) {
         if (!response.ok) throw new Error("goal_save_failed");
         if (modal) modal.hide();
         await loadGoalPlanning(true);
-        showToast(t("goal_planning_saved", "Goal saved"));
+        showToast(t("goal_planning_saved"));
       } catch (_error) {
-        showToast(t("goal_planning_save_error", "Unable to save goal"), "error");
+        showToast(t("goal_planning_save_error"), "error");
       }
     });
   }
