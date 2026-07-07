@@ -175,6 +175,12 @@ urlpatterns = [
         views.PortfolioOptimizerView.as_view(),
     ),
     path(
+        "api/financial-advisor/goal-planning/",
+        views.GoalPlanningView.as_view(),
+    ),
+    path("api/goals/", views.GoalListView.as_view()),
+    path("api/goals/<int:pk>/", views.GoalDetailView.as_view()),
+    path(
         "api/documents/categories/",
         views.DocumentCategoriesView.as_view(),
     ),

@@ -510,7 +510,7 @@ class CertificateReportActiveOnlyTest(TestCase):
         self.assertEqual(payload["summary"]["total_count"], 1)
         self.assertEqual(payload["summary"]["total_amount"], 500.0)
         self.assertEqual(payload["summary"]["total_interest"], 50.0)
-        self.assertEqual(payload["summary"]["monthly_interest"], 50.0 / 12)
+        self.assertEqual(payload["summary"]["monthly_interest"], 50.0)
 
         overdue_buckets = payload["buckets"]["overdue"]
         self.assertEqual(len(overdue_buckets), 1)

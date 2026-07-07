@@ -11,6 +11,9 @@ let _banks       = [];
 let _activeRoute = '';
 let _allowedPages = [];
 let _appInitialized = false;
+const SIDEBAR_MODE_KEY = 'wf_sidebar_mode';
+const SIDEBAR_MODES = ['expanded', 'collapsed', 'hidden'];
+let _sidebarDesktopMode = localStorage.getItem(SIDEBAR_MODE_KEY) || 'expanded';
 
 window.translations = {};
 
@@ -55,11 +58,47 @@ async function initApp() {
 
     renderSidebar();
     renderTopbar();
+    applySidebarDesktopMode(_sidebarDesktopMode, true);
 
     // Check reminders in background after load
     setTimeout(() => {
         if (typeof checkReminders === 'function') checkReminders();
     }, 2000);
+}
+
+function applySidebarDesktopMode(mode, skipPersist = false) {
+    const normalized = SIDEBAR_MODES.includes(mode) ? mode : 'expanded';
+    _sidebarDesktopMode = normalized;
+    document.documentElement.setAttribute('data-sidebar-mode', normalized);
+    if (!skipPersist) {
+        localStorage.setItem(SIDEBAR_MODE_KEY, normalized);
+    }
+    updateSidebarModeButton();
+}
+
+function updateSidebarModeButton() {
+    const btn = document.getElementById('desktop-sidebar-mode-btn');
+    if (!btn) return;
+
+    let icon = 'bi-layout-sidebar-inset';
+    let title = 'Sidebar: Expanded';
+    if (_sidebarDesktopMode === 'collapsed') {
+        icon = 'bi-layout-sidebar';
+        title = 'Sidebar: Collapsed';
+    } else if (_sidebarDesktopMode === 'hidden') {
+        icon = 'bi-layout-sidebar-reverse';
+        title = 'Sidebar: Hidden';
+    }
+
+    btn.setAttribute('title', `${title} (click to change)`);
+    btn.setAttribute('aria-label', title);
+    btn.innerHTML = `<i class="bi ${icon}"></i>`;
+}
+
+function toggleSidebarDesktopMode() {
+    const currentIndex = SIDEBAR_MODES.indexOf(_sidebarDesktopMode);
+    const nextIndex = (currentIndex + 1) % SIDEBAR_MODES.length;
+    applySidebarDesktopMode(SIDEBAR_MODES[nextIndex]);
 }
 
 function isPrivilegedUser() {
@@ -223,7 +262,7 @@ function renderSidebar() {
 
     sidebar.innerHTML = `
         <div class="sidebar-brand">
-            <div class="brand-icon">💰</div>
+            <div class="brand-icon"><i class="bi bi-bullseye"></i></div>
             <div class="brand-text">
                 <span data-i18n="app_title">WealthFlow</span>
             </div>
@@ -406,6 +445,9 @@ function renderTopbar() {
         </button>
         <div id="breadcrumb" style="font-weight:600;font-size:14px;color:var(--text-secondary)"></div>
         <div style="display:flex;align-items:center;gap:12px">
+            <button id="desktop-sidebar-mode-btn" class="btn-icon" onclick="toggleSidebarDesktopMode()" title="Sidebar Mode">
+                <i class="bi bi-layout-sidebar-inset"></i>
+            </button>
             <button id="themeToggleBtn" onclick="toggleTheme()"
                 style="background:var(--bg-tertiary);border:1px solid var(--border-color);
                        cursor:pointer;font-size:18px;color:var(--text-primary);
@@ -428,6 +470,7 @@ function renderTopbar() {
             </button>
         </div>`;
     loadLangMenu();
+    updateSidebarModeButton();
 }
 
 async function loadLangMenu() {
@@ -1048,6 +1091,7 @@ window.renderSidebar        = renderSidebar;
 window.loadLangMenu         = loadLangMenu;
 window.toggleMobileSidebar  = toggleMobileSidebar;
 window.closeMobileSidebar   = closeMobileSidebar;
+window.toggleSidebarDesktopMode = toggleSidebarDesktopMode;
 window.doLogout             = doLogout;
 window.showProfileModal     = showProfileModal;
 window.previewAndUploadAvatar = previewAndUploadAvatar;
