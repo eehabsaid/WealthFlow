@@ -2265,9 +2265,43 @@ body {
   gap: 4px;
 }
 
+.goal-kpi-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.goal-kpi-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border: 1px solid rgba(96, 165, 250, 0.24);
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.12);
+  color: #8fc0ff;
+}
+
+.goal-kpi-icon i {
+  font-size: 13px;
+  line-height: 1;
+}
+
 .goal-kpi-card span {
   color: var(--text-secondary);
   font-size: 11px;
+}
+
+.goal-kpi-card .goal-kpi-icon {
+  color: #8fc0ff;
+}
+
+.goal-kpi-head > span:not(.goal-kpi-icon) {
+  min-width: 0;
+  line-height: 1.25;
 }
 
 .goal-kpi-card strong {
@@ -2629,6 +2663,12 @@ body {
 [data-theme="light"] .goal-milestone-side small,
 [data-theme="light"] .goal-toolbar .form-control::placeholder {
   color: #64748b;
+}
+
+[data-theme="light"] .goal-kpi-card .goal-kpi-icon {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 [data-theme="light"] .goal-editor-modal .form-control,
