@@ -238,7 +238,15 @@ function _drawGoalTypeChart(payload) {
           position: "bottom",
           rtl: isRTL,
           reverse: isRTL,
-          labels: { color: primaryText, boxWidth: 10, usePointStyle: true, pointStyle: "circle", textDirection: direction },
+          labels: {
+            color: primaryText,
+            boxWidth: 8,
+            usePointStyle: true,
+            pointStyle: "circle",
+            textDirection: direction,
+            padding: 14,
+            font: { size: 12, weight: "600" },
+          },
         },
         tooltip: {
           rtl: isRTL,
@@ -429,11 +437,12 @@ function _renderGoalPlanning(payload) {
           </div>
         </div>
         <div class="col-12 col-lg-6">
-          <div class="portfolio-card h-100">
+          <div class="portfolio-card goal-recommendations-card h-100">
             <div class="portfolio-card-title" data-i18n="goal_planning_recommendations_title"></div>
             <div class="portfolio-rec-list">
               ${recommendations.map((item) => `
-                <div class="portfolio-rec-item">
+                <div class="portfolio-rec-item goal-recommendation-item">
+                  <span class="goal-rec-icon" aria-hidden="true"><i class="bi bi-lightning-charge"></i></span>
                   <div class="portfolio-rec-text" data-i18n="${item.key}"></div>
                   <span class="portfolio-severity-badge ${_goalSeverityClass(item.severity)}" data-i18n="${item.severity_key}"></span>
                 </div>
@@ -445,39 +454,39 @@ function _renderGoalPlanning(payload) {
 
       <div class="modal fade goal-editor-modal" id="goalEditorModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
-          <div class="modal-content" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
-            <div class="modal-header" style="border-bottom:1px solid var(--border-color);">
+          <div class="modal-content goal-editor-surface" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
+            <div class="modal-header goal-editor-header" style="border-bottom:1px solid var(--border-color);">
               <h5 class="modal-title" id="goalEditorTitle" data-i18n="goal_planning_create_title"></h5>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <form id="goalEditorForm" class="row g-3">
+              <form id="goalEditorForm" class="row g-3 goal-editor-form">
                 <input type="hidden" id="goalIdInput">
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-6 goal-field goal-field-half">
                   <label class="form-label" data-i18n="goal_planning_field_name"></label>
                   <input type="text" class="form-control" id="goalNameInput" required>
                 </div>
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-6 goal-field goal-field-half">
                   <label class="form-label" data-i18n="goal_planning_field_type"></label>
                   <input type="text" class="form-control" id="goalTypeInput" required>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-4 goal-field goal-field-third">
                   <label class="form-label" data-i18n="goal_planning_field_target_amount"></label>
                   <input type="number" min="0" step="0.01" class="form-control" id="goalTargetAmountInput" required>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-4 goal-field goal-field-third">
                   <label class="form-label" data-i18n="goal_planning_field_saved_amount"></label>
                   <input type="number" min="0" step="0.01" class="form-control" id="goalSavedAmountInput" required>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-4 goal-field goal-field-third">
                   <label class="form-label" data-i18n="goal_planning_field_target_date"></label>
                   <input type="date" class="form-control" id="goalTargetDateInput">
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-4 goal-field goal-field-third">
                   <label class="form-label" data-i18n="goal_planning_field_currency"></label>
                   <select class="form-select" id="goalCurrencyInput"></select>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-4 goal-field goal-field-third">
                   <label class="form-label" data-i18n="goal_planning_field_priority"></label>
                   <select class="form-select" id="goalPriorityInput">
                     <option value="High">${_escapeHtml(t("goal_planning_priority_high"))}</option>
@@ -485,17 +494,17 @@ function _renderGoalPlanning(payload) {
                     <option value="Low">${_escapeHtml(t("goal_planning_priority_low"))}</option>
                   </select>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-4 goal-field goal-field-third">
                   <label class="form-label" data-i18n="goal_planning_field_linked_asset"></label>
                   <select class="form-select" id="goalLinkedAssetInput"></select>
                 </div>
-                <div class="col-12">
+                <div class="col-12 goal-field goal-field-full">
                   <label class="form-label" data-i18n="goal_planning_field_notes"></label>
                   <textarea class="form-control" rows="3" id="goalNotesInput"></textarea>
                 </div>
               </form>
             </div>
-            <div class="modal-footer" style="border-top:1px solid var(--border-color);">
+            <div class="modal-footer goal-editor-footer" style="border-top:1px solid var(--border-color);">
               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-i18n="btn_cancel"></button>
               <button type="button" class="btn btn-primary" id="btnSaveGoal" data-i18n="btn_save"></button>
             </div>
@@ -569,15 +578,15 @@ function _renderGoalPlanning(payload) {
             <span data-i18n="goal_planning_target_amount"></span>
             <strong>${fmt(Number(goal.target_amount_egp || 0))}</strong>
           </div>
-          <div class="goal-card-meta">
+          <div class="goal-card-meta goal-card-meta-strong">
             <span data-i18n="goal_planning_saved_amount"></span>
             <strong>${fmt(Number(goal.current_saved_egp || 0))}</strong>
           </div>
-          <div class="goal-card-meta">
+          <div class="goal-card-meta goal-card-meta-strong">
             <span data-i18n="goal_planning_remaining_amount"></span>
             <strong>${fmt(Number(goal.remaining_amount_egp || 0))}</strong>
           </div>
-          <div class="goal-card-meta">
+          <div class="goal-card-meta goal-card-meta-strong">
             <span data-i18n="goal_planning_monthly_required"></span>
             <strong>${fmt(Number(goal.monthly_required_egp || 0))}</strong>
           </div>
@@ -586,10 +595,12 @@ function _renderGoalPlanning(payload) {
             <strong>${Number(goal.months_left || 0)} <span data-i18n="goal_planning_months_short"></span></strong>
           </div>
 
-          <div class="goal-progress-track">
-            <div class="goal-progress-fill" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.max(0, Math.min(100, Number(goal.progress_pct || 0)))}" style="--goal-progress:${Math.max(0, Math.min(100, Number(goal.progress_pct || 0)))}%"></div>
+          <div class="goal-progress-row">
+            <div class="goal-progress-track">
+              <div class="goal-progress-fill" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.max(0, Math.min(100, Number(goal.progress_pct || 0)))}" style="--goal-progress:${Math.max(0, Math.min(100, Number(goal.progress_pct || 0)))}%"></div>
+            </div>
+            <div class="goal-progress-label">${fmtpresent(Number(goal.progress_pct || 0))}%</div>
           </div>
-          <div class="goal-progress-label">${fmtpresent(Number(goal.progress_pct || 0))}%</div>
 
           <div class="goal-card-footer">
             <span class="portfolio-severity-badge portfolio-badge-info" data-i18n="${goal.priority_key || "goal_planning_priority_medium"}"></span>
