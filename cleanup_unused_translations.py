@@ -1,61 +1,59 @@
 import os
 import json
 
-LANG_DIR = os.path.join('static', 'i18n')
-# Included your root directory to catch Python backend modules/views dictionary lookups
-SRC_DIRS = ['static/js', 'templates', 'apps', '.']  
+# Include directory roots to scan backend python modules (Views, Models dictionaries)
+PROJECT_SRC_AREAS = ['static/js', 'templates', 'apps', '.']
 
-def get_all_src_content():
-    """Caches all project source files (.js, .html, .py) to track active keywords."""
-    combined_content = ""
-    for folder in SRC_DIRS:
+def read_all_source_code():
+    """Reads all project layers into memory to catch background dictionary keys."""
+    combined_code = ""
+    for folder in PROJECT_SRC_AREAS:
         if not os.path.exists(folder):
             continue
         for root, _, files in os.walk(folder):
-            # Skip virtual environments or cache tracks
-            if 'venv' in root or '__pycache__' in root or '.git' in root:
+            # Skip caches, standard configurations, and virtual environments
+            if any(p in root for p in ['venv', '__pycache__', '.git', 'staticfiles']):
                 continue
             for file in files:
                 if file.endswith(('.js', '.html', '.py')):
                     try:
                         with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
-                            combined_content += f.read() + "\n"
-                    except Exception as e:
+                            combined_code += f.read() + "\n"
+                    except:
                         pass
-    return combined_content
+    return combined_code
 
-def audit_and_isolate_unused():
-    master_path = os.path.join(LANG_DIR, 'en.json')
-    deleted_log_path = os.path.join(LANG_DIR, 'endeleted.json')
+def audit_unused_records():
+    i18n_dir = os.path.join('static', 'i18n')
+    base_target = os.path.join(i18n_dir, 'en1.json')
+    log_output = os.path.join(i18n_dir, 'endeleted.json')
     
-    if not os.path.exists(master_path):
-        print(f"[!] Error: Master reference file 'en.json' not found at: {master_path}")
+    if not os.path.exists(base_target):
+        print(f"[!] Error: Ground target {base_target} missing. Run scan_translations.py first.")
         return
+
+    with open(base_target, 'r', encoding='utf-8') as f:
+        target_keys = json.load(f)
+
+    print("[*] Compiling full project content matrix (JavaScript, HTML, Python)...")
+    entire_source_code = read_all_source_code()
+
+    isolated_unused = {}
+    for key, value in target_keys.items():
+        clean_key = key.strip("'\"` ")
         
-    with open(master_path, 'r', encoding='utf-8') as f:
-        master_translations = json.load(f)
+        # If the key literal isn't referenced in templates, frontend scripts, or python models
+        if clean_key not in entire_source_code:
+            isolated_unused[key] = value
 
-    print(f"[*] Analyzing project files (including Python view dictionaries)...")
-    codebase_payload = get_all_src_content()
-
-    deleted_dictionary = {}
-    for key, value in master_translations.items():
-        clean_search_key = key.strip("'\"` ")
-        
-        # If the literal key tag is absent across your templates, scripts, and Python logic files
-        if clean_search_key not in codebase_payload:
-            deleted_dictionary[key] = value
-
-    if deleted_dictionary:
-        sorted_deleted = {k: deleted_dictionary[k] for k in sorted(deleted_dictionary.keys())}
-        with open(deleted_log_path, 'w', encoding='utf-8') as f:
-            json.dump(sorted_deleted, f, indent=4, ensure_ascii=False)
-            
-        print(f"[✓] Analysis complete! Found {len(deleted_dictionary)} completely unreferenced keys.")
-        print(f"[+] Saved safely inside: {deleted_log_path}")
-        print(f"[i] Safety Check: Your master 'en.json' remains 100% untouched.")
+    if isolated_unused:
+        sorted_unused = {k: isolated_unused[k] for k in sorted(isolated_unused.keys())}
+        with open(log_output, 'w', encoding='utf-8') as f:
+            json.dump(sorted_unused, f, indent=4, ensure_ascii=False)
+        print(f"[✓] Verification Complete: Found {len(sorted_unused)} unused translation keys.")
+        print(f"[+] Saved safely inside: {log_output}")
     else:
-        print("[✓] Clean Scan Complete: Every single key in your reference file is actively utilized.")
+        print("[✓] Perfect! Every single scanned key is used somewhere in your codebase files.")
 
 if __name__ == "__main__":
-    audit_and_isolate_unused()
+    audit_unused_records()
