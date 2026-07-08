@@ -1215,5 +1215,19 @@
   "generate_current_month": "توليد الشهر الحالي",
   "mark_paid": "تعليم كمندفع",
   "salary_marked_paid": "تم تعليم الراتب كمندفع. تم تحديث رصيد البنك.",
-  "salary_payment_reversed": "تم إلغاء الدفع. تم تعديل رصيد البنك."
+  "salary_payment_reversed": "تم إلغاء الدفع. تم تعديل رصيد البنك.",
+  "per_diem": "بدل السفر",
+  "per_diem_list": "قائمة بدلات السفر",
+  "add_per_diem": "إضافة بدل سفر",
+  "edit_per_diem": "تعديل بدل سفر",
+  "received_in": "مستلم في",
+  "cash_option": "نقدي",
+  "currency_filter": "تصفية العملة",
+  "delete_confirm": "هل أنت متأكد من حذف سجل بدل السفر هذا؟",
+  "per_diem_saved": "تم حفظ بدل السفر بنجاح",
+  "per_diem_deleted": "تم حذف بدل السفر بنجاح",
+  "select_currency_option": "— اختر العملة —",
+  "all_option": "الكل",
+  "no_records": "لا توجد سجلات",
+  "amount_label": "المبلغ"
 }

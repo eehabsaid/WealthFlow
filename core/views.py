@@ -58,6 +58,7 @@ from .models import (
     GoldPuritySetting,
     EmailTemplate,
     Goal,
+    PerDiem,
 
 )
 from django.core.paginator import Paginator, EmptyPage
@@ -818,161 +819,56 @@ class SalaryListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class SalaryDetailView(View):
     def put(self, request, pk):
-        from decimal import Decimal
-        from django.db.models import F
-        entry = get_object_or_404(SalaryEntry.objects.select_related("company"), pk=pk)
+        from core.services.salary_service import SalaryService
         data = json.loads(request.body)
-        
-        old_paid = entry.paid
-        
-        for field in ["year", "month", "expected", "paid", "bonus", "notes"]:
-            if field in data:
-                if field in ["expected", "paid", "bonus"]:
-                    setattr(entry, field, Decimal(str(data[field] or 0)))
-                else:
-                    setattr(entry, field, data[field])
-                    
-        new_paid = entry.paid
-        diff = new_paid - old_paid
-        
-        if diff != 0 and entry.company.default_bank:
-            currency = entry.company.current_salary_currency
-            if not currency:
-                currency = Currency.objects.filter(code="EGP").first() or Currency.objects.first()
-                
-            balance_entry = BalanceEntry.objects.filter(
-                bank=entry.company.default_bank,
-                currency=currency
-            ).first()
-            if not balance_entry:
-                balance_entry = BalanceEntry.objects.create(
-                    bank=entry.company.default_bank,
-                    balance_type=BalanceEntry.BalanceType.CASH,
-                    currency=currency,
-                    title=f"{entry.company.default_bank.name} Bank Account Balance",
-                    amount=Decimal("0.00"),
-                )
-            balance_entry.amount = F("amount") + diff
-            balance_entry.save()
-            
-        entry.save()
-        return JsonResponse(entry.to_dict())
+        try:
+            entry = SalaryService().update_salary(pk, data)
+            return JsonResponse(entry.to_dict())
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
     def delete(self, request, pk):
-        from django.db.models import F
-        entry = get_object_or_404(SalaryEntry.objects.select_related("company"), pk=pk)
-        
-        if entry.paid > 0 and entry.company.default_bank:
-            currency = entry.company.current_salary_currency
-            if not currency:
-                currency = Currency.objects.filter(code="EGP").first() or Currency.objects.first()
-                
-            BalanceEntry.objects.filter(
-                bank=entry.company.default_bank,
-                currency=currency,
-            ).update(amount=F("amount") - entry.paid)
-            
-        entry.delete()
-        return JsonResponse({"deleted": pk})
+        from core.services.salary_service import SalaryService
+        try:
+            SalaryService().delete_salary(pk)
+            return JsonResponse({"deleted": pk})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class GenerateCurrentSalaryView(View):
     def post(self, request):
-        from datetime import datetime
-        current_year = datetime.now().year
-        current_month = MONTH_ORDER[datetime.now().month - 1]
-        
         try:
             data = json.loads(request.body)
         except Exception:
             data = {}
             
         company_id = data.get("company_id")
-        if company_id:
-            companies = Company.objects.filter(id=company_id, is_active=True)
-        else:
-            companies = Company.objects.filter(is_active=True)
-            
-        created = 0
-        skipped = 0
-        for company in companies:
-            # Check if entry already exists
-            exists = SalaryEntry.objects.filter(
-                company=company, year=current_year, month=current_month
-            ).exists()
-            if exists:
-                skipped += 1
-                continue
-            # Create new entry
-            SalaryEntry.objects.create(
-                company=company,
-                year=current_year,
-                month=current_month,
-                expected=company.current_salary_amount,
-                paid=0,
-                bonus=0,
-                notes="",
-            )
-            created += 1
-        return JsonResponse({"created": created, "skipped": skipped})
+        
+        from core.services.salary_service import SalaryService
+        try:
+            res = SalaryService().generate_current_month_salaries(company_id)
+            return JsonResponse(res)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class MarkSalaryPaidView(View):
     def post(self, request, pk):
-        from decimal import Decimal
-        from django.db.models import F
-        from datetime import datetime
-        salary = get_object_or_404(SalaryEntry.objects.select_related("company"), pk=pk)
-        
         try:
             data = json.loads(request.body)
         except Exception:
             data = {}
         mark_paid = data.get("mark_paid", False)
         
-        currency = salary.company.current_salary_currency
-        if not currency:
-            currency = Currency.objects.filter(code="EGP").first() or Currency.objects.first()
-
-        if mark_paid and salary.paid == 0:
-            # Mark as PAID
-            salary.paid = salary.expected
-            # Update bank balance
-            if salary.company.default_bank:
-                balance_entry = BalanceEntry.objects.filter(
-                    bank=salary.company.default_bank,
-                    currency=currency
-                ).first()
-                if not balance_entry:
-                    balance_entry = BalanceEntry.objects.create(
-                        bank=salary.company.default_bank,
-                        balance_type=BalanceEntry.BalanceType.CASH,
-                        currency=currency,
-                        title=f"{salary.company.default_bank.name} Bank Account Balance",
-                        amount=Decimal("0.00"),
-                    )
-                # Since F expressions are evaluated in DB, reload/save with F
-                balance_entry.amount = F("amount") + salary.expected
-                balance_entry.save()
-            salary.save()
-            return JsonResponse({"success": True, "message": "Salary marked as paid. Bank balance updated."})
-            
-        elif not mark_paid and salary.paid > 0:
-            # REVERSE payment
-            amount_to_reverse = salary.paid
-            salary.paid = Decimal("0.00")
-            # Reverse bank balance
-            if salary.company.default_bank:
-                BalanceEntry.objects.filter(
-                    bank=salary.company.default_bank,
-                    currency=currency,
-                ).update(amount=F("amount") - amount_to_reverse)
-            salary.save()
-            return JsonResponse({"success": True, "message": "Payment reversed. Bank balance adjusted."})
-            
-        return JsonResponse({"success": False, "message": "No change needed"})
+        from core.services.salary_service import SalaryService
+        try:
+            res = SalaryService().mark_salary_paid(pk, mark_paid)
+            return JsonResponse(res)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -1028,6 +924,63 @@ class SalarySummaryView(View):
             grand["total_remaining"] += company_remaining
             grand["total_bonus"] += bonus
         return JsonResponse({"companies": result, "grand_total": grand})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PerDiemListView(View):
+    def get(self, request):
+        company_id = request.GET.get("company_id") or request.GET.get("company")
+        year = request.GET.get("year")
+        
+        if not company_id or not year:
+            return JsonResponse({"error": "Missing company_id or year"}, status=400)
+            
+        qs = PerDiem.objects.filter(company_id=company_id, year=year).select_related("company", "currency", "bank")
+        return JsonResponse({"entries": [e.to_dict() for e in qs]})
+
+    def post(self, request):
+        from core.services.per_diem_service import PerDiemService
+        data = json.loads(request.body)
+        try:
+            pd = PerDiemService().create_per_diem(data)
+            return JsonResponse(pd.to_dict(), status=201)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PerDiemDetailView(View):
+    def get(self, request, pk):
+        pd = get_object_or_404(PerDiem.objects.select_related("company", "currency", "bank"), pk=pk)
+        return JsonResponse(pd.to_dict())
+
+    def put(self, request, pk):
+        from core.services.per_diem_service import PerDiemService
+        data = json.loads(request.body)
+        try:
+            pd = PerDiemService().update_per_diem(pk, data)
+            return JsonResponse(pd.to_dict())
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    def delete(self, request, pk):
+        from core.services.per_diem_service import PerDiemService
+        try:
+            PerDiemService().delete_per_diem(pk)
+            return JsonResponse({"deleted": pk})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PerDiemCurrencyListView(View):
+    def get(self, request):
+        from core.services.per_diem_service import PerDiemService
+        try:
+            currencies = PerDiemService().get_currencies_used_in_balance()
+            return JsonResponse({"currencies": [c.to_dict() for c in currencies]})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
 
 @method_decorator(csrf_exempt, name="dispatch")

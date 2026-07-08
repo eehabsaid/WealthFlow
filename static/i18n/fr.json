@@ -1215,5 +1215,19 @@
   "generate_current_month": "Générer le mois en cours",
   "mark_paid": "Marquer comme payé",
   "salary_marked_paid": "Salaire marqué comme payé. Solde bancaire mis à jour.",
-  "salary_payment_reversed": "Paiement annulé. Solde bancaire ajusté."
+  "salary_payment_reversed": "Paiement annulé. Solde bancaire ajusté.",
+  "per_diem": "Indemnité journalière",
+  "per_diem_list": "Liste des indemnités journalières",
+  "add_per_diem": "Ajouter une indemnité journalière",
+  "edit_per_diem": "Modifier l'indemnité journalière",
+  "received_in": "Reçu dans",
+  "cash_option": "Espèces",
+  "currency_filter": "Filtre de devise",
+  "delete_confirm": "Êtes-vous sûr de vouloir supprimer cet enregistrement d'indemnité journalière ?",
+  "per_diem_saved": "Indemnité journalière enregistrée avec succès",
+  "per_diem_deleted": "Indemnité journalière supprimée avec succès",
+  "select_currency_option": "— Sélectionner la devise —",
+  "all_option": "Tout",
+  "no_records": "Aucun enregistrement trouvé",
+  "amount_label": "Montant"
 }

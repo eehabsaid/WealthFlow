@@ -1215,5 +1215,19 @@
   "generate_current_month": "Aktuellen Monat generieren",
   "mark_paid": "Als bezahlt markieren",
   "salary_marked_paid": "Gehalt als bezahlt markiert. Bankguthaben aktualisiert.",
-  "salary_payment_reversed": "Zahlung storniert. Bankguthaben angepasst."
+  "salary_payment_reversed": "Zahlung storniert. Bankguthaben angepasst.",
+  "per_diem": "Verpflegungsmehraufwand",
+  "per_diem_list": "Verpflegungspauschalenliste",
+  "add_per_diem": "Verpflegungspauschale hinzufügen",
+  "edit_per_diem": "Verpflegungspauschale bearbeiten",
+  "received_in": "Erhalten in",
+  "cash_option": "Bargeld",
+  "currency_filter": "Währungsfilter",
+  "delete_confirm": "Sind Sie sicher, dass Sie diesen Verpflegungsmehraufwand löschen möchten?",
+  "per_diem_saved": "Verpflegungspauschale erfolgreich gespeichert",
+  "per_diem_deleted": "Verpflegungspauschale erfolgreich gelöscht",
+  "select_currency_option": "— Währung wählen —",
+  "all_option": "Alle",
+  "no_records": "Keine Einträge gefunden",
+  "amount_label": "Betrag"
 }
