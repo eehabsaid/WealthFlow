@@ -1202,5 +1202,18 @@
   "email_template_account_rejected_subject": "Your {{AppName}} account was rejected",
   "email_template_account_rejected_body": "Hi {{UserName}},\n\nYour account request was rejected. If you believe this is a mistake, please contact the administrator.",
   "email_template_password_reset_subject": "Reset your {{AppName}} password",
-  "email_template_password_reset_body": "Hi {{UserName}},\n\nUse the link below to reset your password:\n{{PasswordResetLink}}\n\nThis link expires in 24 hours and can be used only once."
+  "email_template_password_reset_body": "Hi {{UserName}},\n\nUse the link below to reset your password:\n{{PasswordResetLink}}\n\nThis link expires in 24 hours and can be used only once.",
+  "payroll_configuration": "Payroll Configuration",
+  "current_salary": "Current Monthly Salary",
+  "salary_currency": "Salary Currency",
+  "payment_day": "Payment Day (1-31)",
+  "default_bank": "Default Bank",
+  "perdiem_amount": "Per Diem Amount",
+  "perdiem_currency": "Per Diem Currency",
+  "bonus_amount": "Bonus Amount",
+  "payroll_notes": "Payroll Notes",
+  "generate_current_month": "Generate Current Month",
+  "mark_paid": "Mark Paid",
+  "salary_marked_paid": "Salary marked as paid. Bank balance updated.",
+  "salary_payment_reversed": "Payment reversed. Bank balance adjusted."
 }

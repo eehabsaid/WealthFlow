@@ -1202,5 +1202,18 @@
   "email_template_account_rejected_subject": "تم رفض حسابك في {{AppName}}",
   "email_template_account_rejected_body": "مرحباً {{UserName}}،\n\nتم رفض طلب حسابك. إذا كنت تعتقد أن ذلك حدث بالخطأ، يرجى التواصل مع المسؤول.",
   "email_template_password_reset_subject": "أعد تعيين كلمة مرور {{AppName}}",
-  "email_template_password_reset_body": "مرحباً {{UserName}}،\n\nاستخدم الرابط التالي لإعادة تعيين كلمة المرور:\n{{PasswordResetLink}}\n\nتنتهي صلاحية هذا الرابط خلال 24 ساعة ويمكن استخدامه مرة واحدة فقط."
+  "email_template_password_reset_body": "مرحباً {{UserName}}،\n\nاستخدم الرابط التالي لإعادة تعيين كلمة المرور:\n{{PasswordResetLink}}\n\nتنتهي صلاحية هذا الرابط خلال 24 ساعة ويمكن استخدامه مرة واحدة فقط.",
+  "payroll_configuration": "تكوين الرواتب",
+  "current_salary": "الراتب الشهري الحالي",
+  "salary_currency": "عملة الراتب",
+  "payment_day": "يوم الدفع (1-31)",
+  "default_bank": "البنك الافتراضي",
+  "perdiem_amount": "مبلغ بدل السفر اليومي",
+  "perdiem_currency": "عملة بدل السفر اليومي",
+  "bonus_amount": "مبلغ المكافأة",
+  "payroll_notes": "ملاحظات الرواتب",
+  "generate_current_month": "توليد الشهر الحالي",
+  "mark_paid": "تعليم كمندفع",
+  "salary_marked_paid": "تم تعليم الراتب كمندفع. تم تحديث رصيد البنك.",
+  "salary_payment_reversed": "تم إلغاء الدفع. تم تعديل رصيد البنك."
 }

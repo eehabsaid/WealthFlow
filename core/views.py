@@ -734,6 +734,14 @@ class CompanyListView(View):
             color_hex=data.get("color_hex", "#0d6efd"),
             is_active=data.get("is_active", True),
             order=data.get("order", 0),
+            current_salary_amount=data.get("current_salary_amount", 0),
+            current_salary_currency_id=data.get("current_salary_currency_id"),
+            payment_day=data.get("payment_day", 25),
+            default_bank_id=data.get("default_bank_id"),
+            per_diem_amount=data.get("per_diem_amount", 0),
+            per_diem_currency_id=data.get("per_diem_currency_id"),
+            bonus_amount=data.get("bonus_amount", 0),
+            payroll_notes=data.get("payroll_notes", ""),
         )
         return JsonResponse(company.to_dict(), status=201)
 
@@ -741,7 +749,12 @@ class CompanyListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class CompanyDetailView(View):
     def get(self, request, pk):
-        c = get_object_or_404(Company, pk=pk)
+        c = get_object_or_404(
+            Company.objects.select_related(
+                "current_salary_currency", "default_bank", "per_diem_currency"
+            ),
+            pk=pk,
+        )
         return JsonResponse(c.to_dict())
 
     def put(self, request, pk):
@@ -754,6 +767,14 @@ class CompanyDetailView(View):
             "color_hex",
             "is_active",
             "order",
+            "current_salary_amount",
+            "current_salary_currency_id",
+            "payment_day",
+            "default_bank_id",
+            "per_diem_amount",
+            "per_diem_currency_id",
+            "bonus_amount",
+            "payroll_notes",
         ]:
             if field in data:
                 setattr(c, field, data[field])
@@ -797,18 +818,150 @@ class SalaryListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class SalaryDetailView(View):
     def put(self, request, pk):
-        entry = get_object_or_404(SalaryEntry, pk=pk)
+        from decimal import Decimal
+        from django.db.models import F
+        entry = get_object_or_404(SalaryEntry.objects.select_related("company"), pk=pk)
         data = json.loads(request.body)
+        
+        old_paid = entry.paid
+        
         for field in ["year", "month", "expected", "paid", "bonus", "notes"]:
             if field in data:
-                setattr(entry, field, data[field])
+                if field in ["expected", "paid", "bonus"]:
+                    setattr(entry, field, Decimal(str(data[field] or 0)))
+                else:
+                    setattr(entry, field, data[field])
+                    
+        new_paid = entry.paid
+        diff = new_paid - old_paid
+        
+        if diff != 0 and entry.company.default_bank:
+            currency = entry.company.current_salary_currency
+            if not currency:
+                currency = Currency.objects.filter(code="EGP").first() or Currency.objects.first()
+                
+            balance_entry = BalanceEntry.objects.filter(
+                bank=entry.company.default_bank,
+                currency=currency
+            ).first()
+            if not balance_entry:
+                balance_entry = BalanceEntry.objects.create(
+                    bank=entry.company.default_bank,
+                    balance_type=BalanceEntry.BalanceType.CASH,
+                    currency=currency,
+                    title=f"{entry.company.default_bank.name} Bank Account Balance",
+                    amount=Decimal("0.00"),
+                )
+            balance_entry.amount = F("amount") + diff
+            balance_entry.save()
+            
         entry.save()
         return JsonResponse(entry.to_dict())
 
     def delete(self, request, pk):
-        entry = get_object_or_404(SalaryEntry, pk=pk)
+        from django.db.models import F
+        entry = get_object_or_404(SalaryEntry.objects.select_related("company"), pk=pk)
+        
+        if entry.paid > 0 and entry.company.default_bank:
+            currency = entry.company.current_salary_currency
+            if not currency:
+                currency = Currency.objects.filter(code="EGP").first() or Currency.objects.first()
+                
+            BalanceEntry.objects.filter(
+                bank=entry.company.default_bank,
+                currency=currency,
+            ).update(amount=F("amount") - entry.paid)
+            
         entry.delete()
         return JsonResponse({"deleted": pk})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class GenerateCurrentSalaryView(View):
+    def post(self, request):
+        from datetime import datetime
+        current_year = datetime.now().year
+        current_month = MONTH_ORDER[datetime.now().month - 1]
+        created = 0
+        skipped = 0
+        active_companies = Company.objects.filter(is_active=True)
+        for company in active_companies:
+            # Check if entry already exists
+            exists = SalaryEntry.objects.filter(
+                company=company, year=current_year, month=current_month
+            ).exists()
+            if exists:
+                skipped += 1
+                continue
+            # Create new entry
+            SalaryEntry.objects.create(
+                company=company,
+                year=current_year,
+                month=current_month,
+                expected=company.current_salary_amount,
+                paid=0,
+                bonus=0,
+                notes="",
+            )
+            created += 1
+        return JsonResponse({"created": created, "skipped": skipped})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class MarkSalaryPaidView(View):
+    def post(self, request, pk):
+        from decimal import Decimal
+        from django.db.models import F
+        from datetime import datetime
+        salary = get_object_or_404(SalaryEntry.objects.select_related("company"), pk=pk)
+        
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+        mark_paid = data.get("mark_paid", False)
+        
+        currency = salary.company.current_salary_currency
+        if not currency:
+            currency = Currency.objects.filter(code="EGP").first() or Currency.objects.first()
+
+        if mark_paid and salary.paid == 0:
+            # Mark as PAID
+            salary.paid = salary.expected
+            # Update bank balance
+            if salary.company.default_bank:
+                balance_entry = BalanceEntry.objects.filter(
+                    bank=salary.company.default_bank,
+                    currency=currency
+                ).first()
+                if not balance_entry:
+                    balance_entry = BalanceEntry.objects.create(
+                        bank=salary.company.default_bank,
+                        balance_type=BalanceEntry.BalanceType.CASH,
+                        currency=currency,
+                        title=f"{salary.company.default_bank.name} Bank Account Balance",
+                        amount=Decimal("0.00"),
+                    )
+                # Since F expressions are evaluated in DB, reload/save with F
+                balance_entry.amount = F("amount") + salary.expected
+                balance_entry.save()
+            salary.save()
+            return JsonResponse({"success": True, "message": "Salary marked as paid. Bank balance updated."})
+            
+        elif not mark_paid and salary.paid > 0:
+            # REVERSE payment
+            amount_to_reverse = salary.paid
+            salary.paid = Decimal("0.00")
+            # Reverse bank balance
+            if salary.company.default_bank:
+                BalanceEntry.objects.filter(
+                    bank=salary.company.default_bank,
+                    currency=currency,
+                ).update(amount=F("amount") - amount_to_reverse)
+            salary.save()
+            return JsonResponse({"success": True, "message": "Payment reversed. Bank balance adjusted."})
+            
+        return JsonResponse({"success": False, "message": "No change needed"})
 
 
 @method_decorator(csrf_exempt, name="dispatch")

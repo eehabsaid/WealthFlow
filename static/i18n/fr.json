@@ -1202,5 +1202,18 @@
   "email_template_account_rejected_subject": "Votre compte {{AppName}} a ete rejete",
   "email_template_account_rejected_body": "Bonjour {{UserName}},\n\nVotre demande de compte a ete rejetee. Si vous pensez qu'il s'agit d'une erreur, veuillez contacter l'administrateur.",
   "email_template_password_reset_subject": "Reinitialisez votre mot de passe {{AppName}}",
-  "email_template_password_reset_body": "Bonjour {{UserName}},\n\nUtilisez le lien ci-dessous pour reinitialiser votre mot de passe :\n{{PasswordResetLink}}\n\nCe lien expire dans 24 heures et ne peut etre utilise qu'une seule fois."
+  "email_template_password_reset_body": "Bonjour {{UserName}},\n\nUtilisez le lien ci-dessous pour reinitialiser votre mot de passe :\n{{PasswordResetLink}}\n\nCe lien expire dans 24 heures et ne peut etre utilise qu'une seule fois.",
+  "payroll_configuration": "Configuration de la paie",
+  "current_salary": "Salaire mensuel actuel",
+  "salary_currency": "Devise du salaire",
+  "payment_day": "Jour de paiement (1-31)",
+  "default_bank": "Banque par défaut",
+  "perdiem_amount": "Montant de l'indemnité journalière",
+  "perdiem_currency": "Devise de l'indemnité journalière",
+  "bonus_amount": "Montant du bonus",
+  "payroll_notes": "Notes de paie",
+  "generate_current_month": "Générer le mois en cours",
+  "mark_paid": "Marquer comme payé",
+  "salary_marked_paid": "Salaire marqué comme payé. Solde bancaire mis à jour.",
+  "salary_payment_reversed": "Paiement annulé. Solde bancaire ajusté."
 }

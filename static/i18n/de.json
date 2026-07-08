@@ -1202,5 +1202,18 @@
   "email_template_account_rejected_subject": "Ihr {{AppName}}-Konto wurde abgelehnt",
   "email_template_account_rejected_body": "Hallo {{UserName}},\n\nIhre Kontoanfrage wurde abgelehnt. Wenn Sie glauben, dass dies ein Fehler ist, wenden Sie sich bitte an den Administrator.",
   "email_template_password_reset_subject": "Setzen Sie Ihr {{AppName}}-Passwort zurueck",
-  "email_template_password_reset_body": "Hallo {{UserName}},\n\nverwenden Sie den folgenden Link, um Ihr Passwort zurueckzusetzen:\n{{PasswordResetLink}}\n\nDieser Link laeuft in 24 Stunden ab und kann nur einmal verwendet werden."
+  "email_template_password_reset_body": "Hallo {{UserName}},\n\nverwenden Sie den folgenden Link, um Ihr Passwort zurueckzusetzen:\n{{PasswordResetLink}}\n\nDieser Link laeuft in 24 Stunden ab und kann nur einmal verwendet werden.",
+  "payroll_configuration": "Gehaltskonfiguration",
+  "current_salary": "Aktuelles Monatsgehalt",
+  "salary_currency": "Gehaltswährung",
+  "payment_day": "Zahlungstag (1-31)",
+  "default_bank": "Standardbank",
+  "perdiem_amount": "Tagegeldbetrag",
+  "perdiem_currency": "Tagegeldwährung",
+  "bonus_amount": "Bonusbetrag",
+  "payroll_notes": "Gehaltsnotizen",
+  "generate_current_month": "Aktuellen Monat generieren",
+  "mark_paid": "Als bezahlt markieren",
+  "salary_marked_paid": "Gehalt als bezahlt markiert. Bankguthaben aktualisiert.",
+  "salary_payment_reversed": "Zahlung storniert. Bankguthaben angepasst."
 }

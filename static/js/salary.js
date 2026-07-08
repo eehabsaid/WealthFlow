@@ -277,10 +277,15 @@ async function renderSalaryPage(companyId) {
     const activeYear = years[years.length - 1] || new Date().getFullYear();
 
     mc.innerHTML = `
-        <div class="page-header">
+        <div class="page-header d-flex justify-content-between align-items-center">
             <div>
                 <div class="page-title">${company ? company.display_name : ''}</div>
                 <div class="page-subtitle">${company ? (company.group_name || '') : ''}</div>
+            </div>
+            <div>
+                <button class="btn btn-success btn-primary-custom" onclick="generateCurrentSalary(${companyId})" data-i18n="generate_current_month">
+                    🔄 Generate Current Month
+                </button>
             </div>
         </div>
         <div class="year-pills" id="yearPills"></div>
@@ -327,6 +332,9 @@ function renderSalaryTable(allEntries, year, companyId) {
 
     const rows = entries.map(e => `
         <tr>
+            <td>
+                <input type="checkbox" class="form-check-input" ${e.paid > 0 ? 'checked' : ''} onchange="toggleSalaryPaid(${e.id}, this.checked, ${companyId})">
+            </td>
             <td>${e.month}</td>
             <td class="text-end">${fmt(e.expected)}</td>
             <td class="text-end amt-positive">${fmt(e.paid)}</td>
@@ -344,7 +352,7 @@ function renderSalaryTable(allEntries, year, companyId) {
             </td>
         </tr>`).join('');
 
-    const emptyRow = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:30px">
+    const emptyRow = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px">
         No entries for this year.</td></tr>`;
 
     area.innerHTML = `
@@ -353,6 +361,7 @@ function renderSalaryTable(allEntries, year, companyId) {
             <div class="table-container">
             <table class="data-table">
                 <thead><tr>
+                    <th style="width: 40px;" data-i18n="mark_paid">✓</th>
                     <th data-i18n="salary_month">Month</th>
                     <th class="text-end" data-i18n="salary_expected">Expected</th>
                     <th class="text-end" data-i18n="salary_paid">Paid</th>
@@ -362,7 +371,7 @@ function renderSalaryTable(allEntries, year, companyId) {
                 </tr></thead>
                 <tbody>${rows || emptyRow}</tbody>
                 <tfoot><tr class="total-row">
-                    <td data-i18n="total">Total</td>
+                    <td colspan="2" data-i18n="total">Total</td>
                     <td class="text-end">${fmt(totExp)}</td>
                     <td class="text-end">${fmt(totPaid)}</td>
                     <td class="text-end">${fmt(totBonus)}</td>
@@ -371,9 +380,68 @@ function renderSalaryTable(allEntries, year, companyId) {
                 </tr></tfoot>
             </table>
             </div>
+        </div>
+        
+        <div class="alert alert-info py-3 px-4 mt-4" style="border: 1px solid rgba(13, 110, 253, 0.25); background: rgba(13, 110, 253, 0.05); color: var(--text-primary); border-radius: 12px;">
+            <h6 style="color: var(--accent-primary); font-weight: 700; margin-bottom: 10px;">✓ How it works:</h6>
+            <ul style="margin-bottom: 0; padding-left: 20px; font-size: 13px; line-height: 1.6; color: var(--text-secondary);">
+                <li>Check the ✓ box to mark salary as paid</li>
+                <li>Unchecking reverses the payment (removes from bank balance)</li>
+                <li>Payment goes to the default bank configured for this company</li>
+                <li>"Generate Current Month" creates entries for missing months</li>
+                <li>Uses current_salary_amount from company payroll config</li>
+            </ul>
         </div>`;
 
     applyTranslations();
+}
+
+async function generateCurrentSalary(companyId) {
+    try {
+        const response = await fetch('/api/salary/generate-current/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            showToast(`Created: ${data.created}, Skipped: ${data.skipped}`, 'success');
+            renderSalaryPage(companyId);
+        } else {
+            showToast('Failed to generate salary entries', 'error');
+        }
+    } catch (error) {
+        showToast('Failed to generate salary entries', 'error');
+    }
+}
+
+async function toggleSalaryPaid(salaryId, isPaid, companyId) {
+    try {
+        const response = await fetch(`/api/salary/${salaryId}/mark-paid/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mark_paid: isPaid })
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                const msg = isPaid 
+                    ? t('salary_marked_paid', 'Salary marked as paid. Bank balance updated.') 
+                    : t('salary_payment_reversed', 'Payment reversed. Bank balance adjusted.');
+                showToast(msg, 'success');
+                renderSalaryPage(companyId);
+            } else {
+                showToast(data.message || 'Failed to update salary status', 'error');
+            }
+        } else {
+            showToast('Failed to update salary status', 'error');
+        }
+    } catch (error) {
+        showToast('Failed to update salary status', 'error');
+    }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
