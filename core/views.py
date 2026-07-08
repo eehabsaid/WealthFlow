@@ -882,10 +882,21 @@ class GenerateCurrentSalaryView(View):
         from datetime import datetime
         current_year = datetime.now().year
         current_month = MONTH_ORDER[datetime.now().month - 1]
+        
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+            
+        company_id = data.get("company_id")
+        if company_id:
+            companies = Company.objects.filter(id=company_id, is_active=True)
+        else:
+            companies = Company.objects.filter(is_active=True)
+            
         created = 0
         skipped = 0
-        active_companies = Company.objects.filter(is_active=True)
-        for company in active_companies:
+        for company in companies:
             # Check if entry already exists
             exists = SalaryEntry.objects.filter(
                 company=company, year=current_year, month=current_month

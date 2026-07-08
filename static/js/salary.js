@@ -402,7 +402,8 @@ async function generateCurrentSalary(companyId) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({ company_id: companyId })
         });
         if (response.ok) {
             const data = await response.json();
