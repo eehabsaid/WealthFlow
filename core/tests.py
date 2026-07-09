@@ -41,12 +41,12 @@ from core.models import (
     UserProfile,
     VehicleDetails,
 )
-from core.services.auth_workflow_service import AuthWorkflowService
-from core.services.certificate_automation_service import CertificateAutomationService
-from core.services.certificate_interest_service import CertificateInterestService
-from core.services.property_valuation_service import PropertyValuationService
-from core.services.reminder_automation_service import ReminderAutomationService
-from core.services.scheduler_service import SchedulerService
+from core.services.shared.auth_workflow_service import AuthWorkflowService
+from core.services.certificate.certificate_automation_service import CertificateAutomationService
+from core.services.certificate.certificate_interest_service import CertificateInterestService
+from core.services.fixed_assets.property_valuation_service import PropertyValuationService
+from core.services.shared.reminder_automation_service import ReminderAutomationService
+from core.services.shared.scheduler_service import SchedulerService
 
 User = get_user_model()
 
@@ -266,7 +266,7 @@ class AuthOnboardingWorkflowTest(TestCase):
         self.assertEqual(legacy_response.status_code, 302)
 
     @override_settings(DEBUG=False, EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend")
-    @patch("core.services.auth_workflow_service.EmailMultiAlternatives.send", side_effect=ConnectionRefusedError("smtp down"))
+    @patch("core.services.shared.auth_workflow_service.EmailMultiAlternatives.send", side_effect=ConnectionRefusedError("smtp down"))
     def test_signup_handles_email_delivery_failure_without_500(self, _mock_send):
         response = self.client.post(
             "/accounts/signup/",
@@ -284,7 +284,7 @@ class AuthOnboardingWorkflowTest(TestCase):
         self.assertFalse(User.objects.filter(username="mailfail").exists())
 
     @override_settings(DEBUG=False, EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend")
-    @patch("core.services.auth_workflow_service.EmailMultiAlternatives.send", side_effect=[1, ConnectionRefusedError("welcome down")])
+    @patch("core.services.shared.auth_workflow_service.EmailMultiAlternatives.send", side_effect=[1, ConnectionRefusedError("welcome down")])
     def test_signup_succeeds_if_welcome_email_fails_after_verification_sent(self, _mock_send):
         response = self.client.post(
             "/accounts/signup/",
@@ -301,7 +301,7 @@ class AuthOnboardingWorkflowTest(TestCase):
         self.assertContains(response, "auth_signup_success_verify_email")
         self.assertTrue(User.objects.filter(username="verifyonly").exists())
 
-    @patch("core.services.auth_workflow_service.EmailMultiAlternatives.send", return_value=1)
+    @patch("core.services.shared.auth_workflow_service.EmailMultiAlternatives.send", return_value=1)
     def test_smtp_test_endpoint_sends_test_email(self, _mock_send):
         admin = User.objects.create_user(
             username="adminuser",
@@ -330,7 +330,7 @@ class AuthOnboardingWorkflowTest(TestCase):
         self.assertEqual(body.get("message_key"), "smtp_test_success")
 
     @patch(
-        "core.services.auth_workflow_service.EmailMultiAlternatives.send",
+        "core.services.shared.auth_workflow_service.EmailMultiAlternatives.send",
         side_effect=smtplib.SMTPAuthenticationError(535, b"5.7.139 basic authentication is disabled"),
     )
     def test_smtp_test_endpoint_maps_basic_auth_disabled_error(self, _mock_send):
@@ -841,7 +841,7 @@ class CertificateInterestSynchronizationTest(TestCase):
             last_interest_posted_date=date(2026, 1, 1),
         )
 
-        with patch("core.services.certificate_interest_service.timezone.localdate", return_value=date(2026, 7, 3)):
+        with patch("core.services.certificate.certificate_interest_service.timezone.localdate", return_value=date(2026, 7, 3)):
             response = self.client.get("/api/balance/")
 
         self.assertEqual(response.status_code, 200)
@@ -1424,17 +1424,20 @@ class ReminderAutomationServiceTest(TestCase):
         self.assertEqual(ReminderLog.objects.filter(rule=vehicle_rule).count(), 1)
 
     def test_reminder_check_view_uses_service_output(self):
-        ReminderRule.objects.create(
-            name="Vehicle license expiry",
-            rule_type="vehicle_license_expiry",
-            days_before=10,
-        )
+        from unittest.mock import patch
+        with patch("django.utils.timezone.localdate") as mock_localdate:
+            mock_localdate.return_value = date(2026, 7, 4)
+            ReminderRule.objects.create(
+                name="Vehicle license expiry",
+                rule_type="vehicle_license_expiry",
+                days_before=10,
+            )
 
-        response = self.client.get("/api/reminders/check/")
-        self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertEqual(payload["count"], 1)
-        self.assertEqual(payload["reminders"][0]["rule_type"], "vehicle_license_expiry")
+            response = self.client.get("/api/reminders/check/")
+            self.assertEqual(response.status_code, 200)
+            payload = response.json()
+            self.assertEqual(payload["count"], 1)
+            self.assertEqual(payload["reminders"][0]["rule_type"], "vehicle_license_expiry")
 
     def test_property_tax_reminder_uses_due_date_settings_and_avoids_duplicates(self):
         real_estate_asset = FixedAsset.objects.create(
@@ -1537,7 +1540,7 @@ class PropertyValuationServiceTest(TestCase):
         self.assertTrue(payload["updated"])
         self.assertEqual(payload["provider"], "configured_market_rate")
 
-    @patch("core.services.property_valuation_service.request.urlopen")
+    @patch("core.services.fixed_assets.property_valuation_service.request.urlopen")
     def test_refresh_asset_uses_external_provider_when_enabled(self, mock_urlopen):
         AppSettings.set("property_valuation_external_enabled", "true")
         AppSettings.set(
@@ -1579,12 +1582,12 @@ class SchedulerAutomationCommandTest(TestCase):
             },
         )
 
-    @patch("core.services.scheduler_service.PropertyValuationService.refresh_all")
-    @patch("core.services.scheduler_service.GoldValuationService.refresh_latest_prices")
-    @patch("core.services.scheduler_service.ExchangeRateService.refresh_latest_rates")
-    @patch("core.services.scheduler_service.CertificateInterestService.synchronize")
-    @patch("core.services.scheduler_service.CertificateAutomationService.close_matured_certificates")
-    @patch("core.services.scheduler_service.ReminderAutomationService.evaluate")
+    @patch("core.services.shared.scheduler_service.PropertyValuationService.refresh_all")
+    @patch("core.services.shared.scheduler_service.GoldValuationService.refresh_latest_prices")
+    @patch("core.services.shared.scheduler_service.ExchangeRateService.refresh_latest_rates")
+    @patch("core.services.shared.scheduler_service.CertificateInterestService.synchronize")
+    @patch("core.services.shared.scheduler_service.CertificateAutomationService.close_matured_certificates")
+    @patch("core.services.shared.scheduler_service.ReminderAutomationService.evaluate")
     def test_run_automation_command_executes_registered_jobs(
         self,
         mock_reminders,

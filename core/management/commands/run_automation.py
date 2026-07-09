@@ -5,7 +5,7 @@ from datetime import date
 
 from django.core.management.base import BaseCommand
 
-from core.services.automation_service import AutomationService
+from core.services.shared.automation_service import AutomationService
 
 
 class Command(BaseCommand):
