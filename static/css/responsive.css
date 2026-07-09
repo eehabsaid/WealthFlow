@@ -1,0 +1,509 @@
+@media (max-width: 768px) {
+  .fi-boardroom-card {
+    padding: 18px;
+  }
+
+  .fi-metric-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fi-metric-main {
+    font-size: 22px;
+  }
+
+  .fi-amount-grid-3,
+  .fi-amount-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fi-amount-value {
+    font-size: 24px;
+  }
+
+  .fi-cash-position-card .fi-amount-value {
+    font-size: 16px;
+  }
+
+  .fi-cash-position-card .fi-amount-caption {
+    font-size: 9px;
+  }
+
+  .fi-section-title {
+    font-size: 16px;
+  }
+
+  .fi-action-card .fi-section-title {
+    font-size: 12px;
+  }
+
+  .fi-metric-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .fi-metric-value {
+    text-align: start;
+  }
+
+  .fi-highlight-row {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .fi-value-inline {
+    justify-content: flex-start;
+  }
+
+  .fi-highlight-row .fi-value-inline {
+    align-items: flex-start;
+  }
+
+  .fi-highlight-row .num-fmtpresent {
+    font-size: 13px;
+  }
+
+  .fi-trend-pill {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1500px) {
+  .fi-action-card .fi-card-grid > [class*='col-'] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .fi-amount-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 540px) {
+  .fi-metric-card-grid,
+  .fi-amount-grid-3,
+  .fi-amount-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .wf-tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .wf-main-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .wf-tab {
+    text-align: center;
+    padding: 10px 12px;
+  }
+
+  .wf-more-wrap {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .financial-advisor-tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .financial-advisor-main-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .financial-advisor-tab {
+    text-align: center;
+    padding: 10px 12px;
+  }
+
+  .financial-advisor-more-wrap {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 1399.98px) {
+  .portfolio-allocation-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991.98px) {
+  .portfolio-allocation-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .portfolio-optimizer-header {
+    flex-direction: column;
+  }
+
+  .portfolio-chart-wrap {
+    height: 260px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .portfolio-allocation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .portfolio-score-ring {
+    width: 120px;
+    height: 120px;
+  }
+
+  .portfolio-score-ring::after {
+    width: 90px;
+    height: 90px;
+  }
+
+  .portfolio-score-center {
+    font-size: 34px;
+  }
+}
+
+@media (max-width: 1399.98px) {
+  .goal-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .goal-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .goal-planning-header {
+    flex-direction: column;
+  }
+
+  .goal-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .goal-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .goal-toolbar-left {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .goal-editor-modal .goal-editor-form {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-editor-modal .goal-field-half,
+  .goal-editor-modal .goal-field-third,
+  .goal-editor-modal .goal-field-full {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The inline div wrapping all .settings-tab buttons gets scroll on mobile */
+@media (max-width: 991.98px) {
+
+  /* ── 1. Tabs bar — horizontal scroll ── */
+  #main-content > div[style*="border-bottom"][style*="display:flex"],
+  #settingsContainer > div[style*="border-bottom"],
+  div:has(> .settings-tab) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    padding-bottom: 2px; /* avoid clipping active underline */
+    /* hide scrollbar visually but keep scroll functional */
+    scrollbar-width: none;
+  }
+  div:has(> .settings-tab)::-webkit-scrollbar { display: none; }
+
+  /* ── 2. Users header — wrap on mobile ── */
+  #settingsContent > div[style*="justify-content:space-between"] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  #settingsContent > div[style*="justify-content:space-between"] > div[style*="display:flex"] {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  /* Remove fixed widths from search inputs inside settings on mobile */
+  #settingsContent #userSearch,
+  #settingsContent #translationSearch {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  /* Bulk actions row — wrap */
+  #settingsContent > div[style*="display:flex"][style*="gap:8px"] {
+    flex-wrap: wrap !important;
+  }
+  #settingsContent #bulkActionSelect {
+    width: auto !important;
+    flex: 1 !important;
+    min-width: 140px !important;
+  }
+
+  /* ── 3. Translations header — wrap on mobile ── */
+  #settingsContent > div[style*="width:100%"][style*="justify-content:space-between"] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  #settingsContent > div[style*="width:100%"] > div[style*="display:flex"] {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+}
+
+/* ══════════════════════════════════════
+   DESKTOP (>= 992px)
+   ══════════════════════════════════════ */
+@media (min-width: 992px) {
+  #sidebar {
+    position: fixed;
+    inset-inline-start: 0;
+    top: 12px;
+    width: var(--sidebar-width);
+    height: calc(100vh - 24px);
+    transform: none !important;
+  }
+
+  #page-wrapper {
+    margin-left: calc(var(--sidebar-width) + 14px);
+  }
+
+  [dir="rtl"] #sidebar {
+    left: auto;
+    right: 0;
+  }
+
+  [dir="rtl"] #page-wrapper {
+    margin-left: 0;
+    margin-right: calc(var(--sidebar-width) + 14px);
+  }
+
+  #mobile-nav-trigger,
+  #sidebarToggle,
+  #sidebarClose {
+    display: none !important;
+  }
+
+  [data-sidebar-mode="collapsed"] #sidebar {
+    width: 190px !important;
+  }
+
+  [data-sidebar-mode="collapsed"] #page-wrapper {
+    margin-left: calc(190px + 14px) !important;
+  }
+
+  [dir="rtl"][data-sidebar-mode="collapsed"] #page-wrapper {
+    margin-right: calc(190px + 14px) !important;
+  }
+
+  [data-sidebar-mode="hidden"] #sidebar {
+    transform: translateX(-120%) !important;
+  }
+
+  [dir="rtl"][data-sidebar-mode="hidden"] #sidebar {
+    transform: translateX(120%) !important;
+  }
+
+  [data-sidebar-mode="hidden"] #page-wrapper {
+    margin-left: 0 !important;
+  }
+
+  [dir="rtl"][data-sidebar-mode="hidden"] #page-wrapper {
+    margin-right: 0 !important;
+  }
+}
+
+/* ══════════════════════════════════════
+   MOBILE (< 992px): offcanvas sidebar
+   ══════════════════════════════════════ */
+@media (max-width: 991.98px) {
+
+  #desktop-sidebar-mode-btn {
+    display: none !important;
+  }
+
+  /* Offcanvas sidebar */
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px !important;
+    height: 100vh;
+    border-radius: 0;
+    margin: 0;
+    z-index: 1050;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  }
+  #sidebar.open { transform: translateX(0) !important; }
+
+  [dir="rtl"] #sidebar {
+    left: auto;
+    right: 0;
+    transform: translateX(100%);
+  }
+  [dir="rtl"] #sidebar.open { transform: translateX(0) !important; }
+
+  /* Full-width content, padded below fixed topbar */
+  #page-wrapper {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    padding-top: 60px;
+  }
+
+  /* Fixed topbar */
+  #topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    z-index: 1030;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 12px !important;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* Show hamburger */
+  #mobile-nav-trigger,
+  #sidebarToggle {
+    display: inline-flex !important;
+    align-items: center;
+  }
+
+  #sidebarClose { display: inline-flex !important; }
+
+  /* Always show sidebar labels (full offcanvas) */
+  #sidebar .brand-text,
+  #sidebar .nav-section-label,
+  #sidebar .nav-group-label,
+  #sidebar .nav-item span,
+  #sidebar .nav-item .nav-text { display: block !important; }
+
+  #sidebar .nav-item {
+    justify-content: flex-start !important;
+    padding: 9px 12px !important;
+  }
+
+  /* Main content padding */
+  #main-content { padding: 16px 12px 48px !important; }
+
+  /* Page header stacks */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+/* ══════════════════════════════════════
+   GRID / KPI cards
+   ══════════════════════════════════════ */
+
+/* Keep 2-col grid until 480px, then stack */
+@media (max-width: 480px) {
+  #main-content .row > .col-6,
+  #main-content .row > .col-md-3,
+  #main-content .row > .col-md-4,
+  #main-content .row > .col-lg-3 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ══════════════════════════════════════
+   FORMS inside modals
+   ══════════════════════════════════════ */
+
+@media (max-width: 575.98px) {
+  .page-title { font-size: 18px; }
+  .kpi-value { font-size: 20px !important; }
+  .year-pill { padding: 4px 11px; font-size: 11.5px; }
+
+  /* Modal full width */
+  .modal-dialog { margin: 8px; max-width: calc(100% - 16px) !important; }
+
+  /* Stack modal form columns */
+  .modal-body .row > [class*="col-"] {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Prevent iOS zoom on input focus */
+  .modal-body .form-control,
+  .modal-body .form-select {
+    font-size: 16px !important;
+    min-height: 44px !important;
+  }
+
+  /* Stack modal footer buttons */
+  .modal-footer {
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+  }
+  .modal-footer .btn { width: 100% !important; }
+
+  /* Toast full width */
+  #toast-container {
+    left: 12px !important; right: 12px !important;
+    bottom: 12px !important; width: auto !important;
+  }
+  .toast { width: 100% !important; }
+}
+
+/* ════════════════════════════════════════════════════════════
+
+/* Mobile only: stack vertically */
+@media (max-width: 576px) {
+  .expense-filters,
+  .report-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .expense-filters .form-select,
+  .expense-filters .form-control,
+  .expense-filters input,
+  .report-controls .form-select,
+  .report-controls .form-control,
+  .report-controls input {
+    width: 100% !important;
+    font-size: 16px !important;
+    min-height: 44px !important;
+  }
+  .expense-filters button,
+  .report-controls button {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .chart-container { min-height: 260px; }
+  #salaryChart { min-height: 300px !important; }
+}

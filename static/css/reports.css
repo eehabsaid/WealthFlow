@@ -1,0 +1,11 @@
+/* ════════════════════════════════════════════════════════════
+   REPORT PAGE STYLES
+   ════════════════════════════════════════════════════════════ */
+
+.report-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 0;
+}

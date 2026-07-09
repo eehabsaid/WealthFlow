@@ -1,0 +1,188 @@
+/* ── Tables ── */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.data-table tbody {
+  background-color: var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
+}
+
+.data-table * {
+  background-color: var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
+    color: var(--text-primary);
+  font-size: 13.5px;
+}
+
+.data-table tr:hover, 
+.data-table tr:hover * {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.data-table *::selection {
+    background-color: var(--accent-primary) !important;
+    color: #ffffff !important;
+}
+
+.data-table th {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.data-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(30, 58, 110, .35);
+  color: var(--text-primary);
+  font-size: 13.5px;
+  background-color: var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: var(--text-primary);
+
+}
+
+.data-table .total-row td {
+  background-color: var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
+  font-weight: 700;
+  color: var(--accent-yellow);
+  border-top: 1px solid var(--border-color);
+}
+
+.portfolio-table {
+  margin-bottom: 0;
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-primary);
+  --bs-table-border-color: rgba(123, 147, 201, 0.22);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.portfolio-table th {
+  color: #a9c2ff;
+  border-color: rgba(123, 147, 201, 0.28);
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(26, 110, 245, 0.24);
+  padding: 10px 12px;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.portfolio-table td {
+  color: #e8f0fe;
+  border-color: rgba(123, 147, 201, 0.2);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 12px;
+  vertical-align: middle;
+}
+
+.portfolio-table tbody tr {
+  background: rgba(9, 15, 34, 0.74);
+}
+
+.portfolio-table tbody tr:nth-child(even) {
+  background: rgba(12, 20, 46, 0.84);
+}
+
+[dir="rtl"] .portfolio-table td,
+[dir="rtl"] .portfolio-table th {
+  font-size: 14px;
+}
+
+[dir="rtl"] .data-table th,
+[dir="rtl"] .data-table td {
+  text-align: right;
+}
+
+/* ══════════════════════════════════════
+   TABLES: horizontal scroll on all sizes
+   ══════════════════════════════════════ */
+
+/* Every table must sit inside .table-container */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  min-width: 540px; /* prevents squashing but still fits most desktop cols */
+}
+
+/* Kill the overflow:hidden on the card wrapper so the scroll works */
+.table-container ~ * { overflow: visible; }
+
+/* Small scrollbar on table containers */
+.table-container::-webkit-scrollbar { height: 4px; }
+
+.table-container::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-track { background: transparent; }
+
+/* ══════════════════════════════════════
+   SETTINGS: translation table
+   ══════════════════════════════════════ */
+
+.translation-table-wrapper {
+    overflow: auto;
+    max-width: 100%;
+    max-height: 75vh;
+}
+
+.translation-table {
+  min-width: max-content;
+  border-collapse: collapse;
+}
+
+.translation-table th:first-child,
+.translation-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--bg-secondary);
+  min-width: 120px;
+}
+
+.translation-table th:first-child,
+.translation-table thead th:first-child { z-index: 3; }
+
+.translation-table th,
+.translation-table td { white-space: nowrap; }
+
+/* Translation table sticky header */
+.translation-table-wrapper {
+    max-height: 75vh;
+    overflow: auto;
+}
+
+.translation-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg-secondary) !important;
+}

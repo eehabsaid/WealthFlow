@@ -1,0 +1,15 @@
+:root {
+  --bg-primary: #0a0f1e;
+  --bg-secondary: #0d1530;
+  --bg-tertiary: #111d3d;
+  --border-color: #1e3a6e;
+  --accent-primary: #1a6ef5;
+  --accent-hover: #2d7fff;
+  --accent-green: #00d68f;
+  --accent-red: #ff4d6d;
+  --accent-yellow: #ffd166;
+  --text-primary: #e8f0fe;
+  --text-secondary: #7b93c9;
+  --text-muted: #4a6399;
+  --sidebar-width: 240px;
+}

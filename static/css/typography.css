@@ -1,0 +1,65 @@
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+.portfolio-optimizer-header h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.portfolio-optimizer-header p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.goal-planning-header h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.goal-planning-header p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+#toast-container .toast-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+#toast-container .toast-body::before {
+  content: "\2713";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border-radius: 999px;
+  background: rgba(80, 216, 144, 0.14);
+  color: var(--accent-green);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+#toast-container .toast[style*="accent-red"] .toast-body::before {
+  content: "!";
+  background: rgba(255, 77, 109, 0.14);
+  color: var(--accent-red);
+}
+
+body { overflow-x: hidden; }

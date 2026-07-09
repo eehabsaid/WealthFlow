@@ -1,0 +1,177 @@
+/* ── Modal ── */
+.modal-dark .modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.modal-dark .modal-header {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-dark .modal-footer {
+  border-top: 1px solid var(--border-color);
+}
+
+.modal-dark .form-control,
+.modal-dark .form-select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.modal-dark .form-control:focus,
+.modal-dark .form-select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(26, 110, 245, .25);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.modal-dark label {
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.goal-actions .btn:focus-visible,
+.goal-calendar-btn:focus-visible,
+#btnAddGoal:focus-visible,
+.goal-editor-modal .btn:focus-visible {
+  box-shadow: 0 0 0 3px rgba(79, 143, 247, 0.22);
+}
+
+.goal-editor-modal .modal-dialog {
+  z-index: 1100;
+}
+
+.goal-editor-modal .modal-content {
+  color: var(--text-primary);
+}
+
+.goal-editor-modal .goal-editor-surface {
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(26, 110, 245, 0.1), rgba(13, 21, 48, 0.98)),
+    var(--bg-secondary) !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+}
+
+.goal-editor-modal .goal-editor-header {
+  padding: 18px 22px;
+  background: rgba(10, 23, 56, 0.72);
+}
+
+.goal-editor-modal .modal-body {
+  padding: 22px;
+}
+
+.goal-editor-modal .goal-editor-form {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px !important;
+  margin: 0;
+}
+
+.goal-editor-modal .goal-field {
+  width: auto;
+  padding: 0;
+}
+
+.goal-editor-modal .goal-field-half,
+.goal-editor-modal .goal-field-third {
+  grid-column: span 1;
+}
+
+.goal-editor-modal .goal-field-full {
+  grid-column: 1 / -1;
+}
+
+.goal-editor-modal .modal-title,
+.goal-editor-modal .form-label {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+.goal-editor-modal .modal-title {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.goal-editor-modal .form-label {
+  margin-bottom: 7px;
+  color: var(--text-secondary) !important;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.goal-editor-modal .form-control,
+.goal-editor-modal .form-select,
+.goal-editor-modal textarea {
+  background: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+  min-height: 42px;
+  border-radius: 11px;
+  padding: 10px 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.goal-editor-modal textarea {
+  min-height: 96px;
+}
+
+.goal-editor-modal .form-control:focus,
+.goal-editor-modal .form-select:focus,
+.goal-editor-modal textarea:focus {
+  border-color: rgba(96, 165, 250, 0.64) !important;
+  box-shadow: 0 0 0 3px rgba(79, 143, 247, 0.18);
+}
+
+.goal-editor-modal .form-control::placeholder,
+.goal-editor-modal textarea::placeholder {
+  color: var(--text-secondary) !important;
+  opacity: 1;
+}
+
+.goal-editor-modal .form-select option {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.goal-editor-modal .goal-editor-footer {
+  padding: 16px 22px 20px;
+  gap: 10px;
+  background: rgba(10, 23, 56, 0.54);
+}
+
+.goal-editor-modal .goal-editor-footer .btn {
+  min-width: 112px;
+  border-radius: 11px;
+  padding: 9px 16px;
+  font-weight: 700;
+}
+
+.modal-content input::placeholder,
+.modal-content textarea::placeholder {
+    color: var(--text-secondary) !important;
+    opacity: 1;
+}
+
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+    color: var(--text-primary) !important;
+}
+
+.asset-modal-dialog{
+    max-width:1200px;
+}
+
+.asset-modal-body{
+    height:70vh;
+    overflow-y:auto;
+    overflow-x:hidden;
+}

@@ -1,0 +1,18 @@
+.fi-expense-tile {
+  border-color: var(--accent-red);
+}
+
+/* ════════════════════════════════════════════════════════════
+   EXPENSE PAGE STYLES
+   ════════════════════════════════════════════════════════════ */
+
+.expense-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}

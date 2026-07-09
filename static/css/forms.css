@@ -1,0 +1,95 @@
+.data-table input::selection {
+    background-color: var(--accent-primary) !important;
+    color: #ffffff !important;
+}
+
+.data-table input {
+    background-color: transparent !important; /* Let the parent row background show through */
+    color: var(--text-primary) !important;
+    
+}
+
+#realEstateSection .fa-chip-check .form-check-input {
+  float: none;
+  margin: 0;
+  width: 1.05em;
+  height: 1.05em;
+  border-color: var(--text-secondary) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
+#realEstateSection .fa-chip-check .form-check-input:checked {
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.goal-toolbar .form-control,
+.goal-toolbar .form-select {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.goal-toolbar .form-control::placeholder {
+  color: var(--text-secondary);
+}
+
+.expense-filters .form-select,
+.expense-filters .form-control {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.expense-filters .form-select:focus,
+.expense-filters .form-control:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+  outline: none;
+}
+
+.report-controls .form-select,
+.report-controls .form-control {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  min-width: 130px;
+}
+
+.report-controls .form-select:focus,
+.report-controls .form-control:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+  outline: none;
+}
+
+/* ════════════════════════════════════════════════════════════
+   SETTINGS PAGE — Users & Translations filter bars
+   ════════════════════════════════════════════════════════════ */
+
+/* Target the inline-styled filter containers in settings tabs */
+#settingsContent .form-control,
+#settingsContent .form-select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+}
+
+#settingsContent .form-control:focus,
+#settingsContent .form-select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+  outline: none;
+}
+
+#settingsContent .form-control::placeholder {
+  color: var(--text-muted);
+}
