@@ -1,3 +1,5 @@
+'use strict';
+
 /* ════════════════════════════════════════════════════════════════════════════
    reports.js — Reports Page (Monthly / Yearly / Custom)
    Income vs Expenses analysis and PDF export
@@ -125,18 +127,6 @@ async function renderReports() {
     });
   }
   await loadReportData();
-}
-
-function handleYearChange(selectedYear) {
-  if (!selectedYear) return;
-  currentReportYear = parseInt(selectedYear);
-
-  const rYear = document.getElementById("rYear");
-  const rYearOnly = document.getElementById("rYearOnly");
-  if (rYear) rYear.value = currentReportYear;
-  if (rYearOnly) rYearOnly.value = currentReportYear;
-
-  loadReportData();
 }
 
 function switchReportTab(tab) {
@@ -304,234 +294,6 @@ function editIncome() {
   }
 }
 
-function repKPI(label, value, icon, accent, bg) {
-  const translatedLabel = t(label, label.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()));
-  return `<div class="col-6 col-lg-3">
-    <div class="kpi-card h-100" style="--kpi-accent:${accent};--kpi-bg:${bg}">
-      <div class="kpi-icon"><i class="bi ${icon}"></i></div>
-      <div class="kpi-label" data-i18n="${label}">${translatedLabel}</div>
-      <div class="kpi-value">${value}</div>
-    </div></div>`;
-}
-
-function drawIncomeExpenseChart(income, expense) {
-  const canvas = document.getElementById("chartIncomeExpense");
-  if (!canvas) return;
-  const existing = Chart.getChart(canvas);
-  if (existing) existing.destroy();
-  new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels: ["Income", "Expenses", "Net Savings"],
-      datasets: [
-        {
-          data: [income, expense, Math.max(0, income - expense)],
-          backgroundColor: [
-            "rgba(0,214,143,0.7)",
-            "rgba(255,77,109,0.7)",
-            "rgba(26,110,245,0.7)",
-          ],
-          borderColor: ["#00d68f", "#ff4d6d", "#1a6ef5"],
-          borderWidth: 1,
-          borderRadius: 8,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: { label: (ctx) => " " + fmt(ctx.parsed.y) + " EGP" },
-        },
-      },
-      scales: {
-        x: { ticks: { color: "#7b97cc" }, grid: { color: "#1a346022" } },
-        y: {
-          ticks: { color: "#7b97cc", callback: (v) => fmt(v) },
-          grid: { color: "#1a346022" },
-        },
-      },
-    },
-  });
-}
-
-function drawCategoryChart(byCat) {
-  const canvas = document.getElementById("chartCategories");
-  if (!canvas) return;
-  const existing = Chart.getChart(canvas);
-  if (existing) existing.destroy();
-  if (!byCat.length) return;
-  new Chart(canvas, {
-    type: "doughnut",
-    data: {
-      labels: byCat.map((c) => c.icon + " " + c.name),
-      datasets: [
-        {
-          data: byCat.map((c) => c.total),
-          backgroundColor: byCat.map((c) => c.color + "cc"),
-          borderColor: byCat.map((c) => c.color),
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: "bottom",
-          labels: { color: "#7b97cc", font: { size: 11 } },
-        },
-        tooltip: {
-          callbacks: { label: (ctx) => " " + fmt(ctx.parsed) + " EGP" },
-        },
-      },
-    },
-  });
-}
-
-function drawTrendChart(monthly) {
-  const canvas = document.getElementById("chartTrend");
-  if (!canvas) return;
-  const existing = Chart.getChart(canvas);
-  if (existing) existing.destroy();
-  const MONTH_ABBR = REPORT_MONTH_I18N_KEYS.map((key) => t(key));
-  new Chart(canvas, {
-    type: "line",
-    data: {
-      labels: MONTH_ABBR,
-      datasets: [
-        {
-          label: "Expenses",
-          data: monthly.map((m) => m.total),
-          borderColor: "#ff4d6d",
-          backgroundColor: "rgba(255,77,109,0.1)",
-          fill: true,
-          tension: 0.4,
-          pointRadius: 4,
-          pointBackgroundColor: "#ff4d6d",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { labels: { color: "#7b97cc" } },
-        tooltip: {
-          callbacks: { label: (ctx) => " " + fmt(ctx.parsed.y) + " EGP" },
-        },
-      },
-      scales: {
-        x: { ticks: { color: "#7b97cc" }, grid: { color: "#1a346022" } },
-        y: {
-          ticks: { color: "#7b97cc", callback: (v) => fmt(v) },
-          grid: { color: "#1a346022" },
-        },
-      },
-    },
-  });
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// PDF GENERATION
-// ════════════════════════════════════════════════════════════════════════════
-
-async function generatePDF(type) {
-  let year = parseInt(
-    document.getElementById("rYear")?.value ||
-      document.getElementById("rYearOnly")?.value ||
-      new Date().getFullYear(),
-  );
-  let month = parseInt(
-    document.getElementById("rMonth")?.value || new Date().getMonth() + 1,
-  );
-  const start = document.getElementById("rStart")?.value || "";
-  const end = document.getElementById("rEnd")?.value || "";
-
-  if (type === "custom") {
-    if (start) {
-      year = new Date(start).getFullYear();
-    }
-    month = 1;
-  }
-
-  const body = {
-    type,
-    year,
-    month,
-    start_date: start,
-    end_date: end,
-    lang: currentLang(),
-  };
-
-  const btn = event?.target;
-  const generatingText = t('generating', 'Generating…');
-  const generatePdfText = t('generate_pdf', 'Generate PDF');
-  
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML =
-      `<div class="spinner-border spinner-border-sm"></div> ${generatingText}`;
-  }
-
-  try {
-    const res = await fetch("/api/reports/generate/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      showToast(t('error_prefix', 'Error: ') + (err.error || t('unknown_error', 'Unknown error')), "error");
-      return;
-    }
-
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const cd = res.headers.get("Content-Disposition") || "";
-    const fnMatch = cd.match(/filename="(.+)"/);
-    a.download = fnMatch ? fnMatch[1] : "report.pdf";
-    a.href = url;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast(t('pdf_downloaded', 'PDF downloaded ✓'), "success");
-  } catch (e) {
-    showToast(t('network_error_prefix', 'Network error: ') + e.message, "error");
-  } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = `<i class="bi bi-file-earmark-pdf"></i> ${generatePdfText}`;
-    }
-  }
-  applyTranslations();
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// UTILITY FUNCTIONS
-// ════════════════════════════════════════════════════════════════════════════
-
-function yearOpts(current) {
-  let o = "";
-  for (let y = current > 2026 ? current : 2026; y >= 2020; y--)
-    o += `<option value="${y}" ${y === current ? "selected" : ""}>${y}</option>`;
-  return o;
-}
-
-function monthOpts(selectedMonth) {
-  return MONTHS_NAMES.map((m, i) => {
-    const monthValue = i + 1;
-    const isSelected = monthValue === selectedMonth ? "selected" : "";
-    const i18nKey = MONTH_I18N_KEYS[i];
-
-    return `<option value="${monthValue}" ${isSelected} data-i18n="${i18nKey}">${m}</option>`;
-  }).join("");
-}
-
-function renderYearlyReport() {
-  switchReportTab("yearly");
-}
 
 // ════════════════════════════════════════════════════════════════════════════
 // EXPORTS
@@ -545,3 +307,15 @@ window.generatePDF = generatePDF;
 window.renderReports = renderReports;
 window.handleYearChange = handleYearChange;
 window.renderYearlyReport = renderYearlyReport;
+
+function handleYearChange(selectedYear) {
+  if (!selectedYear) return;
+  currentReportYear = parseInt(selectedYear);
+
+  const rYear = document.getElementById("rYear");
+  const rYearOnly = document.getElementById("rYearOnly");
+  if (rYear) rYear.value = currentReportYear;
+  if (rYearOnly) rYearOnly.value = currentReportYear;
+
+  loadReportData();
+}
