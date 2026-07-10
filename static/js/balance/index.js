@@ -12,16 +12,18 @@ async function renderBalance() {
     mc.innerHTML = '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
 
     // ── 1. Fetch all data once ───────────────────────────────────────────────
-    const [bRes, bankRes, currRes, forecastRes] = await Promise.all([
+    const [bRes, bankRes, currRes, forecastRes, transfersRes] = await Promise.all([
         fetch('/api/balance/'),
         fetch('/api/banks/'),
         fetch('/api/currencies/'),
         fetch('/api/certificate-forecast/'),
+        fetch('/api/balance-transfers/'),
     ]);
     const bData        = await bRes.json();
     const bankData     = await bankRes.json();
     const currData     = await currRes.json();
     const forecastData = await forecastRes.json();
+    const transfersData = await transfersRes.json();
 
     // ── 2. Store module-level state ──────────────────────────────────────────
     _balanceEntries = bData.entries;
@@ -197,6 +199,7 @@ async function renderBalance() {
     const tabData = {
         // raw API responses
         forecastData, entries: _balanceEntries,
+        transfers: transfersData.transfers || [],
         // summary values
         totals, totalEGP, cashEGP, usdAmount, eurAmount, sarAmount,
         usdRate, eurRate, sarRate, goldValue, grandTotal, netWorth,
@@ -268,6 +271,9 @@ async function renderBalance() {
     renderBalanceForecasts(tabData);
     renderBalanceRecommendations(tabData);
     renderBalanceAccounts(tabData);
+    if (typeof renderBalanceTransfers === 'function') {
+        renderBalanceTransfers(tabData);
+    }
 
     applyTranslations();
 

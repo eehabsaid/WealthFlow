@@ -121,6 +121,8 @@ from .fixed_asset_views import AssetFurnitureDetailView
 from .fixed_asset_views import AssetValuationHistoryListView
 from .fixed_asset_views import AssetValuationHistoryDetailView
 from .fixed_asset_views import AssetSaleView
+from .expense_views import *
+from .balance_transfer_views import *
 from .fixed_asset_views import _to_decimal
 from .fixed_asset_views import _gold_unit_factor
 from .fixed_asset_views import _gold_weight_in_grams

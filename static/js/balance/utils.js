@@ -8,6 +8,7 @@
 const BALANCE_TABS = [
     { id: 'overview',        key: 'balance_tab_overview' },
     { id: 'accounts',        key: 'balance_tab_accounts' },
+    { id: 'transfers',       key: 'balance_tab_transfers' },
     { id: 'allocation',      key: 'balance_tab_allocation' },
     { id: 'forecasts',       key: 'balance_tab_forecasts' },
     { id: 'recommendations', key: 'balance_tab_recommendations' },

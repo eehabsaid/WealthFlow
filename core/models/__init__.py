@@ -4,6 +4,7 @@ from .bank import Bank
 from .certificate import BankCertificate, BankCertificateInterestHistory, CertificateStatus, sync_certificate_balance_entries, _is_certificate_active
 from .currency import Currency
 from .balance import BalanceEntry
+from .balance_transfer import BalanceTransfer
 from .exchange_rate import ExchangeRate
 from .gold import GoldPrice, GoldPriceHistory, GoldTypeSetting, GoldPuritySetting
 from .expenses import ExpenseCategory, ExpenseSubcategory, Expense
@@ -33,6 +34,7 @@ __all__ = [
     "_is_certificate_active",
     "Currency",
     "BalanceEntry",
+    "BalanceTransfer",
     "ExchangeRate",
     "GoldPrice",
     "GoldPriceHistory",
