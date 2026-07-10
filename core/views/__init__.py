@@ -44,8 +44,8 @@ from .certificate_views import BankCertificateListView
 from .certificate_views import BankCertificateDetailView
 from .certificate_views import BankCertificateInterestHistoryView
 from .certificate_views import _run_certificate_interest_sync
-from .balance_views import BalanceListView
-from .balance_views import BalanceDetailView
+from .balance_account_views import BalanceListView
+from .balance_account_views import BalanceDetailView
 from .expense_views import ExpenseCategoryListView
 from .expense_views import ExpenseCategoryDetailView
 from .expense_views import ExpenseSubcategoryListView
@@ -78,10 +78,10 @@ from core.reports.report_generators import _fixed_asset_pdf_table
 from core.reports.report_generators import _build_fixed_asset_pdf_story
 from core.reports.report_generators import month_sort_key
 from .dashboard_views import DashboardSummaryView
-from .dashboard_views import CertificateForecastView
-from .dashboard_views import CashFlowForecastView
-from .dashboard_views import WealthGrowthForecastView
-from .dashboard_views import PortfolioOptimizerView
+from .balance_forecast_views import CertificateForecastView
+from .balance_forecast_views import CashFlowForecastView
+from .balance_forecast_views import WealthGrowthForecastView
+from .balance_forecast_views import PortfolioOptimizerView
 from .dashboard_views import index
 from .dashboard_views import _api_auth_required
 from .dashboard_views import _parse_iso_date
