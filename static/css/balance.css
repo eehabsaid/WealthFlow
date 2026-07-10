@@ -1,1 +1,115 @@
+/* ── Balance Module — Layout & Readability Overrides ───────────────────────
+   Reuses FA tab CSS classes. Only balance-specific fixes live here.
+   ────────────────────────────────────────────────────────────────────────── */
 
+/* ── Reduce side padding for balance page only ─────────────────────────── */
+#bal-pane-overview,
+#bal-pane-allocation,
+#bal-pane-forecasts,
+#bal-pane-recommendations,
+#bal-pane-accounts {
+  padding: 0;
+}
+
+/* ── Currency cards: make code/flag text fully readable ─────────────────── */
+#bal-pane-overview .cur-flag {
+  color: var(--text-primary);
+  font-size: 32px;
+  margin-bottom: 6px;
+}
+
+#bal-pane-overview .cur-code {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+#bal-pane-overview .cur-amount {
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Financial Intelligence tiles: keep title and sub readable ───────────── */
+#bal-pane-overview .fi-metric-title,
+#bal-pane-allocation .fi-metric-title {
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+#bal-pane-overview .fi-metric-sub,
+#bal-pane-allocation .fi-metric-sub {
+  color: var(--text-primary);
+  opacity: 0.75;
+}
+
+#bal-pane-overview .fi-metric-main {
+  font-size: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Allocation bar labels: make them fully readable ─────────────────────── */
+#bal-pane-allocation .kpi-card span {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+/* ── Amount tiles (Forecasts): prevent number wrapping at all costs ──────── */
+#bal-pane-forecasts .fi-amount-value {
+  font-size: clamp(13px, 2.2vw, 28px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
+}
+
+#bal-pane-forecasts .fi-amount-caption {
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+#bal-pane-forecasts .fi-metric-sub {
+  color: var(--text-primary);
+  opacity: 0.75;
+}
+
+/* ── Upcoming maturities heading readability ─────────────────────────────── */
+#bal-pane-forecasts .kpi-label {
+  color: var(--text-primary);
+}
+
+/* ── Table text in Accounts tab ─────────────────────────────────────────── */
+#bal-pane-accounts .data-table th,
+#bal-pane-accounts .data-table td {
+  color: var(--text-primary);
+}
+
+/* ── Recommendations tab: metric labels and values readable ─────────────── */
+#bal-pane-recommendations .fi-metric-label {
+  color: var(--text-primary);
+  opacity: 0.85;
+}
+
+#bal-pane-recommendations .fi-metric-value {
+  color: var(--text-primary);
+}
+
+#bal-pane-recommendations .fi-amount-caption,
+#bal-pane-recommendations .fi-metric-title,
+#bal-pane-recommendations .fi-metric-sub {
+  color: var(--text-primary);
+  opacity: 0.8;
+}
+
+/* ── Reduce gap between page title and tabs shell ────────────────────────── */
+.balance-page-header {
+  margin-bottom: 10px;
+}
+
+/* ── Reduce outer card padding to shrink left/right margins ──────────────── */
+.balance-page-card > .card-body {
+  padding: 10px 12px !important;
+}

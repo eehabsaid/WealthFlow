@@ -68,7 +68,7 @@ async function loadLangMenu() {
 const ROUTES = {
     'dashboard':          { key: 'nav_dashboard',         add: false, fn: () => renderDashboard()     },
     'financial-advisor':  { key: 'nav_financial_advisor', add: false, fn: () => renderFinancialAdvisor() },
-    'balance':            { key: 'nav_balance',           add: true,  fn: () => renderBalance()       },
+    'balance':            { key: 'nav_balance',           add: false, fn: () => renderBalance()       },
     'bank-certificates':  { key: 'nav_bank_certificates', add: true,  fn: () => renderBankCertificates() },
     'all-companies':      { key: 'nav_all_companies',     add: true,  fn: () => renderAllCompanies()  },
     'exchange-rates':     { key: 'nav_exchange_rates',    add: false, fn: () => renderExchangeRates() },
