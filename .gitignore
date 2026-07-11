@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
-venv/
+venv/
+.agents/
+.ruff_cache/
+.vscode/
