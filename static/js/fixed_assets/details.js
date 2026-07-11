@@ -239,7 +239,150 @@ async function showFixedAssetModal(assetId = null, options = {}) {
 
               <div class="tab-content" id="fixedAssetTabsContent">
 
-                  <!-- 1. GENERAL TAB PANE -->
+                  ${renderGeneralTab()}
+
+                  ${renderPropertyTab()}
+
+                  ${renderVehicleTab()}
+
+                  ${renderGoldTab()}
+
+                  ${renderOtherDetailsTab()}
+
+                  ${renderPhotosTab()}
+
+                  ${renderRenovationTab()}
+
+                    ${renderFurnitureTab()}
+
+                    ${renderValuationTab()}
+
+                    ${renderMaintenanceTab()}
+
+                    ${renderInsuranceTab()}
+
+                    ${renderMortgageTab()}
+
+                    ${renderRentalTab()}
+
+                    ${renderSaleTab()}
+
+                    ${renderDocumentsTab()}
+
+              </div> <!-- End Tab Content -->
+
+          </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary-custom" onclick="handleAssetWindowClose()" data-i18n="cancel">Cancel</button>
+            <button class="btn-primary-custom" onclick="saveFixedAsset(${assetId})" data-i18n="save">Save</button>
+        </div>
+    `;
+
+  showModal(html);
+  applyTranslations();
+  await populateGoldSettingsDropdowns();
+  const propertyTab = document.getElementById("property-tab");
+  const statusField = document.getElementById("fa_status");
+  const salePriceField = document.getElementById("fa_sale_price");
+  const sellingExpensesField = document.getElementById("fa_selling_expenses");
+  const currentValueField = document.getElementById("fa_current_value");
+  const monthlyRentField = document.getElementById("fa_monthly_rent");
+  const remainingBalanceField = document.getElementById("fa_remaining_balance");
+  const assetTypeField = document.getElementById("fa_type");
+  const goldPurityField = document.getElementById("gd_purity");
+  const goldUnitField = document.getElementById("gd_unit");
+
+  if (statusField) {
+    statusField.addEventListener("change", toggleSaleTabVisibility);
+  }
+
+  if (salePriceField) {
+    salePriceField.addEventListener("input", updateNetSaleAmount);
+  }
+
+  if (sellingExpensesField) {
+    sellingExpensesField.addEventListener("input", updateNetSaleAmount);
+  }
+
+  if (currentValueField) {
+    currentValueField.addEventListener("input", () => {
+      updateMortgageSummary();
+      updateRentalSummary();
+    });
+  }
+
+  if (monthlyRentField) {
+    monthlyRentField.addEventListener("input", updateRentalSummary);
+  }
+
+  if (remainingBalanceField) {
+    remainingBalanceField.addEventListener("input", updateMortgageSummary);
+  }
+
+  if (assetTypeField) {
+    assetTypeField.addEventListener("change", toggleRealEstateDependentTabs);
+  }
+
+  if (goldPurityField) {
+    goldPurityField.addEventListener("change", updateGoldValuation);
+  }
+
+  if (goldUnitField) {
+    goldUnitField.addEventListener("input", updateGoldValuation);
+  }
+
+  if (window.DocumentManager) {
+    window.DocumentManager.init({
+      containerId: "fixedAssetDocumentManagerContainer",
+      parentType: "fixed_asset",
+      parentId: assetId,
+      disabledMessage: t("documents_save_first", "Save this record first to manage documents."),
+    });
+  }
+
+  await loadFixedAssetSyncDropdownData();
+  resetPurchasePaymentsForm();
+  addPurchasePaymentRow();
+  propertyPhotos = [];
+  renderPropertyPhotoGallery();
+  ["renovationContainer", "furnitureContainer", "valuationContainer", "maintenanceContainer", "insuranceContainer"].forEach((id) => {
+    const container = document.getElementById(id);
+    if (container) container.innerHTML = "";
+  });
+  resetSaleForm();
+  toggleSaleDepositBankField();
+  resetMortgageForm();
+  resetRentalForm();
+  toggleSaleTabVisibility();
+  toggleRealEstateDependentTabs();
+
+  propertyTab.addEventListener("shown.bs.tab", function () {
+    if (propertyMap) {
+      setTimeout(() => {
+        propertyMap.invalidateSize();
+      }, 50);
+    }
+  });
+
+  document
+    .getElementById("btnLocateProperty")
+    .addEventListener("click", locatePropertyOnMap);
+  const refreshValuationButton = document.getElementById("btnRefreshPropertyValuation");
+  if (refreshValuationButton) {
+    refreshValuationButton.addEventListener("click", refreshPropertyValuation);
+  }
+  initializePropertyMap();
+  if (isEdit) {
+    await loadFixedAsset(assetId);
+  } else {
+    maybeRefreshPurchaseUsdRateOnLoad();
+  }
+}
+
+
+function renderGeneralTab() {
+  return `<!-- 1. GENERAL TAB PANE -->
                   <div class="tab-pane fade show active"
                       id="general-pane"
                       role="tabpanel"
@@ -335,9 +478,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                             <textarea class="form-control" id="fa_notes" rows="2"></textarea>
                         </div>
 
-                  </div> <!-- End General Tab -->
+                  </div> <!-- End General Tab -->`;
+}
 
-                  <!-- 2. PROPERTY TAB PANE -->
+function renderPropertyTab() {
+  return `<!-- 2. PROPERTY TAB PANE -->
                   <div class="tab-pane fade"
                       id="property-pane"
                       role="tabpanel"
@@ -493,9 +638,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                             </div>
                         </div>
                         
-                  </div> <!-- End Property Tab -->
+                  </div> <!-- End Property Tab -->`;
+}
 
-                  <div class="tab-pane fade"
+function renderVehicleTab() {
+  return `<div class="tab-pane fade"
                       id="vehicle-pane"
                       role="tabpanel"
                       aria-labelledby="vehicle-tab">
@@ -518,9 +665,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                           </div>
                         </div>
 
-                  </div> <!-- End Vehicle Tab -->
+                  </div> <!-- End Vehicle Tab -->`;
+}
 
-                  <div class="tab-pane fade"
+function renderGoldTab() {
+  return `<div class="tab-pane fade"
                       id="gold-pane"
                       role="tabpanel"
                       aria-labelledby="gold-tab">
@@ -540,9 +689,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                           </div>
                         </div>
 
-                  </div> <!-- End Gold Tab -->
+                  </div> <!-- End Gold Tab -->`;
+}
 
-                  <div class="tab-pane fade"
+function renderOtherDetailsTab() {
+  return `<div class="tab-pane fade"
                       id="other-details-pane"
                       role="tabpanel"
                       aria-labelledby="other-details-tab">
@@ -561,9 +712,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                           </div>
                         </div>
 
-                  </div> <!-- End Other Details Tab -->
+                  </div> <!-- End Other Details Tab -->`;
+}
 
-                  <div class="tab-pane fade"
+function renderPhotosTab() {
+  return `<div class="tab-pane fade"
                       id="photos-pane"
                       role="tabpanel"
                       aria-labelledby="photos-tab">
@@ -581,9 +734,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                           </div>
                         </div>
 
-                  </div> <!-- End Photos Tab -->
+                  </div> <!-- End Photos Tab -->`;
+}
 
-                  <!-- 3. RENOVATION TAB PANE -->
+function renderRenovationTab() {
+  return `<!-- 3. RENOVATION TAB PANE -->
                   <div class="tab-pane fade"
                       id="renovation-pane"
                       role="tabpanel"
@@ -607,9 +762,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                             </div>
                         </div>
 
-                  </div> <!-- End Renovation Tab -->
+                  </div> <!-- End Renovation Tab -->`;
+}
 
-                    <div class="tab-pane fade"
+function renderFurnitureTab() {
+  return `<div class="tab-pane fade"
                       id="furniture-pane"
                       role="tabpanel"
                       aria-labelledby="furniture-tab">
@@ -626,9 +783,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                         </div>
                       </div>
 
-                    </div> <!-- End Furniture Tab -->
+                    </div> <!-- End Furniture Tab -->`;
+}
 
-                    <div class="tab-pane fade"
+function renderValuationTab() {
+  return `<div class="tab-pane fade"
                       id="valuation-pane"
                       role="tabpanel"
                       aria-labelledby="valuation-tab">
@@ -645,9 +804,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                         </div>
                       </div>
 
-                    </div> <!-- End Valuation Tab -->
+                    </div> <!-- End Valuation Tab -->`;
+}
 
-                    <div class="tab-pane fade"
+function renderMaintenanceTab() {
+  return `<div class="tab-pane fade"
                       id="maintenance-pane"
                       role="tabpanel"
                       aria-labelledby="maintenance-tab">
@@ -662,9 +823,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                         </div>
                       </div>
 
-                    </div> <!-- End Maintenance Tab -->
+                    </div> <!-- End Maintenance Tab -->`;
+}
 
-                    <div class="tab-pane fade"
+function renderInsuranceTab() {
+  return `<div class="tab-pane fade"
                       id="insurance-pane"
                       role="tabpanel"
                       aria-labelledby="insurance-tab">
@@ -679,9 +842,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                         </div>
                       </div>
 
-                    </div> <!-- End Insurance Tab -->
+                    </div> <!-- End Insurance Tab -->`;
+}
 
-                    <div class="tab-pane fade"
+function renderMortgageTab() {
+  return `<div class="tab-pane fade"
                       id="mortgage-pane"
                       role="tabpanel"
                       aria-labelledby="mortgage-tab">
@@ -708,9 +873,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                         </div>
                       </div>
 
-                    </div> <!-- End Mortgage Tab -->
+                    </div> <!-- End Mortgage Tab -->`;
+}
 
-                    <div class="tab-pane fade"
+function renderRentalTab() {
+  return `<div class="tab-pane fade"
                       id="rental-pane"
                       role="tabpanel"
                       aria-labelledby="rental-tab">
@@ -740,9 +907,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                         </div>
                       </div>
 
-                    </div> <!-- End Rental Tab -->
+                    </div> <!-- End Rental Tab -->`;
+}
 
-                    <div class="tab-pane fade"
+function renderSaleTab() {
+  return `<div class="tab-pane fade"
                       id="sale-pane"
                       role="tabpanel"
                       aria-labelledby="sale-tab">
@@ -795,125 +964,16 @@ async function showFixedAssetModal(assetId = null, options = {}) {
                         </div>
                       </div>
 
-                    </div> <!-- End Sale Tab -->
+                    </div> <!-- End Sale Tab -->`;
+}
 
-                    <div class="tab-pane fade"
+function renderDocumentsTab() {
+  return `<div class="tab-pane fade"
                       id="documents-pane"
                       role="tabpanel"
                       aria-labelledby="documents-tab">
 
                       <div id="fixedAssetDocumentManagerContainer"></div>
 
-                    </div> <!-- End Documents Tab -->
-
-              </div> <!-- End Tab Content -->
-
-          </form>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secondary-custom" onclick="handleAssetWindowClose()" data-i18n="cancel">Cancel</button>
-            <button class="btn-primary-custom" onclick="saveFixedAsset(${assetId})" data-i18n="save">Save</button>
-        </div>
-    `;
-
-  showModal(html);
-  applyTranslations();
-  await populateGoldSettingsDropdowns();
-  const propertyTab = document.getElementById("property-tab");
-  const statusField = document.getElementById("fa_status");
-  const salePriceField = document.getElementById("fa_sale_price");
-  const sellingExpensesField = document.getElementById("fa_selling_expenses");
-  const currentValueField = document.getElementById("fa_current_value");
-  const monthlyRentField = document.getElementById("fa_monthly_rent");
-  const remainingBalanceField = document.getElementById("fa_remaining_balance");
-  const assetTypeField = document.getElementById("fa_type");
-  const goldPurityField = document.getElementById("gd_purity");
-  const goldUnitField = document.getElementById("gd_unit");
-
-  if (statusField) {
-    statusField.addEventListener("change", toggleSaleTabVisibility);
-  }
-
-  if (salePriceField) {
-    salePriceField.addEventListener("input", updateNetSaleAmount);
-  }
-
-  if (sellingExpensesField) {
-    sellingExpensesField.addEventListener("input", updateNetSaleAmount);
-  }
-
-  if (currentValueField) {
-    currentValueField.addEventListener("input", () => {
-      updateMortgageSummary();
-      updateRentalSummary();
-    });
-  }
-
-  if (monthlyRentField) {
-    monthlyRentField.addEventListener("input", updateRentalSummary);
-  }
-
-  if (remainingBalanceField) {
-    remainingBalanceField.addEventListener("input", updateMortgageSummary);
-  }
-
-  if (assetTypeField) {
-    assetTypeField.addEventListener("change", toggleRealEstateDependentTabs);
-  }
-
-  if (goldPurityField) {
-    goldPurityField.addEventListener("change", updateGoldValuation);
-  }
-
-  if (goldUnitField) {
-    goldUnitField.addEventListener("input", updateGoldValuation);
-  }
-
-  if (window.DocumentManager) {
-    window.DocumentManager.init({
-      containerId: "fixedAssetDocumentManagerContainer",
-      parentType: "fixed_asset",
-      parentId: assetId,
-      disabledMessage: t("documents_save_first", "Save this record first to manage documents."),
-    });
-  }
-
-  await loadFixedAssetSyncDropdownData();
-  resetPurchasePaymentsForm();
-  addPurchasePaymentRow();
-  propertyPhotos = [];
-  renderPropertyPhotoGallery();
-  ["renovationContainer", "furnitureContainer", "valuationContainer", "maintenanceContainer", "insuranceContainer"].forEach((id) => {
-    const container = document.getElementById(id);
-    if (container) container.innerHTML = "";
-  });
-  resetSaleForm();
-  toggleSaleDepositBankField();
-  resetMortgageForm();
-  resetRentalForm();
-  toggleSaleTabVisibility();
-  toggleRealEstateDependentTabs();
-
-  propertyTab.addEventListener("shown.bs.tab", function () {
-    if (propertyMap) {
-      setTimeout(() => {
-        propertyMap.invalidateSize();
-      }, 50);
-    }
-  });
-
-  document
-    .getElementById("btnLocateProperty")
-    .addEventListener("click", locatePropertyOnMap);
-  const refreshValuationButton = document.getElementById("btnRefreshPropertyValuation");
-  if (refreshValuationButton) {
-    refreshValuationButton.addEventListener("click", refreshPropertyValuation);
-  }
-  initializePropertyMap();
-  if (isEdit) {
-    await loadFixedAsset(assetId);
-  } else {
-    maybeRefreshPurchaseUsdRateOnLoad();
-  }
+                    </div> <!-- End Documents Tab -->`;
 }
-
