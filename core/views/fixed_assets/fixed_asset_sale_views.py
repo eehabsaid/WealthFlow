@@ -98,7 +98,7 @@ class AssetSaleView(View):
         asset = get_object_or_404(FixedAsset, pk=asset_id)
 
         if not hasattr(asset, "sale"):
-            return JsonResponse({}, status=404)
+            return JsonResponse({"deleted": False}, status=200)
 
         try:
             with transaction.atomic():
