@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import date
 from typing import Optional
-from urllib import error, parse, request
+from urllib import parse
 
 from django.db import transaction
 from django.utils import timezone

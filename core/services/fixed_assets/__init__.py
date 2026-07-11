@@ -1,2 +1,2 @@
-from .gold_valuation_service import GoldValuationService
-from .property_valuation_service import PropertyValuationService
+from .gold_valuation_service import GoldValuationService as GoldValuationService
+from .property_valuation_service import PropertyValuationService as PropertyValuationService

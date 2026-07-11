@@ -1540,7 +1540,7 @@ class PropertyValuationServiceTest(TestCase):
         self.assertTrue(payload["updated"])
         self.assertEqual(payload["provider"], "configured_market_rate")
 
-    @patch("core.services.fixed_assets.property_valuation_service.request.urlopen")
+    @patch("core.integrations.property_valuation_api.request.urlopen")
     def test_refresh_asset_uses_external_provider_when_enabled(self, mock_urlopen):
         AppSettings.set("property_valuation_external_enabled", "true")
         AppSettings.set(
