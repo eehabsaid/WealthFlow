@@ -102,3 +102,7 @@ SALARY_TRIGGER_CHOICES = [
     ("days_before_eom", "Days Before End of Month"),
     ("days_after_som", "Days After Start of Month"),
 ]
+
+__all__ = [
+    "Decimal",
+]

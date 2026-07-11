@@ -1,7 +1,6 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
 import json
-from decimal import Decimal, InvalidOperation
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -10,149 +9,27 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
-from django.db import transaction
-from django.db.models import Sum, Count
-from django.db.utils import OperationalError, ProgrammingError
 from django.shortcuts import render, get_object_or_404, redirect
-from django.core.exceptions import ValidationError
 from core.models import (
-    Company,
-    SalaryEntry,
-    Bank,
-    BalanceEntry,
     AppSettings,
-    ExchangeRate,
-    GoldPrice,
-    GoldPriceHistory,
-    Currency,
-    ExpenseCategory,
-    ExpenseSubcategory,
-    Expense,
-    BankCertificate,
-    BankCertificateInterestHistory,
-    _is_certificate_active,
     PagePermission,
     PAGE_PERMISSION_CHOICES,
     UserProfile,
-    ReminderRule,
-    CertificateStatus,
-    ReminderLog,
-    REMINDER_TYPE_CHOICES,
-    SALARY_TRIGGER_CHOICES,
-    FixedAsset,
-    RealEstateDetails,
-    VehicleDetails,
-    GoldDetails,
-    OtherAssetDetails,
-    AssetRenovation,
-    AssetMaintenance,
-    AssetInsurance,
-    AssetFurniture,
-    AssetValuationHistory,
-    AssetPurchasePayment,
-    AssetSale,
-    AssetPhoto,
-    AssetMortgage,
-    AssetRental,
-    GoldTypeSetting,
-    GoldPuritySetting,
-    EmailTemplate,
-    Goal,
-    PerDiem,
 
 )
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
-import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from openpyxl.utils import get_column_letter
-from django.http import HttpResponse
 
-import json as _json
 import datetime
-import os
-import io
-from django.conf import settings
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import cm
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer,
-    Table,
-    TableStyle,
-    HRFlowable,
-    Image as RLImage,
-    PageBreak,
-)
-from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from arabic_reshaper import reshape
-from bidi.algorithm import get_display
-from django.views.decorators.http import require_http_methods
-from core.services.balance.net_worth_service import NetWorthService
-from core.services.balance.financial_sync_service import FinancialSyncService
-from core.services.shared.document_service import DocumentService
-from core.services.shared.exchange_rate_service import ExchangeRateService
-from core.services.fixed_assets.gold_valuation_service import GoldValuationService
-from core.services.fixed_assets.property_valuation_service import PropertyValuationService
-from core.services.shared.reminder_automation_service import ReminderAutomationService
-from core.services.shared.auth_workflow_service import AuthWorkflowService, EmailTemplateService
-from core.services.financial_advisor.cash_flow_forecast_service import CashFlowForecastService
-from core.services.financial_advisor.goal_planning_service import GoalPlanningService
-from core.services.financial_advisor.portfolio_optimizer_service import PortfolioOptimizerService
-from core.services.financial_advisor.wealth_growth_forecast_service import WealthGrowthForecastService
+from core.services.shared.auth_workflow_service import AuthWorkflowService
 
-
-
-from django.contrib.auth import get_user_model
 User = get_user_model()
 from core.constants import (
     PAGE_PERMISSION_KEYS,
-    MONTH_ORDER,
-    REAL_ESTATE_ASSET_TYPES,
-    VEHICLE_ASSET_TYPES,
-    GOLD_ASSET_TYPES,
-    OTHER_ASSET_TYPES,
-    ASSET_PAYMENT_METHOD_CASH,
-    ASSET_PAYMENT_METHOD_CARD,
-    ASSET_PAYMENT_METHOD_BANK,
-    ASSET_PAYMENT_METHOD_BANK_TRANSFER,
-    ASSET_PAYMENT_METHOD_NORMALIZED,
-    GOLD_UNIT_TO_GRAMS,
 )
-from core.utils import (
-    _parse_iso_date,
-    month_sort_key,
-    _to_decimal,
-    _gold_unit_factor,
-    _gold_weight_in_grams,
-    _normalize_gold_purity,
-    _gold_sell_price_per_gram,
-    _gold_cashback_per_gram,
-)
-from core.validators import _api_auth_required
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-import sys
-if not __name__.endswith('.auth_views') and not __name__ == 'core.views.auth_views':
-    try:
-        from .auth_views import AdminRequiredMixin
-    except (ImportError, ValueError):
-        pass
-
-if not __name__.endswith('.certificate_views') and not __name__ == 'core.views.certificate_views':
-    try:
-        from .certificate_views import _run_certificate_interest_sync
-    except (ImportError, ValueError):
-        pass
-
-
 
 class AdminRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -162,9 +39,6 @@ class AdminRequiredMixin(UserPassesTestMixin):
         if not self.request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         return JsonResponse({"error": "Admin access required"}, status=403)
-
-
-
 
 def _build_user_dict(user):
     profile = AuthWorkflowService.get_profile(user)
@@ -179,16 +53,10 @@ def _build_user_dict(user):
         "account_status": profile.account_status,
     }
 
-
-
-
 def _get_user_allowed_pages(user):
     if user.is_staff or user.is_superuser:
         return PAGE_PERMISSION_KEYS
     return [perm.page for perm in user.page_permissions.all()]
-
-
-
 
 def _request_lang(request):
     return (
@@ -199,9 +67,6 @@ def _request_lang(request):
         or "en"
     )
 
-
-
-
 def _render_auth(request, template_name, extra_context=None):
     context = {"lang_code": _request_lang(request)}
     if extra_context:
@@ -209,9 +74,6 @@ def _render_auth(request, template_name, extra_context=None):
     response = render(request, template_name, context)
     response.set_cookie("wf_lang", context["lang_code"], max_age=31536000, samesite="Lax")
     return response
-
-
-
 
 def _render_auth_status(request, *, title_key, message_key, tone="info", cta_href="", cta_key=""):
     return _render_auth(
@@ -225,9 +87,6 @@ def _render_auth_status(request, *, title_key, message_key, tone="info", cta_hre
             "cta_key": cta_key,
         },
     )
-
-
-
 
 def login_view(request):
     if request.method == "POST":
@@ -250,9 +109,6 @@ def login_view(request):
             return response
         return _render_auth(request, "login.html", {"error_key": "auth_error_invalid_login", "prefill_username": username})
     return _render_auth(request, "login.html")
-
-
-
 
 def signup_view(request):
     if request.method == "POST":
@@ -281,9 +137,6 @@ def signup_view(request):
 
     return _render_auth(request, "signup.html")
 
-
-
-
 def forgot_password_view(request):
     if request.method == "POST":
         if request.content_type == "application/json":
@@ -306,9 +159,6 @@ def forgot_password_view(request):
             },
         )
     return _render_auth(request, "forgot_password.html", {"prefill_email": request.GET.get("email", "").strip()})
-
-
-
 
 def reset_password_view(request, token):
     if request.method == "GET":
@@ -342,9 +192,6 @@ def reset_password_view(request, token):
         return _render_auth(request, "reset_password.html", {"error_key": result.error_key, "reset_token": token})
     return _render_auth(request, "reset_password.html", {"reset_token": token})
 
-
-
-
 def verify_email_view(request, token):
     result = AuthWorkflowService.verify_email(request, token)
     if result.ok:
@@ -365,9 +212,6 @@ def verify_email_view(request, token):
         cta_key="auth_login_button",
     )
 
-
-
-
 def pending_approval_view(request):
     return _render_auth_status(
         request,
@@ -377,9 +221,6 @@ def pending_approval_view(request):
         cta_href="/accounts/login/",
         cta_key="auth_login_button",
     )
-
-
-
 
 def account_rejected_view(request):
     return _render_auth_status(
@@ -391,9 +232,6 @@ def account_rejected_view(request):
         cta_key="auth_forgot_password_button",
     )
 
-
-
-
 def account_disabled_view(request):
     return _render_auth_status(
         request,
@@ -403,9 +241,6 @@ def account_disabled_view(request):
         cta_href="/accounts/login/",
         cta_key="auth_login_button",
     )
-
-
-
 
 def admin_approve_account_view(request, token):
     result = AuthWorkflowService.approve_user(token, actor=request.user if request.user.is_authenticated else None)
@@ -418,9 +253,6 @@ def admin_approve_account_view(request, token):
         cta_key="auth_login_button",
     )
 
-
-
-
 def admin_reject_account_view(request, token):
     result = AuthWorkflowService.reject_user(token, actor=request.user if request.user.is_authenticated else None)
     return _render_auth_status(
@@ -432,15 +264,9 @@ def admin_reject_account_view(request, token):
         cta_key="auth_login_button",
     )
 
-
-
-
 def logout_view(request):
     logout(request)
     return redirect("/accounts/login/")
-
-
-
 
 class LoginAPIView(View):
     @method_decorator(csrf_exempt)
@@ -474,9 +300,6 @@ class LoginAPIView(View):
             }
         )
 
-
-
-
 class SignupAPIView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -504,9 +327,6 @@ class SignupAPIView(View):
             return JsonResponse(payload, status=400)
         return JsonResponse({"message_key": result.message_key}, status=201)
 
-
-
-
 class LogoutAPIView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -515,9 +335,6 @@ class LogoutAPIView(View):
     def post(self, request):
         logout(request)
         return JsonResponse({"success": True})
-
-
-
 
 class CurrentUserView(View):
     def get(self, request):
@@ -529,9 +346,6 @@ class CurrentUserView(View):
                 "allowed_pages": _get_user_allowed_pages(request.user),
             }
         )
-
-
-
 
 class UserListView(AdminRequiredMixin, View):
     def get(self, request):
@@ -593,9 +407,6 @@ class UserListView(AdminRequiredMixin, View):
             AuthWorkflowService.disable_user(user, actor=request.user)
         return JsonResponse({"user": _build_user_dict(user)}, status=201)
 
-
-
-
 class UserDetailView(AdminRequiredMixin, View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -631,9 +442,6 @@ class UserDetailView(AdminRequiredMixin, View):
         user.delete()
         return JsonResponse({"deleted": pk})
 
-
-
-
 class UserPermissionListView(AdminRequiredMixin, View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -663,9 +471,6 @@ class UserPermissionListView(AdminRequiredMixin, View):
         return JsonResponse(
             {"permission": perm.to_dict()}, status=201 if created else 200
         )
-
-
-
 
 class UserBulkActionView(AdminRequiredMixin, View):
     @method_decorator(csrf_exempt)
@@ -707,9 +512,6 @@ class UserBulkActionView(AdminRequiredMixin, View):
 
         return JsonResponse({"changed": changed})
 
-
-
-
 class UserPermissionDetailView(AdminRequiredMixin, View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -720,15 +522,9 @@ class UserPermissionDetailView(AdminRequiredMixin, View):
         perm.delete()
         return JsonResponse({"deleted": pk})
 
-
-
-
 class PagePermissionChoicesView(AdminRequiredMixin, View):
     def get(self, request):
         return JsonResponse({"available_pages": PAGE_PERMISSION_CHOICES})
-
-
-
 
 @login_required(login_url="/accounts/login/")
 def user_management_page(request):
@@ -737,17 +533,11 @@ def user_management_page(request):
         return redirect("/")
     return render(request, "user_management.html")
 
-
-
-
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """Auto-create a UserProfile whenever a new User is created."""
     if created:
         UserProfile.objects.get_or_create(user=instance)
-
-
-
 
 @method_decorator(csrf_exempt, name="dispatch")
 class UpdateProfileView(View):
@@ -833,7 +623,5 @@ class UpdateProfileView(View):
             {"profile": profile.to_dict(), "user": _build_user_dict(request.user)}
         )
 
-
 # ── Excel Export View ──────────────────────────────────────────────────────────
-
 

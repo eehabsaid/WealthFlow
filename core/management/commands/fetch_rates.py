@@ -4,7 +4,7 @@ Fetches latest exchange rates AND gold price and saves to DB.
 Can be scheduled with Windows Task Scheduler or cron.
 """
 from django.core.management.base import BaseCommand
-import urllib.request, json
+import json
 
 
 class Command(BaseCommand):

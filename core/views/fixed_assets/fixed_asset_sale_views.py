@@ -19,7 +19,6 @@ from core.services.fixed_assets.asset_sale_service import _resolve_sale_deposit_
 from core.services.fixed_assets.asset_purchase_service import _apply_asset_balance_delta
 from core.services.fixed_assets.gold_sync_service import _sync_gold_balance_from_assets
 
-
 @method_decorator(csrf_exempt, name="dispatch")
 class AssetSaleView(View):
 
@@ -129,5 +128,4 @@ class AssetSaleView(View):
             )
 
         return JsonResponse({"deleted": True})
-
 

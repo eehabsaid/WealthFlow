@@ -15,24 +15,19 @@ from core.utils import (
     _to_decimal,
 )
 
-
 def _normalize_asset_payment_method(method_value):
     normalized = str(method_value or "").strip().lower()
     return ASSET_PAYMENT_METHOD_NORMALIZED.get(normalized, ASSET_PAYMENT_METHOD_CASH)
 
-
 def _asset_payment_requires_bank(method_value):
     return _normalize_asset_payment_method(method_value) != ASSET_PAYMENT_METHOD_CASH
-
 
 def _asset_payment_currency_required(currency_id):
     return currency_id is not None and str(currency_id).strip() != ""
 
-
 def _default_egp_currency_id():
     currency = Currency.objects.filter(code__iexact="EGP").order_by("id").first()
     return currency.id if currency else None
-
 
 def _normalize_purchase_payments_payload(rows, purchase_price, purchase_currency_id=None, allow_empty=False):
     normalized_rows = []
@@ -104,7 +99,6 @@ def _normalize_purchase_payments_payload(rows, purchase_price, purchase_currency
 
     return normalized_rows
 
-
 def _get_asset_cash_balance_entry(currency_id, bank_id):
     qs = BalanceEntry.objects.select_for_update().filter(
         balance_type=BalanceEntry.BalanceType.CASH,
@@ -115,7 +109,6 @@ def _get_asset_cash_balance_entry(currency_id, bank_id):
     else:
         qs = qs.filter(bank__isnull=True)
     return qs.order_by("id").first()
-
 
 def _apply_asset_balance_delta(currency_id, payment_method, bank_id, amount_delta):
     delta = _to_decimal(amount_delta)
@@ -136,7 +129,6 @@ def _apply_asset_balance_delta(currency_id, payment_method, bank_id, amount_delt
     entry.amount = next_amount
     entry.save(update_fields=["amount"])
 
-
 def _apply_asset_purchase_rows_delta(rows, sign):
     sign_multiplier = Decimal("1") if sign >= 0 else Decimal("-1")
     for row in rows:
@@ -146,7 +138,6 @@ def _apply_asset_purchase_rows_delta(rows, sign):
             bank_id=row.get("bank_id"),
             amount_delta=sign_multiplier * _to_decimal(row.get("amount")),
         )
-
 
 def _purchase_rows_from_instances(instances):
     return [
@@ -159,7 +150,6 @@ def _purchase_rows_from_instances(instances):
         for item in instances
     ]
 
-
 def _sync_asset_purchase_payments(asset, rows):
     AssetPurchasePayment.objects.filter(asset=asset).delete()
     for row in rows:
@@ -170,5 +160,4 @@ def _sync_asset_purchase_payments(asset, rows):
             bank_id=row.get("bank_id"),
             amount=row["amount"],
         )
-
 

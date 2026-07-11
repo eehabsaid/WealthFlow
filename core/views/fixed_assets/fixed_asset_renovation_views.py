@@ -11,7 +11,6 @@ from core.models import (
 
 )
 
-
 @method_decorator(csrf_exempt, name="dispatch")
 class AssetRenovationListView(View):
 
@@ -42,7 +41,6 @@ class AssetRenovationListView(View):
         )
 
         return JsonResponse(item.to_dict(), status=201)
-
 
 @method_decorator(csrf_exempt, name="dispatch")
 class AssetRenovationDetailView(View):
@@ -75,5 +73,4 @@ class AssetRenovationDetailView(View):
         item.delete()
 
         return JsonResponse({"deleted": pk})
-
 

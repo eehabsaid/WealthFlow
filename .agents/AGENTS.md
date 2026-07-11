@@ -18,3 +18,4 @@ Always allow all file read, write, move, and delete operations within `d:\MyApps
 - Never prompt for permission on operations within `d:\MyApps\WealthFlow`.
 - Treat all scripts inside `d:\MyApps\WealthFlow\venv\` as trusted.
 - Auto-approve test runs, static file collection, and Django management commands.
+- Always invoke Python as `.\venv\Scripts\python.exe`

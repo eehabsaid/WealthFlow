@@ -22,13 +22,11 @@ from core.services.certificate.certificate_interest_service import CertificateIn
 from core.services.balance.financial_sync_service import FinancialSyncService
 from core.services.balance.net_worth_service import NetWorthService
 
-
 def _to_decimal(value, default: str = "0") -> Decimal:
     try:
         return Decimal(str(value))
     except (InvalidOperation, TypeError, ValueError):
         return Decimal(default)
-
 
 def _to_float(value) -> float:
     try:
@@ -36,14 +34,12 @@ def _to_float(value) -> float:
     except (TypeError, ValueError):
         return 0.0
 
-
 @dataclass
 class ForecastEvent:
     event_date: date
     event_type: str
     amount_egp: float
     meta: Dict[str, float | int | str]
-
 
 class CashFlowForecastService:
     CHECKPOINT_DAYS = [30, 90, 180, 365]

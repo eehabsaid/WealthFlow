@@ -7,13 +7,11 @@ from typing import Dict, List
 from core.models import Goal
 from core.services.balance.net_worth_service import NetWorthService
 
-
 def _to_float(value) -> float:
     try:
         return float(value or 0)
     except (TypeError, ValueError):
         return 0.0
-
 
 @dataclass
 class GoalCalc:
@@ -32,7 +30,6 @@ class GoalCalc:
     status: str
     status_key: str
     linked_asset_name: str
-
 
 class GoalPlanningService:
     def __init__(self, today: date | None = None):

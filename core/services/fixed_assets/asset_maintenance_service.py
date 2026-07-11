@@ -13,7 +13,6 @@ from core.constants import (
     OTHER_ASSET_TYPES,
 )
 
-
 def _sync_asset_maintenance(asset, items):
     AssetMaintenance.objects.filter(asset=asset).delete()
     if asset.asset_type not in VEHICLE_ASSET_TYPES:
@@ -30,7 +29,6 @@ def _sync_asset_maintenance(asset, items):
             notes=item.get("notes", ""),
         )
 
-
 def _sync_asset_insurance(asset, items):
     AssetInsurance.objects.filter(asset=asset).delete()
     if asset.asset_type not in VEHICLE_ASSET_TYPES:
@@ -46,7 +44,6 @@ def _sync_asset_insurance(asset, items):
             expiry_date=item.get("expiry_date") or None,
             premium=item.get("premium", 0),
         )
-
 
 def _sync_asset_furniture(asset, items):
     if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
@@ -68,7 +65,6 @@ def _sync_asset_furniture(asset, items):
             quantity=item.get("quantity", 1),
             notes=item.get("notes", ""),
         )
-
 
 def _sync_asset_valuation_history(asset, items):
     if asset.asset_type not in REAL_ESTATE_ASSET_TYPES and asset.asset_type not in VEHICLE_ASSET_TYPES and asset.asset_type not in OTHER_ASSET_TYPES:
@@ -96,5 +92,4 @@ def _sync_asset_valuation_history(asset, items):
         asset.last_valuation_date = latest_item.valuation_date
         asset.valuation_source = latest_item.valuation_source
         asset.save()
-
 

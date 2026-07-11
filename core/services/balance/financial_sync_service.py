@@ -4,18 +4,15 @@ from decimal import Decimal, InvalidOperation
 
 from core.models import AssetMortgage, AssetRental, AssetSale, BalanceEntry
 
-
 REAL_ESTATE_ASSET_TYPES = {"Real Estate"}
 RENTAL_BALANCE_NOTE_PREFIX = "wealthflow:rental-income:asset:"
 MORTGAGE_BALANCE_NOTE_PREFIX = "wealthflow:mortgage-liability:asset:"
-
 
 def _to_decimal(value, default="0") -> Decimal:
     try:
         return Decimal(str(value))
     except (InvalidOperation, TypeError, ValueError):
         return Decimal(default)
-
 
 class FinancialSyncService:
     def __init__(self):

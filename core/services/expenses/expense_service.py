@@ -13,14 +13,11 @@ def _normalize_expense_payment_method(method_value):
         return "card"
     return method
 
-
 def _expense_requires_bank(method_value):
     return _normalize_expense_payment_method(method_value) in {"bank", "card"}
 
-
 def _expense_affects_balance(method_value):
     return _normalize_expense_payment_method(method_value) in {"cash", "bank", "card"}
-
 
 def _get_target_cash_balance_entry(payment_method, bank_id):
     qs = BalanceEntry.objects.select_for_update().filter(
@@ -42,7 +39,6 @@ def _get_target_cash_balance_entry(payment_method, bank_id):
 
     return qs.order_by("id").first()
 
-
 def _apply_expense_balance_delta(payment_method, bank_id, amount_delta):
     if not _expense_affects_balance(payment_method):
         return
@@ -60,7 +56,6 @@ def _apply_expense_balance_delta(payment_method, bank_id, amount_delta):
 
     entry.amount = Decimal(entry.amount or 0) + delta
     entry.save(update_fields=["amount"])
-
 
 class ExpenseService(object):
     @staticmethod

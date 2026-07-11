@@ -6,7 +6,6 @@ from django.db import transaction
 
 from core.models import GoldPrice, GoldPriceHistory
 
-
 @dataclass
 class GoldPriceRefreshResult:
     saved: int = 0
@@ -15,7 +14,6 @@ class GoldPriceRefreshResult:
 
     def to_dict(self):
         return {"saved": self.saved, "source_gold": self.source_gold, "source_fx": self.source_fx}
-
 
 class GoldValuationService:
     def refresh_latest_prices(self):

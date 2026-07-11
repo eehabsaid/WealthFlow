@@ -225,7 +225,7 @@ def build_salary_sheet(ws, company, entries):
     last_col = "F"
 
     # ── Theme RGB fills (from original Balance.xlsx theme1.xml) ──────────────
-    FILL_WHITE = _fill("FFFFFFFF")  # theme 1 lt1  — Salary Details row
+    _fill("FFFFFFFF")  # theme 1 lt1  — Salary Details row
     FILL_DARK_BLUE = _fill("FF1F497D")  # theme 2 dk2  — headers, year hdg, total rows
     FILL_RED_DATA = _fill("FFC0504D")  # theme 5 acc2 — data rows
     FILL_BLACK = _fill("FF000000")  # theme 0 dk1  — SUMMARY/grand total row
@@ -233,8 +233,6 @@ def build_salary_sheet(ws, company, entries):
     # ── Font colors ───────────────────────────────────────────────────────────
     GREY = "FF7F7F7F"  # header col labels
     RED_TTL = "FFFF0000"  # "Salary Details" title
-    WHITE = "FFFFFFFF"  # bold on dark backgrounds
-    CREAM = "FFEEECE1"  # year heading font (theme 3 lt2)
 
     # ── Row heights ───────────────────────────────────────────────────────────
     ws.row_dimensions[1].height = 14.25
@@ -655,7 +653,7 @@ def build_gold_price_sheet(ws, gold_qs, balance_entries):
         c_head.border = _thin()
 
     # Values
-    vals = [f"=(C2+28.5)*(BALANCE!F2)", 897375, "=G11-H11"]
+    vals = ["=(C2+28.5)*(BALANCE!F2)", 897375, "=G11-H11"]
     for c, val in enumerate(vals, 7):
         c_val = ws.cell(row=11, column=c, value=val)
         c_val.font = _f(name="Arial")

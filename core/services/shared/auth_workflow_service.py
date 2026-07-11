@@ -6,7 +6,6 @@ import smtplib
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
-from string import Template
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -21,7 +20,6 @@ from core.models import AppSettings, AuthAuditLog, AuthToken, EmailTemplate, Use
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
-
 
 EMAIL_TEMPLATE_DEFINITIONS = [
     {
@@ -69,7 +67,6 @@ PROFILE_STATUS_ERROR_KEYS = {
     "disabled": "auth_status_disabled",
 }
 
-
 @dataclass
 class AuthFlowResult:
     ok: bool
@@ -79,7 +76,6 @@ class AuthFlowResult:
     profile: UserProfile | None = None
     error_key: str = ""
     extra: dict | None = None
-
 
 class EmailTemplateService:
     locale_dir = Path(settings.BASE_DIR) / "static" / "i18n"
@@ -155,10 +151,8 @@ class EmailTemplateService:
             "body": AuthWorkflowService.replace_placeholders(body, context),
         }
 
-
 class EmailDeliveryError(Exception):
     pass
-
 
 class AuthWorkflowService:
     token_ttl = timedelta(hours=24)

@@ -9,7 +9,6 @@ from django.utils import timezone
 
 from core.models import BankCertificate, CertificateStatus
 
-
 @dataclass
 class CertificateAutomationResult:
     processed_certificates: int = 0
@@ -22,7 +21,6 @@ class CertificateAutomationResult:
             "closed_certificates": self.closed_certificates,
             "closed_ids": self.closed_ids,
         }
-
 
 class CertificateAutomationService:
     def close_matured_certificates(self, today: Optional[date] = None) -> CertificateAutomationResult:

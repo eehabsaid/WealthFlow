@@ -14,7 +14,6 @@ from core.utils import (
     _parse_iso_date,
 )
 
-
 def _sync_other_asset_details(asset, details_data):
     if asset.asset_type not in OTHER_ASSET_TYPES or not details_data:
         if hasattr(asset, "other_asset_details"):
@@ -33,7 +32,6 @@ def _sync_other_asset_details(asset, details_data):
             "notes": details_data.get("notes", ""),
         },
     )
-
 
 def _sync_asset_mortgage(asset, mortgage_data):
     if asset.asset_type not in REAL_ESTATE_ASSET_TYPES or not mortgage_data:
@@ -70,7 +68,6 @@ def _sync_asset_mortgage(asset, mortgage_data):
         },
     )
 
-
 def _sync_asset_rental(asset, rental_data):
     if asset.asset_type not in REAL_ESTATE_ASSET_TYPES or not rental_data:
         if hasattr(asset, "rental"):
@@ -105,5 +102,4 @@ def _sync_asset_rental(asset, rental_data):
             "notes": rental_data.get("notes", ""),
         },
     )
-
 

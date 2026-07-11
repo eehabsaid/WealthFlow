@@ -11,7 +11,6 @@ from core.services.fixed_assets.gold_valuation_service import GoldValuationServi
 from core.services.fixed_assets.property_valuation_service import PropertyValuationService
 from core.services.shared.reminder_automation_service import ReminderAutomationService
 
-
 @dataclass
 class ScheduledJobResult:
     job_id: str
@@ -27,11 +26,9 @@ class ScheduledJobResult:
             "error": self.error,
         }
 
-
 class SchedulerJobSpec(TypedDict):
     label: str
     runner: Callable[[Optional[date]], dict]
-
 
 class SchedulerService:
     def __init__(self):

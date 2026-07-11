@@ -1,3 +1,4 @@
+from core.views.certificate_views import _run_certificate_interest_sync
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
 from django.contrib.auth import get_user_model
@@ -20,29 +21,13 @@ from core.models import (
 import datetime
 from core.services.balance.net_worth_service import NetWorthService
 
-
-
-from django.contrib.auth import get_user_model
 User = get_user_model()
-from core.utils import (
-    _parse_iso_date,
-)
-from core.validators import _api_auth_required
-
 
 if not __name__.endswith('.auth_views') and not __name__ == 'core.views.auth_views':
     try:
         pass
     except (ImportError, ValueError):
         pass
-
-if not __name__.endswith('.certificate_views') and not __name__ == 'core.views.certificate_views':
-    try:
-        from .certificate_views import _run_certificate_interest_sync
-    except (ImportError, ValueError):
-        pass
-
-
 
 def _parse_iso_date(value):
     if not value:
@@ -56,23 +41,14 @@ def _parse_iso_date(value):
             return value
     return value
 
-
-
-
 @login_required(login_url="/accounts/login/")
 def index(request):
     return render(request, "index.html")
-
-
-
 
 def _api_auth_required(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "Authentication required"}, status=401)
     return None
-
-
-
 
 @method_decorator(csrf_exempt, name="dispatch")
 class DashboardSummaryView(View):
@@ -158,5 +134,3 @@ class DashboardSummaryView(View):
             }
         )
 
-
-from core.models import SalaryEntry

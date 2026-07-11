@@ -10,7 +10,6 @@ from django.core.exceptions import ValidationError
 
 from core.models import AppSettings, AssetInsurance, Bank, BankCertificate, Document, FixedAsset
 
-
 ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".jpg", ".jpeg", ".png"}
 ALLOWED_MIME_TYPES = {
     "application/pdf",
@@ -23,14 +22,12 @@ ALLOWED_MIME_TYPES = {
 }
 DEFAULT_MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
-
 PARENT_MODEL_MAP: Dict[str, Type] = {
     "fixed_asset": FixedAsset,
     "bank_certificate": BankCertificate,
     "bank": Bank,
     "asset_insurance": AssetInsurance,
 }
-
 
 DOCUMENT_CATEGORIES: Dict[str, List[str]] = {
     "fixed_asset": [
@@ -73,14 +70,12 @@ DOCUMENT_CATEGORIES: Dict[str, List[str]] = {
     ],
 }
 
-
 @dataclass
 class FilePayload:
     name: str
     mime_type: str
     size: int
     content: bytes
-
 
 class DocumentService:
     def _max_upload_size(self) -> int:

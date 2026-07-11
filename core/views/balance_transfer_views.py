@@ -5,8 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from django.db.utils import OperationalError
-from core.models import BalanceTransfer, Bank, Currency
+from core.models import BalanceTransfer
 
 @method_decorator(csrf_exempt, name="dispatch")
 class BalanceTransferListView(View):

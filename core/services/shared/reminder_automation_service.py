@@ -19,7 +19,6 @@ from core.models import (
     VehicleDetails,
 )
 
-
 @dataclass
 class ReminderAutomationResult:
     reminders: list
@@ -30,7 +29,6 @@ class ReminderAutomationResult:
 
     def to_dict(self):
         return {"reminders": self.reminders, "count": self.count}
-
 
 class ReminderAutomationService:
     """Evaluates active reminder rules and event-based reminders in one place."""

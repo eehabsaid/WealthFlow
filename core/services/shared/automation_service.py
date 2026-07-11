@@ -4,7 +4,6 @@ from datetime import date
 
 from core.services.shared.scheduler_service import SchedulerService
 
-
 class AutomationService:
     """Central automation orchestrator used by the scheduler command."""
 

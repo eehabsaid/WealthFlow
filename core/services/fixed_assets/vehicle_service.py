@@ -11,7 +11,6 @@ from core.utils import (
     _parse_iso_date,
 )
 
-
 def _sync_vehicle_details(asset, details_data):
     if asset.asset_type not in VEHICLE_ASSET_TYPES or not details_data:
         if hasattr(asset, "vehicle_details"):
@@ -34,5 +33,4 @@ def _sync_vehicle_details(asset, details_data):
             "color": details_data.get("color", ""),
         },
     )
-
 

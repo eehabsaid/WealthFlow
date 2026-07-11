@@ -1,71 +1,27 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
-from decimal import Decimal, InvalidOperation
-from django.contrib.auth import authenticate, get_user_model, login, logout
+from decimal import Decimal
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.utils import timezone
-from django.db import transaction
 from django.db.models import Sum, Count
-from django.db.utils import OperationalError, ProgrammingError
-from django.shortcuts import render, get_object_or_404, redirect
-from django.core.exceptions import ValidationError
 from core.models import (
     Company,
     SalaryEntry,
     Bank,
     BalanceEntry,
-    AppSettings,
-    ExchangeRate,
-    GoldPrice,
-    GoldPriceHistory,
-    Currency,
-    ExpenseCategory,
-    ExpenseSubcategory,
     Expense,
     BankCertificate,
-    BankCertificateInterestHistory,
-    _is_certificate_active,
-    PagePermission,
     PAGE_PERMISSION_CHOICES,
-    UserProfile,
-    ReminderRule,
-    CertificateStatus,
-    ReminderLog,
-    REMINDER_TYPE_CHOICES,
-    SALARY_TRIGGER_CHOICES,
     FixedAsset,
-    RealEstateDetails,
-    VehicleDetails,
-    GoldDetails,
-    OtherAssetDetails,
-    AssetRenovation,
-    AssetMaintenance,
-    AssetInsurance,
-    AssetFurniture,
-    AssetValuationHistory,
-    AssetPurchasePayment,
-    AssetSale,
-    AssetPhoto,
-    AssetMortgage,
-    AssetRental,
-    GoldTypeSetting,
-    GoldPuritySetting,
-    EmailTemplate,
-    Goal,
-    PerDiem,
 
 )
-from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font
 from django.http import HttpResponse
 
 import json as _json
@@ -83,28 +39,14 @@ from reportlab.platypus import (
     Spacer,
     Table,
     TableStyle,
-    HRFlowable,
     Image as RLImage,
     PageBreak,
 )
-from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from arabic_reshaper import reshape
 from bidi.algorithm import get_display
-from django.views.decorators.http import require_http_methods
 from core.services.balance.net_worth_service import NetWorthService
-from core.services.balance.financial_sync_service import FinancialSyncService
-from core.services.shared.document_service import DocumentService
-from core.services.shared.exchange_rate_service import ExchangeRateService
-from core.services.fixed_assets.gold_valuation_service import GoldValuationService
-from core.services.fixed_assets.property_valuation_service import PropertyValuationService
-from core.services.shared.reminder_automation_service import ReminderAutomationService
-from core.services.shared.auth_workflow_service import AuthWorkflowService, EmailTemplateService
-from core.services.financial_advisor.cash_flow_forecast_service import CashFlowForecastService
-from core.services.financial_advisor.goal_planning_service import GoalPlanningService
-from core.services.financial_advisor.portfolio_optimizer_service import PortfolioOptimizerService
-from core.services.financial_advisor.wealth_growth_forecast_service import WealthGrowthForecastService
 
 
 
@@ -159,8 +101,6 @@ GOLD_UNIT_TO_GRAMS = {
     "tola": Decimal("11.6638038"),
 }
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 def _parse_iso_date(value):
     if not value or str(value).strip() in ("", "None"):
@@ -178,10 +118,6 @@ def _api_auth_required(request):
     return None
 
 
-try:
-    from core.views.auth_views import AdminRequiredMixin
-except (ImportError, ValueError):
-    pass
 
 try:
     from core.views.certificate_views import _run_certificate_interest_sync
@@ -269,9 +205,9 @@ class GenerateReportGenerator(object):
     """
 
     def post(self, request):
-        import json as _json, datetime
+        import json as _json
+        import datetime
         from django.http import HttpResponse, JsonResponse
-        from django.db.models import Sum
 
         try:
             from reportlab.lib.pagesizes import A4
@@ -397,12 +333,12 @@ class GenerateReportGenerator(object):
             topMargin=2 * cm,
             bottomMargin=2 * cm,
         )
-        styles = getSampleStyleSheet()
+        getSampleStyleSheet()
         navy = colors.HexColor("#000080")
         blue = colors.HexColor("#1a6ef5")
         green = colors.HexColor("#00d68f")
         red = colors.HexColor("#ff4d6d")
-        yellow = colors.HexColor("#ffd166")
+        colors.HexColor("#ffd166")
         grey = colors.HexColor("#7b97cc")
 
         H1 = ParagraphStyle(
@@ -429,8 +365,8 @@ class GenerateReportGenerator(object):
             spaceBefore=12,
             fontName=pdf_font,
         )
-        BODY = ParagraphStyle("BODY", fontSize=10, textColor=navy, spaceAfter=4)
-        SUB = ParagraphStyle("SUB", fontSize=9, textColor=grey, spaceAfter=2)
+        ParagraphStyle("BODY", fontSize=10, textColor=navy, spaceAfter=4)
+        ParagraphStyle("SUB", fontSize=9, textColor=grey, spaceAfter=2)
 
         story = []
 
@@ -798,8 +734,6 @@ class GenerateReportGenerator(object):
     # ── Profile update + avatar upload ───────────────────────────
 
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 
 
@@ -824,13 +758,6 @@ def export_excel(request):
 # REMINDER ENGINE VIEWS
 # ════════════════════════════════════════════════════════════════════════════
 
-from core.models import (
-    ReminderRule,
-    CertificateStatus,
-    ReminderLog,
-    REMINDER_TYPE_CHOICES,
-    SALARY_TRIGGER_CHOICES,
-)
 
 
 
@@ -840,7 +767,6 @@ class SalaryReportView(View):
     """Salary + bonus analytics by year and company."""
 
     def get(self, request):
-        from django.db.models import Sum, Count, Q
 
         year = request.GET.get("year")
         company_id = request.GET.get("company_id")
@@ -929,7 +855,6 @@ class BalanceReportView(View):
 
     def get(self, request):
         _run_certificate_interest_sync()
-        from django.db.models import Sum
 
         entries = BalanceEntry.objects.select_related("bank", "currency").all()
         banks = Bank.objects.all()
@@ -986,7 +911,6 @@ class CertificateReportView(View):
 
     def get(self, request):
         from datetime import date, timedelta
-        from django.db.models import Sum, Count
 
         today = date.today()
         active_certs = BankCertificate.objects.select_related("bank", "currency").filter(

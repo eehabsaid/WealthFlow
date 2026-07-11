@@ -9,14 +9,12 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from core.services.shared.document_service import DocumentService
 
-
 def _document_validation_error_response(exc):
     if hasattr(exc, "messages") and exc.messages:
         message = str(exc.messages[0])
     else:
         message = str(exc)
     return JsonResponse({"error": message}, status=400)
-
 
 def _document_database_error_response(exc):
     message = str(exc or "")
@@ -26,7 +24,6 @@ def _document_database_error_response(exc):
             status=503,
         )
     return JsonResponse({"error": "documents_unavailable"}, status=503)
-
 
 @method_decorator(csrf_exempt, name="dispatch")
 class DocumentListUploadView(View):
@@ -60,7 +57,6 @@ class DocumentListUploadView(View):
             return _document_validation_error_response(exc)
         except (OperationalError, ProgrammingError) as exc:
             return _document_database_error_response(exc)
-
 
 @method_decorator(csrf_exempt, name="dispatch")
 class DocumentFileView(View):
@@ -118,7 +114,6 @@ class DocumentFileView(View):
             return JsonResponse({"error": "document_not_found"}, status=404)
         return JsonResponse({"deleted": True})
 
-
 @method_decorator(csrf_exempt, name="dispatch")
 class DocumentCategoriesView(View):
     service = DocumentService()
@@ -132,5 +127,4 @@ class DocumentCategoriesView(View):
             return _document_validation_error_response(exc)
         except (OperationalError, ProgrammingError) as exc:
             return _document_database_error_response(exc)
-
 

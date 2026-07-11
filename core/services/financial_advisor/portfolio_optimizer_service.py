@@ -9,19 +9,16 @@ from django.db.models import Sum
 from core.models import BankCertificate, BalanceEntry, Expense, FixedAsset, SalaryEntry, _is_certificate_active
 from core.services.balance.net_worth_service import NetWorthService
 
-
 def _to_float(value) -> float:
     try:
         return float(value or 0)
     except (TypeError, ValueError):
         return 0.0
 
-
 @dataclass(frozen=True)
 class AllocationBand:
     min_pct: float
     max_pct: float
-
 
 class PortfolioOptimizerService:
     ALLOCATION_LABELS: Dict[str, str] = {

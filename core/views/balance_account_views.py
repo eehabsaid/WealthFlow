@@ -1,3 +1,4 @@
+from core.views.certificate_views import _run_certificate_interest_sync
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
 import json
@@ -15,28 +16,16 @@ from core.models import (
 
 from core.services.balance.net_worth_service import NetWorthService
 
-
-
-from django.contrib.auth import get_user_model
 User = get_user_model()
 from core.utils import (
     _normalize_gold_purity,
 )
-
 
 if not __name__.endswith('.auth_views') and not __name__ == 'core.views.auth_views':
     try:
         pass
     except (ImportError, ValueError):
         pass
-
-if not __name__.endswith('.certificate_views') and not __name__ == 'core.views.certificate_views':
-    try:
-        from .certificate_views import _run_certificate_interest_sync
-    except (ImportError, ValueError):
-        pass
-
-
 
 @method_decorator(csrf_exempt, name="dispatch")
 class BalanceListView(View):
@@ -92,9 +81,6 @@ class BalanceListView(View):
             notes=data.get("notes", ""),
         )
         return JsonResponse(entry.to_dict(), status=201)
-
-
-
 
 @method_decorator(csrf_exempt, name="dispatch")
 class BalanceDetailView(View):

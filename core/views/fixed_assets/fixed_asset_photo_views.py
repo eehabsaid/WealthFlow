@@ -12,7 +12,6 @@ from core.models import (
 )
 from django.http import HttpResponse
 
-
 @method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetPhotoView(View):
 
@@ -55,7 +54,6 @@ class FixedAssetPhotoView(View):
 
         return JsonResponse({"deleted": True})
 
-
 class AssetPhotoView(View):
 
     def get(self, request, photo_id):
@@ -69,5 +67,4 @@ class AssetPhotoView(View):
             photo.image_data,
             content_type=photo.mime_type,
         )
-
 

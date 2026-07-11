@@ -4,7 +4,6 @@ from django.db import transaction
 from django.db.models import F
 from core.models import PerDiem, Company, Currency, Bank, BalanceEntry, ExchangeRate
 
-
 class PerDiemService:
     def get_latest_buy_rate(self, currency_code: str) -> Decimal:
         """

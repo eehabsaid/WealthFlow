@@ -1,6 +1,6 @@
 import datetime
 from django.db.models import Sum
-from core.models import SalaryEntry, Expense
+from core.models import SalaryEntry
 
 class ReportService(object):
     @staticmethod

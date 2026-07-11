@@ -8,13 +8,11 @@ from core.models import BankCertificate, _is_certificate_active
 from core.services.financial_advisor.cash_flow_forecast_service import CashFlowForecastService
 from core.services.balance.net_worth_service import NetWorthService
 
-
 def _to_float(value) -> float:
     try:
         return float(value or 0)
     except (TypeError, ValueError):
         return 0.0
-
 
 class WealthGrowthForecastService:
     MONTHS_AHEAD = 12

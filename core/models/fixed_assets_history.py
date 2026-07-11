@@ -2,7 +2,6 @@ from django.db import models
 from decimal import Decimal
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
-from datetime import date, datetime
 
 from .fixed_assets import FixedAsset, VALUATION_SOURCE
 from .currency import Currency

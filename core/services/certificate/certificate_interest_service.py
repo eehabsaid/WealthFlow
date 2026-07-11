@@ -9,7 +9,6 @@ from django.utils import timezone
 
 from core.models import BalanceEntry, BankCertificate, BankCertificateInterestHistory
 
-
 @dataclass
 class CertificateInterestSyncResult:
     processed_certificates: int = 0
@@ -22,7 +21,6 @@ class CertificateInterestSyncResult:
             "posted_periods": self.posted_periods,
             "total_interest_posted": float(self.total_interest_posted or 0),
         }
-
 
 class CertificateInterestService:
     FREQUENCY_MONTHS = {

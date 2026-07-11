@@ -24,12 +24,10 @@ from core.models import (
 )
 from core.services.balance.financial_sync_service import FinancialSyncService
 
-
 REAL_ESTATE_ASSET_TYPES = {"Real Estate"}
 VEHICLE_ASSET_TYPES = {"Vehicles"}
 OTHER_ASSET_TYPES = {"Other Assets"}
 T = TypeVar("T")
-
 
 def _to_float(value) -> float:
     try:
@@ -37,13 +35,11 @@ def _to_float(value) -> float:
     except (TypeError, ValueError):
         return 0.0
 
-
 def _to_decimal(value, default="0") -> Decimal:
     try:
         return Decimal(str(value))
     except (InvalidOperation, TypeError, ValueError):
         return Decimal(default)
-
 
 def _normalize_gold_purity(purity_value) -> str:
     text = str(purity_value or "").strip().lower()
@@ -56,7 +52,6 @@ def _normalize_gold_purity(purity_value) -> str:
     if "18" in text or "750" in text:
         return "18k"
     return "24k"
-
 
 class NetWorthService:
     def __init__(self):
@@ -641,7 +636,7 @@ class NetWorthService:
                         f"Expected inflow: {_fmt_money(forecast_30)} EGP (30d), {_fmt_money(forecast_90)} EGP (90d)."
                     ),
                     reason_text=(
-                        f"The maturity profile supports liquidity and optional reinvestment decisions over the next quarter."
+                        "The maturity profile supports liquidity and optional reinvestment decisions over the next quarter."
                     ),
                     priority="medium",
                 )
@@ -758,7 +753,7 @@ class NetWorthService:
                     f"Emergency coverage is below target at {_fmt_pct(cash_coverage_months, 1)} months."
                 ),
                 reason_text=(
-                    f"Build a larger reserve before increasing risk exposure in gold or long-dated allocations."
+                    "Build a larger reserve before increasing risk exposure in gold or long-dated allocations."
                 ),
                 priority="high",
             )

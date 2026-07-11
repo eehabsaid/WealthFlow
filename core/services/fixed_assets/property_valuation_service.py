@@ -10,7 +10,6 @@ from django.utils import timezone
 
 from core.models import AppSettings, FixedAsset, RealEstateDetails
 
-
 @dataclass
 class PropertyValuationResult:
     processed_assets: int = 0
@@ -24,13 +23,11 @@ class PropertyValuationResult:
             "skipped_assets": self.skipped_assets,
         }
 
-
 class BasePropertyValuationProvider:
     name = "base"
 
     def estimate(self, asset: FixedAsset, details: RealEstateDetails) -> Optional[float]:
         return None
-
 
 class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
     name = "configured_market_rate"
@@ -77,7 +74,6 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
         except (TypeError, ValueError, json.JSONDecodeError):
             return None
         return data if isinstance(data, dict) else None
-
 
 class ExternalApiPropertyValuationProvider(BasePropertyValuationProvider):
     name = "external_api"
@@ -213,7 +209,6 @@ class ExternalApiPropertyValuationProvider(BasePropertyValuationProvider):
             return float(value)
         except (TypeError, ValueError):
             return default
-
 
 class PropertyValuationService:
     """Abstracted property valuation pipeline.

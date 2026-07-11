@@ -16,23 +16,18 @@ from core.constants import (
     GOLD_UNIT_TO_GRAMS,
 )
 
-
-
 def _to_decimal(value, default="0"):
     try:
         return Decimal(str(value))
     except (InvalidOperation, TypeError, ValueError):
         return Decimal(default)
 
-
 def _gold_unit_factor(unit_value):
     normalized = str(unit_value or "gram").strip().lower()
     return GOLD_UNIT_TO_GRAMS.get(normalized, Decimal("1"))
 
-
 def _gold_weight_in_grams(weight_value, unit_value):
     return _to_decimal(weight_value) * _gold_unit_factor(unit_value)
-
 
 def _normalize_gold_purity(purity_value):
     text = str(purity_value or "").strip().lower()
@@ -46,7 +41,6 @@ def _normalize_gold_purity(purity_value):
         return "18k"
     return "24k"
 
-
 def _gold_sell_price_per_gram(latest_gold_price, purity_key):
     price_map = {
         "24k": _to_decimal(latest_gold_price.carat_24k),
@@ -56,7 +50,6 @@ def _gold_sell_price_per_gram(latest_gold_price, purity_key):
     }
     return price_map.get(purity_key, price_map["24k"])
 
-
 def _gold_cashback_per_gram(purity_value):
     key = _normalize_gold_purity(purity_value)
     setting = GoldPuritySetting.objects.filter(key=key, is_active=True).first()
@@ -64,10 +57,8 @@ def _gold_cashback_per_gram(purity_value):
         return Decimal("0")
     return _to_decimal(setting.cashback_per_gram)
 
-
 def _latest_gold_price():
     return GoldPrice.objects.order_by("-fetched_at").first()
-
 
 def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None):
     if asset.asset_type not in GOLD_ASSET_TYPES:
@@ -111,7 +102,6 @@ def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None
             "updated_at",
         ]
     )
-
 
 def _sync_gold_balance_from_assets():
     gold_currency = Currency.objects.filter(code__iexact="gold").first()
@@ -171,7 +161,6 @@ def _sync_gold_balance_from_assets():
 
     balance_qs.exclude(id__in=used_ids).delete()
 
-
 def _refresh_all_gold_assets_from_live_prices():
     latest_gold = _latest_gold_price()
     if latest_gold is None:
@@ -185,7 +174,6 @@ def _refresh_all_gold_assets_from_live_prices():
         _refresh_gold_asset_pricing(asset, details, latest_gold)
 
     _sync_gold_balance_from_assets()
-
 
 def _sync_gold_details(asset, details_data):
     if asset.asset_type not in GOLD_ASSET_TYPES or not details_data:
@@ -206,5 +194,4 @@ def _sync_gold_details(asset, details_data):
     )
 
     _refresh_gold_asset_pricing(asset, details_obj)
-
 

@@ -6,7 +6,6 @@ from django.db import transaction
 
 from core.models import ExchangeRate
 
-
 @dataclass
 class ExchangeRateRefreshResult:
     saved: int = 0
@@ -14,7 +13,6 @@ class ExchangeRateRefreshResult:
 
     def to_dict(self):
         return {"saved": self.saved, "source": self.source}
-
 
 class ExchangeRateService:
     CURRENCY_NAMES = {

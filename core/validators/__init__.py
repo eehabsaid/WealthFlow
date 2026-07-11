@@ -20,3 +20,7 @@ def _asset_payment_requires_bank(payment_method: str) -> bool:
 def _asset_payment_currency_required(payment_method: str) -> bool:
     pm = str(payment_method or "").strip().lower()
     return pm in {"cash", "bank", "bank transfer", "bank_transfer", "card"}
+
+__all__ = [
+    "JsonResponse",
+]

@@ -28,7 +28,6 @@ from core.services.fixed_assets.gold_sync_service import _sync_gold_balance_from
 from core.services.fixed_assets.property_service import _sync_asset_mortgage, _sync_asset_rental, _sync_other_asset_details
 from core.services.fixed_assets.asset_maintenance_service import _sync_asset_furniture, _sync_asset_insurance, _sync_asset_maintenance, _sync_asset_valuation_history
 
-
 def _clear_non_selected_asset_details(asset):
     if asset.asset_type not in REAL_ESTATE_ASSET_TYPES and hasattr(asset, "real_estate"):
         asset.real_estate.delete()
@@ -41,7 +40,6 @@ def _clear_non_selected_asset_details(asset):
 
     if asset.asset_type not in OTHER_ASSET_TYPES and hasattr(asset, "other_asset_details"):
         asset.other_asset_details.delete()
-
 
 @method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetListView(View):
@@ -170,7 +168,6 @@ class FixedAssetListView(View):
             )
 
         return JsonResponse(asset.to_dict(), status=201)
-
 
 @method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetDetailView(View):
@@ -349,5 +346,4 @@ class FixedAssetDetailView(View):
             )
 
         return JsonResponse({"deleted": pk})
-
 
