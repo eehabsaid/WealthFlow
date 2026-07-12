@@ -110,7 +110,17 @@ function _drawWealthGrowthChart(data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { rtl: isRTL, reverse: isRTL, labels: { color: primaryText, textDirection: direction } },
+        legend: {
+          rtl: isRTL,
+          reverse: isRTL,
+          labels: {
+            color: primaryText,
+            textDirection: direction,
+            usePointStyle: true,
+            pointStyle: "rectRounded",
+            boxWidth: 12,
+          },
+        },
         tooltip: {
           rtl: isRTL,
           textDirection: direction,

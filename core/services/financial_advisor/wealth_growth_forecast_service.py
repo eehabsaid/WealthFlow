@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import calendar
 from datetime import date
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from core.models import BankCertificate, _is_certificate_active
 from core.services.financial_advisor.cash_flow_forecast_service import CashFlowForecastService
@@ -13,6 +13,7 @@ def _to_float(value) -> float:
         return float(value or 0)
     except (TypeError, ValueError):
         return 0.0
+
 
 class WealthGrowthForecastService:
     MONTHS_AHEAD = 12
@@ -38,7 +39,7 @@ class WealthGrowthForecastService:
             out.append(date(month_start.year, month_start.month, last_day))
         return out
 
-    def _portfolio(self) -> Dict[str, float]:
+    def _portfolio(self) -> Dict[str, Any]:
         comp = self._net_worth_service.portfolio_components()
         forecast = self._net_worth_service.certificate_forecast_payload(today=self.today)
         cash_payload = self._cash_flow_service.payload()
@@ -82,14 +83,14 @@ class WealthGrowthForecastService:
             return 1.0
         return _to_float(rates.get(code)) or 0.0
 
-    def _gold_monthly_growth_rate(self, portfolio: Dict[str, float]) -> float:
+    def _gold_monthly_growth_rate(self, portfolio: Dict[str, Any]) -> float:
         trend_30_monthly = (portfolio["gold_trend_30"] / 100.0)
         trend_90_monthly = (portfolio["gold_trend_90"] / 100.0) / 3.0
         ma_bias_monthly = (portfolio["gold_ma_gap_pct"] / 100.0) / 2.0
         base_rate = (trend_30_monthly * 0.55) + (trend_90_monthly * 0.30) + (ma_bias_monthly * 0.15)
         return base_rate
 
-    def _scenario_gold_rate(self, base_rate: float, scenario: str, portfolio: Dict[str, float]) -> float:
+    def _scenario_gold_rate(self, base_rate: float, scenario: str, portfolio: Dict[str, Any]) -> float:
         spread = max(abs(base_rate) * 0.35, (abs(portfolio["gold_signal"]) / 100.0) * 0.10)
         if scenario == "conservative":
             return base_rate - spread
@@ -110,7 +111,7 @@ class WealthGrowthForecastService:
         index = min(month_index, len(cash_timeline) - 1)
         return _to_float(cash_timeline[index].get("ending_cash"))
 
-    def _component_forecast(self, portfolio: Dict[str, float], month_index: int, scenario: str, gold_rate: float) -> Dict[str, float]:
+    def _component_forecast(self, portfolio: Dict[str, Any], month_index: int, scenario: str, gold_rate: float) -> Dict[str, Any]:
         month_end_dates = self._month_end_dates()
         month_end = month_end_dates[min(max(month_index - 1, 0), len(month_end_dates) - 1)] if month_index > 0 else self.today
         cash_timeline = portfolio["cash_timeline"]
@@ -130,7 +131,7 @@ class WealthGrowthForecastService:
             "net_worth": round(net_worth, 2),
         }
 
-    def _build_series(self, portfolio: Dict[str, float], scenario: str) -> Dict[str, object]:
+    def _build_series(self, portfolio: Dict[str, Any], scenario: str) -> Dict[str, Any]:
         gold_base_rate = self._gold_monthly_growth_rate(portfolio)
         gold_rate = self._scenario_gold_rate(gold_base_rate, scenario, portfolio)
         points = [self._component_forecast(portfolio, month_index, scenario, gold_rate) for month_index in range(0, self.MONTHS_AHEAD + 1)]
@@ -142,7 +143,7 @@ class WealthGrowthForecastService:
             "net_worth_increase": round(points[-1]["net_worth"] - portfolio["current_net_worth"], 2),
         }
 
-    def _breakdown(self, portfolio: Dict[str, float], expected_points: List[Dict[str, float]]) -> Dict[str, dict]:
+    def _breakdown(self, portfolio: Dict[str, Any], expected_points: List[Dict[str, Any]]) -> Dict[str, dict]:
         final = expected_points[-1]
         current_liquid = portfolio["current_cash"] + portfolio["bank_balances"]
         current_components = {
@@ -171,22 +172,19 @@ class WealthGrowthForecastService:
             }
         return breakdown
 
-    def _summary(self, portfolio: Dict[str, float], breakdown: Dict[str, dict], expected_points: List[Dict[str, float]]) -> Dict[str, object]:
+    def _summary(self, portfolio: Dict[str, Any], breakdown: Dict[str, dict], expected_points: List[Dict[str, Any]]) -> Dict[str, Any]:
         current = portfolio["current_net_worth"]
         final = expected_points[-1]["net_worth"]
         increase = final - current
         growth_pct = (increase / current * 100.0) if current > 0 else 0.0
 
-        non_cash_breakdown = {
-            key: data for key, data in breakdown.items() if key != "liquid_cash"
-        }
         positive_components = [
             (key, data["difference"], data["growth_pct"])
-            for key, data in non_cash_breakdown.items()
-            if _to_float(data["difference"]) > 0
+            for key, data in breakdown.items()
+            if _to_float(data["difference"]) > 0 and key not in ("liquid_cash", "certificates")
         ]
-        largest_appreciating_asset = max(positive_components, key=lambda item: item[1], default=("none", 0.0, 0.0))
-        fastest_growing_category = max(positive_components, key=lambda item: item[2], default=("none", 0.0, 0.0))
+        largest_appreciating_asset = max(positive_components, key=lambda item: item[1], default=None)
+        fastest_growing_category = max(positive_components, key=lambda item: item[2], default=None)
 
         cashflow_driver_totals: Dict[str, float] = {}
         for month in portfolio.get("cash_timeline", []):
@@ -236,11 +234,11 @@ class WealthGrowthForecastService:
             "largest_appreciating_asset": {
                 "key": largest_appreciating_asset[0],
                 "difference": round(_to_float(largest_appreciating_asset[1]), 2),
-            },
+            } if largest_appreciating_asset else None,
             "fastest_growing_asset_category": {
                 "key": fastest_growing_category[0],
                 "growth_pct": round(_to_float(fastest_growing_category[2]), 2),
-            },
+            } if fastest_growing_category else None,
             "largest_growth_driver": {
                 "key": largest_driver_key,
                 "amount": round(_to_float(largest_driver_amount), 2),
