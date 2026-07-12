@@ -2,49 +2,8 @@
 // Goal planning tab rendering, load, edit, save, and delete handlers
 // This file is part of the financial_advisor module. Do not edit directly.
 
-function _renderGoalPlanningLoading() {
-  const pane = document.getElementById("fa-pane-goal-planning");
-  if (!pane) return;
-  pane.innerHTML = `
-    <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
-      <div class="card-body" style="padding:24px; color:var(--text-secondary);" data-i18n="goal_planning_loading"></div>
-    </div>
-  `;
-  applyTranslations();
-}
-
-function _renderGoalPlanningError() {
-  const pane = document.getElementById("fa-pane-goal-planning");
-  if (!pane) return;
-  pane.innerHTML = `
-    <div class="alert alert-danger" style="background:var(--bg-secondary); border-color:var(--border-color); color:var(--text-primary);">
-      <span data-i18n="goal_planning_error"></span>
-    </div>
-  `;
-  applyTranslations();
-}
-
-function _renderGoalPlanning(payload) {
-  const pane = document.getElementById("fa-pane-goal-planning");
-  if (!pane) return;
-
-  const summary = payload?.summary || {};
-  const goals = payload?.goals || [];
-  const milestones = payload?.milestones || [];
-  const insights = payload?.insights || [];
-  const recommendations = payload?.recommendations || [];
-  const totalTarget = Number(summary.total_target_egp || 0);
-  const totalSaved = Number(summary.total_saved_egp || 0);
-  const completedCount = goals.filter((goal) => goal.status === "achieved").length;
-  const onTrackCount = goals.filter((goal) => goal.status === "on_track").length;
-  const atRiskCount = goals.filter((goal) => goal.status === "at_risk" || goal.status === "critical" || goal.status === "watch").length;
-  const completedPct = goals.length ? (completedCount / goals.length) * 100 : 0;
-  const onTrackPct = goals.length ? (onTrackCount / goals.length) * 100 : 0;
-  const atRiskPct = goals.length ? (atRiskCount / goals.length) * 100 : 0;
-  const savedTargetPct = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
-
-  pane.innerHTML = `
-    <div class="goal-planning-wrap goal-planning-hero">
+function _renderGoalPlanningHeader(payload) {
+  return `
       <div class="goal-planning-header">
         <div>
           <h4 data-i18n="financial_advisor_tab_goal_planning"></h4>
@@ -61,7 +20,11 @@ function _renderGoalPlanning(payload) {
           </button>
         </div>
       </div>
+  `;
+}
 
+function _renderGoalPlanningKPIs(summary, completedCount, onTrackCount, atRiskCount, totalTarget, totalSaved, completedPct, onTrackPct, atRiskPct, savedTargetPct) {
+  return `
       <div class="goal-kpi-grid mb-3">
         <div class="goal-kpi-card">
           <div class="goal-kpi-head"><span class="goal-kpi-icon" aria-hidden="true"><i class="bi bi-bullseye"></i></span><span data-i18n="goal_planning_total_goals"></span></div>
@@ -94,9 +57,11 @@ function _renderGoalPlanning(payload) {
           <small>${fmtpresent(savedTargetPct)}% <span data-i18n="goal_planning_of_target"></span></small>
         </div>
       </div>
+  `;
+}
 
-      <div class="row g-3 mb-3">
-        <div class="col-12 col-xl-8">
+function _renderGoalPlanningCardsSection(goals) {
+  return `
           <div class="portfolio-card h-100">
             <div class="goal-toolbar mb-2">
               <div class="goal-toolbar-left">
@@ -136,9 +101,11 @@ function _renderGoalPlanning(payload) {
             <div class="goal-section-caption" data-i18n="goal_planning_your_goals"></div>
             <div id="goalCardsContainer" class="goal-cards-grid"></div>
           </div>
-        </div>
+  `;
+}
 
-        <div class="col-12 col-xl-4">
+function _renderGoalPlanningChartSection(totalTarget) {
+  return `
           <div class="portfolio-card mb-3">
             <div class="portfolio-card-title" data-i18n="goal_planning_distribution_title"></div>
             <div class="goal-chart-wrap">
@@ -149,7 +116,11 @@ function _renderGoalPlanning(payload) {
               </div>
             </div>
           </div>
+  `;
+}
 
+function _renderGoalPlanningMilestonesSection(milestones) {
+  return `
           <div class="portfolio-card">
             <div class="goal-panel-head">
               <div class="portfolio-card-title" data-i18n="goal_planning_milestones_title"></div>
@@ -172,11 +143,11 @@ function _renderGoalPlanning(payload) {
               `).join("") : `<div class="portfolio-empty-state" data-i18n="goal_planning_no_milestones"></div>`}
             </div>
           </div>
-        </div>
-      </div>
+  `;
+}
 
-      <div class="row g-3 mb-3">
-        <div class="col-12 col-lg-6">
+function _renderGoalPlanningInsightsSection(insights) {
+  return `
           <div class="portfolio-card goal-insights-card h-100">
             <div class="portfolio-card-title" data-i18n="goal_planning_insights_title"></div>
             <div class="portfolio-rec-list">
@@ -189,8 +160,11 @@ function _renderGoalPlanning(payload) {
               `).join("")}
             </div>
           </div>
-        </div>
-        <div class="col-12 col-lg-6">
+  `;
+}
+
+function _renderGoalPlanningRecommendationsSection(recommendations) {
+  return `
           <div class="portfolio-card goal-recommendations-card h-100">
             <div class="portfolio-card-title" data-i18n="goal_planning_recommendations_title"></div>
             <div class="portfolio-rec-list">
@@ -203,9 +177,11 @@ function _renderGoalPlanning(payload) {
               `).join("")}
             </div>
           </div>
-        </div>
-      </div>
+  `;
+}
 
+function _renderGoalPlanningModalSection() {
+  return `
       <div class="modal fade goal-editor-modal" id="goalEditorModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
           <div class="modal-content goal-editor-surface" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
@@ -265,6 +241,76 @@ function _renderGoalPlanning(payload) {
           </div>
         </div>
       </div>
+  `;
+}
+
+function _renderGoalPlanningLoading() {
+  const pane = document.getElementById("fa-pane-goal-planning");
+  if (!pane) return;
+  pane.innerHTML = `
+    <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
+      <div class="card-body" style="padding:24px; color:var(--text-secondary);" data-i18n="goal_planning_loading"></div>
+    </div>
+  `;
+  applyTranslations();
+}
+
+function _renderGoalPlanningError() {
+  const pane = document.getElementById("fa-pane-goal-planning");
+  if (!pane) return;
+  pane.innerHTML = `
+    <div class="alert alert-danger" style="background:var(--bg-secondary); border-color:var(--border-color); color:var(--text-primary);">
+      <span data-i18n="goal_planning_error"></span>
+    </div>
+  `;
+  applyTranslations();
+}
+
+function _renderGoalPlanning(payload) {
+  const pane = document.getElementById("fa-pane-goal-planning");
+  if (!pane) return;
+
+  const summary = payload?.summary || {};
+  const goals = payload?.goals || [];
+  const milestones = payload?.milestones || [];
+  const insights = payload?.insights || [];
+  const recommendations = payload?.recommendations || [];
+  const totalTarget = Number(summary.total_target_egp || 0);
+  const totalSaved = Number(summary.total_saved_egp || 0);
+  const completedCount = goals.filter((goal) => goal.status === "achieved").length;
+  const onTrackCount = goals.filter((goal) => goal.status === "on_track").length;
+  const atRiskCount = goals.filter((goal) => goal.status === "at_risk" || goal.status === "critical" || goal.status === "watch").length;
+  const completedPct = goals.length ? (completedCount / goals.length) * 100 : 0;
+  const onTrackPct = goals.length ? (onTrackCount / goals.length) * 100 : 0;
+  const atRiskPct = goals.length ? (atRiskCount / goals.length) * 100 : 0;
+  const savedTargetPct = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+
+  pane.innerHTML = `
+    <div class="goal-planning-wrap goal-planning-hero">
+      ${_renderGoalPlanningHeader(payload)}
+      ${_renderGoalPlanningKPIs(summary, completedCount, onTrackCount, atRiskCount, totalTarget, totalSaved, completedPct, onTrackPct, atRiskPct, savedTargetPct)}
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-xl-8">
+          ${_renderGoalPlanningCardsSection(goals)}
+        </div>
+
+        <div class="col-12 col-xl-4">
+          ${_renderGoalPlanningChartSection(totalTarget)}
+          ${_renderGoalPlanningMilestonesSection(milestones)}
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+          ${_renderGoalPlanningInsightsSection(insights)}
+        </div>
+        <div class="col-12 col-lg-6">
+          ${_renderGoalPlanningRecommendationsSection(recommendations)}
+        </div>
+      </div>
+
+      ${_renderGoalPlanningModalSection()}
     </div>
   `;
 
