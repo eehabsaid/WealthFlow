@@ -137,6 +137,7 @@ function _drawWealthGrowthChart(data) {
         y: { position: isRTL ? "right" : "left", ticks: { color: secondaryText, align: isRTL ? "end" : "start" }, grid: { color: gridColor } },
       },
     },
+    plugins: window.SharedCrosshairPlugin ? [window.SharedCrosshairPlugin] : [],
   });
 }
 

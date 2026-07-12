@@ -296,6 +296,7 @@ function drawFixedAssetsLineChart(canvasId, labels, datasets) {
           },
         },
       },
+      plugins: window.SharedCrosshairPlugin ? [window.SharedCrosshairPlugin] : [],
     });
   }, 50);
 }

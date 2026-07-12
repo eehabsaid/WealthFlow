@@ -115,6 +115,7 @@ function drawTrendChart(monthly) {
         },
       },
     },
+    plugins: window.SharedCrosshairPlugin ? [window.SharedCrosshairPlugin] : [],
   });
 }
 
