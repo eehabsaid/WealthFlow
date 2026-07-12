@@ -29,7 +29,6 @@ Special data handling
 from __future__ import annotations
 
 import hashlib
-import io
 import json
 import os
 import platform
@@ -38,7 +37,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import django
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import models as django_models
 from django.contrib.contenttypes.models import ContentType
 

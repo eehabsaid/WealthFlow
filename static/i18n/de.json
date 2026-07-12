@@ -1300,5 +1300,8 @@
   "select_currency_option": "— Währung wählen —",
   "all_option": "Alle",
   "no_records": "Keine Einträge gefunden",
-  "amount_label": "Betrag"
+  "amount_label": "Betrag",
+  "items": "Artikel",
+  "total_egp": "Gesamt (EGP)",
+  "total_usd": "Gesamt (USD)"
 }

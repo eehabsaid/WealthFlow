@@ -773,12 +773,16 @@ function renderFurnitureTab() {
 
                       <div class="card border-0 shadow-sm bg-transparent">
                         <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
-                          <h6 class="mb-0 font-weight-bold fixed-assets-section-title" data-i18n="furniture">Furniture</h6>
-                          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addFurnitureRow()" data-i18n="add_furniture">
+                          <h6 class="mb-0 font-weight-bold fixed-assets-section-title">
+                            <span data-i18n="furniture">Furniture</span>
+                            <span id="furniture-count-badge" class="text-secondary font-weight-normal small ms-1"></span>
+                          </h6>
+                          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addFurnitureRow({}, true)" data-i18n="add_furniture">
                             + Add Furniture
                           </button>
                         </div>
                         <div class="card-body px-0 pt-2">
+                          <div id="furnitureSummaryStrip" class="furniture-summary-strip"></div>
                           <div id="furnitureContainer" class="w-100"></div>
                         </div>
                       </div>

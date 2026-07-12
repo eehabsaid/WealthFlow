@@ -2005,8 +2005,7 @@ class BackupRestoreTests(TestCase):
         import shutil
         import os
         from django.core.management import call_command
-        from django.contrib.auth.models import User
-        from core.models import Currency, Bank, BankCertificate, Document
+        from core.models import Currency, BankCertificate, Document
 
         # Create a temp directory for the backup
         temp_dir = tempfile.mkdtemp()

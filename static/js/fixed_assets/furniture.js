@@ -12,42 +12,229 @@ fetch("/api/asset-furniture/categories/")
   })
   .catch(err => console.error("Error fetching furniture categories:", err));
 
-function addFurnitureRow(data = {}) {
+// Reusable Collapsible Card Helpers
+function initCollapsibleCard(card, containerSelector, onToggle = null) {
+  const header = card.querySelector(".item-header");
+  if (!header) return;
+
+  header.addEventListener("click", (e) => {
+    // If clicking on inputs, select, textarea, or remove button, do not toggle
+    if (e.target.closest(".item-remove-btn") || e.target.closest("input") || e.target.closest("select") || e.target.closest("textarea")) {
+      return;
+    }
+    toggleCollapsibleCard(card, containerSelector);
+    if (onToggle) onToggle(card);
+  });
+}
+
+function toggleCollapsibleCard(card, containerSelector, forceExpand = null) {
+  const container = containerSelector ? card.closest(containerSelector) : card.parentElement;
+  if (!container) return;
+
+  const body = card.querySelector(".item-body");
+  const chevron = card.querySelector(".item-chevron");
+  const isExpanded = forceExpand !== null ? forceExpand : !card.classList.contains("open");
+
+  if (isExpanded) {
+    // Collapse all other cards in the same container (accordion behavior)
+    container.querySelectorAll(".item-card").forEach(otherCard => {
+      if (otherCard !== card) {
+        otherCard.classList.remove("open");
+        const b = otherCard.querySelector(".item-body");
+        if (b) b.style.display = "none";
+        const c = otherCard.querySelector(".item-chevron");
+        if (c) c.style.transform = "";
+      }
+    });
+
+    card.classList.add("open");
+    if (body) body.style.display = "block";
+    if (chevron) chevron.style.transform = "rotate(90deg)";
+  } else {
+    card.classList.remove("open");
+    if (body) body.style.display = "none";
+    if (chevron) chevron.style.transform = "";
+  }
+}
+
+function updateFurnitureSummary() {
+  const summaryStrip = document.getElementById("furnitureSummaryStrip");
+  const badge = document.getElementById("furniture-count-badge");
+
+  const rows = document.querySelectorAll(".furniture-row");
+  const count = rows.length;
+
+  if (badge) {
+    badge.textContent = count > 0 ? `(${count})` : "";
+  }
+
+  let totalEGP = 0;
+  let totalUSD = 0;
+
+  rows.forEach(row => {
+    const egp = parseFloat(row.querySelector(".furniture-egp").value) || 0;
+    const usd = parseFloat(row.querySelector(".furniture-usd").value) || 0;
+    totalEGP += egp;
+    totalUSD += usd;
+  });
+
+  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  if (summaryStrip) {
+    summaryStrip.innerHTML = `
+      <div class="stat">
+        <span class="stat-label" data-i18n="items">Items</span>
+        <span class="stat-value">${count}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label" data-i18n="total_egp">Total (EGP)</span>
+        <span class="stat-value">${fmt(totalEGP)}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label" data-i18n="total_usd">Total (USD)</span>
+        <span class="stat-value">${fmt(totalUSD)}</span>
+      </div>
+    `;
+    if (typeof applyTranslations === "function") {
+      applyTranslations();
+    }
+  }
+}
+
+function addFurnitureRow(data = {}, expand = false) {
   const container = document.getElementById("furnitureContainer");
   if (!container) return;
 
   const row = document.createElement("div");
-  row.className = "row g-2 mb-3 furniture-row";
+  row.className = "furniture-row item-card card";
+
+  const category = data.category || "Living Room";
+  const normVal = category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+  const amountEgpVal = data.amount_egp || "";
+  const nameVal = data.name || "";
+
+  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const initialAmountPreview = amountEgpVal ? `EGP ${fmt(parseFloat(amountEgpVal) || 0)}` : "EGP 0.00";
+
   row.innerHTML = `
-    <div class="col-md-3"><label class="form-label small" data-i18n="item_name">Item Name</label><input type="text" class="form-control furniture-name" value="${data.name || ""}"></div>
-    <div class="col-md-2">
-      <label class="form-label small" data-i18n="category">Category</label>
-      <select class="form-select furniture-category">
-        ${furnitureCategories.map(cat => {
-          const normVal = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
-          return `
-            <option value="${cat}" data-i18n-prefix="furniture_" data-i18n-value="${normVal}">
-              ${cat}
-            </option>
-          `;
-        }).join("")}
-      </select>
+    <div class="item-header card-header">
+      <div class="item-header-left">
+        <svg class="item-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        <span class="item-name-preview">${nameVal || t("unnamed_item", "(Unnamed item)")}</span>
+        <span class="item-category-badge" data-i18n-prefix="furniture_" data-i18n-value="${normVal}">${category}</span>
+      </div>
+      <div class="item-header-right">
+        <span class="item-amount-preview">${initialAmountPreview}</span>
+        <button type="button" class="item-remove-btn" title="Remove" onclick="const r = this.closest('.furniture-row'); r.remove(); updateFurnitureSummary();">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+        </button>
+      </div>
     </div>
-    <div class="col-md-2"><label class="form-label small" data-i18n="purchase_date">Purchase Date</label><input type="date" class="form-control furniture-purchase-date" value="${data.purchase_date || ""}"></div>
-    <div class="col-md-2"><label class="form-label small" data-i18n="amount_egp">Amount</label><input type="number" step="0.01" class="form-control furniture-egp" value="${data.amount_egp || ""}" oninput="updateFurnitureUSD(this)"></div>
-    <div class="col-md-2"><label class="form-label small" data-i18n="amount_usd">Amount USD</label><input type="number" step="0.01" class="form-control furniture-usd" value="${data.amount_usd || ""}" readonly></div>
-    <div class="col-md-1"><label class="form-label small">&nbsp;</label><button type="button" class="btn btn-danger w-100" onclick="this.closest('.furniture-row').remove()"><i class="bi bi-trash"></i></button></div>
-    <div class="col-md-2"><label class="form-label small" data-i18n="purchase_usd_rate">USD Exchange Rate</label><input type="number" step="0.0001" class="form-control furniture-usd-rate" value="${data.usd_rate || document.getElementById("fa_purchase_usd_rate")?.value || ""}" oninput="updateFurnitureUSD(this)"></div>
-    <div class="col-md-2"><label class="form-label small" data-i18n="quantity">Quantity</label><input type="number" step="1" class="form-control furniture-quantity" value="${data.quantity || 1}"></div>
-    <div class="col-md-8"><label class="form-label small" data-i18n="notes">Notes</label><textarea class="form-control furniture-notes" rows="2">${data.notes || ""}</textarea></div>
+    <div class="item-body card-body">
+      <div class="field-grid">
+        <div class="field">
+          <label class="form-label small" data-i18n="asset_name">Item Name</label>
+          <input type="text" class="form-control furniture-name" value="${nameVal}">
+        </div>
+        <div class="field">
+          <label class="form-label small" data-i18n="category">Category</label>
+          <select class="form-select furniture-category">
+            ${furnitureCategories.map(cat => {
+              const norm = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+              return `
+                <option value="${cat}" data-i18n-prefix="furniture_" data-i18n-value="${norm}" ${cat === category ? "selected" : ""}>
+                  ${cat}
+                </option>
+              `;
+            }).join("")}
+          </select>
+        </div>
+        <div class="field">
+          <label class="form-label small" data-i18n="purchase_date">Purchase Date</label>
+          <input type="date" class="form-control furniture-purchase-date" value="${data.purchase_date || ""}">
+        </div>
+        <div class="field">
+          <label class="form-label small" data-i18n="quantity">Quantity</label>
+          <input type="number" step="1" class="form-control furniture-quantity" value="${data.quantity || 1}">
+        </div>
+        <div class="field">
+          <label class="form-label small" data-i18n="amount_egp">Amount</label>
+          <input type="number" step="0.01" class="form-control furniture-egp" value="${amountEgpVal}" oninput="updateFurnitureUSD(this)">
+        </div>
+        <div class="field">
+          <label class="form-label small" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
+          <input type="number" step="0.0001" class="form-control furniture-usd-rate" value="${data.usd_rate || document.getElementById("fa_purchase_usd_rate")?.value || ""}" oninput="updateFurnitureUSD(this)">
+        </div>
+        <div class="field">
+          <label class="form-label small" data-i18n="amount_usd">Amount USD</label>
+          <input type="number" step="0.01" class="form-control furniture-usd" value="${data.amount_usd || ""}" readonly>
+        </div>
+        <div class="field">
+          <label class="form-label small">&nbsp;</label>
+        </div>
+        <div class="field span-4">
+          <label class="form-label small" data-i18n="notes">Notes</label>
+          <textarea class="form-control furniture-notes" rows="2">${data.notes || ""}</textarea>
+        </div>
+      </div>
+    </div>
   `;
+
   container.appendChild(row);
 
-  // Set the selected value
-  row.querySelector(".furniture-category").value = data.category || "Living Room";
+  // Initialize event listeners on new row inputs
+  const nameInput = row.querySelector(".furniture-name");
+  const namePreview = row.querySelector(".item-name-preview");
+  nameInput.addEventListener("input", () => {
+    namePreview.textContent = nameInput.value.trim() || t("unnamed_item", "(Unnamed item)");
+  });
 
-  applyTranslations();
-  updateFurnitureUSD(row.querySelector(".furniture-egp"));
+  const categorySelect = row.querySelector(".furniture-category");
+  const categoryBadge = row.querySelector(".item-category-badge");
+  categorySelect.addEventListener("change", () => {
+    const cat = categorySelect.value;
+    const norm = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+    categoryBadge.setAttribute("data-i18n-value", norm);
+    categoryBadge.textContent = cat;
+    if (typeof applyTranslations === "function") {
+      applyTranslations();
+    }
+  });
+
+  const egpInput = row.querySelector(".furniture-egp");
+  const amountPreview = row.querySelector(".item-amount-preview");
+  egpInput.addEventListener("input", () => {
+    updateFurnitureUSD(egpInput);
+    amountPreview.textContent = `EGP ${fmt(parseFloat(egpInput.value) || 0)}`;
+    updateFurnitureSummary();
+  });
+
+  const rateInput = row.querySelector(".furniture-usd-rate");
+  rateInput.addEventListener("input", () => {
+    updateFurnitureUSD(rateInput);
+    updateFurnitureSummary();
+  });
+
+  // Reusable card accordion init
+  initCollapsibleCard(row, "#furnitureContainer");
+
+  // Initial expansion state
+  const isFirstCard = container.children.length === 1;
+  const shouldExpand = expand || isFirstCard;
+  toggleCollapsibleCard(row, "#furnitureContainer", shouldExpand);
+
+  // Auto-calc USD amount if input has initial EGP amount
+  if (amountEgpVal) {
+    updateFurnitureUSD(egpInput);
+  }
+
+  // Translate labels inside the new row
+  if (typeof applyTranslations === "function") {
+    applyTranslations();
+  }
+
+  // Update summary totals
+  updateFurnitureSummary();
 }
 
 function updateFurnitureUSD(input) {

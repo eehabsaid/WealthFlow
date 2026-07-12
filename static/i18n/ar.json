@@ -1300,5 +1300,8 @@
   "select_currency_option": "— اختر العملة —",
   "all_option": "الكل",
   "no_records": "لا توجد سجلات",
-  "amount_label": "المبلغ"
+  "amount_label": "المبلغ",
+  "items": "العناصر",
+  "total_egp": "الإجمالي (جنيه مصري)",
+  "total_usd": "الإجمالي (دولار أمريكي)"
 }

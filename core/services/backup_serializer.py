@@ -33,7 +33,6 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from django.contrib.contenttypes.models import ContentType
-from django.db import models as django_models
 
 # ---------------------------------------------------------------------------
 # Field-level serialise / deserialise
@@ -140,7 +139,7 @@ def get_model_export_order():
     dependencies.  Models are imported here so that Django's app registry is
     guaranteed to be ready.
     """
-    from django.contrib.auth.models import User, Group, Permission
+    from django.contrib.auth.models import User, Group
 
     from core.models import (
         Currency, Bank, Company,

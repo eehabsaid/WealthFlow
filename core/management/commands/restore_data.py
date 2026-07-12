@@ -35,18 +35,13 @@ Options
 from __future__ import annotations
 
 import hashlib
-import io
 import json
 import os
 import re
 import zipfile
-from datetime import date, datetime
-from decimal import Decimal
 from typing import Any
 
-import django
-from django.contrib.auth.models import User, Group
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
@@ -171,8 +166,6 @@ def _restore_table(
     Restore rows for a single model.
     Returns (created, updated, skipped) counts.
     """
-    from django.db import models as dm
-
     field_map = _get_field_map(model_class)
     created = updated = skipped = 0
 

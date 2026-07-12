@@ -1300,5 +1300,8 @@
   "select_currency_option": "— Sélectionner la devise —",
   "all_option": "Tout",
   "no_records": "Aucun enregistrement trouvé",
-  "amount_label": "Montant"
+  "amount_label": "Montant",
+  "items": "Articles",
+  "total_egp": "Total (EGP)",
+  "total_usd": "Total (USD)"
 }
