@@ -69,6 +69,8 @@
   "cash_flow_event_expenses": "المصاريف الشهرية",
   "cash_flow_event_mortgage_payment": "قسط الرهن العقاري",
   "cash_flow_event_none": "لا يوجد حدث",
+  "cash_flow_show_all_months": "عرض كل الأشهر ({count})",
+  "cash_flow_show_less": "عرض أقل",
   "wealth_growth_loading": "جاري تحميل توقع نمو الثروة...",
   "wealth_growth_error": "تعذر تحميل توقع نمو الثروة.",
   "wealth_growth_chart_title": "توقع صافي الثروة",

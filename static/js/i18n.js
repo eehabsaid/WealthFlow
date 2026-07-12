@@ -58,7 +58,7 @@ function applyTranslations() {
     const formatTemplateValue = (name, value) => {
         const num = Number(value);
         if (!Number.isFinite(num)) return String(value ?? '');
-        if (/days/i.test(name)) return fmtInt(num);
+        if (/(days|count|month|year|week)/i.test(name)) return fmtInt(num);
         if (/(ratio|trend|signal|gap|coverage|pct)/i.test(name)) return fmt(num);
         return fmtpresent(num);
     };
