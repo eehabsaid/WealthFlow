@@ -117,6 +117,7 @@ RENOVATION_TYPES = [
     "Maintenance",
     "Flooring Ceramic",
     "Wall Tiles",
+    "Alumital Windows",
     "Other",
 ]
 

@@ -1,4 +1,4 @@
-// Scanner references: _t('renovation_finishing'), _t('renovation_painting'), _t('renovation_flooring'), _t('renovation_kitchen'), _t('renovation_bathroom'), _t('renovation_electrical'), _t('renovation_plumbing'), _t('renovation_doors_windows'), _t('renovation_furniture'), _t('renovation_landscape'), _t('renovation_maintenance'), _t('renovation_flooring_ceramic'), _t('renovation_wall_tiles'), _t('renovation_other')
+// Scanner references: _t('renovation_finishing'), _t('renovation_painting'), _t('renovation_flooring'), _t('renovation_kitchen'), _t('renovation_bathroom'), _t('renovation_electrical'), _t('renovation_plumbing'), _t('renovation_doors_windows'), _t('renovation_furniture'), _t('renovation_landscape'), _t('renovation_maintenance'), _t('renovation_flooring_ceramic'), _t('renovation_wall_tiles'), _t('renovation_alumital_windows'), _t('renovation_other')
 
 let renovationCategories = [];
 
