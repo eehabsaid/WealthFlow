@@ -32,8 +32,8 @@ async function _renderSalaryReport(selectedYear = '', selectedCompany = '') {
         ...(d.companies||[]).map(c => `<option value="${c.id}" ${String(c.id) === selectedCompany ? 'selected' : ''}>${esc(c.name)}</option>`)].join('');
 
     // Table
-    const rows = by_year.map(r => `
-        <tr>
+    const rows = by_year.map((r, index) => `
+        <tr ${index >= 5 ? 'class="hidden-salary-row" style="display:none"' : ''}>
             <td><strong>${r.year}</strong></td>
             <td class="text-end">${_fmt(r.total_paid)}</td>
             <td class="text-end" style="color:var(--accent-green)">${_fmt(r.total_bonus)}</td>
@@ -44,6 +44,30 @@ async function _renderSalaryReport(selectedYear = '', selectedCompany = '') {
             </td>
             <td class="text-end">${r.paid_months || 0}</td>
         </tr>`).join('');
+
+    const showAllBtnHtml = by_year.length > 5 ? `
+      <div class="card border-0" style="background:var(--bg-secondary); border-top:1px solid var(--border-color) !important; border-radius:0 0 12px 12px; cursor:pointer;" onclick="
+        const container = this.closest('.table-container') ? this.closest('.table-container').parentNode : this.parentNode;
+        const hiddenRows = container.querySelectorAll('.hidden-salary-row');
+        const isShowingAll = this.getAttribute('data-showing') === 'true';
+        hiddenRows.forEach(r => r.style.display = isShowingAll ? 'none' : 'table-row');
+        this.setAttribute('data-showing', !isShowingAll);
+        
+        const span = this.querySelector('span');
+        if (isShowingAll) {
+            span.setAttribute('data-i18n-key', 'show_all_rows');
+            span.setAttribute('data-i18n-params', JSON.stringify({ count: ${by_year.length} }));
+        } else {
+            span.setAttribute('data-i18n-key', 'show_less_rows');
+            span.removeAttribute('data-i18n-params');
+        }
+        if (typeof applyTranslations === 'function') applyTranslations();
+      ">
+        <div class="card-body text-center" style="padding:12px;">
+          <span style="color:var(--bs-primary, #0d6efd); font-weight:600; font-size:14px;" data-i18n-key="show_all_rows" data-i18n-params='{"count": ${by_year.length}}'></span>
+        </div>
+      </div>
+    ` : '';
 
     document.getElementById('reportContent').innerHTML = `
         <!-- Filters -->
@@ -92,6 +116,7 @@ async function _renderSalaryReport(selectedYear = '', selectedCompany = '') {
                 </tfoot>
             </table>
             </div>
+            ${showAllBtnHtml}
         </div>`;
 
     _drawBarChart('salaryTrendChart', years,

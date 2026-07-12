@@ -57,6 +57,8 @@
   "cash_flow_event_none": "Kein Ereignis",
   "cash_flow_show_all_months": "Alle {count} Monate anzeigen",
   "cash_flow_show_less": "Weniger anzeigen",
+  "show_all_rows": "Alle {count} Zeilen anzeigen",
+  "show_less_rows": "Weniger anzeigen",
   "wealth_growth_loading": "Vermögenswachstumsprognose wird geladen...",
   "wealth_growth_error": "Vermögenswachstumsprognose konnte nicht geladen werden.",
   "wealth_growth_chart_title": "Nettovermögens-Projektion",

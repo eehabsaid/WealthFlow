@@ -57,6 +57,8 @@
   "cash_flow_event_none": "Aucun événement",
   "cash_flow_show_all_months": "Afficher les {count} mois",
   "cash_flow_show_less": "Afficher moins",
+  "show_all_rows": "Afficher les {count} lignes",
+  "show_less_rows": "Afficher moins",
   "wealth_growth_loading": "Chargement de la prévision de croissance du patrimoine...",
   "wealth_growth_error": "Impossible de charger la prévision de croissance du patrimoine.",
   "wealth_growth_chart_title": "Projection de la valeur nette",

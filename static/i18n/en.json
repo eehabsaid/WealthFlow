@@ -71,6 +71,8 @@
   "cash_flow_event_none": "No Event",
   "cash_flow_show_all_months": "Show all {count} months",
   "cash_flow_show_less": "Show less",
+  "show_all_rows": "Show all {count} rows",
+  "show_less_rows": "Show less",
   "wealth_growth_loading": "Loading wealth growth forecast...",
   "wealth_growth_error": "Unable to load wealth growth forecast.",
   "wealth_growth_chart_title": "Net Worth Projection",
