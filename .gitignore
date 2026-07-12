@@ -4,3 +4,7 @@ venv/
 .agents/
 .ruff_cache/
 .vscode/
+
+# WealthFlow backup archives
+backups/
+*.wfbackup
