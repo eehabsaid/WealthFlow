@@ -118,6 +118,7 @@ from .fixed_asset_views import DocumentFileView
 from .fixed_asset_views import DocumentCategoriesView
 from .fixed_asset_views import AssetRenovationListView
 from .fixed_asset_views import AssetRenovationDetailView
+from .fixed_asset_views import AssetRenovationCategoriesView
 from .fixed_asset_views import AssetMaintenanceListView
 from .fixed_asset_views import AssetMaintenanceDetailView
 from .fixed_asset_views import AssetInsuranceListView
@@ -263,6 +264,7 @@ __all__ = [
     "DocumentCategoriesView",
     "AssetRenovationListView",
     "AssetRenovationDetailView",
+    "AssetRenovationCategoriesView",
     "AssetMaintenanceListView",
     "AssetMaintenanceDetailView",
     "AssetInsuranceListView",

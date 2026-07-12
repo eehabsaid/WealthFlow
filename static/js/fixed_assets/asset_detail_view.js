@@ -478,7 +478,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                                             <div class="small mb-2" data-i18n="date">Date</div>
                                             <div class="fw-semibold">${r.date || '-'}</div>
                                             <div class="small mt-2" data-i18n="category">Category</div>
-                                            <div>${r.category || '-'}</div>
+                                            <div data-i18n-prefix="renovation_" data-i18n-value="${(r.category || '').toLowerCase().replace(/ & /g, '_').replace(/ /g, '_')}">${r.category || '-'}</div>
                                         </div>
                                         <div class="text-md-end">
                                             <div class="small mb-2" data-i18n="amount_usd">Amount USD</div>

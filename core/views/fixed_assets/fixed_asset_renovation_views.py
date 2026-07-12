@@ -74,3 +74,11 @@ class AssetRenovationDetailView(View):
 
         return JsonResponse({"deleted": pk})
 
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetRenovationCategoriesView(View):
+    def get(self, request):
+        from core.constants import RENOVATION_TYPES
+        return JsonResponse({"categories": RENOVATION_TYPES})
+
+

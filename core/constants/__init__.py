@@ -103,6 +103,24 @@ SALARY_TRIGGER_CHOICES = [
     ("days_after_som", "Days After Start of Month"),
 ]
 
+RENOVATION_TYPES = [
+    "Finishing",
+    "Painting",
+    "Flooring",
+    "Kitchen",
+    "Bathroom",
+    "Electrical",
+    "Plumbing",
+    "Doors & Windows",
+    "Furniture",
+    "Landscape",
+    "Maintenance",
+    "Flooring Ceramic",
+    "Wall Tiles",
+    "Other",
+]
+
 __all__ = [
     "Decimal",
+    "RENOVATION_TYPES",
 ]

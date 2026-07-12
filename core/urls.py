@@ -107,6 +107,10 @@ urlpatterns = [
         views.AssetRenovationListView.as_view(),
     ),
     path(
+        "api/asset-renovations/categories/",
+        views.AssetRenovationCategoriesView.as_view(),
+    ),
+    path(
         "api/asset-renovations/<int:pk>/",
         views.AssetRenovationDetailView.as_view(),
     ),

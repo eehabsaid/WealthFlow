@@ -1,6 +1,16 @@
-"use strict";
-// Renovation rows management
-// This file is part of the fixed_assets module. Do not edit directly.
+// Scanner references: _t('renovation_finishing'), _t('renovation_painting'), _t('renovation_flooring'), _t('renovation_kitchen'), _t('renovation_bathroom'), _t('renovation_electrical'), _t('renovation_plumbing'), _t('renovation_doors_windows'), _t('renovation_furniture'), _t('renovation_landscape'), _t('renovation_maintenance'), _t('renovation_flooring_ceramic'), _t('renovation_wall_tiles'), _t('renovation_other')
+
+let renovationCategories = [];
+
+// Fetch categories from backend API
+fetch("/api/asset-renovations/categories/")
+  .then(res => res.json())
+  .then(data => {
+    if (data && data.categories && data.categories.length) {
+      renovationCategories = data.categories;
+    }
+  })
+  .catch(err => console.error("Error fetching renovation categories:", err));
 
 function addRenovationRow(data = {}) {
   const container = document.getElementById("renovationContainer");
@@ -31,67 +41,14 @@ function addRenovationRow(data = {}) {
             </label>
 
             <select class="form-select renovation-category">
-
-                <option value="Finishing"
-                    data-i18n="renovation_finishing">
-                    Finishing
-                </option>
-
-                <option value="Painting"
-                    data-i18n="renovation_painting">
-                    Painting
-                </option>
-
-                <option value="Flooring"
-                    data-i18n="renovation_flooring">
-                    Flooring
-                </option>
-
-                <option value="Kitchen"
-                    data-i18n="renovation_kitchen">
-                    Kitchen
-                </option>
-
-                <option value="Bathroom"
-                    data-i18n="renovation_bathroom">
-                    Bathroom
-                </option>
-
-                <option value="Electrical"
-                    data-i18n="renovation_electrical">
-                    Electrical
-                </option>
-
-                <option value="Plumbing"
-                    data-i18n="renovation_plumbing">
-                    Plumbing
-                </option>
-
-                <option value="Doors & Windows"
-                    data-i18n="renovation_doors_windows">
-                    Doors & Windows
-                </option>
-
-                <option value="Furniture"
-                    data-i18n="renovation_furniture">
-                    Furniture
-                </option>
-
-                <option value="Landscape"
-                    data-i18n="renovation_landscape">
-                    Landscape
-                </option>
-
-                <option value="Maintenance"
-                    data-i18n="renovation_maintenance">
-                    Maintenance
-                </option>
-
-                <option value="Other"
-                    data-i18n="type_other">
-                    Other
-                </option>
-
+                ${renovationCategories.map(cat => {
+                    const normVal = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+                    return `
+                        <option value="${cat}" data-i18n-prefix="renovation_" data-i18n-value="${normVal}">
+                            ${cat}
+                        </option>
+                    `;
+                }).join("")}
             </select>
 
         </div>

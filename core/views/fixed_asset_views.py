@@ -31,6 +31,7 @@ from core.views.fixed_assets.fixed_asset_photo_views import (
 from core.views.fixed_assets.fixed_asset_renovation_views import (
     AssetRenovationListView,
     AssetRenovationDetailView,
+    AssetRenovationCategoriesView,
 )
 from core.views.fixed_assets.fixed_asset_sale_views import (
     AssetSaleView,
@@ -48,6 +49,7 @@ __all__ = [
     "AssetMaintenanceDetailView",
     "AssetMaintenanceListView",
     "AssetPhotoView",
+    "AssetRenovationCategoriesView",
     "AssetRenovationDetailView",
     "AssetRenovationListView",
     "AssetSaleView",
