@@ -53,7 +53,7 @@ class GoldValuationService:
                 usd_to_egp=gp.usd_to_egp,
             )
 
-        from core.views import _refresh_all_gold_assets_from_live_prices
+        from core.services.fixed_assets.gold_sync_service import _refresh_all_gold_assets_from_live_prices
 
         _refresh_all_gold_assets_from_live_prices()
 

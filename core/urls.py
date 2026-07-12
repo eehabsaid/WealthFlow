@@ -78,6 +78,11 @@ urlpatterns = [
     path("api/settings/gold-types/<int:pk>/", views.GoldTypeSettingsDetailView.as_view()),
     path("api/settings/gold-purities/", views.GoldPuritySettingsListView.as_view()),
     path("api/settings/gold-purities/<int:pk>/", views.GoldPuritySettingsDetailView.as_view()),
+    # Backup & Restore
+    path("api/settings/backup/create/", views.BackupCreateView.as_view()),
+    path("api/settings/backup/list/", views.BackupListView.as_view()),
+    path("api/settings/backup/delete/", views.BackupDeleteView.as_view()),
+    path("api/settings/backup/restore/", views.BackupRestoreView.as_view()),
     # excel export
     path("api/export/excel/", ExportExcelWorkbookView.as_view(), name="export_excel"),
     # ── Reminder Engine ──────────────────────────────────────────────────────

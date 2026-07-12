@@ -167,7 +167,7 @@ class Command(BaseCommand):
         os.makedirs(output_dir, exist_ok=True)
 
         # Decide output path
-        ts = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = custom_filename or f"wealthflow_backup_{ts}.wfbackup"
         output_path = os.path.join(output_dir, filename)
 

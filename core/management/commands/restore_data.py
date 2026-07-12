@@ -184,19 +184,29 @@ def _restore_table(
             continue
 
         if overwrite and lookup_field:
-            # update_or_create using natural key
+            # Match using natural key to avoid modifying PKs on existing rows (which triggers INSERTs in Django)
             lookup_value = kwargs.get(lookup_field)
             if lookup_value is None:
                 lookup_value = row.get(lookup_field)
-            defaults = {k: v for k, v in kwargs.items() if k != lookup_field}
-            _, was_created = model_class.objects.update_or_create(
-                **{lookup_field: lookup_value},
-                defaults=defaults,
-            )
-            if was_created:
-                created += 1
-            else:
+            
+            try:
+                existing_instance = model_class.objects.get(**{lookup_field: lookup_value})
+                # Update existing instance fields (except the PK id and the lookup field itself)
+                for k, v in kwargs.items():
+                    if k != "id" and k != lookup_field:
+                        setattr(existing_instance, k, v)
+                existing_instance.save()
                 updated += 1
+            except model_class.DoesNotExist:
+                # Create as new instance with backup's PK.
+                # If another record already holds this PK, delete it to prevent unique ID collision.
+                pk_name = model_class._meta.pk.name
+                pk_val = kwargs.get(pk_name) or row.get(pk_name) or kwargs.get("id") or row.get("id")
+                if pk_val is not None:
+                    model_class.objects.filter(**{pk_name: pk_val}).delete()
+                
+                model_class.objects.create(**kwargs)
+                created += 1
 
         elif overwrite and not lookup_field:
             # update_or_create by PK

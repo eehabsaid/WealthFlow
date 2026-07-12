@@ -100,6 +100,12 @@ from .settings_views import GoldPriceRefreshView
 from .settings_views import CurrencyListView
 from .settings_views import CurrencyDetailView
 from .settings_views import _seed_gold_settings_defaults
+from .settings_views import (
+    BackupCreateView,
+    BackupListView,
+    BackupDeleteView,
+    BackupRestoreView,
+)
 from .goal_views import GoalPlanningView
 from .goal_views import GoalListView
 from .goal_views import GoalDetailView
@@ -241,6 +247,10 @@ __all__ = [
     "CurrencyListView",
     "CurrencyDetailView",
     "_seed_gold_settings_defaults",
+    "BackupCreateView",
+    "BackupListView",
+    "BackupDeleteView",
+    "BackupRestoreView",
     "GoalPlanningView",
     "GoalListView",
     "GoalDetailView",

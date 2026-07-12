@@ -18,6 +18,7 @@ async function renderSettings(route) {
         goldsettings:      'goldsettings',
         'settings-dashboard': 'dashboard',
         languages:         'languages',
+        backuprestore:     'backuprestore',
     };
 
     let activeTab = 'languages';
@@ -38,6 +39,7 @@ async function renderSettings(route) {
         { id: 'certstatus',         i18n: 'tab_cert_status',            fallback: 'Certificate Status', route: 'settings-certstatus'         },
         { id: 'goldsettings',       i18n: 'tab_gold_settings',          fallback: 'Gold Settings',    route: 'settings-goldsettings'       },
         { id: 'dashboard',          i18n: 'tab_dashboard_sett',         fallback: 'Dashboard',         route: 'settings-dashboard'          },
+        { id: 'backuprestore',      i18n: 'settings_backup_restore',    fallback: 'Backup & Restore',  route: 'settings-backuprestore'      },
     ];
 
     const tabBar = tabs.map(tab => {
@@ -85,6 +87,7 @@ async function renderSettings(route) {
         goldsettings:       renderGoldSettings,
         dashboard:          renderDashboardSettings,
         banks:              renderBankSettings,
+        backuprestore:      renderBackupRestoreSettings,
     };
 
     await (renderers[activeTab] || renderers.banks)();
@@ -154,3 +157,9 @@ window.saveTranslations = saveTranslations;
 window.filterTranslations = filterTranslations;
 window.renderTranslationCoverage = renderTranslationCoverage;
 window.showMissingTranslationsReport = showMissingTranslationsReport;
+window.renderBackupRestoreSettings = renderBackupRestoreSettings;
+window.triggerDownloadBackup = triggerDownloadBackup;
+window.triggerUploadRestore = triggerUploadRestore;
+window.createServerBackup = createServerBackup;
+window.restoreServerBackup = restoreServerBackup;
+window.deleteServerBackup = deleteServerBackup;

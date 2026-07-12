@@ -180,7 +180,7 @@ def get_model_export_order():
         ("09", AppSettings,                  "key"),
         ("10", EmailTemplate,                "key"),
         # ── User-linked data ──────────────────────────────────────────────
-        ("11", UserProfile,                  None),    # FK → User (1-to-1)
+        ("11", UserProfile,                  "user_id"),    # FK → User (1-to-1)
         ("12", AuthToken,                    None),
         ("13", AuthAuditLog,                 None),
         ("14", PagePermission,               None),
@@ -208,19 +208,19 @@ def get_model_export_order():
         ("29", Goal,                         None),
         # ── Fixed assets (parent first, then sub-types, then children) ───
         ("30", FixedAsset,                   None),
-        ("31", RealEstateDetails,            None),
-        ("32", AssetMortgage,                None),
-        ("33", AssetRental,                  None),
-        ("34", VehicleDetails,               None),
+        ("31", RealEstateDetails,            "asset_id"),
+        ("32", AssetMortgage,                "asset_id"),
+        ("33", AssetRental,                  "asset_id"),
+        ("34", VehicleDetails,               "asset_id"),
         ("35", AssetMaintenance,             None),
         ("36", AssetInsurance,               None),
-        ("37", GoldDetails,                  None),
-        ("38", OtherAssetDetails,            None),
+        ("37", GoldDetails,                  "asset_id"),
+        ("38", OtherAssetDetails,            "asset_id"),
         ("39", AssetRenovation,              None),
         ("40", AssetFurniture,               None),
         ("41", AssetValuationHistory,        None),
         ("42", AssetPurchasePayment,         None),
-        ("43", AssetSale,                    None),
+        ("43", AssetSale,                    "asset_id"),
         # ── Binary / media ────────────────────────────────────────────────
         ("44", Document,                     None),
         ("45", AssetPhoto,                   None),
