@@ -121,7 +121,19 @@ RENOVATION_TYPES = [
     "Other",
 ]
 
+FURNITURE_CATEGORIES = [
+    "Living Room",
+    "Bedroom",
+    "Kitchen",
+    "Bathroom",
+    "Dining Room",
+    "Office",
+    "Outdoor",
+    "Other",
+]
+
 __all__ = [
     "Decimal",
     "RENOVATION_TYPES",
+    "FURNITURE_CATEGORIES",
 ]

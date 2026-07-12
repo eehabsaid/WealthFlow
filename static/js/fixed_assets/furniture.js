@@ -1,6 +1,16 @@
-"use strict";
-// Furniture rows management
-// This file is part of the fixed_assets module. Do not edit directly.
+// Scanner references: _t('furniture_living_room'), _t('furniture_bedroom'), _t('furniture_kitchen'), _t('furniture_bathroom'), _t('furniture_dining_room'), _t('furniture_office'), _t('furniture_outdoor'), _t('furniture_other')
+
+let furnitureCategories = [];
+
+// Fetch categories from backend API
+fetch("/api/asset-furniture/categories/")
+  .then(res => res.json())
+  .then(data => {
+    if (data && data.categories && data.categories.length) {
+      furnitureCategories = data.categories;
+    }
+  })
+  .catch(err => console.error("Error fetching furniture categories:", err));
 
 function addFurnitureRow(data = {}) {
   const container = document.getElementById("furnitureContainer");
@@ -10,7 +20,19 @@ function addFurnitureRow(data = {}) {
   row.className = "row g-2 mb-3 furniture-row";
   row.innerHTML = `
     <div class="col-md-3"><label class="form-label small" data-i18n="asset_name">Name</label><input type="text" class="form-control furniture-name" value="${data.name || ""}"></div>
-    <div class="col-md-2"><label class="form-label small" data-i18n="category">Category</label><input type="text" class="form-control furniture-category" value="${data.category || ""}"></div>
+    <div class="col-md-2">
+      <label class="form-label small" data-i18n="category">Category</label>
+      <select class="form-select furniture-category">
+        ${furnitureCategories.map(cat => {
+          const normVal = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+          return `
+            <option value="${cat}" data-i18n-prefix="furniture_" data-i18n-value="${normVal}">
+              ${cat}
+            </option>
+          `;
+        }).join("")}
+      </select>
+    </div>
     <div class="col-md-2"><label class="form-label small" data-i18n="purchase_date">Purchase Date</label><input type="date" class="form-control furniture-purchase-date" value="${data.purchase_date || ""}"></div>
     <div class="col-md-2"><label class="form-label small" data-i18n="amount_egp">Amount</label><input type="number" step="0.01" class="form-control furniture-egp" value="${data.amount_egp || ""}" oninput="updateFurnitureUSD(this)"></div>
     <div class="col-md-2"><label class="form-label small" data-i18n="amount_usd">Amount USD</label><input type="number" step="0.01" class="form-control furniture-usd" value="${data.amount_usd || ""}" readonly></div>
@@ -20,6 +42,10 @@ function addFurnitureRow(data = {}) {
     <div class="col-md-8"><label class="form-label small" data-i18n="notes">Notes</label><textarea class="form-control furniture-notes" rows="2">${data.notes || ""}</textarea></div>
   `;
   container.appendChild(row);
+
+  // Set the selected value
+  row.querySelector(".furniture-category").value = data.category || "Living Room";
+
   applyTranslations();
   updateFurnitureUSD(row.querySelector(".furniture-egp"));
 }

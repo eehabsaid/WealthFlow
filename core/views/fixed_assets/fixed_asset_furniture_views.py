@@ -76,3 +76,11 @@ class AssetFurnitureDetailView(View):
 
         return JsonResponse({"deleted": pk})
 
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AssetFurnitureCategoriesView(View):
+    def get(self, request):
+        from core.constants import FURNITURE_CATEGORIES
+        return JsonResponse({"categories": FURNITURE_CATEGORIES})
+
+

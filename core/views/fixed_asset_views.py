@@ -15,6 +15,7 @@ from core.views.fixed_assets.fixed_asset_document_views import (
 from core.views.fixed_assets.fixed_asset_furniture_views import (
     AssetFurnitureListView,
     AssetFurnitureDetailView,
+    AssetFurnitureCategoriesView,
 )
 from core.views.fixed_assets.fixed_asset_insurance_views import (
     AssetInsuranceListView,
@@ -44,6 +45,7 @@ from core.views.fixed_assets.fixed_asset_valuation_views import (
 __all__ = [
     "AssetFurnitureDetailView",
     "AssetFurnitureListView",
+    "AssetFurnitureCategoriesView",
     "AssetInsuranceDetailView",
     "AssetInsuranceListView",
     "AssetMaintenanceDetailView",

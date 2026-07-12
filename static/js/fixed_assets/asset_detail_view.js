@@ -544,8 +544,8 @@ async function showFixedAssetDetails(assetId, options = {}) {
                               </div>
                             </div>
                             <div class="mt-3 d-flex justify-content-between gap-3">
-                              <div><span class="small" data-i18n="category">Category</span><div>${item.category || '-'}</div></div>
-                              <div><span class="small" data-i18n="quantity">Quantity</span><div>${item.quantity || '-'}</div></div>
+                               <div><span class="small" data-i18n="category">Category</span><div data-i18n-prefix="furniture_" data-i18n-value="${(item.category || '').toLowerCase().replace(/ & /g, '_').replace(/ /g, '_')}">${item.category || '-'}</div></div>
+                               <div><span class="small" data-i18n="quantity">Quantity</span><div>${item.quantity || '-'}</div></div>
                               <div><span class="small" data-i18n="purchase_date">Purchase Date</span><div>${item.purchase_date || '-'}</div></div>
                             </div>
                             <div class="mt-3"><div class="small mb-1" data-i18n="notes">Notes</div><div>${item.notes || '-'}</div></div>

@@ -119,6 +119,10 @@ urlpatterns = [
         views.AssetFurnitureListView.as_view(),
     ),
     path(
+        "api/asset-furniture/categories/",
+        views.AssetFurnitureCategoriesView.as_view(),
+    ),
+    path(
         "api/asset-furniture/<int:pk>/",
         views.AssetFurnitureDetailView.as_view(),
     ),
