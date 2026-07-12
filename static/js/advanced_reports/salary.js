@@ -92,7 +92,7 @@ async function _renderSalaryReport(selectedYear = '', selectedCompany = '') {
         </div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible">
             <div class="table-container">
-            <table class="data-table">
+            <table class="data-table" data-collapsible-init="1">
                 <thead><tr>
                     <th data-i18n="year">Year</th>
                     <th class="text-end" data-i18n="total_paid">Paid</th>

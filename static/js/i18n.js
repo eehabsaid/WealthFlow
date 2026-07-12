@@ -182,6 +182,9 @@ function applyTranslations() {
         const v = el.getAttribute('data-value');
         if (v !== null) el.innerText = fmtRate(v); 
     });
+
+    // Auto-apply collapsible behaviour to any new tables rendered since last call
+    if (typeof initCollapsibleTables === 'function') initCollapsibleTables();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
