@@ -61,7 +61,7 @@ function _renderCashFlowForecast(payload) {
   const langCode = currentLang ? currentLang() : (document.documentElement.lang || "en");
   const monthFmt = new Intl.DateTimeFormat(langCode, { month: "long", year: "numeric" });
 
-  const timelineHtml = timeline.map((month) => {
+  const timelineHtml = timeline.map((month, index) => {
     const monthDate = `${month.month || ""}-01`;
     const monthLabel = month.month ? monthFmt.format(new Date(monthDate)) : "";
     const eventsHtml = (month.events || []).map((event) => {
@@ -76,20 +76,52 @@ function _renderCashFlowForecast(payload) {
       `;
     }).join("");
 
+    const displayStyle = index < 3 ? 'block' : 'none';
+    const isHiddenClass = index >= 3 ? 'hidden-month-card' : '';
+
     return `
-      <div class="card border-0 mb-3" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
-        <div class="card-body" style="padding:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <div style="color:var(--text-primary); font-weight:700;">${monthLabel}</div>
-            <div style="color:var(--text-secondary); font-size:12px;">
-              <span data-i18n="cash_flow_month_end_cash"></span>: ${_money(month.ending_cash || 0)}
-            </div>
+      <div class="card border-0 mb-3 ${isHiddenClass}" style="background:var(--bg-secondary); border:1px solid var(--border-color); display: ${displayStyle};">
+        <div class="card-header" style="padding:16px; background:transparent; border-bottom:none; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="
+          const body = this.nextElementSibling;
+          const isCollapsed = body.style.display === 'none';
+          body.style.display = isCollapsed ? 'block' : 'none';
+          this.querySelector('.toggle-icon').style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+        ">
+          <div style="color:var(--text-primary); font-weight:700;">${monthLabel}</div>
+          <div style="color:var(--text-secondary); font-size:12px; display:flex; align-items:center; gap:8px;">
+            <span>${_money(month.ending_cash || 0)}</span>
+            <svg class="toggle-icon" style="transition: transform 0.2s; fill:currentColor; width:16px; height:16px;" viewBox="0 0 16 16">
+              <path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+            </svg>
           </div>
+        </div>
+        <div class="card-body" style="display:none; padding:0 16px 16px 16px; border-top:1px solid var(--border-color);">
           ${eventsHtml || `<div style="color:var(--text-secondary);" data-i18n="cash_flow_no_events"></div>`}
         </div>
       </div>
     `;
   }).join("");
+
+  const showAllBtnHtml = timeline.length > 3 ? `
+    <div class="card border-0 mb-4" style="background:transparent; border:1px solid var(--border-color); cursor:pointer;" onclick="
+      const container = this.closest('#cash_flow_timeline_container');
+      const hiddenCards = container.querySelectorAll('.hidden-month-card');
+      const isShowingAll = this.getAttribute('data-showing') === 'true';
+      hiddenCards.forEach(c => c.style.display = isShowingAll ? 'none' : 'block');
+      this.setAttribute('data-showing', !isShowingAll);
+      
+      const lang = window.currentLang ? window.currentLang() : document.documentElement.lang || 'en';
+      const total = ${timeline.length};
+      const showAllText = lang === 'ar' ? 'عرض كل الأشهر (' + total + ')' : 'Show all ' + total + ' months';
+      const showLessText = lang === 'ar' ? 'عرض أقل' : 'Show less';
+      
+      this.querySelector('span').innerText = isShowingAll ? showAllText : showLessText;
+    ">
+      <div class="card-body text-center" style="padding:12px;">
+        <span style="color:var(--bs-primary, #0d6efd); font-weight:600;">${document.documentElement.lang === 'ar' || (window.currentLang && window.currentLang() === 'ar') ? 'عرض كل الأشهر (' + timeline.length + ')' : 'Show all ' + timeline.length + ' months'}</span>
+      </div>
+    </div>
+  ` : '';
 
   const largestEvent = summary.largest_cash_event || {};
   const largestExpense = summary.largest_planned_expense || {};
@@ -104,9 +136,10 @@ function _renderCashFlowForecast(payload) {
       ${warningHtml}
     </div>
 
-    <div class="mb-4">
+    <div class="mb-4" id="cash_flow_timeline_container">
       <div style="color:var(--text-primary); font-weight:700; margin-bottom:12px;" data-i18n="cash_flow_timeline_title"></div>
       ${timelineHtml}
+      ${showAllBtnHtml}
     </div>
 
     <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
