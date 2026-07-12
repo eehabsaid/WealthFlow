@@ -1,4 +1,4 @@
-// Scanner references: _t('furniture_living_room'), _t('furniture_bedroom'), _t('furniture_kitchen'), _t('furniture_bathroom'), _t('furniture_dining_room'), _t('furniture_office'), _t('furniture_outdoor'), _t('furniture_other')
+// Scanner references: _t('furniture_living_room'), _t('furniture_bedroom'), _t('furniture_kitchen'), _t('furniture_bathroom'), _t('furniture_dining_room'), _t('furniture_office'), _t('furniture_outdoor'), _t('furniture_air_conditioner'), _t('furniture_refrigerator'), _t('furniture_freezer'), _t('furniture_cooker'), _t('furniture_oven'), _t('furniture_range_hood'), _t('furniture_microwave'), _t('furniture_dishwasher'), _t('furniture_washing_machine'), _t('furniture_water_heater'), _t('furniture_water_dispenser'), _t('furniture_tv'), _t('furniture_ceiling_fan'), _t('furniture_router'), _t('furniture_vacuum_cleaner'), _t('furniture_water_pump'), _t('furniture_generator'), _t('furniture_other_appliance'), _t('furniture_other')
 
 let furnitureCategories = [];
 
