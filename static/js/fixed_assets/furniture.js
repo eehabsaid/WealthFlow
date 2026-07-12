@@ -19,7 +19,7 @@ function addFurnitureRow(data = {}) {
   const row = document.createElement("div");
   row.className = "row g-2 mb-3 furniture-row";
   row.innerHTML = `
-    <div class="col-md-3"><label class="form-label small" data-i18n="asset_name">Name</label><input type="text" class="form-control furniture-name" value="${data.name || ""}"></div>
+    <div class="col-md-3"><label class="form-label small" data-i18n="item_name">Item Name</label><input type="text" class="form-control furniture-name" value="${data.name || ""}"></div>
     <div class="col-md-2">
       <label class="form-label small" data-i18n="category">Category</label>
       <select class="form-select furniture-category">
