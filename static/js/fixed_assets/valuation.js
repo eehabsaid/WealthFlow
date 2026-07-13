@@ -100,7 +100,12 @@ function addValuationRow(data = {}, expand = false) {
     </div>
   `;
 
-  container.appendChild(row);
+  if (expand) {
+    container.prepend(row);
+    row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  } else {
+    container.appendChild(row);
+  }
 
   row.querySelector(".valuation-source").value = sourceVal;
 

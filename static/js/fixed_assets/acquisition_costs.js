@@ -127,7 +127,12 @@ function addAcquisitionRow(data = {}, expand = false) {
     </div>
   `;
 
-  container.appendChild(row);
+  if (expand) {
+    container.prepend(row);
+    row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  } else {
+    container.appendChild(row);
+  }
 
   // Initialize event listeners on new row inputs
   const descInput = row.querySelector(".acquisition-description");
