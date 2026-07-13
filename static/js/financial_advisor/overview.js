@@ -33,7 +33,6 @@ function _renderOverviewError() {
 function _categoryColor(key) {
   const colors = {
     "cash": "var(--accent-green)",
-    "banks": "var(--accent-primary)",
     "certificates": "#8c7cf0",
     "gold": "var(--accent-yellow)",
     "real_estate": "#3ddc84",
@@ -108,7 +107,7 @@ function _renderOverview(payload) {
           <h4 style="color:var(--text-primary); margin-bottom:12px;" data-i18n="overview_empty_state_title">No financial data available yet.</h4>
           <p style="color:var(--text-secondary); max-width:520px; margin:0 auto 24px auto; line-height:1.6;" data-i18n="overview_empty_state_desc">Start by adding bank accounts, fixed assets, or monthly expenses to receive structured AI financial insights and overview metrics.</p>
           <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
-            <a href="#balance" class="btn btn-sm btn-outline-primary px-3 py-2" style="border-radius:6px; font-weight:600;"><i class="bi bi-bank me-1"></i> <span data-i18n="balance_tab_accounts">Accounts</span></a>
+            <a href="#balance" onclick="sessionStorage.setItem('wf_balance_active_tab', 'accounts');" class="btn btn-sm btn-outline-primary px-3 py-2" style="border-radius:6px; font-weight:600;"><i class="bi bi-bank me-1"></i> <span data-i18n="balance_tab_accounts">Accounts</span></a>
             <a href="#fixed-assets" class="btn btn-sm btn-outline-primary px-3 py-2" style="border-radius:6px; font-weight:600;"><i class="bi bi-house me-1"></i> <span data-i18n="nav_fixed_assets">Assets</span></a>
             <a href="#expenses" class="btn btn-sm btn-outline-primary px-3 py-2" style="border-radius:6px; font-weight:600;"><i class="bi bi-cart me-1"></i> <span data-i18n="nav_expenses_reports">Expenses</span></a>
           </div>
@@ -411,7 +410,7 @@ function _renderOverview(payload) {
     <!-- ROW 2: Four KPI Cards (Lift-on-Hover Effect) -->
     <div class="row g-3 mb-3">
       <!-- KPI 1: Net Worth -->
-      <div class="col-12 col-sm-6 col-xl-3" style="cursor:pointer;" onclick="window.location.hash='#balance'">
+      <div class="col-12 col-sm-6 col-xl-3" style="cursor:pointer;" onclick="sessionStorage.setItem('wf_balance_active_tab', 'overview'); window.location.hash='#balance'">
         <div class="overview-card overview-kpi-card h-100">
           <div class="overview-kpi-icon-wrap" style="background:rgba(123, 147, 201, 0.12); color:#a07cf0; width: 52px; height: 52px; font-size: 28px;">
             <i class="bi bi-wallet2"></i>
@@ -425,7 +424,7 @@ function _renderOverview(payload) {
       </div>
 
       <!-- KPI 2: Liquid Assets -->
-      <div class="col-12 col-sm-6 col-xl-3" style="cursor:pointer;" onclick="window.location.hash='#balance'">
+      <div class="col-12 col-sm-6 col-xl-3" style="cursor:pointer;" onclick="sessionStorage.setItem('wf_balance_active_tab', 'overview'); window.location.hash='#balance'">
         <div class="overview-card overview-kpi-card h-100">
           <div class="overview-kpi-icon-wrap" style="background:rgba(79, 143, 247, 0.12); color:#4f8ff7; width: 52px; height: 52px; font-size: 28px;">
             <i class="bi bi-droplet-fill"></i>
@@ -789,7 +788,6 @@ function _drawOverviewCharts(payload) {
           borderWidth: 2.5,
           backgroundColor: [
             "var(--accent-green)",
-            "var(--accent-primary)",
             "#8c7cf0",
             "var(--accent-yellow)",
             "#3ddc84",

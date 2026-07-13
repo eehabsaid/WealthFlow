@@ -23,7 +23,6 @@ class AllocationBand:
 class PortfolioOptimizerService:
     ALLOCATION_LABELS: Dict[str, str] = {
         "cash": "portfolio_optimizer_asset_cash",
-        "banks": "portfolio_optimizer_asset_banks",
         "certificates": "portfolio_optimizer_asset_certificates",
         "gold": "portfolio_optimizer_asset_gold",
         "real_estate": "portfolio_optimizer_asset_real_estate",
@@ -33,8 +32,7 @@ class PortfolioOptimizerService:
 
     # Recommended ranges kept as constants by product requirement.
     RECOMMENDED_BANDS: Dict[str, AllocationBand] = {
-        "cash": AllocationBand(15.0, 25.0),
-        "banks": AllocationBand(5.0, 15.0),
+        "cash": AllocationBand(20.0, 40.0),
         "certificates": AllocationBand(15.0, 35.0),
         "gold": AllocationBand(10.0, 20.0),
         "real_estate": AllocationBand(30.0, 60.0),
@@ -44,7 +42,6 @@ class PortfolioOptimizerService:
 
     HOLDING_ORDER = [
         "cash",
-        "banks",
         "certificates",
         "gold",
         "real_estate",
@@ -60,7 +57,6 @@ class PortfolioOptimizerService:
         values = comp.get("allocation_values", {})
         return {
             "cash": _to_float(values.get("type_cash")),
-            "banks": _to_float(values.get("type_bank")),
             "certificates": _to_float(values.get("bank_certificates")),
             "gold": _to_float(values.get("type_gold")),
             "real_estate": _to_float(values.get("type_real_estate")),
@@ -414,7 +410,6 @@ class PortfolioOptimizerService:
         gold_pct = _to_float(percentages.get("gold"))
         emergency_months = self._emergency_fund_months(
             _to_float(comp.get("allocation_values", {}).get("type_cash"))
-            + _to_float(comp.get("allocation_values", {}).get("type_bank"))
             + _to_float(comp.get("allocation_values", {}).get("bank_certificates")),
             self._monthly_expense_average(),
         )
@@ -505,10 +500,10 @@ class PortfolioOptimizerService:
         allocation_percentages = self._allocation_percentages(allocation_values, total_portfolio)
 
         monthly_expenses = self._monthly_expense_average()
-        liquid_for_emergency = allocation_values["cash"] + allocation_values["banks"] + allocation_values["certificates"]
+        liquid_for_emergency = allocation_values["cash"] + allocation_values["certificates"]
         emergency_months = self._emergency_fund_months(liquid_for_emergency, monthly_expenses)
 
-        liquid_pct = _to_float(allocation_percentages.get("cash")) + _to_float(allocation_percentages.get("banks"))
+        liquid_pct = _to_float(allocation_percentages.get("cash"))
 
         liquidity_metric = self._score_range_metric(
             liquid_pct,
@@ -597,7 +592,6 @@ class PortfolioOptimizerService:
 
         chart_labels = [
             self.ALLOCATION_LABELS["cash"],
-            self.ALLOCATION_LABELS["banks"],
             self.ALLOCATION_LABELS["certificates"],
             self.ALLOCATION_LABELS["gold"],
             self.ALLOCATION_LABELS["real_estate"],
@@ -606,7 +600,6 @@ class PortfolioOptimizerService:
         ]
         chart_values = [
             allocation_values["cash"],
-            allocation_values["banks"],
             allocation_values["certificates"],
             allocation_values["gold"],
             allocation_values["real_estate"],

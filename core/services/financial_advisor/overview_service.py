@@ -244,17 +244,17 @@ class OverviewService:
             {
                 "key": p1_key,
                 "fallback": p1_fallback,
-                "params": {}
+                "params": {"months": round(emergency_months, 1)}
             },
             {
                 "key": p2_key,
                 "fallback": p2_fallback,
-                "params": {}
+                "params": {"asset_class_key": largest_asset_concentration.get("label_key", "portfolio_optimizer_asset_cash")}
             },
             {
                 "key": p3_key,
                 "fallback": p3_fallback,
-                "params": {}
+                "params": {"on_track": goals_on_track + goals_completed, "total": goals_total}
             }
         ]
 

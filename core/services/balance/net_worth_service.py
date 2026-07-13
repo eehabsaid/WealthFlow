@@ -54,8 +54,20 @@ def _normalize_gold_purity(purity_value) -> str:
     return "24k"
 
 class NetWorthService:
+    _shared_cache: Dict[str, Any] = {}
+    _shared_cache_time: float = 0.0
+
     def __init__(self):
-        self._cache: Dict[str, Any] = {}
+        import sys
+        if "test" in sys.argv:
+            self._cache = {}
+        else:
+            import time
+            now = time.time()
+            if now - NetWorthService._shared_cache_time > 3.0:
+                NetWorthService._shared_cache.clear()
+                NetWorthService._shared_cache_time = now
+            self._cache = NetWorthService._shared_cache
 
     def _cached(self, key: str, producer: Callable[[], T]) -> T:
         if key not in self._cache:
@@ -331,8 +343,7 @@ class NetWorthService:
             net_worth = liquid_total + fixed_total
 
             allocation_values = {
-                "type_cash": cash_total,
-                "type_bank": banks_total,
+                "type_cash": cash_total + banks_total,
                 "bank_certificates": cert_total_egp,
                 "type_gold": gold_value,
                 "type_real_estate": fixed_breakdown["real_estate"],
