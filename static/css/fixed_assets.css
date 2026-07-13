@@ -326,7 +326,7 @@
     color: var(--text-primary);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 1024px) {
     .furniture-row.item-card .field-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -335,7 +335,7 @@
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 700px) {
     .furniture-row.item-card .field-grid {
         grid-template-columns: 1fr;
     }
