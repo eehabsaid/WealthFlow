@@ -1303,5 +1303,6 @@
   "amount_label": "Montant",
   "items": "Articles",
   "total_egp": "Total (EGP)",
-  "total_usd": "Total (USD)"
+  "total_usd": "Total (USD)",
+  "unnamed_item": "(Élément sans nom)"
 }

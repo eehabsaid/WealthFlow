@@ -251,4 +251,50 @@ function initCollapsibleTables() {
     });
 }
 
+// Reusable Collapsible Card Helpers
+function initCollapsibleCard(card, containerSelector, onToggle = null) {
+  const header = card.querySelector(".item-header");
+  if (!header) return;
+
+  header.addEventListener("click", (e) => {
+    // If clicking on inputs, select, textarea, or remove button, do not toggle
+    if (e.target.closest(".item-remove-btn") || e.target.closest("input") || e.target.closest("select") || e.target.closest("textarea")) {
+      return;
+    }
+    toggleCollapsibleCard(card, containerSelector);
+    if (onToggle) onToggle(card);
+  });
+}
+
+function toggleCollapsibleCard(card, containerSelector, forceExpand = null) {
+  const container = containerSelector ? card.closest(containerSelector) : card.parentElement;
+  if (!container) return;
+
+  const body = card.querySelector(".item-body");
+  const chevron = card.querySelector(".item-chevron");
+  const isExpanded = forceExpand !== null ? forceExpand : !card.classList.contains("open");
+
+  if (isExpanded) {
+    // Collapse all other cards in the same container (accordion behavior)
+    container.querySelectorAll(".item-card").forEach(otherCard => {
+      if (otherCard !== card) {
+        otherCard.classList.remove("open");
+        const b = otherCard.querySelector(".item-body");
+        if (b) b.style.display = "none";
+        const c = otherCard.querySelector(".item-chevron");
+        if (c) c.style.transform = "";
+      }
+    });
+
+    card.classList.add("open");
+    if (body) body.style.display = "block";
+    if (chevron) chevron.style.transform = "rotate(90deg)";
+  } else {
+    card.classList.remove("open");
+    if (body) body.style.display = "none";
+    if (chevron) chevron.style.transform = "";
+  }
+}
+
+
 

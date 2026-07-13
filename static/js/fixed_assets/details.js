@@ -738,31 +738,28 @@ function renderPhotosTab() {
 }
 
 function renderRenovationTab() {
-  return `<!-- 3. RENOVATION TAB PANE -->
-                  <div class="tab-pane fade"
+  return `<div class="tab-pane fade"
                       id="renovation-pane"
                       role="tabpanel"
                       aria-labelledby="renovation-tab">
 
-                        <div class="card border-0 shadow-sm bg-transparent">
-                            <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
-                                <h6 class="mb-0 font-weight-bold fixed-assets-section-title" data-i18n="renovation_history">Renovation History</h6>
-                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#renovationCollapse">
-                                    <i class="bi bi-chevron-down"></i>
-                                </button>
-                            </div>
-
-                            <div class="collapse show" id="renovationCollapse">
-                                <div class="card-body px-0 pt-2">
-                                    <div id="renovationContainer" class="w-100"></div>
-                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addRenovationRow()" data-i18n="add_renovation">
-                                        + Add Renovation
-                                    </button>
-                                </div>
-                            </div>
+                      <div class="card border-0 shadow-sm bg-transparent">
+                        <div class="card-header d-flex justify-content-between align-items-center px-0 bg-transparent border-0">
+                          <h6 class="mb-0 font-weight-bold fixed-assets-section-title">
+                            <span data-i18n="renovations">Renovations</span>
+                            <span id="renovation-count-badge" class="text-secondary font-weight-normal small ms-1"></span>
+                          </h6>
+                          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addRenovationRow({}, true)" data-i18n="add_renovation">
+                            + Add Renovation
+                          </button>
                         </div>
+                        <div class="card-body px-0 pt-2">
+                          <div id="renovationSummaryStrip" class="furniture-summary-strip"></div>
+                          <div id="renovationContainer" class="w-100"></div>
+                        </div>
+                      </div>
 
-                  </div> <!-- End Renovation Tab -->`;
+                    </div> <!-- End Renovation Tab -->`;
 }
 
 function renderFurnitureTab() {

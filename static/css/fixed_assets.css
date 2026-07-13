@@ -151,8 +151,8 @@
     padding-bottom: 10px;
 }
 
-/* Furniture Collapsible Cards & Summary Strip */
-.furniture-row.item-card {
+/* Collapsible Cards & Summary Strip */
+.item-card {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: 10px;
@@ -162,11 +162,11 @@
     transition: border-color 0.15s ease;
 }
 
-.furniture-row.item-card.open {
+.item-card.open {
     border-color: var(--accent-primary);
 }
 
-.furniture-row.item-card .item-header {
+.item-card .item-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -176,24 +176,24 @@
     background: transparent;
 }
 
-.furniture-row.item-card .item-header-left {
+.item-card .item-header-left {
     display: flex;
     align-items: center;
     gap: 10px;
     min-width: 0;
 }
 
-.furniture-row.item-card .item-chevron {
+.item-card .item-chevron {
     color: var(--text-muted);
     flex-shrink: 0;
     transition: transform 0.15s ease;
 }
 
-.furniture-row.item-card.open .item-chevron {
+.item-card.open .item-chevron {
     transform: rotate(90deg);
 }
 
-.furniture-row.item-card .item-name-preview {
+.item-card .item-name-preview {
     font-weight: 600;
     font-size: 14px;
     color: var(--text-primary);
@@ -202,7 +202,7 @@
     text-overflow: ellipsis;
 }
 
-.furniture-row.item-card .item-category-badge {
+.item-card .item-category-badge {
     font-size: 11px;
     font-weight: 600;
     padding: 2px 8px;
@@ -212,20 +212,20 @@
     flex-shrink: 0;
 }
 
-.furniture-row.item-card .item-header-right {
+.item-card .item-header-right {
     display: flex;
     align-items: center;
     gap: 14px;
     flex-shrink: 0;
 }
 
-.furniture-row.item-card .item-amount-preview {
+.item-card .item-amount-preview {
     font-weight: 700;
     color: var(--text-primary);
     font-size: 14px;
 }
 
-.furniture-row.item-card .item-remove-btn {
+.item-card .item-remove-btn {
     width: 28px;
     height: 28px;
     border-radius: 7px;
@@ -239,41 +239,41 @@
     padding: 0;
 }
 
-.furniture-row.item-card .item-remove-btn:hover {
+.item-card .item-remove-btn:hover {
     background: color-mix(in srgb, var(--accent-red) 12%, transparent);
 }
 
-.furniture-row.item-card .item-body {
+.item-card .item-body {
     display: none;
     padding: 4px 14px 16px 14px;
     border-top: 1px solid var(--border-color);
     background: transparent;
 }
 
-.furniture-row.item-card.open .item-body {
+.item-card.open .item-body {
     display: block;
 }
 
-.furniture-row.item-card .field-grid {
+.item-card .field-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-top: 12px;
 }
 
-.furniture-row.item-card .field-grid .span-2 {
+.item-card .field-grid .span-2 {
     grid-column: span 2;
 }
 
-.furniture-row.item-card .field-grid .span-4 {
+.item-card .field-grid .span-4 {
     grid-column: span 4;
 }
 
-.furniture-row.item-card .field-grid .field {
+.item-card .field-grid .field {
     min-width: 0;
 }
 
-.furniture-row.item-card .field-grid .field label {
+.item-card .field-grid .field label {
     display: block;
     font-size: 11px;
     font-weight: 600;
@@ -286,9 +286,9 @@
     text-overflow: ellipsis;
 }
 
-.furniture-row.item-card .field-grid .field input,
-.furniture-row.item-card .field-grid .field select,
-.furniture-row.item-card .field-grid .field textarea {
+.item-card .field-grid .field input,
+.item-card .field-grid .field select,
+.item-card .field-grid .field textarea {
     width: 100%;
     min-width: 0;
     font-size: 13px;
@@ -327,27 +327,27 @@
 }
 
 @media (max-width: 1024px) {
-    .furniture-row.item-card .field-grid {
+    .item-card .field-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    .furniture-row.item-card .field-grid .span-2 {
+    .item-card .field-grid .span-2 {
         grid-column: span 2;
     }
 }
 
 @media (max-width: 700px) {
-    .furniture-row.item-card .field-grid {
+    .item-card .field-grid {
         grid-template-columns: 1fr;
     }
-    .furniture-row.item-card .field-grid .span-2,
-    .furniture-row.item-card .field-grid .span-4 {
+    .item-card .field-grid .span-2,
+    .item-card .field-grid .span-4 {
         grid-column: span 1;
     }
-    .furniture-row.item-card .item-header {
+    .item-card .item-header {
         flex-wrap: wrap;
         gap: 8px;
     }
-    .furniture-row.item-card .item-name-preview {
+    .item-card .item-name-preview {
         max-width: 100px;
     }
 }
