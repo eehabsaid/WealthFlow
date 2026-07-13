@@ -175,7 +175,7 @@ function addFurnitureRow(data = {}, expand = false) {
 
   // Initial expansion state
   const isFirstCard = container.children.length === 1;
-  const shouldExpand = expand || isFirstCard;
+  const shouldExpand = expand;
   toggleCollapsibleCard(row, "#furnitureContainer", shouldExpand);
 
   // Auto-calc USD amount if input has initial EGP amount

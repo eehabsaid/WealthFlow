@@ -1321,5 +1321,6 @@
   "acquisition_costs_egp": "Acquisition Costs (EGP)",
   "renovation_costs_egp": "Renovation Costs (EGP)",
   "no_acquisition_costs": "No acquisition costs registered.",
-  "total_acquisition_cost_usd": "Total Acquisition Cost USD"
+  "total_acquisition_cost_usd": "Total Acquisition Cost USD",
+  "latest_value": "Latest Value"
 }

@@ -161,7 +161,7 @@ function addRenovationRow(data = {}, expand = false) {
 
   // Initial expansion state
   const isFirstCard = container.children.length === 1;
-  const shouldExpand = expand || isFirstCard;
+  const shouldExpand = expand;
   toggleCollapsibleCard(row, "#renovationContainer", shouldExpand);
 
   // Auto-calc USD amount if input has initial EGP amount

@@ -1321,5 +1321,6 @@
   "acquisition_costs_egp": "Anschaffungskosten (EGP)",
   "renovation_costs_egp": "Renovierungskosten (EGP)",
   "no_acquisition_costs": "Keine Anschaffungskosten registriert.",
-  "total_acquisition_cost_usd": "Gesamtanschaffungskosten USD"
+  "total_acquisition_cost_usd": "Gesamtanschaffungskosten USD",
+  "latest_value": "Letzter Wert"
 }

@@ -1321,5 +1321,6 @@
   "acquisition_costs_egp": "Frais d'acquisition (EGP)",
   "renovation_costs_egp": "Frais de rénovation (EGP)",
   "no_acquisition_costs": "Aucun frais d'acquisition enregistré.",
-  "total_acquisition_cost_usd": "Frais d'acquisition totaux USD"
+  "total_acquisition_cost_usd": "Frais d'acquisition totaux USD",
+  "latest_value": "Dernière valeur"
 }

@@ -1321,5 +1321,6 @@
   "acquisition_costs_egp": "تكاليف الاستحواذ (بالجنيه)",
   "renovation_costs_egp": "تكاليف التجديد (بالجنيه)",
   "no_acquisition_costs": "لم يتم تسجيل أي تكاليف استحواذ.",
-  "total_acquisition_cost_usd": "إجمالي تكاليف الاستحواذ بالدولار"
+  "total_acquisition_cost_usd": "إجمالي تكاليف الاستحواذ بالدولار",
+  "latest_value": "أحدث قيمة"
 }
