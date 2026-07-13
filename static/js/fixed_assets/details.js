@@ -346,10 +346,11 @@ async function showFixedAssetModal(assetId = null, options = {}) {
   addPurchasePaymentRow();
   propertyPhotos = [];
   renderPropertyPhotoGallery();
-  ["renovationContainer", "furnitureContainer", "valuationContainer", "maintenanceContainer", "insuranceContainer"].forEach((id) => {
+  ["acquisitionContainer", "renovationContainer", "furnitureContainer", "valuationContainer", "maintenanceContainer", "insuranceContainer"].forEach((id) => {
     const container = document.getElementById(id);
     if (container) container.innerHTML = "";
   });
+  updateAcquisitionSummary();
   resetSaleForm();
   toggleSaleDepositBankField();
   resetMortgageForm();
@@ -635,6 +636,20 @@ function renderPropertyTab() {
                                     <label class="form-label small text-light" data-i18n="description">Property Structural Description</label>
                                     <input type="text" class="form-control" id="re_description">
                                 </div>
+                            </div>
+
+                            <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:14px;margin-top:16px;">
+                              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+                                <div>
+                                  <span style="font-weight:600;color:var(--text-secondary);" data-i18n="acquisition_costs">Acquisition Costs</span>
+                                  <span id="acquisition-count-badge" class="text-secondary font-weight-normal small ms-1"></span>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addAcquisitionRow({}, true)" data-i18n="add_acquisition">
+                                  + Add Acquisition Cost
+                                </button>
+                              </div>
+                              <div id="acquisitionSummaryStrip" class="furniture-summary-strip mb-3"></div>
+                              <div id="acquisitionContainer" class="w-100"></div>
                             </div>
                         </div>
                         

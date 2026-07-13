@@ -1304,5 +1304,22 @@
   "items": "Artikel",
   "total_egp": "Gesamt (EGP)",
   "total_usd": "Gesamt (USD)",
-  "unnamed_item": "(Unbenanntes Element)"
+  "unnamed_item": "(Unbenanntes Element)",
+  "acquisition_costs": "Anschaffungskosten",
+  "add_acquisition": "+ Anschaffungskosten hinzufügen",
+  "acquisition_lawyer_fees": "Anwaltskosten",
+  "acquisition_registration_fees": "Registrierungsgebühren",
+  "acquisition_notary_fees": "Notargebühren",
+  "acquisition_government_fees": "Regierungsgebühren",
+  "acquisition_utility_transfer_fees": "Übertragungsgebühren für Versorgungsbetriebe",
+  "acquisition_brokerage_fees": "Maklergebühren",
+  "acquisition_other": "Sonstiges",
+  "acquisition_date": "Datum",
+  "acquisition_type": "Kategorie",
+  "total_investment": "Gesamtinvestition",
+  "total_investment_egp": "Gesamtinvestition (EGP)",
+  "acquisition_costs_egp": "Anschaffungskosten (EGP)",
+  "renovation_costs_egp": "Renovierungskosten (EGP)",
+  "no_acquisition_costs": "Keine Anschaffungskosten registriert.",
+  "total_acquisition_cost_usd": "Gesamtanschaffungskosten USD"
 }

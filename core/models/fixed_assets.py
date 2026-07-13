@@ -90,6 +90,56 @@ class FixedAsset(models.Model):
             return None
         return self._safe_related(relation_name)
 
+    def get_total_acquisition_costs(self):
+        if self.asset_type == "Real Estate":
+            return sum(item.amount_egp for item in self.acquisition_costs.all())
+        return Decimal("0")
+
+    def get_total_renovation_costs(self):
+        if self.asset_type == "Real Estate":
+            return sum(item.amount_egp for item in self.renovations.all())
+        return Decimal("0")
+
+    def get_total_investment(self):
+        return self.purchase_price + self.get_total_acquisition_costs() + self.get_total_renovation_costs()
+
+    def get_gain_loss(self):
+        return self.current_market_value - self.get_total_investment()
+
+    def get_roi(self):
+        inv = self.get_total_investment()
+        if inv > 0:
+            return (self.get_gain_loss() / inv) * 100
+        return Decimal("0")
+
+    def get_appreciation(self):
+        inv = self.get_total_investment()
+        if inv > 0:
+            return (self.get_gain_loss() / inv) * 100
+        return Decimal("0")
+
+    def get_annual_return(self):
+        inv = self.get_total_investment()
+        if inv <= 0 or not self.purchase_date:
+            return Decimal("0")
+        from datetime import date
+        today = date.today()
+        purchase_date = self.purchase_date
+        if isinstance(purchase_date, str):
+            from datetime import datetime
+            try:
+                purchase_date = datetime.strptime(purchase_date.split("T")[0], "%Y-%m-%d").date()
+            except ValueError:
+                return Decimal("0")
+        diff_days = (today - purchase_date).days
+        holding_years = diff_days / 365.25
+        if holding_years <= 0:
+            return Decimal("0")
+        try:
+            return Decimal(str((float(self.current_market_value / inv) ** (1 / holding_years) - 1) * 100))
+        except Exception:
+            return Decimal("0")
+
     def to_dict(self):
         related_details = self._get_related_details()
         real_estate = self._safe_related("real_estate")
@@ -127,6 +177,14 @@ class FixedAsset(models.Model):
 
             "details": related_details.to_dict() if related_details else None,
 
+            "total_acquisition_costs": float(self.get_total_acquisition_costs()),
+            "total_renovation_costs": float(self.get_total_renovation_costs()),
+            "total_investment": float(self.get_total_investment()),
+            "gain_loss": float(self.get_gain_loss()),
+            "roi": float(self.get_roi()),
+            "appreciation": float(self.get_appreciation()),
+            "annual_return": float(self.get_annual_return()),
+
             # Related Models
             "real_estate": (
                 real_estate.to_dict()
@@ -152,10 +210,16 @@ class FixedAsset(models.Model):
                 else None
             ),
 
+            "acquisition_costs": [
+                item.to_dict()
+                for item in self.acquisition_costs.all()
+            ],
+
             "renovations": [
                 item.to_dict()
                 for item in self.renovations.all()
             ],
+
 
             "maintenance": [
                 item.to_dict()

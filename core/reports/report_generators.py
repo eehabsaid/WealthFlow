@@ -1005,6 +1005,7 @@ def _fixed_asset_report_queryset():
         )
         .prefetch_related(
             "photos",
+            "acquisition_costs",
             "renovations",
             "maintenance",
             "insurance",
@@ -1101,7 +1102,7 @@ def _build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_st
     story.append(Paragraph(asset_name, title_style))
     story.append(Spacer(1, 0.25 * cm))
 
-    gain_amount = float(data.get("current_market_value") or 0) - float(data.get("purchase_price") or 0)
+    gain_amount = float(data.get("gain_loss") if data.get("gain_loss") is not None else (float(data.get("current_market_value") or 0) - float(data.get("purchase_price") or 0)))
     general_rows = [
         [
             _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
@@ -1132,6 +1133,10 @@ def _build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_st
         [
             _fixed_asset_report_label(t, lang, "purchase_price_egp", "Purchase Price (EGP)"),
             f"{float(data.get('purchase_price') or 0):,.2f}",
+        ],
+        [
+            _fixed_asset_report_label(t, lang, "total_investment_egp", "Total Investment (EGP)"),
+            f"{float(data.get('total_investment') or data.get('purchase_price') or 0):,.2f}",
         ],
         [
             _fixed_asset_report_label(t, lang, "current_market_value", "Current Market Value"),
@@ -1198,6 +1203,19 @@ def _build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_st
         rows.extend(value_rows(item) for item in items)
         story.append(_fixed_asset_pdf_table(rows, [4 * cm, 4 * cm, 3.5 * cm, 4 * cm], font_name))
         story.append(Spacer(1, 0.3 * cm))
+
+    build_collection_section(
+        "acquisition_costs",
+        "Acquisition Costs",
+        data.get("acquisition_costs") or [],
+        [("date", "Date"), ("category", "Category"), ("amount_egp", "Amount EGP"), ("notes", "Notes")],
+        lambda item: [
+            _fixed_asset_display_value(item.get("date")),
+            _fixed_asset_user_text(item.get("category"), lang),
+            f"{float(item.get('amount_egp') or 0):,.2f}",
+            _fixed_asset_user_text(item.get("notes"), lang),
+        ],
+    )
 
     build_collection_section(
         "renovations",
@@ -1412,7 +1430,9 @@ class FixedAssetExcelReportGenerator(object):
             _fixed_asset_report_label(t, lang, "status", "Status"),
             _fixed_asset_report_label(t, lang, "purchase_date", "Purchase Date"),
             _fixed_asset_report_label(t, lang, "purchase_price_egp", "Purchase Price (EGP)"),
+            _fixed_asset_report_label(t, lang, "total_investment_egp", "Total Investment (EGP)"),
             _fixed_asset_report_label(t, lang, "current_market_value", "Current Market Value"),
+            _fixed_asset_report_label(t, lang, "gain_loss", "Gain / Loss"),
             _fixed_asset_report_label(t, lang, "country", "Country"),
             _fixed_asset_report_label(t, lang, "city", "City"),
             _fixed_asset_report_label(t, lang, "address", "Address"),
@@ -1435,7 +1455,9 @@ class FixedAssetExcelReportGenerator(object):
                     data.get("status"),
                     data.get("purchase_date"),
                     float(data.get("purchase_price") or 0),
+                    float(data.get("total_investment") or data.get("purchase_price") or 0),
                     float(data.get("current_market_value") or 0),
+                    float(data.get("gain_loss") or 0),
                     real_estate.get("country"),
                     real_estate.get("city"),
                     real_estate.get("address"),
@@ -1461,6 +1483,25 @@ class FixedAssetExcelReportGenerator(object):
             ])
 
         collections = [
+            (
+                "Acquisition Costs",
+                _fixed_asset_report_label(t, lang, "acquisition_costs", "Acquisition Costs"),
+                [
+                    _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
+                    _fixed_asset_report_label(t, lang, "date", "Date"),
+                    _fixed_asset_report_label(t, lang, "category", "Category"),
+                    _fixed_asset_report_label(t, lang, "amount_egp", "Amount EGP"),
+                    _fixed_asset_report_label(t, lang, "notes", "Notes"),
+                ],
+                lambda asset_data, item: [
+                    asset_data.get("name"),
+                    item.get("date"),
+                    item.get("category"),
+                    float(item.get("amount_egp") or 0),
+                    item.get("notes"),
+                ],
+                lambda asset_data: asset_data.get("acquisition_costs") or [],
+            ),
             (
                 "Renovations",
                 _fixed_asset_report_label(t, lang, "renovations", "Renovations"),

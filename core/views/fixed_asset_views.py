@@ -34,6 +34,11 @@ from core.views.fixed_assets.fixed_asset_renovation_views import (
     AssetRenovationDetailView,
     AssetRenovationCategoriesView,
 )
+from core.views.fixed_assets.fixed_asset_acquisition_views import (
+    AssetAcquisitionCostListView,
+    AssetAcquisitionCostDetailView,
+    AssetAcquisitionCostCategoriesView,
+)
 from core.views.fixed_assets.fixed_asset_sale_views import (
     AssetSaleView,
 )
@@ -43,6 +48,9 @@ from core.views.fixed_assets.fixed_asset_valuation_views import (
 )
 
 __all__ = [
+    "AssetAcquisitionCostListView",
+    "AssetAcquisitionCostDetailView",
+    "AssetAcquisitionCostCategoriesView",
     "AssetFurnitureDetailView",
     "AssetFurnitureListView",
     "AssetFurnitureCategoriesView",
@@ -67,3 +75,4 @@ __all__ = [
     "_document_database_error_response",
     "_document_validation_error_response",
 ]
+

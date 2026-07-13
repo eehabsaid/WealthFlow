@@ -1304,5 +1304,22 @@
   "items": "العناصر",
   "total_egp": "الإجمالي (جنيه مصري)",
   "total_usd": "الإجمالي (دولار أمريكي)",
-  "unnamed_item": "(عنصر غير مسمى)"
+  "unnamed_item": "(عنصر غير مسمى)",
+  "acquisition_costs": "تكاليف الاستحواذ",
+  "add_acquisition": "+ إضافة تكلفة استحواذ",
+  "acquisition_lawyer_fees": "أتعاب المحاماة",
+  "acquisition_registration_fees": "رسوم التسجيل",
+  "acquisition_notary_fees": "رسوم الشهر العقاري",
+  "acquisition_government_fees": "الرسوم الحكومية",
+  "acquisition_utility_transfer_fees": "رسوم نقل المرافق",
+  "acquisition_brokerage_fees": "رسوم السمسرة / العمولات",
+  "acquisition_other": "أخرى",
+  "acquisition_date": "التاريخ",
+  "acquisition_type": "الفئة",
+  "total_investment": "إجمالي الاستثمار",
+  "total_investment_egp": "إجمالي الاستثمار (بالجنيه)",
+  "acquisition_costs_egp": "تكاليف الاستحواذ (بالجنيه)",
+  "renovation_costs_egp": "تكاليف التجديد (بالجنيه)",
+  "no_acquisition_costs": "لم يتم تسجيل أي تكاليف استحواذ.",
+  "total_acquisition_cost_usd": "إجمالي تكاليف الاستحواذ بالدولار"
 }

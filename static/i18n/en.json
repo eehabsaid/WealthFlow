@@ -1304,5 +1304,22 @@
   "items": "Items",
   "total_egp": "Total (EGP)",
   "total_usd": "Total (USD)",
-  "unnamed_item": "(Unnamed item)"
+  "unnamed_item": "(Unnamed item)",
+  "acquisition_costs": "Acquisition Costs",
+  "add_acquisition": "+ Add Acquisition Cost",
+  "acquisition_lawyer_fees": "Lawyer Fees",
+  "acquisition_registration_fees": "Registration Fees",
+  "acquisition_notary_fees": "Notary Fees",
+  "acquisition_government_fees": "Government Fees",
+  "acquisition_utility_transfer_fees": "Utility Transfer Fees",
+  "acquisition_brokerage_fees": "Brokerage Fees",
+  "acquisition_other": "Other",
+  "acquisition_date": "Date",
+  "acquisition_type": "Category",
+  "total_investment": "Total Investment",
+  "total_investment_egp": "Total Investment (EGP)",
+  "acquisition_costs_egp": "Acquisition Costs (EGP)",
+  "renovation_costs_egp": "Renovation Costs (EGP)",
+  "no_acquisition_costs": "No acquisition costs registered.",
+  "total_acquisition_cost_usd": "Total Acquisition Cost USD"
 }

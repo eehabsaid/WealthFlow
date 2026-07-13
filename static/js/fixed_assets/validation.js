@@ -267,11 +267,13 @@ async function saveFixedAsset(assetId = null) {
     payload.mortgage_details = collectMortgagePayload();
     payload.rental_details = collectRentalPayload();
     payload.renovations = collectRenovations();
+    payload.acquisition_costs = collectAcquisitionCosts();
   } else {
     payload.real_estate_details = null;
     payload.mortgage_details = null;
     payload.rental_details = null;
     payload.renovations = [];
+    payload.acquisition_costs = [];
   }
 
   payload.vehicle_details = isVehicle ? collectVehicleDetailsPayload() : null;

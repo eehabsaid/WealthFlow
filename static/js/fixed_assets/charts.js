@@ -36,14 +36,18 @@ function getFixedAssetsDashboardMetrics(assets) {
     (sum, asset) => sum + (parseFloat(asset.current_market_value) || 0),
     0,
   );
-  const totalGain = currentMarketValue - totalPurchaseValue;
+  const totalInvestment = assets.reduce(
+    (sum, asset) => sum + (parseFloat(asset.total_investment) || parseFloat(asset.purchase_price) || 0),
+    0,
+  );
+  const totalGain = currentMarketValue - totalInvestment;
 
   const appreciationValues = assets
-    .filter((asset) => (parseFloat(asset.purchase_price) || 0) > 0)
+    .filter((asset) => (parseFloat(asset.total_investment) || parseFloat(asset.purchase_price) || 0) > 0)
     .map((asset) => {
-      const purchase = parseFloat(asset.purchase_price) || 0;
+      const investment = parseFloat(asset.total_investment) || parseFloat(asset.purchase_price) || 0;
       const current = parseFloat(asset.current_market_value) || 0;
-      return ((current - purchase) / purchase) * 100;
+      return ((current - investment) / investment) * 100;
     });
 
   const averageAppreciation = appreciationValues.length

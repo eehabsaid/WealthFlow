@@ -18,7 +18,7 @@ from .fixed_assets_realestate import RealEstateDetails, AssetMortgage, AssetRent
 from .fixed_assets_vehicle import VehicleDetails, AssetMaintenance, AssetInsurance
 from .fixed_assets_gold import GoldDetails
 from .fixed_assets_other import OtherAssetDetails
-from .fixed_assets_history import AssetRenovation, AssetFurniture, AssetValuationHistory, AssetPurchasePayment, AssetSale
+from .fixed_assets_history import AssetRenovation, AssetFurniture, AssetValuationHistory, AssetPurchasePayment, AssetSale, AssetAcquisitionCost
 from .documents import Document
 from .photos import AssetPhoto
 
@@ -68,6 +68,7 @@ __all__ = [
     "GoldDetails",
     "OtherAssetDetails",
     "AssetRenovation",
+    "AssetAcquisitionCost",
     "AssetFurniture",
     "AssetValuationHistory",
     "AssetPurchasePayment",

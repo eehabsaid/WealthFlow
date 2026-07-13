@@ -115,6 +115,19 @@ urlpatterns = [
         views.AssetRenovationDetailView.as_view(),
     ),
     path(
+        "api/asset-acquisition-costs/",
+        views.AssetAcquisitionCostListView.as_view(),
+    ),
+    path(
+        "api/asset-acquisition-costs/categories/",
+        views.AssetAcquisitionCostCategoriesView.as_view(),
+    ),
+    path(
+        "api/asset-acquisition-costs/<int:pk>/",
+        views.AssetAcquisitionCostDetailView.as_view(),
+    ),
+
+    path(
         "api/asset-furniture/",
         views.AssetFurnitureListView.as_view(),
     ),

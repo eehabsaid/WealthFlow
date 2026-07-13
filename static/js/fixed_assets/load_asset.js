@@ -128,6 +128,27 @@ async function loadFixedAsset(assetId) {
       populatePropertyValuationFields({});
     }
 
+    // ---------- Acquisition Costs ----------
+    const acquisitionContainer = document.getElementById("acquisitionContainer");
+    if (acquisitionContainer) {
+      acquisitionContainer.innerHTML = "";
+      if (asset.acquisition_costs && asset.acquisition_costs.length) {
+        asset.acquisition_costs.forEach((c) => {
+          addAcquisitionRow({
+            date: c.date,
+            category: c.category,
+            description: c.description,
+            amount_egp: c.amount_egp,
+            usd_rate: c.usd_rate,
+            amount_usd: c.amount_usd,
+            notes: c.notes,
+          });
+        });
+      } else {
+        updateAcquisitionSummary();
+      }
+    }
+
     // ---------- Renovations ----------
     const renovationContainer = document.getElementById("renovationContainer");
 

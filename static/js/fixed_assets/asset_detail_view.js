@@ -56,7 +56,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
         ? '<span class="badge rounded-pill asset-info-pill"><i class="bi bi-shield-lock-fill me-1"></i><span data-i18n="licensed">Licensed</span></span>'
         : '',
     ].filter(Boolean).join('');
-    const gainValue = (asset.current_market_value || 0) - (asset.purchase_price || 0);
+    const gainValue = asset.gain_loss !== undefined ? asset.gain_loss : ((asset.current_market_value || 0) - (asset.purchase_price || 0));
     const gainClass = gainValue >= 0 ? 'text-success' : 'text-danger';
     let assetViewMap = null;
 
@@ -336,6 +336,11 @@ async function showFixedAssetDetails(assetId, options = {}) {
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="asset-renovation-tab" data-bs-toggle="tab" data-bs-target="#asset-renovation-pane" type="button" role="tab" aria-controls="asset-renovation-pane" aria-selected="false" data-i18n="renovations">Renovations</button>
                 </li>
+                ${isRealEstateAssetType(asset.asset_type) ? `
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="asset-acquisition-tab" data-bs-toggle="tab" data-bs-target="#asset-acquisition-pane" type="button" role="tab" aria-controls="asset-acquisition-pane" aria-selected="false" data-i18n="acquisition_costs">Acquisition Costs</button>
+                </li>
+                ` : ''}
                 ${furniture.length ? `
                 <li class="nav-item" role="presentation">
                   <button class="nav-link" id="asset-furniture-tab" data-bs-toggle="tab" data-bs-target="#asset-furniture-pane" type="button" role="tab" aria-controls="asset-furniture-pane" aria-selected="false" data-i18n="furniture">Furniture</button>
@@ -379,10 +384,13 @@ async function showFixedAssetDetails(assetId, options = {}) {
                                     <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="valuation_summary">Valuation Summary</h6>
                                     <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_egp">Purchase Price</div><div class="col-7 fw-bold">${fmt(asset.purchase_price)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_usd">Purchase Price (USD)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price_usd)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="acquisition_costs_egp">Acquisition Costs</div><div class="col-7 fw-bold">${fmt(asset.total_acquisition_costs || 0)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="renovation_costs_egp">Renovation Costs</div><div class="col-7 fw-bold">${fmt(asset.total_renovation_costs || 0)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="total_investment_egp">Total Investment</div><div class="col-7 fw-bold">${fmt(asset.total_investment || asset.purchase_price)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="current_market_value">Current Market Value</div><div class="col-7 fw-bold">${fmt(asset.current_market_value)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="last_valuation_date">Last Valuation Date</div><div class="col-7">${asset.last_valuation_date || '-'}</div></div>
-                                    <div class="row mb-2"><div class="col-5" data-i18n="gain_loss">Gain (EGP)</div><div class="col-7 fw-bold ${gainClass}">${fmt(gainValue)}</div></div>
-                                    <div class="row"><div class="col-5" data-i18n="gain_percent">Gain (%)</div><div class="col-7 fw-bold ${gainClass}">${asset.purchase_price ? fmtpresent((gainValue / asset.purchase_price) * 100) + '%' : '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="gain_loss">Gain / Loss</div><div class="col-7 fw-bold ${gainClass}">${fmt(gainValue)}</div></div>
+                                    <div class="row"><div class="col-5" data-i18n="gain_percent">Gain (%)</div><div class="col-7 fw-bold ${gainClass}">${(asset.total_investment || asset.purchase_price) ? fmtpresent((gainValue / (asset.total_investment || asset.purchase_price)) * 100) + '%' : '-'}</div></div>
                                 </div>
                             </div>
                         </div>
@@ -527,6 +535,64 @@ async function showFixedAssetDetails(assetId, options = {}) {
                         ` : ''}
                     </div>
                 </div>
+                ${isRealEstateAssetType(asset.asset_type) ? `
+                <div class="tab-pane fade" id="asset-acquisition-pane" role="tabpanel" aria-labelledby="asset-acquisition-tab">
+                    <div class="row g-3">
+                        ${(asset.acquisition_costs || []).length ? asset.acquisition_costs.map((c) => `
+                            <div class="col-12">
+                                <div class="asset-renovation-card">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                                        <div>
+                                            <div class="small mb-2" data-i18n="date">Date</div>
+                                            <div class="fw-semibold">${c.date || '-'}</div>
+                                            <div class="small mt-2" data-i18n="category">Category</div>
+                                            <div data-i18n-prefix="acquisition_" data-i18n-value="${(c.category || '').toLowerCase().replace(/ & /g, '_').replace(/ /g, '_')}">${c.category || '-'}</div>
+                                        </div>
+                                        <div class="text-md-end">
+                                            <div class="small mb-2" data-i18n="amount_usd">Amount USD</div>
+                                            <div class="fw-semibold">${fmt(c.amount_usd)}</div>
+                                            <div class="small mt-3" data-i18n="amount_egp">Amount</div>
+                                            <div class="fw-semibold">${fmt(c.amount_egp)}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="small mb-1" data-i18n="description">Description</div>
+                                        <div>${c.description || '-'}</div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="small mb-1" data-i18n="notes">Notes</div>
+                                        <div>${c.notes || '-'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('') : `
+                            <div class="col-12">
+                                <div class="text-center py-5" data-i18n="no_acquisition_costs">No acquisition costs registered.</div>
+                            </div>
+                        `}
+                        ${(asset.acquisition_costs || []).length ? `
+                        <div class="col-12">
+                            <div class="asset-renovation-card asset-renovation-summary" style="padding: 16px;">
+                                <div class="d-flex flex-column gap-2" style="width: 100%;">
+                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                        <div class="fw-semibold" data-i18n="total_acquisition_cost_usd">Total Acquisition Cost USD</div>
+                                        <div class="text-end fw-semibold">
+                                            $${fmt(asset.acquisition_costs.reduce((sum, c) => sum + (parseFloat(c.amount_usd) || 0), 0))}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                        <div class="fw-semibold" data-i18n="amount_egp">Amount</div>
+                                        <div class="text-end fw-semibold">
+                                            ${fmt(asset.acquisition_costs.reduce((sum, c) => sum + (parseFloat(c.amount_egp) || 0), 0))} <span data-i18n="EGP">EGP</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
                   ${furniture.length ? `
                   <div class="tab-pane fade" id="asset-furniture-pane" role="tabpanel" aria-labelledby="asset-furniture-tab">
                     <div class="row g-3">

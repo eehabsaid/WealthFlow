@@ -11,6 +11,7 @@ from core.models import (
     FixedAsset,
     RealEstateDetails,
     AssetRenovation,
+    AssetAcquisitionCost,
     AssetPurchasePayment,
 
 )
@@ -45,7 +46,7 @@ def _clear_non_selected_asset_details(asset):
 class FixedAssetListView(View):
 
     def get(self, request):
-        qs = FixedAsset.objects.all().order_by("name")
+        qs = FixedAsset.objects.all().prefetch_related("acquisition_costs").order_by("name")
 
         asset_type = request.GET.get("asset_type")
         status = request.GET.get("status")
@@ -147,6 +148,21 @@ class FixedAssetListView(View):
                         notes=item.get("notes", ""),
                     )
 
+                for item in data.get("acquisition_costs", []):
+                    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
+                        break
+
+                    AssetAcquisitionCost.objects.create(
+                        asset=asset,
+                        date=item.get("date") or None,
+                        category=item.get("category", ""),
+                        description=item.get("description", ""),
+                        amount_egp=item.get("amount_egp") or 0,
+                        usd_rate=item.get("usd_rate") or 0,
+                        amount_usd=item.get("amount_usd") or 0,
+                        notes=item.get("notes", ""),
+                    )
+
                 _sync_asset_maintenance(asset, data.get("maintenance", []))
                 _sync_asset_insurance(asset, data.get("insurance", []))
                 _sync_asset_furniture(asset, data.get("furniture", []))
@@ -173,7 +189,7 @@ class FixedAssetListView(View):
 class FixedAssetDetailView(View):
 
     def get(self, request, pk):
-        asset = get_object_or_404(FixedAsset, pk=pk)
+        asset = get_object_or_404(FixedAsset.objects.prefetch_related("acquisition_costs"), pk=pk)
         return JsonResponse(asset.to_dict())
 
     def put(self, request, pk):
@@ -288,6 +304,23 @@ class FixedAssetDetailView(View):
                         amount_egp=item.get("amount_egp", 0),
                         usd_rate=item.get("usd_rate", 0),
                         amount_usd=item.get("amount_usd", 0),
+                        notes=item.get("notes", ""),
+                    )
+
+                AssetAcquisitionCost.objects.filter(asset=asset).delete()
+
+                for item in data.get("acquisition_costs", []):
+                    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
+                        break
+
+                    AssetAcquisitionCost.objects.create(
+                        asset=asset,
+                        date=item.get("date") or None,
+                        category=item.get("category", ""),
+                        description=item.get("description", ""),
+                        amount_egp=item.get("amount_egp") or 0,
+                        usd_rate=item.get("usd_rate") or 0,
+                        amount_usd=item.get("amount_usd") or 0,
                         notes=item.get("notes", ""),
                     )
 

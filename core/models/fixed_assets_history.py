@@ -375,3 +375,71 @@ def handle_asset_sale_save(sender, instance, created, **kwargs):
 def handle_asset_sale_delete(sender, instance, **kwargs):
     from core.services.balance.financial_sync_service import FinancialSyncService
     FinancialSyncService().sync_deleted_asset_sale_balance(instance)
+
+
+class AssetAcquisitionCost(models.Model):
+    asset = models.ForeignKey(
+        FixedAsset,
+        on_delete=models.CASCADE,
+        related_name="acquisition_costs",
+    )
+
+    date = models.DateField(null=True, blank=True)
+
+    category = models.CharField(
+        max_length=100,
+    )
+
+    description = models.CharField(
+        max_length=300,
+        blank=True,
+    )
+
+    amount_egp = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+    )
+
+    usd_rate = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        default=0,
+    )
+
+    amount_usd = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=0,
+    )
+
+    notes = models.TextField(
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["date", "id"]
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "asset_id": self.asset_id,
+            "date": self.date.isoformat() if hasattr(self.date, "isoformat") else (self.date or ""),
+            "category": self.category,
+            "description": self.description,
+            "amount_egp": float(self.amount_egp),
+            "usd_rate": float(self.usd_rate),
+            "amount_usd": float(self.amount_usd),
+            "notes": self.notes,
+        }
+
+    def __str__(self):
+        return f"{self.asset.name} - {self.category}"
+

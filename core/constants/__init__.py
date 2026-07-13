@@ -150,8 +150,20 @@ FURNITURE_CATEGORIES = [
     "Other",
 ]
 
+ACQUISITION_COST_CATEGORIES = [
+    "Lawyer Fees",
+    "Registration Fees",
+    "Notary Fees",
+    "Government Fees",
+    "Utility Transfer Fees",
+    "Brokerage Fees",
+    "Other",
+]
+
 __all__ = [
     "Decimal",
     "RENOVATION_TYPES",
     "FURNITURE_CATEGORIES",
+    "ACQUISITION_COST_CATEGORIES",
 ]
+
