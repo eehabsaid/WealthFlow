@@ -204,6 +204,10 @@ urlpatterns = [
         views.WealthGrowthForecastView.as_view(),
     ),
     path(
+        "api/financial-advisor/overview/",
+        views.OverviewView.as_view(),
+    ),
+    path(
         "api/financial-advisor/portfolio-optimizer/",
         views.PortfolioOptimizerView.as_view(),
     ),

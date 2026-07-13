@@ -34,6 +34,14 @@ function renderFinancialAdvisor() {
     const paneId = `fa-pane-${tab.id}`;
     const isActive = tab.id === activeTabId ? "show active" : "";
 
+    if (tab.id === "overview") {
+      return `
+        <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
+          <div id="fa-overview-content"></div>
+        </div>
+      `;
+    }
+
     if (tab.id === "cash-flow-forecast") {
       return `
         <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
@@ -216,7 +224,9 @@ function renderFinancialAdvisor() {
         if (tabId) {
           sessionStorage.setItem(FINANCIAL_ADVISOR_ACTIVE_TAB_KEY, tabId);
         }
-        if (targetSelector === `#${_cashFlowPaneId()}`) {
+        if (targetSelector === "#fa-pane-overview") {
+          loadOverview();
+        } else if (targetSelector === `#${_cashFlowPaneId()}`) {
           loadCashFlowForecast();
         } else if (targetSelector === "#fa-pane-wealth-growth-forecast") {
           loadWealthGrowthForecast();
@@ -233,7 +243,9 @@ function renderFinancialAdvisor() {
 
   syncMoreActiveState();
 
-  if (activeTabId === "cash-flow-forecast") {
+  if (activeTabId === "overview") {
+    loadOverview();
+  } else if (activeTabId === "cash-flow-forecast") {
     loadCashFlowForecast();
   } else if (activeTabId === "wealth-growth-forecast") {
     loadWealthGrowthForecast();
@@ -253,6 +265,7 @@ window.renderFinancialAdvisor = renderFinancialAdvisor;
 // ════════════════════════════════════════════════════════════════════════════
 
 window.renderFinancialAdvisor = renderFinancialAdvisor;
+window.loadOverview = loadOverview;
 window.loadCashFlowForecast = loadCashFlowForecast;
 window.loadWealthGrowthForecast = loadWealthGrowthForecast;
 window.loadPortfolioOptimizer = loadPortfolioOptimizer;

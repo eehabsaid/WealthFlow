@@ -88,3 +88,426 @@
   border-color: rgba(255, 124, 149, 0.5);
   background: rgba(255, 77, 109, 0.14);
 }
+
+/* ── Financial Advisor Overview Custom Dashboard Styles ── */
+
+.overview-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  height: 100%;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.overview-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-primary);
+  box-shadow: 0 8px 24px rgba(26, 110, 245, 0.15);
+}
+
+.overview-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.overview-card-title i {
+  margin-right: 8px;
+}
+
+[dir="rtl"] .overview-card-title i {
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+/* Row 1 circular score */
+.overview-score-ring {
+  width: 140px;
+  height: 140px;
+  margin: 12px auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.overview-score-ring::after {
+  content: "";
+  position: absolute;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.overview-score-center {
+  z-index: 1;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.overview-score-value {
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.overview-score-total {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.overview-health-label {
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.overview-health-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* AI Summary layout */
+.overview-ai-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: calc(100% - 70px);
+}
+
+.overview-ai-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.overview-ai-graphic {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
+}
+
+.overview-ai-footer {
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.overview-ai-footer button {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  padding: 6px 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.overview-ai-footer button:hover {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #fff;
+}
+
+/* Alerts scrollable list */
+.overview-alerts-list {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+[dir="rtl"] .overview-alerts-list {
+  padding-right: 0;
+  padding-left: 4px;
+}
+
+.overview-alert-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.overview-alert-item:last-child {
+  border-bottom: none;
+}
+
+.overview-alert-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.overview-alert-details {
+  flex: 1;
+}
+
+.overview-alert-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.overview-alert-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* Badge colors for alerts */
+.alert-success-badge { background: rgba(0, 214, 143, 0.15); color: var(--accent-green); }
+.alert-warning-badge { background: rgba(255, 209, 102, 0.15); color: var(--accent-yellow); }
+.alert-danger-badge { background: rgba(255, 77, 109, 0.15); color: var(--accent-red); }
+.alert-info-badge { background: rgba(26, 110, 245, 0.15); color: var(--accent-primary); }
+
+/* Row 2 KPI Cards */
+.overview-kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.overview-kpi-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.overview-kpi-details {
+  flex: 1;
+}
+
+.overview-kpi-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.overview-kpi-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+
+.overview-kpi-trend {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.overview-kpi-trend.up { color: var(--accent-green); }
+.overview-kpi-trend.down { color: var(--accent-red); }
+.overview-kpi-trend.neutral { color: var(--text-secondary); }
+
+/* Row 3 - Cash flow / wealth growth summaries */
+.overview-summary-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.overview-summary-stats {
+  flex: 1;
+}
+
+.overview-stat-row {
+  margin-bottom: 8px;
+}
+
+.overview-stat-row:last-child {
+  margin-bottom: 0;
+}
+
+.overview-stat-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.overview-stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+
+.overview-sparkline-wrap {
+  width: 120px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.overview-btn-footer {
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+  margin-top: 16px;
+  text-align: right;
+}
+
+[dir="rtl"] .overview-btn-footer {
+  text-align: left;
+}
+
+.overview-btn-footer button {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.overview-btn-footer button:hover {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #fff;
+}
+
+/* Top Opportunities List */
+.overview-opp-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.overview-opp-item:last-child {
+  margin-bottom: 0;
+}
+
+.overview-opp-item:hover {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+.overview-opp-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.overview-opp-details {
+  flex: 1;
+}
+
+.overview-opp-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.overview-opp-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.overview-opp-arrow {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Row 4 - Donut & Goal progress */
+.overview-portfolio-body,
+.overview-goal-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.overview-portfolio-stats,
+.overview-goal-stats {
+  flex: 1;
+}
+
+.overview-chart-donut-wrap {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Theming compatibility adjustments */
+[data-theme="light"] .overview-card {
+  box-shadow: 0 4px 12px rgba(13, 27, 62, 0.04);
+}
+
+[data-theme="light"] .overview-opp-item:hover {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="light"] .overview-ai-footer button:hover,
+[data-theme="light"] .overview-btn-footer button:hover {
+  color: #fff !important;
+}
+
+/* Header stacks and responsiveness */
+@media (max-width: 991.98px) {
+  .overview-ai-card-content {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    height: auto;
+  }
+  .overview-ai-graphic {
+    align-self: center;
+    margin-bottom: 12px;
+  }
+}
+
