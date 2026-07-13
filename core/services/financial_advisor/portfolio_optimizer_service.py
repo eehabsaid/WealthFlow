@@ -235,9 +235,10 @@ class PortfolioOptimizerService:
             if not items:
                 return
             count = len(items)
-            total_value = sum(_to_float(item.current_market_value) for item in items)
-            total_purchase = sum(_to_float(item.purchase_price) for item in items)
-            gain = total_value - total_purchase
+            serialized_items = [item.to_dict() for item in items]
+            total_value = sum(_to_float(data.get("current_market_value")) for data in serialized_items)
+            total_investment = sum(_to_float(data.get("total_investment")) for data in serialized_items)
+            gain = sum(_to_float(data.get("gain_loss")) for data in serialized_items)
             if count == 1:
                 name = items[0].name
             else:
@@ -250,7 +251,7 @@ class PortfolioOptimizerService:
                     "value": round(total_value, 2),
                     "portfolio_pct": round((total_value / total_portfolio) * 100.0 if total_portfolio > 0 else 0.0, 2),
                     "gain": round(gain, 2),
-                    "gain_pct": round((gain / total_purchase) * 100.0, 2) if total_purchase > 0 else 0.0,
+                    "gain_pct": round((gain / total_investment) * 100.0, 2) if total_investment > 0 else 0.0,
                     "count": count,
                 }
             )
