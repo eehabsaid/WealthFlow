@@ -479,16 +479,16 @@ async function showFixedAssetDetails(assetId, options = {}) {
                 <div class="tab-pane fade" id="asset-renovation-pane" role="tabpanel" aria-labelledby="asset-renovation-tab">
                     <div class="row g-3">
                         ${renovations.length ? renovations.map((r) => `
-                            <div class="col-12">
-                                <div class="asset-renovation-card">
-                                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                            <div class="col-md-6">
+                                <div class="asset-renovation-card h-100">
+                                    <div class="d-flex justify-content-between gap-3">
                                         <div>
                                             <div class="small mb-2" data-i18n="date">Date</div>
                                             <div class="fw-semibold">${r.date || '-'}</div>
                                             <div class="small mt-2" data-i18n="category">Category</div>
                                             <div data-i18n-prefix="renovation_" data-i18n-value="${(r.category || '').toLowerCase().replace(/ & /g, '_').replace(/ /g, '_')}">${r.category || '-'}</div>
                                         </div>
-                                        <div class="text-md-end">
+                                        <div class="text-end">
                                             <div class="small mb-2" data-i18n="amount_usd">Amount USD</div>
                                             <div class="fw-semibold">${fmt(r.amount_usd)}</div>
                                             <div class="small mt-3" data-i18n="amount_egp">Amount</div>
@@ -539,16 +539,16 @@ async function showFixedAssetDetails(assetId, options = {}) {
                 <div class="tab-pane fade" id="asset-acquisition-pane" role="tabpanel" aria-labelledby="asset-acquisition-tab">
                     <div class="row g-3">
                         ${(asset.acquisition_costs || []).length ? asset.acquisition_costs.map((c) => `
-                            <div class="col-12">
-                                <div class="asset-renovation-card">
-                                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                            <div class="col-md-6">
+                                <div class="asset-renovation-card h-100">
+                                    <div class="d-flex justify-content-between gap-3">
                                         <div>
                                             <div class="small mb-2" data-i18n="date">Date</div>
                                             <div class="fw-semibold">${c.date || '-'}</div>
                                             <div class="small mt-2" data-i18n="category">Category</div>
                                             <div data-i18n-prefix="acquisition_" data-i18n-value="${(c.category || '').toLowerCase().replace(/ & /g, '_').replace(/ /g, '_')}">${c.category || '-'}</div>
                                         </div>
-                                        <div class="text-md-end">
+                                        <div class="text-end">
                                             <div class="small mb-2" data-i18n="amount_usd">Amount USD</div>
                                             <div class="fw-semibold">${fmt(c.amount_usd)}</div>
                                             <div class="small mt-3" data-i18n="amount_egp">Amount</div>
@@ -598,7 +598,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                     <div class="row g-3">
                       ${furniture.map((item) => `
                         <div class="col-md-6">
-                          <div class="asset-renovation-card">
+                          <div class="asset-renovation-card h-100">
                             <div class="d-flex justify-content-between gap-3">
                               <div>
                                 <div class="small mb-1" data-i18n="item_name">Item Name</div>
