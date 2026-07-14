@@ -606,7 +606,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                               </div>
                               <div class="text-end">
                                 <div class="small mb-1" data-i18n="amount_egp">Amount</div>
-                                <div class="fw-semibold">${fmt(item.amount_egp)}</div>
+                                <div class="fw-semibold">${fmt(item.amount_egp * parseInt(item.quantity) || 1)}</div>
                               </div>
                             </div>
                             <div class="mt-3 d-flex justify-content-between gap-3">

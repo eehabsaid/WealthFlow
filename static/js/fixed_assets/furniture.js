@@ -28,8 +28,9 @@ function updateFurnitureSummary() {
 
   rows.forEach(row => {
     const egp = parseFloat(row.querySelector(".furniture-egp").value) || 0;
+    const qty = parseInt(row.querySelector(".furniture-quantity").value) || 1;
     const usd = parseFloat(row.querySelector(".furniture-usd").value) || 0;
-    totalEGP += egp;
+    totalEGP += (egp * qty);
     totalUSD += usd;
   });
 
@@ -65,7 +66,8 @@ function addFurnitureRow(data = {}, expand = false) {
 
   const category = data.category || "Living Room";
   const normVal = category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
-  const amountEgpVal = data.amount_egp || "";
+  const quantity = (parseInt(data.quantity) || 1);
+  const amountEgpVal = data.amount_egp || 0; // Use raw amount
   const nameVal = data.name || "";
 
   const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -110,15 +112,15 @@ function addFurnitureRow(data = {}, expand = false) {
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="quantity">Quantity</label>
-          <input type="number" step="1" class="form-control furniture-quantity" value="${data.quantity || 1}">
+          <input type="number" step="1" min="0" class="form-control furniture-quantity" value="${data.quantity || 1}" oninput="updateFurnitureUSD(this)">
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="amount_egp">Amount</label>
-          <input type="number" step="0.01" class="form-control furniture-egp" value="${amountEgpVal}" oninput="updateFurnitureUSD(this)">
+          <input type="number" step="0.01" min="0" class="form-control furniture-egp" value="${amountEgpVal}" oninput="updateFurnitureUSD(this)">
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
-          <input type="number" step="0.0001" class="form-control furniture-usd-rate" value="${data.usd_rate || document.getElementById("fa_purchase_usd_rate")?.value || ""}" oninput="updateFurnitureUSD(this)">
+          <input type="number" step="0.0001" min="0" class="form-control furniture-usd-rate" value="${data.usd_rate || document.getElementById("fa_purchase_usd_rate")?.value || ""}" oninput="updateFurnitureUSD(this)">
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="amount_usd">Amount USD</label>
@@ -164,8 +166,8 @@ function addFurnitureRow(data = {}, expand = false) {
   const egpInput = row.querySelector(".furniture-egp");
   const amountPreview = row.querySelector(".item-amount-preview");
   egpInput.addEventListener("input", () => {
-    updateFurnitureUSD(egpInput);
     amountPreview.textContent = `EGP ${fmt(parseFloat(egpInput.value) || 0)}`;
+    updateFurnitureUSD(egpInput);
     updateFurnitureSummary();
   });
 
@@ -200,10 +202,42 @@ function addFurnitureRow(data = {}, expand = false) {
 function updateFurnitureUSD(input) {
   const row = input.closest(".furniture-row");
   if (!row) return;
-  const egp = parseFloat(row.querySelector(".furniture-egp").value) || 0;
-  const rate = parseFloat(row.querySelector(".furniture-usd-rate").value) || 0;
+
+  const egpInput = row.querySelector(".furniture-egp");
+  const rateInput = row.querySelector(".furniture-usd-rate");
+  const qtyInput = row.querySelector(".furniture-quantity");
   const usdInput = row.querySelector(".furniture-usd");
-  usdInput.value = rate > 0 ? (egp / rate).toFixed(2) : "";
+  const amountPreview = row.querySelector(".item-amount-preview");
+
+  // --- VALIDATION: SANITIZE INPUTS ---
+  // If input is negative, reset to allowed minimum (0 for amount/rate, 1 for quantity)
+  if (parseFloat(egpInput.value) < 0) egpInput.value = 0;
+  if (parseFloat(rateInput.value) < 0) rateInput.value = 0;
+  if (parseInt(qtyInput.value) < 0) qtyInput.value = 1;
+  // ------------------------------------
+
+  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // 1. Get live values
+  const egp = parseFloat(egpInput.value) || 0;
+  const rate = parseFloat(rateInput.value) || 0;
+  const quantity = parseInt(qtyInput.value) || 1;
+
+  // 2. Perform the math
+  const totalEgp = egp * quantity;
+  const totalUsd = rate > 0 ? (totalEgp / rate) : 0;
+
+  // 3. Update UI
+  usdInput.value = totalUsd.toFixed(2);
+  amountPreview.textContent = `EGP ${fmt(totalEgp)}`;
+  
+  // 4. Update Header Badge
+  const headerPreview = row.querySelector(".item-header-right .item-amount-preview");
+  if (headerPreview) {
+      headerPreview.textContent = `EGP ${fmt(totalEgp)}`;
+  }
+
+  updateFurnitureSummary();
 }
 
 function collectFurniture() {
