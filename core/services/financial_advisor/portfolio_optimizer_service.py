@@ -72,7 +72,7 @@ class PortfolioOptimizerService:
     def _month_expense_baseline(self) -> Tuple[float, int]:
         start_date = self.today - timedelta(days=180)
         qs = Expense.objects.filter(date__gte=start_date)
-        total = _to_float(qs.aggregate(total=Sum("amount")).get("total"))
+        total = _to_float(qs.aggregate(total=Sum("amount_egp")).get("total"))
         active_months = len(set(qs.values_list("year", "month")))
         return total, active_months
 

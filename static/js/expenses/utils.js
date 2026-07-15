@@ -14,7 +14,7 @@ function getTopCategory(entries) {
     const key = e.category_name || "Other";
     if (!totals[key])
       totals[key] = { name: key, icon: e.category_icon || "💰", total: 0 };
-    totals[key].total += e.amount;
+    totals[key].total += (e.amount_egp || 0);
   });
   const top = Object.values(totals).sort((a, b) => b.total - a.total)[0];
   return top || { name: "—", icon: "💰", total: 0 };

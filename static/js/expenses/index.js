@@ -79,7 +79,7 @@ async function renderExpenses() {
   window._expBanks = banks;
 
   // KPI cards
-  const totalExp = entries.reduce((s, e) => s + e.amount, 0);
+  const totalExp = entries.reduce((s, e) => s + (e.amount_egp || 0), 0);
   const avgDaily = totalExp / today.getDate();
   const topCat = getTopCategory(entries);
 
@@ -184,7 +184,7 @@ function renderExpenseTableHTML(entries) {
       <td style="color:var(--text-muted);font-size:12px">${e.subcategory_name || "—"}</td>
       <td>${e.description || "—"}</td>
       <td><span style="font-size:11px;color:var(--text-muted)">${e.payment_method || "—"}</span></td>
-      <td class="text-end num-col amt-negative">${fmt(e.amount)}</td>
+      <td class="text-end num-col amt-negative">${fmt(e.amount)} <span style="font-size:10px;color:var(--text-muted)">${e.currency_code}</span></td>
       <td style="white-space:nowrap">
         <button class="btn-icon edit" onclick="showExpenseModal(${e.id})" title="Edit">
           <i class="bi bi-pencil"></i></button>
@@ -195,12 +195,12 @@ function renderExpenseTableHTML(entries) {
     )
     .join("");
 
-  const total = entries.reduce((s, e) => s + e.amount, 0);
+  const total = entries.reduce((s, e) => s + (e.amount_egp || 0), 0);
   return `<table class="data-table">
     <thead><tr>
       <th data-i18n="date">Date</th><th data-i18n="category">Category</th><th data-i18n="subcategory">Subcategory</th>
       <th data-i18n="description">Description</th><th data-i18n="method">Method</th>
-      <th class="text-end" data-i18n="amount">Amount (EGP)</th><th data-i18n="actions">Actions</th>
+      <th class="text-end" data-i18n="amount">Amount</th><th data-i18n="actions">Actions</th>
     </tr></thead>
     <tbody>${rows}</tbody>
     <tfoot><tr class="total-row">

@@ -540,7 +540,7 @@ class NetWorthService:
 
         last_90_days = today - timedelta(days=90)
         expenses = Expense.objects.filter(date__gte=last_90_days)
-        total_expenses = _to_float(expenses.aggregate(total=Sum("amount"))["total"])
+        total_expenses = _to_float(expenses.aggregate(total=Sum("amount_egp"))["total"])
         months_with_expenses = len(set(expenses.values_list("year", "month")))
         avg_monthly_expenses = total_expenses / months_with_expenses if months_with_expenses > 0 else 0
         obligations_30 = avg_monthly_expenses

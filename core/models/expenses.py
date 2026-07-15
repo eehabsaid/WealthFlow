@@ -72,6 +72,8 @@ class Expense(models.Model):
     )
     description = models.CharField(max_length=300, blank=True)
     amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    exchange_rate = models.DecimalField(max_digits=14, decimal_places=6, default=1)
+    amount_egp = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     currency = models.ForeignKey(
         Currency, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -113,6 +115,7 @@ class Expense(models.Model):
             "subcategory_name": self.subcategory.name if self.subcategory else "",
             "description": self.description,
             "amount": float(self.amount),
+            "amount_egp": float(self.amount_egp),
             "currency_code": self.currency.code if self.currency else "EGP",
             "currency_symbol": self.currency.symbol if self.currency else "ج.م",
             "bank_id": self.bank_id,

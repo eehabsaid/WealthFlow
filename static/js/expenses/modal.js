@@ -46,7 +46,7 @@ async function showExpenseModal(expId) {
         <input type="date" class="form-control" id="eDate" value="${exp ? exp.date : today}">
       </div>
       <div class="col-sm-6">
-        <label class="form-label"><span data-i18n="amount">Amount (EGP)</span> *</label>
+        <label class="form-label"><span data-i18n="amount">Amount</span> *</label>
         <input type="number" step="0.01" min="0" class="form-control" id="eAmount"
                value="${exp ? exp.amount : ""}">
       </div>

@@ -99,8 +99,7 @@ class CashFlowForecastService:
         total = 0.0
         active_months = set()
         for expense in expenses:
-            code = str(getattr(expense.currency, "code", "EGP") or "EGP").upper()
-            total += self._convert_egp(_to_float(expense.amount), code, rates)
+            total += _to_float(expense.amount_egp)
             active_months.add((expense.year, expense.month))
 
         month_count = len(active_months) or 1

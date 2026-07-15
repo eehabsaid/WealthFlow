@@ -175,7 +175,7 @@ class ExpenseListView(View):
 
         entries = [e.to_dict() for e in qs]
 
-        total = sum(float(e["amount"] or 0) for e in entries)
+        total = sum(float(e.amount_egp or 0) for e in qs)
 
         return JsonResponse({"entries": entries, "total": total})
 
@@ -206,6 +206,14 @@ class ExpenseListView(View):
                     {
                         "error": "insufficient_balance",
                         "error_key": "insufficient_balance",
+                    },
+                    status=400,
+                )
+            if str(exc) == "exchange_rate_missing":
+                return JsonResponse(
+                    {
+                        "error": "No exchange rate exists for the selected date",
+                        "error_key": "exchange_rate_missing",
                     },
                     status=400,
                 )
@@ -242,6 +250,14 @@ class ExpenseDetailView(View):
                     {
                         "error": "insufficient_balance",
                         "error_key": "insufficient_balance",
+                    },
+                    status=400,
+                )
+            if str(exc) == "exchange_rate_missing":
+                return JsonResponse(
+                    {
+                        "error": "No exchange rate exists for the selected date",
+                        "error_key": "exchange_rate_missing",
                     },
                     status=400,
                 )
@@ -290,14 +306,14 @@ class ExpenseSummaryView(View):
             key = name
             if key not in by_cat:
                 by_cat[key] = {"name": name, "icon": icon, "color": color, "total": 0}
-            by_cat[key]["total"] += float(e.amount)
+            by_cat[key]["total"] += float(e.amount_egp)
 
         # Monthly trend (last 12 months)
         monthly = []
         for m in range(1, 13):
             y = int(year) if year else datetime.date.today().year
             total = (
-                Expense.objects.filter(year=y, month=m).aggregate(t=Sum("amount"))["t"]
+                Expense.objects.filter(year=y, month=m).aggregate(t=Sum("amount_egp"))["t"]
                 or 0
             )
             monthly.append({"month": m, "total": float(total)})

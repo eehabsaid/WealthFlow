@@ -300,7 +300,7 @@ class GenerateReportGenerator(object):
             title_str = format_arabic(title_str)
 
         expenses = list(qs)
-        total_exp = sum(float(e.amount) for e in expenses)
+        total_exp = sum(float(e.amount_egp) for e in expenses)
 
         # Income for period (salary paid amounts)
         from core.services.reports.report_service import ReportService
@@ -321,7 +321,7 @@ class GenerateReportGenerator(object):
         cat_totals = {}
         for e in expenses:
             cname = e.category.name if e.category else "Uncategorised"
-            cat_totals[cname] = cat_totals.get(cname, 0) + float(e.amount)
+            cat_totals[cname] = cat_totals.get(cname, 0) + float(e.amount_egp)
 
         # ── Build PDF ──
         buffer = io.BytesIO()
