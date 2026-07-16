@@ -130,7 +130,7 @@ async function showUserModal(userId) {
     }
     showModal(`
         <div class="modal-header">
-            <h5 class="modal-title" data-i18n="${userId ? 'edit_user' : 'add_user'}"></h5>
+            <h5 class="modal-title" data-i18n="${userId ? 'edit_user' : 'add_user'}">${userId ? 'Edit User' : 'Add User'}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">

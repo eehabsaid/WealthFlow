@@ -1423,5 +1423,11 @@
   "overview_no_optimization_opportunities": "Keine Optimierungsmöglichkeiten",
   "overview_no_financial_goals_yet": "Noch keine finanziellen Ziele erstellt",
   "overview_no_alerts": "Keine Warnmeldungen",
-  "portfolio_optimizer_severity_success": "Erfolgreich"
+  "portfolio_optimizer_severity_success": "Erfolgreich",
+  "add_user": "Benutzer hinzufügen",
+  "edit_user": "Benutzer bearbeiten",
+  "add_bank": "Bank hinzufügen",
+  "edit_bank": "Bank bearbeiten",
+  "add_company": "Unternehmen hinzufügen",
+  "edit_company": "Unternehmen bearbeiten"
 }

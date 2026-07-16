@@ -55,7 +55,7 @@ async function showBankModal(bankId) {
     }
     showModal(`
         <div class="modal-header">
-            <h5 class="modal-title" data-i18n="${b ? 'edit_bank' : 'add_bank'}"></h5>
+            <h5 class="modal-title" data-i18n="${b ? 'edit_bank' : 'add_bank'}">${b ? 'Edit Bank' : 'Add Bank'}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">

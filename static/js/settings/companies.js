@@ -94,7 +94,7 @@ async function showCompanyModal(companyId) {
 
     showModal(`
         <div class="modal-header">
-            <h5 class="modal-title" data-i18n="${c ? 'edit_company' : 'add_company'}"></h5>
+            <h5 class="modal-title" data-i18n="${c ? 'edit_company' : 'add_company'}">${c ? 'Edit Company' : 'Add Company'}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">

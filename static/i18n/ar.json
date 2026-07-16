@@ -1423,5 +1423,11 @@
   "overview_no_optimization_opportunities": "لا توجد فرص تحسين",
   "overview_no_financial_goals_yet": "لم يتم إنشاء أهداف مالية بعد",
   "overview_no_alerts": "لا توجد تنبيهات",
-  "portfolio_optimizer_severity_success": "ناجح"
+  "portfolio_optimizer_severity_success": "ناجح",
+  "add_user": "إضافة مستخدم",
+  "edit_user": "تعديل مستخدم",
+  "add_bank": "إضافة بنك",
+  "edit_bank": "تعديل بنك",
+  "add_company": "إضافة شركة",
+  "edit_company": "تعديل شركة"
 }

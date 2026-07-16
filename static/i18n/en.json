@@ -1423,5 +1423,11 @@
   "overview_no_optimization_opportunities": "No optimization opportunities",
   "overview_no_financial_goals_yet": "No financial goals created yet",
   "overview_no_alerts": "No alerts",
-  "portfolio_optimizer_severity_success": "Success"
+  "portfolio_optimizer_severity_success": "Success",
+  "add_user": "Add User",
+  "edit_user": "Edit User",
+  "add_bank": "Add Bank",
+  "edit_bank": "Edit Bank",
+  "add_company": "Add Company",
+  "edit_company": "Edit Company"
 }
