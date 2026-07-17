@@ -9,3 +9,11 @@ Apartment_s ceramic.xlsx
 # WealthFlow backup archives
 backups/
 *.wfbackup
+
+# Documentation Engine
+node_modules/
+doc_engine/.auth/
+docs/screenshots/
+docs/generated/
+screenshots/
+screenshots_v3/

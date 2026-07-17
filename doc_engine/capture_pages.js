@@ -1,19 +1,34 @@
 // capture_pages.js
-const { chromium } = require('playwright');
+const { chromium, devices } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
+const host = process.env.DOC_HOST || '127.0.0.1';
+const port = process.env.DOC_PORT || '8001';
+
 const CONFIG = {
-  baseURL: process.env.BASE_URL || 'http://127.0.0.1:8000',
+  baseURL: `http://${host}:${port}`,
   username: process.env.WF_USERNAME || 'eehab_said',
   password: process.env.WF_PASSWORD || 'Eehabdev1',
-  theme: process.env.WF_THEME || 'dark', // 'dark' or 'light'
-  language: process.env.WF_LANG || 'en', // e.g. 'en', 'ar', 'fr', 'de'
-  viewport: { width: 1920, height: 1080 }
+  theme: process.env.DOC_THEME || 'dark', // 'dark' or 'light'
+  language: process.env.DOC_LANG || 'en', // e.g. 'en', 'ar', 'fr', 'de'
+  device: process.env.DOC_DEVICE || null, // e.g. 'iPhone 13'
 };
 
-// Set outputDir dynamically based on the final values of language and theme
-CONFIG.outputDir = path.join(__dirname, `screenshots_v10_${CONFIG.language}_${CONFIG.theme}`);
+CONFIG.outputDir = path.join(__dirname, '..', 'docs', 'screenshots');
+
+const originalLog = console.log;
+const originalWarn = console.warn;
+const originalError = console.error;
+
+function formatTime() {
+    const now = new Date();
+    return `[${now.toTimeString().split(' ')[0]}]`;
+}
+
+console.log = (...args) => originalLog(formatTime(), ...args);
+console.warn = (...args) => originalWarn(formatTime(), ...args);
+console.error = (...args) => originalError(formatTime(), ...args);
 
 let INVENTORY = [
   { "route": "dashboard", "title": "Dashboard", "nested_navigation": [
@@ -147,6 +162,42 @@ async function waitForCharts(page) {
     if (mainContent) mainContent.scrollTo(0, 0);
   });
   await page.waitForTimeout(2000);
+}
+
+const STATUS_FILE = path.join(__dirname, '..', 'docs', 'generated', 'capture_status.json');
+const CANCEL_FLAG = path.join(__dirname, '..', 'docs', 'generated', 'cancel.flag');
+const startTime = new Date().toISOString();
+let totalItems = 0;
+let currentProgress = 0;
+
+function updateStatus(status, pageName = '', tabName = '', error = '') {
+  const now = new Date();
+  const elapsed = Math.round((now - new Date(startTime)) / 1000);
+  const data = {
+    status: status,
+    page: pageName,
+    tab: tabName,
+    language: CONFIG.language,
+    theme: CONFIG.theme,
+    device: CONFIG.device || 'desktop',
+    progress: currentProgress,
+    total: totalItems,
+    started_at: startTime,
+    finished_at: status === 'finished' || status === 'cancelled' ? now.toISOString() : '',
+    elapsed_seconds: elapsed,
+    error: error
+  };
+  const dir = path.dirname(STATUS_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(STATUS_FILE, JSON.stringify(data, null, 2));
+}
+
+function checkCancelled() {
+  if (fs.existsSync(CANCEL_FLAG)) {
+    console.log('\n[!] Cancellation requested. Stopping capture.');
+    updateStatus('cancelled');
+    process.exit(0);
+  }
 }
 
 const CHART_ROUTES = new Set(['dashboard', 'financial-advisor', 'advanced-reports', 'reports']);
@@ -575,6 +626,16 @@ async function processModals(page, routePrefix, modals) {
   }
 }
 
+async function executeWithRetry(actionName, actionFn) {
+  try {
+    return await actionFn();
+  } catch (err) {
+    console.warn(`Retry 1 for ${actionName} due to error: ${err.message}`);
+    await new Promise(r => setTimeout(r, 2000));
+    return await actionFn();
+  }
+}
+
 async function processPage(page, item) {
   console.log(`\nNavigating to ${item.route} (${item.title})`);
   const routePrefix = item.route.startsWith('/') ? sanitizeFilename(item.route.replace(/\//g, '')) : sanitizeFilename(item.route);
@@ -592,42 +653,54 @@ async function processPage(page, item) {
 
     if (item.tabs && item.tabs.length > 0) {
       for (const tab of item.tabs) {
+        checkCancelled();
+        currentProgress++;
+        updateStatus('running', item.title, tab.name);
         try {
-          console.log(`  -> Clicking tab: ${tab.name}`);
-          const clicked = await clickTabById(page, tab);
-          if (!clicked) {
-            console.warn(`     Tab button not found for: ${tab.name}. Skipping screenshot.`);
-            continue;
-          }
-          await waitForUIReady(page);
-          // For chart-heavy routes, wait for every tab's charts to settle
-          if (CHART_ROUTES.has(item.route)) {
-            await waitForCharts(page);
-          } else {
-            await page.waitForTimeout(1000);
-          }
-          if (tab.name === 'Translation Coverage') {
-             await captureScreenshot(page, 'Translation Coverage');
-          } else {
-             await captureScreenshot(page, `${routePrefix}_${safeFilename(tab.name, tab.id)}`);
-          }
-          
-          if (item.route === 'fixed-assets' && tab.id === 'assets') {
-             await processAssetRows(page, `${routePrefix}_${safeFilename(tab.name, tab.id)}`);
-          } else if (tab.nested_navigation) {
-             await processModals(page, `${routePrefix}_${safeFilename(tab.name, tab.id)}`, tab.nested_navigation);
-          }
-          
+          await executeWithRetry(`tab ${tab.name}`, async () => {
+              console.log(`  -> Clicking tab: ${tab.name}`);
+              const clicked = await clickTabById(page, tab);
+              if (!clicked) {
+                console.warn(`     Tab button not found for: ${tab.name}. Skipping screenshot.`);
+                return;
+              }
+              await waitForUIReady(page);
+              // For chart-heavy routes, wait for every tab's charts to settle
+              if (CHART_ROUTES.has(item.route)) {
+                await waitForCharts(page);
+              } else {
+                await page.waitForTimeout(1000);
+              }
+              if (tab.name === 'Translation Coverage') {
+                 await captureScreenshot(page, 'Translation Coverage');
+              } else {
+                 await captureScreenshot(page, `${routePrefix}_${safeFilename(tab.name, tab.id)}`);
+              }
+              
+              if (item.route === 'fixed-assets' && tab.id === 'assets') {
+                 await processAssetRows(page, `${routePrefix}_${safeFilename(tab.name, tab.id)}`);
+              } else if (tab.nested_navigation) {
+                 await processModals(page, `${routePrefix}_${safeFilename(tab.name, tab.id)}`, tab.nested_navigation);
+              }
+          });
         } catch (err) {
           console.error(`  Failed to capture tab ${tab.name}:`, err.message);
         }
       }
     } else {
-      await captureScreenshot(page, routePrefix);
-    }
-
-    if (item.nested_navigation && (!item.tabs || item.tabs.length === 0)) {
-      await processModals(page, routePrefix, item.nested_navigation);
+      checkCancelled();
+      currentProgress++;
+      updateStatus('running', item.title);
+      try {
+          await executeWithRetry(`page ${item.title}`, async () => {
+              await captureScreenshot(page, routePrefix);
+              if (item.nested_navigation && (!item.tabs || item.tabs.length === 0)) {
+                await processModals(page, routePrefix, item.nested_navigation);
+              }
+          });
+      } catch (err) {
+          console.error(`  Failed to capture page ${item.title}:`, err.message);
+      }
     }
 
   } catch (err) {
@@ -638,9 +711,21 @@ async function processPage(page, item) {
 (async () => {
   console.log('Starting screenshot generation...');
   console.log(`[CONFIG] Theme: ${CONFIG.theme.toUpperCase()} | Language: ${CONFIG.language.toUpperCase()}`);
+  if (CONFIG.device) console.log(`[CONFIG] Device: ${CONFIG.device}`);
   console.log(`[CONFIG] Output folder: ${CONFIG.outputDir}`);
-  const browser = await chromium.launch({ headless: false, args: ['--start-maximized'] });
-  const context = await browser.newContext({ viewport: null });
+  
+  console.log('Cleaning up old screenshots...');
+  if (fs.existsSync(CONFIG.outputDir)) {
+      fs.rmSync(CONFIG.outputDir, { recursive: true, force: true });
+  }
+  fs.mkdirSync(CONFIG.outputDir, { recursive: true });
+
+  const browser = await chromium.launch({ headless: false, args: CONFIG.device ? [] : ['--start-maximized'] });
+  let contextOptions = { viewport: null };
+  if (CONFIG.device && devices[CONFIG.device]) {
+      contextOptions = { ...devices[CONFIG.device] };
+  }
+  const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
 
   // Inject Apex + theme + language on every page BEFORE scripts run.
@@ -703,12 +788,33 @@ async function processPage(page, item) {
     await performLogin(page);
     await injectDynamicRoutes(page);
 
+    // Calculate total pages + tabs roughly for progress
+    totalItems = INVENTORY.reduce((acc, item) => acc + Math.max(1, (item.tabs || []).length), 0);
+
+    const failedPages = [];
+
     for (const item of INVENTORY) {
-      await processPage(page, item);
+      checkCancelled();
+      try {
+          await processPage(page, item);
+      } catch (err) {
+          console.error(`Fatal error processing page ${item.route}:`, err.message);
+          failedPages.push({ route: item.route, error: err.message });
+      }
     }
+
+    if (failedPages.length > 0) {
+      console.log('\n--- Capture Completed with Failures ---');
+      console.log(failedPages);
+    } else {
+      console.log('\n--- Capture Completed Successfully ---');
+    }
+    
+    updateStatus('finished');
 
   } catch (err) {
     console.error('Fatal error during execution:', err);
+    updateStatus('failed', '', '', err.message);
   } finally {
     // Clear storage after finishing so the NEXT run always starts clean
     try {
