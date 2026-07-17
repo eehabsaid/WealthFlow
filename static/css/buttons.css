@@ -15,6 +15,14 @@
   background: var(--accent-hover);
 }
 
+.btn-primary-custom:disabled,
+.btn-primary-custom[disabled] {
+  background: var(--accent-primary) !important;
+  color: #fff !important;
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
 .btn-secondary-custom {
   display: inline-flex;
   align-items: center;

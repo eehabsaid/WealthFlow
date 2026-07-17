@@ -13,7 +13,7 @@
     { "name": "Spending Intelligence", "id": "spending-intelligence" }, 
     { "name": "Opportunity Detection", "id": "opportunity-detection" }, 
     { "name": "Market Intelligence", "id": "market-intelligence" }, 
-    { "name": "AI Financial Advisor", "id": "ai-advisor" }, 
+    { "name": "AI Financial Advisor", "id": "ai-financial-advisor" }, 
     { "name": "What If Simulator", "id": "what-if-simulator" }
   ]},
   { "route": "balance", "title": "Balance", "tabs": [

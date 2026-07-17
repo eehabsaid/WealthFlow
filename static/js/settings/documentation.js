@@ -5,6 +5,7 @@ let docHistoryData = [];
 let docHistorySortCol = 'date';
 let docHistorySortAsc = false;
 let deviceInventory = { desktop: [], tablet: [], mobile: [] };
+let isCancelling = false;
 
 async function renderDocumentationSettings() {
     const contentDiv = document.getElementById('settingsContent');
@@ -76,22 +77,22 @@ async function renderDocumentationSettings() {
                     <h5 class="mb-3" style="font-weight:600; color:var(--text-primary)" data-i18n="doc_engine_section3">Controls</h5>
                     
                     <div class="d-grid gap-2 mb-3">
-                        <button class="btn btn-primary-custom" id="btnGenerateDocs" onclick="startDocGeneration()">
+                        <button class="btn btn-primary" id="btnGenerateDocs" onclick="startDocGeneration()">
                             <i class="bi bi-play-fill me-2"></i><span data-i18n="doc_btn_generate">Generate Documentation</span>
                         </button>
-                        <button class="btn btn-outline-danger" id="btnCancelDocs" onclick="cancelDocGeneration()" disabled>
+                        <button class="btn btn-danger" id="btnCancelDocs" onclick="cancelDocGeneration()" disabled>
                             <i class="bi bi-stop-fill me-2"></i><span data-i18n="doc_btn_cancel">Cancel</span>
                         </button>
                     </div>
                     
                     <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-sm btn-secondary-custom flex-grow-1" onclick="openDocFolder('screenshots')">
+                        <button class="btn btn-sm btn-secondary flex-grow-1" onclick="openDocFolder('screenshots')">
                             <i class="bi bi-folder2-open me-1"></i> <span data-i18n="doc_open_screenshots">Screenshots Folder</span>
                         </button>
-                        <button class="btn btn-sm btn-secondary-custom flex-grow-1" onclick="openDocFolder('generated')">
+                        <button class="btn btn-sm btn-secondary flex-grow-1" onclick="openDocFolder('generated')">
                             <i class="bi bi-folder2-open me-1"></i> <span data-i18n="doc_open_generated">Generated Folder</span>
                         </button>
-                        <button class="btn btn-sm btn-secondary-custom flex-grow-1" onclick="openDocFolder('readme')">
+                        <button class="btn btn-sm btn-secondary flex-grow-1" onclick="openDocFolder('readme')">
                             <i class="bi bi-file-text me-1"></i> <span data-i18n="doc_open_readme">README</span>
                         </button>
                     </div>
@@ -101,7 +102,7 @@ async function renderDocumentationSettings() {
             <!-- Right Column: Live Progress & History -->
             <div class="col-md-6">
                 <!-- Section 4: Live Progress -->
-                <div class="card card-custom mb-4" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:20px;">
+                <div class="card card-custom mb-4" style="background-color: var(--bg-secondary) !important; border:1px solid var(--border-color); border-radius:12px; padding:20px;">
                     <h5 class="mb-3" style="font-weight:600; color:var(--text-primary)" data-i18n="doc_engine_section4">Live Progress</h5>
                     
                     <style>
@@ -114,11 +115,11 @@ async function renderDocumentationSettings() {
                         <table class="table table-borderless table-sm mb-0 doc-progress-table" style="color:var(--text-primary);">
                             <tbody>
                                 <tr>
-                                    <td style="width: 40%; color:var(--text-secondary)" data-i18n="doc_prog_status">Status</td>
-                                    <td id="docProgStatus" style="font-weight:600">-</td>
+                                    <td style="width: 40%; color:var(--text-secondary); padding: 6px 0;" data-i18n="doc_prog_status">Status</td>
+                                    <td id="docProgStatus" style="font-weight:600; color:var(--text-primary); padding: 6px 0;">-</td>
                                 </tr>
                                 <tr>
-                                    <td style="color:var(--text-secondary)" data-i18n="doc_prog_progress">Progress</td>
+                                    <td style="color:var(--text-secondary)">Screenshots</td>
                                     <td id="docProgCount">-</td>
                                 </tr>
                                 <tr>
@@ -149,13 +150,13 @@ async function renderDocumentationSettings() {
                         </table>
                     </div>
                     
-                    <div id="docProgErrors" class="mt-3 text-danger small" style="display:none; max-height:100px; overflow-y:auto; background:rgba(220,53,69,0.1); padding:10px; border-radius:6px;">
+                    <div id="docProgErrors" class="mt-3 small" style="display:none; max-height:100px; overflow-y:auto; background:rgba(220,53,69,0.1); color:#ff6b6b; padding:10px; border-radius:6px; border: 1px solid rgba(220,53,69,0.3);">
                         <!-- Errors go here -->
                     </div>
                 </div>
 
                 <!-- History -->
-                <div class="card card-custom" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:20px;">
+                <div class="card card-custom" style="background-color: var(--bg-secondary) !important; border:1px solid var(--border-color); border-radius:12px; padding:20px;">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="mb-0" style="font-weight:600; color:var(--text-primary)" data-i18n="doc_engine_history">Execution History</h5>
                         <button class="btn btn-sm btn-outline-secondary" onclick="loadDocHistory()">
@@ -341,15 +342,27 @@ async function startDocGeneration() {
 
 async function cancelDocGeneration() {
     try {
+        isCancelling = true;
         const btn = document.getElementById('btnCancelDocs');
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Cancelling...';
         
-        await fetch('/api/settings/documentation/cancel/', { method: 'POST' });
-        
-        setTimeout(pollDocStatus, 500); // Immediate poll
+        const res = await fetch('/api/settings/documentation/cancel/', { method: 'POST' });
+        if (!res.ok) {
+            // Re-enable if cancel request failed
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-stop-fill me-2"></i><span data-i18n="doc_btn_cancel">Cancel</span>';
+        }
+        // pollDocStatus will update the button state once the status changes
+        setTimeout(pollDocStatus, 500);
     } catch (e) {
         console.error(e);
+        isCancelling = false;
+        const btn = document.getElementById('btnCancelDocs');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-stop-fill me-2"></i><span data-i18n="doc_btn_cancel">Cancel</span>';
+        }
     }
 }
 
@@ -447,16 +460,20 @@ async function pollDocStatus() {
         const res = await fetch('/api/settings/documentation/status/?t=' + Date.now());
         const statusData = await res.json();
         
-        const isRunning = statusData.status === 'RUNNING';
+        // Normalise status to uppercase for comparisons
+        const rawStatus = (statusData.status || '').toUpperCase();
+        const isRunning = rawStatus === 'RUNNING';
         
         const btnGen = document.getElementById('btnGenerateDocs');
         const btnCan = document.getElementById('btnCancelDocs');
         
         if (isRunning) {
             btnGen.disabled = true;
-            btnGen.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Documentation generation already running.';
-            btnCan.disabled = false;
-            btnCan.innerHTML = '<i class="bi bi-stop-fill me-2"></i><span data-i18n="doc_btn_cancel">Cancel</span>';
+            btnGen.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Running...';
+            if (!isCancelling) {
+                btnCan.disabled = false;
+                btnCan.innerHTML = '<i class="bi bi-stop-fill me-2"></i><span data-i18n="doc_btn_cancel">Cancel</span>';
+            }
         } else {
             btnGen.disabled = false;
             btnGen.innerHTML = '<i class="bi bi-play-fill me-2"></i><span data-i18n="doc_btn_generate">Generate Documentation</span>';
@@ -466,30 +483,35 @@ async function pollDocStatus() {
             applyTranslations(btnCan);
         }
         
-        // Map the internal 'finished' state from playwright to 'COMPLETED' for display
-        let displayStatus = statusData.status;
-        if (displayStatus === 'finished') displayStatus = 'COMPLETED';
-        if (displayStatus === 'running') displayStatus = 'RUNNING';
-        if (displayStatus === 'cancelled') displayStatus = 'CANCELLED';
+        // Map internal status values to display labels
+        let displayStatus = rawStatus;
+        if (rawStatus === 'FINISHED') displayStatus = 'COMPLETED';
+        if (rawStatus === 'RUNNING') displayStatus = 'RUNNING';
+        if (rawStatus === 'CANCELLED') displayStatus = 'CANCELLED';
+        if (rawStatus === 'FAILED') displayStatus = 'FAILED';
         
-        elStatus.textContent = displayStatus || '-';
+        elStatus.style.removeProperty('color'); // reset first
         if (displayStatus === 'COMPLETED') {
-            elStatus.textContent = "Completed Successfully";
-            elStatus.style.color = "var(--accent-primary)";
+            elStatus.textContent = 'Completed Successfully ✔';
+            elStatus.style.color = 'var(--accent-primary)';
         } else if (displayStatus === 'CANCELLED') {
-            elStatus.textContent = "Cancelled";
-            elStatus.style.color = "var(--text-secondary)";
+            elStatus.textContent = 'Cancelled';
+            elStatus.style.color = 'var(--text-secondary)';
         } else if (displayStatus === 'FAILED') {
-            elStatus.textContent = "Failed";
-            elStatus.style.color = "#dc3545";
+            elStatus.textContent = 'Failed ✖';
+            elStatus.style.color = '#ff6b6b';
         } else if (displayStatus === 'RUNNING') {
-            elStatus.style.color = "var(--text-primary)";
+            elStatus.textContent = '● Running...';
+            elStatus.style.color = '#4ade80';
+        } else {
+            elStatus.textContent = displayStatus || '-';
+            elStatus.style.color = 'var(--text-secondary)';
         }
         
-        if (statusData.total) {
-            document.getElementById('docProgCount').innerText = `${statusData.progress || 0} / ${statusData.total}`;
+        if (statusData.total !== undefined && statusData.total !== null && statusData.total > 0) {
+            document.getElementById('docProgCount').innerText = `${statusData.screenshots_count || 0} / ${statusData.total}`;
         } else {
-            document.getElementById('docProgCount').innerText = '-';
+            document.getElementById('docProgCount').innerText = `${statusData.screenshots_count || 0}`;
         }
         
         document.getElementById('docProgPage').textContent = statusData.page || '-';
@@ -512,6 +534,7 @@ async function pollDocStatus() {
         }
         
         if (!isRunning && ['COMPLETED', 'CANCELLED', 'FAILED'].includes(displayStatus)) {
+            isCancelling = false;
             if (docIntervalId) {
                 clearInterval(docIntervalId);
                 docIntervalId = null;

@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import threading
 import subprocess
@@ -49,7 +50,13 @@ def run_documentation_permutations(languages, themes, devices, execution_id):
     log_filename = f"{execution.started_at.strftime('%Y-%m-%d_%H-%M-%S')}_{execution.id}.log"
     log_path = os.path.join(logs_dir, log_filename)
     
+    # Use the venv Python to ensure the correct environment
+    python_exe = os.path.join(BASE_DIR, "venv", "Scripts", "python.exe")
+    if not os.path.exists(python_exe):
+        python_exe = sys.executable  # fallback to current Python
+    
     with open(log_path, "a", encoding="utf-8") as log_file:
+        has_fatal_error = False
         for lang in languages:
             for theme in themes:
                 for device in devices:
@@ -62,8 +69,10 @@ def run_documentation_permutations(languages, themes, devices, execution_id):
                     execution.device_type = device
                     execution.save(update_fields=['language', 'theme', 'device_type'])
                     
-                    cmd = ["python", "scripts/generate_docs.py", "--lang", lang, "--theme", theme]
-                    if device != "Desktop":
+                    # device is now a device ID (e.g. "current", "iPhone 13", "1366x768")
+                    # Only pass --device if it's not "current" (current resolution needs no emulation)
+                    cmd = [python_exe, "scripts/generate_docs.py", "--lang", lang, "--theme", theme]
+                    if device and device != "current":
                         cmd.extend(["--device", device])
                     
                     log_file.write(f"\n[System] Executing: {' '.join(cmd)}\n")
@@ -74,9 +83,11 @@ def run_documentation_permutations(languages, themes, devices, execution_id):
                         if os.path.exists(CANCEL_FILE):
                             break
                         elif result.returncode != 0:
+                            has_fatal_error = True
                             break
                     except Exception as e:
                         log_file.write(f"\n[System] Exception occurred: {str(e)}\n")
+                        has_fatal_error = True
                         break
     
     execution.finished_at = now()
@@ -92,7 +103,7 @@ def run_documentation_permutations(languages, themes, devices, execution_id):
         execution.status = DocumentationExecutionStatus.CANCELLED
         status["status"] = "CANCELLED"
         os.remove(CANCEL_FILE)
-    elif execution.failed_pages > 0:
+    elif execution.failed_pages > 0 or has_fatal_error:
         execution.status = DocumentationExecutionStatus.FAILED
         status["status"] = "FAILED"
     else:

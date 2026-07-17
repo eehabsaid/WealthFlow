@@ -54,41 +54,36 @@ async function waitForUIReady(page) {
   try {
     await page.waitForSelector('.spinner-overlay', { state: 'hidden', timeout: 3000 });
   } catch (e) {}
-  await page.waitForTimeout(1000); 
+  await page.waitForTimeout(300); 
 }
 
 // Waits for charts to fully render by dispatching a resize event (forces
 // Chart.js and ApexCharts to recalculate) then scrolls through all canvas
 // elements and waits for them to settle. Used on all chart-heavy pages.
 async function waitForCharts(page) {
-  // Wait for Bootstrap tab transitions (usually 150ms) to complete before dispatching resize
-  await page.waitForTimeout(1000);
+  // Wait for Bootstrap tab transitions to complete
+  await page.waitForTimeout(300);
 
   await page.evaluate(async () => {
-    // Re-assert Apex animations off in case anything reset it
     if (window.Apex) window.Apex.chart = { animations: { enabled: false } };
-    // Force a resize so charts recalculate their canvas dimensions
     window.dispatchEvent(new Event('resize'));
-    await new Promise(r => setTimeout(r, 500));
-    // Scroll through every canvas/chart element to trigger lazy renders.
-    // Must include '.card' because WealthFlow uses IntersectionObserver on cards
-    // to trigger the initial network requests for chart data.
+    await new Promise(r => setTimeout(r, 300));
     const elements = document.querySelectorAll('.card, canvas, [id*="chart"], .apexcharts-canvas, .chart-container');
     for (const el of elements) {
       el.scrollIntoView({ behavior: 'auto', block: 'center' });
-      await new Promise(r => setTimeout(r, 80));
+      await new Promise(r => setTimeout(r, 50));
     }
     window.scrollTo(0, 0);
     const mainContent = document.querySelector('.main-content, #main-wrapper, main, .container-fluid');
     if (mainContent) mainContent.scrollTo(0, 0);
   });
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(800);
 }
 
 const STATUS_FILE = path.join(__dirname, '..', 'docs', 'generated', 'capture_status.json');
 const CANCEL_FLAG = path.join(__dirname, '..', 'docs', 'generated', 'cancel.flag');
 const startTime = new Date().toISOString();
-let totalItems = 0;
+let totalItems = null;
 let currentProgress = 0;
 let screenshotsCount = 0;
 let failedPages = [];
@@ -160,25 +155,45 @@ async function captureScreenshot(page, filename) {
     }
   `});
 
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(200);
   await page.screenshot({ path: filepath, fullPage: true });
   await page.evaluate((el) => el.remove(), styleHandle);
   
   screenshotsCount++;
-  
-  console.log(`[Captured] ${filepath}`);
+  console.log(`[INFO] Captured: ${filename}.png`);
 }
 
 async function captureModalTabs(page, filePrefix, closeAfter = true) {
-  await page.waitForTimeout(1000);
-  await waitForUIReady(page);
-  
-  const isModalVisible = await page.evaluate(() => document.querySelector('.modal.show') !== null);
+  // Wait for the modal to actually appear — up to 5s, returns immediately when visible.
+  // This is faster than a fixed timeout AND reliable for slow-loading modals.
+  let isModalVisible = false;
+  try {
+    await page.waitForSelector('.modal.show', { timeout: 5000 });
+    isModalVisible = true;
+  } catch (e) {
+    isModalVisible = false;
+  }
+
   if (!isModalVisible) {
     console.warn(`     Modal did not successfully open. Skipping its tabs.`);
     return;
   }
-  
+
+  // Wait for any spinner inside or outside the modal to disappear
+  try {
+    await page.waitForSelector('.spinner-overlay', { state: 'hidden', timeout: 5000 });
+    await page.waitForSelector('.modal.show .spinner-border, .modal.show .spinner-overlay', { state: 'hidden', timeout: 3000 });
+  } catch (e) {}
+
+  // Wait for nav tabs to actually render in the DOM (some modals load tab data async).
+  // Returns immediately if tabs are present; falls through after 1.5s if the modal has no tabs.
+  try {
+    await page.waitForSelector(
+      '.modal.show .nav-tabs .nav-link, .modal.show .nav-pills .nav-link',
+      { timeout: 1500 }
+    );
+  } catch (e) {}
+
   const tabs = await page.evaluate(() => {
     const tabButtons = Array.from(document.querySelectorAll('.modal.show .nav-tabs .nav-item button, .modal.show .nav-tabs .nav-link, .modal.show .nav-pills .nav-item button, .modal.show .nav-pills .nav-link'));
     const visibleButtons = tabButtons.filter(b => {
@@ -189,9 +204,6 @@ async function captureModalTabs(page, filePrefix, closeAfter = true) {
     
     return visibleButtons.map((b, i) => {
       if (!b.id) b.id = 'temp-modal-tab-' + i;
-      // Use data-i18n attribute as stable filename key — it is always the English
-      // translation key regardless of the active language (e.g. Arabic, French).
-      // Fall back to the button id stripped of the common -tab / _tab suffix.
       const dataI18n = b.getAttribute('data-i18n');
       const cleanId  = b.id.replace(/[-_]tab$/i, '');
       const filenameKey = dataI18n || cleanId || ('tab_' + i);
@@ -200,13 +212,15 @@ async function captureModalTabs(page, filePrefix, closeAfter = true) {
   });
   
   if (tabs.length > 0) {
+    updateStatus('running', 'Discovering Tabs...');
     for (const t of tabs) {
+      checkCancelled();
       console.log(`        -> Capturing modal tab: ${t.name}`);
       await page.evaluate((tabId) => {
         const btn = document.getElementById(tabId);
         if (btn) btn.click();
       }, t.id);
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(200);
       await captureScreenshot(page, `${filePrefix}_${sanitizeFilename(t.filenameKey)}`);
     }
   } else {
@@ -220,12 +234,16 @@ async function captureModalTabs(page, filePrefix, closeAfter = true) {
     } else {
       await page.keyboard.press('Escape');
     }
-    await page.waitForTimeout(1000);
+    // Wait for the modal to actually be gone before moving on
+    try {
+      await page.waitForSelector('.modal.show', { state: 'hidden', timeout: 2000 });
+    } catch (e) {}
   }
 }
 
 async function processTabs(page, tabs, prefix) {
   for (const tab of tabs) {
+    checkCancelled();
     console.log(`  -> Clicking tab: ${tab.name}`);
     await page.evaluate((tabId) => {
       const el = document.getElementById(tabId + '-tab') || document.querySelector(`[data-bs-target="#${tabId}"]`) || document.getElementById(tabId);
@@ -233,7 +251,7 @@ async function processTabs(page, tabs, prefix) {
     }, tab.id);
 
     await waitForUIReady(page);
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(500);
     
     await captureScreenshot(page, `${prefix}_${safeFilename(tab.name, tab.id)}`);
     
@@ -274,10 +292,12 @@ async function processAssetRows(page, routePrefix) {
 
   if (distinctAssets.length === 0) {
     console.warn(`     No fixed assets found in the table. Skipping View/Edit per-row capture.`);
-  }
-
-  for (const info of distinctAssets) {
-      const type = info.type;
+  } else {
+    updateStatus('running', 'Discovering Assets...');
+    
+    for (const info of distinctAssets) {
+      checkCancelled();
+      const { id, type, isGold, purity } = info;
       console.log(`     -> Selecting View asset type: ${type}`);
       const viewClicked = await page.evaluate((assetInfo) => {
          if (assetInfo.isGold) {
@@ -299,10 +319,11 @@ async function processAssetRows(page, routePrefix) {
          await captureModalTabs(page, `fixed_assets_assets_view_${sanitizeFilename(type.toLowerCase())}`, false);
          
          await page.evaluate(() => {
+            if (typeof clearGoldPurityReturnContext === 'function') clearGoldPurityReturnContext();
             const closeBtn = document.querySelector('.modal.show .btn-close');
             if (closeBtn) closeBtn.click();
          });
-         await page.waitForTimeout(500);
+         try { await page.waitForSelector('.modal.show', { state: 'hidden', timeout: 2000 }); } catch(e) {}
       }
 
       console.log(`     -> Selecting Edit asset type: ${type}`);
@@ -326,11 +347,14 @@ async function processAssetRows(page, routePrefix) {
          await captureModalTabs(page, `fixed_assets_assets_edit_${sanitizeFilename(type.toLowerCase())}`, false);
          
          await page.evaluate(() => {
+            if (typeof clearGoldPurityReturnContext === 'function') clearGoldPurityReturnContext();
             const closeBtn = document.querySelector('.modal.show .btn-close');
             if (closeBtn) closeBtn.click();
          });
-         await page.waitForTimeout(500);
+         // Wait for modal to actually disappear before moving on
+         try { await page.waitForSelector('.modal.show', { state: 'hidden', timeout: 2000 }); } catch(e) {}
       }
+    }
   }
 
   console.log('  -> Processing Add New Asset modal combinations...');
@@ -342,10 +366,13 @@ async function processAssetRows(page, routePrefix) {
     });
 
     if (addBtnClicked) {
-      await page.waitForTimeout(1000);
-      await waitForUIReady(page);
-      
-      const isModalVisible = await page.evaluate(() => document.querySelector('.modal.show') !== null);
+      // Wait for the Add Asset modal to actually appear
+      let isModalVisible = false;
+      try {
+        await page.waitForSelector('.modal.show', { timeout: 5000 });
+        isModalVisible = true;
+      } catch(e) { isModalVisible = false; }
+
       if (isModalVisible) {
         const assetTypes = await page.evaluate(() => {
           const select = document.querySelector('select#fa_type');
@@ -356,6 +383,7 @@ async function processAssetRows(page, routePrefix) {
         });
         
         for (const type of assetTypes) {
+          checkCancelled();
           console.log(`     -> Selecting Add asset type: ${type.text}`);
           
           await page.evaluate(() => {
@@ -379,11 +407,14 @@ async function processAssetRows(page, routePrefix) {
         
         const closeBtn = await page.$('.modal.show .btn-close, .modal.show [data-bs-dismiss="modal"]');
         if (closeBtn) {
+          await page.evaluate(() => {
+            if (typeof clearGoldPurityReturnContext === 'function') clearGoldPurityReturnContext();
+          });
           await closeBtn.click({ force: true });
         } else {
           await page.keyboard.press('Escape');
         }
-        await page.waitForTimeout(1000);
+        try { await page.waitForSelector('.modal.show', { state: 'hidden', timeout: 2000 }); } catch(e) {}
       } else {
         console.warn(`     Add Asset modal did not visibly open.`);
       }
@@ -461,7 +492,7 @@ async function clickTabById(page, tab) {
       const candidates = Array.from(document.querySelectorAll(`[onclick*="${tabData.id}"], [data-bs-target*="${tabData.id}"]`));
       target = candidates.find(el => !el.closest('#sidebar'));
       
-      // Also try getElementById with common -tab suffix (for Bootstrap tabs)
+      // Also try getElementById with common -suffix (for Bootstrap tabs)
       if (!target) {
         const byId = document.getElementById(tabData.id + '-tab') || document.getElementById(tabData.id);
         if (byId && !byId.closest('#sidebar')) target = byId;
@@ -501,8 +532,9 @@ async function clickTabById(page, tab) {
 
 async function processModals(page, routePrefix, modals) {
   for (const modal of modals) {
+    checkCancelled();
     try {
-      console.log(`  -> Processing modal: ${modal.name}`);
+      console.log(`  -> Opening modal: ${modal.name}`);
       
       const clicked = await page.evaluate((modal) => {
         const modalName = modal.name;
@@ -757,9 +789,6 @@ async function processPage(page, item) {
     await performLogin(page);
     await injectDynamicRoutes(page);
 
-    // Calculate total pages + tabs roughly for progress
-    totalItems = INVENTORY.reduce((acc, item) => acc + Math.max(1, (item.tabs || []).length), 0);
-
     failedPages = [];
 
     for (const item of INVENTORY) {
@@ -769,21 +798,36 @@ async function processPage(page, item) {
       } catch (err) {
           console.error(`Fatal error processing page ${item.route}:`, err.message);
           failedPages.push({ route: item.route, error: err.message });
+          
+          if (err.message.includes('browser has been closed') || err.message.includes('Target page, context or browser has been closed')) {
+              console.error('Browser was manually closed. Aborting capture.');
+              updateStatus('cancelled', '', '', 'Browser was manually closed.');
+              process.exit(1);
+          }
       }
     }
 
     if (failedPages.length > 0) {
       console.log('\n--- Capture Completed with Failures ---');
       console.log(failedPages);
+      // Set totalItems to screenshotsCount so it shows X/X at the end
+      totalItems = screenshotsCount;
+      updateStatus('failed', 'Completed with failures', '', `${failedPages.length} pages failed`);
     } else {
       console.log('\n--- Capture Completed Successfully ---');
+      // Set totalItems to screenshotsCount so it shows X/X at the end
+      totalItems = screenshotsCount;
+      updateStatus('finished');
     }
-    
-    updateStatus('finished');
 
   } catch (err) {
-    console.error('Fatal error during execution:', err);
-    updateStatus('failed', '', '', err.message);
+    console.error("Fatal error during execution:", err.message);
+    console.error(err);
+    if (err.message && err.message.includes('cancelled')) {
+      process.exit(2);
+    } else {
+      process.exit(1);
+    }
   } finally {
     // Clear storage after finishing so the NEXT run always starts clean
     try {
