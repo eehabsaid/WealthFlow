@@ -83,6 +83,13 @@ urlpatterns = [
     path("api/settings/backup/list/", views.BackupListView.as_view()),
     path("api/settings/backup/delete/", views.BackupDeleteView.as_view()),
     path("api/settings/backup/restore/", views.BackupRestoreView.as_view()),
+    # Documentation Engine
+    path("api/settings/documentation/generate/", views.GenerateDocumentationView.as_view()),
+    path("api/settings/documentation/cancel/", views.CancelDocumentationView.as_view()),
+    path("api/settings/documentation/status/", views.DocumentationStatusView.as_view()),
+    path("api/settings/documentation/devices/", views.DocumentationDevicesView.as_view()),
+    path("api/settings/documentation/history/", views.DocumentationHistoryView.as_view()),
+    path("api/settings/documentation/open/", views.OpenFolderView.as_view()),
     # excel export
     path("api/export/excel/", ExportExcelWorkbookView.as_view(), name="export_excel"),
     # ── Reminder Engine ──────────────────────────────────────────────────────

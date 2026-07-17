@@ -21,6 +21,7 @@ from .fixed_assets_other import OtherAssetDetails
 from .fixed_assets_history import AssetRenovation, AssetFurniture, AssetValuationHistory, AssetPurchasePayment, AssetSale, AssetAcquisitionCost
 from .documents import Document
 from .photos import AssetPhoto
+from .documentation import DocumentationExecution
 
 __all__ = [
     "Company",
@@ -75,4 +76,5 @@ __all__ = [
     "AssetSale",
     "Document",
     "AssetPhoto",
+    "DocumentationExecution",
 ]

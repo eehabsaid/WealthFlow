@@ -30,88 +30,9 @@ console.log = (...args) => originalLog(formatTime(), ...args);
 console.warn = (...args) => originalWarn(formatTime(), ...args);
 console.error = (...args) => originalError(formatTime(), ...args);
 
-let INVENTORY = [
-  { "route": "dashboard", "title": "Dashboard", "nested_navigation": [
-      { "name": "User Profile", "type": "modal", "trigger": "eval:window.showProfileModal && window.showProfileModal()" }
-  ]},
-  { "route": "/user-management/", "title": "User Management" },
-  { "route": "financial-advisor", "title": "Financial Advisor", "tabs": [
-    { "name": "Overview", "id": "overview" }, 
-    { "name": "Cash Flow", "id": "cash-flow" }, 
-    { "name": "Wealth Growth", "id": "wealth-growth" }, 
-    { "name": "Portfolio", "id": "portfolio" }, 
-    { "name": "Goal Planning", "id": "goal-planning" }, 
-    { "name": "Risk Analysis", "id": "risk-analysis" }, 
-    { "name": "Spending Intelligence", "id": "spending-intelligence" }, 
-    { "name": "Opportunity Detection", "id": "opportunity-detection" }, 
-    { "name": "Market Intelligence", "id": "market-intelligence" }, 
-    { "name": "AI Financial Advisor", "id": "ai-advisor" }, 
-    { "name": "What If Simulator", "id": "what-if-simulator" }
-  ]},
-  { "route": "balance", "title": "Balance", "tabs": [
-    { "name": "Overview", "id": "overview" }, 
-    { "name": "Accounts", "id": "accounts", "nested_navigation": [
-        { "name": "Add Balance", "type": "modal", "trigger": "showBalanceModal" }
-    ]}, 
-    { "name": "Transfers", "id": "transfers", "nested_navigation": [
-        { "name": "Add Transfer", "type": "modal", "trigger": "showTransferModal" }
-    ]}, 
-    { "name": "Allocation", "id": "allocation" }, 
-    { "name": "Forecasts", "id": "forecasts" }, 
-    { "name": "Recommendations", "id": "recommendations" }
-  ]},
-  { "route": "bank-certificates", "title": "Bank Certificates", "nested_navigation": [
-      { "name": "Add Certificate", "type": "modal", "trigger": "showBankCertificateModal" },
-      { "name": "Interest History", "type": "modal", "trigger": "showBankCertificateInterestHistory" }
-  ]},
-  { "route": "fixed-assets", "title": "Fixed Assets", "tabs": [
-    { "name": "Assets", "id": "assets" }, 
-    { "name": "Dashboard", "id": "dashboard" }, 
-    { "name": "Analytics", "id": "analytic" }, 
-    { "name": "Reports", "id": "reports" }
-  ]},
-  { "route": "exchange-rates", "title": "Exchange Rates" },
-  { "route": "gold-price", "title": "Gold Price" },
-  { "route": "expenses", "title": "Expenses", "nested_navigation": [
-      { "name": "Edit Add Expenses", "type": "modal", "trigger": "showExpenseModal" }
-  ]},
-  { "route": "expense-categories", "title": "Categories", "nested_navigation": [
-      { "name": "Add Category", "type": "modal", "trigger": "showCategoryModal" },
-      { "name": "Add Subcategory", "type": "modal", "trigger": "showSubcategoryModal" }
-  ]},
-  { "route": "reports", "title": "Reports", "tabs": [
-    { "name": "Monthly", "id": "monthly" }, 
-    { "name": "Yearly", "id": "yearly" }, 
-    { "name": "Custom Range", "id": "custom" }
-  ]},
-  { "route": "advanced-reports", "title": "Advanced Reports", "tabs": [
-    { "name": "Salary", "id": "salary" }, 
-    { "name": "Company", "id": "compan" }, 
-    { "name": "Balance", "id": "balance" }, 
-    { "name": "Certificates", "id": "certificates" }
-  ]},
-  { "route": "settings", "title": "Settings", "tabs": [
-    { "name": "Languages", "id": "settings-languages", "nested_navigation": [
-        { "name": "Add Language", "type": "modal", "trigger": "showAddLangModal" },
-        { "name": "Edit Language", "type": "modal", "trigger": "eval:window.showLanguageModal && window.showLanguageModal(0)" }
-    ]}, 
-    { "name": "Companies", "id": "settings-companies", "nested_navigation": [{ "name": "Add Company", "type": "modal", "trigger": "showCompanyModal" }] }, 
-    { "name": "Banks", "id": "settings-banks", "nested_navigation": [{ "name": "Add Bank", "type": "modal", "trigger": "showBankModal" }] }, 
-    { "name": "Currency", "id": "settings-currency", "nested_navigation": [{ "name": "Add Currency", "type": "modal", "trigger": "showCurrencyModal" }] }, 
-    { "name": "Users", "id": "settings-users", "nested_navigation": [
-        { "name": "Add User", "type": "modal", "trigger": "showUserModal" },
-        { "name": "Manage Permissions", "type": "modal", "trigger": "eval:window.showPermissionsModal && window.showPermissionsModal(1)" }
-    ]}, 
-    { "name": "Email Templates", "id": "settings-emailtemplates", "nested_navigation": [{ "name": "Add Template", "type": "modal", "trigger": "showEmailTemplateModal" }] }, 
-    { "name": "Translations", "id": "settings-translations" }, 
-    { "name": "Translation Coverage", "id": "settings-translationcoverage", "nested_navigation": [{ "name": "Missing Report", "type": "modal", "trigger": "eval:showMissingTranslationsReport()" }] }, 
-    { "name": "Reminders", "id": "settings-reminders", "nested_navigation": [{ "name": "Add Reminder", "type": "modal", "trigger": "showReminderRuleModal" }] }, 
-    { "name": "Certificate Status", "id": "settings-certstatus", "nested_navigation": [{ "name": "Add Status", "type": "modal", "trigger": "showCertStatusModal" }] }, 
-    { "name": "Gold Settings", "id": "settings-goldsettings", "nested_navigation": [{ "name": "Add Gold Type", "type": "modal", "trigger": "showGoldTypeModal" }, { "name": "Add Gold Purity", "type": "modal", "trigger": "showGoldPurityModal" }] }, 
-    { "name": "Dashboard", "id": "settings-dashboard" }, 
-    { "name": "Backup and Restore", "id": "settings-backuprestore" }
-  ]}
-];
+const INVENTORY_RAW = require('./inventory.json');
+// Deep copy the inventory to avoid mutating the require cache if we modify it
+let INVENTORY = JSON.parse(JSON.stringify(INVENTORY_RAW));
 
 function sanitizeFilename(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
@@ -169,6 +90,8 @@ const CANCEL_FLAG = path.join(__dirname, '..', 'docs', 'generated', 'cancel.flag
 const startTime = new Date().toISOString();
 let totalItems = 0;
 let currentProgress = 0;
+let screenshotsCount = 0;
+let failedPages = [];
 
 function updateStatus(status, pageName = '', tabName = '', error = '') {
   const now = new Date();
@@ -182,10 +105,12 @@ function updateStatus(status, pageName = '', tabName = '', error = '') {
     device: CONFIG.device || 'desktop',
     progress: currentProgress,
     total: totalItems,
+    screenshots_count: screenshotsCount,
     started_at: startTime,
     finished_at: status === 'finished' || status === 'cancelled' ? now.toISOString() : '',
     elapsed_seconds: elapsed,
-    error: error
+    error: error,
+    failed_pages: failedPages
   };
   const dir = path.dirname(STATUS_FILE);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -238,6 +163,9 @@ async function captureScreenshot(page, filename) {
   await page.waitForTimeout(500);
   await page.screenshot({ path: filepath, fullPage: true });
   await page.evaluate((el) => el.remove(), styleHandle);
+  
+  screenshotsCount++;
+  
   console.log(`[Captured] ${filepath}`);
 }
 
@@ -720,11 +648,52 @@ async function processPage(page, item) {
   }
   fs.mkdirSync(CONFIG.outputDir, { recursive: true });
 
-  const browser = await chromium.launch({ headless: false, args: CONFIG.device ? [] : ['--start-maximized'] });
   let contextOptions = { viewport: null };
-  if (CONFIG.device && devices[CONFIG.device]) {
-      contextOptions = { ...devices[CONFIG.device] };
+  let launchArgs = ['--start-maximized'];
+
+  if (CONFIG.device && CONFIG.device !== 'Desktop Chrome') {
+      const inventoryPath = path.join(__dirname, 'device_inventory.json');
+      if (fs.existsSync(inventoryPath)) {
+          const inventory = JSON.parse(fs.readFileSync(inventoryPath, 'utf8'));
+          let foundDevice = null;
+          if (inventory.categories) {
+              for (const cat of Object.keys(inventory.categories)) {
+                  foundDevice = inventory.categories[cat].find(d => d.id === CONFIG.device);
+                  if (foundDevice) break;
+              }
+          }
+          
+          if (foundDevice && foundDevice.execution) {
+              const exec = foundDevice.execution;
+              if (exec.type === 'current') {
+                  contextOptions = { viewport: null };
+                  launchArgs = ['--start-maximized'];
+              } else if (exec.type === 'viewport') {
+                  contextOptions = { viewport: exec.value };
+                  launchArgs = [];
+              } else if (exec.type === 'playwright') {
+                  if (devices[exec.value]) {
+                      contextOptions = { ...devices[exec.value] };
+                      launchArgs = [];
+                  }
+              }
+          } else {
+             // Fallback to older direct playwright device resolution if id not found
+             if (devices[CONFIG.device]) {
+                 contextOptions = { ...devices[CONFIG.device] };
+                 launchArgs = [];
+             }
+          }
+      } else {
+          // Fallback if inventory missing
+          if (devices[CONFIG.device]) {
+              contextOptions = { ...devices[CONFIG.device] };
+              launchArgs = [];
+          }
+      }
   }
+
+  const browser = await chromium.launch({ headless: false, args: launchArgs });
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
 
@@ -791,7 +760,7 @@ async function processPage(page, item) {
     // Calculate total pages + tabs roughly for progress
     totalItems = INVENTORY.reduce((acc, item) => acc + Math.max(1, (item.tabs || []).length), 0);
 
-    const failedPages = [];
+    failedPages = [];
 
     for (const item of INVENTORY) {
       checkCancelled();

@@ -65,7 +65,7 @@ def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate Documentation Screenshots")
-    parser.add_argument('--lang', default='en', choices=['en', 'ar','fr','de'], help="Language")
+    parser.add_argument('--lang', default='en', help="Language")
     parser.add_argument('--theme', default='dark', choices=['dark', 'light'], help="Theme")
     parser.add_argument('--device', default=None, help="Device to emulate (e.g., 'iPhone 13')")
     parser.add_argument('--host', default='127.0.0.1', help="Server Host")

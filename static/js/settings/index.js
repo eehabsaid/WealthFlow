@@ -19,6 +19,7 @@ async function renderSettings(route) {
         'settings-dashboard': 'dashboard',
         languages:         'languages',
         backuprestore:     'backuprestore',
+        documentation:     'documentation',
     };
 
     let activeTab = 'languages';
@@ -40,6 +41,7 @@ async function renderSettings(route) {
         { id: 'goldsettings',       i18n: 'tab_gold_settings',          fallback: 'Gold Settings',    route: 'settings-goldsettings'       },
         { id: 'dashboard',          i18n: 'tab_dashboard_sett',         fallback: 'Dashboard',         route: 'settings-dashboard'          },
         { id: 'backuprestore',      i18n: 'settings_backup_restore',    fallback: 'Backup & Restore',  route: 'settings-backuprestore'      },
+        { id: 'documentation',      i18n: 'settings_documentation',     fallback: 'Documentation',     route: 'settings-documentation'      },
     ];
 
     const tabBar = tabs.map(tab => {
@@ -88,6 +90,7 @@ async function renderSettings(route) {
         dashboard:          renderDashboardSettings,
         banks:              renderBankSettings,
         backuprestore:      renderBackupRestoreSettings,
+        documentation:      renderDocumentationSettings,
     };
 
     await (renderers[activeTab] || renderers.banks)();

@@ -295,4 +295,19 @@ __all__ = [
     "CertificateStatusDetailView",
     "FixedAssetValuationRefreshView",
     "_salary_trigger_day",
+    "DocumentationStatusView",
+    "DocumentationDevicesView",
+    "DocumentationHistoryView",
+    "GenerateDocumentationView",
+    "CancelDocumentationView",
+    "OpenFolderView",
 ]
+
+from .documentation_views import (
+    DocumentationStatusView,
+    DocumentationDevicesView,
+    DocumentationHistoryView,
+    GenerateDocumentationView,
+    CancelDocumentationView,
+    OpenFolderView,
+)

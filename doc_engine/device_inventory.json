@@ -1,0 +1,200 @@
+{
+  "version": 1,
+  "categories": {
+    "desktop": [
+      {
+        "id": "current",
+        "display_name": "Current Resolution",
+        "execution": {
+          "type": "current"
+        },
+        "default": true,
+        "enabled": true
+      },
+      {
+        "id": "1366x768",
+        "display_name": "1366 × 768",
+        "execution": {
+          "type": "viewport",
+          "value": { "width": 1366, "height": 768 }
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "1600x900",
+        "display_name": "1600 × 900",
+        "execution": {
+          "type": "viewport",
+          "value": { "width": 1600, "height": 900 }
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "1920x1080",
+        "display_name": "1920 × 1080",
+        "execution": {
+          "type": "viewport",
+          "value": { "width": 1920, "height": 1080 }
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "2560x1440",
+        "display_name": "2560 × 1440",
+        "execution": {
+          "type": "viewport",
+          "value": { "width": 2560, "height": 1440 }
+        },
+        "default": false,
+        "enabled": true
+      }
+    ],
+    "tablet": [
+      {
+        "id": "ipad-mini",
+        "display_name": "iPad Mini",
+        "execution": {
+          "type": "playwright",
+          "value": "iPad Mini"
+        },
+        "default": true,
+        "enabled": true
+      },
+      {
+        "id": "ipad",
+        "display_name": "iPad",
+        "execution": {
+          "type": "playwright",
+          "value": "iPad"
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "ipad-air",
+        "display_name": "iPad Air",
+        "execution": {
+          "type": "playwright",
+          "value": "iPad Air"
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "ipad-pro-11",
+        "display_name": "iPad Pro 11",
+        "execution": {
+          "type": "playwright",
+          "value": "iPad Pro 11"
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "ipad-pro-12-9",
+        "display_name": "iPad Pro 12.9",
+        "execution": {
+          "type": "playwright",
+          "value": "iPad Pro 12.9"
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "surface-pro-7",
+        "display_name": "Surface Pro 7",
+        "execution": {
+          "type": "playwright",
+          "value": "Surface Pro 7"
+        },
+        "default": false,
+        "enabled": true
+      }
+    ],
+    "mobile": [
+      {
+        "id": "iphone-13",
+        "display_name": "iPhone 13",
+        "execution": {
+          "type": "playwright",
+          "value": "iPhone 13"
+        },
+        "default": true,
+        "enabled": true
+      },
+      {
+        "id": "iphone-14",
+        "display_name": "iPhone 14",
+        "execution": {
+          "type": "playwright",
+          "value": "iPhone 14"
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "iphone-15",
+        "display_name": "iPhone 15",
+        "execution": {
+          "type": "playwright",
+          "value": "iPhone 15"
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "iphone-se",
+        "display_name": "iPhone SE",
+        "execution": {
+          "type": "playwright",
+          "value": "iPhone SE"
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "pixel-5",
+        "display_name": "Pixel 5",
+        "execution": {
+          "type": "playwright",
+          "value": "Pixel 5"
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "pixel-7",
+        "display_name": "Pixel 7",
+        "execution": {
+          "type": "playwright",
+          "value": "Pixel 7"
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "galaxy-s20",
+        "display_name": "Galaxy S20",
+        "execution": {
+          "type": "playwright",
+          "value": "Galaxy S20"
+        },
+        "default": false,
+        "enabled": true
+      },
+      {
+        "id": "galaxy-s23",
+        "display_name": "Galaxy S23",
+        "execution": {
+          "type": "playwright",
+          "value": "Galaxy S23"
+        },
+        "default": false,
+        "enabled": true
+      }
+    ]
+  }
+}
