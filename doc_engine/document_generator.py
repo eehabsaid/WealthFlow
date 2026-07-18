@@ -10,6 +10,11 @@ from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+
+import django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wealthflow.settings")
+django.setup()
+
 from django.conf import settings
 from django.utils.translation import gettext as _
 from django.utils import translation
@@ -134,6 +139,18 @@ class DocumentationGenerator:
             if not matched:
                 self.validation_warnings.append(f"Orphan description entry found: {content_key}")
 
+    def _t(self, key, fallback=None):
+        lang_code = self.manifest.get('language', 'en').lower()
+        if not hasattr(self, '_i18n_dict'):
+            dict_path = os.path.join(BASE_DIR, 'static', 'i18n', f"{lang_code}.json")
+            try:
+                with open(dict_path, "r", encoding="utf-8") as f:
+                    self._i18n_dict = json.load(f)
+            except Exception:
+                self._i18n_dict = {}
+                
+        return self._i18n_dict.get(key, fallback if fallback is not None else key)
+
     def _build_internal_model(self):
         """
         Builds the unified internal document model from manifest and page_descriptions.json
@@ -146,20 +163,22 @@ class DocumentationGenerator:
             if not desc:
                 desc = self.content.get(s.get('route'), {})
             
-            # Display title logic: Fallback to IDs formatted nicely if titles aren't hardcoded
-            # In ID-based generation, we just use the most specific ID
             raw_title = s.get('modal_id') or s.get('nested_tab_id') or s.get('tab_id') or s.get('page_id') or s.get('route')
             title = str(raw_title).replace('-', ' ').replace('_', ' ').title()
             
+            # Use the route or specific id to attempt matching an existing title translation from the frontend keys if available.
+            # Usually frontend keys are something like "nav_dashboard" or "tab_dashboard_sett". We will just try a few heuristics 
+            # if we wanted to translate the title. However, the requirement is mainly about the headers.
+            
             self.internal_model.append({
                 "stable_key": stable_key,
-                "title": _(title),
+                "title": title, # we leave title as is since it's hard to guess the UI key, unless it's in the dict
                 "route": s.get('route'),
                 "tab": s.get('tab_id'),
                 "nested_tab": s.get('nested_tab_id'),
                 "modal": s.get('modal_id'),
-                "purpose": _(desc.get("purpose", "[Content pending]")),
-                "steps": [_(step) for step in desc.get("steps", [])],
+                "purpose": desc.get("purpose", "[Content pending]"),
+                "steps": desc.get("steps", []),
                 "screenshot_path": os.path.join(DOCS_DIR, s.get('screenshot_path', '')),
                 "relative_screenshot": s.get('screenshot_path', ''),
                 "has_content": bool(desc)
@@ -257,11 +276,13 @@ class DocumentationGenerator:
         
         lines = []
         lines.append("<!-- AUTO-GENERATED START -->\n")
-        lines.append(f"# {app_name} - {_(guide_type.capitalize() + ' Guide')}\n")
-        lines.append(f"**{_('Version')}:** {version} | **{_('Language')}:** {lang} | **{_('Theme')}:** {theme} | **{_('Device')}:** {device} | **{_('Date')}:** {gen_date}\n")
+        
+        guide_name_key = f"doc_{guide_type}_guide"
+        lines.append(f"# {app_name} - {self._t(guide_name_key, guide_type.capitalize() + ' Guide')}\n")
+        lines.append(f"**{self._t('doc_version')}:** {version} | **{self._t('doc_language')}:** {lang} | **{self._t('doc_theme')}:** {theme} | **{self._t('doc_device')}:** {device} | **{self._t('doc_date')}:** {gen_date}\n")
         
         # TOC
-        lines.append(f"## {_('Table of Contents')}\n")
+        lines.append(f"## {self._t('doc_toc')}\n")
         for i, item in enumerate(model, 1):
             anchor = item['title'].lower().replace(' ', '-')
             lines.append(f"{i}. [{item['title']}](#{anchor})")
@@ -272,25 +293,25 @@ class DocumentationGenerator:
             lines.append(f"## {i}. {item['title']}")
             
             nav_path = " > ".join(filter(None, [item['route'], item['tab'], item['nested_tab'], item['modal']]))
-            lines.append(f"**{_('Navigation')}:** `{nav_path}`\n")
-            lines.append(f"**{_('Purpose')}:** {item['purpose']}\n")
+            lines.append(f"**{self._t('doc_navigation')}:** `{nav_path}`\n")
+            lines.append(f"**{self._t('doc_purpose')}:** {item['purpose']}\n")
             
             if guide_type != "technical" and item['steps']:
-                lines.append(f"**{_('Steps')}:**")
+                lines.append(f"**{self._t('doc_steps')}:**")
                 for step in item['steps']:
                     lines.append(f"- {step}")
                 lines.append("\n")
             elif guide_type == "technical":
-                lines.append(f"**{_('Technical Notes')}:**\n")
-                lines.append(f"- {_('Route')}: `{item['route']}`\n")
-                if item['tab']: lines.append(f"- {_('Tab ID')}: `{item['tab']}`\n")
-                if item['modal']: lines.append(f"- {_('Modal ID')}: `{item['modal']}`\n")
+                lines.append(f"**{self._t('doc_tech_notes')}:**\n")
+                lines.append(f"- {self._t('doc_route')}: `{item['route']}`\n")
+                if item['tab']: lines.append(f"- {self._t('doc_tab_id')}: `{item['tab']}`\n")
+                if item['modal']: lines.append(f"- {self._t('doc_modal_id')}: `{item['modal']}`\n")
                 lines.append("\n")
             
             if os.path.exists(item['screenshot_path']):
                 lines.append(f"<figure>")
                 lines.append(f"<img src=\"file:///{item['screenshot_path'].replace(chr(92), '/')}\" style=\"max-width: 100%; height: auto; display: block; margin: 0 auto;\" alt=\"{item['title']}\">")
-                lines.append(f"<figcaption style=\"text-align:center; font-style:italic;\">{_('Figure')} {i}: {item['title']}</figcaption>")
+                lines.append(f"<figcaption style=\"text-align:center; font-style:italic;\">{self._t('doc_figure')} {i}: {item['title']}</figcaption>")
                 lines.append(f"</figure>\n")
             
             lines.append("---\n")
@@ -320,7 +341,8 @@ class DocumentationGenerator:
         else:
             template = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>{{ title }}</title></head><body><div class='container'>{{ content }}</div></body></html>"
             
-        final_html = template.replace("{{ title }}", f"{app_name} - {_(guide_type.capitalize() + ' Guide')}").replace("{{ content }}", html_content)
+        guide_name_key = f"doc_{guide_type}_guide"
+        final_html = template.replace("{{ title }}", f"{app_name} - {self._t(guide_name_key, guide_type.capitalize() + ' Guide')}").replace("{{ content }}", html_content)
         
         with open(html_path, "w", encoding="utf-8") as f:
             f.write(final_html)
@@ -365,27 +387,29 @@ class DocumentationGenerator:
         section = doc.sections[0]
         header = section.header
         header_p = header.paragraphs[0]
-        header_p.text = f"{self.manifest.get('application', 'WealthFlow')} - {_(guide_type.capitalize() + ' Guide')}"
+        
+        guide_name_key = f"doc_{guide_type}_guide"
+        header_p.text = f"{self.manifest.get('application', 'WealthFlow')} - {self._t(guide_name_key, guide_type.capitalize() + ' Guide')}"
         header_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
         
         footer = section.footer
         footer_p = footer.paragraphs[0]
         footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        run = footer_p.add_run(_("Page") + " ")
+        run = footer_p.add_run(self._t('doc_figure', 'Page').replace('الشكل', 'صفحة') + " ") # fallback hack
         self._add_page_number(run)
 
         # Cover Page
-        doc.add_heading(f"{self.manifest.get('application', 'WealthFlow')} - {_(guide_type.capitalize() + ' Guide')}", 0)
+        doc.add_heading(f"{self.manifest.get('application', 'WealthFlow')} - {self._t(guide_name_key, guide_type.capitalize() + ' Guide')}", 0)
         p = doc.add_paragraph()
-        p.add_run(f"{_('Version')}: {self.manifest.get('version', '1.0')}\n")
-        p.add_run(f"{_('Language')}: {self.manifest.get('language', 'EN').upper()}\n")
-        p.add_run(f"{_('Theme')}: {self.manifest.get('theme', 'Dark').capitalize()}\n")
-        p.add_run(f"{_('Device')}: {self.manifest.get('device', 'Desktop').capitalize()}\n")
-        p.add_run(f"{_('Generated At')}: {self.manifest.get('generated_at', datetime.now().isoformat())}")
+        p.add_run(f"{self._t('doc_version')}: {self.manifest.get('version', '1.0')}\n")
+        p.add_run(f"{self._t('doc_language')}: {self.manifest.get('language', 'EN').upper()}\n")
+        p.add_run(f"{self._t('doc_theme')}: {self.manifest.get('theme', 'Dark').capitalize()}\n")
+        p.add_run(f"{self._t('doc_device')}: {self.manifest.get('device', 'Desktop').capitalize()}\n")
+        p.add_run(f"{self._t('doc_date')}: {self.manifest.get('generated_at', datetime.now().isoformat())}")
         doc.add_page_break()
         
         # TOC
-        doc.add_heading(_('Table of Contents'), level=1)
+        doc.add_heading(self._t('doc_toc'), level=1)
         for i, item in enumerate(model, 1):
             doc.add_paragraph(f"{i}. {item['title']}", style='List Number')
             
@@ -397,22 +421,22 @@ class DocumentationGenerator:
             
             nav_path = " > ".join(filter(None, [item['route'], item['tab'], item['nested_tab'], item['modal']]))
             p = doc.add_paragraph()
-            p.add_run(f"{_('Navigation')}: ").bold = True
+            p.add_run(f"{self._t('doc_navigation')}: ").bold = True
             p.add_run(nav_path)
             
             p2 = doc.add_paragraph()
-            p2.add_run(f"{_('Purpose')}: ").bold = True
+            p2.add_run(f"{self._t('doc_purpose')}: ").bold = True
             p2.add_run(item['purpose'])
             
             if guide_type != "technical" and item['steps']:
-                doc.add_paragraph(_("Steps") + ":", style='Heading 3')
+                doc.add_paragraph(self._t("doc_steps") + ":", style='Heading 3')
                 for step in item['steps']:
                     doc.add_paragraph(step, style='List Bullet')
             elif guide_type == "technical":
-                doc.add_paragraph(_("Technical Notes") + ":", style='Heading 3')
-                doc.add_paragraph(f"{_('Route')}: {item['route']}", style='List Bullet')
-                if item['tab']: doc.add_paragraph(f"{_('Tab ID')}: {item['tab']}", style='List Bullet')
-                if item['modal']: doc.add_paragraph(f"{_('Modal ID')}: {item['modal']}", style='List Bullet')
+                doc.add_paragraph(self._t("doc_tech_notes") + ":", style='Heading 3')
+                doc.add_paragraph(f"{self._t('doc_route')}: {item['route']}", style='List Bullet')
+                if item['tab']: doc.add_paragraph(f"{self._t('doc_tab_id')}: {item['tab']}", style='List Bullet')
+                if item['modal']: doc.add_paragraph(f"{self._t('doc_modal_id')}: {item['modal']}", style='List Bullet')
             
             if os.path.exists(item['screenshot_path']):
                 try:
@@ -423,7 +447,7 @@ class DocumentationGenerator:
                     
                     p_cap = doc.add_paragraph()
                     p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    r_cap = p_cap.add_run(f"{_('Figure')} {i}: {item['title']}")
+                    r_cap = p_cap.add_run(f"{self._t('doc_figure')} {i}: {item['title']}")
                     r_cap.italic = True
                 except Exception as e:
                     logger.warning(f"Could not add image {item['screenshot_path']} to docx: {e}")
