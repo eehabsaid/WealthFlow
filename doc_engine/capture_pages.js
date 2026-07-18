@@ -86,7 +86,23 @@ const startTime = new Date().toISOString();
 let totalItems = null;
 let currentProgress = 0;
 let screenshotsCount = 0;
-let failedPages = [];
+let globalCaptureContext = {
+  page_id: null,
+  route: null,
+  tab_id: null,
+  tab_order: 0,
+  nested_tab_id: null,
+  modal_id: null
+};
+
+const MANIFEST_FILE = path.join(__dirname, '..', 'docs', 'generated', 'manifest.json');
+let manifest = {
+  schema_version: 1,
+  application: "WealthFlow",
+  version: "1.0",
+  generated_at: new Date().toISOString(),
+  pages: []
+};
 
 function updateStatus(status, pageName = '', tabName = '', error = '') {
   const now = new Date();
@@ -159,6 +175,21 @@ async function captureScreenshot(page, filename) {
   await page.screenshot({ path: filepath, fullPage: true });
   await page.evaluate((el) => el.remove(), styleHandle);
   
+  manifest.pages.push({
+    page_id: globalCaptureContext.page_id,
+    route: globalCaptureContext.route,
+    tab_id: globalCaptureContext.tab_id,
+    tab_order: globalCaptureContext.tab_order,
+    nested_tab_id: globalCaptureContext.nested_tab_id,
+    modal_id: globalCaptureContext.modal_id,
+    language: CONFIG.language,
+    theme: CONFIG.theme,
+    device: CONFIG.device || 'desktop',
+    filename: `${filename}.png`,
+    screenshot_path: `screenshots/${filename}.png`,
+    timestamp: new Date().toISOString()
+  });
+
   screenshotsCount++;
   console.log(`[INFO] Captured: ${filename}.png`);
 }
@@ -221,7 +252,9 @@ async function captureModalTabs(page, filePrefix, closeAfter = true) {
         if (btn) btn.click();
       }, t.id);
       await page.waitForTimeout(200);
+      globalCaptureContext.nested_tab_id = t.filenameKey;
       await captureScreenshot(page, `${filePrefix}_${sanitizeFilename(t.filenameKey)}`);
+      globalCaptureContext.nested_tab_id = null;
     }
   } else {
     await captureScreenshot(page, filePrefix);
@@ -426,20 +459,30 @@ async function processAssetRows(page, routePrefix) {
 
 async function performLogin(page) {
   console.log(`Capturing Auth Pages...`);
+  globalCaptureContext.page_id = 'auth';
+  globalCaptureContext.route = 'auth';
+  
   await page.goto(`${CONFIG.baseURL}/accounts/signup/`);
   await waitForUIReady(page);
   await page.waitForTimeout(500);
+  globalCaptureContext.tab_id = 'create_account';
   await captureScreenshot(page, 'create_account');
 
   await page.goto(`${CONFIG.baseURL}/accounts/forgot-password/`);
   await waitForUIReady(page);
   await page.waitForTimeout(500);
+  globalCaptureContext.tab_id = 'forgot_password';
   await captureScreenshot(page, 'forgot_password');
 
   await page.goto(`${CONFIG.baseURL}/accounts/login/`);
   await waitForUIReady(page);
   await page.waitForTimeout(500);
+  globalCaptureContext.tab_id = 'login';
   await captureScreenshot(page, 'login');
+
+  globalCaptureContext.tab_id = null;
+  globalCaptureContext.route = null;
+  globalCaptureContext.page_id = null;
 
   console.log(`Logging in at ${CONFIG.baseURL}...`);
   await page.fill('input[name="username"], input[type="email"]', CONFIG.username);
@@ -579,7 +622,9 @@ async function processModals(page, routePrefix, modals) {
         continue;
       }
 
+      globalCaptureContext.modal_id = sanitizeFilename(modal.name);
       await captureModalTabs(page, `${routePrefix}_${sanitizeFilename(modal.name)}`, true);
+      globalCaptureContext.modal_id = null;
     } catch (err) {
       console.error(`  Failed processing modal ${modal.name}:`, err.message);
     }
@@ -631,6 +676,7 @@ async function processPage(page, item) {
               } else {
                 await page.waitForTimeout(1000);
               }
+              globalCaptureContext.tab_id = tab.id || safeFilename(tab.name, tab.id);
               if (tab.name === 'Translation Coverage') {
                  await captureScreenshot(page, 'Translation Coverage');
               } else {
@@ -642,6 +688,7 @@ async function processPage(page, item) {
               } else if (tab.nested_navigation) {
                  await processModals(page, `${routePrefix}_${safeFilename(tab.name, tab.id)}`, tab.nested_navigation);
               }
+              globalCaptureContext.tab_id = null;
           });
         } catch (err) {
           console.error(`  Failed to capture tab ${tab.name}:`, err.message);
@@ -793,6 +840,9 @@ async function processPage(page, item) {
 
     for (const item of INVENTORY) {
       checkCancelled();
+      globalCaptureContext.page_id = sanitizeFilename(item.route.replace(/\//g, '')) || sanitizeFilename(item.title);
+      globalCaptureContext.route = item.route;
+      globalCaptureContext.tab_order++;
       try {
           await processPage(page, item);
       } catch (err) {
@@ -818,6 +868,10 @@ async function processPage(page, item) {
       // Set totalItems to screenshotsCount so it shows X/X at the end
       totalItems = screenshotsCount;
       updateStatus('finished');
+      
+      // Save manifest
+      fs.writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2));
+      console.log('[INFO] Saved manifest.json');
     }
 
   } catch (err) {

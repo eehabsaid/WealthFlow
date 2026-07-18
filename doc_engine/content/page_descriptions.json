@@ -1,0 +1,131 @@
+{
+  "settings::settings-languages": {
+    "purpose": "Manage the languages supported by the platform.",
+    "steps": [
+      "Navigate to Settings > Languages.",
+      "View the list of currently supported languages.",
+      "Click 'Add Language' to enable a new language.",
+      "Enter the language code and name.",
+      "Click 'Save' to apply changes."
+    ]
+  },
+  "settings::settings-companies": {
+    "purpose": "Manage multiple companies or entities within the system.",
+    "steps": [
+      "Navigate to Settings > Companies.",
+      "Review the active companies.",
+      "Click 'Add Company' to create a new profile.",
+      "Fill in the company details.",
+      "Click 'Save'."
+    ]
+  },
+  "settings::settings-currency": {
+    "purpose": "Manage active currencies and exchange rate rules.",
+    "steps": [
+      "Navigate to Settings > Currency.",
+      "Review the list of currencies.",
+      "Click 'Add Currency' to include a new one.",
+      "Set the abbreviation and symbol.",
+      "Click 'Save'."
+    ]
+  },
+  "settings::settings-users": {
+    "purpose": "Manage user accounts, roles, and permissions.",
+    "steps": [
+      "Navigate to Settings > Users.",
+      "View registered users.",
+      "Click 'Add User' to invite or create a new user.",
+      "Assign appropriate permissions.",
+      "Click 'Save'."
+    ]
+  },
+  "settings::settings-emailtemplates": {
+    "purpose": "Configure the automated email templates sent by the system.",
+    "steps": [
+      "Navigate to Settings > Email Templates.",
+      "Select a template to edit or click 'Add Template'.",
+      "Update the subject and body using available placeholders.",
+      "Click 'Save' to update the template."
+    ]
+  },
+  "settings::settings-translations": {
+    "purpose": "Manage UI text translations for all supported languages.",
+    "steps": [
+      "Navigate to Settings > Translations.",
+      "Select the target language.",
+      "Update the text values for specific keys.",
+      "Click 'Save' to publish the translations."
+    ]
+  },
+  "settings::settings-translationcoverage": {
+    "purpose": "Review missing translations across the system.",
+    "steps": [
+      "Navigate to Settings > Translation Coverage.",
+      "View the completeness percentage for each language.",
+      "Click 'Missing Report' to see untranslated keys."
+    ]
+  },
+  "settings::settings-reminders": {
+    "purpose": "Configure automated system reminders and alerts.",
+    "steps": [
+      "Navigate to Settings > Reminders.",
+      "Click 'Add Reminder'.",
+      "Set the condition, trigger, and message.",
+      "Click 'Save'."
+    ]
+  },
+  "settings::settings-certstatus": {
+    "purpose": "Manage the possible statuses for bank certificates.",
+    "steps": [
+      "Navigate to Settings > Certificate Status.",
+      "Review existing statuses.",
+      "Click 'Add Status'.",
+      "Provide a label and configuration.",
+      "Click 'Save'."
+    ]
+  },
+  "settings::settings-goldsettings": {
+    "purpose": "Configure global settings related to gold assets, such as purities and types.",
+    "steps": [
+      "Navigate to Settings > Gold Settings.",
+      "Use the tabs to switch between Types and Purities.",
+      "Click 'Add' to create a new entry.",
+      "Enter the details and click 'Save'."
+    ]
+  },
+  "settings::settings-dashboard": {
+    "purpose": "Customize the administrator dashboard layout and metrics.",
+    "steps": [
+      "Navigate to Settings > Dashboard.",
+      "Toggle the widgets you want to display.",
+      "Click 'Save'."
+    ]
+  },
+  "settings::settings-banks": {
+    "purpose": "Manage the list of banks available in the system.",
+    "steps": [
+      "Navigate to Settings > Banks.",
+      "Review the registered banks.",
+      "Click 'Add Bank'.",
+      "Enter the bank's details.",
+      "Click 'Save'."
+    ]
+  },
+  "settings::settings-backuprestore": {
+    "purpose": "Create and manage system backups, or restore from a previous backup.",
+    "steps": [
+      "Navigate to Settings > Backup and Restore.",
+      "Click 'Create Backup' to take a new snapshot.",
+      "To restore, select a backup and click 'Restore'."
+    ]
+  },
+  "settings::settings-documentation": {
+    "purpose": "Generate system documentation, user guides, and technical manuals automatically.",
+    "steps": [
+      "Navigate to Settings > Documentation.",
+      "Select the Language, Theme, and Device options.",
+      "Click 'Generate User Guide' or other specific guides.",
+      "Wait for the live progress to complete."
+    ]
+  }
+}

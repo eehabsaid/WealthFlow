@@ -85,6 +85,16 @@ def run_documentation_permutations(languages, themes, devices, execution_id):
                         elif result.returncode != 0:
                             has_fatal_error = True
                             break
+                        else:
+                            # Run the document generator backend now that manifest is written
+                            log_file.write(f"\n[System] Running Document Generator...\n")
+                            log_file.flush()
+                            doc_cmd = [python_exe, "-c", "import sys, os; sys.path.insert(0, os.path.abspath('doc_engine')); from document_generator import DocumentationGenerator; DocumentationGenerator().generate_all()"]
+                            doc_result = subprocess.run(doc_cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
+                            if doc_result.returncode != 0:
+                                has_fatal_error = True
+                                log_file.write(f"\n[System] Document Generator failed.\n")
+                                break
                     except Exception as e:
                         log_file.write(f"\n[System] Exception occurred: {str(e)}\n")
                         has_fatal_error = True
