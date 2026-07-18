@@ -84,12 +84,15 @@ function renderFinancialAdvisor() {
 
   const tabsContent = FINANCIAL_ADVISOR_TABS.map((tab) => renderTabPane(tab)).join("");
 
+  const activeTabObj = FINANCIAL_ADVISOR_TABS.find(tab => tab.id === activeTabId) || FINANCIAL_ADVISOR_TABS[0];
+  const activeKey = activeTabObj.shortKey || activeTabObj.key;
+
   main.innerHTML = `
     <div class="page-header">
       <div>
         <div class="page-title">
           <i class="bi bi-brilliance" style="color:var(--text-primary);"></i>
-          <span data-i18n="nav_financial_advisor"></span>
+          <span data-i18n="${activeKey}"></span>
         </div>
       </div>
     </div>
@@ -223,6 +226,13 @@ function renderFinancialAdvisor() {
         const tabId = target.id.replace("fa-tab-", "");
         if (tabId) {
           sessionStorage.setItem(FINANCIAL_ADVISOR_ACTIVE_TAB_KEY, tabId);
+          const activeTabObj = FINANCIAL_ADVISOR_TABS.find(t => t.id === tabId) || FINANCIAL_ADVISOR_TABS[0];
+          const activeKey = activeTabObj.shortKey || activeTabObj.key;
+          const titleEl = document.querySelector('.page-header .page-title span');
+          if (titleEl) {
+            titleEl.setAttribute('data-i18n', activeKey);
+            titleEl.textContent = t(activeKey);
+          }
         }
         if (targetSelector === "#fa-pane-overview") {
           loadOverview();

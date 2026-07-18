@@ -84,7 +84,10 @@ urlpatterns = [
     path("api/settings/backup/delete/", views.BackupDeleteView.as_view()),
     path("api/settings/backup/restore/", views.BackupRestoreView.as_view()),
     # Documentation Engine
-    path("api/settings/documentation/generate/", views.GenerateDocumentationView.as_view()),
+    path("api/settings/documentation/capture/", views.CaptureScreenshotsView.as_view()),
+    path("api/settings/documentation/generate-docs/", views.GenerateDocumentsView.as_view()),
+    path("api/settings/documentation/validate-capture/", views.ValidateCaptureView.as_view()),
+    path("api/settings/documentation/validate-generate/", views.ValidateGenerationView.as_view()),
     path("api/settings/documentation/cancel/", views.CancelDocumentationView.as_view()),
     path("api/settings/documentation/status/", views.DocumentationStatusView.as_view()),
     path("api/settings/documentation/devices/", views.DocumentationDevicesView.as_view()),

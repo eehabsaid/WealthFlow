@@ -22,10 +22,12 @@ async function renderAdvancedReports(tab) {
             </button>
         `).join('');
 
+    const activeTabObj = tabs.find(t => t.id === tab) || tabs[0];
+
     mc.innerHTML = `
         <div class="page-header">
             <div>
-                <div class="page-title">📊 <span data-i18n="nav_advanced_reports"></span></div>
+                <div class="page-title">${activeTabObj.icon} <span data-i18n="${activeTabObj.key}"></span></div>
         
                 <div style="color:var(--text-muted);font-size:13px" data-i18n="advanced_reports_subtitle"></div>
             </div>

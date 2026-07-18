@@ -48,7 +48,7 @@ async function renderReports() {
   mc.innerHTML = `
     <div class="page-header">
       <div>
-        <div class="page-title" data-i18n="reports_title">${reportsTitle}</div>
+        <div class="page-title reports-page-title" data-i18n="tab_monthly">${monthlyText}</div>
         <div class="page-subtitle" data-i18n="reports_income_expenses_analysis">${reportsDesc}</div>
       </div>
     </div>
@@ -141,6 +141,14 @@ function switchReportTab(tab) {
     if (ctrlEl) ctrlEl.style.display = t === tab ? "flex" : "none";
     if (tabEl) tabEl.classList.toggle("active", t === tab);
   });
+  
+  const title = document.querySelector('.reports-page-title');
+  if (title) {
+    if (tab === 'monthly') { title.setAttribute('data-i18n', 'tab_monthly'); title.textContent = t('tab_monthly', 'Monthly'); }
+    else if (tab === 'yearly') { title.setAttribute('data-i18n', 'tab_yearly'); title.textContent = t('tab_yearly', 'Yearly'); }
+    else if (tab === 'custom') { title.setAttribute('data-i18n', 'tab_custom_range'); title.textContent = t('tab_custom_range', 'Custom Range'); }
+  }
+  
   loadReportData();
 }
 

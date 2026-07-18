@@ -1,240 +1,298 @@
 import os
 import json
 import logging
-import re
 import shutil
+import time
 from datetime import datetime
-import markdown
-from docx import Document
-from docx.shared import Inches, Pt, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
 
-import django
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wealthflow.settings")
-django.setup()
-
-from django.conf import settings
-from django.utils.translation import gettext as _
-from django.utils import translation
-import subprocess
+# Import plugins
+from .config import GENERATED_DIR, MANIFEST_FILE, METADATA_FILE, CANCEL_FILE, STATUS_FILE, SUPPORTED_FORMATS
+from .providers import ManifestProvider, ContentProvider
+from .models import DocumentationModel
+from .renderers import MarkdownRenderer, HtmlRenderer, PdfRenderer, DocxRenderer
+from .guides import UserGuideGenerator, AdminGuideGenerator, TechnicalGuideGenerator
 
 logger = logging.getLogger(__name__)
 
-DOC_ENGINE_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = getattr(settings, 'BASE_DIR', os.path.dirname(DOC_ENGINE_DIR))
-DOCS_DIR = os.path.join(BASE_DIR, "docs")
-GENERATED_DIR = os.path.join(DOCS_DIR, "generated")
-MANIFEST_FILE = os.path.join(GENERATED_DIR, "manifest.json")
-CONTENT_FILE = os.path.join(DOC_ENGINE_DIR, "content", "page_descriptions.json")
-TEMPLATES_DIR = os.path.join(DOC_ENGINE_DIR, "templates")
-
 class DocumentationGenerator:
     def __init__(self):
-        self.manifest = self._load_json(MANIFEST_FILE, default={"pages": []})
-        self.content = self._load_json(CONTENT_FILE, default={})
-        self.internal_model = []
-        
-        # Validation report
         self.validation_errors = []
         self.validation_warnings = []
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self.start_time = time.time()
         self.output_base_dir = os.path.join(GENERATED_DIR, self.timestamp)
         self.latest_symlink = os.path.join(GENERATED_DIR, "latest")
         
-        lang_code = self.manifest.get('language', 'en').lower()
-        if lang_code == 'en':
-            lang_code = 'en-us' # Django default
-        translation.activate(lang_code)
+        self.manifest = None
+        self.metadata = None
+        self.content = None
+        self.doc_model = None
         
-        self._validate_manifest()
-        self._build_internal_model()
+        # Load providers
+        self.manifest_provider = ManifestProvider()
+        self.content_provider = ContentProvider()
+        
+        # Register Renderers
+        self.renderers = {
+            "markdown": MarkdownRenderer(),
+            "html": HtmlRenderer(),
+            "pdf": PdfRenderer(),
+            "docx": DocxRenderer(),
+        }
+        
+        # Register Guide Types
+        self.guides = [
+            UserGuideGenerator,
+            AdminGuideGenerator,
+            TechnicalGuideGenerator
+        ]
 
-    def _load_json(self, path, default=None):
-        if not os.path.exists(path):
-            return default
+    def _t(self, key):
+        if not hasattr(self, 'translations'):
+            return key
+        if key not in self.translations:
+            logger.warning(f"Missing translation key: {key}")
+            if f"Missing translation key: {key}" not in self.validation_warnings:
+                self.validation_warnings.append(f"Missing translation key: {key}")
+            return key
+        return self.translations[key]
+
+    def _load_metadata(self):
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(METADATA_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception as e:
-            logger.error(f"Failed to load {path}: {e}")
-            return default
+        except:
+            return None
 
-    def _get_stable_key(self, page_entry):
-        keys = [page_entry.get('route')]
-        if page_entry.get('tab_id'):
-            keys.append(page_entry.get('tab_id'))
-        if page_entry.get('nested_tab_id'):
-            keys.append(page_entry.get('nested_tab_id'))
-        if page_entry.get('modal_id'):
-            keys.append(page_entry.get('modal_id'))
-        return "::".join(filter(None, keys))
-
-    def _validate_manifest(self):
-        """
-        Validate manifest and generate errors/warnings.
-        - missing screenshots
-        - missing page descriptions
-        - duplicate IDs
-        - orphan screenshots
-        - orphan descriptions
-        - broken image paths
-        - invalid manifest schema
-        """
-        if self.manifest.get("schema_version") != 1:
-            self.validation_errors.append("Invalid manifest schema: missing or invalid schema_version")
-            
-        pages = self.manifest.get("pages", [])
-        if not pages:
-            self.validation_errors.append("Manifest contains no pages")
-            return
-
-        seen_keys = set()
-        seen_paths = set()
+    def _validate_inputs(self):
+        self.manifest = self.manifest_provider.load()
+        self.content = self.content_provider.load()
+        self.metadata = self._load_metadata()
         
-        for p in pages:
-            stable_key = self._get_stable_key(p)
+        if not self.manifest:
+            self.validation_errors.append("Fatal: manifest.json missing")
+        if not self.metadata:
+            self.validation_errors.append("Fatal: capture_metadata.json missing")
             
-            # Duplicate IDs
-            if stable_key in seen_keys:
-                self.validation_warnings.append(f"Duplicate stable key in manifest: {stable_key}")
-            seen_keys.add(stable_key)
+        if self.validation_errors:
+            logger.error("Generation stopped due to fatal errors.")
+            return False
             
-            # Screenshot checks
-            s_path = os.path.join(DOCS_DIR, p.get("screenshot_path", ""))
-            if not p.get("screenshot_path"):
-                self.validation_errors.append(f"Missing screenshot path for entry: {stable_key}")
-            elif not os.path.exists(s_path):
-                self.validation_errors.append(f"Broken image path/Missing screenshot: {s_path} for key {stable_key}")
+        self.doc_model = DocumentationModel(self.manifest, self.content)
+        self.validation_warnings.extend(self.doc_model.validation_warnings)
+        
+        # Load Translations
+        self.translations = {}
+        self.reverse_en = {}
+        
+        # Try metadata first, fallback to first page, default to 'en'
+        lang = "en"
+        if self.metadata and self.metadata.get("language"):
+            lang = self.metadata.get("language")
+        elif self.manifest and self.manifest.get("pages") and len(self.manifest["pages"]) > 0:
+            lang = self.manifest["pages"][0].get("language", "en")
+            
+        lang = lang.lower()
+        if lang == 'ar':
+            lang = 'ar'
+            
+        i18n_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "i18n")
+        
+        # Load English for reverse lookup (to translate hardcoded English strings)
+        en_path = os.path.join(i18n_dir, "en.json")
+        try:
+            if os.path.exists(en_path):
+                with open(en_path, "r", encoding="utf-8") as f:
+                    en_data = json.load(f)
+                    self.reverse_en = {v.strip(): k for k, v in en_data.items() if isinstance(v, str)}
+        except Exception as e:
+            logger.warning(f"Could not load English translations for reverse lookup: {e}")
+
+        i18n_path = os.path.join(i18n_dir, f"{lang}.json")
+        try:
+            if os.path.exists(i18n_path):
+                with open(i18n_path, "r", encoding="utf-8") as f:
+                    self.translations = json.load(f)
             else:
-                seen_paths.add(p.get("screenshot_path"))
-
-            # Descriptions check
-            desc = self.content.get(stable_key)
-            if not desc:
-                # Fallback to route
-                desc = self.content.get(p.get('route'))
-            if not desc:
-                self.validation_warnings.append(f"Missing page description for: {stable_key}")
-
-        # Orphan screenshots in screenshots/ folder
-        screenshots_dir = os.path.join(DOCS_DIR, "screenshots")
-        if os.path.exists(screenshots_dir):
-            for file in os.listdir(screenshots_dir):
-                if file.endswith(".png"):
-                    rel_path = f"screenshots/{file}"
-                    if rel_path not in seen_paths:
-                        self.validation_warnings.append(f"Orphan screenshot found: {rel_path}")
-                        
-        # Orphan descriptions
-        for content_key in self.content.keys():
-            # A description is an orphan if no page in manifest matches its exact key or route
-            matched = False
-            for p in pages:
-                k = self._get_stable_key(p)
-                if k == content_key or p.get('route') == content_key:
-                    matched = True
-                    break
-            if not matched:
-                self.validation_warnings.append(f"Orphan description entry found: {content_key}")
-
-    def _t(self, key, fallback=None):
-        lang_code = self.manifest.get('language', 'en').lower()
-        if not hasattr(self, '_i18n_dict'):
-            dict_path = os.path.join(BASE_DIR, 'static', 'i18n', f"{lang_code}.json")
-            try:
-                with open(dict_path, "r", encoding="utf-8") as f:
-                    self._i18n_dict = json.load(f)
-            except Exception:
-                self._i18n_dict = {}
-                
-        return self._i18n_dict.get(key, fallback if fallback is not None else key)
-
-    def _build_internal_model(self):
-        """
-        Builds the unified internal document model from manifest and page_descriptions.json
-        The order is exactly as dictated by manifest.pages.
-        """
-        for s in self.manifest.get("pages", []):
-            stable_key = self._get_stable_key(s)
+                self.validation_warnings.append(f"Translation file missing for language: {lang}")
+        except Exception as e:
+            logger.warning(f"Could not load translations for {lang}: {e}")
             
-            desc = self.content.get(stable_key)
-            if not desc:
-                desc = self.content.get(s.get('route'), {})
-            
-            raw_title = s.get('modal_id') or s.get('nested_tab_id') or s.get('tab_id') or s.get('page_id') or s.get('route')
-            title = str(raw_title).replace('-', ' ').replace('_', ' ').title()
-            
-            # Use the route or specific id to attempt matching an existing title translation from the frontend keys if available.
-            # Usually frontend keys are something like "nav_dashboard" or "tab_dashboard_sett". We will just try a few heuristics 
-            # if we wanted to translate the title. However, the requirement is mainly about the headers.
-            
-            self.internal_model.append({
-                "stable_key": stable_key,
-                "title": title, # we leave title as is since it's hard to guess the UI key, unless it's in the dict
-                "route": s.get('route'),
-                "tab": s.get('tab_id'),
-                "nested_tab": s.get('nested_tab_id'),
-                "modal": s.get('modal_id'),
-                "purpose": desc.get("purpose", "[Content pending]"),
-                "steps": desc.get("steps", []),
-                "screenshot_path": os.path.join(DOCS_DIR, s.get('screenshot_path', '')),
-                "relative_screenshot": s.get('screenshot_path', ''),
-                "has_content": bool(desc)
-            })
+        return True
 
-    def _filter_model(self, guide_type):
-        admin_routes = ["settings", "user-management", "/user-management/", "reports", "advanced-reports"]
-        if guide_type == "user":
-            return [m for m in self.internal_model if m['route'] not in admin_routes]
-        elif guide_type == "admin":
-            return [m for m in self.internal_model if m['route'] in admin_routes]
-        elif guide_type == "technical":
-            return self.internal_model
-        return self.internal_model
+    def _t_title(self, text):
+        if not text:
+            return text
+        text_strip = text.strip()
+        # Direct key lookup
+        if text_strip in self.translations:
+            return self.translations[text_strip]
+        # Reverse English lookup
+        key = self.reverse_en.get(text_strip)
+        if key and key in self.translations:
+            return self.translations[key]
+        return text
 
     def _create_folders(self, guide_type):
         guide_dir = os.path.join(self.output_base_dir, f"{guide_type}_guide")
-        for fmt in ["markdown", "html", "pdf", "docx"]:
+        for fmt in SUPPORTED_FORMATS:
             os.makedirs(os.path.join(guide_dir, fmt), exist_ok=True)
         return guide_dir
 
     def _get_filename(self, guide_type, ext):
-        lang = self.manifest.get('language', 'EN').upper()
-        theme = self.manifest.get('theme', 'Dark').capitalize()
-        device = self.manifest.get('device', 'Desktop').capitalize()
+        lang = self.metadata.get('language', 'EN').upper() if self.metadata else 'EN'
+        theme = self.metadata.get('theme', 'Dark').capitalize() if self.metadata else 'Dark'
+        device = self.metadata.get('device', 'Desktop').capitalize() if self.metadata else 'Desktop'
         device = "".join(x for x in device if x.isalnum())
-        return f"{guide_type.capitalize()}Guide_{lang}_{theme}_{device}_v1.{ext}"
+        return f"{guide_type.capitalize()}Guide_{lang}_{theme}_{device}.{ext}"
 
-    def generate_all(self):
+    def _flatten_tree(self, nodes, prefix="", sibling_nodes=None):
+        flat = []
+        if sibling_nodes is None:
+            sibling_nodes = nodes
+        for i, n in enumerate(nodes, 1):
+            n.hierarchical_number = f"{prefix}{i}"
+            
+            if prefix == "":
+                n.siblings = []
+            else:
+                n.siblings = [sn.title for sn in sibling_nodes if sn != n]
+                
+            if n.children:
+                n.siblings = [c.title for c in n.children]
+                
+            flat.append(n)
+            flat.extend(self._flatten_tree(n.children, f"{n.hierarchical_number}.", n.children))
+        return flat
+
+    def generate_all(self, doc_type="all"):
+        if not self._validate_inputs():
+            self._write_execution_summary()
+            return
+            
         os.makedirs(self.output_base_dir, exist_ok=True)
-        self._write_validation_report()
         
-        for g_type in ["user", "admin", "technical"]:
-            self.generate(g_type)
+        if os.path.exists(MANIFEST_FILE):
+            shutil.copy2(MANIFEST_FILE, os.path.join(self.output_base_dir, "manifest.json"))
+        if os.path.exists(METADATA_FILE):
+            shutil.copy2(METADATA_FILE, os.path.join(self.output_base_dir, "capture_metadata.json"))
             
-        self._update_latest_symlink()
+        guides_to_run = [g for g in self.guides if doc_type == "all" or g(None).get_guide_type() == doc_type]
+        self.total_guides = len(guides_to_run)
+        if self.total_guides == 0:
+            self._write_execution_summary()
+            return
+            
+        self.current_guide_idx = 0
+            
+        for guide_cls in guides_to_run:
+            self.current_guide_idx += 1
+            if os.path.exists(CANCEL_FILE):
+                self._update_status({"status": "CANCELLED"})
+                break
+            
+            guide = guide_cls(self.doc_model)
+            self._generate_guide(guide)
+            
+        if not os.path.exists(CANCEL_FILE):
+            self._update_latest_symlink()
+            self._write_execution_summary()
 
-    def _write_validation_report(self):
-        report_path = os.path.join(self.output_base_dir, "validation_report.md")
-        lines = ["# Documentation Validation Report\n"]
-        lines.append(f"**Generated:** {datetime.now().isoformat()}\n")
+    def _generate_guide(self, guide):
+        filtered_nodes = guide.filter_model()
+        if not filtered_nodes:
+            return
+            
+        guide_type = guide.get_guide_type()
+        guide_dir = self._create_folders(guide_type)
         
-        lines.append(f"## Errors ({len(self.validation_errors)})\n")
-        if not self.validation_errors:
-            lines.append("No errors.\n")
-        for err in self.validation_errors:
-            lines.append(f"- [ERROR] {err}")
+        md_path = os.path.join(guide_dir, "markdown", self._get_filename(guide_type, "md"))
+        html_path = os.path.join(guide_dir, "html", self._get_filename(guide_type, "html"))
+        pdf_path = os.path.join(guide_dir, "pdf", self._get_filename(guide_type, "pdf"))
+        docx_path = os.path.join(guide_dir, "docx", self._get_filename(guide_type, "docx"))
+
+        flat_model = self._flatten_tree(filtered_nodes)
+        
+        # Translate node titles
+        for node in flat_model:
+            node.title = self._t_title(node.title)
+            node.navigation = [self._t_title(x) for x in node.navigation]
             
-        lines.append(f"\n## Warnings ({len(self.validation_warnings)})\n")
-        if not self.validation_warnings:
-            lines.append("No warnings.\n")
-        for wrn in self.validation_warnings:
-            lines.append(f"- [WARN] {wrn}")
+        context = {
+            "app_name": self.manifest.get('application', 'WealthFlow'),
+            "guide_type": guide_type.capitalize() + " Guide",
+            "title": f"{self.manifest.get('application', 'WealthFlow')} - {guide_type.capitalize()} Guide",
+            "date": datetime.now().strftime('%Y-%m-%d'),
+            "language": self.metadata.get('language', 'EN').upper() if self.metadata else 'EN',
+            "theme": self.metadata.get('theme', 'Dark').capitalize() if self.metadata else 'Dark',
+            "device": self.metadata.get('device', 'Desktop').capitalize() if self.metadata else 'Desktop',
+            "version": self.manifest.get('version', '1.0'),
+            "toc_title": self._t_title("Table of Contents"),
+            "nav_title": self._t_title("Navigation Path"),
+            "purpose_title": self._t_title("Purpose"),
+            "steps_title": self._t_title("Steps"),
+            "tech_notes_title": self._t_title("Technical Details"),
+            "page_title": self._t_title(guide_type.capitalize() + " Guide"),
+            "figure_title": self._t_title("Figure"),
+            "lbl_generated": self._t_title("Generated") if self._t_title("Generated") != "Generated" else "تاريخ الإنشاء",
+            "lbl_language": self._t_title("Language") if self._t_title("Language") != "Language" else "اللغة",
+            "lbl_theme": self._t_title("Theme") if self._t_title("Theme") != "Theme" else "المظهر",
+            "lbl_device": self._t_title("Device") if self._t_title("Device") != "Device" else "الجهاز",
+            "lbl_version": self._t_title("Version") if self._t_title("Version") != "Version" else "الإصدار",
+            "lbl_generated_by": self._t_title("Generated By") if self._t_title("Generated By") != "Generated By" else "تم الإنشاء بواسطة",
+            "is_technical": guide.is_technical()
+        }
+        
+        # If language is AR, fallback these labels just in case
+        if context["language"] == "AR":
+            if context["guide_type"] == "User Guide": context["guide_type"] = "دليل المستخدم"
+            if context["guide_type"] == "Admin Guide": context["guide_type"] = "دليل المسؤول"
+            if context["guide_type"] == "Technical Guide": context["guide_type"] = "الدليل الفني"
+            if context["title"].endswith("User Guide"): context["title"] = "WealthFlow - دليل المستخدم"
+            if context["title"].endswith("Admin Guide"): context["title"] = "WealthFlow - دليل المسؤول"
+            if context["title"].endswith("Technical Guide"): context["title"] = "WealthFlow - الدليل الفني"
+
+        self._update_status({
+            "status": "RUNNING",
+            "current_guide": guide_type.capitalize(),
+            "current_page": "Markdown",
+            "current_output_format": "Markdown",
+            "validation_stage": "Generating Markdown",
+            "progress_percent": int(((self.current_guide_idx - 1) / self.total_guides) * 100) + 0,
+            "elapsed": int(time.time() - self.start_time)
+        })
+        if "markdown" in SUPPORTED_FORMATS:
+            self.renderers["markdown"].render(flat_model, md_path, context)
             
-        with open(report_path, "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
+        self._update_status({
+            "current_page": "HTML",
+            "current_output_format": "HTML",
+            "validation_stage": "Generating HTML",
+            "progress_percent": int(((self.current_guide_idx - 1) / self.total_guides) * 100) + 6,
+            "elapsed": int(time.time() - self.start_time)
+        })
+        if "html" in SUPPORTED_FORMATS:
+            self.renderers["html"].render(md_path, html_path, context)
+            
+        self._update_status({
+            "current_page": "PDF",
+            "current_output_format": "PDF",
+            "validation_stage": "Generating PDF",
+            "progress_percent": int(((self.current_guide_idx - 1) / self.total_guides) * 100) + 12,
+            "elapsed": int(time.time() - self.start_time)
+        })
+        if "pdf" in SUPPORTED_FORMATS:
+            self.renderers["pdf"].render(html_path, pdf_path)
+            
+        self._update_status({
+            "current_page": "DOCX",
+            "current_output_format": "DOCX",
+            "validation_stage": "Generating DOCX",
+            "progress_percent": int(((self.current_guide_idx - 1) / self.total_guides) * 100) + 18,
+            "elapsed": int(time.time() - self.start_time)
+        })
+        if "docx" in SUPPORTED_FORMATS:
+            self.renderers["docx"].render(flat_model, docx_path, context)
 
     def _update_latest_symlink(self):
         try:
@@ -243,216 +301,65 @@ class DocumentationGenerator:
                     shutil.rmtree(self.latest_symlink)
                 else:
                     os.unlink(self.latest_symlink)
-            
-            # Using copytree on Windows to avoid symlink privilege issues, 
-            # or directory junction if available. copytree is safer.
             shutil.copytree(self.output_base_dir, self.latest_symlink, dirs_exist_ok=True)
         except Exception as e:
             logger.error(f"Failed to update latest folder: {e}")
 
-    def generate(self, guide_type):
-        guide_dir = self._create_folders(guide_type)
-        filtered_model = self._filter_model(guide_type)
-        if not filtered_model:
-            return
-            
-        md_path = os.path.join(guide_dir, "markdown", self._get_filename(guide_type, "md"))
-        html_path = os.path.join(guide_dir, "html", self._get_filename(guide_type, "html"))
-        pdf_path = os.path.join(guide_dir, "pdf", self._get_filename(guide_type, "pdf"))
-        docx_path = os.path.join(guide_dir, "docx", self._get_filename(guide_type, "docx"))
-
-        self._generate_markdown(filtered_model, md_path, guide_type)
-        self._generate_html(md_path, html_path, guide_type)
-        self._generate_pdf(html_path, pdf_path)
-        self._generate_docx(filtered_model, docx_path, guide_type)
-
-    def _generate_markdown(self, model, out_path, guide_type):
-        lang = self.manifest.get('language', 'EN').upper()
-        theme = self.manifest.get('theme', 'Dark').capitalize()
-        device = self.manifest.get('device', 'Desktop').capitalize()
-        app_name = self.manifest.get('application', 'WealthFlow')
-        version = self.manifest.get('version', '1.0')
-        gen_date = self.manifest.get('generated_at', datetime.now().isoformat())
+    def _write_execution_summary(self):
+        duration = time.time() - self.start_time
+        pages_gen = len(self._flatten_tree(self.doc_model.nodes)) if self.doc_model else 0
+        missing = len([w for w in self.validation_warnings if "Missing page description" in w])
         
-        lines = []
-        lines.append("<!-- AUTO-GENERATED START -->\n")
+        summary = {
+            "started": self.timestamp,
+            "finished": datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+            "duration_seconds": round(duration, 2),
+            "language": self.manifest.get('language', 'en') if self.manifest else 'en',
+            "theme": self.manifest.get('theme', 'dark') if self.manifest else 'dark',
+            "device": self.manifest.get('device', 'desktop') if self.manifest else 'desktop',
+            "screenshot_count": self.metadata.get('screenshots', 0) if self.metadata else 0,
+            "pages_generated": pages_gen,
+            "missing_content_count": missing,
+            "errors": self.validation_errors,
+            "warnings": self.validation_warnings,
+            "output_directory": self.output_base_dir
+        }
         
-        guide_name_key = f"doc_{guide_type}_guide"
-        lines.append(f"# {app_name} - {self._t(guide_name_key, guide_type.capitalize() + ' Guide')}\n")
-        lines.append(f"**{self._t('doc_version')}:** {version} | **{self._t('doc_language')}:** {lang} | **{self._t('doc_theme')}:** {theme} | **{self._t('doc_device')}:** {device} | **{self._t('doc_date')}:** {gen_date}\n")
-        
-        # TOC
-        lines.append(f"## {self._t('doc_toc')}\n")
-        for i, item in enumerate(model, 1):
-            anchor = item['title'].lower().replace(' ', '-')
-            lines.append(f"{i}. [{item['title']}](#{anchor})")
-        lines.append("\n---\n")
-
-        # Content
-        for i, item in enumerate(model, 1):
-            lines.append(f"## {i}. {item['title']}")
-            
-            nav_path = " > ".join(filter(None, [item['route'], item['tab'], item['nested_tab'], item['modal']]))
-            lines.append(f"**{self._t('doc_navigation')}:** `{nav_path}`\n")
-            lines.append(f"**{self._t('doc_purpose')}:** {item['purpose']}\n")
-            
-            if guide_type != "technical" and item['steps']:
-                lines.append(f"**{self._t('doc_steps')}:**")
-                for step in item['steps']:
-                    lines.append(f"- {step}")
-                lines.append("\n")
-            elif guide_type == "technical":
-                lines.append(f"**{self._t('doc_tech_notes')}:**\n")
-                lines.append(f"- {self._t('doc_route')}: `{item['route']}`\n")
-                if item['tab']: lines.append(f"- {self._t('doc_tab_id')}: `{item['tab']}`\n")
-                if item['modal']: lines.append(f"- {self._t('doc_modal_id')}: `{item['modal']}`\n")
-                lines.append("\n")
-            
-            if os.path.exists(item['screenshot_path']):
-                lines.append(f"<figure>")
-                lines.append(f"<img src=\"file:///{item['screenshot_path'].replace(chr(92), '/')}\" style=\"max-width: 100%; height: auto; display: block; margin: 0 auto;\" alt=\"{item['title']}\">")
-                lines.append(f"<figcaption style=\"text-align:center; font-style:italic;\">{self._t('doc_figure')} {i}: {item['title']}</figcaption>")
-                lines.append(f"</figure>\n")
-            
-            lines.append("---\n")
-            
-        lines.append("<!-- AUTO-GENERATED END -->\n")
-        
-        # If writing over an existing markdown file in another location (e.g. repo docs), 
-        # but here we generate into a fresh timestamped directory.
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
-
-    def _generate_html(self, md_path, html_path, guide_type):
-        app_name = self.manifest.get('application', 'WealthFlow')
-        with open(md_path, "r", encoding="utf-8") as f:
-            md_text = f.read()
-            
-        # Strip AUTO-GENERATED markers from HTML
-        md_text = md_text.replace("<!-- AUTO-GENERATED START -->\n", "")
-        md_text = md_text.replace("<!-- AUTO-GENERATED END -->\n", "")
-            
-        html_content = markdown.markdown(md_text, extensions=['tables', 'fenced_code', 'toc'])
-        
-        template_path = os.path.join(TEMPLATES_DIR, "html_template.html")
-        if os.path.exists(template_path):
-            with open(template_path, "r", encoding="utf-8") as f:
-                template = f.read()
-        else:
-            template = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>{{ title }}</title></head><body><div class='container'>{{ content }}</div></body></html>"
-            
-        guide_name_key = f"doc_{guide_type}_guide"
-        final_html = template.replace("{{ title }}", f"{app_name} - {self._t(guide_name_key, guide_type.capitalize() + ' Guide')}").replace("{{ content }}", html_content)
-        
-        with open(html_path, "w", encoding="utf-8") as f:
-            f.write(final_html)
-
-    def _generate_pdf(self, html_path, pdf_path):
-        script = os.path.join(DOC_ENGINE_DIR, "html_to_pdf.js")
-        if not os.path.exists(script):
-            logger.error(f"Cannot generate PDF, missing {script}")
-            return
-            
+        sum_path = os.path.join(self.output_base_dir, "generation_summary.json") if not self.validation_errors else os.path.join(GENERATED_DIR, f"generation_summary_{self.timestamp}.json")
+        rep_path = os.path.join(self.output_base_dir, "validation_report.md") if not self.validation_errors else os.path.join(GENERATED_DIR, f"validation_report_{self.timestamp}.md")
         try:
-            cmd = ["node", script, html_path, pdf_path]
-            subprocess.run(cmd, check=True)
-        except subprocess.CalledProcessError as e:
-            logger.error(f"PDF generation failed: {e}")
+            os.makedirs(os.path.dirname(sum_path), exist_ok=True)
+            with open(sum_path, "w", encoding="utf-8") as f:
+                json.dump(summary, f, indent=4)
+                
+            with open(rep_path, "w", encoding="utf-8") as f:
+                f.write("# Documentation Validation Report\n\n")
+                f.write(f"**Date:** {summary['started']}\n\n")
+                if self.validation_errors:
+                    f.write("## Fatal Errors\n")
+                    for e in self.validation_errors:
+                        f.write(f"- {e}\n")
+                if self.validation_warnings:
+                    f.write("\n## Warnings\n")
+                    for w in self.validation_warnings:
+                        f.write(f"- {w}\n")
+                if not self.validation_errors and not self.validation_warnings:
+                    f.write("No errors or warnings. Generation clean.\n")
         except Exception as e:
-            logger.error(f"Error executing html_to_pdf.js: {e}")
+            logger.error(f"Failed to write summary: {e}")
+            
+    def _update_status(self, updates):
+        try:
+            status = {}
+            if os.path.exists(STATUS_FILE):
+                with open(STATUS_FILE, "r", encoding="utf-8") as f:
+                    status = json.load(f)
+            status.update(updates)
+            with open(STATUS_FILE, "w", encoding="utf-8") as f:
+                json.dump(status, f)
+        except Exception as e:
+            logger.error(f"Failed to update status: {e}")
 
-    def _add_page_number(self, run):
-        fldChar1 = OxmlElement('w:fldChar')
-        fldChar1.set(qn('w:fldCharType'), 'begin')
-        
-        instrText = OxmlElement('w:instrText')
-        instrText.set(qn('xml:space'), 'preserve')
-        instrText.text = "PAGE"
-        
-        fldChar2 = OxmlElement('w:fldChar')
-        fldChar2.set(qn('w:fldCharType'), 'separate')
-        
-        fldChar3 = OxmlElement('w:fldChar')
-        fldChar3.set(qn('w:fldCharType'), 'end')
-        
-        run._r.append(fldChar1)
-        run._r.append(instrText)
-        run._r.append(fldChar2)
-        run._r.append(fldChar3)
-
-    def _generate_docx(self, model, out_path, guide_type):
-        doc = Document()
-        
-        # Headers & Footers
-        section = doc.sections[0]
-        header = section.header
-        header_p = header.paragraphs[0]
-        
-        guide_name_key = f"doc_{guide_type}_guide"
-        header_p.text = f"{self.manifest.get('application', 'WealthFlow')} - {self._t(guide_name_key, guide_type.capitalize() + ' Guide')}"
-        header_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        
-        footer = section.footer
-        footer_p = footer.paragraphs[0]
-        footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        run = footer_p.add_run(self._t('doc_figure', 'Page').replace('الشكل', 'صفحة') + " ") # fallback hack
-        self._add_page_number(run)
-
-        # Cover Page
-        doc.add_heading(f"{self.manifest.get('application', 'WealthFlow')} - {self._t(guide_name_key, guide_type.capitalize() + ' Guide')}", 0)
-        p = doc.add_paragraph()
-        p.add_run(f"{self._t('doc_version')}: {self.manifest.get('version', '1.0')}\n")
-        p.add_run(f"{self._t('doc_language')}: {self.manifest.get('language', 'EN').upper()}\n")
-        p.add_run(f"{self._t('doc_theme')}: {self.manifest.get('theme', 'Dark').capitalize()}\n")
-        p.add_run(f"{self._t('doc_device')}: {self.manifest.get('device', 'Desktop').capitalize()}\n")
-        p.add_run(f"{self._t('doc_date')}: {self.manifest.get('generated_at', datetime.now().isoformat())}")
-        doc.add_page_break()
-        
-        # TOC
-        doc.add_heading(self._t('doc_toc'), level=1)
-        for i, item in enumerate(model, 1):
-            doc.add_paragraph(f"{i}. {item['title']}", style='List Number')
-            
-        doc.add_page_break()
-        
-        # Content
-        for i, item in enumerate(model, 1):
-            doc.add_heading(f"{i}. {item['title']}", level=2)
-            
-            nav_path = " > ".join(filter(None, [item['route'], item['tab'], item['nested_tab'], item['modal']]))
-            p = doc.add_paragraph()
-            p.add_run(f"{self._t('doc_navigation')}: ").bold = True
-            p.add_run(nav_path)
-            
-            p2 = doc.add_paragraph()
-            p2.add_run(f"{self._t('doc_purpose')}: ").bold = True
-            p2.add_run(item['purpose'])
-            
-            if guide_type != "technical" and item['steps']:
-                doc.add_paragraph(self._t("doc_steps") + ":", style='Heading 3')
-                for step in item['steps']:
-                    doc.add_paragraph(step, style='List Bullet')
-            elif guide_type == "technical":
-                doc.add_paragraph(self._t("doc_tech_notes") + ":", style='Heading 3')
-                doc.add_paragraph(f"{self._t('doc_route')}: {item['route']}", style='List Bullet')
-                if item['tab']: doc.add_paragraph(f"{self._t('doc_tab_id')}: {item['tab']}", style='List Bullet')
-                if item['modal']: doc.add_paragraph(f"{self._t('doc_modal_id')}: {item['modal']}", style='List Bullet')
-            
-            if os.path.exists(item['screenshot_path']):
-                try:
-                    p_img = doc.add_paragraph()
-                    p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    r_img = p_img.add_run()
-                    r_img.add_picture(item['screenshot_path'], width=Inches(6.0))
-                    
-                    p_cap = doc.add_paragraph()
-                    p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    r_cap = p_cap.add_run(f"{self._t('doc_figure')} {i}: {item['title']}")
-                    r_cap.italic = True
-                except Exception as e:
-                    logger.warning(f"Could not add image {item['screenshot_path']} to docx: {e}")
-            
-            if i < len(model):
-                doc.add_page_break()
-            
-        doc.save(out_path)
+if __name__ == "__main__":
+    gen = DocumentationGenerator()
+    gen.generate_all()

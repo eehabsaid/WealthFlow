@@ -298,7 +298,10 @@ __all__ = [
     "DocumentationStatusView",
     "DocumentationDevicesView",
     "DocumentationHistoryView",
-    "GenerateDocumentationView",
+    "ValidateCaptureView",
+    "ValidateGenerationView",
+    "CaptureScreenshotsView",
+    "GenerateDocumentsView",
     "CancelDocumentationView",
     "OpenFolderView",
 ]
@@ -307,7 +310,10 @@ from .documentation_views import (
     DocumentationStatusView,
     DocumentationDevicesView,
     DocumentationHistoryView,
-    GenerateDocumentationView,
+    ValidateCaptureView,
+    ValidateGenerationView,
+    CaptureScreenshotsView,
+    GenerateDocumentsView,
     CancelDocumentationView,
     OpenFolderView,
 )

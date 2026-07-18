@@ -15,8 +15,8 @@ const CONFIG = {
   device: process.env.DOC_DEVICE || null, // e.g. 'iPhone 13'
 };
 
-CONFIG.outputDir = path.join(__dirname, '..', 'docs', 'screenshots');
-
+CONFIG.outputDir = path.join(__dirname, '..', 'docs', 'screenshots', 'latest');
+CONFIG.runtimeDir = path.join(__dirname, '..', 'docs', 'generated', 'runtime');
 const originalLog = console.log;
 const originalWarn = console.warn;
 const originalError = console.error;
@@ -80,8 +80,8 @@ async function waitForCharts(page) {
   await page.waitForTimeout(800);
 }
 
-const STATUS_FILE = path.join(__dirname, '..', 'docs', 'generated', 'capture_status.json');
-const CANCEL_FLAG = path.join(__dirname, '..', 'docs', 'generated', 'cancel.flag');
+const STATUS_FILE = path.join(CONFIG.runtimeDir, 'status.json');
+const CANCEL_FLAG = path.join(CONFIG.runtimeDir, '.cancel_capture');
 const startTime = new Date().toISOString();
 let totalItems = null;
 let currentProgress = 0;
@@ -92,10 +92,13 @@ let globalCaptureContext = {
   tab_id: null,
   tab_order: 0,
   nested_tab_id: null,
-  modal_id: null
+  nested_tab_order: 0,
+  modal_id: null,
+  modal_order: 0
 };
 
-const MANIFEST_FILE = path.join(__dirname, '..', 'docs', 'generated', 'manifest.json');
+const MANIFEST_FILE = path.join(CONFIG.runtimeDir, 'manifest.json');
+const METADATA_FILE = path.join(CONFIG.runtimeDir, 'capture_metadata.json');
 let manifest = {
   schema_version: 1,
   application: "WealthFlow",
@@ -177,17 +180,21 @@ async function captureScreenshot(page, filename) {
   
   manifest.pages.push({
     page_id: globalCaptureContext.page_id,
+    page_title: globalCaptureContext.page_title || null,
     route: globalCaptureContext.route,
     tab_id: globalCaptureContext.tab_id,
     tab_order: globalCaptureContext.tab_order,
     nested_tab_id: globalCaptureContext.nested_tab_id,
+    nested_tab_order: globalCaptureContext.nested_tab_order,
     modal_id: globalCaptureContext.modal_id,
+    modal_order: globalCaptureContext.modal_order,
     language: CONFIG.language,
     theme: CONFIG.theme,
     device: CONFIG.device || 'desktop',
+    is_admin: globalCaptureContext.is_admin || false,
     filename: `${filename}.png`,
     screenshot_path: `screenshots/${filename}.png`,
-    timestamp: new Date().toISOString()
+    capture_timestamp: new Date().toISOString()
   });
 
   screenshotsCount++;
@@ -253,8 +260,11 @@ async function captureModalTabs(page, filePrefix, closeAfter = true) {
       }, t.id);
       await page.waitForTimeout(200);
       globalCaptureContext.nested_tab_id = t.filenameKey;
+      globalCaptureContext.nested_tab_order = t.order || 0;
+      globalCaptureContext.page_title = t.name || null;
       await captureScreenshot(page, `${filePrefix}_${sanitizeFilename(t.filenameKey)}`);
       globalCaptureContext.nested_tab_id = null;
+      globalCaptureContext.nested_tab_order = 0;
     }
   } else {
     await captureScreenshot(page, filePrefix);
@@ -466,18 +476,21 @@ async function performLogin(page) {
   await waitForUIReady(page);
   await page.waitForTimeout(500);
   globalCaptureContext.tab_id = 'create_account';
+  globalCaptureContext.page_title = 'Create Account';
   await captureScreenshot(page, 'create_account');
 
   await page.goto(`${CONFIG.baseURL}/accounts/forgot-password/`);
   await waitForUIReady(page);
   await page.waitForTimeout(500);
   globalCaptureContext.tab_id = 'forgot_password';
+  globalCaptureContext.page_title = 'Forgot Password';
   await captureScreenshot(page, 'forgot_password');
 
   await page.goto(`${CONFIG.baseURL}/accounts/login/`);
   await waitForUIReady(page);
   await page.waitForTimeout(500);
   globalCaptureContext.tab_id = 'login';
+  globalCaptureContext.page_title = 'Login';
   await captureScreenshot(page, 'login');
 
   globalCaptureContext.tab_id = null;
@@ -623,8 +636,11 @@ async function processModals(page, routePrefix, modals) {
       }
 
       globalCaptureContext.modal_id = sanitizeFilename(modal.name);
+      globalCaptureContext.modal_order = modal.order || 0;
+      globalCaptureContext.page_title = modal.name || null;
       await captureModalTabs(page, `${routePrefix}_${sanitizeFilename(modal.name)}`, true);
       globalCaptureContext.modal_id = null;
+      globalCaptureContext.modal_order = 0;
     } catch (err) {
       console.error(`  Failed processing modal ${modal.name}:`, err.message);
     }
@@ -677,6 +693,7 @@ async function processPage(page, item) {
                 await page.waitForTimeout(1000);
               }
               globalCaptureContext.tab_id = tab.id || safeFilename(tab.name, tab.id);
+              globalCaptureContext.page_title = tab.name || null;
               if (tab.name === 'Translation Coverage') {
                  await captureScreenshot(page, 'Translation Coverage');
               } else {
@@ -842,6 +859,8 @@ async function processPage(page, item) {
       checkCancelled();
       globalCaptureContext.page_id = sanitizeFilename(item.route.replace(/\//g, '')) || sanitizeFilename(item.title);
       globalCaptureContext.route = item.route;
+      globalCaptureContext.page_title = item.title;
+      globalCaptureContext.is_admin = item.is_admin === true;
       globalCaptureContext.tab_order++;
       try {
           await processPage(page, item);
@@ -872,6 +891,21 @@ async function processPage(page, item) {
       // Save manifest
       fs.writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2));
       console.log('[INFO] Saved manifest.json');
+      
+      const uniquePages = new Set(manifest.pages.map(p => p.page_id)).size;
+      const metadata = {
+        schema_version: 1,
+        wealthflow_version: manifest.version,
+        capture_timestamp: new Date().toISOString(),
+        language: CONFIG.language,
+        theme: CONFIG.theme,
+        device: CONFIG.device || 'desktop',
+        screenshots: screenshotsCount,
+        pages: uniquePages,
+        status: "Completed"
+      };
+      fs.writeFileSync(METADATA_FILE, JSON.stringify(metadata, null, 2));
+      console.log('[INFO] Saved capture_metadata.json');
     }
 
   } catch (err) {

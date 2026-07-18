@@ -16,10 +16,11 @@ from core.views.auth_views import AdminRequiredMixin
 BASE_DIR = settings.BASE_DIR
 DOCS_DIR = os.path.join(BASE_DIR, "docs")
 GENERATED_DIR = os.path.join(DOCS_DIR, "generated")
-SCREENSHOTS_DIR = os.path.join(DOCS_DIR, "screenshots")
+SCREENSHOTS_DIR = os.path.join(DOCS_DIR, "screenshots", "latest")
+RUNTIME_DIR = os.path.join(GENERATED_DIR, "runtime")
 HISTORY_FILE = os.path.join(GENERATED_DIR, "history.json")
-STATUS_FILE = os.path.join(GENERATED_DIR, "capture_status.json")
-CANCEL_FILE = os.path.join(GENERATED_DIR, "cancel.flag")
+STATUS_FILE = os.path.join(RUNTIME_DIR, "status.json")
+CANCEL_FILE = os.path.join(RUNTIME_DIR, ".cancel_capture")
 
 from doc_engine.device_inventory import load_inventory, validate_inventory
 
@@ -39,7 +40,66 @@ def write_json_file(filepath, data):
 
 
 # Background worker
-def run_documentation_permutations(languages, themes, devices, execution_id):
+def run_documentation_generation_only(execution_id, doc_type="all"):
+    from django.utils.timezone import now
+    from core.models import DocumentationExecution
+    
+    execution = DocumentationExecution.objects.get(id=execution_id)
+    
+    logs_dir = os.path.join(DOCS_DIR, "generated", "logs")
+    os.makedirs(logs_dir, exist_ok=True)
+    log_filename = f"{execution.started_at.strftime('%Y-%m-%d_%H-%M-%S')}_{execution.id}.log"
+    log_path = os.path.join(logs_dir, log_filename)
+    
+    python_exe = os.path.join(BASE_DIR, "venv", "Scripts", "python.exe")
+    if not os.path.exists(python_exe):
+        python_exe = sys.executable
+    
+    with open(log_path, "a", encoding="utf-8") as log_file:
+        log_file.write(f"\\n[System] Running Document Generator...\\n")
+        log_file.flush()
+        doc_cmd = [python_exe, "-c", f"import sys, os; sys.path.insert(0, os.path.abspath('.')); from doc_engine.document_generator import DocumentationGenerator; DocumentationGenerator().generate_all('{doc_type}')"]
+        
+        has_fatal_error = False
+        try:
+            doc_result = subprocess.run(doc_cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
+            if doc_result.returncode != 0:
+                has_fatal_error = True
+                log_file.write(f"\\n[System] Document Generator failed.\\n")
+        except Exception as e:
+            log_file.write(f"\\n[System] Exception occurred: {str(e)}\\n")
+            has_fatal_error = True
+            
+    execution.finished_at = now()
+    
+    status = read_json_file(STATUS_FILE, {})
+    from core.models.documentation import DocumentationExecutionStatus
+    
+    if os.path.exists(CANCEL_FILE):
+        execution.status = DocumentationExecutionStatus.CANCELLED
+        status["status"] = "CANCELLED"
+        os.remove(CANCEL_FILE)
+    elif has_fatal_error:
+        execution.status = DocumentationExecutionStatus.FAILED
+        status["status"] = "FAILED"
+    else:
+        execution.status = DocumentationExecutionStatus.COMPLETED
+        status["status"] = "COMPLETED"
+        if doc_type == "all":
+            execution.files_generated = ["User Guide", "Administrator Guide", "Technical Guide"]
+        elif doc_type == "user":
+            execution.files_generated = ["User Guide"]
+        elif doc_type == "admin":
+            execution.files_generated = ["Administrator Guide"]
+        elif doc_type == "technical":
+            execution.files_generated = ["Technical Guide"]
+        else:
+            execution.files_generated = [doc_type.capitalize() + " Guide"]
+        
+    execution.save()
+    write_json_file(STATUS_FILE, status)
+
+def run_documentation_permutations(languages, themes, devices, execution_id, mode="BOTH"):
     from django.utils.timezone import now
     from core.models import DocumentationExecution
     
@@ -86,17 +146,18 @@ def run_documentation_permutations(languages, themes, devices, execution_id):
                             has_fatal_error = True
                             break
                         else:
-                            # Run the document generator backend now that manifest is written
-                            log_file.write(f"\n[System] Running Document Generator...\n")
-                            log_file.flush()
-                            doc_cmd = [python_exe, "-c", "import sys, os; sys.path.insert(0, os.path.abspath('doc_engine')); from document_generator import DocumentationGenerator; DocumentationGenerator().generate_all()"]
-                            doc_result = subprocess.run(doc_cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
-                            if doc_result.returncode != 0:
-                                has_fatal_error = True
-                                log_file.write(f"\n[System] Document Generator failed.\n")
-                                break
+                            if mode == "BOTH":
+                                # Run the document generator backend now that manifest is written
+                                log_file.write(f"\\n[System] Running Document Generator...\\n")
+                                log_file.flush()
+                                doc_cmd = [python_exe, "-c", "import sys, os; sys.path.insert(0, os.path.abspath('.')); from doc_engine.document_generator import DocumentationGenerator; DocumentationGenerator().generate_all('all')"]
+                                doc_result = subprocess.run(doc_cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
+                                if doc_result.returncode != 0:
+                                    has_fatal_error = True
+                                    log_file.write(f"\\n[System] Document Generator failed.\\n")
+                                    break
                     except Exception as e:
-                        log_file.write(f"\n[System] Exception occurred: {str(e)}\n")
+                        log_file.write(f"\\n[System] Exception occurred: {str(e)}\\n")
                         has_fatal_error = True
                         break
     
@@ -119,10 +180,132 @@ def run_documentation_permutations(languages, themes, devices, execution_id):
     else:
         execution.status = DocumentationExecutionStatus.COMPLETED
         status["status"] = "COMPLETED"
+        if mode == "BOTH":
+            summary_path = os.path.join(DOCS_DIR, "generated", "latest", "generation_summary.json")
+            if os.path.exists(summary_path):
+                summary = read_json_file(summary_path, {})
+                execution.pages = summary.get("pages_generated", 0)
+                execution.warnings = summary.get("warnings", [])
+                execution.errors = summary.get("errors", [])
+                execution.missing_content_count = summary.get("missing_content_count", 0)
+            execution.files_generated = ["User Guide", "Administrator Guide", "Technical Guide"]
+            
+        try:
+            git_hash = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=BASE_DIR, text=True).strip()
+        except Exception:
+            git_hash = "Unknown"
+        execution.git_commit_hash = git_hash
+        execution.app_version = getattr(settings, "VERSION", "1.0.0")
+        execution.engine_version = "2.0.0"
         
     execution.save()
     write_json_file(STATUS_FILE, status)
 
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ValidateCaptureView(AdminRequiredMixin, View):
+    def get(self, request):
+        errors = []
+        try:
+            subprocess.run(["node", "-v"], check=True, capture_output=True, shell=True)
+        except Exception:
+            errors.append("Node.js is not installed or not in PATH.")
+        
+        try:
+            subprocess.run(["npm", "-v"], check=True, capture_output=True, shell=True)
+        except Exception:
+            errors.append("npm is not installed or not in PATH.")
+            
+        try:
+            subprocess.run(["npx", "playwright", "--version"], check=True, capture_output=True, shell=True)
+        except Exception:
+            errors.append("Playwright is not installed.")
+            
+        try:
+            os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+            if not os.access(SCREENSHOTS_DIR, os.W_OK):
+                errors.append("Screenshots directory is not writable.")
+        except Exception:
+            errors.append("Cannot create screenshots directory.")
+            
+        if errors:
+            return JsonResponse({"valid": False, "errors": errors})
+        return JsonResponse({"valid": True})
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ValidateGenerationView(AdminRequiredMixin, View):
+    def get(self, request):
+        errors = []
+        if not os.path.exists(SCREENSHOTS_DIR):
+            errors.append("Screenshot folder does not exist.")
+        elif not os.listdir(SCREENSHOTS_DIR):
+            errors.append("Screenshot folder contains no screenshots.")
+            
+        manifest_path = os.path.join(RUNTIME_DIR, "manifest.json")
+        if not os.path.exists(manifest_path):
+            errors.append("manifest.json does not exist.")
+        else:
+            try:
+                with open(manifest_path, "r", encoding="utf-8") as f:
+                    json.load(f)
+            except Exception:
+                errors.append("manifest.json is not valid JSON.")
+                
+        metadata_path = os.path.join(RUNTIME_DIR, "capture_metadata.json")
+        if not os.path.exists(metadata_path):
+            errors.append("capture_metadata.json does not exist.")
+        else:
+            try:
+                with open(metadata_path, "r", encoding="utf-8") as f:
+                    json.load(f)
+            except Exception:
+                errors.append("capture_metadata.json is not valid JSON.")
+                
+        page_descriptions = os.path.join(BASE_DIR, "doc_engine", "content", "page_descriptions.json")
+        if not os.path.exists(page_descriptions):
+            errors.append("page_descriptions.json does not exist.")
+            
+        try:
+            os.makedirs(GENERATED_DIR, exist_ok=True)
+            if not os.access(GENERATED_DIR, os.W_OK):
+                errors.append("Output directory is not writable.")
+        except Exception:
+            errors.append("Cannot create output directory.")
+            
+        html_template = os.path.join(BASE_DIR, "doc_engine", "templates", "html_template.html")
+        if not os.path.exists(html_template):
+            # Not strictly fatal if we have a fallback, but per rules:
+            pass # We have a fallback in the generator
+            
+        pdf_script = os.path.join(BASE_DIR, "doc_engine", "html_to_pdf.js")
+        if not os.path.exists(pdf_script):
+            errors.append("Playwright PDF renderer (html_to_pdf.js) is missing.")
+            
+        try:
+            import docx
+        except ImportError:
+            errors.append("python-docx is not installed.")
+            
+        try:
+            import markdown
+        except ImportError:
+            errors.append("Markdown renderer is not available.")
+        try:
+            subprocess.run(["node", "-v"], check=True, capture_output=True)
+        except Exception:
+            errors.append("Node.js is not available for PDF generation.")
+            
+        python_exe = os.path.join(BASE_DIR, "venv", "Scripts", "python.exe")
+        if not os.path.exists(python_exe):
+            python_exe = sys.executable
+        try:
+            subprocess.run([python_exe, "-c", "import docx"], check=True, capture_output=True)
+        except Exception:
+            errors.append("python-docx is not installed in the python environment.")
+            
+        if errors:
+            return JsonResponse({"valid": False, "errors": errors})
+        return JsonResponse({"valid": True})
 
 @method_decorator(csrf_exempt, name="dispatch")
 class DocumentationDevicesView(AdminRequiredMixin, View):
@@ -156,12 +339,14 @@ class DocumentationHistoryView(AdminRequiredMixin, View):
             history.append({
                 "date": localtime(exec_obj.started_at).strftime("%Y-%m-%d %H:%M:%S"),
                 "duration": duration_str,
+                "type": exec_obj.execution_type,
                 "language": exec_obj.language,
                 "theme": exec_obj.theme,
                 "device": exec_obj.device_type,
                 "status": exec_obj.status,
                 "screenshots": exec_obj.screenshots_count,
                 "failed": exec_obj.failed_pages,
+                "files_generated": exec_obj.files_generated,
                 "created_by": exec_obj.created_by.username if exec_obj.created_by else "System"
             })
         return JsonResponse({"history": history})
@@ -254,6 +439,102 @@ class GenerateDocumentationView(AdminRequiredMixin, View):
             
             return JsonResponse({"success": True})
             
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+@method_decorator(csrf_exempt, name="dispatch")
+class CaptureScreenshotsView(AdminRequiredMixin, View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            lang_opt = data.get("language", "en")
+            theme_opt = data.get("theme", "dark")
+            category_opt = data.get("device_category", "Desktop")
+            device_opt = data.get("device_type", "Desktop")
+            
+            if os.path.exists(CANCEL_FILE):
+                os.remove(CANCEL_FILE)
+            
+            from core.models import DocumentationExecution
+            from core.models.documentation import DocumentationExecutionStatus, DocumentationExecutionType
+            
+            if DocumentationExecution.objects.filter(status=DocumentationExecutionStatus.RUNNING).exists():
+                return JsonResponse({"error": "Documentation process already running."}, status=400)
+            
+            from core.models import AppSettings
+            languages = [lang_opt]
+            if lang_opt == "ALL":
+                try:
+                    langs = json.loads(AppSettings.get("available_languages", "[]"))
+                    languages = [l.get("code") for l in langs if l.get("code")]
+                except:
+                    languages = ["en"]
+                if not languages:
+                    languages = ["en"]
+            
+            themes = [theme_opt]
+            if theme_opt == "ALL":
+                themes = ["dark", "light"]
+                
+            devices = [device_opt]
+            if category_opt == "ALL":
+                is_valid, _ = validate_inventory()
+                if is_valid:
+                    inventory = load_inventory()
+                    devices = [item["id"] for items in inventory.get("categories", {}).values() for item in items if isinstance(item, dict) and item.get("enabled", True)]
+                if not devices:
+                    devices = ["current"]
+                    
+            initial_status = {
+                "status": "RUNNING", "page": "Starting...", "tab": "-", "language": languages[0], "theme": themes[0], "device": devices[0], "progress": 0, "total": 0, "elapsed_seconds": 0, "error": "", "failed_pages": []
+            }
+            write_json_file(STATUS_FILE, initial_status)
+            
+            new_execution = DocumentationExecution.objects.create(
+                execution_type=DocumentationExecutionType.CAPTURE,
+                language=languages[0], theme=themes[0], device_category=category_opt, device_type=devices[0],
+                status=DocumentationExecutionStatus.RUNNING, created_by=request.user if request.user.is_authenticated else None
+            )
+            
+            thread = threading.Thread(target=run_documentation_permutations, args=(languages, themes, devices, new_execution.id, "CAPTURE"))
+            thread.daemon = True
+            thread.start()
+            
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+@method_decorator(csrf_exempt, name="dispatch")
+class GenerateDocumentsView(AdminRequiredMixin, View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            doc_type = data.get("docs", "all")
+            if os.path.exists(CANCEL_FILE):
+                os.remove(CANCEL_FILE)
+                
+            from core.models import DocumentationExecution
+            from core.models.documentation import DocumentationExecutionStatus, DocumentationExecutionType
+            
+            if DocumentationExecution.objects.filter(status=DocumentationExecutionStatus.RUNNING).exists():
+                return JsonResponse({"error": "Documentation process already running."}, status=400)
+                
+            initial_status = {
+                "status": "RUNNING", "page": "Generating Docs...", "tab": "-", "language": "N/A", "theme": "N/A", "device": "N/A", "progress": 0, "total": 0, "elapsed_seconds": 0, "error": "", "failed_pages": []
+            }
+            write_json_file(STATUS_FILE, initial_status)
+            
+            new_execution = DocumentationExecution.objects.create(
+                execution_type=DocumentationExecutionType.GENERATION,
+                language="N/A", theme="N/A", device_category="N/A", device_type="N/A",
+                status=DocumentationExecutionStatus.RUNNING, created_by=request.user if request.user.is_authenticated else None
+            )
+            
+            thread = threading.Thread(target=run_documentation_generation_only, args=(new_execution.id, doc_type))
+            thread.daemon = True
+            thread.start()
+            
+            return JsonResponse({"success": True})
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 

@@ -54,9 +54,12 @@ async function renderSettings(route) {
         </button>`;
     }).join('');
 
+    const activeTabObj = tabs.find(tab => tab.id === activeTab) || tabs[0];
+    const activeTabLabel = t(activeTabObj.i18n, activeTabObj.fallback || activeTabObj.id);
+
     mc.innerHTML = `
         <div class="page-header">
-            <div><div class="page-title" data-i18n="nav_settings">Settings</div></div>
+            <div><div class="page-title" data-i18n="${activeTabObj.i18n}">${activeTabLabel}</div></div>
         </div>
         <div class="wf-tabs-shell">
           <div class="wf-tabs-row" id="settingsTabsBar">

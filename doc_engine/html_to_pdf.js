@@ -39,6 +39,9 @@ async function generatePDF() {
             }));
         });
 
+        // Force screen media type so it doesn't revert to light mode print CSS
+        await page.emulateMedia({ media: 'screen' });
+
         // Generate PDF
         await page.pdf({
             path: outputPdf,

@@ -244,10 +244,13 @@ async function renderBalance() {
              tabindex="0">
         </div>`).join('');
 
+    const activeTabObj = BALANCE_TABS.find(t => t.id === activeTabId) || BALANCE_TABS[0];
+    const activeKey = activeTabObj.key;
+
     // ── 13. Inject page shell ────────────────────────────────────────────────
     mc.innerHTML = `
         <div class="page-header balance-page-header">
-            <div><div class="page-title" data-i18n="nav_balance">${t('nav_balance', 'Balance')}</div></div>
+            <div><div class="page-title" data-i18n="${activeKey}">${t(activeKey)}</div></div>
         </div>
         <div class="card border-0 balance-page-card" style="background:var(--bg-primary);border:1px solid var(--border-color);">
             <div class="card-body" style="padding:16px;">
@@ -300,6 +303,13 @@ async function renderBalance() {
                 if (tabId) {
                     sessionStorage.setItem(BALANCE_ACTIVE_TAB_KEY, tabId);
                     updateAddBtn(tabId);
+                    const activeTabObj = BALANCE_TABS.find(t => t.id === tabId) || BALANCE_TABS[0];
+                    const activeKey = activeTabObj.key;
+                    const titleEl = document.querySelector('.balance-page-header .page-title');
+                    if (titleEl) {
+                        titleEl.setAttribute('data-i18n', activeKey);
+                        titleEl.textContent = t(activeKey);
+                    }
                 }
             }, { signal });
         });
