@@ -2,11 +2,8 @@
 
 function _renderGoalPlanningHeader(payload) {
   return `
-      <div class="goal-planning-header">
-        <div>
-          <h4 data-i18n="financial_advisor_tab_goal_planning"></h4>
-          <p data-i18n="goal_planning_subtitle"></p>
-        </div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div style="color:var(--text-secondary);" data-i18n="goal_planning_subtitle"></div>
         <div class="goal-header-actions">
           <div class="portfolio-optimizer-date">
             <span data-i18n="goal_planning_as_of"></span>

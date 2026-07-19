@@ -87,11 +87,8 @@ function _renderPortfolioOptimizer(payload) {
 
   pane.innerHTML = `
     <div class="portfolio-optimizer-wrap">
-      <div class="portfolio-optimizer-header">
-        <div>
-          <h4 data-i18n="financial_advisor_tab_portfolio_optimizer"></h4>
-          <p data-i18n="portfolio_optimizer_subtitle"></p>
-        </div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div style="color:var(--text-secondary);" data-i18n="portfolio_optimizer_subtitle"></div>
         <div class="portfolio-optimizer-date">
           <span data-i18n="portfolio_optimizer_as_of"></span>
           <strong>${payload?.as_of || "-"}</strong>
