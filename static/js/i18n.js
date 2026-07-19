@@ -12,17 +12,8 @@ let _lang = localStorage.getItem('lang') || 'en';
 
 async function loadLanguage(code) {
     try {
-        // No cache-busting query param here on purpose: these files are
-        // static and only change on deploy. The previous `?v=${Date.now()}`
-        // forced a full re-download of the whole translation file (68-87KB)
-        // on every single call to loadLanguage(), including repeated
-        // switches back to a language already loaded moments earlier. Static
-        // file hosting (e.g. whitenoise/nginx) will send proper cache
-        // headers for this path, so the browser can now cache it normally.
-        // If a build/deploy step needs to force a refresh after editing
-        // translations, prefer a deploy-time version/content hash appended
-        // by the build process, not a per-request timestamp.
-        const res = await fetch(`/static/i18n/${code}.json`);
+        // Added cache buster to force the browser to download the newly injected translations
+        const res = await fetch(`/static/i18n/${code}.json?v=${Date.now()}`);
         if (!res.ok) throw new Error('Not found');
 
         _t    = await res.json();

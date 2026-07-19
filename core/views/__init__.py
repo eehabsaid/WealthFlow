@@ -82,6 +82,7 @@ from .balance_forecast_views import CertificateForecastView
 from .balance_forecast_views import CashFlowForecastView
 from .balance_forecast_views import WealthGrowthForecastView
 from .balance_forecast_views import PortfolioOptimizerView
+from .balance_forecast_views import RiskAnalysisView
 from .balance_forecast_views import OverviewView
 from .dashboard_views import index
 from .dashboard_views import _api_auth_required

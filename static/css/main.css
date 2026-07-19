@@ -3,31 +3,31 @@
 * This file imports all modular CSS components in the correct cascade order.
 */
 
-@import url('variables.css');
-@import url('typography.css');
-@import url('layout.css');
-@import url('theme.css');
+@import url('variables.css?v=1784442773?v=1784442773');
+@import url('typography.css?v=1784442773?v=1784442773');
+@import url('layout.css?v=1784442773?v=1784442773');
+@import url('theme.css?v=1784442773?v=1784442773');
 
 /* Components */
-@import url('sidebar.css');
-@import url('topbar.css');
-@import url('tables.css');
-@import url('forms.css');
-@import url('buttons.css');
-@import url('cards.css');
-@import url('modals.css');
+@import url('sidebar.css?v=1784442773?v=1784442773');
+@import url('topbar.css?v=1784442773?v=1784442773');
+@import url('tables.css?v=1784442773?v=1784442773');
+@import url('forms.css?v=1784442773?v=1784442773');
+@import url('buttons.css?v=1784442773?v=1784442773');
+@import url('cards.css?v=1784442773?v=1784442773');
+@import url('modals.css?v=1784442773?v=1784442773');
 
 /* Features */
-@import url('dashboard.css');
-@import url('salary.css');
-@import url('balance.css');
-@import url('certificates.css');
-@import url('expenses.css');
-@import url('reports.css');
-@import url('reminders.css');
-@import url('settings.css');
-@import url('fixed_assets.css');
-@import url('financial_advisor.css');
+@import url('dashboard.css?v=1784442773?v=1784442773');
+@import url('salary.css?v=1784442773?v=1784442773');
+@import url('balance.css?v=1784442773?v=1784442773');
+@import url('certificates.css?v=1784442773?v=1784442773');
+@import url('expenses.css?v=1784442773?v=1784442773');
+@import url('reports.css?v=1784442773?v=1784442773');
+@import url('reminders.css?v=1784442773?v=1784442773');
+@import url('settings.css?v=1784442773?v=1784442773');
+@import url('fixed_assets.css?v=1784442773?v=1784442773');
+@import url('financial_advisor.css?v=1784442773?v=1784442773');
 
 /* Responsive / Overrides */
-@import url('responsive.css');
+@import url('responsive.css?v=1784442773?v=1784442773');

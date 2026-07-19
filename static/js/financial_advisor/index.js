@@ -70,6 +70,12 @@ function renderFinancialAdvisor() {
       `;
     }
 
+    if (tab.id === "risk-analysis") {
+      return `
+        <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0"></div>
+      `;
+    }
+
     return `
       <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
         <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
@@ -244,6 +250,8 @@ function renderFinancialAdvisor() {
           loadPortfolioOptimizer();
         } else if (targetSelector === "#fa-pane-goal-planning") {
           loadGoalPlanning();
+        } else if (targetSelector === "#fa-pane-risk-analysis") {
+          if (typeof loadRiskAnalysis === "function") loadRiskAnalysis();
         }
         closeMoreMenu();
         syncMoreActiveState();
@@ -263,6 +271,8 @@ function renderFinancialAdvisor() {
     loadPortfolioOptimizer();
   } else if (activeTabId === "goal-planning") {
     loadGoalPlanning();
+  } else if (activeTabId === "risk-analysis") {
+    if (typeof loadRiskAnalysis === "function") loadRiskAnalysis();
   }
 }
 
@@ -280,3 +290,4 @@ window.loadCashFlowForecast = loadCashFlowForecast;
 window.loadWealthGrowthForecast = loadWealthGrowthForecast;
 window.loadPortfolioOptimizer = loadPortfolioOptimizer;
 window.loadGoalPlanning = loadGoalPlanning;
+window.loadRiskAnalysis = (typeof loadRiskAnalysis !== 'undefined') ? loadRiskAnalysis : () => {};

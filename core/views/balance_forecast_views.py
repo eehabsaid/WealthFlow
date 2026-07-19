@@ -10,6 +10,7 @@ from core.services.financial_advisor.cash_flow_forecast_service import CashFlowF
 from core.services.financial_advisor.portfolio_optimizer_service import PortfolioOptimizerService
 from core.services.financial_advisor.wealth_growth_forecast_service import WealthGrowthForecastService
 from core.services.financial_advisor.overview_service import OverviewService
+from core.services.financial_advisor.risk_analysis_service import RiskAnalysisService
 
 from .certificate_views import _run_certificate_interest_sync
 
@@ -78,4 +79,12 @@ class OverviewView(View):
 
         return JsonResponse(payload)
 
-
+@method_decorator(csrf_exempt, name="dispatch")
+class RiskAnalysisView(View):
+    def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        _run_certificate_interest_sync()
+        payload = RiskAnalysisService(today=datetime.date.today()).payload()
+        return JsonResponse(payload)

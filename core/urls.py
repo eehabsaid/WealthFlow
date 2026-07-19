@@ -222,6 +222,10 @@ urlpatterns = [
         views.PortfolioOptimizerView.as_view(),
     ),
     path(
+        "api/financial-advisor/risk-analysis/",
+        views.RiskAnalysisView.as_view(),
+    ),
+    path(
         "api/financial-advisor/goal-planning/",
         views.GoalPlanningView.as_view(),
     ),
