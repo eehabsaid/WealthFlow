@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Dict, List, Tuple
 
-from core.models import BankCertificate, SalaryEntry
+from core.models import SalaryEntry
 from core.services.balance.net_worth_service import NetWorthService
 from core.services.financial_advisor.portfolio_optimizer_service import PortfolioOptimizerService
 from core.services.financial_advisor.goal_planning_service import GoalPlanningService

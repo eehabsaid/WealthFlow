@@ -37,12 +37,12 @@ class Command(BaseCommand):
 
         # 3. Validate README
         readme_path = os.path.join(settings.BASE_DIR, "README.md")
-        self.stdout.write(f"Checking root README.md...")
+        self.stdout.write("Checking root README.md...")
         if not os.path.exists(readme_path):
             self.stdout.write(self.style.ERROR(f"[FAIL] Root README.md missing: {readme_path}"))
             has_error = True
         else:
-            self.stdout.write(self.style.SUCCESS(f"[PASS] README.md exists."))
+            self.stdout.write(self.style.SUCCESS("[PASS] README.md exists."))
 
         if has_error:
             self.stdout.write(self.style.ERROR("\nValidation finished with errors. The Documentation Engine is NOT healthy."))

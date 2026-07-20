@@ -3,8 +3,6 @@ import sys
 import json
 import threading
 import subprocess
-import time
-from datetime import datetime
 from django.conf import settings
 from django.http import JsonResponse
 from django.views import View
@@ -282,12 +280,12 @@ class ValidateGenerationView(AdminRequiredMixin, View):
             errors.append("Playwright PDF renderer (html_to_pdf.js) is missing.")
             
         try:
-            import docx
+            __import__("docx")
         except ImportError:
             errors.append("python-docx is not installed.")
             
         try:
-            import markdown
+            __import__("markdown")
         except ImportError:
             errors.append("Markdown renderer is not available.")
         try:

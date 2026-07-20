@@ -11,7 +11,7 @@ from core.services.financial_advisor.portfolio_optimizer_service import Portfoli
 from core.services.financial_advisor.wealth_growth_forecast_service import WealthGrowthForecastService
 from core.services.financial_advisor.overview_service import OverviewService
 from core.services.financial_advisor.risk_analysis_service import RiskAnalysisService
-
+from core.services.financial_advisor.spending_intelligence_service import SpendingIntelligenceService
 from .certificate_views import _run_certificate_interest_sync
 
 def _api_auth_required(request):
@@ -87,4 +87,14 @@ class RiskAnalysisView(View):
             return auth_error
         _run_certificate_interest_sync()
         payload = RiskAnalysisService(today=datetime.date.today()).payload()
+        return JsonResponse(payload)
+
+class SpendingIntelligenceView(View):
+    def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        # We might not need _run_certificate_interest_sync since we're looking at expenses, but we use NetWorthService so let's keep the pattern.
+        _run_certificate_interest_sync()
+        payload = SpendingIntelligenceService(today=datetime.date.today()).payload()
         return JsonResponse(payload)
