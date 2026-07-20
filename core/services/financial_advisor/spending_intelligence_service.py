@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Dict, Any, List
 
-from django.db.models import Sum, Count, F
+from django.db.models import Sum, Count
 from django.db.models.functions import Coalesce
 
 from core.models import Expense

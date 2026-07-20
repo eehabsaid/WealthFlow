@@ -54,7 +54,7 @@ def run_documentation_generation_only(execution_id, doc_type="all"):
         python_exe = sys.executable
     
     with open(log_path, "a", encoding="utf-8") as log_file:
-        log_file.write(f"\\n[System] Running Document Generator...\\n")
+        log_file.write("\\n[System] Running Document Generator...\\n")
         log_file.flush()
         doc_cmd = [python_exe, "-c", f"import sys, os; sys.path.insert(0, os.path.abspath('.')); from doc_engine.document_generator import DocumentationGenerator; DocumentationGenerator().generate_all('{doc_type}')"]
         
@@ -63,7 +63,7 @@ def run_documentation_generation_only(execution_id, doc_type="all"):
             doc_result = subprocess.run(doc_cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
             if doc_result.returncode != 0:
                 has_fatal_error = True
-                log_file.write(f"\\n[System] Document Generator failed.\\n")
+                log_file.write("\\n[System] Document Generator failed.\\n")
         except Exception as e:
             log_file.write(f"\\n[System] Exception occurred: {str(e)}\\n")
             has_fatal_error = True
@@ -146,13 +146,13 @@ def run_documentation_permutations(languages, themes, devices, execution_id, mod
                         else:
                             if mode == "BOTH":
                                 # Run the document generator backend now that manifest is written
-                                log_file.write(f"\\n[System] Running Document Generator...\\n")
+                                log_file.write("\\n[System] Running Document Generator...\\n")
                                 log_file.flush()
                                 doc_cmd = [python_exe, "-c", "import sys, os; sys.path.insert(0, os.path.abspath('.')); from doc_engine.document_generator import DocumentationGenerator; DocumentationGenerator().generate_all('all')"]
                                 doc_result = subprocess.run(doc_cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
                                 if doc_result.returncode != 0:
                                     has_fatal_error = True
-                                    log_file.write(f"\\n[System] Document Generator failed.\\n")
+                                    log_file.write("\\n[System] Document Generator failed.\\n")
                                     break
                     except Exception as e:
                         log_file.write(f"\\n[System] Exception occurred: {str(e)}\\n")
@@ -363,7 +363,6 @@ class GenerateDocumentationView(AdminRequiredMixin, View):
             if os.path.exists(CANCEL_FILE):
                 os.remove(CANCEL_FILE)
             
-            status = read_json_file(STATUS_FILE, {})
             from core.models import DocumentationExecution
             from core.models.documentation import DocumentationExecutionStatus
             
