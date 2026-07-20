@@ -1743,11 +1743,19 @@
   "spending_intelligence_recommended_actions": "Actions recommandées",
   "spending_intelligence_kf_largest_with_desc": "La dépense la plus importante a été de {amount} EGP pour {description} le {date}.",
   "spending_intelligence_kf_largest_no_desc": "La dépense la plus importante a été de {amount} EGP le {date}.",
-  "spending_intelligence_rec_food_pct": "Les dépenses en {category} représentent {pct}% de vos dépenses mensuelles.",
-  "spending_intelligence_rec_family_largest": "Les dépenses en {category} constituent votre catégorie la plus importante.",
-  "spending_intelligence_rec_transport_increased": "Les dépenses globales ont augmenté par rapport au mois dernier.",
+  "spending_intelligence_rec_food_pct": "Passez en revue les dépenses en {category}; elles représentent {pct}% des dépenses totales.",
+  "spending_intelligence_rec_family_largest": "Envisagez de fixer une limite de dépenses pour la catégorie {category}.",
+  "spending_intelligence_rec_transport_increased": "Les dépenses globales ont augmenté de {pct}% par rapport au mois dernier.",
   "spending_intelligence_rec_balanced": "La répartition de vos dépenses est bien équilibrée.",
   "spending_intelligence_compared_prev": "Par rapport au mois précédent",
   "spending_intelligence_ai_insufficient": "Pas assez d'historique pour générer des informations sur les tendances.",
-  "spending_intelligence_distribution": "Répartition des dépenses"
+  "spending_intelligence_distribution": "Répartition des dépenses",
+  "spending_intelligence_total_expenses": "Total des dépenses enregistrées",
+  "spending_intelligence_total_transactions": "Nombre de transactions",
+  "spending_intelligence_period": "Basé sur les {months} derniers mois",
+  "spending_intelligence_avg_tx_per_month": "Moy. des transactions / mois",
+  "spending_intelligence_priority_high": "Élevée",
+  "spending_intelligence_priority_medium": "Moyenne",
+  "spending_intelligence_priority_low": "Faible",
+  "spending_intelligence_total_spending": "Dépenses totales"
 }

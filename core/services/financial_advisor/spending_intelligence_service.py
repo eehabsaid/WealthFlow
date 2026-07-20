@@ -139,40 +139,53 @@ class SpendingIntelligenceService:
             # Data-driven recommendations
             recommendations.append({
                 "key": "spending_intelligence_rec_food_pct",
-                "params": {"pct": str(round(top_cat["percentage"], 1)), "category": top_cat["name"]}
+                "params": {"pct": str(round(top_cat["percentage"], 1)), "category": top_cat["name"]},
+                "priority": "High" if top_cat["percentage"] > 30 else "Medium"
             })
             
             if len(categories) > 1:
                  second_cat = categories[1]
                  recommendations.append({
                      "key": "spending_intelligence_rec_family_largest",
-                     "params": {"category": second_cat["name"]}
+                     "params": {"category": second_cat["name"]},
+                     "priority": "Medium"
                  })
 
         if len(months) >= 2:
              last_month = months[-1]
              prev_month = months[-2]
              if prev_month["total_egp"] > 0 and last_month["total_egp"] > prev_month["total_egp"]:
+                 diff_pct = ((last_month["total_egp"] - prev_month["total_egp"]) / prev_month["total_egp"]) * 100.0
                  recommendations.append({
                      "key": "spending_intelligence_rec_transport_increased",
-                     "params": {}
+                     "params": {"pct": str(round(diff_pct, 1))},
+                     "priority": "High" if diff_pct > 15 else "Medium"
                  })
 
         if len(categories) >= 3 and categories[0]["percentage"] < 30:
              recommendations.append({
                  "key": "spending_intelligence_rec_balanced",
-                 "params": {}
+                 "params": {},
+                 "priority": "Low"
              })
         elif len(recommendations) < 3:
              # Add fallback recommendation
              recommendations.append({
                  "key": "spending_intelligence_rec_discretionary",
-                 "params": {}
+                 "params": {},
+                 "priority": "Low"
              })
+             
+        total_transactions = Expense.objects.count()
+        avg_transactions_per_month = total_transactions / len(months) if len(months) > 0 else 0
 
         return {
             "as_of": self.today.isoformat(),
             "avg_monthly_expenses": round(avg_monthly_expenses, 2),
+            "total_expenses_recorded": round(self._to_float(Expense.objects.aggregate(t=Coalesce(Sum('amount_egp'), Decimal('0.0')))['t']), 2),
+            "total_transactions": total_transactions,
+            "avg_transactions_per_month": round(avg_transactions_per_month, 1),
+            "months_history": len(months),
             "categories": categories,
             "key_findings": {
                 "most_frequent": most_frequent,

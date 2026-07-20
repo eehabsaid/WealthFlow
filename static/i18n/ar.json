@@ -1743,11 +1743,19 @@
   "spending_intelligence_recommended_actions": "الإجراءات الموصى بها",
   "spending_intelligence_kf_largest_with_desc": "أكبر نفقات مسجلة كانت {amount} جنيه مصري لـ {description} بتاريخ {date}.",
   "spending_intelligence_kf_largest_no_desc": "أكبر نفقات مسجلة كانت {amount} جنيه مصري بتاريخ {date}.",
-  "spending_intelligence_rec_food_pct": "تمثل نفقات {category} {pct}% من نفقاتك الشهرية.",
-  "spending_intelligence_rec_family_largest": "فئة {category} هي أكبر فئات الإنفاق لديك.",
-  "spending_intelligence_rec_transport_increased": "زادت النفقات الإجمالية مقارنة بالشهر الماضي.",
+  "spending_intelligence_rec_food_pct": "راجع نفقات {category}؛ فهي تمثل {pct}% من إجمالي الإنفاق.",
+  "spending_intelligence_rec_family_largest": "فكر في وضع حد للإنفاق لفئة {category}.",
+  "spending_intelligence_rec_transport_increased": "زادت النفقات الإجمالية بنسبة {pct}% مقارنة بالشهر الماضي.",
   "spending_intelligence_rec_balanced": "توزيع نفقاتك متوازن بشكل جيد.",
   "spending_intelligence_compared_prev": "مقارنة بالشهر السابق",
   "spending_intelligence_ai_insufficient": "لا يوجد سجل إنفاق كافٍ لإنشاء رؤى حول اتجاهات الإنفاق.",
-  "spending_intelligence_distribution": "توزيع الإنفاق"
+  "spending_intelligence_distribution": "توزيع الإنفاق",
+  "spending_intelligence_total_expenses": "إجمالي النفقات المسجلة",
+  "spending_intelligence_total_transactions": "عدد المعاملات",
+  "spending_intelligence_period": "بناءً على آخر {months} أشهر",
+  "spending_intelligence_avg_tx_per_month": "متوسط المعاملات / شهر",
+  "spending_intelligence_priority_high": "مرتفع",
+  "spending_intelligence_priority_medium": "متوسط",
+  "spending_intelligence_priority_low": "منخفض",
+  "spending_intelligence_total_spending": "إجمالي الإنفاق"
 }

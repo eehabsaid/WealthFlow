@@ -1743,11 +1743,19 @@
   "spending_intelligence_recommended_actions": "Recommended Actions",
   "spending_intelligence_kf_largest_with_desc": "Largest recorded expense was {amount} EGP for {description} on {date}.",
   "spending_intelligence_kf_largest_no_desc": "Largest recorded expense was {amount} EGP on {date}.",
-  "spending_intelligence_rec_food_pct": "{category} spending represents {pct}% of your monthly expenses.",
-  "spending_intelligence_rec_family_largest": "{category} spending is your largest category.",
-  "spending_intelligence_rec_transport_increased": "Overall expenses increased compared to last month.",
+  "spending_intelligence_rec_food_pct": "Review {category} expenses; they account for {pct}% of total spending.",
+  "spending_intelligence_rec_family_largest": "Consider setting a spending limit for the {category} category.",
+  "spending_intelligence_rec_transport_increased": "Overall expenses increased {pct}% compared with last month.",
   "spending_intelligence_rec_balanced": "Your spending distribution is well balanced.",
   "spending_intelligence_compared_prev": "Compared with previous month",
   "spending_intelligence_ai_insufficient": "Not enough spending history to generate spending trend insights.",
-  "spending_intelligence_distribution": "Spending Distribution"
+  "spending_intelligence_distribution": "Spending Distribution",
+  "spending_intelligence_total_expenses": "Total expenses recorded",
+  "spending_intelligence_total_transactions": "Number of transactions",
+  "spending_intelligence_period": "Based on the last {months} months",
+  "spending_intelligence_avg_tx_per_month": "Avg transactions / month",
+  "spending_intelligence_priority_high": "High",
+  "spending_intelligence_priority_medium": "Medium",
+  "spending_intelligence_priority_low": "Low",
+  "spending_intelligence_total_spending": "Total Spending"
 }

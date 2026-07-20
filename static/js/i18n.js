@@ -133,6 +133,20 @@ function applyTranslations() {
         el.textContent = text;
     });
 
+    // 2.5 Dynamic keys with template placeholders (HTML allowed) — [data-i18n-html-key]
+    document.querySelectorAll('[data-i18n-html-key]').forEach(el => {
+        const key = el.getAttribute('data-i18n-html-key');
+        if (!key || !_t[key]) return;
+
+        let text = _t[key];
+        const templateParams = {
+            ...parseI18nParams(el.getAttribute('data-i18n-params')),
+        };
+
+        text = applyTemplateParams(text, templateParams);
+        el.innerHTML = text;
+    });
+
     // 3. Prefix-based keys — [data-i18n-prefix] + [data-i18n-value]
     document.querySelectorAll('[data-i18n-prefix]').forEach(el => {
         const prefix = el.getAttribute('data-i18n-prefix');
