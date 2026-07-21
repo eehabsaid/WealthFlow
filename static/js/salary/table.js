@@ -17,7 +17,7 @@ function renderSalaryTable(allEntries, year, companyId) {
     const rows = entries.map(e => `
         <tr>
             <td>
-                <input type="checkbox" class="form-check-input" ${e.paid > 0 ? 'checked' : ''} onchange="toggleSalaryPaid(${e.id}, this.checked, ${companyId})">
+                <input type="checkbox" class="form-check-input" ${(parseFloat(String(e.expected).replace(/,/g, '')) > 0 && Math.abs(parseFloat(String(e.expected).replace(/,/g, '')) - parseFloat(String(e.paid).replace(/,/g, ''))) < 0.01) ? 'checked="checked" style="background-color: var(--bs-primary) !important; border-color: var(--bs-primary) !important;"' : ''} onchange="toggleSalaryPaid(${e.id}, this.checked, ${companyId})">
             </td>
             <td>${e.month}</td>
             <td class="text-end">${fmt(e.expected)}</td>
