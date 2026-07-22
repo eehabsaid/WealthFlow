@@ -3,7 +3,6 @@ import sys
 import argparse
 from datetime import datetime
 
-
 def log(msg):
     now_str = datetime.now().strftime("%H:%M:%S")
     try:
@@ -22,13 +21,12 @@ from stop_doc_server import stop_server
 
 from doc_engine.playwright_engine import get_playwright_backend
 
-def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port='8001', backend=None):
+def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port='8001'):
     """
     Reusable function to generate documentation screenshots.
-    Delegates capture execution to the active PlaywrightBackend strategy.
+    Executes Python Playwright capture engine natively.
     """
-    backend_strategy = get_playwright_backend(backend)
-    backend_name = backend_strategy.__class__.__name__
+    backend_strategy = get_playwright_backend()
 
     gen_dir = os.path.join(BASE_DIR, 'docs', 'generated')
     os.makedirs(gen_dir, exist_ok=True)
@@ -38,7 +36,7 @@ def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port
 
     try:
         log("\n--- Starting Documentation Generation ---")
-        log(f"Backend Strategy: {backend_name} | Language: {language} | Theme: {theme} | Device: {device or 'desktop'}")
+        log(f"Backend Strategy: PythonPlaywrightBackend | Language: {language} | Theme: {theme} | Device: {device or 'desktop'}")
 
         os.environ['DOC_HOST'] = host
         os.environ['DOC_PORT'] = port
@@ -54,7 +52,7 @@ def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port
             host=host,
             port=port
         )
-        log(f"{backend_name} completed with success={success}.")
+        log(f"PythonPlaywrightBackend completed with success={success}.")
         return success
 
     finally:
@@ -68,7 +66,6 @@ if __name__ == "__main__":
     parser.add_argument('--device', default=None, help="Device to emulate (e.g., 'iPhone 13')")
     parser.add_argument('--host', default='127.0.0.1', help="Server Host")
     parser.add_argument('--port', default='8001', help="Server Port")
-    parser.add_argument('--backend', default=None, choices=['python', 'javascript'], help="Playwright Backend Engine")
 
     args = parser.parse_args()
 
@@ -77,6 +74,5 @@ if __name__ == "__main__":
         theme=args.theme,
         device=args.device,
         host=args.host,
-        port=args.port,
-        backend=args.backend
+        port=args.port
     )

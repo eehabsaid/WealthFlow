@@ -2,57 +2,33 @@ import os
 import sys
 import subprocess
 from typing import Dict, Any
-from doc_engine.config import SCREENSHOTS_DIR, GENERATED_DIR, PLAYWRIGHT_BACKEND
-
+from doc_engine.config import SCREENSHOTS_DIR, GENERATED_DIR
 
 class PlaywrightValidator:
     """
-    Dedicated validator for Playwright environment readiness across backends.
+    Dedicated validator for Python Playwright environment readiness.
     Views and CLI commands delegate environment checks to this class.
     """
     def __init__(self, backend: str = None):
-        if backend:
-            self.backend = backend.lower()
-        else:
-            try:
-                from django.conf import settings
-                self.backend = getattr(settings, 'PLAYWRIGHT_BACKEND', PLAYWRIGHT_BACKEND).lower()
-            except Exception:
-                self.backend = PLAYWRIGHT_BACKEND.lower()
+        pass
 
     def validate_capture_environment(self) -> Dict[str, Any]:
-        """Validates environment readiness for running screenshot capture."""
+        """Validates environment readiness for running Python screenshot capture."""
         errors = []
 
-        if self.backend == "python":
-            python_exe = os.path.join(sys.prefix, "Scripts", "python.exe") if os.name == 'nt' else sys.executable
-            if not os.path.exists(python_exe):
-                python_exe = sys.executable
+        python_exe = os.path.join(sys.prefix, "Scripts", "python.exe") if os.name == 'nt' else sys.executable
+        if not os.path.exists(python_exe):
+            python_exe = sys.executable
 
-            try:
-                subprocess.run([python_exe, "-c", "import playwright"], check=True, capture_output=True)
-            except Exception:
-                errors.append("Playwright Python package is not installed in Python environment.")
+        try:
+            subprocess.run([python_exe, "-c", "import playwright"], check=True, capture_output=True)
+        except Exception:
+            errors.append("Playwright Python package is not installed in Python environment.")
 
-            try:
-                subprocess.run([python_exe, "-c", "from playwright.sync_api import sync_playwright; p = sync_playwright().start(); p.chromium.executable_path; p.stop()"], check=True, capture_output=True)
-            except Exception:
-                errors.append("Playwright Chromium browser binary is missing or not installed.")
-        else:
-            try:
-                subprocess.run(["node", "-v"], check=True, capture_output=True, shell=True)
-            except Exception:
-                errors.append("Node.js is not installed or not in PATH.")
-
-            try:
-                subprocess.run(["npm", "-v"], check=True, capture_output=True, shell=True)
-            except Exception:
-                errors.append("npm is not installed or not in PATH.")
-
-            try:
-                subprocess.run(["npx", "playwright", "--version"], check=True, capture_output=True, shell=True)
-            except Exception:
-                errors.append("Playwright JS is not installed.")
+        try:
+            subprocess.run([python_exe, "-c", "from playwright.sync_api import sync_playwright; p = sync_playwright().start(); p.chromium.executable_path; p.stop()"], check=True, capture_output=True)
+        except Exception:
+            errors.append("Playwright Chromium browser binary is missing or not installed.")
 
         try:
             os.makedirs(SCREENSHOTS_DIR, exist_ok=True)

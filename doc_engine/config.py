@@ -28,9 +28,6 @@ SUPPORTED_FORMATS = ["markdown", "html", "pdf", "docx"]
 IMAGE_MAX_WIDTH_PERCENT = 100
 IMAGE_DOCX_WIDTH_INCHES = 6.0
 
-# Dependencies
-NODE_PDF_SCRIPT = os.path.join(DOC_ENGINE_DIR, "html_to_pdf.js")
-
 def _resolve_playwright_backend():
     try:
         from django.conf import settings
@@ -41,6 +38,7 @@ def _resolve_playwright_backend():
     return os.environ.get("PLAYWRIGHT_BACKEND", "python").lower()
 
 PLAYWRIGHT_BACKEND = _resolve_playwright_backend()
+
 
 
 
