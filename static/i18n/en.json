@@ -1771,5 +1771,6 @@
   "signal_days_left": "Days remaining",
   "signal_maturity_amount": "Principal + interest",
   "signal_bank": "Bank",
-  "opp_maturity_action": "Plan ahead: {amount} EGP becomes available in {days} days. Decide in advance whether to reinvest, diversify to another bank, or reallocate toward gold given the current uptrend."
+  "opp_maturity_action": "Plan ahead: {amount} EGP becomes available in {days} days. Decide in advance whether to reinvest, diversify to another bank, or reallocate toward gold given the current uptrend.",
+  "edit_currency": "Edit Currency"
 }

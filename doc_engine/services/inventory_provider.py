@@ -36,11 +36,14 @@ class InventoryProvider:
         Resolves context options and launch args for Playwright based on requested device.
         Returns (context_options, launch_args).
         """
-        default_context = {"viewport": None}
-        default_args = ["--start-maximized"]
+        default_context = {"viewport": {"width": 1920, "height": 1080}}
+        default_args = ["--window-size=1920,1080"]
 
         if not device_name or device_name == "Desktop Chrome" or device_name == "current" or device_name == "Desktop":
             return default_context, default_args
+
+
+
 
         inventory = self.get_device_inventory()
         found_device = None

@@ -51,12 +51,14 @@ async function showCurrencyModal(currencyId) {
         const res = await fetch(`/api/currencies/${currencyId}/`);
         c = await res.json();
     }
+    const titleText = c ? (typeof t === 'function' ? t('edit_currency', 'Edit Currency') : 'Edit Currency') : (typeof t === 'function' ? t('add_currency', 'Add Currency') : 'Add Currency');
     showModal(`
         <div class="modal-header">
-            <h5 class="modal-title" data-i18n="${c ? 'edit_currency' : 'add_currency'}"></h5>
+            <h5 class="modal-title" data-i18n="${c ? 'edit_currency' : 'add_currency'}">${titleText}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
+
             <div class="row g-3">
                 <div class="col-4">
                     <label data-i18n="currency_code">Code</label>

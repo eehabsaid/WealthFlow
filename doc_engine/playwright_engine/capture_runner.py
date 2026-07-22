@@ -99,6 +99,16 @@ class PythonPlaywrightCaptureEngine:
         filepath = os.path.join(self.output_dir, f"{filename}.png")
 
         style_handle = page.add_style_tag(content="""
+            html, body {
+              min-width: 1920px !important;
+              width: 100% !important;
+              height: auto !important;
+              overflow: auto !important;
+            }
+            #main-content, #main-content > div, #settingsContent, .container, .container-fluid, .page-header, .wf-tabs-shell {
+              max-width: 100% !important;
+              width: 100% !important;
+            }
             .modal.show {
               position: absolute !important;
               overflow: visible !important;
@@ -119,11 +129,9 @@ class PythonPlaywrightCaptureEngine:
               height: auto !important;
               max-height: none !important;
             }
-            body {
-              height: auto !important;
-              overflow: auto !important;
-            }
         """)
+
+
 
         page.wait_for_timeout(200)
         page.screenshot(path=filepath, full_page=True)
@@ -366,20 +374,23 @@ class PythonPlaywrightCaptureEngine:
 
     def click_tab_by_id(self, page: Page, tab: Dict[str, Any]) -> bool:
         return page.evaluate("""(tabData) => {
+            const main = document.getElementById('main-content');
+            if (!main) return false;
+
             let target = null;
             if (tabData.id) {
-                const candidates = Array.from(document.querySelectorAll(`[onclick*="${tabData.id}"], [data-bs-target*="${tabData.id}"]`));
-                target = candidates.find(el => !el.closest('#sidebar'));
+                const candidates = Array.from(main.querySelectorAll(`[onclick*="${tabData.id}"], [data-bs-target*="${tabData.id}"]`));
+                target = candidates.find(el => el.offsetParent !== null && !el.closest('.d-none'));
                 if (!target) {
-                    const byId = document.getElementById(tabData.id + '-tab') || document.getElementById(tabData.id);
-                    if (byId && !byId.closest('#sidebar')) target = byId;
+                    const byId = main.querySelector('#' + tabData.id + '-tab, #' + tabData.id);
+                    if (byId) target = byId;
                 }
             }
             if (!target) {
-                const elements = Array.from(document.querySelectorAll('button, .nav-link, .nav-item, [role="tab"], .dropdown-item, .wf-dropdown-item'));
+                const elements = Array.from(main.querySelectorAll('button, .nav-link, .nav-item, [role="tab"], .dropdown-item, .wf-dropdown-item'));
                 const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
                 const normText = normalize(tabData.name);
-                let matches = elements.filter(el => !el.closest('#sidebar') && !el.classList.contains('dropdown-toggle'));
+                let matches = elements.filter(el => el.offsetParent !== null && !el.classList.contains('dropdown-toggle') && !el.closest('.d-none'));
                 target = matches.find(el => el.textContent.trim().toLowerCase() === tabData.name.toLowerCase());
                 if (!target) target = matches.find(el => normalize(el.textContent) === normText);
                 if (!target) target = matches.find(el => normalize(el.textContent).includes(normText));
@@ -402,11 +413,19 @@ class PythonPlaywrightCaptureEngine:
             check_cancelled_and_exit(self.manifest_service)
             try:
                 log(f"  -> Opening modal: {modal['name']}")
+                page.evaluate("""() => {
+                    if (document.querySelector('.modal.show')) {
+                        const closeBtn = document.querySelector('.modal.show .btn-close');
+                        if (closeBtn) closeBtn.click();
+                    }
+                }""")
+                page.wait_for_timeout(300)
+
                 clicked = page.evaluate("""(modal) => {
                     const modalName = modal.name;
                     const trigger = modal.trigger;
-                    const buttons = Array.from(document.querySelectorAll('button, a'));
-                    const safeButtons = buttons.filter(b => !b.closest('#sidebar'));
+                    const main = document.getElementById('main-content');
+                    const safeButtons = main ? Array.from(main.querySelectorAll('button, a')).filter(b => b.offsetParent !== null && !b.closest('.d-none')) : [];
                     let target = null;
                     if (trigger) {
                         if (trigger.startsWith('eval:')) {
@@ -426,6 +445,8 @@ class PythonPlaywrightCaptureEngine:
                     if (target) { target.click(); return true; }
                     return false;
                 }""", modal)
+
+
 
                 if not clicked:
                     log(f"     Cannot find trigger for modal: {modal['name']}. Skipping.")
@@ -484,6 +505,75 @@ class PythonPlaywrightCaptureEngine:
         page.click('button[type="submit"], input[type="submit"], .btn-login')
         self.wait_for_ui_ready(page)
 
+    def process_table_row_edits(self, page: Page, route_prefix: str) -> None:
+        """
+        Discovers and captures Edit modals triggered by table row buttons across all views.
+        Skips salary pages to run modals strictly once for the last company.
+        """
+        if route_prefix.startswith('salary_'):
+            return
+
+        edit_buttons = page.evaluate("""() => {
+            const btns = Array.from(document.querySelectorAll('table button, .table button, table a, .table a, .card button'));
+            const matches = btns.filter(b => {
+                if (b.closest('#sidebar') || b.closest('.modal')) return false;
+                if (b.offsetParent === null || b.closest('.d-none') || b.closest('.tab-pane:not(.active)')) return false;
+                const onclick = (b.getAttribute('onclick') || '').toLowerCase();
+                const title = (b.getAttribute('title') || '').toLowerCase();
+                const text = b.textContent.trim().toLowerCase();
+                const html = b.innerHTML.toLowerCase();
+                return (
+                    onclick.includes('edit') || onclick.includes('show') || onclick.includes('open') || onclick.includes('permission') ||
+                    title.includes('edit') || title.includes('manage') ||
+                    text === 'edit' || text.includes('edit') ||
+                    html.includes('fa-pencil') || html.includes('fa-edit') || html.includes('bi-pencil') || html.includes('btn-edit')
+                );
+            });
+
+            const map = new Map();
+            for (const btn of matches) {
+                const onclick = btn.getAttribute('onclick') || '';
+                const fnName = onclick.split('(')[0].trim() || btn.getAttribute('title') || 'edit_action';
+                if (fnName && !map.has(fnName)) {
+                    map.set(fnName, { fnName, onclick, text: btn.textContent.trim(), title: btn.getAttribute('title') });
+                }
+            }
+            return Array.from(map.values());
+        }""")
+
+        if not edit_buttons or len(edit_buttons) == 0:
+            return
+
+        for idx, btn_info in enumerate(edit_buttons):
+            check_cancelled_and_exit(self.manifest_service)
+            fn_name = btn_info.get("fnName") or f"edit_action_{idx+1}"
+            clean_fn = sanitize_filename(fn_name.replace('window.', '').replace('async', '').strip())
+            log(f"  -> Discovering table row Edit modal: {fn_name}")
+
+            opened = page.evaluate("""(info) => {
+                const btns = Array.from(document.querySelectorAll('table button, .table button, table a, .table a, .card button'));
+                const matches = btns.filter(b => !b.closest('#sidebar') && !b.closest('.modal') && b.offsetParent !== null && !b.closest('.d-none') && !b.closest('.tab-pane:not(.active)'));
+                let target = matches.find(b => (b.getAttribute('onclick') || '').includes(info.fnName));
+                if (!target && info.onclick) {
+                    target = matches.find(b => b.getAttribute('onclick') == info.onclick);
+                }
+                if (target) {
+                    target.scrollIntoView({ behavior: 'auto', block: 'center' });
+                    target.click();
+                    return true;
+                }
+                return false;
+            }""", btn_info)
+
+            if opened:
+                try:
+                    page.wait_for_selector('.modal.show', timeout=3000)
+                    modal_name = f"edit_{clean_fn}"
+                    self.capture_modal_tabs(page, f"{route_prefix}_{modal_name}", close_after=True)
+                except Exception as e:
+                    log(f"     Edit modal for {fn_name} did not appear: {e}")
+
+
     def inject_dynamic_routes(self, page: Page, inventory: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         companies = page.evaluate("""() => {
             const links = Array.from(document.querySelectorAll('button.nav-item[data-route^="salary-"]'));
@@ -500,9 +590,12 @@ class PythonPlaywrightCaptureEngine:
             for i, c in enumerate(companies):
                 nested = []
                 if i == len(companies) - 1:
-                    nested.append({"name": "Add Salary Entry", "type": "modal", "trigger": f"eval:showSalaryModal(null, {c['id']})"})
-                    nested.append({"name": "Add Perdiem1", "type": "modal", "trigger": f"eval:showPerDiemListModal({c['id']})"})
-                    nested.append({"name": "Add Perdiem2", "type": "modal", "trigger": f"eval:showPerDiemFormModal(null, {c['id']}, new Date().getFullYear())"})
+                    nested = [
+                        {"name": "Add Salary Entry", "type": "modal", "trigger": f"eval:showSalaryModal(null, {c['id']})"},
+                        {"name": "Edit Salary Entry", "type": "modal", "trigger": f"eval:const btn = document.querySelector('.btn-icon[onclick*=\"showSalaryModal\"], button[onclick*=\"showSalaryModal\"]'); if(btn) btn.click(); else showSalaryModal(null, {c['id']});"},
+                        {"name": "Per Diem List", "type": "modal", "trigger": f"eval:showPerDiemListModal({c['id']})"},
+                        {"name": "Add Per Diem", "type": "modal", "trigger": f"eval:showPerDiemFormModal(null, {c['id']}, new Date().getFullYear())"}
+                    ]
 
                 salary_routes.append({
                     "route": c['route'],
@@ -510,6 +603,7 @@ class PythonPlaywrightCaptureEngine:
                     "customPrefix": f"salary_{i + 1}",
                     "nested_navigation": nested
                 })
+
 
             salary_routes.append({
                 "route": "all-companies",
@@ -530,6 +624,7 @@ class PythonPlaywrightCaptureEngine:
                 inventory.extend(salary_routes)
 
         return inventory
+
 
     def process_page(self, page: Page, item: Dict[str, Any]) -> None:
         route = item.get("route", "")
@@ -585,6 +680,8 @@ class PythonPlaywrightCaptureEngine:
                         self.process_asset_rows(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
                     elif tab.get("nested_navigation"):
                         self.process_modals(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}", tab.get("nested_navigation"))
+                    
+                    self.process_table_row_edits(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
 
                     self.global_context["tab_id"] = None
 
@@ -601,6 +698,8 @@ class PythonPlaywrightCaptureEngine:
                 self.capture_screenshot(page, route_prefix)
                 if nested_nav and not tabs:
                     self.process_modals(page, route_prefix, nested_nav)
+                self.process_table_row_edits(page, route_prefix)
+
 
             try:
                 self.execute_with_retry(f"page {title}", capture_page_action)

@@ -1771,5 +1771,6 @@
   "signal_days_left": "Jours restants",
   "signal_maturity_amount": "Capital + intérêts",
   "signal_bank": "Banque",
-  "opp_maturity_action": "Planifiez à l'avance : {amount} EGP deviennent disponibles dans {days} jours. Décidez à l'avance de réinvestir, de diversifier vers une autre banque ou de réallouer vers l'or."
+  "opp_maturity_action": "Planifiez à l'avance : {amount} EGP deviennent disponibles dans {days} jours. Décidez à l'avance de réinvestir, de diversifier vers une autre banque ou de réallouer vers l'or.",
+  "edit_currency": "Modifier la devise"
 }

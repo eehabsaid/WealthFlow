@@ -1,810 +1,827 @@
 {
-    "settings::settings-languages": {
-        "purpose": "Configure the administrative settings and preferences for Settings Languages.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-companies": {
-        "purpose": "Configure the administrative settings and preferences for Settings Companies.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-currency": {
-        "purpose": "Configure the administrative settings and preferences for Settings Currency.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-users": {
-        "purpose": "Configure the administrative settings and preferences for Settings Users.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-emailtemplates": {
-        "purpose": "Configure the administrative settings and preferences for Settings Emailtemplates.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-translations": {
-        "purpose": "Configure the administrative settings and preferences for Settings Translations.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-translationcoverage": {
-        "purpose": "Configure the administrative settings and preferences for Settings Translationcoverage.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-reminders": {
-        "purpose": "Configure the administrative settings and preferences for Settings Reminders.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-certstatus": {
-        "purpose": "Configure the administrative settings and preferences for Settings Certstatus.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-goldsettings": {
-        "purpose": "Configure the administrative settings and preferences for Settings Goldsettings.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-dashboard": {
-        "purpose": "Configure the administrative settings and preferences for Settings Dashboard.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-banks": {
-        "purpose": "Configure the administrative settings and preferences for Settings Banks.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-backuprestore": {
-        "purpose": "Configure the administrative settings and preferences for Settings Backuprestore.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-documentation": {
-        "purpose": "Configure the administrative settings and preferences for Settings Documentation.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "auth::create_account": {
-        "purpose": "Register a new WealthFlow account to begin tracking your wealth.",
-        "steps": [
-            "Fill in your personal details.",
-            "Create a secure password.",
-            "Submit the form to create your account."
-        ]
-    },
-    "auth::forgot_password": {
-        "purpose": "Recover access to your account if you forgot your password.",
-        "steps": [
-            "Enter your registered email address.",
-            "Check your inbox for a reset link.",
-            "Follow the link to create a new password."
-        ]
-    },
-    "auth::login": {
-        "purpose": "Authenticate into your WealthFlow account securely.",
-        "steps": [
-            "Enter your email address.",
-            "Enter your secure password.",
-            "Click Login to access your dashboard."
-        ]
-    },
-    "dashboard": {
-        "purpose": "Provides a comprehensive, real-time overview of your net worth, recent transactions, and financial health.",
-        "steps": [
-            "Log in to WealthFlow.",
-            "Review the top-level KPI widgets for Net Worth and Cash Flow.",
-            "Analyze the charts to understand your financial trends."
-        ]
-    },
-    "dashboard::user_profile": {
-        "purpose": "Manage your personal profile, avatar, and individual user settings.",
-        "steps": [
-            "Click on your avatar in the top right corner.",
-            "Update your personal details or upload a new profile picture.",
-            "Save your changes."
-        ]
-    },
-    "/user-management/": {
-        "purpose": "Provides tools and information.",
-        "steps": [
-            "Navigate to the section.",
-            "Review information."
-        ]
-    },
-    "financial-advisor::overview": {
-        "purpose": "Get AI-driven insights summarizing your entire financial standing and immediate action items.",
-        "steps": [
-            "Navigate to the Financial Advisor Overview tab.",
-            "Read the AI-generated summary of your wealth.",
-            "Review the top recommendations for immediate action."
-        ]
-    },
-    "financial-advisor::cash-flow": {
-        "purpose": "Analyze your historical and current cash flow metrics, comparing income against expenses.",
-        "steps": [
-            "Select the Cash Flow tab.",
-            "Adjust the time period filter.",
-            "Analyze income versus expense breakdowns."
-        ]
-    },
-    "financial-advisor::wealth-growth": {
-        "purpose": "Track the historical growth of your net worth and investment portfolio over time.",
-        "steps": [
-            "Select the Wealth Growth tab.",
-            "Review your net worth trajectory.",
-            "Identify periods of high growth or decline."
-        ]
-    },
-    "financial-advisor::portfolio": {
-        "purpose": "Review your asset allocation and portfolio diversification across different asset classes.",
-        "steps": [
-            "Navigate to the Portfolio tab.",
-            "Review the pie chart showing asset distribution.",
-            "Identify any over-concentrated asset classes."
-        ]
-    },
-    "financial-advisor::goal-planning": {
-        "purpose": "Set, track, and manage your long-term financial goals and milestones.",
-        "steps": [
-            "Navigate to Goal Planning.",
-            "Create a new financial goal.",
-            "Track your progress towards the target amount."
-        ]
-    },
-    "financial-advisor::risk-analysis": {
-        "purpose": "Evaluate your exposure to market risks, currency fluctuations, and liquidity constraints.",
-        "steps": [
-            "Open the Risk Analysis tab.",
-            "Review the AI risk score.",
-            "Read the mitigation strategies provided by the advisor."
-        ]
-    },
-    "financial-advisor::spending-intelligence": {
-        "purpose": "Gain deep insights into your spending habits, identifying unnecessary subscriptions or high-expense categories.",
-        "steps": [
-            "Navigate to Spending Intelligence.",
-            "Review the breakdown of discretionary vs mandatory spending.",
-            "Identify areas to cut costs."
-        ]
-    },
-    "financial-advisor::opportunity-detection": {
-        "purpose": "Discover personalized investment opportunities and strategies to optimize your idle cash.",
-        "steps": [
-            "Open Opportunity Detection.",
-            "Review the systems suggestions for high-yield savings or asset purchases.",
-            "Assess the projected ROI for each opportunity."
-        ]
-    },
-    "financial-advisor::market-intelligence": {
-        "purpose": "Stay updated with real-time market trends, inflation rates, and macroeconomic indicators affecting your wealth.",
-        "steps": [
-            "Navigate to Market Intelligence.",
-            "Review current economic indicators.",
-            "Understand how they impact your specific asset classes."
-        ]
-    },
-    "financial-advisor::ai-financial-advisor": {
-        "purpose": "Interact directly with the AI financial advisor via a conversational interface to ask specific financial questions.",
-        "steps": [
-            "Open the AI Financial Advisor tab.",
-            "Type your specific financial question in the chat box.",
-            "Review the tailored advice provided by the AI."
-        ]
-    },
-    "financial-advisor::what-if-simulator": {
-        "purpose": "Simulate various financial scenarios to see their impact on your net worth.",
-        "steps": [
-            "Navigate to the What-If Simulator.",
-            "Adjust the sliders to model different economic or personal scenarios.",
-            "Review the projected impact on your long-term wealth."
-        ]
-    },
-    "salary-1": {
-        "purpose": "Manage your income streams, salary structures, and employment benefits.",
-        "steps": [
-            "Navigate to the Salary section.",
-            "Review your base salary, allowances, and deductions.",
-            "Track your net income over time."
-        ]
-    },
-    "salary-2": {
-        "purpose": "Manage your income streams, salary structures, and employment benefits.",
-        "steps": [
-            "Navigate to the Salary section.",
-            "Review your base salary, allowances, and deductions.",
-            "Track your net income over time."
-        ]
-    },
-    "salary-3": {
-        "purpose": "Manage your income streams, salary structures, and employment benefits.",
-        "steps": [
-            "Navigate to the Salary section.",
-            "Review your base salary, allowances, and deductions.",
-            "Track your net income over time."
-        ]
-    },
-    "salary-4": {
-        "purpose": "Manage your income streams, salary structures, and employment benefits.",
-        "steps": [
-            "Navigate to the Salary section.",
-            "Review your base salary, allowances, and deductions.",
-            "Track your net income over time."
-        ]
-    },
-    "salary-5": {
-        "purpose": "Manage your income streams, salary structures, and employment benefits.",
-        "steps": [
-            "Navigate to the Salary section.",
-            "Review your base salary, allowances, and deductions.",
-            "Track your net income over time."
-        ]
-    },
-    "salary-6": {
-        "purpose": "Manage your income streams, salary structures, and employment benefits.",
-        "steps": [
-            "Navigate to the Salary section.",
-            "Review your base salary, allowances, and deductions.",
-            "Track your net income over time."
-        ]
-    },
-    "salary-7": {
-        "purpose": "Manage your income streams, salary structures, and employment benefits.",
-        "steps": [
-            "Navigate to the Salary section.",
-            "Review your base salary, allowances, and deductions.",
-            "Track your net income over time."
-        ]
-    },
-    "salary-7::add_salary_entry": {
-        "purpose": "Record a new monthly salary payout or income entry.",
-        "steps": [
-            "Click Add Entry.",
-            "Enter the exact payout amount and date.",
-            "Save the entry to update your cash flow."
-        ]
-    },
-    "salary-7::add_perdiem1": {
-        "purpose": "Manage your per diem allowances and daily travel compensations.",
-        "steps": [
-            "Open the Per Diem modal.",
-            "Enter your travel dates and daily rates.",
-            "Save the allowance to your income sheet."
-        ]
-    },
-    "salary-7::add_perdiem2": {
-        "purpose": "Manage your per diem allowances and daily travel compensations.",
-        "steps": [
-            "Open the Per Diem modal.",
-            "Enter your travel dates and daily rates.",
-            "Save the allowance to your income sheet."
-        ]
-    },
-    "all-companies": {
-        "purpose": "Manage the list of employers, businesses, or organizations associated with your income streams.",
-        "steps": [
-            "Navigate to All Companies.",
-            "Review the list of active companies.",
-            "Click on a company to edit its details."
-        ]
-    },
-    "all-companies::add_company": {
-        "purpose": "Register a new company or employer to the system.",
-        "steps": [
-            "Click Add Company.",
-            "Enter the company name, industry, and contact details.",
-            "Save the company profile."
-        ]
-    },
-    "balance::overview": {
-        "purpose": "View a consolidated summary of all your bank accounts, liquid cash, and total balances.",
-        "steps": [
-            "Navigate to Balance > Overview.",
-            "Review the total liquid wealth.",
-            "Analyze the distribution of funds across different banks."
-        ]
-    },
-    "balance::accounts": {
-        "purpose": "Manage individual bank accounts, view their balances, and track their transaction histories.",
-        "steps": [
-            "Navigate to the Accounts tab.",
-            "Select a specific bank account.",
-            "Review its current balance and recent activity."
-        ]
-    },
-    "balance::accounts::add_balance": {
-        "purpose": "Manually adjust or record a new balance entry for a specific bank account.",
-        "steps": [
-            "Click Add Balance.",
-            "Select the account and enter the new balance amount.",
-            "Save to update your records."
-        ]
-    },
-    "balance::transfers": {
-        "purpose": "Track and manage internal fund transfers between your own bank accounts.",
-        "steps": [
-            "Navigate to the Transfers tab.",
-            "Review the history of internal movements.",
-            "Verify the status of pending transfers."
-        ]
-    },
-    "balance::transfers::add_transfer": {
-        "purpose": "Record a new internal transfer of funds from one account to another.",
-        "steps": [
-            "Click Add Transfer.",
-            "Select the source account and destination account.",
-            "Enter the amount and date, then save."
-        ]
-    },
-    "balance::allocation": {
-        "purpose": "Analyze how your liquid cash is allocated across different currencies or regions.",
-        "steps": [
-            "Navigate to the Allocation tab.",
-            "Review the currency breakdown charts.",
-            "Ensure your cash is sufficiently diversified."
-        ]
-    },
-    "balance::forecasts": {
-        "purpose": "Project your future bank balances based on expected income and recurring expenses.",
-        "steps": [
-            "Navigate to the Forecasts tab.",
-            "Review the projected cash flow graph.",
-            "Identify any potential future liquidity shortages."
-        ]
-    },
-    "balance::recommendations": {
-        "purpose": "Receive AI suggestions on optimizing your cash holdings, such as moving idle funds to high-yield accounts.",
-        "steps": [
-            "Navigate to Recommendations.",
-            "Review the AI suggestions for cash optimization.",
-            "Execute the recommended transfers if desired."
-        ]
-    },
-    "bank-certificates": {
-        "purpose": "Track and manage your fixed-term bank deposit certificates and bonds.",
-        "steps": [
-            "Navigate to Bank Certificates.",
-            "Review your active and matured certificates.",
-            "Track the accrued interest and maturity dates."
-        ]
-    },
-    "bank-certificates::add_certificate": {
-        "purpose": "Register a new fixed-term bank certificate into your portfolio.",
-        "steps": [
-            "Click Add Certificate.",
-            "Enter the principal amount, interest rate, and maturity date.",
-            "Save the certificate details."
-        ]
-    },
-    "bank-certificates::interest_history": {
-        "purpose": "View the historical interest payouts received from a specific certificate.",
-        "steps": [
-            "Click on Interest History for a certificate.",
-            "Review the schedule of payouts.",
-            "Verify that the amounts match your bank statements."
-        ]
-    },
-    "fixed-assets::assets": {
-        "purpose": "Manage the detailed profiles of your individual fixed assets (Real Estate, Gold, Vehicles, etc.).",
-        "steps": [
-            "Navigate to the Assets tab.",
-            "Browse your list of assets.",
-            "Click on an asset to view or edit its detailed profile."
-        ]
-    },
-    "fixed-assets::assets::general": {
-        "purpose": "View or edit the primary general information (name, type, purchase date) of the asset.",
-        "steps": [
-            "Navigate to the General sub-tab.",
-            "Update the assets core details.",
-            "Save your changes."
-        ]
-    },
-    "fixed-assets::assets::asset-core": {
-        "purpose": "Manage specific characteristics of a gold asset, such as purity (karat), weight, and maker.",
-        "steps": [
-            "Navigate to the Gold Details sub-tab.",
-            "Enter the exact weight in grams and karat purity.",
-            "Save the details to ensure accurate live valuation."
-        ]
-    },
-    "fixed-assets::assets::photos": {
-        "purpose": "Upload and manage visual evidence and photos of the physical asset.",
-        "steps": [
-            "Navigate to the Photos sub-tab.",
-            "Click Upload to add new images.",
-            "Set a primary cover image for the asset."
-        ]
-    },
-    "fixed-assets::assets::sale": {
-        "purpose": "Record the sale or disposal of the asset, calculating the final realized profit or loss.",
-        "steps": [
-            "Navigate to the Sale sub-tab.",
-            "Enter the sale date and final sale price.",
-            "Confirm the disposal to remove it from active valuation."
-        ]
-    },
-    "fixed-assets::assets::gold_details": {
-        "purpose": "Manage specific characteristics of a gold asset, such as purity (karat), weight, and maker.",
-        "steps": [
-            "Navigate to the Gold Details sub-tab.",
-            "Enter the exact weight in grams and karat purity.",
-            "Save the details to ensure accurate live valuation."
-        ]
-    },
-    "fixed-assets::assets::documents_title": {
-        "purpose": "Store and manage legal documents, title deeds, and purchase receipts for the asset.",
-        "steps": [
-            "Navigate to the Documents sub-tab.",
-            "Upload PDF or image copies of legal deeds.",
-            "Securely save the records."
-        ]
-    },
-    "fixed-assets::assets::property": {
-        "purpose": "Manage real-estate specific details such as property type, address, area size, and zoning.",
-        "steps": [
-            "Navigate to the Property sub-tab.",
-            "Enter the square footage and physical address.",
-            "Save the property specifics."
-        ]
-    },
-    "fixed-assets::assets::renovations": {
-        "purpose": "Track the costs of any renovations or improvements made to the property, which add to its cost basis.",
-        "steps": [
-            "Navigate to the Renovations sub-tab.",
-            "Add a new renovation entry with its cost and date.",
-            "Save to update the assets total capital invested."
-        ]
-    },
-    "fixed-assets::assets::acquisition_costs": {
-        "purpose": "Record the supplementary costs of acquiring the asset, such as broker fees, taxes, and legal fees.",
-        "steps": [
-            "Navigate to the Acquisition Costs sub-tab.",
-            "Enter any fees incurred during purchase.",
-            "Save to accurately calculate your true cost basis."
-        ]
-    },
-    "fixed-assets::assets::furniture": {
-        "purpose": "Inventory the furniture and appliances included within a real estate property.",
-        "steps": [
-            "Navigate to the Furniture sub-tab.",
-            "List the items and their estimated values.",
-            "Save the inventory."
-        ]
-    },
-    "fixed-assets::assets::mortgage": {
-        "purpose": "Track the financing and mortgage details attached to this specific property.",
-        "steps": [
-            "Navigate to the Mortgage sub-tab.",
-            "Enter the loan amount, interest rate, and term.",
-            "Track your remaining principal balance."
-        ]
-    },
-    "fixed-assets::assets::rental": {
-        "purpose": "Manage the rental income, tenant details, and lease agreements for an investment property.",
-        "steps": [
-            "Navigate to the Rental sub-tab.",
-            "Enter the active lease details and monthly rent.",
-            "Track the generated yield."
-        ]
-    },
-    "fixed-assets::assets::valuation_history": {
-        "purpose": "Track the historical market appraisals and manual valuations of the asset over time.",
-        "steps": [
-            "Navigate to Valuation History.",
-            "Add a new manual valuation entry based on current market rates.",
-            "Save to update your current net worth."
-        ]
-    },
-    "fixed-assets::assets::vehicle": {
-        "purpose": "Manage the detailed profiles of your individual fixed assets (Real Estate, Gold, Vehicles, etc.).",
-        "steps": [
-            "Navigate to the Assets tab.",
-            "Browse your list of assets.",
-            "Click on an asset to view or edit its detailed profile."
-        ]
-    },
-    "fixed-assets::assets::maintenance": {
-        "purpose": "Manage the detailed profiles of your individual fixed assets (Real Estate, Gold, Vehicles, etc.).",
-        "steps": [
-            "Navigate to the Assets tab.",
-            "Browse your list of assets.",
-            "Click on an asset to view or edit its detailed profile."
-        ]
-    },
-    "fixed-assets::assets::insurance": {
-        "purpose": "Manage the detailed profiles of your individual fixed assets (Real Estate, Gold, Vehicles, etc.).",
-        "steps": [
-            "Navigate to the Assets tab.",
-            "Browse your list of assets.",
-            "Click on an asset to view or edit its detailed profile."
-        ]
-    },
-    "fixed-assets::assets::details": {
-        "purpose": "Manage the detailed profiles of your individual fixed assets (Real Estate, Gold, Vehicles, etc.).",
-        "steps": [
-            "Navigate to the Assets tab.",
-            "Browse your list of assets.",
-            "Click on an asset to view or edit its detailed profile."
-        ]
-    },
-    "fixed-assets::dashboard": {
-        "purpose": "View a high-level summary of all your illiquid fixed assets, including real estate and gold.",
-        "steps": [
-            "Navigate to Fixed Assets > Dashboard.",
-            "Review the total valuation of your physical assets.",
-            "Analyze the breakdown by asset class."
-        ]
-    },
-    "fixed-assets::analytic": {
-        "purpose": "Perform deep analytics on the performance, depreciation, and appreciation of your fixed assets.",
-        "steps": [
-            "Navigate to the Analytic tab.",
-            "Review the ROI and valuation charts.",
-            "Compare the performance of different asset categories."
-        ]
-    },
-    "fixed-assets::reports": {
-        "purpose": "Generate comprehensive PDF or Excel reports detailing your fixed asset portfolio.",
-        "steps": [
-            "Navigate to the Reports tab.",
-            "Select the desired reporting period and asset classes.",
-            "Click Generate to download the report."
-        ]
-    },
-    "exchange-rates": {
-        "purpose": "Monitor live global currency exchange rates and track historical forex trends.",
-        "steps": [
-            "Navigate to Exchange Rates.",
-            "Review the live currency pairs.",
-            "Use the charts to analyze historical exchange rate movements."
-        ]
-    },
-    "gold-price": {
-        "purpose": "Monitor live global gold prices per ounce/gram and track historical commodity trends.",
-        "steps": [
-            "Navigate to Gold Price.",
-            "Review the live market rate for gold.",
-            "Analyze the historical price charts to inform your buying/selling decisions."
-        ]
-    },
-    "expenses": {
-        "purpose": "Track your day-to-day spending and manage your personal or business expenses.",
-        "steps": [
-            "Navigate to Expenses.",
-            "Review your recent expense entries.",
-            "Analyze your spending via the summary charts."
-        ]
-    },
-    "expenses::edit_add_expenses": {
-        "purpose": "Record a new expense or modify an existing transaction.",
-        "steps": [
-            "Click Add Expense.",
-            "Enter the amount, date, payee, and select a category.",
-            "Save the transaction."
-        ]
-    },
-    "expense-categories": {
-        "purpose": "Manage the taxonomy of your spending by creating and organizing expense categories.",
-        "steps": [
-            "Navigate to Expense Categories.",
-            "Review your active list of categories.",
-            "Reorganize or edit categories as needed."
-        ]
-    },
-    "expense-categories::add_category": {
-        "purpose": "Create a new top-level expense category.",
-        "steps": [
-            "Click Add Category.",
-            "Provide a name and select an icon/color.",
-            "Save the new category."
-        ]
-    },
-    "expense-categories::add_subcategory": {
-        "purpose": "Create a nested subcategory for more granular expense tracking.",
-        "steps": [
-            "Click Add Subcategory under a parent.",
-            "Provide a name and assign it to the parent category.",
-            "Save the subcategory."
-        ]
-    },
-    "reports::monthly": {
-        "purpose": "Provides tools and information.",
-        "steps": [
-            "Navigate to the section.",
-            "Review information."
-        ]
-    },
-    "reports::yearly": {
-        "purpose": "Provides tools and information.",
-        "steps": [
-            "Navigate to the section.",
-            "Review information."
-        ]
-    },
-    "reports::custom": {
-        "purpose": "Provides tools and information.",
-        "steps": [
-            "Navigate to the section.",
-            "Review information."
-        ]
-    },
-    "advanced-reports::salary": {
-        "purpose": "Provides tools and information.",
-        "steps": [
-            "Navigate to the section.",
-            "Review information."
-        ]
-    },
-    "advanced-reports::compan": {
-        "purpose": "Provides tools and information.",
-        "steps": [
-            "Navigate to the section.",
-            "Review information."
-        ]
-    },
-    "advanced-reports::balance": {
-        "purpose": "Provides tools and information.",
-        "steps": [
-            "Navigate to the section.",
-            "Review information."
-        ]
-    },
-    "advanced-reports::certificates": {
-        "purpose": "Provides tools and information.",
-        "steps": [
-            "Navigate to the section.",
-            "Review information."
-        ]
-    },
-    "settings::settings-languages::add_language": {
-        "purpose": "Configure the administrative settings and preferences for Settings Languages.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-languages::edit_language": {
-        "purpose": "Configure the administrative settings and preferences for Settings Languages.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-companies::add_company": {
-        "purpose": "Configure the administrative settings and preferences for Settings Companies.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-banks::add_bank": {
-        "purpose": "Configure the administrative settings and preferences for Settings Banks.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-currency::add_currency": {
-        "purpose": "Configure the administrative settings and preferences for Settings Currency.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-users::add_user": {
-        "purpose": "Configure the administrative settings and preferences for Settings Users.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-users::manage_permissions": {
-        "purpose": "Configure the administrative settings and preferences for Settings Users.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-emailtemplates::add_template": {
-        "purpose": "Configure the administrative settings and preferences for Settings Emailtemplates.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-translationcoverage::missing_report": {
-        "purpose": "Configure the administrative settings and preferences for Settings Translationcoverage.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-reminders::add_reminder": {
-        "purpose": "Configure the administrative settings and preferences for Settings Reminders.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-certstatus::add_status": {
-        "purpose": "Configure the administrative settings and preferences for Settings Certstatus.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-goldsettings::add_gold_type": {
-        "purpose": "Configure the administrative settings and preferences for Settings Goldsettings.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    },
-    "settings::settings-goldsettings::add_gold_purity": {
-        "purpose": "Configure the administrative settings and preferences for Settings Goldsettings.",
-        "steps": [
-            "Navigate to the Settings panel.",
-            "Adjust the system preferences as needed.",
-            "Save the configuration to apply changes globally."
-        ]
-    }
+  "settings::settings-languages": {
+    "purpose": "Configure the administrative settings and preferences for Settings Languages.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-companies": {
+    "purpose": "Configure the administrative settings and preferences for Settings Companies.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-currency": {
+    "purpose": "Configure the administrative settings and preferences for Settings Currency.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-users": {
+    "purpose": "Configure the administrative settings and preferences for Settings Users.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-emailtemplates": {
+    "purpose": "Configure the administrative settings and preferences for Settings Emailtemplates.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-translations": {
+    "purpose": "Configure the administrative settings and preferences for Settings Translations.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-translationcoverage": {
+    "purpose": "Configure the administrative settings and preferences for Settings Translationcoverage.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-reminders": {
+    "purpose": "Configure the administrative settings and preferences for Settings Reminders.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-certstatus": {
+    "purpose": "Configure the administrative settings and preferences for Settings Certstatus.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-goldsettings": {
+    "purpose": "Configure the administrative settings and preferences for Settings Goldsettings.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-dashboard": {
+    "purpose": "Configure the administrative settings and preferences for Settings Dashboard.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-banks": {
+    "purpose": "Configure the administrative settings and preferences for Settings Banks.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-backuprestore": {
+    "purpose": "Configure the administrative settings and preferences for Settings Backuprestore.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-documentation": {
+    "purpose": "Configure the administrative settings and preferences for Settings Documentation.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "auth::create_account": {
+    "purpose": "Register a new WealthFlow account to begin tracking your wealth.",
+    "steps": [
+      "Fill in your personal details.",
+      "Create a secure password.",
+      "Submit the form to create your account."
+    ]
+  },
+  "auth::forgot_password": {
+    "purpose": "Recover access to your account if you forgot your password.",
+    "steps": [
+      "Enter your registered email address.",
+      "Check your inbox for a reset link.",
+      "Follow the link to create a new password."
+    ]
+  },
+  "auth::login": {
+    "purpose": "Authenticate into your WealthFlow account securely.",
+    "steps": [
+      "Enter your email address.",
+      "Enter your secure password.",
+      "Click Login to access your dashboard."
+    ]
+  },
+  "dashboard": {
+    "purpose": "Provides a comprehensive, real-time overview of your net worth, recent transactions, and financial health.",
+    "steps": [
+      "Log in to WealthFlow.",
+      "Review the top-level KPI widgets for Net Worth and Cash Flow.",
+      "Analyze the charts to understand your financial trends."
+    ]
+  },
+  "dashboard::user_profile": {
+    "purpose": "Manage your personal profile, avatar, and individual user settings.",
+    "steps": [
+      "Click on your avatar in the top right corner.",
+      "Update your personal details or upload a new profile picture.",
+      "Save your changes."
+    ]
+  },
+  "/user-management/": {
+    "purpose": "Manage system users, assign role permissions, and control administrative access rights.",
+    "steps": [
+      "Navigate to User Management from the main navigation menu.",
+      "View the list of registered users and their current permission statuses.",
+      "Click Manage Permissions or Add User to grant or adjust role privileges."
+    ]
+  },
+  "financial-advisor::overview": {
+    "purpose": "Get AI-driven insights summarizing your entire financial standing and immediate action items.",
+    "steps": [
+      "Navigate to the Financial Advisor Overview tab.",
+      "Read the AI-generated summary of your wealth.",
+      "Review the top recommendations for immediate action."
+    ]
+  },
+  "financial-advisor::cash-flow": {
+    "purpose": "Analyze your historical and current cash flow metrics, comparing income against expenses.",
+    "steps": [
+      "Select the Cash Flow tab.",
+      "Adjust the time period filter.",
+      "Analyze income versus expense breakdowns."
+    ]
+  },
+  "financial-advisor::wealth-growth": {
+    "purpose": "Track the historical growth of your net worth and investment portfolio over time.",
+    "steps": [
+      "Select the Wealth Growth tab.",
+      "Review your net worth trajectory.",
+      "Identify periods of high growth or decline."
+    ]
+  },
+  "financial-advisor::portfolio": {
+    "purpose": "Review your asset allocation and portfolio diversification across different asset classes.",
+    "steps": [
+      "Navigate to the Portfolio tab.",
+      "Review the pie chart showing asset distribution.",
+      "Identify any over-concentrated asset classes."
+    ]
+  },
+  "financial-advisor::goal-planning": {
+    "purpose": "Set, track, and manage your long-term financial goals and milestones.",
+    "steps": [
+      "Navigate to Goal Planning.",
+      "Create a new financial goal.",
+      "Track your progress towards the target amount."
+    ]
+  },
+  "financial-advisor::risk-analysis": {
+    "purpose": "Evaluate your exposure to market risks, currency fluctuations, and liquidity constraints.",
+    "steps": [
+      "Open the Risk Analysis tab.",
+      "Review the AI risk score.",
+      "Read the mitigation strategies provided by the advisor."
+    ]
+  },
+  "financial-advisor::spending-intelligence": {
+    "purpose": "Gain deep insights into your spending habits, identifying unnecessary subscriptions or high-expense categories.",
+    "steps": [
+      "Navigate to Spending Intelligence.",
+      "Review the breakdown of discretionary vs mandatory spending.",
+      "Identify areas to cut costs."
+    ]
+  },
+  "financial-advisor::opportunity-detection": {
+    "purpose": "Discover personalized investment opportunities and strategies to optimize your idle cash.",
+    "steps": [
+      "Open Opportunity Detection.",
+      "Review the systems suggestions for high-yield savings or asset purchases.",
+      "Assess the projected ROI for each opportunity."
+    ]
+  },
+  "financial-advisor::market-intelligence": {
+    "purpose": "Stay updated with real-time market trends, inflation rates, and macroeconomic indicators affecting your wealth.",
+    "steps": [
+      "Navigate to Market Intelligence.",
+      "Review current economic indicators.",
+      "Understand how they impact your specific asset classes."
+    ]
+  },
+  "financial-advisor::ai-financial-advisor": {
+    "purpose": "Interact directly with the AI financial advisor via a conversational interface to ask specific financial questions.",
+    "steps": [
+      "Open the AI Financial Advisor tab.",
+      "Type your specific financial question in the chat box.",
+      "Review the tailored advice provided by the AI."
+    ]
+  },
+  "financial-advisor::what-if-simulator": {
+    "purpose": "Simulate various financial scenarios to see their impact on your net worth.",
+    "steps": [
+      "Navigate to the What-If Simulator.",
+      "Adjust the sliders to model different economic or personal scenarios.",
+      "Review the projected impact on your long-term wealth."
+    ]
+  },
+  "salary-1": {
+    "purpose": "Manage your income streams, salary structures, and employment benefits.",
+    "steps": [
+      "Navigate to the Salary section.",
+      "Review your base salary, allowances, and deductions.",
+      "Track your net income over time."
+    ]
+  },
+  "salary-2": {
+    "purpose": "Manage your income streams, salary structures, and employment benefits.",
+    "steps": [
+      "Navigate to the Salary section.",
+      "Review your base salary, allowances, and deductions.",
+      "Track your net income over time."
+    ]
+  },
+  "salary-3": {
+    "purpose": "Manage your income streams, salary structures, and employment benefits.",
+    "steps": [
+      "Navigate to the Salary section.",
+      "Review your base salary, allowances, and deductions.",
+      "Track your net income over time."
+    ]
+  },
+  "salary-4": {
+    "purpose": "Manage your income streams, salary structures, and employment benefits.",
+    "steps": [
+      "Navigate to the Salary section.",
+      "Review your base salary, allowances, and deductions.",
+      "Track your net income over time."
+    ]
+  },
+  "salary-5": {
+    "purpose": "Manage your income streams, salary structures, and employment benefits.",
+    "steps": [
+      "Navigate to the Salary section.",
+      "Review your base salary, allowances, and deductions.",
+      "Track your net income over time."
+    ]
+  },
+  "salary-6": {
+    "purpose": "Manage your income streams, salary structures, and employment benefits.",
+    "steps": [
+      "Navigate to the Salary section.",
+      "Review your base salary, allowances, and deductions.",
+      "Track your net income over time."
+    ]
+  },
+  "salary-7": {
+    "purpose": "Manage your income streams, salary structures, and employment benefits.",
+    "steps": [
+      "Navigate to the Salary section.",
+      "Review your base salary, allowances, and deductions.",
+      "Track your net income over time."
+    ]
+  },
+  "salary-7::add_salary_entry": {
+    "purpose": "Record a new monthly salary payout or income entry.",
+    "steps": [
+      "Click Add Entry.",
+      "Enter the exact payout amount and date.",
+      "Save the entry to update your cash flow."
+    ]
+  },
+  "salary-7::add_perdiem1": {
+    "purpose": "Manage your per diem allowances and daily travel compensations.",
+    "steps": [
+      "Open the Per Diem modal.",
+      "Enter your travel dates and daily rates.",
+      "Save the allowance to your income sheet."
+    ]
+  },
+  "salary-7::add_perdiem2": {
+    "purpose": "Manage your per diem allowances and daily travel compensations.",
+    "steps": [
+      "Open the Per Diem modal.",
+      "Enter your travel dates and daily rates.",
+      "Save the allowance to your income sheet."
+    ]
+  },
+  "all-companies": {
+    "purpose": "Manage the list of employers, businesses, or organizations associated with your income streams.",
+    "steps": [
+      "Navigate to All Companies.",
+      "Review the list of active companies.",
+      "Click on a company to edit its details."
+    ]
+  },
+  "all-companies::add_company": {
+    "purpose": "Register a new company or employer to the system.",
+    "steps": [
+      "Click Add Company.",
+      "Enter the company name, industry, and contact details.",
+      "Save the company profile."
+    ]
+  },
+  "balance::overview": {
+    "purpose": "View a consolidated summary of all your bank accounts, liquid cash, and total balances.",
+    "steps": [
+      "Navigate to Balance > Overview.",
+      "Review the total liquid wealth.",
+      "Analyze the distribution of funds across different banks."
+    ]
+  },
+  "balance::accounts": {
+    "purpose": "Manage individual bank accounts, view their balances, and track their transaction histories.",
+    "steps": [
+      "Navigate to the Accounts tab.",
+      "Select a specific bank account.",
+      "Review its current balance and recent activity."
+    ]
+  },
+  "balance::accounts::add_balance": {
+    "purpose": "Manually adjust or record a new balance entry for a specific bank account.",
+    "steps": [
+      "Click Add Balance.",
+      "Select the account and enter the new balance amount.",
+      "Save to update your records."
+    ]
+  },
+  "balance::transfers": {
+    "purpose": "Track and manage internal fund transfers between your own bank accounts.",
+    "steps": [
+      "Navigate to the Transfers tab.",
+      "Review the history of internal movements.",
+      "Verify the status of pending transfers."
+    ]
+  },
+  "balance::transfers::add_transfer": {
+    "purpose": "Record a new internal transfer of funds from one account to another.",
+    "steps": [
+      "Click Add Transfer.",
+      "Select the source account and destination account.",
+      "Enter the amount and date, then save."
+    ]
+  },
+  "balance::allocation": {
+    "purpose": "Analyze how your liquid cash is allocated across different currencies or regions.",
+    "steps": [
+      "Navigate to the Allocation tab.",
+      "Review the currency breakdown charts.",
+      "Ensure your cash is sufficiently diversified."
+    ]
+  },
+  "balance::forecasts": {
+    "purpose": "Project your future bank balances based on expected income and recurring expenses.",
+    "steps": [
+      "Navigate to the Forecasts tab.",
+      "Review the projected cash flow graph.",
+      "Identify any potential future liquidity shortages."
+    ]
+  },
+  "balance::recommendations": {
+    "purpose": "Receive AI suggestions on optimizing your cash holdings, such as moving idle funds to high-yield accounts.",
+    "steps": [
+      "Navigate to Recommendations.",
+      "Review the AI suggestions for cash optimization.",
+      "Execute the recommended transfers if desired."
+    ]
+  },
+  "bank-certificates": {
+    "purpose": "Track and manage your fixed-term bank deposit certificates and bonds.",
+    "steps": [
+      "Navigate to Bank Certificates.",
+      "Review your active and matured certificates.",
+      "Track the accrued interest and maturity dates."
+    ]
+  },
+  "bank-certificates::add_certificate": {
+    "purpose": "Register a new fixed-term bank certificate into your portfolio.",
+    "steps": [
+      "Click Add Certificate.",
+      "Enter the principal amount, interest rate, and maturity date.",
+      "Save the certificate details."
+    ]
+  },
+  "bank-certificates::interest_history": {
+    "purpose": "View the historical interest payouts received from a specific certificate.",
+    "steps": [
+      "Click on Interest History for a certificate.",
+      "Review the schedule of payouts.",
+      "Verify that the amounts match your bank statements."
+    ]
+  },
+  "fixed-assets::assets": {
+    "purpose": "Manage the detailed profiles of your individual fixed assets (Real Estate, Gold, Vehicles, etc.).",
+    "steps": [
+      "Navigate to the Assets tab.",
+      "Browse your list of assets.",
+      "Click on an asset to view or edit its detailed profile."
+    ]
+  },
+  "fixed-assets::assets::general": {
+    "purpose": "View or edit the primary general information (name, type, purchase date) of the asset.",
+    "steps": [
+      "Navigate to the General sub-tab.",
+      "Update the assets core details.",
+      "Save your changes."
+    ]
+  },
+  "fixed-assets::assets::asset-core": {
+    "purpose": "Manage specific characteristics of a gold asset, such as purity (karat), weight, and maker.",
+    "steps": [
+      "Navigate to the Gold Details sub-tab.",
+      "Enter the exact weight in grams and karat purity.",
+      "Save the details to ensure accurate live valuation."
+    ]
+  },
+  "fixed-assets::assets::photos": {
+    "purpose": "Upload and manage visual evidence and photos of the physical asset.",
+    "steps": [
+      "Navigate to the Photos sub-tab.",
+      "Click Upload to add new images.",
+      "Set a primary cover image for the asset."
+    ]
+  },
+  "fixed-assets::assets::sale": {
+    "purpose": "Record the sale or disposal of the asset, calculating the final realized profit or loss.",
+    "steps": [
+      "Navigate to the Sale sub-tab.",
+      "Enter the sale date and final sale price.",
+      "Confirm the disposal to remove it from active valuation."
+    ]
+  },
+  "fixed-assets::assets::gold_details": {
+    "purpose": "Manage specific characteristics of a gold asset, such as purity (karat), weight, and maker.",
+    "steps": [
+      "Navigate to the Gold Details sub-tab.",
+      "Enter the exact weight in grams and karat purity.",
+      "Save the details to ensure accurate live valuation."
+    ]
+  },
+  "fixed-assets::assets::documents_title": {
+    "purpose": "Store and manage legal documents, title deeds, and purchase receipts for the asset.",
+    "steps": [
+      "Navigate to the Documents sub-tab.",
+      "Upload PDF or image copies of legal deeds.",
+      "Securely save the records."
+    ]
+  },
+  "fixed-assets::assets::property": {
+    "purpose": "Manage real-estate specific details such as property type, address, area size, and zoning.",
+    "steps": [
+      "Navigate to the Property sub-tab.",
+      "Enter the square footage and physical address.",
+      "Save the property specifics."
+    ]
+  },
+  "fixed-assets::assets::renovations": {
+    "purpose": "Track the costs of any renovations or improvements made to the property, which add to its cost basis.",
+    "steps": [
+      "Navigate to the Renovations sub-tab.",
+      "Add a new renovation entry with its cost and date.",
+      "Save to update the assets total capital invested."
+    ]
+  },
+  "fixed-assets::assets::acquisition_costs": {
+    "purpose": "Record the supplementary costs of acquiring the asset, such as broker fees, taxes, and legal fees.",
+    "steps": [
+      "Navigate to the Acquisition Costs sub-tab.",
+      "Enter any fees incurred during purchase.",
+      "Save to accurately calculate your true cost basis."
+    ]
+  },
+  "fixed-assets::assets::furniture": {
+    "purpose": "Inventory the furniture and appliances included within a real estate property.",
+    "steps": [
+      "Navigate to the Furniture sub-tab.",
+      "List the items and their estimated values.",
+      "Save the inventory."
+    ]
+  },
+  "fixed-assets::assets::mortgage": {
+    "purpose": "Track the financing and mortgage details attached to this specific property.",
+    "steps": [
+      "Navigate to the Mortgage sub-tab.",
+      "Enter the loan amount, interest rate, and term.",
+      "Track your remaining principal balance."
+    ]
+  },
+  "fixed-assets::assets::rental": {
+    "purpose": "Manage the rental income, tenant details, and lease agreements for an investment property.",
+    "steps": [
+      "Navigate to the Rental sub-tab.",
+      "Enter the active lease details and monthly rent.",
+      "Track the generated yield."
+    ]
+  },
+  "fixed-assets::assets::valuation_history": {
+    "purpose": "Track the historical market appraisals and manual valuations of the asset over time.",
+    "steps": [
+      "Navigate to Valuation History.",
+      "Add a new manual valuation entry based on current market rates.",
+      "Save to update your current net worth."
+    ]
+  },
+  "fixed-assets::assets::vehicle": {
+    "purpose": "Manage the detailed profiles of your individual fixed assets (Real Estate, Gold, Vehicles, etc.).",
+    "steps": [
+      "Navigate to the Assets tab.",
+      "Browse your list of assets.",
+      "Click on an asset to view or edit its detailed profile."
+    ]
+  },
+  "fixed-assets::assets::maintenance": {
+    "purpose": "Manage the detailed profiles of your individual fixed assets (Real Estate, Gold, Vehicles, etc.).",
+    "steps": [
+      "Navigate to the Assets tab.",
+      "Browse your list of assets.",
+      "Click on an asset to view or edit its detailed profile."
+    ]
+  },
+  "fixed-assets::assets::insurance": {
+    "purpose": "Manage the detailed profiles of your individual fixed assets (Real Estate, Gold, Vehicles, etc.).",
+    "steps": [
+      "Navigate to the Assets tab.",
+      "Browse your list of assets.",
+      "Click on an asset to view or edit its detailed profile."
+    ]
+  },
+  "fixed-assets::assets::details": {
+    "purpose": "Manage the detailed profiles of your individual fixed assets (Real Estate, Gold, Vehicles, etc.).",
+    "steps": [
+      "Navigate to the Assets tab.",
+      "Browse your list of assets.",
+      "Click on an asset to view or edit its detailed profile."
+    ]
+  },
+  "fixed-assets::dashboard": {
+    "purpose": "View a high-level summary of all your illiquid fixed assets, including real estate and gold.",
+    "steps": [
+      "Navigate to Fixed Assets > Dashboard.",
+      "Review the total valuation of your physical assets.",
+      "Analyze the breakdown by asset class."
+    ]
+  },
+  "fixed-assets::reports": {
+    "purpose": "Generate comprehensive PDF or Excel reports detailing your fixed asset portfolio.",
+    "steps": [
+      "Navigate to the Reports tab.",
+      "Select the desired reporting period and asset classes.",
+      "Click Generate to download the report."
+    ]
+  },
+  "exchange-rates": {
+    "purpose": "Monitor live global currency exchange rates and track historical forex trends.",
+    "steps": [
+      "Navigate to Exchange Rates.",
+      "Review the live currency pairs.",
+      "Use the charts to analyze historical exchange rate movements."
+    ]
+  },
+  "gold-price": {
+    "purpose": "Monitor live global gold prices per ounce/gram and track historical commodity trends.",
+    "steps": [
+      "Navigate to Gold Price.",
+      "Review the live market rate for gold.",
+      "Analyze the historical price charts to inform your buying/selling decisions."
+    ]
+  },
+  "expenses": {
+    "purpose": "Track your day-to-day spending and manage your personal or business expenses.",
+    "steps": [
+      "Navigate to Expenses.",
+      "Review your recent expense entries.",
+      "Analyze your spending via the summary charts."
+    ]
+  },
+  "expenses::edit_add_expenses": {
+    "purpose": "Record a new expense or modify an existing transaction.",
+    "steps": [
+      "Click Add Expense.",
+      "Enter the amount, date, payee, and select a category.",
+      "Save the transaction."
+    ]
+  },
+  "expense-categories": {
+    "purpose": "Manage the taxonomy of your spending by creating and organizing expense categories.",
+    "steps": [
+      "Navigate to Expense Categories.",
+      "Review your active list of categories.",
+      "Reorganize or edit categories as needed."
+    ]
+  },
+  "expense-categories::add_category": {
+    "purpose": "Create a new top-level expense category.",
+    "steps": [
+      "Click Add Category.",
+      "Provide a name and select an icon/color.",
+      "Save the new category."
+    ]
+  },
+  "expense-categories::add_subcategory": {
+    "purpose": "Create a nested subcategory for more granular expense tracking.",
+    "steps": [
+      "Click Add Subcategory under a parent.",
+      "Provide a name and assign it to the parent category.",
+      "Save the subcategory."
+    ]
+  },
+  "reports::monthly": {
+    "purpose": "View monthly income, expense breakdowns, and monthly financial performance summaries.",
+    "steps": [
+      "Navigate to Expenses & Reports -> Reports.",
+      "Select the Monthly tab.",
+      "Choose the desired month and year to view category-wise spending and income comparisons."
+    ]
+  },
+  "reports::yearly": {
+    "purpose": "Analyze annual financial trends, year-over-year expense growth, and cumulative annual savings.",
+    "steps": [
+      "Navigate to Expenses & Reports -> Reports.",
+      "Select the Yearly tab.",
+      "Select the evaluation year to review annual charts and overall financial health metrics."
+    ]
+  },
+  "reports::custom": {
+    "purpose": "Generate custom date-range financial reports for specific auditing or planning periods.",
+    "steps": [
+      "Navigate to Expenses & Reports -> Reports.",
+      "Select the Custom Range tab.",
+      "Pick the start and end dates, then view the filtered transactions and balance summaries."
+    ]
+  },
+  "advanced-reports::salary": {
+    "purpose": "Analyze comprehensive salary earnings, allowances, deductions, and per diem payouts across time.",
+    "steps": [
+      "Navigate to Expenses & Reports -> Advanced Reports.",
+      "Select the Salary tab.",
+      "Review compensation trends, net payout distributions, and company-wise salary totals."
+    ]
+  },
+  "advanced-reports::balance": {
+    "purpose": "Review total asset liquidity, bank vs cash ratios, certificate growth, and net balance trajectory.",
+    "steps": [
+      "Navigate to Expenses & Reports -> Advanced Reports.",
+      "Select the Balance tab.",
+      "Examine historical net worth charts, asset allocation balances, and account performance."
+    ]
+  },
+  "advanced-reports::certificates": {
+    "purpose": "Track bank certificate maturity schedules, expected interest yields, and active vs redeemed certificate statuses.",
+    "steps": [
+      "Navigate to Expenses & Reports -> Advanced Reports.",
+      "Select the Certificates tab.",
+      "Review yield distribution charts, bank certificate portfolios, and upcoming payout dates."
+    ]
+  },
+  "settings::settings-languages::add_language": {
+    "purpose": "Configure the administrative settings and preferences for Settings Languages.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-languages::edit_language": {
+    "purpose": "Configure the administrative settings and preferences for Settings Languages.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-companies::add_company": {
+    "purpose": "Configure the administrative settings and preferences for Settings Companies.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-banks::add_bank": {
+    "purpose": "Configure the administrative settings and preferences for Settings Banks.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-currency::add_currency": {
+    "purpose": "Configure the administrative settings and preferences for Settings Currency.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-users::add_user": {
+    "purpose": "Configure the administrative settings and preferences for Settings Users.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-users::manage_permissions": {
+    "purpose": "Configure the administrative settings and preferences for Settings Users.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-emailtemplates::add_template": {
+    "purpose": "Configure the administrative settings and preferences for Settings Emailtemplates.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-translationcoverage::missing_report": {
+    "purpose": "Configure the administrative settings and preferences for Settings Translationcoverage.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-reminders::add_reminder": {
+    "purpose": "Configure the administrative settings and preferences for Settings Reminders.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-certstatus::add_status": {
+    "purpose": "Configure the administrative settings and preferences for Settings Certstatus.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-goldsettings::add_gold_type": {
+    "purpose": "Configure the administrative settings and preferences for Settings Goldsettings.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-goldsettings::add_gold_purity": {
+    "purpose": "Configure the administrative settings and preferences for Settings Goldsettings.",
+    "steps": [
+      "Navigate to the Settings panel.",
+      "Adjust the system preferences as needed.",
+      "Save the configuration to apply changes globally."
+    ]
+  },
+  "advanced-reports::company": {
+    "purpose": "Evaluate corporate payroll distributions, employer expense allocations, and company cost breakdowns.",
+    "steps": [
+      "Navigate to Expenses & Reports -> Advanced Reports.",
+      "Select the Company tab.",
+      "Compare company-level expenses, active workforce compensation, and per diem totals."
+    ]
+  },
+  "fixed-assets::analytics": {
+    "purpose": "Perform deep analytics on the valuation, depreciation, and return on investment (ROI) of your fixed assets.",
+    "steps": [
+      "Navigate to Fixed Assets -> Analytics.",
+      "Examine asset appreciation trends, category valuations, and historical performance charts.",
+      "Compare real estate, vehicle, and precious metal asset portfolio weights."
+    ]
+  },
+  "financial-advisor::goal-planning::add_goal": {
+    "purpose": "Define and set up a new financial savings goal with target amounts and deadline tracking.",
+    "steps": [
+      "Navigate to Financial Advisor -> Goal Planning.",
+      "Click the Add Goal button.",
+      "Specify the goal title, target amount, current contribution, and deadline date.",
+      "Save the goal to start tracking progress and automated recommendation insights."
+    ]
+  }
 }

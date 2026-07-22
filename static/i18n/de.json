@@ -1771,5 +1771,6 @@
   "signal_days_left": "Verbleibende Tage",
   "signal_maturity_amount": "Kapital + Zinsen",
   "signal_bank": "Bank",
-  "opp_maturity_action": "Planen Sie voraus: {amount} EGP werden in {days} Tagen verfügbar. Entscheiden Sie im Voraus, ob Sie reinvestieren, auf eine andere Bank diversifizieren oder in Gold umgeschichtet werden soll."
+  "opp_maturity_action": "Planen Sie voraus: {amount} EGP werden in {days} Tagen verfügbar. Entscheiden Sie im Voraus, ob Sie reinvestieren, auf eine andere Bank diversifizieren oder in Gold umgeschichtet werden soll.",
+  "edit_currency": "Währung bearbeiten"
 }
