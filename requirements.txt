@@ -29,7 +29,6 @@ pycodestyle==2.14.0
 pycparser==3.0
 pyee==13.0.1
 pyflakes==3.4.0
-gunicorn
 pylint==4.0.6
 PySocks==1.7.1
 python-bidi==0.6.10
