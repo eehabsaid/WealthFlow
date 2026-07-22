@@ -71,7 +71,7 @@ function _renderOpportunityDetection(payload) {
       .opp-card-grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 24px;
       }
       @media (min-width: 1000px) {
         .opp-card-grid {
@@ -92,19 +92,48 @@ function _renderOpportunityDetection(payload) {
         transform: translateY(-2px);
         border-color: var(--accent-primary);
       }
+      .opp-badge {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        border-radius: 12px;
+        padding: 3px 12px;
+        display: inline-block;
+      }
+      .opp-badge-high {
+        background: rgba(255, 59, 48, 0.15);
+        color: var(--accent-red);
+      }
+      .opp-badge-medium {
+        background: rgba(255, 149, 0, 0.15);
+        color: var(--accent-yellow);
+      }
+      .opp-badge-low {
+        background: rgba(52, 199, 89, 0.15);
+        color: var(--accent-green);
+      }
+      .opp-badge-info {
+        background: rgba(14, 165, 233, 0.15);
+        color: var(--accent-primary);
+      }
+      .opp-signals-box {
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin: 20px 0;
+      }
       .opp-signals-table {
         width: 100%;
-        margin: 16px 0;
         font-size: 13px;
+        border-collapse: collapse;
       }
       .opp-signals-table td {
         padding: 6px 0;
       }
-      .opp-signals-table tr:not(:last-child) td {
-        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-      }
       .opp-signal-label {
         color: var(--text-secondary);
+        font-weight: 500;
       }
       .opp-signal-val {
         color: var(--text-primary);
@@ -114,11 +143,19 @@ function _renderOpportunityDetection(payload) {
       [dir="rtl"] .opp-signal-val {
         text-align: left;
       }
+      .opp-highlighted-amount {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--accent-primary);
+        letter-spacing: -0.5px;
+        margin: 8px 0 20px 0;
+        line-height: 1.2;
+      }
       .opp-action-box {
-        background: rgba(14, 165, 233, 0.08);
-        border: 1px solid rgba(14, 165, 233, 0.25);
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
         border-radius: 8px;
-        padding: 16px;
+        padding: 16px 20px;
         font-size: 13px;
         line-height: 1.6;
         color: var(--text-primary);
@@ -126,16 +163,16 @@ function _renderOpportunityDetection(payload) {
       }
     </style>
 
-    <!-- Hero Card -->
+    <!-- Hero Header Card -->
     <div class="card border-0 mb-4 fade-in-up" style="background:var(--bg-secondary); border:1px solid var(--border-color) !important; border-radius:12px;">
       <div class="card-body" style="padding:32px; text-align:center;">
-        <div style="font-size:42px; font-weight:800; color:var(--accent-primary); line-height:1; margin-bottom:8px;">${count}</div>
+        <div style="font-size:48px; font-weight:800; color:var(--accent-primary); line-height:1; margin-bottom:10px;">${count}</div>
         <div style="font-size:12px; font-weight:700; color:var(--text-secondary); letter-spacing:1px; text-transform:uppercase;" data-i18n="opportunities_found_label"></div>
       </div>
     </div>
 
     <!-- Section Title -->
-    <h5 style="color:var(--text-primary); font-weight:700; margin-bottom:20px;" data-i18n="opportunities_list_title"></h5>
+    <h5 style="color:var(--text-primary); font-weight:700; margin-bottom:20px; font-size:1.15rem;" data-i18n="opportunities_list_title"></h5>
   `;
 
   if (opportunities.length === 0) {
@@ -149,59 +186,62 @@ function _renderOpportunityDetection(payload) {
     html += `<div class="opp-card-grid">`;
     opportunities.forEach((item) => {
       const iconClass = _getOpportunityIconClass(item.key);
-      const severityClass = typeof _portfolioSeverityClass === "function"
-        ? _portfolioSeverityClass(item.severity)
-        : (item.severity === "high" ? "portfolio-badge-high" : (item.severity === "medium" ? "portfolio-badge-medium" : "portfolio-badge-low"));
+      const sev = String(item.severity || "medium").toLowerCase();
+      const badgeClass = sev === "high" ? "opp-badge-high" : (sev === "low" ? "opp-badge-low" : (sev === "info" ? "opp-badge-info" : "opp-badge-medium"));
 
       let signalsHtml = "";
       if (item.signals) {
         if ("idle_cash" in item.signals) {
-          // Gold opportunity signals
+          // Gold opportunity signals box
           const s = item.signals;
           const trend7Color = s.gold_trend_7d >= 0 ? "var(--accent-green)" : "var(--accent-red)";
           const trend30Color = s.gold_trend_30d >= 0 ? "var(--accent-green)" : "var(--accent-red)";
           signalsHtml = `
-            <table class="opp-signals-table">
-              <tr>
-                <td class="opp-signal-label" data-i18n="signal_idle_cash"></td>
-                <td class="opp-signal-val">${_fmtIntValue(s.idle_cash)} EGP</td>
-              </tr>
-              <tr>
-                <td class="opp-signal-label" data-i18n="signal_gold_trend_7d"></td>
-                <td class="opp-signal-val" style="color:${trend7Color};">${_fmtTrendPct(s.gold_trend_7d)}</td>
-              </tr>
-              <tr>
-                <td class="opp-signal-label" data-i18n="signal_gold_trend_30d"></td>
-                <td class="opp-signal-val" style="color:${trend30Color};">${_fmtTrendPct(s.gold_trend_30d)}</td>
-              </tr>
-              <tr>
-                <td class="opp-signal-label" data-i18n="signal_current_allocation"></td>
-                <td class="opp-signal-val">${s.current_gold_allocation_pct}% <span style="font-weight:400; color:var(--text-secondary);">(target &ge;${s.target_gold_min_pct}%)</span></td>
-              </tr>
-            </table>
+            <div class="opp-signals-box">
+              <table class="opp-signals-table">
+                <tr>
+                  <td class="opp-signal-label" data-i18n="signal_idle_cash"></td>
+                  <td class="opp-signal-val">${_fmtIntValue(s.idle_cash)} EGP</td>
+                </tr>
+                <tr>
+                  <td class="opp-signal-label" data-i18n="signal_gold_trend_7d"></td>
+                  <td class="opp-signal-val" style="color:${trend7Color};">${_fmtTrendPct(s.gold_trend_7d)}</td>
+                </tr>
+                <tr>
+                  <td class="opp-signal-label" data-i18n="signal_gold_trend_30d"></td>
+                  <td class="opp-signal-val" style="color:${trend30Color};">${_fmtTrendPct(s.gold_trend_30d)}</td>
+                </tr>
+                <tr>
+                  <td class="opp-signal-label" data-i18n="signal_current_allocation"></td>
+                  <td class="opp-signal-val">${s.current_gold_allocation_pct}% <span style="font-weight:400; color:var(--text-secondary);">(target &ge;${s.target_gold_min_pct}%)</span></td>
+                </tr>
+              </table>
+            </div>
           `;
         } else if ("maturity_date" in item.signals) {
-          // Certificate maturity opportunity signals
+          // Certificate maturity opportunity signals box
           const s = item.signals;
           signalsHtml = `
-            <table class="opp-signals-table">
-              <tr>
-                <td class="opp-signal-label" data-i18n="signal_maturity_date"></td>
-                <td class="opp-signal-val">${s.maturity_date || "-"}</td>
-              </tr>
-              <tr>
-                <td class="opp-signal-label" data-i18n="signal_days_left"></td>
-                <td class="opp-signal-val">${s.days_left}</td>
-              </tr>
-              <tr>
-                <td class="opp-signal-label" data-i18n="signal_maturity_amount"></td>
-                <td class="opp-signal-val">${_fmtMoneyValue(s.maturity_value)} EGP</td>
-              </tr>
-              <tr>
-                <td class="opp-signal-label" data-i18n="signal_bank"></td>
-                <td class="opp-signal-val">${s.bank || "-"}</td>
-              </tr>
-            </table>
+            <div class="opp-signals-box">
+              <table class="opp-signals-table">
+                <tr>
+                  <td class="opp-signal-label" data-i18n="signal_maturity_date"></td>
+                  <td class="opp-signal-val">${s.maturity_date || "-"}</td>
+                </tr>
+                <tr>
+                  <td class="opp-signal-label" data-i18n="signal_days_left"></td>
+                  <td class="opp-signal-val">${s.days_left}</td>
+                </tr>
+                <tr>
+                  <td class="opp-signal-label" data-i18n="signal_maturity_amount"></td>
+                  <td class="opp-signal-val">${_fmtMoneyValue(s.maturity_value)} EGP</td>
+                </tr>
+                <tr>
+                  <td class="opp-signal-label" data-i18n="signal_bank"></td>
+                  <td class="opp-signal-val">${s.bank || "-"}</td>
+                </tr>
+              </table>
+            </div>
           `;
         }
       }
@@ -209,8 +249,8 @@ function _renderOpportunityDetection(payload) {
       let highlightedHtml = "";
       if (item.highlighted_amount != null && item.highlighted_amount > 0) {
         highlightedHtml = `
-          <div style="font-size:28px; font-weight:800; color:var(--accent-primary); margin:12px 0 16px 0; letter-spacing:-0.5px;">
-            ${_fmtIntValue(item.highlighted_amount)} <span style="font-size:16px; font-weight:600; color:var(--text-secondary);">EGP</span>
+          <div class="opp-highlighted-amount">
+            ${_fmtIntValue(item.highlighted_amount)} EGP
           </div>
         `;
       }
@@ -236,14 +276,14 @@ function _renderOpportunityDetection(payload) {
       }
 
       html += `
-        <div class="opp-card fade-in-up">
-          <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="opp-card fade-in-up" si-modern-card>
+          <div class="d-flex justify-content-between align-items-center mb-1">
             <div class="d-flex align-items-center gap-2" style="color:var(--text-primary);">
               <i class="bi ${iconClass}" style="font-size:22px; color:var(--accent-yellow);"></i>
-              <h6 style="margin:0; font-weight:700; color:var(--text-primary);" data-i18n="${item.title_key}"></h6>
+              <h6 style="margin:0; font-weight:700; font-size:16px; color:var(--text-primary);" data-i18n="${item.title_key}"></h6>
             </div>
             <div>
-              <span class="portfolio-severity-badge ${severityClass}" data-i18n="${item.severity_key}"></span>
+              <span class="opp-badge ${badgeClass}" data-i18n="${item.severity_key}"></span>
             </div>
           </div>
           ${signalsHtml}
