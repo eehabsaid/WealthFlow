@@ -1,65 +1,63 @@
 import os
 import sys
-import subprocess
 import argparse
 from datetime import datetime
 
-def log(msg):
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
-# Add current directory to path to import other scripts
+def log(msg):
+    now_str = datetime.now().strftime("%H:%M:%S")
+    try:
+        print(f"[{now_str}] {msg}")
+    except UnicodeEncodeError:
+        safe_msg = msg.encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8', errors='replace')
+        print(f"[{now_str}] {safe_msg}")
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from start_doc_server import start_server
 from stop_doc_server import stop_server
 
-def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port='8001'):
+from doc_engine.playwright_engine import get_playwright_backend
+
+def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port='8001', backend=None):
     """
     Reusable function to generate documentation screenshots.
-    This can be called by future Django UI code.
+    Delegates capture execution to the active PlaywrightBackend strategy.
     """
-    # Set environment variables for the JS script
-    env = os.environ.copy()
-    env['DOC_HOST'] = host
-    env['DOC_PORT'] = port
-    env['DOC_LANG'] = language
-    env['DOC_THEME'] = theme
-    if device:
-        env['DOC_DEVICE'] = device
-    else:
-        env.pop('DOC_DEVICE', None)
-        
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    capture_script = os.path.join(base_dir, 'doc_engine', 'capture_pages.js')
-    
-    # Ensure generated directory exists for cancellation flags
-    gen_dir = os.path.join(base_dir, 'docs', 'generated')
+    backend_strategy = get_playwright_backend(backend)
+    backend_name = backend_strategy.__class__.__name__
+
+    gen_dir = os.path.join(BASE_DIR, 'docs', 'generated')
     os.makedirs(gen_dir, exist_ok=True)
     cancel_flag = os.path.join(gen_dir, 'cancel.flag')
     if os.path.exists(cancel_flag):
         os.remove(cancel_flag)
-        
+
     try:
         log("\n--- Starting Documentation Generation ---")
-        log(f"Language: {language}, Theme: {theme}, Device: {device or 'desktop'}")
-        
-        # 1. Start Server
-        # Since start_server relies on env vars internally, update them here too
+        log(f"Backend Strategy: {backend_name} | Language: {language} | Theme: {theme} | Device: {device or 'desktop'}")
+
         os.environ['DOC_HOST'] = host
         os.environ['DOC_PORT'] = port
-        
+
         if not start_server():
             log("Failed to start server. Aborting.")
             return False
-            
-        # 2. Run Playwright Script
-        log("Running Playwright...")
-        proc = subprocess.run(['node', capture_script], env=env)
-        
-        log(f"Playwright completed with exit code {proc.returncode}.")
-        return proc.returncode == 0
-        
+
+        success = backend_strategy.capture(
+            language=language,
+            theme=theme,
+            device=device,
+            host=host,
+            port=port
+        )
+        log(f"{backend_name} completed with success={success}.")
+        return success
+
     finally:
-        # 3. Always Stop Server
         stop_server()
         log("Finished.\n")
 
@@ -70,13 +68,15 @@ if __name__ == "__main__":
     parser.add_argument('--device', default=None, help="Device to emulate (e.g., 'iPhone 13')")
     parser.add_argument('--host', default='127.0.0.1', help="Server Host")
     parser.add_argument('--port', default='8001', help="Server Port")
-    
+    parser.add_argument('--backend', default=None, choices=['python', 'javascript'], help="Playwright Backend Engine")
+
     args = parser.parse_args()
-    
+
     run_capture(
         language=args.lang,
         theme=args.theme,
         device=args.device,
         host=args.host,
-        port=args.port
+        port=args.port,
+        backend=args.backend
     )

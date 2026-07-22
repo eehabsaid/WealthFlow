@@ -30,3 +30,18 @@ IMAGE_DOCX_WIDTH_INCHES = 6.0
 
 # Dependencies
 NODE_PDF_SCRIPT = os.path.join(DOC_ENGINE_DIR, "html_to_pdf.js")
+
+def _resolve_playwright_backend():
+    try:
+        from django.conf import settings
+        if hasattr(settings, 'PLAYWRIGHT_BACKEND'):
+            return settings.PLAYWRIGHT_BACKEND.lower()
+    except Exception:
+        pass
+    return os.environ.get("PLAYWRIGHT_BACKEND", "python").lower()
+
+PLAYWRIGHT_BACKEND = _resolve_playwright_backend()
+
+
+
+

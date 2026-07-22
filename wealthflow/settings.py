@@ -92,3 +92,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 # Media files (user uploads — profile pictures)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# Playwright Documentation Backend ('python' or 'javascript')
+PLAYWRIGHT_BACKEND = os.environ.get("PLAYWRIGHT_BACKEND", "python").lower()

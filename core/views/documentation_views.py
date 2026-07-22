@@ -203,107 +203,22 @@ def run_documentation_permutations(languages, themes, devices, execution_id, mod
 @method_decorator(csrf_exempt, name="dispatch")
 class ValidateCaptureView(AdminRequiredMixin, View):
     def get(self, request):
-        errors = []
-        try:
-            subprocess.run(["node", "-v"], check=True, capture_output=True, shell=True)
-        except Exception:
-            errors.append("Node.js is not installed or not in PATH.")
-        
-        try:
-            subprocess.run(["npm", "-v"], check=True, capture_output=True, shell=True)
-        except Exception:
-            errors.append("npm is not installed or not in PATH.")
-            
-        try:
-            subprocess.run(["npx", "playwright", "--version"], check=True, capture_output=True, shell=True)
-        except Exception:
-            errors.append("Playwright is not installed.")
-            
-        try:
-            os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
-            if not os.access(SCREENSHOTS_DIR, os.W_OK):
-                errors.append("Screenshots directory is not writable.")
-        except Exception:
-            errors.append("Cannot create screenshots directory.")
-            
-        if errors:
-            return JsonResponse({"valid": False, "errors": errors})
+        from doc_engine.services.playwright_validator import PlaywrightValidator
+        res = PlaywrightValidator().validate_capture_environment()
+        if not res["valid"]:
+            return JsonResponse({"valid": False, "errors": res["errors"]})
         return JsonResponse({"valid": True})
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ValidateGenerationView(AdminRequiredMixin, View):
     def get(self, request):
-        errors = []
-        if not os.path.exists(SCREENSHOTS_DIR):
-            errors.append("Screenshot folder does not exist.")
-        elif not os.listdir(SCREENSHOTS_DIR):
-            errors.append("Screenshot folder contains no screenshots.")
-            
-        manifest_path = os.path.join(RUNTIME_DIR, "manifest.json")
-        if not os.path.exists(manifest_path):
-            errors.append("manifest.json does not exist.")
-        else:
-            try:
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    json.load(f)
-            except Exception:
-                errors.append("manifest.json is not valid JSON.")
-                
-        metadata_path = os.path.join(RUNTIME_DIR, "capture_metadata.json")
-        if not os.path.exists(metadata_path):
-            errors.append("capture_metadata.json does not exist.")
-        else:
-            try:
-                with open(metadata_path, "r", encoding="utf-8") as f:
-                    json.load(f)
-            except Exception:
-                errors.append("capture_metadata.json is not valid JSON.")
-                
-        page_descriptions = os.path.join(BASE_DIR, "doc_engine", "content", "page_descriptions.json")
-        if not os.path.exists(page_descriptions):
-            errors.append("page_descriptions.json does not exist.")
-            
-        try:
-            os.makedirs(GENERATED_DIR, exist_ok=True)
-            if not os.access(GENERATED_DIR, os.W_OK):
-                errors.append("Output directory is not writable.")
-        except Exception:
-            errors.append("Cannot create output directory.")
-            
-        html_template = os.path.join(BASE_DIR, "doc_engine", "templates", "html_template.html")
-        if not os.path.exists(html_template):
-            # Not strictly fatal if we have a fallback, but per rules:
-            pass # We have a fallback in the generator
-            
-        pdf_script = os.path.join(BASE_DIR, "doc_engine", "html_to_pdf.js")
-        if not os.path.exists(pdf_script):
-            errors.append("Playwright PDF renderer (html_to_pdf.js) is missing.")
-            
-        try:
-            __import__("docx")
-        except ImportError:
-            errors.append("python-docx is not installed.")
-            
-        try:
-            __import__("markdown")
-        except ImportError:
-            errors.append("Markdown renderer is not available.")
-        try:
-            subprocess.run(["node", "-v"], check=True, capture_output=True)
-        except Exception:
-            errors.append("Node.js is not available for PDF generation.")
-            
-        python_exe = os.path.join(BASE_DIR, "venv", "Scripts", "python.exe")
-        if not os.path.exists(python_exe):
-            python_exe = sys.executable
-        try:
-            subprocess.run([python_exe, "-c", "import docx"], check=True, capture_output=True)
-        except Exception:
-            errors.append("python-docx is not installed in the python environment.")
-            
-        if errors:
-            return JsonResponse({"valid": False, "errors": errors})
+        from doc_engine.services.playwright_validator import PlaywrightValidator
+        res = PlaywrightValidator().validate_generation_environment()
+        if not res["valid"]:
+            return JsonResponse({"valid": False, "errors": res["errors"]})
         return JsonResponse({"valid": True})
+
+
 
 @method_decorator(csrf_exempt, name="dispatch")
 class DocumentationDevicesView(AdminRequiredMixin, View):
