@@ -1,0 +1,10 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "buildCommand": "./build.sh"
+  },
+  "deploy": {
+    "startCommand": "gunicorn WealthFlow.wsgi:application"
+  }
+}
