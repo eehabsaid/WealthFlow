@@ -1757,5 +1757,19 @@
   "spending_intelligence_priority_high": "High",
   "spending_intelligence_priority_medium": "Medium",
   "spending_intelligence_priority_low": "Low",
-  "spending_intelligence_total_spending": "Total Spending"
+  "spending_intelligence_total_spending": "Total Spending",
+  "opportunities_found_label": "OPPORTUNITIES IDENTIFIED",
+  "opportunities_list_title": "Your Opportunities",
+  "opportunities_empty_state": "No opportunities identified. Your portfolio is healthy and balanced.",
+  "signal_idle_cash": "Idle cash (beyond 6-month reserve)",
+  "signal_gold_trend_7d": "Gold price trend (7 days)",
+  "signal_gold_trend_30d": "Gold price trend (30 days)",
+  "signal_current_allocation": "Current gold allocation",
+  "opp_gold_action": "Consider allocating up to {amount} EGP toward gold to reach your {target_pct}% target — you have ample idle cash and gold is in a confirmed uptrend.",
+  "opp_maturity_title": "Upcoming certificate maturity",
+  "signal_maturity_date": "Maturity date",
+  "signal_days_left": "Days remaining",
+  "signal_maturity_amount": "Principal + interest",
+  "signal_bank": "Bank",
+  "opp_maturity_action": "Plan ahead: {amount} EGP becomes available in {days} days. Decide in advance whether to reinvest, diversify to another bank, or reallocate toward gold given the current uptrend."
 }

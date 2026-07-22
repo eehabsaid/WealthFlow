@@ -12,6 +12,7 @@ from core.services.financial_advisor.wealth_growth_forecast_service import Wealt
 from core.services.financial_advisor.overview_service import OverviewService
 from core.services.financial_advisor.risk_analysis_service import RiskAnalysisService
 from core.services.financial_advisor.spending_intelligence_service import SpendingIntelligenceService
+from core.services.financial_advisor.opportunity_detection_service import OpportunityDetectionService
 from .certificate_views import _run_certificate_interest_sync
 
 def _api_auth_required(request):
@@ -98,3 +99,13 @@ class SpendingIntelligenceView(View):
         _run_certificate_interest_sync()
         payload = SpendingIntelligenceService(today=datetime.date.today()).payload()
         return JsonResponse(payload)
+
+class OpportunityDetectionView(View):
+    def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        _run_certificate_interest_sync()
+        payload = OpportunityDetectionService(today=datetime.date.today()).payload()
+        return JsonResponse(payload)
+

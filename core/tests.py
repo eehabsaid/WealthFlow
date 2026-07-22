@@ -48,6 +48,7 @@ from core.services.certificate.certificate_interest_service import CertificateIn
 from core.services.fixed_assets.property_valuation_service import PropertyValuationService
 from core.services.shared.reminder_automation_service import ReminderAutomationService
 from core.services.shared.scheduler_service import SchedulerService
+from core.services.financial_advisor.opportunity_detection_service import OpportunityDetectionService
 
 User = get_user_model()
 
@@ -2135,6 +2136,40 @@ class BackupRestoreTests(TestCase):
 
         finally:
             shutil.rmtree(temp_dir)
+
+
+class OpportunityDetectionTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="oppuser",
+            email="oppuser@example.com",
+            password="SecurePass123!",
+            is_active=True
+        )
+        profile = AuthWorkflowService.get_profile(self.user)
+        profile.email_verified = True
+        profile.account_status = "active"
+        profile.save()
+
+    def test_opportunity_detection_service_payload(self):
+        service = OpportunityDetectionService(today=date(2026, 7, 22))
+        payload = service.payload()
+        self.assertIn("as_of", payload)
+        self.assertIn("opportunities", payload)
+        self.assertIn("count", payload)
+        self.assertEqual(payload["count"], len(payload["opportunities"]))
+
+    def test_opportunity_detection_view_authenticated(self):
+        self.client.force_login(self.user)
+        response = self.client.get("/api/financial-advisor/opportunity-detection/")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("count", data)
+
+    def test_opportunity_detection_view_unauthenticated(self):
+        response = self.client.get("/api/financial-advisor/opportunity-detection/")
+        self.assertEqual(response.status_code, 401)
+
 
 
 

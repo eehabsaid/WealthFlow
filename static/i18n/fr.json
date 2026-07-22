@@ -1757,5 +1757,19 @@
   "spending_intelligence_priority_high": "Élevée",
   "spending_intelligence_priority_medium": "Moyenne",
   "spending_intelligence_priority_low": "Faible",
-  "spending_intelligence_total_spending": "Dépenses totales"
+  "spending_intelligence_total_spending": "Dépenses totales",
+  "opportunities_found_label": "OPPORTUNITÉS IDENTIFIÉES",
+  "opportunities_list_title": "Vos opportunités",
+  "opportunities_empty_state": "Aucune opportunité identifiée. Votre portefeuille est sain et équilibré.",
+  "signal_idle_cash": "Liquidités inactives (au-delà de la réserve de 6 mois)",
+  "signal_gold_trend_7d": "Tendance du prix de l'or (7 jours)",
+  "signal_gold_trend_30d": "Tendance du prix de l'or (30 jours)",
+  "signal_current_allocation": "Allocation actuelle en or",
+  "opp_gold_action": "Envisagez d'allouer jusqu'à {amount} EGP à l'or pour atteindre votre objectif de {target_pct}% — vous disposez de liquidités inactives suffisantes et l'or est dans une tendance à la hausse confirmée.",
+  "opp_maturity_title": "Échéance de certificat à venir",
+  "signal_maturity_date": "Date d'échéance",
+  "signal_days_left": "Jours restants",
+  "signal_maturity_amount": "Capital + intérêts",
+  "signal_bank": "Banque",
+  "opp_maturity_action": "Planifiez à l'avance : {amount} EGP deviennent disponibles dans {days} jours. Décidez à l'avance de réinvestir, de diversifier vers une autre banque ou de réallouer vers l'or."
 }

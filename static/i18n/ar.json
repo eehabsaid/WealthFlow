@@ -1757,5 +1757,19 @@
   "spending_intelligence_priority_high": "مرتفع",
   "spending_intelligence_priority_medium": "متوسط",
   "spending_intelligence_priority_low": "منخفض",
-  "spending_intelligence_total_spending": "إجمالي الإنفاق"
+  "spending_intelligence_total_spending": "إجمالي الإنفاق",
+  "opportunities_found_label": "فرص تم تحديدها",
+  "opportunities_list_title": "فرصك المتاحة",
+  "opportunities_empty_state": "لم يتم تحديد أي فرص. محفظتك الاستثمارية متوازنة وسليمة.",
+  "signal_idle_cash": "النقد المعطل (خارج احتياطي 6 أشهر)",
+  "signal_gold_trend_7d": "اتجاه سعر الذهب (7 أيام)",
+  "signal_gold_trend_30d": "اتجاه سعر الذهب (30 يوماً)",
+  "signal_current_allocation": "توزيع الذهب الحالي",
+  "opp_gold_action": "فكر في تخصيص ما يصل إلى {amount} جنيه نحو الذهب للوصول إلى هدف {target_pct}% — لديك نقد معطل كافٍ والذهب في اتجاه تصاعدي مؤكد.",
+  "opp_maturity_title": "استحقاق شهادة قادم",
+  "signal_maturity_date": "تاريخ الاستحقاق",
+  "signal_days_left": "الأيام المتبقية",
+  "signal_maturity_amount": "أصل المبلغ + الفائدة",
+  "signal_bank": "البنك",
+  "opp_maturity_action": "خطط مسبقاً: سيصبح مبلغ {amount} جنيه متاحاً خلال {days} يوماً. قرر مسبقاً ما إذا كنت ستعيد الاستثمار، أو تنوع إلى بنك آخر، أو تعيد التخصيص نحو الذهب."
 }
