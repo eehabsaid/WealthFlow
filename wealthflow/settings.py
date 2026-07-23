@@ -13,7 +13,7 @@ SECRET_KEY = "django-insecure-8pg_zmp_cy^rl+p7=hb3ournneiqklid=m4z1x-69j6-u+#77g
 # FIX 1: Set DEBUG to True for development
 DEBUG = True
 
-ALLOWED_HOSTS = ["eehabsaid.pythonanywhere.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["wealthflow.pythonanywhere.com", "localhost", "127.0.0.1"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -94,4 +94,4 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Playwright Documentation Backend ('python' or 'javascript')
-PLAYWRIGHT_BACKEND = os.environ.get("PLAYWRIGHT_BACKEND", "python").lower()
+PLAYWRIGHT_BACKEND = os.environ.get("PLAYWRIGHT_BACKEND", "python").lower()
