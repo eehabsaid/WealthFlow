@@ -247,6 +247,14 @@
       "Review the projected impact on your long-term wealth."
     ]
   },
+  "employment": {
+    "purpose": "Manage your income streams, salary structures, and employment benefits across employers.",
+    "steps": [
+      "Navigate to the Employment section.",
+      "Select an employer tab to view compensation details.",
+      "Review base salary, allowances, and deductions."
+    ]
+  },
   "salary-1": {
     "purpose": "Manage your income streams, salary structures, and employment benefits.",
     "steps": [

@@ -10,11 +10,14 @@ function navigate(route) {
 
 function triggerAddEntry() {
     const hash = window.location.hash.replace('#', '');
-    if (hash.startsWith('salary-'))       showSalaryModal(null, parseInt(hash.split('-')[1]));
+    if (hash === 'employment' || hash === 'salary' || hash.startsWith('employment-') || hash.startsWith('salary-')) {
+        const cId = (typeof window.getCurrentEmploymentCompanyId === 'function') ? window.getCurrentEmploymentCompanyId() : null;
+        const targetCompanyId = cId || (hash.includes('-') ? parseInt(hash.split('-')[1]) : null);
+        showSalaryModal(null, targetCompanyId);
+    }
     else if (hash === 'balance')          showBalanceModal(null);
     else if (hash === 'bank-certificates') showBankCertificateModal(null);
     else if (hash === "fixed-assets") showFixedAssetModal();
-    else if (hash === 'all-companies')    showCompanyModal(null);
 }
 
 // ════════════════════════════════════════════════════════════════════════════

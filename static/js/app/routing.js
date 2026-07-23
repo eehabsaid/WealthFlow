@@ -22,10 +22,7 @@ function routeAllowed(hash) {
     if (hash === 'fixed-assets') {
         return canAccessAny(['fixed_assets']);
     }
-    if (hash === 'all-companies') {
-        return canAccessAny(['all_companies', 'salary']);
-    }
-    if (hash.startsWith('salary-')) {
+    if (hash === 'employment' || hash === 'salary' || hash.startsWith('employment-') || hash.startsWith('salary-')) {
         return canAccessAny(['salary']);
     }
     if (hash === 'exchange-rates') {
@@ -65,7 +62,7 @@ function getFirstAllowedRoute() {
         }
     }
 
-    const candidates = ['dashboard', 'financial-advisor', 'balance', 'bank-certificates', 'fixed-assets', 'all-companies', 'exchange-rates', 'gold-price', 'expenses', 'expense-categories', 'reports', 'advanced-reports', 'settings-languages'];
+    const candidates = ['dashboard', 'financial-advisor', 'employment', 'balance', 'bank-certificates', 'fixed-assets', 'exchange-rates', 'gold-price', 'expenses', 'expense-categories', 'reports', 'advanced-reports', 'settings-languages'];
     for (const candidate of candidates) {
         if (routeAllowed(candidate)) {
             return candidate;
@@ -79,7 +76,7 @@ function permissionToRoute(pageKey) {
     if (pageKey === 'balance') return 'balance';
     if (pageKey === 'bank_certificates') return 'bank-certificates';
     if (pageKey === 'fixed_assets') return 'fixed-assets';
-    if (pageKey === 'all_companies' || pageKey === 'salary') return 'all-companies';
+    if (pageKey === 'all_companies' || pageKey === 'salary') return 'employment';
     if (pageKey === 'exchange_rates') return 'exchange-rates';
     if (pageKey === 'gold_price') return 'gold-price';
     if (pageKey === 'expenses') return 'expenses';
@@ -142,8 +139,12 @@ function route() {
     localStorage.setItem('wf_last_route', hash);
 
     // Highlight active nav item
-    document.querySelectorAll('.nav-item').forEach(el =>
-        el.classList.toggle('active', el.dataset.route === hash));
+    document.querySelectorAll('.nav-item').forEach(el => {
+        const routeKey = el.dataset.route;
+        const isActive = routeKey === hash ||
+            ((hash.startsWith('employment') || hash.startsWith('salary')) && routeKey === 'employment');
+        el.classList.toggle('active', isActive);
+    });
 
     const addBtn = document.getElementById('addEntryBtn');
     const bc     = document.getElementById('breadcrumb');
@@ -159,10 +160,16 @@ function route() {
         if (bc) { bc.removeAttribute('data-i18n'); bc.textContent = t('welcome_page_nav', 'Welcome'); }
         renderWelcomePage();
 
-    } else if (hash.startsWith('salary-')) {
+    } else if (hash === 'employment' || hash === 'salary' || hash.startsWith('employment-') || hash.startsWith('salary-')) {
         if (addBtn) addBtn.style.display = 'inline-flex';
-        if (bc) { bc.setAttribute('data-i18n', 'nav_salary'); bc.textContent = ''; }
-        renderSalaryPage(parseInt(hash.split('-')[1]));
+        if (bc) { bc.setAttribute('data-i18n', 'nav_employment'); bc.textContent = ''; }
+        let cId = null;
+        if (hash.startsWith('employment-')) {
+            cId = parseInt(hash.replace('employment-', ''));
+        } else if (hash.startsWith('salary-')) {
+            cId = parseInt(hash.replace('salary-', ''));
+        }
+        renderEmploymentPage(cId);
 
     } else if (hash.startsWith('settings')) {
         if (addBtn) addBtn.style.display = 'none';

@@ -79,6 +79,7 @@ class DocumentationModel:
             is_admin = s.get('is_admin', False)
             node = DocNode(stable_key, title, purpose, navigation, steps, s_path, is_admin)
             node.route = route
+            node.is_modal = bool(modal)
             
             if route not in routes_map:
                 routes_map[route] = { 'node': DocNode(route, navigation[0], "", [navigation[0]], [], None, is_admin), 'tabs': {} }

@@ -156,10 +156,12 @@ class DocumentationGenerator:
             if prefix == "":
                 n.siblings = []
             else:
-                n.siblings = [sn.title for sn in sibling_nodes if sn != n]
+                n.siblings = [sn.title for sn in sibling_nodes if sn != n and not getattr(sn, 'is_modal', False)]
                 
-            if n.children:
-                n.siblings = [c.title for c in n.children]
+            if n.children and not getattr(n, 'is_modal', False):
+                tab_children = [c.title for c in n.children if not getattr(c, 'is_modal', False)]
+                if tab_children:
+                    n.siblings = tab_children
                 
             flat.append(n)
             flat.extend(self._flatten_tree(n.children, f"{n.hierarchical_number}.", n.children))

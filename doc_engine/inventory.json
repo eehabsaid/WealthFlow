@@ -19,6 +19,7 @@
     { "name": "AI Financial Advisor", "id": "ai-financial-advisor" }, 
     { "name": "What If Simulator", "id": "what-if-simulator" }
   ]},
+  { "route": "employment", "title": "Employment" },
   { "route": "balance", "title": "Balance", "tabs": [
     { "name": "Overview", "id": "overview" }, 
     { "name": "Accounts", "id": "accounts", "nested_navigation": [

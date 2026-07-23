@@ -3,11 +3,6 @@
 function renderSidebar() {
     const sidebar = document.getElementById('sidebar');
 
-    const companyItems = _companies.map(c => `
-        <button class="nav-item" data-route="salary-${c.id}" onclick="navigate('salary-${c.id}')">
-            <span class="nav-dot" style="background:${c.color_hex}"></span>
-            <span>${c.display_name}</span>
-        </button>`).join('');
 
     const canSalary = canAccessAny(['salary']);
     const canDashboard = canAccessAny(['dashboard']);
@@ -51,20 +46,12 @@ function renderSidebar() {
                 <span data-i18n="nav_financial_advisor">Financial Advisor</span>
             </button>` : ''}
 
-            <!-- Salary section -->
+            <!-- Employment navigation item -->
             ${!showWelcomeOnly && canSalary ? `
-            <div class="nav-section-header" onclick="toggleSection(this)"
-                 style="cursor:pointer;padding:10px;display:flex;justify-content:space-between">
-                <span data-i18n="nav_salary">Salary</span>
-                <i class="bi bi-chevron-down chevron-icon"></i>
-            </div>
-            <div class="nav-section-content">
-                ${companyItems}
-                <button class="nav-item" onclick="navigate('all-companies')">
-                    <i class="bi bi-building"></i>
-                    <span data-i18n="nav_all_companies">All Companies</span>
-                </button>
-            </div>` : ''}
+            <button class="nav-item" data-route="employment" onclick="navigate('employment')">
+                <i class="bi bi-briefcase"></i>
+                <span data-i18n="nav_employment">Employment</span>
+            </button>` : ''}
 
             ${!showWelcomeOnly ? '<div style="border-top:1px solid var(--border-color);margin:10px 0"></div>' : ''}
 
