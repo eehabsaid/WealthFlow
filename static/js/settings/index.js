@@ -62,7 +62,7 @@ async function renderSettings(route) {
             <div><div class="page-title" data-i18n="${activeTabObj.i18n}">${activeTabLabel}</div></div>
         </div>
         <div class="wf-tabs-shell">
-          <div class="wf-tabs-row" id="settingsTabsBar">
+          <div class="wf-tabs-row" id="settingsTabsBar" role="tablist">
               ${tabBar}
           </div>
         </div>

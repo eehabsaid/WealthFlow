@@ -16,6 +16,16 @@ function translate(key) {
 // THEME TOGGLE
 // ════════════════════════════════════════════════════════════════════════════
 
+function renderTabsShell(containerId, tabButtonsHtml) {
+    return `
+        <div class="wf-tabs-shell">
+            <div class="wf-tabs-row" id="${containerId}" role="tablist">
+                ${tabButtonsHtml}
+            </div>
+        </div>
+    `;
+}
+
 function initTabsWithMoreMenu(options = {}) {
     const containerId = options.containerId;
     if (!containerId) return;
@@ -24,7 +34,7 @@ function initTabsWithMoreMenu(options = {}) {
     if (!tablist) return;
 
     const visibleCount = Number.isInteger(options.visibleCount) ? options.visibleCount : 4;
-    const tabSelector = options.tabSelector || '.wf-tab, .settings-tab';
+    const tabSelector = options.tabSelector || '.wf-tab, .settings-tab, .financial-advisor-tab';
     const activeClass = options.activeClass || 'active';
 
     const originalTabs = Array.from(tablist.querySelectorAll(tabSelector)).filter((el) => {
@@ -67,7 +77,7 @@ function initTabsWithMoreMenu(options = {}) {
     moreBtn.setAttribute('aria-haspopup', 'true');
     moreBtn.setAttribute('aria-expanded', 'false');
     moreBtn.innerHTML = `
-        <span>${options.moreLabel || t('financial_advisor_tab_more', 'More')}</span>
+        <span>${options.moreLabel || (typeof t === 'function' ? t('financial_advisor_tab_more', 'More') : 'More')}</span>
         <i class="bi bi-chevron-down wf-more-icon"></i>
     `;
 
@@ -148,6 +158,10 @@ function initTabsWithMoreMenu(options = {}) {
         if (moreWrap.classList.contains('open')) {
             positionMoreMenu();
         }
+    }, { signal });
+
+    tablist.addEventListener('shown.bs.tab', () => {
+        window.setTimeout(syncMoreActiveState, 0);
     }, { signal });
 
     moreMenu.querySelectorAll('button').forEach((menuItem) => {

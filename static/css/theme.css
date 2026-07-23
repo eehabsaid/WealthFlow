@@ -20,28 +20,6 @@
   border-color: #e2e8f0;
 }
 
-[data-theme="light"] .financial-advisor-tab,
-[data-theme="light"] .financial-advisor-dropdown-item {
-  color: #64748b;
-}
-
-[data-theme="light"] .financial-advisor-tab:hover,
-[data-theme="light"] .financial-advisor-dropdown-item:hover {
-  color: #334155;
-  background: rgba(100, 116, 139, 0.08);
-}
-
-[data-theme="light"] .financial-advisor-tab.active,
-[data-theme="light"] .financial-advisor-dropdown-item.active {
-  color: #0ea5e9;
-  border-bottom-color: #0ea5e9;
-}
-
-[data-theme="light"] .financial-advisor-more-menu {
-  background: #ffffff;
-  border-color: #e2e8f0;
-}
-
 [data-theme="light"] .portfolio-card {
   background: linear-gradient(160deg, rgba(59, 130, 246, 0.06), rgba(255, 255, 255, 0.96));
   border-color: #d8e4ff;

@@ -18,19 +18,21 @@ function renderFixedAssets(activeTab = "assets") {
             <h3 class="m-0 font-weight-bold fixed-assets-heading" data-i18n="${activeKey}">${t(activeKey, activeLabel)}</h3>
             <div id="fixedAssetsHeaderAction"></div>
         </div>
-        <div class="settings-tabs-container" style="border-bottom:1px solid var(--border-color);margin-bottom:20px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap;">
-            <button class="settings-tab ${fixedAssetsState.activeTab === "assets" ? "active" : ""}" onclick="switchFixedAssetsTab('assets')">
-                <span class="fixed-assets-tab-title" data-i18n="fixed_assets_tab_assets">Assets</span>
-            </button>
-            <button class="settings-tab ${fixedAssetsState.activeTab === "dashboard" ? "active" : ""}" onclick="switchFixedAssetsTab('dashboard')">
-                <span class="fixed-assets-tab-title" data-i18n="dashboard">Dashboard</span>
-            </button>
-            <button class="settings-tab ${fixedAssetsState.activeTab === "analytics" ? "active" : ""}" onclick="switchFixedAssetsTab('analytics')">
-                <span class="fixed-assets-tab-title" data-i18n="fixed_assets_tab_analytics">Analytics</span>
-            </button>
-            <button class="settings-tab ${fixedAssetsState.activeTab === "reports" ? "active" : ""}" onclick="switchFixedAssetsTab('reports')">
-                <span class="fixed-assets-tab-title" data-i18n="nav_reports">Reports</span>
-            </button>
+        <div class="wf-tabs-shell">
+            <div class="wf-tabs-row" id="fixedAssetsTabsBar" role="tablist">
+                <button class="wf-tab ${fixedAssetsState.activeTab === "assets" ? "active" : ""}" onclick="switchFixedAssetsTab('assets')" data-i18n="fixed_assets_tab_assets">
+                    Assets
+                </button>
+                <button class="wf-tab ${fixedAssetsState.activeTab === "dashboard" ? "active" : ""}" onclick="switchFixedAssetsTab('dashboard')" data-i18n="dashboard">
+                    Dashboard
+                </button>
+                <button class="wf-tab ${fixedAssetsState.activeTab === "analytics" ? "active" : ""}" onclick="switchFixedAssetsTab('analytics')" data-i18n="fixed_assets_tab_analytics">
+                    Analytics
+                </button>
+                <button class="wf-tab ${fixedAssetsState.activeTab === "reports" ? "active" : ""}" onclick="switchFixedAssetsTab('reports')" data-i18n="nav_reports">
+                    Reports
+                </button>
+            </div>
         </div>
         <div id="fixedAssetsContainer"></div>
     `;
@@ -38,6 +40,14 @@ function renderFixedAssets(activeTab = "assets") {
   renderFixedAssetsHeaderAction();
   renderActiveFixedAssetsTab();
   applyTranslations();
+
+  if (typeof window.initTabsWithMoreMenu === 'function') {
+      window.initTabsWithMoreMenu({
+          containerId: 'fixedAssetsTabsBar',
+          visibleCount: 4,
+          moreLabel: typeof t === 'function' ? t('financial_advisor_tab_more', 'More') : 'More',
+      });
+  }
 
   setTimeout(() => {
     fetchAndRenderFixedAssets();
@@ -62,7 +72,7 @@ function switchFixedAssetsTab(tab) {
 }
 
 function updateFixedAssetsTabButtons() {
-  document.querySelectorAll(".settings-tabs-container .settings-tab").forEach((button) => {
+  document.querySelectorAll("#fixedAssetsTabsBar button").forEach((button) => {
     button.classList.toggle(
       "active",
       button.getAttribute("onclick") === `switchFixedAssetsTab('${fixedAssetsState.activeTab}')`,

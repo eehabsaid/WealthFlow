@@ -481,47 +481,6 @@
   margin-top: 2px;
 }
 
-/* ── Settings tabs ── */
-.settings-tab {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  padding: 8px 18px;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;         /* prevent tab labels from wrapping */
-  flex-shrink: 0;              /* don't squish tabs */
-  transition: all .15s;
-}
-
-.settings-tab.active {
-  color: var(--accent-primary);
-  border-bottom-color: var(--accent-primary);
-}
-
-/* Container for the tabs - enables horizontal scrolling on small screens */
-.settings-tabs-container {
-  display: flex;
-  overflow-x: auto;
-  white-space: nowrap; /* Keeps tabs on one line */
-  padding-bottom: 5px;
-  scrollbar-width: thin; /* Firefox: makes scrollbar thinner */
-}
-
-/* Base style for individual tabs */
-.settings-tab {
-  flex-shrink: 0; /* Prevents tabs from shrinking */
-  padding: 10px 20px;
-  cursor: pointer;
-}
-
-/* Optional: Add spacing between tabs */
-.settings-tab ~ .settings-tab {
-  margin-left: 10px;
-}
-
 /* ── Shared Tabs (Option 2: Visible + More) ── */
 .wf-tabs-shell {
   border-bottom: 1px solid var(--border-color);

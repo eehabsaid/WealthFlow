@@ -50,7 +50,7 @@ async function renderEmploymentPage(companyId = null) {
         const isActive = c.id === activeId;
         const colorDot = c.color_hex ? `<span class="nav-dot" style="background:${c.color_hex};display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>` : '';
         return `
-            <button class="financial-advisor-tab employer-tab ${isActive ? 'active' : ''}"
+            <button class="wf-tab employer-tab ${isActive ? 'active' : ''}"
                     id="tab-employer-${c.id}"
                     data-employer-id="${c.id}"
                     data-route="employment-${c.id}"
@@ -63,7 +63,7 @@ async function renderEmploymentPage(companyId = null) {
     }).join('');
 
     mc.innerHTML = `
-        <div class="page-header d-flex justify-content-between align-items-center mb-3">
+        <div class="page-header mb-3">
             <div>
                 <div class="page-title" id="employmentPageTitle">${initialCompany ? (initialCompany.display_name || initialCompany.name) : ''}</div>
                 <div class="page-subtitle" id="employmentPageSubtitle" style="font-size:13px;color:var(--text-secondary);margin-top:2px">${initialCompany ? (initialCompany.group_name || '') : ''}</div>
@@ -73,11 +73,9 @@ async function renderEmploymentPage(companyId = null) {
             </div>
         </div>
 
-        <div class="financial-advisor-tabs-shell">
-            <div class="financial-advisor-tabs-row" id="employmentTabsRow" role="tablist">
-                <div class="financial-advisor-main-tabs" id="employerTabs">
-                    ${tabsHtml}
-                </div>
+        <div class="wf-tabs-shell">
+            <div class="wf-tabs-row" id="employmentTabsRow" role="tablist">
+                ${tabsHtml}
             </div>
         </div>
 
@@ -87,6 +85,14 @@ async function renderEmploymentPage(companyId = null) {
     `;
 
     applyTranslations();
+
+    if (typeof window.initTabsWithMoreMenu === 'function') {
+        window.initTabsWithMoreMenu({
+            containerId: 'employmentTabsRow',
+            visibleCount: 4,
+            moreLabel: typeof t === 'function' ? t('financial_advisor_tab_more', 'More') : 'More',
+        });
+    }
 
     await loadEmployerTabContent(activeId);
 }
@@ -102,7 +108,7 @@ async function switchEmployerTab(companyId) {
         localStorage.setItem('wf_last_route', newHash);
     }
 
-    document.querySelectorAll('#employerTabs .employer-tab').forEach(btn => {
+    document.querySelectorAll('#employmentTabsRow button[data-employer-id]').forEach(btn => {
         const id = parseInt(btn.getAttribute('data-employer-id'));
         const isActive = id === companyId;
         btn.classList.toggle('active', isActive);

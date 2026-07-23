@@ -13,9 +13,9 @@ function renderFinancialAdvisor() {
   const overflowTabs = FINANCIAL_ADVISOR_TABS.filter((tab) => !FINANCIAL_ADVISOR_PRIMARY_TAB_IDS.includes(tab.id));
   const overflowHasActive = overflowTabs.some((tab) => tab.id === activeTabId);
 
-  const renderTabButton = (tab, cssClass) => `
+  const renderTabButton = (tab) => `
     <button
-      class="${cssClass} ${tab.id === activeTabId ? "active" : ""}"
+      class="wf-tab ${tab.id === activeTabId ? "active" : ""}"
       id="fa-tab-${tab.id}"
       data-bs-toggle="pill"
       data-bs-target="#fa-pane-${tab.id}"
@@ -27,8 +27,7 @@ function renderFinancialAdvisor() {
     ></button>
   `;
 
-  const primaryTabsNav = primaryTabs.map((tab) => renderTabButton(tab, "financial-advisor-tab")).join("");
-  const overflowTabsNav = overflowTabs.map((tab) => renderTabButton(tab, "financial-advisor-dropdown-item")).join("");
+  const tabsNav = FINANCIAL_ADVISOR_TABS.map((tab) => renderTabButton(tab)).join("");
 
   const renderTabPane = (tab) => {
     const paneId = `fa-pane-${tab.id}`;
@@ -117,26 +116,9 @@ function renderFinancialAdvisor() {
 
     <div class="card border-0" style="background:var(--bg-primary); border:1px solid var(--border-color);">
       <div class="card-body" style="padding:16px;">
-        <div class="financial-advisor-tabs-shell">
-          <div class="financial-advisor-tabs-row" id="financialAdvisorTabs" role="tablist">
-            <div class="financial-advisor-main-tabs">
-              ${primaryTabsNav}
-            </div>
-            <div class="financial-advisor-more-wrap ${overflowHasActive ? "active" : ""}" id="financialAdvisorMoreWrap">
-              <button
-                class="financial-advisor-tab financial-advisor-more-toggle ${overflowHasActive ? "active" : ""}"
-                id="financialAdvisorMoreBtn"
-                type="button"
-                aria-haspopup="true"
-                aria-expanded="false"
-              >
-                <span data-i18n="financial_advisor_tab_more"></span>
-                <i class="bi bi-chevron-down financial-advisor-more-icon"></i>
-              </button>
-              <div class="financial-advisor-more-menu" id="financialAdvisorMoreMenu" role="menu">
-                ${overflowTabsNav}
-              </div>
-            </div>
+        <div class="wf-tabs-shell">
+          <div class="wf-tabs-row" id="financialAdvisorTabs" role="tablist">
+            ${tabsNav}
           </div>
         </div>
         <div class="tab-content" id="financialAdvisorTabsContent">
@@ -148,93 +130,15 @@ function renderFinancialAdvisor() {
 
   applyTranslations();
 
+  if (typeof window.initTabsWithMoreMenu === 'function') {
+    window.initTabsWithMoreMenu({
+      containerId: 'financialAdvisorTabs',
+      visibleCount: 4,
+      moreLabel: typeof t === 'function' ? t('financial_advisor_tab_more', 'More') : 'More',
+    });
+  }
+
   const tabsContainer = document.getElementById("financialAdvisorTabs");
-  const moreWrap = document.getElementById("financialAdvisorMoreWrap");
-  const moreBtn = document.getElementById("financialAdvisorMoreBtn");
-  const moreMenu = document.getElementById("financialAdvisorMoreMenu");
-
-  const closeMoreMenu = () => {
-    if (!moreWrap || !moreBtn) return;
-    moreWrap.classList.remove("open");
-    moreBtn.setAttribute("aria-expanded", "false");
-  };
-
-  const positionMoreMenu = () => {
-    if (!moreMenu) return;
-    moreMenu.classList.remove("align-right", "align-left");
-    const rect = moreMenu.getBoundingClientRect();
-    const viewportPadding = 12;
-
-    if (rect.right > (window.innerWidth - viewportPadding)) {
-      moreMenu.classList.add("align-right");
-      return;
-    }
-
-    if (rect.left < viewportPadding) {
-      moreMenu.classList.add("align-left");
-    }
-  };
-
-  const openMoreMenu = () => {
-    if (!moreWrap || !moreBtn) return;
-    moreWrap.classList.add("open");
-    moreBtn.setAttribute("aria-expanded", "true");
-    window.requestAnimationFrame(positionMoreMenu);
-  };
-
-  const syncMoreActiveState = () => {
-    if (!moreWrap || !moreBtn) return;
-    const hasOverflowActive = overflowTabs.some((tab) => {
-      const tabButton = document.getElementById(`fa-tab-${tab.id}`);
-      return tabButton?.classList.contains("active");
-    });
-    moreWrap.classList.toggle("active", hasOverflowActive);
-    moreBtn.classList.toggle("active", hasOverflowActive);
-  };
-
-  if (_financialAdvisorMenuEventsAbortController) {
-    _financialAdvisorMenuEventsAbortController.abort();
-  }
-  _financialAdvisorMenuEventsAbortController = new AbortController();
-  const menuEventsSignal = _financialAdvisorMenuEventsAbortController.signal;
-
-  if (moreBtn && moreWrap && moreMenu) {
-    moreBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      if (moreWrap.classList.contains("open")) {
-        closeMoreMenu();
-      } else {
-        openMoreMenu();
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (!moreWrap.contains(target)) {
-        closeMoreMenu();
-      }
-    }, { signal: menuEventsSignal });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        closeMoreMenu();
-      }
-    }, { signal: menuEventsSignal });
-
-    window.addEventListener("resize", () => {
-      if (moreWrap.classList.contains("open")) {
-        positionMoreMenu();
-      }
-    }, { signal: menuEventsSignal });
-
-    moreMenu.querySelectorAll('[data-bs-toggle="pill"]').forEach((menuTab) => {
-      menuTab.addEventListener("click", () => {
-        closeMoreMenu();
-      });
-    });
-  }
-
   if (tabsContainer) {
     tabsContainer.querySelectorAll('[data-bs-toggle="pill"]').forEach((tabButton) => {
       tabButton.addEventListener("shown.bs.tab", (event) => {
@@ -269,13 +173,9 @@ function renderFinancialAdvisor() {
         } else if (targetSelector === "#fa-pane-opportunity-detection") {
           if (typeof loadOpportunityDetection === "function") loadOpportunityDetection();
         }
-        closeMoreMenu();
-        syncMoreActiveState();
       });
     });
   }
-
-  syncMoreActiveState();
 
   if (activeTabId === "overview") {
     loadOverview();

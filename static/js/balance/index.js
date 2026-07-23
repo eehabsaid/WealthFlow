@@ -221,10 +221,10 @@ async function renderBalance() {
     const saved       = sessionStorage.getItem(BALANCE_ACTIVE_TAB_KEY) || 'overview';
     const activeTabId = BALANCE_TABS.some((tab) => tab.id === saved) ? saved : 'overview';
 
-    // ── 11. Build tab nav buttons (reusing FA CSS classes — no duplication) ──
+    // ── 11. Build tab nav buttons ─────────────────────────────────────────────
     const tabsNav = BALANCE_TABS.map((tab) => `
         <button
-          class="financial-advisor-tab ${tab.id === activeTabId ? 'active' : ''}"
+          class="wf-tab ${tab.id === activeTabId ? 'active' : ''}"
           id="bal-tab-${tab.id}"
           data-bs-toggle="pill"
           data-bs-target="#bal-pane-${tab.id}"
@@ -254,8 +254,8 @@ async function renderBalance() {
         </div>
         <div class="card border-0 balance-page-card" style="background:var(--bg-primary);border:1px solid var(--border-color);">
             <div class="card-body" style="padding:16px;">
-                <div class="financial-advisor-tabs-shell">
-                    <div class="financial-advisor-tabs-row financial-advisor-main-tabs" id="balanceTabs" role="tablist">
+                <div class="wf-tabs-shell">
+                    <div class="wf-tabs-row" id="balanceTabs" role="tablist">
                         ${tabsNav}
                     </div>
                 </div>
@@ -267,6 +267,14 @@ async function renderBalance() {
     `;
 
     applyTranslations();
+
+    if (typeof window.initTabsWithMoreMenu === 'function') {
+        window.initTabsWithMoreMenu({
+            containerId: 'balanceTabs',
+            visibleCount: 4,
+            moreLabel: typeof t === 'function' ? t('financial_advisor_tab_more', 'More') : 'More',
+        });
+    }
 
     // ── 14. Render all tab panes immediately (all data is already in memory) ─
     renderBalanceOverview(tabData);

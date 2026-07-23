@@ -11,6 +11,8 @@
 }
 
 .wf-tab,
+.settings-tab,
+.financial-advisor-tab,
 .wf-dropdown-item {
   background: transparent;
   border: none;
@@ -26,12 +28,16 @@
 }
 
 .wf-tab:hover,
+.settings-tab:hover,
+.financial-advisor-tab:hover,
 .wf-dropdown-item:hover {
   color: #cbd5e1;
   background: rgba(148, 163, 184, 0.1);
 }
 
 .wf-tab.active,
+.settings-tab.active,
+.financial-advisor-tab.active,
 .wf-dropdown-item.active {
   color: #0ea5e9;
   border-bottom-color: #0ea5e9;

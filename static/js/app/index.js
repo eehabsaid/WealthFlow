@@ -94,6 +94,7 @@ window.saveProfile          = saveProfile;
 window.toggleTheme          = toggleTheme;
 window.applyStoredTheme     = applyStoredTheme;
 window.initTabsWithMoreMenu = initTabsWithMoreMenu;
+window.renderTabsShell      = renderTabsShell;
 window.renderFixedAssets    = window.renderFixedAssets;
 window.refreshCompanies     = async () => {
     const r  = await fetch('/api/companies/');

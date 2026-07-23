@@ -54,7 +54,7 @@ async function renderReports() {
     </div>
 
     <div class="wf-tabs-shell mb-4">
-      <div class="wf-tabs-row" id="reportsTabsBar">
+      <div class="wf-tabs-row" id="reportsTabsBar" role="tablist">
         <button class="wf-tab active" id="tabMonthly" onclick="switchReportTab('monthly')" data-i18n="tab_monthly">${monthlyText}</button>
         <button class="wf-tab" id="tabYearly"  onclick="switchReportTab('yearly')" data-i18n="tab_yearly">${yearlyText}</button>
         <button class="wf-tab" id="tabCustom"  onclick="switchReportTab('custom')" data-i18n="tab_custom_range">${customText}</button>

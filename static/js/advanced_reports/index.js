@@ -33,7 +33,7 @@ async function renderAdvancedReports(tab) {
             </div>
         </div>
         <div class="wf-tabs-shell">
-          <div class="wf-tabs-row" id="advancedReportsTabsBar">
+          <div class="wf-tabs-row" id="advancedReportsTabsBar" role="tablist">
               ${tabBar}
           </div>
         </div>
