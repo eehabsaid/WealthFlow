@@ -16,6 +16,51 @@ from doc_engine.services.documentation_metadata_service import DocumentationMeta
 
 logger = logging.getLogger(__name__)
 
+# Local vendored copies of the app's external CDN dependencies
+# (bootstrap.bundle.min.js, chart.umd.js, leaflet.js/css, bootstrap CSS/icons).
+# Some server/CI/sandboxed network environments block or cannot reach
+# cdn.jsdelivr.net, cdnjs.cloudflare.com, or unpkg.com (confirmed: this
+# occurs in at least one real environment used to run this capture engine,
+# manifesting as "bootstrap is not defined" / "Chart is not a constructor"
+# and cascading into modal-open failures across many pages). Serving these
+# exact, pinned-version files locally via request interception makes capture
+# reliable regardless of the network's CDN reachability, without changing
+# what the app itself serves to real users.
+_VENDOR_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "vendor", "assets")
+
+_CDN_LOCAL_MAP = {
+    "bootstrap.bundle.min.js": "bootstrap.bundle.min.js",
+    "bootstrap.min.css": "bootstrap.min.css",
+    "bootstrap-icons.css": "bootstrap-icons.css",
+    "bootstrap-icons.woff2": "fonts/bootstrap-icons.woff2",
+    "bootstrap-icons.woff": "fonts/bootstrap-icons.woff",
+    "chart.umd.min.js": "chart.umd.js",
+    "chart.umd.js": "chart.umd.js",
+    "leaflet.js": "leaflet.js",
+    "leaflet.css": "leaflet.css",
+}
+
+
+def _install_cdn_fallback(page: Page) -> None:
+    """Intercepts known CDN requests and serves a local vendored copy if the
+    real network request would otherwise be blocked/unreachable. Falls back
+    to the real network for anything not recognized, so this only changes
+    behavior for the specific libraries known to sometimes fail here."""
+    def handle_route(route):
+        url = route.request.url
+        for cdn_name, local_name in _CDN_LOCAL_MAP.items():
+            if cdn_name in url:
+                local_path = os.path.join(_VENDOR_DIR, local_name)
+                if os.path.isfile(local_path):
+                    route.fulfill(path=local_path)
+                    return
+        route.continue_()
+
+    page.route("https://cdn.jsdelivr.net/**", handle_route)
+    page.route("https://cdnjs.cloudflare.com/**", handle_route)
+    page.route("https://unpkg.com/**", handle_route)
+
+
 def log(msg: str) -> None:
     """Logs message with format matching capture_pages.js time format."""
     now_str = datetime.now().strftime("%H:%M:%S")
@@ -757,9 +802,25 @@ class PythonPlaywrightCaptureEngine:
                 context_opts.pop("viewport", None)
                 context_opts["no_viewport"] = True
 
-            browser = p.chromium.launch(headless=False, args=launch_args)
+            # headless=False requires a real display (X server). On any
+            # server/CI/sandboxed environment without one, Playwright hangs
+            # or crashes with "Missing X server or $DISPLAY". Default to
+            # headless so this runs reliably everywhere; allow opting into
+            # a visible browser window only when explicitly requested for
+            # local debugging via WF_DOC_ENGINE_HEADED=1.
+            run_headed = os.environ.get("WF_DOC_ENGINE_HEADED", "").strip() == "1"
+            browser = p.chromium.launch(headless=not run_headed, args=launch_args)
             context = browser.new_context(**context_opts)
             page = context.new_page()
+            _install_cdn_fallback(page)
+
+            # Diagnostic: surface real browser-side JS errors/warnings during
+            # capture. Modal-open failures were previously silent - this
+            # makes the actual root cause visible in the log instead of just
+            # "Modal did not successfully open."
+            page.on("console", lambda msg: log(f"     [browser:{msg.type}] {msg.text}") if msg.type in ("error", "warning") else None)
+            page.on("pageerror", lambda exc: log(f"     [browser:pageerror] {exc}"))
+
 
 
             init_js = f"""
