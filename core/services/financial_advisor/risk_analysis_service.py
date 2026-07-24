@@ -42,10 +42,10 @@ class RiskAnalysisService:
         "goal": 0.15,
     }
 
-    def __init__(self, today: date | None = None):
+    def __init__(self, today: date | None = None, net_worth_service: NetWorthService | None = None):
         self.today = today or date.today()
-        self._net_worth_service = NetWorthService()
-        self._optimizer_service = PortfolioOptimizerService(today=self.today)
+        self._net_worth_service = net_worth_service or NetWorthService()
+        self._optimizer_service = PortfolioOptimizerService(today=self.today, net_worth_service=self._net_worth_service)
         self._goal_service = GoalPlanningService(today=self.today)
 
     def _determine_level(self, score: float) -> Tuple[str, str]:

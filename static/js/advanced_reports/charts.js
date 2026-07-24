@@ -4,19 +4,25 @@ function _drawBarChart(canvasId, labels, datasets) {
     setTimeout(() => {
         const ctx = document.getElementById(canvasId);
         if (!ctx || !window.Chart) return;
-        if (ctx._chart) ctx._chart.destroy();
+        const formattedDatasets = datasets.map(ds => ({
+            label: ds.label,
+            data: ds.data,
+            backgroundColor: ds.color + 'cc',
+            borderColor: ds.color,
+            borderRadius: 4,
+            borderWidth: 1,
+        }));
+        if (ctx._chart) {
+            ctx._chart.data.labels = labels;
+            ctx._chart.data.datasets = formattedDatasets;
+            ctx._chart.update();
+            return;
+        }
         ctx._chart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels,
-                datasets: datasets.map(ds => ({
-                    label: ds.label,
-                    data: ds.data,
-                    backgroundColor: ds.color + 'cc',
-                    borderColor: ds.color,
-                    borderRadius: 4,
-                    borderWidth: 1,
-                })),
+                datasets: formattedDatasets,
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
@@ -34,8 +40,14 @@ function _drawPieChart(canvasId, labels, data) {
     setTimeout(() => {
         const ctx = document.getElementById(canvasId);
         if (!ctx || !window.Chart) return;
-        if (ctx._chart) ctx._chart.destroy();
         const colors = ['#1a6ef5','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899'];
+        if (ctx._chart) {
+            ctx._chart.data.labels = labels;
+            ctx._chart.data.datasets[0].data = data;
+            ctx._chart.data.datasets[0].backgroundColor = colors.slice(0, data.length);
+            ctx._chart.update();
+            return;
+        }
         ctx._chart = new Chart(ctx, {
             type: 'doughnut',
             data: {

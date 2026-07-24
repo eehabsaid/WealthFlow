@@ -49,9 +49,9 @@ class PortfolioOptimizerService:
         "other_assets",
     ]
 
-    def __init__(self, *, today: date | None = None):
+    def __init__(self, *, today: date | None = None, net_worth_service: NetWorthService | None = None):
         self.today = today or date.today()
-        self.net_worth = NetWorthService()
+        self.net_worth = net_worth_service or NetWorthService()
 
     def _allocation_values(self, comp: dict) -> Dict[str, float]:
         values = comp.get("allocation_values", {})

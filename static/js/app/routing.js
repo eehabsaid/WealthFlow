@@ -177,7 +177,8 @@ function route() {
         renderSettings(hash);
     }
 
-    applyTranslations();
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) applyTranslations(mainContent);
 }
 
 window.route = route;

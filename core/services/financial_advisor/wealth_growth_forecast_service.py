@@ -18,10 +18,10 @@ def _to_float(value) -> float:
 class WealthGrowthForecastService:
     MONTHS_AHEAD = 12
 
-    def __init__(self, today: date | None = None):
+    def __init__(self, today: date | None = None, net_worth_service: NetWorthService | None = None):
         self.today = today or date.today()
-        self._net_worth_service = NetWorthService()
-        self._cash_flow_service = CashFlowForecastService(today=self.today)
+        self._net_worth_service = net_worth_service or NetWorthService()
+        self._cash_flow_service = CashFlowForecastService(today=self.today, net_worth_service=self._net_worth_service)
 
     def _add_months(self, base_date: date, months: int) -> date:
         month_index = base_date.month - 1 + months
@@ -63,9 +63,14 @@ class WealthGrowthForecastService:
             "total_monthly_income": _to_float(forecast["total_monthly_income"]),
         }
 
+    def _get_active_certs(self):
+        if not hasattr(self, "_cached_certs"):
+            self._cached_certs = list(BankCertificate.objects.select_related("currency").all())
+        return self._cached_certs
+
     def _active_certificate_principal_by_month(self, month_end: date) -> float:
         total = 0.0
-        certs = BankCertificate.objects.select_related("currency").all()
+        certs = self._get_active_certs()
         for cert in certs:
             if not _is_certificate_active(cert):
                 continue

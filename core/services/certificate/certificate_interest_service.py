@@ -48,15 +48,38 @@ class CertificateInterestService:
                 .all()
             )
 
+            # Pre-load target cash balance entries in 1 query
+            cash_entries = list(
+                BalanceEntry.objects.select_for_update()
+                .filter(balance_type=BalanceEntry.BalanceType.CASH)
+                .order_by("id")
+            )
+            target_entry_map = {}
+            for entry in cash_entries:
+                key = (entry.bank_id, entry.currency_id)
+                if key not in target_entry_map:
+                    target_entry_map[key] = entry
+
+            # Pre-load max posting date per certificate in 1 query
+            history_lasts = dict(
+                BankCertificateInterestHistory.objects.filter(posting_date__lte=current_date)
+                .values("certificate_id")
+                .annotate(last=Max("posting_date"))
+                .values_list("certificate_id", "last")
+            )
+
             for certificate in certificates:
                 if not self._is_eligible(certificate, current_date):
                     continue
 
-                due_dates = self._get_due_dates(certificate, current_date)
+                history_last = history_lasts.get(certificate.id)
+                due_dates = self._get_due_dates(certificate, current_date, history_last=history_last)
                 if not due_dates:
                     continue
 
-                target_entry = self._get_target_balance_entry(certificate)
+                target_entry = target_entry_map.get((certificate.bank_id, certificate.currency_id))
+                if not target_entry:
+                    target_entry = self._get_target_balance_entry(certificate)
                 if not target_entry:
                     raise ValueError("matching_balance_entry_not_found")
 
@@ -108,38 +131,47 @@ class CertificateInterestService:
             return False
         if today > certificate.expiry_date:
             return False
-        return self._frequency_interval_months(certificate.frequency) is not None
+        return True
 
     def _frequency_interval_months(self, frequency_value):
         normalized = str(frequency_value or "").strip().lower()
         return self.FREQUENCY_MONTHS.get(normalized)
 
-    def _get_due_dates(self, certificate, today):
-        interval_months = self._frequency_interval_months(certificate.frequency)
-        if not interval_months or not certificate.issue_date:
+    def _get_due_dates(self, certificate, today, history_last=None):
+        interval_months = self.FREQUENCY_MONTHS.get(
+            str(certificate.frequency or "").strip().lower()
+        )
+        if not interval_months:
             return []
 
-        effective_last_posted = self._effective_last_posted_date(certificate, today)
+        last_posted = self._effective_last_posted_date(certificate, today, history_last=history_last)
         due_dates = []
         period_index = 1
-        next_due_date = self._scheduled_due_date(certificate.issue_date, interval_months, period_index)
 
-        while next_due_date <= today and next_due_date <= certificate.expiry_date:
-            if effective_last_posted is None or next_due_date > effective_last_posted:
-                due_dates.append(next_due_date)
+        while True:
+            due_date = self._scheduled_due_date(
+                certificate.issue_date, interval_months, period_index
+            )
+
+            if due_date > today or due_date > certificate.expiry_date:
+                break
+
+            if last_posted is None or due_date > last_posted:
+                due_dates.append(due_date)
+
             period_index += 1
-            next_due_date = self._scheduled_due_date(certificate.issue_date, interval_months, period_index)
 
         return due_dates
 
-    def _effective_last_posted_date(self, certificate, today):
-        history_last = (
-            BankCertificateInterestHistory.objects.filter(
-                certificate=certificate,
-                posting_date__lte=today,
-            ).aggregate(last=Max("posting_date"))
-            .get("last")
-        )
+    def _effective_last_posted_date(self, certificate, today, history_last=None):
+        if history_last is None:
+            history_last = (
+                BankCertificateInterestHistory.objects.filter(
+                    certificate=certificate,
+                    posting_date__lte=today,
+                ).aggregate(last=Max("posting_date"))
+                .get("last")
+            )
 
         if certificate.last_interest_posted_date and history_last:
             return max(certificate.last_interest_posted_date, history_last)

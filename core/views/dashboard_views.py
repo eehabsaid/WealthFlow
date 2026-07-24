@@ -90,14 +90,13 @@ class DashboardSummaryView(View):
 
         # Active reminders (due today)
         active_reminders = []
-        for rule in ReminderRule.objects.filter(
-            is_active=True, rule_type="cert_maturity"
-        ):
-            logs = ReminderLog.objects.filter(rule=rule, fired_on=today).values(
-                "message", "related_id", "related_model"
+        rules = list(ReminderRule.objects.filter(is_active=True, rule_type="cert_maturity"))
+        if rules:
+            logs = ReminderLog.objects.filter(rule__in=rules, fired_on=today).select_related("rule").values(
+                "message", "rule__name"
             )
             for l in logs:
-                active_reminders.append({"rule": rule.name, "message": l["message"]})
+                active_reminders.append({"rule": l["rule__name"], "message": l["message"]})
 
         # Balance
         bal_entries = BalanceEntry.objects.select_related("currency").all()

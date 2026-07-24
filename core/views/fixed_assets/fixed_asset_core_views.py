@@ -46,7 +46,29 @@ def _clear_non_selected_asset_details(asset):
 class FixedAssetListView(View):
 
     def get(self, request):
-        qs = FixedAsset.objects.all().prefetch_related("acquisition_costs").order_by("name")
+        qs = (
+            FixedAsset.objects.select_related(
+                "real_estate",
+                "vehicle_details",
+                "gold_details",
+                "other_asset_details",
+                "sale",
+                "mortgage",
+                "rental",
+            )
+            .prefetch_related(
+                "acquisition_costs",
+                "renovations",
+                "maintenance",
+                "insurance",
+                "furniture",
+                "valuation_history",
+                "purchase_payments",
+                "purchase_payments__currency",
+            )
+            .all()
+            .order_by("name")
+        )
 
         asset_type = request.GET.get("asset_type")
         status = request.GET.get("status")

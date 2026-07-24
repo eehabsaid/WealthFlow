@@ -44,7 +44,7 @@ class ForecastEvent:
 class CashFlowForecastService:
     CHECKPOINT_DAYS = [30, 90, 180, 365]
 
-    def __init__(self, today: date | None = None):
+    def __init__(self, today: date | None = None, net_worth_service: NetWorthService | None = None):
         self.today = today or date.today()
         self.horizon_date = self.today + timedelta(days=365)
         self.timeline_end_date = date(
@@ -52,7 +52,7 @@ class CashFlowForecastService:
             self.horizon_date.month,
             calendar.monthrange(self.horizon_date.year, self.horizon_date.month)[1],
         )
-        self._net_worth_service = NetWorthService()
+        self._net_worth_service = net_worth_service or NetWorthService()
         self._financial_sync_service = FinancialSyncService()
         self._interest_service = CertificateInterestService()
         self._salary_rule = None
@@ -182,6 +182,8 @@ class CashFlowForecastService:
             currency_code = str(getattr(cert.currency, "code", "EGP") or "EGP").upper()
             principal_egp = self._convert_egp(_to_float(cert.amount), currency_code, rates)
             interest_period_egp = self._convert_egp(_to_float(cert.interest_value), currency_code, rates)
+            if interest_period_egp <= 0:
+                continue
 
             maturity_interest_egp = 0.0
             if interval:

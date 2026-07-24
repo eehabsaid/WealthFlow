@@ -32,9 +32,9 @@ class GoalCalc:
     linked_asset_name: str
 
 class GoalPlanningService:
-    def __init__(self, today: date | None = None):
+    def __init__(self, today: date | None = None, net_worth_service: NetWorthService | None = None):
         self.today = today or date.today()
-        self._net_worth_service = NetWorthService()
+        self._net_worth_service = net_worth_service or NetWorthService()
 
     def _rates(self) -> Dict[str, float]:
         comp = self._net_worth_service.portfolio_components()

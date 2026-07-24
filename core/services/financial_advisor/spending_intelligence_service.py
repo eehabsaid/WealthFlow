@@ -11,9 +11,9 @@ from core.services.balance.net_worth_service import NetWorthService
 
 
 class SpendingIntelligenceService:
-    def __init__(self, today: date | None = None):
+    def __init__(self, today: date | None = None, net_worth_service: NetWorthService | None = None):
         self.today = today or date.today()
-        self.net_worth_service = NetWorthService()
+        self.net_worth_service = net_worth_service or NetWorthService()
 
     def _to_float(self, value) -> float:
         try:

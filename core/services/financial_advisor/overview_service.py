@@ -11,13 +11,13 @@ from core.services.financial_advisor.goal_planning_service import GoalPlanningSe
 
 
 class OverviewService:
-    def __init__(self, today: datetime.date | None = None):
+    def __init__(self, today: datetime.date | None = None, net_worth_service: NetWorthService | None = None):
         self.today = today or datetime.date.today()
-        self.net_worth_service = NetWorthService()
-        self.cash_flow_service = CashFlowForecastService(today=self.today)
-        self.wealth_growth_service = WealthGrowthForecastService(today=self.today)
-        self.portfolio_service = PortfolioOptimizerService(today=self.today)
-        self.goal_service = GoalPlanningService(today=self.today)
+        self.net_worth_service = net_worth_service or NetWorthService()
+        self.cash_flow_service = CashFlowForecastService(today=self.today, net_worth_service=self.net_worth_service)
+        self.wealth_growth_service = WealthGrowthForecastService(today=self.today, net_worth_service=self.net_worth_service)
+        self.portfolio_service = PortfolioOptimizerService(today=self.today, net_worth_service=self.net_worth_service)
+        self.goal_service = GoalPlanningService(today=self.today, net_worth_service=self.net_worth_service)
 
     def payload(self) -> dict:
         # 1. Gather all sub-service payloads

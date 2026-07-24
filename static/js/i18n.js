@@ -52,8 +52,9 @@ async function loadLanguage(code) {
 // APPLY TRANSLATIONS
 // ════════════════════════════════════════════════════════════════════════════
 
-function applyTranslations() {
+function applyTranslations(container = document) {
     if (!_t) return;
+    const root = container || document;
     const lang = document.documentElement.lang || 'en';
 
     const formatTemplateValue = (name, value) => {
@@ -95,7 +96,7 @@ function applyTranslations() {
     };
 
     // 1. Static text — [data-i18n]
-    document.querySelectorAll('[data-i18n]').forEach(el => {
+    root.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
 
         // Ignore missing or empty translations
@@ -108,7 +109,7 @@ function applyTranslations() {
     });
 
     // 2. Dynamic keys with template placeholders — [data-i18n-key]
-    document.querySelectorAll('[data-i18n-key]').forEach(el => {
+    root.querySelectorAll('[data-i18n-key]').forEach(el => {
         const key = el.getAttribute('data-i18n-key');
         if (!key || !_t[key]) return;
 
@@ -134,7 +135,7 @@ function applyTranslations() {
     });
 
     // 2.5 Dynamic keys with template placeholders (HTML allowed) — [data-i18n-html-key]
-    document.querySelectorAll('[data-i18n-html-key]').forEach(el => {
+    root.querySelectorAll('[data-i18n-html-key]').forEach(el => {
         const key = el.getAttribute('data-i18n-html-key');
         if (!key || !_t[key]) return;
 
@@ -148,7 +149,7 @@ function applyTranslations() {
     });
 
     // 3. Prefix-based keys — [data-i18n-prefix] + [data-i18n-value]
-    document.querySelectorAll('[data-i18n-prefix]').forEach(el => {
+    root.querySelectorAll('[data-i18n-prefix]').forEach(el => {
         const prefix = el.getAttribute('data-i18n-prefix');
         const raw    = el.getAttribute('data-i18n-value');
         if (!raw) { el.textContent = '—'; return; }
@@ -158,18 +159,18 @@ function applyTranslations() {
     });
 
     // 4. Attribute translators — placeholder and title
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    root.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
         if (_t[key]) el.setAttribute('placeholder', _t[key]);
     });
 
-    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    root.querySelectorAll('[data-i18n-title]').forEach(el => {
         const key = el.getAttribute('data-i18n-title');
         if (_t[key]) el.setAttribute('title', _t[key]);
     });
 
     // 5. Date formatting — .local-date-field[data-expiry]
-    document.querySelectorAll('.local-date-field').forEach(td => {
+    root.querySelectorAll('.local-date-field').forEach(td => {
         const raw = td.getAttribute('data-expiry');
         if (!raw) return;
         const d = new Date(raw);
@@ -181,19 +182,19 @@ function applyTranslations() {
     });
 
     // 6. Number formatter classes
-    document.querySelectorAll('.num-fmt').forEach(el => {
+    root.querySelectorAll('.num-fmt').forEach(el => {
         const v = el.getAttribute('data-value');
         if (v !== null) el.innerText = fmt(v);
     });
-    document.querySelectorAll('.num-fmtpresent').forEach(el => {
+    root.querySelectorAll('.num-fmtpresent').forEach(el => {
         const v = el.getAttribute('data-value');
         if (v !== null) el.innerText = fmtpresent(v);
     });
-    document.querySelectorAll('.num-fmtint').forEach(el => {
+    root.querySelectorAll('.num-fmtint').forEach(el => {
         const v = el.getAttribute('data-value');
         if (v !== null) el.innerText = fmtInt(v); 
     });
-    document.querySelectorAll('.num-fmtRate').forEach(el => {
+    root.querySelectorAll('.num-fmtRate').forEach(el => {
         const v = el.getAttribute('data-value');
         if (v !== null) el.innerText = fmtRate(v); 
     });

@@ -57,17 +57,8 @@ class NetWorthService:
     _shared_cache: Dict[str, Any] = {}
     _shared_cache_time: float = 0.0
 
-    def __init__(self):
-        import sys
-        if "test" in sys.argv:
-            self._cache = {}
-        else:
-            import time
-            now = time.time()
-            if now - NetWorthService._shared_cache_time > 3.0:
-                NetWorthService._shared_cache.clear()
-                NetWorthService._shared_cache_time = now
-            self._cache = NetWorthService._shared_cache
+    def __init__(self, cache: Dict[str, Any] | None = None):
+        self._cache = cache if cache is not None else {}
 
     def _cached(self, key: str, producer: Callable[[], T]) -> T:
         if key not in self._cache:
