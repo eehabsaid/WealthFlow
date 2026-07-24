@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Configurable browser visibility mode:
 # 1 = Environment-controlled mode (Default: headless unless WF_DOC_ENGINE_HEADED=1)
 # 0 = Force old behavior (always headed/visible browser window, headless=False)
-USE_ENV_HEADLESS_CONFIG = 1
+USE_ENV_HEADLESS_CONFIG = 0
 
 # Local vendored copies of the app's external CDN dependencies
 # (bootstrap.bundle.min.js, chart.umd.js, leaflet.js/css, bootstrap CSS/icons).
@@ -193,6 +193,37 @@ class PythonPlaywrightCaptureEngine:
         self.manifest_service.record_screenshot(self.global_context, filename)
         log(f"[INFO] Captured: {filename}.png")
 
+    def ensure_modals_closed(self, page: Page) -> None:
+        """Forcefully clears return context, hides all visible modals, and removes lingering backdrops."""
+        try:
+            page.evaluate("""() => {
+                if (typeof clearGoldPurityReturnContext === 'function') {
+                    clearGoldPurityReturnContext();
+                }
+                if (typeof goldPurityReturnContext !== 'undefined') {
+                    goldPurityReturnContext = null;
+                }
+                const openModals = document.querySelectorAll('.modal.show, .modal[style*="display: block"]');
+                openModals.forEach(m => {
+                    if (window.bootstrap && window.bootstrap.Modal) {
+                        const inst = window.bootstrap.Modal.getInstance(m);
+                        if (inst) {
+                            try { inst.hide(); } catch(e) {}
+                        }
+                    }
+                    m.classList.remove('show');
+                    m.style.display = 'none';
+                    m.setAttribute('aria-hidden', 'true');
+                });
+                document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('padding-right');
+                document.body.style.removeProperty('overflow');
+            }""")
+            page.wait_for_selector('.modal.show', state='hidden', timeout=1000)
+        except Exception:
+            pass
+
     def capture_modal_tabs(self, page: Page, file_prefix: str, close_after: bool = True) -> None:
         is_modal_visible = False
         try:
@@ -323,15 +354,7 @@ class PythonPlaywrightCaptureEngine:
 
                 if view_clicked:
                     self.capture_modal_tabs(page, f"fixed_assets_assets_view_{sanitize_filename(asset_type.lower())}", close_after=False)
-                    page.evaluate("""() => {
-                        if (typeof clearGoldPurityReturnContext === 'function') clearGoldPurityReturnContext();
-                        const closeBtn = document.querySelector('.modal.show .btn-close');
-                        if (closeBtn) closeBtn.click();
-                    }""")
-                    try:
-                        page.wait_for_selector('.modal.show', state='hidden', timeout=2000)
-                    except Exception:
-                        pass
+                    self.ensure_modals_closed(page)
 
                 log(f"     -> Selecting Edit asset type: {asset_type}")
                 edit_clicked = page.evaluate("""(assetInfo) => {
@@ -351,15 +374,7 @@ class PythonPlaywrightCaptureEngine:
 
                 if edit_clicked:
                     self.capture_modal_tabs(page, f"fixed_assets_assets_edit_{sanitize_filename(asset_type.lower())}", close_after=False)
-                    page.evaluate("""() => {
-                        if (typeof clearGoldPurityReturnContext === 'function') clearGoldPurityReturnContext();
-                        const closeBtn = document.querySelector('.modal.show .btn-close');
-                        if (closeBtn) closeBtn.click();
-                    }""")
-                    try:
-                        page.wait_for_selector('.modal.show', state='hidden', timeout=2000)
-                    except Exception:
-                        pass
+                    self.ensure_modals_closed(page)
 
         log('  -> Processing Add New Asset modal combinations...')
         try:
@@ -405,24 +420,16 @@ class PythonPlaywrightCaptureEngine:
                         type_filename = sanitize_filename(t_info['value'])
                         self.capture_modal_tabs(page, f"{route_prefix}_add_{type_filename}", close_after=False)
 
-                    close_btn = page.query_selector('.modal.show .btn-close, .modal.show [data-bs-dismiss="modal"]')
-                    if close_btn:
-                        page.evaluate("""() => {
-                            if (typeof clearGoldPurityReturnContext === 'function') clearGoldPurityReturnContext();
-                        }""")
-                        close_btn.click(force=True)
-                    else:
-                        page.keyboard.press('Escape')
-                    try:
-                        page.wait_for_selector('.modal.show', state='hidden', timeout=2000)
-                    except Exception:
-                        pass
+                    self.ensure_modals_closed(page)
                 else:
                     log("     Add Asset modal did not visibly open.")
         except Exception as e:
             log(f"     Failed to process Add New Asset: {e}")
+        finally:
+            self.ensure_modals_closed(page)
 
     def click_tab_by_id(self, page: Page, tab: Dict[str, Any]) -> bool:
+        self.ensure_modals_closed(page)
         return page.evaluate("""(tabData) => {
             const main = document.getElementById('main-content');
             if (!main) return false;
@@ -506,10 +513,12 @@ class PythonPlaywrightCaptureEngine:
                 self.global_context["modal_order"] = modal.get("order", 0)
                 self.global_context["page_title"] = modal.get("name") or None
                 self.capture_modal_tabs(page, f"{route_prefix}_{sanitize_filename(modal['name'])}", close_after=True)
+                self.ensure_modals_closed(page)
                 self.global_context["modal_id"] = None
                 self.global_context["modal_order"] = 0
             except Exception as err:
                 log(f"  Failed processing modal {modal['name']}: {err}")
+                self.ensure_modals_closed(page)
 
     def execute_with_retry(self, action_name: str, action_fn) -> Any:
         try:
@@ -558,9 +567,9 @@ class PythonPlaywrightCaptureEngine:
     def process_table_row_edits(self, page: Page, route_prefix: str) -> None:
         """
         Discovers and captures Edit modals triggered by table row buttons across all views.
-        Skips salary pages to run modals strictly once for the last company.
+        Skips fixed assets and salary/employment pages to avoid duplicate execution.
         """
-        if route_prefix.startswith('salary_') or route_prefix.startswith('employment_') or 'employment' in route_prefix or 'salary' in route_prefix:
+        if route_prefix.startswith('fixed_assets') or 'fixed_assets' in route_prefix or route_prefix.startswith('salary_') or route_prefix.startswith('employment_') or 'employment' in route_prefix or 'salary' in route_prefix:
             return
 
         edit_buttons = page.evaluate("""() => {
@@ -622,6 +631,8 @@ class PythonPlaywrightCaptureEngine:
                     self.capture_modal_tabs(page, f"{route_prefix}_{modal_name}", close_after=True)
                 except Exception as e:
                     log(f"     Edit modal for {fn_name} did not appear: {e}")
+                finally:
+                    self.ensure_modals_closed(page)
 
 
     def inject_dynamic_routes(self, page: Page, inventory: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -716,6 +727,7 @@ class PythonPlaywrightCaptureEngine:
         else:
             route_prefix = sanitize_filename(route)
 
+        self.ensure_modals_closed(page)
         full_url = self.planner.get_full_url(route)
         page.goto(full_url)
         self.wait_for_ui_ready(page)
@@ -757,9 +769,10 @@ class PythonPlaywrightCaptureEngine:
                         self.process_asset_rows(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
                     elif tab.get("nested_navigation"):
                         self.process_modals(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}", tab.get("nested_navigation"))
+                    elif route != 'fixed-assets':
+                        self.process_table_row_edits(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
                     
-                    self.process_table_row_edits(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
-
+                    self.ensure_modals_closed(page)
                     self.global_context["tab_id"] = None
 
                 try:
