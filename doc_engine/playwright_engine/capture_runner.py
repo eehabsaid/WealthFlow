@@ -819,7 +819,7 @@ class PythonPlaywrightCaptureEngine:
             # makes the actual root cause visible in the log instead of just
             # "Modal did not successfully open."
             page.on("console", lambda msg: log(f"     [browser:{msg.type}] {msg.text}") if msg.type in ("error", "warning") else None)
-            page.on("pageerror", lambda exc: log(f"     [browser:pageerror] {exc}"))
+            page.on("pageerror", lambda exc: log(f"     [browser:pageerror] {exc}\n{getattr(exc, 'stack', '')}"))
 
 
 
@@ -850,10 +850,24 @@ class PythonPlaywrightCaptureEngine:
                 }});
                 localStorage.setItem('theme', cfg.theme);
                 localStorage.setItem('lang', cfg.language);
-                if (cfg.theme === 'light') {{
-                    document.documentElement.setAttribute('data-theme', 'light');
+                // Guard: add_init_script can fire before document.documentElement
+                // is guaranteed available (e.g. very early in a fresh navigation,
+                // on about:blank before the real page has committed). Without this
+                // guard, this fires a real, reproducible "Cannot read properties
+                // of null (reading 'removeAttribute')" error on every single page
+                // navigation during capture.
+                function _applyThemeAttr() {{
+                    if (!document.documentElement) return;
+                    if (cfg.theme === 'light') {{
+                        document.documentElement.setAttribute('data-theme', 'light');
+                    }} else {{
+                        document.documentElement.removeAttribute('data-theme');
+                    }}
+                }}
+                if (document.documentElement) {{
+                    _applyThemeAttr();
                 }} else {{
-                    document.documentElement.removeAttribute('data-theme');
+                    document.addEventListener('DOMContentLoaded', _applyThemeAttr, {{ once: true }});
                 }}
             """
             page.add_init_script(script=init_js)
