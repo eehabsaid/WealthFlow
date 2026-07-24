@@ -16,6 +16,11 @@ from doc_engine.services.documentation_metadata_service import DocumentationMeta
 
 logger = logging.getLogger(__name__)
 
+# Configurable browser visibility mode:
+# 1 = Environment-controlled mode (Default: headless unless WF_DOC_ENGINE_HEADED=1)
+# 0 = Force old behavior (always headed/visible browser window, headless=False)
+USE_ENV_HEADLESS_CONFIG = 1
+
 # Local vendored copies of the app's external CDN dependencies
 # (bootstrap.bundle.min.js, chart.umd.js, leaflet.js/css, bootstrap CSS/icons).
 # Some server/CI/sandboxed network environments block or cannot reach
@@ -808,8 +813,12 @@ class PythonPlaywrightCaptureEngine:
             # headless so this runs reliably everywhere; allow opting into
             # a visible browser window only when explicitly requested for
             # local debugging via WF_DOC_ENGINE_HEADED=1.
-            run_headed = os.environ.get("WF_DOC_ENGINE_HEADED", "").strip() == "1"
-            browser = p.chromium.launch(headless=not run_headed, args=launch_args)
+            if USE_ENV_HEADLESS_CONFIG == 1:
+                run_headed = os.environ.get("WF_DOC_ENGINE_HEADED", "").strip() == "1"
+                browser = p.chromium.launch(headless=not run_headed, args=launch_args)
+            else:
+                browser = p.chromium.launch(headless=False, args=launch_args)
+
             context = browser.new_context(**context_opts)
             page = context.new_page()
             _install_cdn_fallback(page)
