@@ -143,6 +143,9 @@ async function saveLanguageUpdate(index) {
         closeModal();
         showToast(t('msg_lang_updated', 'Language updated ✓'));
         renderLanguageSettings();
+        if (typeof currentLang === 'function' && globalLangs[index].code === currentLang()) {
+            await loadLanguage(currentLang());
+        }
     } else {
         showToast('Error updating language', 'error');
     }

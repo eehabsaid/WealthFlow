@@ -20,9 +20,29 @@ async function loadLanguage(code) {
         _lang = code;
         localStorage.setItem('lang', code);
 
-        // RTL detection — normalise to string before comparing
-        const rtlVal = String(_t.__rtl || '').toLowerCase();
-        const isRTL  = rtlVal === 'true' || rtlVal === '1';
+        // RTL detection — read from available_languages setting, fallback to _t.__rtl
+        let isRTL = false;
+        try {
+            const sRes = await fetch(`/api/settings/?v=${Date.now()}`);
+            if (sRes.ok) {
+                const sData = await sRes.json();
+                const langs = JSON.parse(sData.settings?.available_languages || '[]');
+                const found = langs.find(l => l.code === code);
+                if (found !== undefined && found.rtl !== undefined) {
+                    isRTL = found.rtl === true || found.rtl === 'true' || found.rtl === 1;
+                } else {
+                    const rtlVal = String(_t.__rtl || '').toLowerCase();
+                    isRTL = rtlVal === 'true' || rtlVal === '1';
+                }
+            } else {
+                const rtlVal = String(_t.__rtl || '').toLowerCase();
+                isRTL = rtlVal === 'true' || rtlVal === '1';
+            }
+        } catch (e) {
+            const rtlVal = String(_t.__rtl || '').toLowerCase();
+            isRTL = rtlVal === 'true' || rtlVal === '1';
+        }
+
         document.documentElement.setAttribute('dir', isRTL ? 'rtl' : 'ltr');
         document.documentElement.lang = code;
 

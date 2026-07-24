@@ -36,8 +36,28 @@
         localStorage.setItem(LANG_STORAGE_KEY, code);
         document.cookie = `wf_lang=${code}; path=/; max-age=31536000; samesite=lax`;
         document.documentElement.lang = code;
-        const rtlVal = String(translations.__rtl || '').toLowerCase();
-        document.documentElement.dir = rtlVal === 'true' || rtlVal === '1' ? 'rtl' : 'ltr';
+        let isRTL = false;
+        try {
+            const sRes = await fetch(`/api/settings/?v=${Date.now()}`);
+            if (sRes.ok) {
+                const sData = await sRes.json();
+                const langs = JSON.parse(sData.settings?.available_languages || '[]');
+                const found = langs.find((l) => l.code === code);
+                if (found !== undefined && found.rtl !== undefined) {
+                    isRTL = found.rtl === true || found.rtl === 'true' || found.rtl === 1;
+                } else {
+                    const rtlVal = String(translations.__rtl || '').toLowerCase();
+                    isRTL = rtlVal === 'true' || rtlVal === '1';
+                }
+            } else {
+                const rtlVal = String(translations.__rtl || '').toLowerCase();
+                isRTL = rtlVal === 'true' || rtlVal === '1';
+            }
+        } catch (e) {
+            const rtlVal = String(translations.__rtl || '').toLowerCase();
+            isRTL = rtlVal === 'true' || rtlVal === '1';
+        }
+        document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
 
         document.querySelectorAll('.lang-hidden-input').forEach((input) => {
             input.value = code;
