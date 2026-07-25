@@ -74,10 +74,10 @@ const ROUTES = {
     'salary':             { key: 'nav_employment',        add: true,  fn: () => renderEmploymentPage() },
     'exchange-rates':     { key: 'nav_exchange_rates',    add: false, fn: () => renderExchangeRates() },
     'gold-price':         { key: 'nav_gold_price',        add: false, fn: () => renderGoldPrice()     },
-    'expenses':           { key: 'nav_expenses_reports',  add: false, fn: () => renderExpenses()      },
-    'expense-categories': { key: 'nav_expenses_reports',  add: false, fn: () => renderExpenseCategories() },
-    'reports':            { key: 'nav_expenses_reports',  add: false, fn: () => renderReports()       },
-    'advanced-reports':   { key: 'nav_expenses_reports',  add: false, fn: () => renderAdvancedReports() },
+    'expenses':           { key: 'nav_expenses',          add: false, fn: () => renderExpenses()      },
+    'expense-categories': { key: 'nav_expense_categories', add: false, fn: () => renderExpenseCategories() },
+    'reports':            { key: 'nav_expenses_report',   add: false, fn: () => renderReports()       },
+    'advanced-reports':   { key: 'nav_advanced_reports',  add: false, fn: () => renderAdvancedReports() },
     'fixed-assets':       { key: 'nav_fixed_assets',      add: false,  fn: () => renderFixedAssets() },
 };
 

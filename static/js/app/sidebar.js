@@ -87,7 +87,7 @@ function renderSidebar() {
             ${!showWelcomeOnly && (canExpenses || canExpenseCategories || canReports || canAdvancedReports) ? `
             <div class="nav-section-header" onclick="toggleSection(this)"
                  style="cursor:pointer;padding:10px;display:flex;justify-content:space-between">
-                <span data-i18n="nav_expenses_reports">Expenses &amp; Reports</span>
+                <span data-i18n="nav_expenses_reports">Expenses Reports</span>
                 <i class="bi bi-chevron-down chevron-icon"></i>
             </div>
             <div class="nav-section-content">
