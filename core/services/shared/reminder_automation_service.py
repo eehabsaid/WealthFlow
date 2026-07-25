@@ -8,10 +8,12 @@ from datetime import date, timedelta
 from django.db import transaction
 from django.utils import timezone
 
+from core.constants import MONTH_ORDER
 from core.models import (
     AppSettings,
     AssetInsurance,
     BankCertificate,
+    Company,
     FixedAsset,
     ReminderLog,
     ReminderRule,
@@ -68,17 +70,9 @@ class ReminderAutomationService:
         for cert in BankCertificate.objects.filter(
             expiry_date__gte=today,
             expiry_date__lte=target,
+            status__iexact="active",
         ):
             days_left = (cert.expiry_date - today).days
-            already = ReminderLog.objects.filter(
-                rule=rule,
-                related_model="BankCertificate",
-                related_id=cert.id,
-                fired_on=today,
-            ).exists()
-            if already:
-                continue
-
             bank_name = cert.bank.name if cert.bank else "Unknown"
             message = (
                 f"Certificate at {bank_name} of {float(cert.amount):,.2f} expires in {days_left} day(s) on {cert.expiry_date}."
@@ -112,15 +106,6 @@ class ReminderAutomationService:
             expiry_date__lte=target,
         ):
             days_left = (insurance.expiry_date - today).days
-            already = ReminderLog.objects.filter(
-                rule=rule,
-                related_model="AssetInsurance",
-                related_id=insurance.id,
-                fired_on=today,
-            ).exists()
-            if already:
-                continue
-
             asset_name = insurance.asset.name if insurance.asset else "Unknown"
             message = (
                 f"Insurance for {asset_name} expires in {days_left} day(s) on {insurance.expiry_date}."
@@ -153,15 +138,6 @@ class ReminderAutomationService:
             license_expiry_date__lte=target,
         ):
             days_left = (vehicle.license_expiry_date - today).days
-            already = ReminderLog.objects.filter(
-                rule=rule,
-                related_model="VehicleDetails",
-                related_id=vehicle.id,
-                fired_on=today,
-            ).exists()
-            if already:
-                continue
-
             asset_name = vehicle.asset.name if vehicle.asset else "Unknown"
             plate_number = vehicle.plate_number or "-"
             message = (
@@ -211,15 +187,6 @@ class ReminderAutomationService:
             if allowed_countries and country.lower() not in allowed_countries:
                 continue
 
-            already = ReminderLog.objects.filter(
-                rule=rule,
-                related_model="RealEstateDetails",
-                related_id=details.id,
-                fired_on=today,
-            ).exists()
-            if already:
-                continue
-
             location = ", ".join(
                 value
                 for value in [
@@ -260,17 +227,29 @@ class ReminderAutomationService:
         if today.day < trigger_day:
             return []
 
-        unpaid = SalaryEntry.objects.filter(year=today.year, month=today.month, paid=0).exists()
-        if not unpaid:
-            return []
+        # month is stored as a full English name (e.g. "July"), derive it from MONTH_ORDER
+        month_name = MONTH_ORDER[today.month - 1]
 
-        already = ReminderLog.objects.filter(
-            rule=rule,
-            related_model="SalaryEntry",
-            related_id=0,
-            fired_on=today,
-        ).exists()
-        if already:
+        # Fire if ANY active company has no salary record for this month,
+        # or has a record but paid == 0 (nothing paid yet).
+        should_fire = False
+        for company in Company.objects.filter(is_active=True):
+            try:
+                entry = SalaryEntry.objects.get(
+                    company=company,
+                    year=today.year,
+                    month__iexact=month_name,
+                )
+                # Record exists — fire only if nothing has been paid yet
+                if float(entry.paid) == 0:
+                    should_fire = True
+                    break
+            except SalaryEntry.DoesNotExist:
+                # No record at all for this company this month — treat as unpaid
+                should_fire = True
+                break
+
+        if not should_fire:
             return []
 
         message = rule.salary_message or "This month has unpaid salary entries."
@@ -296,15 +275,6 @@ class ReminderAutomationService:
         if today.day < trigger_day:
             return []
 
-        already = ReminderLog.objects.filter(
-            rule=rule,
-            related_model="SalaryDay",
-            related_id=today.month,
-            fired_on=today,
-        ).exists()
-        if already:
-            return []
-
         message = rule.salary_message or f'Salary day reminder for {today.strftime("%B %Y")}. '
         ReminderLog.objects.get_or_create(
             rule=rule,
@@ -326,15 +296,6 @@ class ReminderAutomationService:
     def _evaluate_custom(self, rule, today):
         trigger_day = self._salary_trigger_day(rule, today)
         if today.day < trigger_day:
-            return []
-
-        already = ReminderLog.objects.filter(
-            rule=rule,
-            related_model="Custom",
-            related_id=today.month,
-            fired_on=today,
-        ).exists()
-        if already:
             return []
 
         message = rule.salary_message or rule.name

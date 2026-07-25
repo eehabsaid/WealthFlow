@@ -1501,8 +1501,9 @@ class ReminderAutomationServiceTest(TestCase):
         self.assertEqual(result.count, 2)
         self.assertEqual(ReminderLog.objects.count(), 2)
 
+        # Second call on same day: reminders still fire (no suppression), but log stays at 1 per rule
         second = ReminderAutomationService().evaluate(today=date(2026, 7, 4))
-        self.assertEqual(second.count, 0)
+        self.assertEqual(second.count, 2)
         self.assertEqual(ReminderLog.objects.filter(rule=insurance_rule).count(), 1)
         self.assertEqual(ReminderLog.objects.filter(rule=vehicle_rule).count(), 1)
 
@@ -1554,8 +1555,9 @@ class ReminderAutomationServiceTest(TestCase):
         self.assertEqual(first.reminders[0]["related_id"], details.id)
         self.assertEqual(first.reminders[0]["days_left"], 6)
 
+        # Second call on same day: reminder still fires, but log entry remains a single record
         second = ReminderAutomationService().evaluate(today=date(2026, 7, 4))
-        self.assertEqual(second.count, 0)
+        self.assertEqual(second.count, 1)
         self.assertEqual(
             ReminderLog.objects.filter(
                 rule=rule,
