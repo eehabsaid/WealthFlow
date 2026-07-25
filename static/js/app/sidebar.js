@@ -104,7 +104,7 @@ function renderSidebar() {
                 ${canReports ? `
                 <button class="nav-item" onclick="navigate('reports')">
                     <i class="bi bi-graph-up"></i>
-                    <span data-i18n="nav_reports">Reports</span>
+                    <span data-i18n="nav_expenses_report">Expenses Report</span>
                 </button>` : ''}
                 ${canAdvancedReports ? `
                 <button class="nav-item" onclick="navigate('advanced-reports')">
