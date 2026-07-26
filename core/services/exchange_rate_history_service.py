@@ -156,7 +156,7 @@ class ExchangeRateHistoryService:
         """
         Import historical snapshots for the past *days* days.
 
-        Uses ExchangeRateHostProvider by default, but accepts any
+        Uses YFinanceHistoricalRateProvider by default, but accepts any
         BaseHistoricalRateProvider so the source can be injected
         (e.g., during testing or when switching providers).
 
@@ -168,11 +168,11 @@ class ExchangeRateHistoryService:
                 "source": str,     # provider SOURCE_NAME
             }
         """
-        from core.integrations import ExchangeRateHostProvider
+        from core.integrations import FawazAhmedCurrencyApiProvider
         from core.models import ExchangeRateHistory
 
         if provider is None:
-            provider = ExchangeRateHostProvider()
+            provider = FawazAhmedCurrencyApiProvider()
 
         today = date.today()
         start_date = today - timedelta(days=days - 1)
@@ -191,14 +191,21 @@ class ExchangeRateHistoryService:
         total_gaps = 0
         batch: list[ExchangeRateHistory] = []
 
+        range_data: dict[date, list] = {}
+        try:
+            range_data = provider.fetch_range(start_date, today)
+        except Exception:
+            logger.exception("provider.fetch_range failed; falling back to per-day fetch")
+
         current = start_date
         while current <= today:
-            logger.info(
-                "import_historical_rates: fetching %s (%d days remaining) ...",
-                current,
-                (today - current).days,
-            )
-            records = provider.fetch_date(current)
+            records = range_data.get(current)
+            if records is None:
+                try:
+                    records = provider.fetch_date(current)
+                except Exception:
+                    logger.exception("provider.fetch_date failed for %s", current)
+                    records = []
 
             if not records:
                 logger.warning(
@@ -230,11 +237,11 @@ class ExchangeRateHistoryService:
                         snapshot_date=rec.snapshot_date,
                     )
                 )
+                existing_pairs.add((rec.currency_code, rec.snapshot_date))
 
                 if len(batch) >= batch_size:
                     inserted = self._flush_batch(batch)
                     total_imported += inserted
-                    total_skipped += len(batch) - inserted
                     batch = []
 
             current += timedelta(days=1)
@@ -243,7 +250,6 @@ class ExchangeRateHistoryService:
         if batch:
             inserted = self._flush_batch(batch)
             total_imported += inserted
-            total_skipped += len(batch) - inserted
 
         result = {
             "imported": total_imported,

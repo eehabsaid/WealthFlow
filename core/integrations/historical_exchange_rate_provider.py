@@ -5,7 +5,11 @@ The provider is encapsulated behind a base class so the underlying
 data source can be replaced without touching ExchangeRateHistoryService
 or any of its consumers.
 
-Current implementation: exchangerate.host (free public API, no key required).
+Current implementation: FawazAhmedCurrencyApiProvider
+  Uses Fawaz Ahmed Currency API via jsDelivr CDN.
+  Free, public, open-source daily currency snapshots without API key.
+  URL format: https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{YYYY-MM-DD}/v1/currencies/egp.json
+  Uses standard urllib.request — zero external dependencies.
 """
 
 from __future__ import annotations
@@ -16,14 +20,14 @@ import time
 import urllib.error
 import urllib.request
 from abc import ABC, abstractmethod
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 # Currencies mirrored from ExchangeRateService.CURRENCY_NAMES
-_SYMBOLS = [
+_SYMBOLS: list[str] = [
     "USD", "EUR", "GBP", "SAR", "AED", "KWD", "CAD", "CHF",
     "JPY", "CNY", "QAR", "BHD", "OMR", "JOD", "NOK", "SEK",
     "DKK", "AUD",
@@ -105,130 +109,101 @@ class BaseHistoricalRateProvider(ABC):
         Must never raise — log errors and return [].
         """
 
+    def fetch_range(
+        self, start: date, end: date
+    ) -> dict[date, list[HistoricalRateRecord]]:
+        """
+        Fetch all known currency rates for a date range [start, end].
+        Default implementation calls fetch_date for each date.
+        """
+        result: dict[date, list[HistoricalRateRecord]] = {}
+        current = start
+        while current <= end:
+            result[current] = self.fetch_date(current)
+            current += timedelta(days=1)
+        return result
 
-class ExchangeRateHostProvider(BaseHistoricalRateProvider):
+
+class FawazAhmedCurrencyApiProvider(BaseHistoricalRateProvider):
     """
-    Historical rates via api.exchangerate.host (free, no API key).
+    Historical exchange rates via Fawaz Ahmed Currency API (jsDelivr CDN).
 
-    Endpoint: GET https://api.exchangerate.host/historical
-              ?date=YYYY-MM-DD&base=EGP&symbols=USD,EUR,...
-
-    Retry/backoff: up to *max_retries* attempts with exponential back-off
-    starting at *initial_delay* seconds.
+    Endpoint: https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{YYYY-MM-DD}/v1/currencies/egp.json
+    Fallback: https://raw.githubusercontent.com/fawazahmed0/currency-api/1/{YYYY-MM-DD}/currencies/egp.json
     """
 
-    SOURCE_NAME = "exchangerate.host"
-
-    _BASE_URL = "https://api.exchangerate.host/historical"
-    _SYMBOLS_PARAM = ",".join(_SYMBOLS)
+    SOURCE_NAME = "fawazahmed0_cdn"
 
     def __init__(
         self,
-        max_retries: int = 3,
-        initial_delay: float = 2.0,
-        timeout: int = 20,
+        max_retries: int = 2,
+        timeout: int = 8,
         user_agent: str = "WealthFlow/1.0",
     ) -> None:
         self._max_retries = max_retries
-        self._initial_delay = initial_delay
         self._timeout = timeout
         self._user_agent = user_agent
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
     def fetch_date(self, target_date: date) -> list[HistoricalRateRecord]:
         date_str = target_date.strftime("%Y-%m-%d")
-        url = (
-            f"{self._BASE_URL}"
-            f"?date={date_str}"
-            f"&base=EGP"
-            f"&symbols={self._SYMBOLS_PARAM}"
-        )
+        urls = [
+            f"https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{date_str}/v1/currencies/egp.json",
+            f"https://raw.githubusercontent.com/fawazahmed0/currency-api/1/{date_str}/currencies/egp.json",
+        ]
 
-        raw = self._fetch_with_retry(url, date_str)
-        if raw is None:
+        data = None
+        for url in urls:
+            data = self._fetch_url(url, date_str)
+            if data and "egp" in data:
+                break
+
+        if not data or "egp" not in data:
             return []
 
-        return self._parse(raw, target_date)
+        return self._parse(data, target_date)
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    def _fetch_with_retry(self, url: str, date_str: str) -> Optional[dict]:
-        delay = self._initial_delay
+    def _fetch_url(self, url: str, date_str: str) -> Optional[dict]:
         for attempt in range(1, self._max_retries + 1):
             try:
                 req = urllib.request.Request(
                     url, headers={"User-Agent": self._user_agent}
                 )
                 with urllib.request.urlopen(req, timeout=self._timeout) as resp:
-                    data = json.loads(resp.read().decode())
-                if data.get("success") is False:
-                    logger.warning(
-                        "exchangerate.host: non-success for %s (attempt %d/%d)",
-                        date_str,
-                        attempt,
-                        self._max_retries,
-                    )
-                    return None
-                return data
+                    return json.loads(resp.read().decode())
             except urllib.error.HTTPError as exc:
+                if exc.code == 404:
+                    return None  # No data for this specific date
                 logger.warning(
-                    "exchangerate.host HTTP %s for %s (attempt %d/%d)",
-                    exc.code,
-                    date_str,
-                    attempt,
-                    self._max_retries,
+                    "CDN HTTP %s for %s (attempt %d/%d)", exc.code, date_str, attempt, self._max_retries
                 )
-            except (urllib.error.URLError, OSError, json.JSONDecodeError) as exc:
+            except Exception as exc:
                 logger.warning(
-                    "exchangerate.host error for %s (attempt %d/%d): %s",
-                    date_str,
-                    attempt,
-                    self._max_retries,
-                    exc,
+                    "CDN fetch error for %s (attempt %d/%d): %s", date_str, attempt, self._max_retries, exc
                 )
             if attempt < self._max_retries:
-                logger.debug("Retrying in %.1f s ...", delay)
-                time.sleep(delay)
-                delay *= 2  # exponential back-off
-        logger.error(
-            "exchangerate.host: all %d attempts failed for %s — skipping day.",
-            self._max_retries,
-            date_str,
-        )
+                time.sleep(0.5)
         return None
 
     def _parse(self, data: dict, snapshot_date: date) -> list[HistoricalRateRecord]:
-        quotes: dict = data.get("quotes", {}) or data.get("rates", {})
+        rates: dict = data.get("egp", {}) or {}
         records: list[HistoricalRateRecord] = []
 
         for code in _SYMBOLS:
-            # API returns rates as EGP → currency (EGP is base → 1/rate = EGP per unit)
-            raw_rate = quotes.get(f"EGP{code}") or quotes.get(code)
+            raw_rate = rates.get(code.lower()) or rates.get(code)
             if not raw_rate:
                 continue
             try:
-                # Keep full precision — work only in Decimal
-                rate_decimal = Decimal(str(raw_rate))
-                if rate_decimal == 0:
+                rate_dec = Decimal(str(raw_rate))
+                if rate_dec <= 0:
                     continue
-                # EGP per one foreign unit
-                egp_per_unit = Decimal("1") / rate_decimal
+                egp_per_unit = Decimal("1") / rate_dec
                 spread = egp_per_unit * Decimal("0.005")
                 records.append(
                     HistoricalRateRecord(
                         currency_code=code,
                         currency_name=_CURRENCY_NAMES.get(code, code),
-                        buy_rate=(egp_per_unit - spread).quantize(
-                            Decimal("0.000001")
-                        ),
-                        sell_rate=(egp_per_unit + spread).quantize(
-                            Decimal("0.000001")
-                        ),
+                        buy_rate=(egp_per_unit - spread).quantize(Decimal("0.000001")),
+                        sell_rate=(egp_per_unit + spread).quantize(Decimal("0.000001")),
                         mid_rate=egp_per_unit.quantize(Decimal("0.000001")),
                         source=self.SOURCE_NAME,
                         snapshot_date=snapshot_date,
@@ -239,3 +214,8 @@ class ExchangeRateHostProvider(BaseHistoricalRateProvider):
                     "Skipping %s for %s — parse error: %s", code, snapshot_date, exc
                 )
         return records
+
+
+# Backward compatibility aliases
+ExchangeRateHostProvider = FawazAhmedCurrencyApiProvider
+YFinanceHistoricalRateProvider = FawazAhmedCurrencyApiProvider
