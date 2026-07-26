@@ -15,3 +15,6 @@ node_modules/
 doc_engine/.auth/
 docs/screenshots/
 docs/generated/
+
+# i18n audit – unused keys archive
+unused.json
