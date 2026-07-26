@@ -38,7 +38,7 @@ class Command(BaseCommand):
             )
         )
         self.stdout.write(
-            "  Provider: Yahoo Finance (yfinance batch API, free public data)"
+            "  Provider: Fawaz Ahmed Currency API (jsDelivr CDN, free public data)"
         )
         self.stdout.write(
             "  Duplicate rows will be skipped automatically.\n"
