@@ -405,72 +405,31 @@ function _renderSpendingIntelligence(payload) {
   recHtml += `</div></div></div></div>`;
 
   // 7. Monthly Trend
+  const registeredCategories = payload?.registered_categories || [];
+  const hasUncategorized = payload?.has_uncategorized || false;
+
+  let catSelectOptions = `<option value="all" data-i18n="all_categories">All Categories</option>`;
+  registeredCategories.forEach(cat => {
+    catSelectOptions += `<option value="${cat.id}">${cat.icon ? cat.icon + ' ' : ''}${cat.name}</option>`;
+  });
+  if (hasUncategorized) {
+    catSelectOptions += `<option value="uncategorized" data-i18n="spending_intelligence_uncategorized">Uncategorized</option>`;
+  }
+
   let trendHtml = `
-    <h3 style="font-size:18px; font-weight:700; margin-top:24px; margin-bottom:16px; color:var(--text-primary);" data-i18n="spending_intelligence_monthly_trend"></h3>
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-3 flex-wrap gap-2">
+      <h3 style="font-size:18px; font-weight:700; margin:0; color:var(--text-primary);" data-i18n="spending_intelligence_monthly_trend"></h3>
+      <div style="min-width:200px;">
+        <select id="si-monthly-trend-category-filter" class="form-select form-select-sm" style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:8px; font-size:13px; font-weight:500; cursor:pointer;">
+          ${catSelectOptions}
+        </select>
+      </div>
+    </div>
     <div class="card border-0 mb-5 fade-in-up delay-3" si-modern-card>
-      <div class="card-body" style="padding:32px;">
+      <div class="card-body" style="padding:32px;" id="si-monthly-trend-card-body">
+      </div>
+    </div>
   `;
-
-  if (monthlyComparison.insufficient_history && months.length < 3) {
-    trendHtml += `
-      <div style="background:rgba(123,147,201,0.05); border:1px solid rgba(123,147,201,0.1); border-radius:8px; padding:16px; font-size:13px; color:var(--text-secondary); margin-bottom:32px; line-height:1.6; text-align:center;">
-        <i class="bi bi-info-circle me-1" style="font-size:16px;"></i> <span data-i18n="spending_intelligence_insufficient_history"></span>
-      </div>
-    `;
-  }
-
-  if (months.length > 0) {
-    const maxAmount = Math.max(...months.map(m => m.total_egp));
-    
-    let barsHtml = '';
-    months.forEach((m, idx) => {
-      const heightPct = maxAmount > 0 ? (m.total_egp / maxAmount) * 100 : 0;
-      const monthName = new Date(m.year, m.month - 1).toLocaleString('en-US', { month: 'short' });
-      
-      let diffHtml = '';
-      if (idx > 0 && months.length >= 3) {
-          const prevAmount = months[idx-1].total_egp;
-          if (prevAmount > 0) {
-              const diffPct = ((m.total_egp - prevAmount) / prevAmount) * 100.0;
-              const isIncrease = diffPct > 0;
-              const color = isIncrease ? 'var(--bs-danger)' : 'var(--bs-success)';
-              const icon = isIncrease ? '▲' : '▼';
-              diffHtml = `
-                <div style="text-align:center;">
-                  <div style="font-size:12px; color:${color}; font-weight:700;" title="Change from previous month">${icon} ${Math.abs(diffPct).toFixed(1)}%</div>
-                  <div style="font-size:10px; color:rgba(123,147,201,0.7); margin-top:2px;" data-i18n="spending_intelligence_compared_prev"></div>
-                </div>
-              `;
-          }
-      }
-
-      barsHtml += `
-        <div class="d-flex flex-column align-items-center" style="width:100px;">
-          <div style="height:36px; display:flex; align-items:flex-end; justify-content:center;">
-             ${diffHtml}
-          </div>
-          <div style="width:100%; height:160px; display:flex; align-items:flex-end; margin-top:8px; margin-bottom:16px;">
-            <div style="width:100%; height:${heightPct}%; background:var(--bs-primary, #0d6efd); border-radius:8px 8px 0 0; transition:height 1s cubic-bezier(0.4, 0, 0.2, 1);"></div>
-          </div>
-          <div style="font-size:13px; font-weight:600; color:rgba(123,147,201,0.8); margin-bottom:4px; text-align:center;">${monthName} ${m.year}</div>
-          <div style="font-size:15px; font-weight:800; color:var(--text-primary); text-align:center; margin-bottom:2px;">${fmt(Number(m.total_egp).toFixed(2))}</div>
-          <div style="font-size:11px; color:rgba(123,147,201,0.6); text-align:center;">${m.count} <span data-i18n="spending_intelligence_tx"></span></div>
-        </div>
-      `;
-    });
-    
-    trendHtml += `
-      <div class="d-flex justify-content-center" style="gap:32px;">
-        ${barsHtml}
-      </div>
-    `;
-  } else {
-    trendHtml += `
-      <div style="text-align:center; padding:32px 0; color:var(--text-secondary); font-size:14px; line-height:1.6;" data-i18n="spending_intelligence_no_data"></div>
-    `;
-  }
-  
-  trendHtml += `</div></div>`;
 
   pane.innerHTML = `
     <div class="container-fluid" style="max-width:1200px;">
@@ -504,6 +463,15 @@ function _renderSpendingIntelligence(payload) {
   `;
   
   if (typeof applyTranslations === "function") applyTranslations();
+
+  _renderMonthlyTrendBars(payload, "all");
+
+  const filterSelect = document.getElementById("si-monthly-trend-category-filter");
+  if (filterSelect) {
+    filterSelect.addEventListener("change", (e) => {
+      _renderMonthlyTrendBars(payload, e.target.value);
+    });
+  }
 
   // Trigger progress bar animations
   setTimeout(() => {
@@ -558,6 +526,100 @@ function _renderSpendingIntelligence(payload) {
           });
       }
   }
+}
+
+function _renderMonthlyTrendBars(payload, selectedCatId = "all") {
+  const container = document.getElementById("si-monthly-trend-card-body");
+  if (!container) return;
+
+  const monthlyComparison = payload?.monthly_comparison || {};
+  const months = monthlyComparison.months || [];
+  const byCategory = monthlyComparison.by_category || {};
+
+  let barsData = [];
+  if (selectedCatId === "all") {
+    barsData = months;
+  } else {
+    const catMonths = byCategory[selectedCatId] || [];
+    const catMonthMap = {};
+    catMonths.forEach(m => {
+      catMonthMap[`${m.year}-${m.month}`] = m;
+    });
+
+    barsData = months.map(m => {
+      const match = catMonthMap[`${m.year}-${m.month}`];
+      return {
+        year: m.year,
+        month: m.month,
+        total_egp: match ? match.total_egp : 0.0,
+        count: match ? match.count : 0
+      };
+    });
+  }
+
+  let html = '';
+
+  if (monthlyComparison.insufficient_history && months.length < 3) {
+    html += `
+      <div style="background:rgba(123,147,201,0.05); border:1px solid rgba(123,147,201,0.1); border-radius:8px; padding:16px; font-size:13px; color:var(--text-secondary); margin-bottom:32px; line-height:1.6; text-align:center;">
+        <i class="bi bi-info-circle me-1" style="font-size:16px;"></i> <span data-i18n="spending_intelligence_insufficient_history"></span>
+      </div>
+    `;
+  }
+
+  if (barsData.length > 0) {
+    const maxAmount = Math.max(...barsData.map(m => m.total_egp));
+
+    let barsHtml = '';
+    barsData.forEach((m, idx) => {
+      const heightPct = maxAmount > 0 ? (m.total_egp / maxAmount) * 100 : 0;
+      const monthName = new Date(m.year, m.month - 1).toLocaleString('en-US', { month: 'short' });
+
+      let diffHtml = '';
+      if (idx > 0 && barsData.length >= 3) {
+        const prevAmount = barsData[idx - 1].total_egp;
+        if (prevAmount > 0) {
+          const diffPct = ((m.total_egp - prevAmount) / prevAmount) * 100.0;
+          const isIncrease = diffPct > 0;
+          const color = isIncrease ? 'var(--bs-danger)' : 'var(--bs-success)';
+          const icon = isIncrease ? '▲' : '▼';
+          diffHtml = `
+            <div style="text-align:center;">
+              <div style="font-size:12px; color:${color}; font-weight:700;" title="Change from previous month">${icon} ${Math.abs(diffPct).toFixed(1)}%</div>
+              <div style="font-size:10px; color:rgba(123,147,201,0.7); margin-top:2px;" data-i18n="spending_intelligence_compared_prev"></div>
+            </div>
+          `;
+        }
+      }
+
+      barsHtml += `
+        <div class="d-flex flex-column align-items-center" style="width:100px;">
+          <div style="height:36px; display:flex; align-items:flex-end; justify-content:center;">
+             ${diffHtml}
+          </div>
+          <div style="width:100%; height:160px; display:flex; align-items:flex-end; margin-top:8px; margin-bottom:16px;">
+            <div style="width:100%; height:${heightPct}%; background:var(--bs-primary, #0d6efd); border-radius:8px 8px 0 0; transition:height 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+          </div>
+          <div style="font-size:13px; font-weight:600; color:rgba(123,147,201,0.8); margin-bottom:4px; text-align:center;">${monthName} ${m.year}</div>
+          <div style="font-size:15px; font-weight:800; color:var(--text-primary); text-align:center; margin-bottom:2px;">${fmt(Number(m.total_egp).toFixed(2))}</div>
+          <div style="font-size:11px; color:rgba(123,147,201,0.6); text-align:center;">${m.count} <span data-i18n="spending_intelligence_tx"></span></div>
+        </div>
+      `;
+    });
+
+    html += `
+      <div class="d-flex justify-content-center" style="gap:32px; overflow-x:auto; padding-bottom:8px;">
+        ${barsHtml}
+      </div>
+    `;
+  } else {
+    html += `
+      <div style="text-align:center; padding:32px 0; color:var(--text-secondary); font-size:14px; line-height:1.6;" data-i18n="spending_intelligence_no_data"></div>
+    `;
+  }
+
+  container.innerHTML = html;
+  if (typeof applyTranslations === "function") applyTranslations();
 }
 
 let _spendingIntelligenceLoaded = false;

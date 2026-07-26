@@ -6,7 +6,7 @@ from decimal import Decimal
 from django.db.models import Sum, Count
 from django.db.models.functions import Coalesce
 
-from core.models import Expense
+from core.models import Expense, ExpenseCategory
 from core.services.balance.net_worth_service import NetWorthService
 
 
@@ -89,7 +89,19 @@ class SpendingIntelligenceService:
                 "date": largest_expense_obj.date.isoformat() if largest_expense_obj.date else ""
             }
 
-        # 5. Monthly comparison
+        # 5. Registered Categories for filtering
+        registered_categories = [
+            {
+                "id": cat.id,
+                "name": cat.name,
+                "icon": cat.icon,
+                "color_hex": cat.color_hex
+            }
+            for cat in ExpenseCategory.objects.all().order_by('order', 'name')
+        ]
+        has_uncategorized = Expense.objects.filter(category__isnull=True).exists()
+
+        # 6. Monthly comparison (overall and by category)
         months = []
         monthly_qs = Expense.objects.values('year', 'month').annotate(
             total_egp=Coalesce(Sum('amount_egp'), Decimal('0.0')),
@@ -98,6 +110,23 @@ class SpendingIntelligenceService:
 
         for item in monthly_qs:
             months.append({
+                "year": item['year'],
+                "month": item['month'],
+                "total_egp": round(self._to_float(item['total_egp']), 2),
+                "count": int(item['count'])
+            })
+
+        by_category = {}
+        monthly_cat_qs = Expense.objects.values('year', 'month', 'category_id').annotate(
+            total_egp=Coalesce(Sum('amount_egp'), Decimal('0.0')),
+            count=Count('id')
+        ).order_by('year', 'month')
+
+        for item in monthly_cat_qs:
+            cat_key = str(item['category_id']) if item['category_id'] is not None else "uncategorized"
+            if cat_key not in by_category:
+                by_category[cat_key] = []
+            by_category[cat_key].append({
                 "year": item['year'],
                 "month": item['month'],
                 "total_egp": round(self._to_float(item['total_egp']), 2),
@@ -186,12 +215,15 @@ class SpendingIntelligenceService:
             "avg_transactions_per_month": round(avg_transactions_per_month, 1),
             "months_history": len(months),
             "categories": categories,
+            "registered_categories": registered_categories,
+            "has_uncategorized": has_uncategorized,
             "key_findings": {
                 "most_frequent": most_frequent,
                 "largest_expense": largest_expense
             },
             "monthly_comparison": {
                 "months": months,
+                "by_category": by_category,
                 "insufficient_history": insufficient_history
             },
             "ai_insights": insights,
