@@ -77,35 +77,30 @@ class ExchangeRateHistoryService:
             logger.debug("archive_current_rates: core_exchangerate is empty, skipping.")
             return 0
 
-        # Build a map of the latest mid_rate per currency in history
-        # to enable the delta check — single queryset, no N+1.
-        existing_latest = self._get_latest_mid_rates_from_history(
-            [r.currency_code for r in current_rates]
+        # Collect snapshot dates to check existing entries in DB
+        snap_dates = {
+            rate.fetched_at.astimezone(timezone.utc).date() if rate.fetched_at else date.today()
+            for rate in current_rates
+        }
+
+        existing_pairs: set[tuple[str, date]] = set(
+            ExchangeRateHistory.objects.filter(
+                snapshot_date__in=snap_dates
+            ).values_list("currency_code", "snapshot_date")
         )
 
         to_insert: list[ExchangeRateHistory] = []
-        skipped_no_change = 0
 
         for rate in current_rates:
-            # Derive snapshot_date from the original fetched_at.
-            if rate.fetched_at:
-                snap_date = rate.fetched_at.astimezone(timezone.utc).date()
-            else:
-                # Fallback: use today only if fetched_at is missing.
-                snap_date = date.today()
+            snap_date = (
+                rate.fetched_at.astimezone(timezone.utc).date()
+                if rate.fetched_at
+                else date.today()
+            )
 
-            # Delta check: skip if mid_rate hasn't meaningfully changed.
-            prev_mid = existing_latest.get(rate.currency_code)
-            if prev_mid is not None:
-                diff = abs(Decimal(str(rate.mid_rate)) - prev_mid)
-                if diff <= _DELTA_TOLERANCE:
-                    skipped_no_change += 1
-                    logger.debug(
-                        "archive_current_rates: %s mid_rate unchanged (diff=%s), skip.",
-                        rate.currency_code,
-                        diff,
-                    )
-                    continue
+            # Skip if a snapshot already exists for this currency on this date
+            if (rate.currency_code, snap_date) in existing_pairs:
+                continue
 
             to_insert.append(
                 ExchangeRateHistory(
@@ -115,32 +110,23 @@ class ExchangeRateHistoryService:
                     sell_rate=Decimal(str(rate.sell_rate)),
                     mid_rate=Decimal(str(rate.mid_rate)),
                     source=rate.source or "open.er-api.com",
-                    fetched_at=rate.fetched_at
-                    or datetime.now(tz=timezone.utc),
+                    fetched_at=rate.fetched_at or datetime.now(tz=timezone.utc),
                     snapshot_date=snap_date,
                 )
             )
 
         if not to_insert:
-            logger.info(
-                "archive_current_rates: nothing to insert "
-                "(%d currencies unchanged).",
-                skipped_no_change,
-            )
+            logger.info("archive_current_rates: all snapshots already present for today, skipping.")
             return 0
 
         with transaction.atomic():
             created = ExchangeRateHistory.objects.bulk_create(
                 to_insert,
-                ignore_conflicts=True,  # DB-level duplicate guard
+                ignore_conflicts=True,
             )
 
         inserted = len(created)
-        logger.info(
-            "archive_current_rates: inserted=%d, skipped_no_change=%d.",
-            inserted,
-            skipped_no_change,
-        )
+        logger.info("archive_current_rates: inserted=%d.", inserted)
         return inserted
 
     # ------------------------------------------------------------------ #

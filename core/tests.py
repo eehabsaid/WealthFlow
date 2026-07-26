@@ -2248,8 +2248,8 @@ class ExchangeRateHistoryServiceTest(TestCase):
         self.assertEqual(inserted_second, 0)
         self.assertEqual(ExchangeRateHistory.objects.count(), 2)
 
-    def test_archive_delta_check_skips_unchanged_mid_rate(self):
-        """If mid_rate hasn't changed, the currency is not archived again."""
+    def test_archive_archives_daily_snapshot_regardless_of_mid_rate_change(self):
+        """One snapshot per currency per day is archived regardless of rate changes."""
         from core.models import ExchangeRate, ExchangeRateHistory
         from core.services.exchange_rate_history_service import ExchangeRateHistoryService
 
@@ -2258,18 +2258,14 @@ class ExchangeRateHistoryServiceTest(TestCase):
         svc.archive_current_rates()
         self.assertEqual(ExchangeRateHistory.objects.count(), 2)
 
-        # Simulate a new day by creating a history row for tomorrow manually —
-        # the important test is that unchanged rates are skipped regardless.
-        # Change only EUR's mid_rate to trigger delta:
-        ExchangeRate.objects.filter(currency_code="EUR").update(
-            mid_rate=Decimal("55.000000")
-        )
+        # Update fetched_at to simulate a new day
+        tomorrow = timezone.now() + timedelta(days=1)
+        ExchangeRate.objects.all().update(fetched_at=tomorrow)
 
+        # Second archive on a new day — both inserted even though rates did not change
         inserted = svc.archive_current_rates()
-        # USD unchanged → skipped; EUR changed → inserted (but same date conflict)
-        # The DB unique constraint prevents re-insert for same day
-        # so inserted can be 0 or 1 depending on date
-        self.assertGreaterEqual(inserted, 0)
+        self.assertEqual(inserted, 2)
+        self.assertEqual(ExchangeRateHistory.objects.count(), 4)
 
     def test_archive_failure_does_not_raise(self):
         """
