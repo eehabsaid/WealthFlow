@@ -6,6 +6,7 @@ from .currency import Currency
 from .balance import BalanceEntry
 from .balance_transfer import BalanceTransfer
 from .exchange_rate import ExchangeRate
+from .exchange_rate_history import ExchangeRateHistory
 from .gold import GoldPrice, GoldPriceHistory, GoldTypeSetting, GoldPuritySetting
 from .expenses import ExpenseCategory, ExpenseSubcategory, Expense
 from .authentication import UserProfile, AuthToken, AuthAuditLog
@@ -37,6 +38,7 @@ __all__ = [
     "BalanceEntry",
     "BalanceTransfer",
     "ExchangeRate",
+    "ExchangeRateHistory",
     "GoldPrice",
     "GoldPriceHistory",
     "GoldTypeSetting",

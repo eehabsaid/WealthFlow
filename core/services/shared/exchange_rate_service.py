@@ -38,9 +38,19 @@ class ExchangeRateService:
 
     def refresh_latest_rates(self):
         from core.integrations import fetch_latest_exchange_rates
+        from core.services.exchange_rate_history_service import ExchangeRateHistoryService
 
         rates_raw = fetch_latest_exchange_rates()
+
+        # ── Archive current rates BEFORE overwriting ───────────────────────────
+        # Placed outside the transaction below so that an archive failure
+        # (silently swallowed inside ExchangeRateHistoryService) can never
+        # roll back the refresh of core_exchangerate.
+        ExchangeRateHistoryService().archive_current_rates()
+        # ──────────────────────────────────────────────────────────────────────
+
         saved = 0
+
         with transaction.atomic():
             ExchangeRate.objects.all().delete()
             for code, name in self.CURRENCY_NAMES.items():
