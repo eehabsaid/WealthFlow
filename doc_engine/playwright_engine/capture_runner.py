@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Configurable browser visibility mode:
 # 1 = Environment-controlled mode (Default: headless unless WF_DOC_ENGINE_HEADED=1)
 # 0 = Force old behavior (always headed/visible browser window, headless=False)
-USE_ENV_HEADLESS_CONFIG = 1
+USE_ENV_HEADLESS_CONFIG = 0
 
 # Local vendored copies of the app's external CDN dependencies
 # (bootstrap.bundle.min.js, chart.umd.js, leaflet.js/css, bootstrap CSS/icons).
