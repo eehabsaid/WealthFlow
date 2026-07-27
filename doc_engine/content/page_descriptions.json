@@ -223,12 +223,12 @@
       "Assess the projected ROI for each opportunity."
     ]
   },
-  "financial-advisor::market-intelligence": {
-    "purpose": "Stay updated with real-time market trends, inflation rates, and macroeconomic indicators affecting your wealth.",
+  "financial-advisor::performance": {
+    "purpose": "Analyze historical gold prices, exchange rate trends, and your total gold exposure impact in EGP over time.",
     "steps": [
-      "Navigate to Market Intelligence.",
-      "Review current economic indicators.",
-      "Understand how they impact your specific asset classes."
+      "Navigate to Performance.",
+      "Review 24K gold historical prices, moving averages, and exposure impacts.",
+      "Analyze exchange rate trends and moving averages across USD, EUR, and SAR."
     ]
   },
   "financial-advisor::ai-financial-advisor": {

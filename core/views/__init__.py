@@ -85,6 +85,7 @@ from .balance_forecast_views import PortfolioOptimizerView
 from .balance_forecast_views import RiskAnalysisView
 from .balance_forecast_views import SpendingIntelligenceView
 from .balance_forecast_views import OpportunityDetectionView
+from .balance_forecast_views import PerformanceView
 from .balance_forecast_views import OverviewView
 from .dashboard_views import index
 from .dashboard_views import _api_auth_required
@@ -241,6 +242,7 @@ __all__ = [
     "RiskAnalysisView",
     "SpendingIntelligenceView",
     "OpportunityDetectionView",
+    "PerformanceView",
     "OverviewView",
     "index",
     "_api_auth_required",

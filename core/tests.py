@@ -2640,4 +2640,55 @@ class DateFormatterTest(TestCase):
         self.assertEqual(format_date("-", "en"), "-")
 
 
+class PerformanceTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="perf_user",
+            password="password123",
+            is_active=True,
+        )
+
+    def test_performance_service_payload_structure(self):
+        from core.services.financial_advisor.performance_service import PerformanceService
+        svc = PerformanceService()
+        payload = svc.payload()
+        self.assertIn("gold", payload)
+        self.assertIn("currencies", payload)
+        self.assertIn("as_of", payload)
+        self.assertIn("current_price_24k", payload["gold"])
+        self.assertIn("exposure", payload["gold"])
+        self.assertIn("rate_history_available", payload["currencies"])
+        self.assertIn("data", payload["currencies"])
+        self.assertIn("USD", payload["currencies"]["data"])
+        self.assertIn("EUR", payload["currencies"]["data"])
+        self.assertIn("SAR", payload["currencies"]["data"])
+
+    def test_performance_service_empty_db_defensive(self):
+        from core.services.financial_advisor.performance_service import PerformanceService
+        from core.models import GoldPriceHistory, ExchangeRateHistory
+        GoldPriceHistory.objects.all().delete()
+        ExchangeRateHistory.objects.all().delete()
+
+        svc = PerformanceService()
+        payload = svc.payload()
+        self.assertEqual(payload["gold"]["current_price_24k"], 0.0)
+        self.assertEqual(payload["gold"]["exposure"]["gold_value"], 0.0)
+        self.assertEqual(payload["gold"]["exposure"]["impact_7d"], 0.0)
+        self.assertEqual(payload["gold"]["exposure"]["impact_30d"], 0.0)
+        self.assertFalse(payload["currencies"]["rate_history_available"])
+
+    def test_performance_view_unauthenticated(self):
+        response = self.client.get("/api/financial-advisor/performance/")
+        self.assertEqual(response.status_code, 401)
+
+    def test_performance_view_authenticated(self):
+        self.client.login(username="perf_user", password="password123")
+        response = self.client.get("/api/financial-advisor/performance/")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("gold", data)
+        self.assertIn("currencies", data)
+
+
+
 

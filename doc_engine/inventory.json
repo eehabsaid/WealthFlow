@@ -15,7 +15,7 @@
     { "name": "Risk Analysis", "id": "risk-analysis" }, 
     { "name": "Spending Intelligence", "id": "spending-intelligence" }, 
     { "name": "Opportunity Detection", "id": "opportunity-detection" }, 
-    { "name": "Market Intelligence", "id": "market-intelligence" }, 
+    { "name": "Performance", "id": "performance" }, 
     { "name": "AI Financial Advisor", "id": "ai-financial-advisor" }, 
     { "name": "What If Simulator", "id": "what-if-simulator" }
   ]},

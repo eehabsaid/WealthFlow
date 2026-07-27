@@ -87,6 +87,12 @@ function renderFinancialAdvisor() {
       `;
     }
 
+    if (tab.id === "performance" || tab.id === "market-intelligence") {
+      return `
+        <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0"></div>
+      `;
+    }
+
     return `
       <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
         <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
@@ -172,6 +178,8 @@ function renderFinancialAdvisor() {
           if (typeof loadSpendingIntelligence === "function") loadSpendingIntelligence();
         } else if (targetSelector === "#fa-pane-opportunity-detection") {
           if (typeof loadOpportunityDetection === "function") loadOpportunityDetection();
+        } else if (targetSelector === "#fa-pane-performance" || targetSelector === "#fa-pane-market-intelligence") {
+          if (typeof loadPerformance === "function") loadPerformance();
         }
       });
     });
@@ -193,6 +201,8 @@ function renderFinancialAdvisor() {
     if (typeof loadSpendingIntelligence === "function") loadSpendingIntelligence();
   } else if (activeTabId === "opportunity-detection") {
     if (typeof loadOpportunityDetection === "function") loadOpportunityDetection();
+  } else if (activeTabId === "performance" || activeTabId === "market-intelligence") {
+    if (typeof loadPerformance === "function") loadPerformance();
   }
 }
 
@@ -213,3 +223,5 @@ window.loadGoalPlanning = loadGoalPlanning;
 window.loadRiskAnalysis = (typeof loadRiskAnalysis !== 'undefined') ? loadRiskAnalysis : () => {};
 window.loadSpendingIntelligence = (typeof loadSpendingIntelligence !== 'undefined') ? loadSpendingIntelligence : () => {};
 window.loadOpportunityDetection = (typeof loadOpportunityDetection !== 'undefined') ? loadOpportunityDetection : () => {};
+window.loadPerformance = (typeof loadPerformance !== 'undefined') ? loadPerformance : () => {};
+

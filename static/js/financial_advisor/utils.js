@@ -9,7 +9,7 @@ const FINANCIAL_ADVISOR_TABS = [
   { id: "risk-analysis", key: "financial_advisor_tab_risk_analysis" },
   { id: "spending-intelligence", key: "financial_advisor_tab_spending_intelligence" },
   { id: "opportunity-detection", key: "financial_advisor_tab_opportunity_detection", shortKey: "financial_advisor_tab_opportunities" },
-  { id: "market-intelligence", key: "financial_advisor_tab_market_intelligence", shortKey: "financial_advisor_tab_performance" },
+  { id: "performance", key: "financial_advisor_tab_performance", shortKey: "financial_advisor_tab_performance" },
   { id: "ai-financial-advisor", key: "financial_advisor_tab_ai_financial_advisor" },
   { id: "what-if-simulator", key: "financial_advisor_tab_what_if_simulator" },
 ];
