@@ -899,6 +899,24 @@ class CertificateInterestSynchronizationTest(TestCase):
         certificate.refresh_from_db()
         self.assertEqual(certificate.last_interest_posted_date, date(2026, 10, 2))
 
+    def test_run_certificate_interest_sync_concurrency_and_error_handling(self):
+        from core.views.certificate_views import _run_certificate_interest_sync
+        from django.db.utils import OperationalError
+        from unittest.mock import patch
+
+        res1 = _run_certificate_interest_sync(force=True)
+        self.assertIsNotNone(res1)
+
+        # In production mode (not testing), immediate second call should be debounced and return None
+        with patch("core.views.certificate_views._is_testing", return_value=False):
+            res2 = _run_certificate_interest_sync(force=False)
+            self.assertIsNone(res2)
+
+        # Mock OperationalError (db locked) and ensure it returns None gracefully
+        with patch("core.services.certificate.certificate_interest_service.CertificateInterestService.synchronize", side_effect=OperationalError("database is locked")):
+            res_locked = _run_certificate_interest_sync(force=True)
+            self.assertIsNone(res_locked)
+
 
 class NetWorthIntegrationTest(TestCase):
     def setUp(self):

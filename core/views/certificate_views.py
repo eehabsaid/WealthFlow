@@ -15,10 +15,48 @@ from core.models import (
 
 User = get_user_model()
 
-def _run_certificate_interest_sync():
-    from core.services.certificate.certificate_interest_service import CertificateInterestService
+import logging
+import sys
+import threading
+import time
+from django.conf import settings
+from django.db.utils import OperationalError
 
-    return CertificateInterestService().synchronize()
+_sync_lock = threading.Lock()
+_last_sync_time = 0.0
+_SYNC_DEBOUNCE_SECONDS = 5.0
+logger = logging.getLogger(__name__)
+
+def _is_testing():
+    return getattr(settings, "TESTING", False) or ("test" in sys.argv)
+
+def _run_certificate_interest_sync(force=False):
+    global _last_sync_time
+    now = time.time()
+    testing = _is_testing()
+    if not force and not testing and (now - _last_sync_time < _SYNC_DEBOUNCE_SECONDS):
+        return None
+
+    if not _sync_lock.acquire(blocking=False):
+        return None
+
+    try:
+        now = time.time()
+        if not force and not testing and (now - _last_sync_time < _SYNC_DEBOUNCE_SECONDS):
+            return None
+
+        from core.services.certificate.certificate_interest_service import CertificateInterestService
+        result = CertificateInterestService().synchronize()
+        _last_sync_time = time.time()
+        return result
+    except OperationalError as e:
+        logger.warning(f"Certificate interest sync skipped due to DB lock: {e}")
+        return None
+    except Exception as e:
+        logger.exception(f"Certificate interest sync error: {e}")
+        return None
+    finally:
+        _sync_lock.release()
 
 @method_decorator(csrf_exempt, name="dispatch")
 class BankCertificateListView(View):
