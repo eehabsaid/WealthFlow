@@ -201,7 +201,7 @@ function _renderCashFlowForecast(payload) {
           <div class="col-12 col-md-6">
             <div class="asset-summary-card h-100" style="background:var(--bg-primary);">
               <div class="asset-summary-label" data-i18n="cash_flow_nearest_maturity"></div>
-              <div style="color:var(--text-secondary); margin-bottom:6px;">${nearestMaturity.date || "-"}</div>
+              <div style="color:var(--text-secondary); margin-bottom:6px;">${formatDate(nearestMaturity.date) || "-"}</div>
               <div class="asset-summary-value">${_money(nearestMaturity.amount || 0)}</div>
             </div>
           </div>

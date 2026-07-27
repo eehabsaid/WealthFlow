@@ -189,16 +189,11 @@ function applyTranslations(container = document) {
         if (_t[key]) el.setAttribute('title', _t[key]);
     });
 
-    // 5. Date formatting — .local-date-field[data-expiry]
+    // 5. Date formatting — .local-date-field
     root.querySelectorAll('.local-date-field').forEach(td => {
-        const raw = td.getAttribute('data-expiry');
+        const raw = td.getAttribute('data-expiry') || td.getAttribute('data-date') || td.getAttribute('data-value');
         if (!raw) return;
-        const d = new Date(raw);
-        td.textContent = [
-            d.toLocaleDateString(lang, { day:   '2-digit' }),
-            d.toLocaleDateString(lang, { month: 'short'   }),
-            d.toLocaleDateString(lang, { year:  'numeric' }),
-        ].join('-');
+        td.textContent = formatDate(raw);
     });
 
     // 6. Number formatter classes

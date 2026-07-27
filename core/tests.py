@@ -2605,3 +2605,39 @@ class SpendingIntelligenceTest(TestCase):
         self.assertIn("by_category", data["monthly_comparison"])
 
 
+class DateFormatterTest(TestCase):
+    def test_format_date_languages(self):
+        from core.utils.date_formatter import format_date
+        d = date(2026, 7, 27)
+        self.assertEqual(format_date(d, "en"), "27-Jul-2026")
+        self.assertEqual(format_date(d, "fr"), "27-Juil.-2026")
+        self.assertEqual(format_date(d, "ar"), "27-يوليو-2026")
+        self.assertEqual(format_date(d, "de"), "27-Jul-2026")
+
+        d_jan = date(2026, 1, 5)
+        self.assertEqual(format_date(d_jan, "en"), "05-Jan-2026")
+        self.assertEqual(format_date(d_jan, "fr"), "05-Janv.-2026")
+        self.assertEqual(format_date(d_jan, "ar"), "05-يناير-2026")
+        self.assertEqual(format_date(d_jan, "de"), "05-Jan-2026")
+
+    def test_format_date_iso_and_time_preservation(self):
+        from core.utils.date_formatter import format_date
+        from datetime import datetime
+        dt_obj = datetime(2026, 7, 27, 14, 35)
+        self.assertEqual(format_date(dt_obj, "en"), "27-Jul-2026 14:35")
+
+        
+        iso_str = "2026-07-27"
+        self.assertEqual(format_date(iso_str, "en"), "27-Jul-2026")
+
+        iso_time_str = "2026-07-27 14:35"
+        self.assertEqual(format_date(iso_time_str, "en"), "27-Jul-2026 14:35")
+
+    def test_format_date_fallback(self):
+        from core.utils.date_formatter import format_date
+        self.assertEqual(format_date("invalid-date-string", "en"), "invalid-date-string")
+        self.assertEqual(format_date("", "en"), "")
+        self.assertEqual(format_date("-", "en"), "-")
+
+
+

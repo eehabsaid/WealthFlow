@@ -133,14 +133,14 @@ async function showFixedAssetDetails(assetId, options = {}) {
           <div class="tab-pane fade" id="asset-maintenance-pane" role="tabpanel" aria-labelledby="asset-maintenance-tab">
             <div class="row g-3">
               ${(maintenance.length ? maintenance : [{ date: "-", type: "-", cost: 0, notes: "-" }]).map((item) => `
-                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${item.date || '-'}</div></div><div><div class="small" data-i18n="type">Type</div><div>${item.type || '-'}</div></div><div><div class="small" data-i18n="cost">Cost</div><div>${fmt(item.cost)}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${item.notes || '-'}</div></div></div></div></div>
+                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${formatDate(item.date) || '-'}</div></div><div><div class="small" data-i18n="type">Type</div><div>${item.type || '-'}</div></div><div><div class="small" data-i18n="cost">Cost</div><div>${fmt(item.cost)}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${item.notes || '-'}</div></div></div></div></div>
               `).join("")}
             </div>
           </div>
           <div class="tab-pane fade" id="asset-insurance-pane" role="tabpanel" aria-labelledby="asset-insurance-tab">
             <div class="row g-3">
               ${(insurance.length ? insurance : [{ company: "-", policy_number: "-", expiry_date: "-", premium: 0 }]).map((item) => `
-                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="company">Company</div><div>${item.company || '-'}</div></div><div><div class="small" data-i18n="policy_number">Policy Number</div><div>${item.policy_number || '-'}</div></div><div><div class="small" data-i18n="expiry_date">Expiry Date</div><div>${item.expiry_date || '-'}</div></div><div><div class="small" data-i18n="premium">Premium</div><div>${fmt(item.premium)}</div></div></div></div></div>
+                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="company">Company</div><div>${item.company || '-'}</div></div><div><div class="small" data-i18n="policy_number">Policy Number</div><div>${item.policy_number || '-'}</div></div><div><div class="small" data-i18n="expiry_date">Expiry Date</div><div>${formatDate(item.expiry_date) || '-'}</div></div><div><div class="small" data-i18n="premium">Premium</div><div>${fmt(item.premium)}</div></div></div></div></div>
               `).join("")}
             </div>
           </div>
@@ -160,7 +160,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
           <div class="tab-pane fade" id="asset-valuation-pane" role="tabpanel" aria-labelledby="asset-valuation-tab">
             <div class="row g-3">
               ${(valuationHistory.length ? valuationHistory : [{ valuation_date: "-", market_value: 0, valuation_source: "-", notes: "-" }]).map((item) => `
-                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${item.valuation_date || '-'}</div></div><div><div class="small" data-i18n="current_market_value">Market Value</div><div>${fmt(item.market_value)}</div></div><div><div class="small" data-i18n="valuation_source">Valuation Source</div><div>${item.valuation_source || '-'}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${item.notes || '-'}</div></div></div></div></div>
+                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${formatDate(item.valuation_date) || '-'}</div></div><div><div class="small" data-i18n="current_market_value">Market Value</div><div>${fmt(item.market_value)}</div></div><div><div class="small" data-i18n="valuation_source">Valuation Source</div><div>${item.valuation_source || '-'}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${item.notes || '-'}</div></div></div></div></div>
               `).join("")}
             </div>
           </div>
@@ -192,7 +192,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                 <div class="row g-3">
                   <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="purchase_price_egp">Purchase Price</span><span class="value">${fmt(asset.purchase_price)}</span></div></div>
                   <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="current_market_value">Current Market Value</span><span class="value ${gainClass}">${fmt(asset.current_market_value)}</span></div></div>
-                  <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="purchase_date">Purchase Date</span><span class="value">${asset.purchase_date || '-'}</span></div></div>
+                  <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="purchase_date">Purchase Date</span><span class="value">${formatDate(asset.purchase_date) || '-'}</span></div></div>
                   <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="gain_loss">Gain / Loss</span><span class="value ${gainClass}">${fmt(gainValue)}</span></div></div>
                   <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${asset.notes || '-'}</span></div></div>
                 </div>
@@ -211,7 +211,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
             ${extraValuationPane}
             <div class="tab-pane fade" id="asset-sale-pane" role="tabpanel" aria-labelledby="asset-sale-tab">
               <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-4">
-                ${sale ? `<div class="row g-3"><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="sale_date">Sale Date</span><span class="value">${sale.sale_date || '-'}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="sale_price_egp">Sale Price</span><span class="value">${fmt(sale.sale_price)}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="selling_expenses_egp">Selling Expenses</span><span class="value">${fmt(sale.selling_expenses)}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="net_sale_amount">Net Sale Amount</span><span class="value">${fmt(sale.net_sale_amount)}</span></div></div><div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${sale.notes || '-'}</span></div></div></div>` : `<div class="text-center" data-i18n="no_data">No data available</div>`}
+                ${sale ? `<div class="row g-3"><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="sale_date">Sale Date</span><span class="value">${formatDate(sale.sale_date) || '-'}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="sale_price_egp">Sale Price</span><span class="value">${fmt(sale.sale_price)}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="selling_expenses_egp">Selling Expenses</span><span class="value">${fmt(sale.selling_expenses)}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="net_sale_amount">Net Sale Amount</span><span class="value">${fmt(sale.net_sale_amount)}</span></div></div><div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${sale.notes || '-'}</span></div></div></div>` : `<div class="text-center" data-i18n="no_data">No data available</div>`}
               </div></div>
             </div>
           </div>
@@ -290,7 +290,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                 <div class="col">
                     <div class="asset-summary-card h-100">
                         <div class="asset-summary-label" data-i18n="purchase_date">Purchase Date</div>
-                        <div class="asset-summary-value">${asset.purchase_date || '-'}</div>
+                        <div class="asset-summary-value">${formatDate(asset.purchase_date) || '-'}</div>
                     </div>
                 </div>
                 <div class="col">
@@ -302,7 +302,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                 <div class="col">
                     <div class="asset-summary-card h-100">
                         <div class="asset-summary-label" data-i18n="last_valuation_date">Last Valuation Date</div>
-                        <div class="asset-summary-value">${asset.last_valuation_date || '-'}</div>
+                        <div class="asset-summary-value">${formatDate(asset.last_valuation_date) || '-'}</div>
                     </div>
                 </div>
                 ${mortgage ? `
@@ -372,7 +372,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                                                           
                                     <div class="row mb-2"><div class="col-5 fixed-assets-section-title" data-i18n="asset_type">Asset Type</div><div class="col-7">${asset.asset_type || '-'}</div></div>
                                     <div class="row mb-2"><div class="col-5 fixed-assets-section-title" data-i18n="asset_name">Asset Name</div><div class="col-7">${asset.name || '-'}</div></div>
-                                    <div class="row mb-2"><div class="col-5" data-i18n="purchase_date">Purchase Date</div><div class="col-7">${asset.purchase_date || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="purchase_date">Purchase Date</div><div class="col-7">${formatDate(asset.purchase_date) || '-'}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="valuation_source">Valuation Source</div><div class="col-7">${asset.valuation_source || '-'}</div></div>
                                     <div class="row"><div class="col-5" data-i18n="notes">Notes</div><div class="col-7">${asset.notes || '-'}</div></div>
                                 </div>
@@ -388,7 +388,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                                     <div class="row mb-2"><div class="col-5" data-i18n="renovation_costs_egp">Renovation Costs</div><div class="col-7 fw-bold">${fmt(asset.total_renovation_costs || 0)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="total_investment_egp">Total Investment</div><div class="col-7 fw-bold">${fmt(asset.total_investment || asset.purchase_price)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="current_market_value">Current Market Value</div><div class="col-7 fw-bold">${fmt(asset.current_market_value)}</div></div>
-                                    <div class="row mb-2"><div class="col-5" data-i18n="last_valuation_date">Last Valuation Date</div><div class="col-7">${asset.last_valuation_date || '-'}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="last_valuation_date">Last Valuation Date</div><div class="col-7">${formatDate(asset.last_valuation_date) || '-'}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="gain_loss">Gain / Loss</div><div class="col-7 fw-bold ${gainClass}">${fmt(gainValue)}</div></div>
                                     <div class="row"><div class="col-5" data-i18n="gain_percent">Gain (%)</div><div class="col-7 fw-bold ${gainClass}">${(asset.total_investment || asset.purchase_price) ? fmtpresent((gainValue / (asset.total_investment || asset.purchase_price)) * 100) + '%' : '-'}</div></div>
                                 </div>
@@ -484,7 +484,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                                     <div class="d-flex justify-content-between gap-3">
                                         <div>
                                             <div class="small mb-2" data-i18n="date">Date</div>
-                                            <div class="fw-semibold">${r.date || '-'}</div>
+                                            <div class="fw-semibold">${formatDate(r.date) || '-'}</div>
                                             <div class="small mt-2" data-i18n="category">Category</div>
                                             <div data-i18n-prefix="renovation_" data-i18n-value="${(r.category || '').toLowerCase().replace(/ & /g, '_').replace(/ /g, '_')}">${r.category || '-'}</div>
                                         </div>
@@ -544,7 +544,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                                     <div class="d-flex justify-content-between gap-3">
                                         <div>
                                             <div class="small mb-2" data-i18n="date">Date</div>
-                                            <div class="fw-semibold">${c.date || '-'}</div>
+                                            <div class="fw-semibold">${formatDate(c.date) || '-'}</div>
                                             <div class="small mt-2" data-i18n="category">Category</div>
                                             <div data-i18n-prefix="acquisition_" data-i18n-value="${(c.category || '').toLowerCase().replace(/ & /g, '_').replace(/ /g, '_')}">${c.category || '-'}</div>
                                         </div>
@@ -612,7 +612,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                             <div class="mt-3 d-flex justify-content-between gap-3">
                                <div><span class="small" data-i18n="category">Category</span><div data-i18n-prefix="furniture_" data-i18n-value="${(item.category || '').toLowerCase().replace(/ & /g, '_').replace(/ /g, '_')}">${item.category || '-'}</div></div>
                                <div><span class="small" data-i18n="quantity">Quantity</span><div>${item.quantity || '-'}</div></div>
-                              <div><span class="small" data-i18n="purchase_date">Purchase Date</span><div>${item.purchase_date || '-'}</div></div>
+                              <div><span class="small" data-i18n="purchase_date">Purchase Date</span><div>${formatDate(item.purchase_date) || '-'}</div></div>
                             </div>
                             <div class="mt-3"><div class="small mb-1" data-i18n="notes">Notes</div><div>${item.notes || '-'}</div></div>
                           </div>
@@ -659,7 +659,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                             <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
                               <div>
                                 <div class="small mb-1" data-i18n="date">Date</div>
-                                <div class="fw-semibold">${item.valuation_date || '-'}</div>
+                                <div class="fw-semibold">${formatDate(item.valuation_date) || '-'}</div>
                               </div>
                               <div>
                                 <div class="small mb-1" data-i18n="valuation_source">Valuation Source</div>
@@ -686,8 +686,8 @@ async function showFixedAssetDetails(assetId, options = {}) {
                             <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="remaining_balance">Remaining Balance</span><span class="value">${fmt(mortgage.remaining_balance)}</span></div></div>
                             <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="monthly_installment">Monthly Installment</span><span class="value">${fmt(mortgage.monthly_installment)}</span></div></div>
                             <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="interest_rate">Interest Rate</span><span class="value">${fmtpresent(mortgage.interest_rate)}%</span></div></div>
-                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="start_date">Start Date</span><span class="value">${mortgage.start_date || '-'}</span></div></div>
-                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="end_date">End Date</span><span class="value">${mortgage.end_date || '-'}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="start_date">Start Date</span><span class="value">${formatDate(mortgage.start_date) || '-'}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="end_date">End Date</span><span class="value">${formatDate(mortgage.end_date) || '-'}</span></div></div>
                             <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="net_equity">Net Equity</span><span class="value">${fmt(mortgage.net_equity)}</span></div></div>
                           </div>
                         ` : `<div class="text-center py-4" style="color:var(--text-secondary);" data-i18n="no_data">No data available</div>`}
@@ -705,8 +705,8 @@ async function showFixedAssetDetails(assetId, options = {}) {
                             <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="occupancy_rate">Occupancy Rate</span><span class="value">${fmtpresent(rental.occupancy_rate)}%</span></div></div>
                             <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="rental_yield">Rental Yield</span><span class="value">${fmtpresent(rental.rental_yield)}%</span></div></div>
                             <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="tenant_name_optional">Tenant Name</span><span class="value">${rental.tenant_name || '-'}</span></div></div>
-                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="contract_start">Contract Start</span><span class="value">${rental.contract_start || '-'}</span></div></div>
-                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="contract_end">Contract End</span><span class="value">${rental.contract_end || '-'}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="contract_start">Contract Start</span><span class="value">${formatDate(rental.contract_start) || '-'}</span></div></div>
+                            <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="contract_end">Contract End</span><span class="value">${formatDate(rental.contract_end) || '-'}</span></div></div>
                             <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${rental.notes || '-'}</span></div></div>
                           </div>
                         ` : `<div class="text-center py-4" style="color:var(--text-secondary);" data-i18n="no_data">No data available</div>`}
@@ -721,7 +721,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
                           <div class="card-body p-4">
                             <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="sale_information">Sale Information</h6>
                             ${sale ? `
-                              <div class="row mb-2"><div class="col-5" data-i18n="sale_date">Sale Date</div><div class="col-7">${sale.sale_date || '-'}</div></div>
+                              <div class="row mb-2"><div class="col-5" data-i18n="sale_date">Sale Date</div><div class="col-7">${formatDate(sale.sale_date) || '-'}</div></div>
                               <div class="row mb-2"><div class="col-5" data-i18n="sale_price_egp">Sale Price</div><div class="col-7 fw-bold">${fmt(sale.sale_price)}</div></div>
                               <div class="row mb-2"><div class="col-5" data-i18n="selling_expenses_egp">Selling Expenses</div><div class="col-7">${fmt(sale.selling_expenses)}</div></div>
                               <div class="row"><div class="col-5" data-i18n="net_sale_amount">Net Sale Amount</div><div class="col-7 fw-bold">${fmt(sale.net_sale_amount)}</div></div>

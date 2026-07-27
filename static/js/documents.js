@@ -46,7 +46,7 @@
         const category = _safeText(doc.document_category || "-");
         const name = _safeText(doc.original_file_name || "-");
         const notes = _safeText(doc.notes || "");
-        const uploaded = _safeText(String(doc.upload_date || "").slice(0, 10));
+        const uploaded = _safeText(formatDate(doc.upload_date) || "-");
         const size = _fmtFileSize(doc.file_size);
 
         return `

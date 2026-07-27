@@ -21,7 +21,7 @@ FMT_GOLD = '0\\ "Grams"'
 FMT_EGP_CERT = "[$EGP]\\ #,##0.00"
 FMT_EGP_CERT_R = "[$EGP]\\ #,##0.00;[Red][$EGP]\\ #,##0.00"
 FMT_PCT = "0.00%"
-FMT_DATE = "[$-F800]dddd/\\ mmmm\\ dd/\\ yyyy"
+FMT_DATE = "dd-mmm-yyyy"
 FMT_INT = "0"
 
 GREY = "FF7F7F7F"
@@ -977,7 +977,7 @@ def build_expenses_sheet(ws, expenses_qs):
             mname = MONTH_ORDER[month - 1] if 1 <= month <= 12 else str(month)
             mstart = row
             for exp in month_entries:
-                ws.cell(row=row, column=1, value=exp.date).number_format = "YYYY-MM-DD"
+                ws.cell(row=row, column=1, value=exp.date).number_format = FMT_DATE
                 ws.cell(row=row, column=2, value=exp.year)
                 ws.cell(row=row, column=3, value=mname)
                 ws.cell(

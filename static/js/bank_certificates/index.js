@@ -48,8 +48,8 @@ async function renderBankCertificates() {
                 <tr>
                     <td ${tdStyle}>${c.bank_name || '—'}</td>
                     <td ${tdStyle}><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${c.currency_flag} ${c.currency_code || '—'}</span></td>
-                    <td ${tdStyle}>${c.issue_date || '—'}</td>
-                    <td ${tdStyle}>${c.expiry_date || '—'}</td>
+                    <td ${tdStyle}>${formatDate(c.issue_date) || '—'}</td>
+                    <td ${tdStyle}>${formatDate(c.expiry_date) || '—'}</td>
                     <td ${tdStyle} class="text-end">${fmt(c.amount)}</td>
                     <td ${tdStyle}>${c.interest_rate ? c.interest_rate : '—'}</td>
                     <td ${tdStyle}>${c.interest_value ? fmt(c.interest_value) : '—'}</td>
@@ -133,12 +133,12 @@ async function showBankCertificateInterestHistory(certificateId) {
     const rows = items.length
         ? items.map((item) => `
             <tr data-posting-date="${item.posting_date || ''}">
-                <td>${item.posting_date || '—'}</td>
+                <td>${formatDate(item.posting_date) || '—'}</td>
                 <td>${item.posting_period || '—'}</td>
                 <td class="text-end">${fmt(item.interest_amount || 0)}</td>
                 <td>${item.bank_name || '—'}</td>
                 <td>${item.currency_code || '—'}</td>
-                <td>${item.created_at ? new Date(item.created_at).toLocaleString() : '—'}</td>
+                <td>${item.created_at ? formatDate(item.created_at) : '—'}</td>
             </tr>
         `).join('')
         : `<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--text-muted)" data-i18n="no_interest_history">No interest history yet.</td></tr>`;

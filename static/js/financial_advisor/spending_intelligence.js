@@ -284,7 +284,7 @@ function _renderSpendingIntelligence(payload) {
   if (keyFindings.largest_expense) {
     const le = keyFindings.largest_expense;
     const amtStr = `<b>${fmt(Number(le.amount_egp).toFixed(2))}</b>`;
-    const dateHtml = `<b>${le.date}</b>`;
+    const dateHtml = `<b>${formatDate(le.date)}</b>`;
     if (le.description) {
         const paramsObj = { amount: amtStr, description: le.description, date: dateHtml };
         findingsHtml += `

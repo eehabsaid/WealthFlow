@@ -8,6 +8,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Sum, Count
+from core.utils.date_formatter import format_date
 from core.models import (
     Company,
     SalaryEntry,
@@ -626,7 +627,7 @@ class GenerateReportGenerator(object):
 
                 exp_data.append(
                     [
-                        Paragraph(e.date.strftime("%d/%m/%Y"), cell_L8),
+                        Paragraph(format_date(e.date, lang), cell_L8),
                         Paragraph(cname, cell_L8),
                         Paragraph(desc, cell_L8),
                         Paragraph(method, cell_L8),
@@ -1047,10 +1048,11 @@ def _fixed_asset_report_context(request):
 
 
 
-def _fixed_asset_display_value(value):
+def _fixed_asset_display_value(value, lang="en"):
     if value in (None, "", []):
         return "-"
-    return str(value)
+    res = format_date(value, lang)
+    return res if res else str(value)
 
 
 

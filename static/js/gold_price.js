@@ -107,7 +107,7 @@ async function renderGoldPrice() {
                 <div class="page-title" data-i18n="gold_prices">🥇 Gold Prices</div>
                 <div class="page-subtitle">
                     <span data-i18n="source">${sourceText}</span>: goldbullioneg.com + open.er-api.com
-                    ${hasData ? `· <strong>${gd.fetched_at}</strong>` : ''}
+                    ${hasData ? `· <strong>${formatDate(gd.fetched_at)}</strong>` : ''}
                 </div>
             </div>
             <button class="btn-primary-custom" onclick="refreshGoldPrice()" id="btnRefreshGold">

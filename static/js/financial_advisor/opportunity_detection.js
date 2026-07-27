@@ -226,7 +226,7 @@ function _renderOpportunityDetection(payload) {
               <table class="opp-signals-table">
                 <tr>
                   <td class="opp-signal-label" data-i18n="signal_maturity_date"></td>
-                  <td class="opp-signal-val">${s.maturity_date || "-"}</td>
+                  <td class="opp-signal-val">${formatDate(s.maturity_date) || "-"}</td>
                 </tr>
                 <tr>
                   <td class="opp-signal-label" data-i18n="signal_days_left"></td>

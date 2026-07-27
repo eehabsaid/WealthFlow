@@ -170,7 +170,7 @@ async function renderExchangeRates() {
                 <div class="page-title" data-i18n="exchange_rates">${t('exchange_rates', 'Exchange Rates')}</div>
                 <div class="page-subtitle">
                     <span data-i18n="source">${sourceText}</span>: open.er-api.com &amp; CBE
-                    ${fetchedAt ? `· <span data-i18n="last_updated">${lastUpdatedText}</span>: <strong>${fetchedAt}</strong>` : ''}
+                    ${fetchedAt ? `· <span data-i18n="last_updated">${lastUpdatedText}</span>: <strong>${formatDate(fetchedAt)}</strong>` : ''}
                 </div>
             </div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">

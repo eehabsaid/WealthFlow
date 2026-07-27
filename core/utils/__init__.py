@@ -88,9 +88,12 @@ def _gold_cashback_per_gram(purity: int, gold_price_record) -> Decimal:
         return Decimal(str(gold_price_record.carat_18k_buy or gold_price_record.carat_18k))
     return Decimal("0")
 
+from core.utils.date_formatter import format_date
+
 __all__ = [
     "datetime",
     "Decimal",
     "MONTH_ORDER",
     "GOLD_UNIT_TO_GRAMS",
+    "format_date",
 ]

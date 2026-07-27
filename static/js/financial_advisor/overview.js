@@ -65,16 +65,7 @@ function _formatOverviewAiSummary(execSummary) {
 
 function _formatGoalDate(dateStr) {
   if (!dateStr) return "";
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const day = d.getDate();
-    const monthKey = `month_short_${d.getMonth() + 1}`;
-    const year = d.getFullYear();
-    return `${day} ${t(monthKey, monthKey)} ${year}`;
-  } catch(e) {
-    return dateStr;
-  }
+  return formatDate(dateStr);
 }
 
 function _alertBadge(severity) {

@@ -127,7 +127,7 @@ function _renderGoalPlanningMilestonesSection(milestones) {
                   <div>
                     <div class="goal-milestone-title">${_escapeHtml(item.goal_name || t("goal_planning_not_available"))}</div>
                     <div class="goal-milestone-meta">
-                      <span data-i18n="goal_planning_target_date"></span>: ${_escapeHtml(item.target_date || "-")}
+                      <span data-i18n="goal_planning_target_date"></span>: ${_escapeHtml(formatDate(item.target_date) || "-")}
                     </div>
                   </div>
                   <div class="goal-milestone-side">

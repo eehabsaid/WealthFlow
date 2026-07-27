@@ -176,7 +176,7 @@ function renderExpenseTableHTML(entries) {
     .map(
       (e) => `
     <tr>
-      <td>${e.date}</td>
+      <td>${formatDate(e.date)}</td>
       <td><span style="background:${e.category_color}22;color:${e.category_color};
                        padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700">
         ${e.category_icon} ${e.category_name || "—"}

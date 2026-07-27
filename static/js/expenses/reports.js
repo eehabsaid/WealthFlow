@@ -21,7 +21,7 @@ async function exportExpenses() {
   ];
   (data.entries || []).forEach((e) => {
     rows.push([
-      e.date,
+      formatDate(e.date),
       e.category_name,
       e.subcategory_name,
       e.description,

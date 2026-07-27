@@ -43,7 +43,7 @@ function renderBalanceTransfers(data) {
 
             return `
                 <tr>
-                    <td>${tr.transfer_date}</td>
+                    <td>${formatDate(tr.transfer_date)}</td>
                     <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${typeLabel}</span></td>
                     <td>${fromLabel}</td>
                     <td>${toLabel}</td>

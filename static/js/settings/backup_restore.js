@@ -21,8 +21,7 @@ async function renderBackupRestoreSettings() {
         ? backups.map(b => {
             const formattedSize = (b.size / 1024).toFixed(1) + " KB";
             // Simple date formatting
-            const dateObj = new Date(b.created_at);
-            const formattedDate = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString();
+            const formattedDate = formatDate(b.created_at);
 
             return `
             <tr>

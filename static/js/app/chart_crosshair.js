@@ -144,7 +144,7 @@
     }
 
     card.innerHTML = `
-      <div style="color:#7b93c9;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">${label}</div>
+      <div style="color:#7b93c9;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">${typeof formatDate === 'function' ? formatDate(label) : label}</div>
       ${rows}
     `;
     card.style.display = 'block';

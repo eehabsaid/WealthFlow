@@ -43,12 +43,8 @@ function parseNumberInput(id) {
 
 function formatCertificateHistoryDate(value) {
     if (!value) return '—';
-    const dt = new Date(`${value}T00:00:00`);
-    if (Number.isNaN(dt.getTime())) return value;
-    const day = String(dt.getDate()).padStart(2, '0');
-    const month = dt.toLocaleString(undefined, { month: 'short' });
-    const year = dt.getFullYear();
-    return `${day}-${month}-${year}`;
+    const res = formatDate(value);
+    return res || value;
 }
 
 function formatCertificateFrequencyLabel(value) {
@@ -63,8 +59,6 @@ function formatCertificateFrequencyLabel(value) {
 
 function formatCertificateHistoryDateFromDate(dateObj) {
     if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return '—';
-    const day = String(dateObj.getDate()).padStart(2, '0');
-    const month = dateObj.toLocaleString(undefined, { month: 'short' });
-    const year = dateObj.getFullYear();
-    return `${day}-${month}-${year}`;
+    const res = formatDate(dateObj);
+    return res || '—';
 }
