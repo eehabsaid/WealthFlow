@@ -32,7 +32,7 @@
   }
 
   async function loadPerformance() {
-    const container = document.getElementById("fa-pane-performance") || document.getElementById("fa-pane-market-intelligence");
+    const container = document.getElementById("fa-pane-performance");
     if (!container) return;
 
     container.innerHTML = `
