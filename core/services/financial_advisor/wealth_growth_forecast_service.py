@@ -252,6 +252,82 @@ class WealthGrowthForecastService:
             "insight_key": insight_key,
         }
 
+    def forecast_with_overrides(self, scenario: str, overrides: dict | None = None) -> dict:
+        """Public wrapper for the What-If Simulator.
+
+        Applies caller-supplied *overrides* to a shallow copy of the portfolio
+        dict, then delegates to the unmodified ``_build_series()`` method.
+        When *overrides* is None or empty the output is byte-identical to
+        calling ``_build_series(portfolio, scenario)`` directly.
+
+        Supported override keys
+        -----------------------
+        monthly_salary_scale : float
+            Multiplier applied to every salary event's ending_cash contribution.
+            The cash_timeline is rebuilt by accumulating the per-month delta.
+        monthly_expense_scale : float
+            Multiplier applied to net expenses embedded in each month's
+            ending_cash.
+        gold_value : float
+            Replaces ``portfolio["gold_value"]`` before projecting gold growth.
+        certificate_reinvest : str
+            ``"reinvest"`` (default) keeps certificate_value unchanged.
+            ``"cashout"`` zeros the certificate_value (maturity proceeds move
+            to cash) but leaves cash_timeline's certificate_maturity events
+            intact so net worth still accounts for the principal.
+        """
+        portfolio = self._portfolio()
+
+        if overrides:
+            portfolio = dict(portfolio)  # shallow copy — never mutate original
+
+            # ── Gold allocation target override ───────────────────────────────
+            if "gold_value" in overrides:
+                portfolio["gold_value"] = float(overrides["gold_value"])
+
+            # ── Salary / expense scale: rebuild cash timeline ending values ───
+            salary_scale = float(overrides.get("monthly_salary_scale", 1.0))
+            expense_scale = float(overrides.get("monthly_expense_scale", 1.0))
+            base_salary = portfolio.get("monthly_salary", 0.0)
+
+            if salary_scale != 1.0 or expense_scale != 1.0:
+                # For each month, compute the adjusted ending_cash by applying
+                # the delta between scaled and original salary/expense flows.
+                # monthly_expense_egp is taken from cash_flow timeline's
+                # embedded net-of-expense value.  We approximate by adding the
+                # per-month salary delta and subtracting the per-month expense
+                # delta cumulatively across the 12-month horizon.
+                original_timeline = portfolio.get("cash_timeline", [])
+                if original_timeline:
+                    salary_delta_per_month = base_salary * (salary_scale - 1.0)
+                    # Estimate monthly expense from timeline events
+                    expense_per_month = 0.0
+                    for month in original_timeline[:3]:
+                        for ev in month.get("events", []):
+                            if str(ev.get("type", "")).startswith("expense") or str(ev.get("type", "")) == "mortgage":
+                                expense_per_month += _to_float(ev.get("amount", 0))
+                    expense_per_month /= min(3, len(original_timeline[:3])) if original_timeline[:3] else 1
+                    expense_delta_per_month = expense_per_month * (expense_scale - 1.0)
+                    cumulative_delta = 0.0
+                    new_timeline = []
+                    for idx, month in enumerate(original_timeline):
+                        cumulative_delta += salary_delta_per_month - expense_delta_per_month
+                        new_month = dict(month)
+                        original_ending = _to_float(month.get("ending_cash", 0.0))
+                        new_month["ending_cash"] = round(original_ending + cumulative_delta, 2)
+                        new_timeline.append(new_month)
+                    portfolio["cash_timeline"] = new_timeline
+
+            # ── Certificate reinvestment choice ───────────────────────────────
+            if overrides.get("certificate_reinvest") == "cashout":
+                # Zero the certificate principal in the projection; the cash
+                # timeline already carries certificate_maturity events as cash
+                # inflows, so net worth is still correct — the difference is that
+                # certificate_value shows 0 instead of the reinvested amount.
+                portfolio["certificate_value"] = 0.0
+
+        return self._build_series(portfolio, scenario)
+
     def payload(self) -> dict:
         portfolio = self._portfolio()
         current_net_worth = portfolio["current_net_worth"]

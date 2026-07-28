@@ -306,7 +306,7 @@ function _renderOverview(payload) {
           <div class="overview-card-title">
             <span>
               <i class="bi bi-brilliance text-primary me-2"></i>
-              <span data-i18n="financial_advisor_tab_ai_financial_advisor">AI Executive Summary</span>
+              <span data-i18n="overview_executive_summary_title">AI Executive Summary</span>
             </span>
           </div>
           <div class="overview-ai-card-content flex-row align-items-start gap-4" style="height: calc(100% - 75px);">
@@ -371,7 +371,7 @@ function _renderOverview(payload) {
               <i class="bi bi-calendar3 me-1"></i>
               <span data-i18n="overview_last_updated">Last Updated</span>
             </span>
-            <button onclick="switchFinancialAdvisorTab('ai-financial-advisor')">
+            <button onclick="switchFinancialAdvisorTab('portfolio-optimizer')">
               <span data-i18n="overview_view_details">View Details</span>
               <i class="bi bi-arrow-right"></i>
             </button>

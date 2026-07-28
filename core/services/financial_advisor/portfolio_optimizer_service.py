@@ -49,9 +49,10 @@ class PortfolioOptimizerService:
         "other_assets",
     ]
 
-    def __init__(self, *, today: date | None = None, net_worth_service: NetWorthService | None = None):
+    def __init__(self, *, today: date | None = None, net_worth_service: NetWorthService | None = None, monthly_expenses_override: float | None = None):
         self.today = today or date.today()
         self.net_worth = net_worth_service or NetWorthService()
+        self._monthly_expenses_override = monthly_expenses_override
 
     def _allocation_values(self, comp: dict) -> Dict[str, float]:
         values = comp.get("allocation_values", {})
@@ -77,6 +78,8 @@ class PortfolioOptimizerService:
         return total, active_months
 
     def _monthly_expense_average(self) -> float:
+        if hasattr(self, "_monthly_expenses_override") and self._monthly_expenses_override is not None:
+            return max(0.0, self._monthly_expenses_override)
         total, active_months = self._month_expense_baseline()
         if active_months > 0:
             return total / active_months

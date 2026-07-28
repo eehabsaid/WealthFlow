@@ -90,7 +90,14 @@ function _drawWealthGrowthChart(data) {
     chartWrapper.setAttribute("dir", direction);
   }
 
-  const labels = data.month_labels || [];
+  const rawLabels = data.month_labels || [];
+  const labels = rawLabels.map((lbl) => {
+    if (!lbl || lbl === "Current" || lbl === "current") {
+      return typeof t === "function" ? t("wealth_growth_current", "Current") : "Current";
+    }
+    return typeof formatDate === "function" ? formatDate(lbl) : lbl;
+  });
+
   const series = data.series || {};
   const conservative = (series.conservative?.points || []).map((p) => p.net_worth);
   const expected = (series.expected?.points || []).map((p) => p.net_worth);
@@ -129,7 +136,17 @@ function _drawWealthGrowthChart(data) {
           backgroundColor: "rgba(13, 21, 48, 0.96)",
           borderColor: gridColor,
           borderWidth: 1,
-          callbacks: { label: (ctx) => `${ctx.dataset.label}: ${fmt(ctx.raw)}` },
+          callbacks: {
+            title: (items) => {
+              if (!items || !items.length) return "";
+              const raw = items[0].label || "";
+              if (raw === "Current" || raw === "current" || raw === (typeof t === "function" ? t("wealth_growth_current", "Current") : "Current")) {
+                return typeof t === "function" ? t("wealth_growth_current", "Current") : "Current";
+              }
+              return typeof formatDate === "function" ? formatDate(raw) : raw;
+            },
+            label: (ctx) => `${ctx.dataset.label}: ${fmt(ctx.raw)}`,
+          },
         },
       },
       scales: {

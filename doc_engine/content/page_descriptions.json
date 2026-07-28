@@ -231,14 +231,6 @@
       "Analyze exchange rate trends and moving averages across USD, EUR, and SAR."
     ]
   },
-  "financial-advisor::ai-financial-advisor": {
-    "purpose": "Interact directly with the AI financial advisor via a conversational interface to ask specific financial questions.",
-    "steps": [
-      "Open the AI Financial Advisor tab.",
-      "Type your specific financial question in the chat box.",
-      "Review the tailored advice provided by the AI."
-    ]
-  },
   "financial-advisor::what-if-simulator": {
     "purpose": "Simulate various financial scenarios to see their impact on your net worth.",
     "steps": [

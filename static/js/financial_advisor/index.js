@@ -93,6 +93,12 @@ function renderFinancialAdvisor() {
       `;
     }
 
+    if (tab.id === "what-if-simulator") {
+      return `
+        <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0"></div>
+      `;
+    }
+
     return `
       <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
         <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
@@ -180,6 +186,8 @@ function renderFinancialAdvisor() {
           if (typeof loadOpportunityDetection === "function") loadOpportunityDetection();
         } else if (targetSelector === "#fa-pane-performance") {
           if (typeof loadPerformance === "function") loadPerformance();
+        } else if (targetSelector === "#fa-pane-what-if-simulator") {
+          if (typeof loadWhatIfSimulator === "function") loadWhatIfSimulator();
         }
       });
     });
@@ -203,6 +211,8 @@ function renderFinancialAdvisor() {
     if (typeof loadOpportunityDetection === "function") loadOpportunityDetection();
   } else if (activeTabId === "performance") {
     if (typeof loadPerformance === "function") loadPerformance();
+  } else if (activeTabId === "what-if-simulator") {
+    if (typeof loadWhatIfSimulator === "function") loadWhatIfSimulator();
   }
 }
 
@@ -224,3 +234,4 @@ window.loadRiskAnalysis = (typeof loadRiskAnalysis !== 'undefined') ? loadRiskAn
 window.loadSpendingIntelligence = (typeof loadSpendingIntelligence !== 'undefined') ? loadSpendingIntelligence : () => {};
 window.loadOpportunityDetection = (typeof loadOpportunityDetection !== 'undefined') ? loadOpportunityDetection : () => {};
 window.loadPerformance = (typeof loadPerformance !== 'undefined') ? loadPerformance : () => {};
+window.loadWhatIfSimulator = (typeof loadWhatIfSimulator !== 'undefined') ? loadWhatIfSimulator : () => {};

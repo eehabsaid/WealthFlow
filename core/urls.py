@@ -238,6 +238,10 @@ urlpatterns = [
         views.PerformanceView.as_view(),
     ),
     path(
+        "api/financial-advisor/what-if-simulator/",
+        views.WhatIfSimulatorView.as_view(),
+    ),
+    path(
         "api/financial-advisor/goal-planning/",
         views.GoalPlanningView.as_view(),
     ),
