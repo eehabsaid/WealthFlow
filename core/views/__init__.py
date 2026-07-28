@@ -3,12 +3,12 @@ from .auth_views import LoginAPIView
 from .auth_views import SignupAPIView
 from .auth_views import LogoutAPIView
 from .auth_views import CurrentUserView
-from .auth_views import UserListView
-from .auth_views import UserDetailView
-from .auth_views import UserPermissionListView
-from .auth_views import UserBulkActionView
-from .auth_views import UserPermissionDetailView
-from .auth_views import PagePermissionChoicesView
+from .user_management_views import UserListView
+from .user_management_views import UserDetailView
+from .user_management_views import UserPermissionListView
+from .user_management_views import UserBulkActionView
+from .user_management_views import UserPermissionDetailView
+from .user_management_views import PagePermissionChoicesView
 from .auth_views import UpdateProfileView
 from .auth_views import login_view
 from .auth_views import signup_view
@@ -21,7 +21,7 @@ from .auth_views import account_disabled_view
 from .auth_views import admin_approve_account_view
 from .auth_views import admin_reject_account_view
 from .auth_views import logout_view
-from .auth_views import user_management_page
+from .user_management_views import user_management_page
 from .auth_views import create_user_profile
 from .auth_views import _build_user_dict
 from .auth_views import _get_user_allowed_pages

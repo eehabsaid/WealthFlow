@@ -10,11 +10,11 @@ function routeAllowed(hash) {
     if (hash === 'dashboard') {
         return canAccessAny(['dashboard']);
     }
-    if (hash === 'financial-advisor') {
-        return !shouldShowWelcomeOnly();
+    if (hash === 'financial-advisor' || hash.startsWith('financial-advisor')) {
+        return canAccessAny(['financial_advisor']);
     }
     if (hash === 'balance') {
-        return canAccessAny(['balance']);
+        return canAccessAny(['balance', 'banks']);
     }
     if (hash === 'bank-certificates') {
         return canAccessAny(['bank_certificates']);
@@ -23,10 +23,10 @@ function routeAllowed(hash) {
         return canAccessAny(['fixed_assets']);
     }
     if (hash === 'employment' || hash === 'salary' || hash.startsWith('employment-') || hash.startsWith('salary-')) {
-        return canAccessAny(['salary']);
+        return canAccessAny(['employment', 'salary', 'companies', 'all_companies']);
     }
     if (hash === 'exchange-rates') {
-        return canAccessAny(['exchange_rates']);
+        return canAccessAny(['exchange_rates', 'currencies']);
     }
     if (hash === 'gold-price') {
         return canAccessAny(['gold_price']);
@@ -73,11 +73,12 @@ function getFirstAllowedRoute() {
 
 function permissionToRoute(pageKey) {
     if (pageKey === 'dashboard') return 'dashboard';
-    if (pageKey === 'balance') return 'balance';
+    if (pageKey === 'financial_advisor') return 'financial-advisor';
+    if (pageKey === 'balance' || pageKey === 'banks') return 'balance';
     if (pageKey === 'bank_certificates') return 'bank-certificates';
     if (pageKey === 'fixed_assets') return 'fixed-assets';
-    if (pageKey === 'all_companies' || pageKey === 'salary') return 'employment';
-    if (pageKey === 'exchange_rates') return 'exchange-rates';
+    if (pageKey === 'employment' || pageKey === 'salary' || pageKey === 'companies' || pageKey === 'all_companies') return 'employment';
+    if (pageKey === 'exchange_rates' || pageKey === 'currencies') return 'exchange-rates';
     if (pageKey === 'gold_price') return 'gold-price';
     if (pageKey === 'expenses') return 'expenses';
     if (pageKey === 'expense-categories') return 'expense-categories';

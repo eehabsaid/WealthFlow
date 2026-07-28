@@ -88,42 +88,20 @@ class PortfolioOptimizerService:
         return 0.0
 
     def _score_range_metric(self, value_pct: float, low: float, high: float) -> float:
-        if low <= value_pct <= high:
-            return 100.0
-        spread = max(high - low, 1.0)
-        if value_pct < low:
-            distance = low - value_pct
-        else:
-            distance = value_pct - high
-        # Keep penalties moderate so one drifted band does not collapse a strong portfolio score.
-        penalty = min(100.0, (distance / spread) * 75.0)
-        return max(0.0, 100.0 - penalty)
+        from core.services.financial_advisor.portfolio_optimizer_calculations import score_range_metric
+        return score_range_metric(value_pct, low, high)
 
     def _emergency_fund_months(self, liquid_value: float, monthly_expenses: float) -> float:
-        if monthly_expenses <= 0:
-            return 12.0
-        return liquid_value / monthly_expenses
+        from core.services.financial_advisor.portfolio_optimizer_calculations import emergency_fund_months
+        return emergency_fund_months(liquid_value, monthly_expenses)
 
     def _score_emergency_fund(self, months: float) -> float:
-        if months >= 6.0:
-            return 100.0
-        return max(0.0, min(100.0, (months / 6.0) * 100.0))
+        from core.services.financial_advisor.portfolio_optimizer_calculations import score_emergency_fund
+        return score_emergency_fund(months)
 
     def _score_diversification(self, percentages: Dict[str, float]) -> float:
-        keys = [key for key in percentages if percentages[key] > 0]
-        if not keys:
-            return 0.0
-        n = float(len(percentages))
-        hhi = 0.0
-        for value in percentages.values():
-            share = (value / 100.0)
-            hhi += share * share
-        min_hhi = 1.0 / n
-        max_hhi = 1.0
-        if max_hhi == min_hhi:
-            return 100.0
-        normalized = (max_hhi - hhi) / (max_hhi - min_hhi)
-        return max(0.0, min(100.0, normalized * 100.0))
+        from core.services.financial_advisor.portfolio_optimizer_calculations import score_diversification
+        return score_diversification(percentages)
 
     def _status_for_band(self, pct: float, band: AllocationBand) -> Tuple[str, str]:
         if band.min_pct <= pct <= band.max_pct:

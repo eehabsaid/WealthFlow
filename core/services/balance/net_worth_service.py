@@ -119,10 +119,8 @@ class NetWorthService:
         return self._cached("cert_projection", _load)
 
     def _converted_egp(self, amount: float, currency_code: str, rates: Dict[str, float]) -> float:
-        code = str(currency_code or "EGP").upper()
-        if code in ("", "EGP"):
-            return amount
-        return amount * _to_float(rates.get(code))
+        from core.services.balance.net_worth_calculations import converted_egp
+        return converted_egp(amount, currency_code, rates)
 
     def _projected_balance_entries(self) -> List[dict]:
         def _load():
@@ -260,20 +258,12 @@ class NetWorthService:
         return _to_float(agg.get("total"))
 
     def _gold_trend_change(self, history: List[GoldPriceHistory], window_days: int) -> float:
-        if len(history) < 2:
-            return 0.0
-
-        latest = _to_float(history[0].carat_21k)
-        idx = min(len(history) - 1, max(window_days - 1, 1))
-        baseline = _to_float(history[idx].carat_21k)
-        if baseline <= 0:
-            return 0.0
-
-        return ((latest - baseline) / baseline) * 100
+        from core.services.balance.net_worth_calculations import gold_trend_change
+        return gold_trend_change(history, window_days)
 
     def _append_unique(self, items: List[str], value: str) -> None:
-        if value not in items:
-            items.append(value)
+        from core.services.balance.net_worth_calculations import append_unique
+        append_unique(items, value)
 
     def portfolio_components(self) -> dict:
         def _build():

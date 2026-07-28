@@ -1,11 +1,11 @@
+from email.utils import formataddr
 import hashlib
-import json
 import logging
+import re
 import secrets
 import smtplib
 from dataclasses import dataclass
 from datetime import timedelta
-from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -77,79 +77,7 @@ class AuthFlowResult:
     error_key: str = ""
     extra: dict | None = None
 
-class EmailTemplateService:
-    locale_dir = Path(settings.BASE_DIR) / "static" / "i18n"
-
-    @classmethod
-    def _load_locale(cls, lang: str) -> dict:
-        path = cls.locale_dir / f"{lang}.json"
-        try:
-            return json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
-            return {}
-
-    @classmethod
-    def _available_languages(cls) -> list[str]:
-        return sorted(path.stem for path in cls.locale_dir.glob("*.json"))
-
-    @classmethod
-    def ensure_defaults(cls) -> None:
-        languages = cls._available_languages()
-        locale_map = {lang: cls._load_locale(lang) for lang in languages}
-        for definition in EMAIL_TEMPLATE_DEFINITIONS:
-            template, _ = EmailTemplate.objects.get_or_create(key=definition["key"])
-            subject_translations = dict(template.subject_translations or {})
-            body_translations = dict(template.body_translations or {})
-            description_translations = dict(template.description_translations or {})
-            changed = False
-            for lang in languages:
-                lang_dict = locale_map.get(lang, {})
-                subject_value = lang_dict.get(definition["subject_key"], "")
-                body_value = lang_dict.get(definition["body_key"], "")
-                description_value = lang_dict.get(definition["description_key"], "")
-                if subject_value and not subject_translations.get(lang):
-                    subject_translations[lang] = subject_value
-                    changed = True
-                if body_value and not body_translations.get(lang):
-                    body_translations[lang] = body_value
-                    changed = True
-                if description_value and not description_translations.get(lang):
-                    description_translations[lang] = description_value
-                    changed = True
-            if changed:
-                template.subject_translations = subject_translations
-                template.body_translations = body_translations
-                template.description_translations = description_translations
-                template.save(update_fields=[
-                    "subject_translations",
-                    "body_translations",
-                    "description_translations",
-                    "updated_at",
-                ])
-
-    @classmethod
-    def list_templates(cls, lang: str) -> list[dict]:
-        cls.ensure_defaults()
-        return [item.to_dict(lang) for item in EmailTemplate.objects.all()]
-
-    @classmethod
-    def update_template(cls, template: EmailTemplate, lang: str, subject: str, body: str) -> EmailTemplate:
-        cls.ensure_defaults()
-        subjects = dict(template.subject_translations or {})
-        bodies = dict(template.body_translations or {})
-        subjects[lang] = subject
-        bodies[lang] = body
-        template.subject_translations = subjects
-        template.body_translations = bodies
-        template.save(update_fields=["subject_translations", "body_translations", "updated_at"])
-        return template
-
-    @classmethod
-    def render_preview(cls, subject: str, body: str, context: dict) -> dict:
-        return {
-            "subject": AuthWorkflowService.replace_placeholders(subject, context),
-            "body": AuthWorkflowService.replace_placeholders(body, context),
-        }
+from core.services.shared.email_template_service import EmailTemplateService
 
 class EmailDeliveryError(Exception):
     pass
@@ -243,11 +171,73 @@ class AuthWorkflowService:
 
     @classmethod
     def _from_email(cls) -> str:
-        return (
-            AppSettings.get("sender_email", "")
-            or AppSettings.get("smtp_username", "")
-            or getattr(settings, "DEFAULT_FROM_EMAIL", "")
-        )
+        sender = AppSettings.get("sender_email", "").strip()
+        smtp_user = AppSettings.get("smtp_username", "").strip()
+        default_from = getattr(settings, "DEFAULT_FROM_EMAIL", "").strip()
+
+        from_address = smtp_user or sender or default_from or "noreply@wealthflow.local"
+        if "<" in from_address and ">" in from_address:
+            return from_address
+        return formataddr(("WealthFlow", from_address))
+
+    @classmethod
+    def _reply_to_emails(cls) -> list[str]:
+        sender = AppSettings.get("sender_email", "").strip()
+        smtp_user = AppSettings.get("smtp_username", "").strip()
+        if sender and "@" in sender and sender.lower() != smtp_user.lower():
+            if "<" in sender and ">" in sender:
+                sender = sender.split("<")[1].split(">")[0].strip()
+            return [sender]
+        return []
+
+    @classmethod
+    def _build_email_bodies(cls, raw_body: str) -> tuple[str, str]:
+        text = str(raw_body or "").strip()
+        has_html_tags = bool(re.search(r"<(html|body|div|p|a|br|table|span)[^>]*>", text, re.IGNORECASE))
+
+        if has_html_tags:
+            html_body = text
+            plain_body = re.sub(r"<[^>]+>", "", text).strip()
+        else:
+            plain_body = text
+            paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+            html_parts = []
+
+            for p in paragraphs:
+                formatted_p = p.replace("\n", "<br>")
+                url_match = re.search(r"https?://[^\s<]+", formatted_p)
+                if url_match:
+                    url = url_match.group(0)
+                    button_html = (
+                        f'<div style="margin: 16px 0;">'
+                        f'<a href="{url}" target="_blank" style="background-color: #1a6ef5; color: #ffffff; '
+                        f'padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; '
+                        f'display: inline-block;">Confirm / Verify</a>'
+                        f'</div>'
+                        f'<p style="font-size: 12px; color: #666666;">Or copy and paste this link into your browser:<br>'
+                        f'<a href="{url}" style="color: #1a6ef5; word-break: break-all;">{url}</a></p>'
+                    )
+                    formatted_p = re.sub(r"https?://[^\s<]+", button_html, formatted_p, count=1)
+
+                html_parts.append(f'<p style="margin: 0 0 16px 0;">{formatted_p}</p>')
+
+            content_html = "\n".join(html_parts)
+
+            html_body = (
+                f'<!DOCTYPE html>'
+                f'<html>'
+                f'<head><meta charset="utf-8"></head>'
+                f'<body style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif; '
+                f'font-size: 15px; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 24px;">'
+                f'<div style="max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; '
+                f'border-radius: 12px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">'
+                f'{content_html}'
+                f'</div>'
+                f'</body>'
+                f'</html>'
+            )
+
+        return plain_body, html_body
 
     @classmethod
     def send_template_email(cls, template_key: str, to_emails: list[str], lang: str, context: dict) -> str:
@@ -256,16 +246,31 @@ class AuthWorkflowService:
         EmailTemplateService.ensure_defaults()
         template = EmailTemplate.objects.get(key=template_key)
         subject = cls.replace_placeholders(template.get_subject(lang), context)
-        body = cls.replace_placeholders(template.get_body(lang), context)
+        raw_body = cls.replace_placeholders(template.get_body(lang), context)
+
+        from_email = cls._from_email()
+        reply_to = cls._reply_to_emails()
+        plain_body, html_body = cls._build_email_bodies(raw_body)
+        extra_headers = {
+            "Auto-Submitted": "auto-generated",
+            "X-Auto-Response-Suppress": "All",
+        }
+
         message = EmailMultiAlternatives(
             subject=subject,
-            body=body,
-            from_email=cls._from_email(),
+            body=plain_body,
+            from_email=from_email,
             to=to_emails,
+            reply_to=reply_to if reply_to else None,
+            headers=extra_headers,
             connection=cls._build_mail_connection(),
         )
+        if html_body:
+            message.attach_alternative(html_body, "text/html")
+
         try:
             message.send(fail_silently=False)
+            logger.info("Successfully sent template email '%s' to %s via SMTP", template_key, to_emails)
             return "smtp"
         except Exception as exc:
             # Authentication and connectivity failures are expected in many local/dev setups.
@@ -282,11 +287,14 @@ class AuthWorkflowService:
             if settings.DEBUG and allow_console_fallback:
                 console_message = EmailMultiAlternatives(
                     subject=subject,
-                    body=body,
-                    from_email=cls._from_email(),
+                    body=plain_body,
+                    from_email=from_email,
                     to=to_emails,
+                    reply_to=reply_to if reply_to else None,
                     connection=get_connection("django.core.mail.backends.console.EmailBackend"),
                 )
+                if html_body:
+                    console_message.attach_alternative(html_body, "text/html")
                 console_message.send(fail_silently=True)
                 return "console_fallback"
 
@@ -308,13 +316,23 @@ class AuthWorkflowService:
         if any(not value for value in required.values()):
             return False, "smtp_test_error_incomplete_settings"
 
+        from_email = cls._from_email()
+        reply_to = cls._reply_to_emails()
+        plain_body, html_body = cls._build_email_bodies(
+            "SMTP is configured correctly. This is a test email from WealthFlow."
+        )
+
         message = EmailMultiAlternatives(
             subject="WealthFlow SMTP test",
-            body="SMTP is configured correctly. This is a test email from WealthFlow.",
-            from_email=cls._from_email(),
+            body=plain_body,
+            from_email=from_email,
             to=[to_email.strip()],
+            reply_to=reply_to if reply_to else None,
             connection=cls._build_mail_connection(),
         )
+        if html_body:
+            message.attach_alternative(html_body, "text/html")
+
         try:
             message.send(fail_silently=False)
             return True, "smtp_test_success"

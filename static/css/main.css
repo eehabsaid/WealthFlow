@@ -5,7 +5,10 @@
 
 @import url('variables.css?v=1784442773?v=1784442773');
 @import url('typography.css?v=1784442773?v=1784442773');
-@import url('layout.css?v=1784442773?v=1784442773');
+@import url('layout_shared.css?v=1784442773');
+@import url('layout_financial_advisor.css?v=1784442773');
+@import url('layout_fixed_assets.css?v=1784442773');
+@import url('layout_settings.css?v=1784442773');
 @import url('theme.css?v=1784442773?v=1784442773');
 
 /* Components */

@@ -4,12 +4,13 @@ function renderSidebar() {
     const sidebar = document.getElementById('sidebar');
 
 
-    const canSalary = canAccessAny(['salary']);
+    const canSalary = canAccessAny(['employment', 'salary', 'companies', 'all_companies']);
     const canDashboard = canAccessAny(['dashboard']);
-    const canBalance = canAccessAny(['balance']);
+    const canFinancialAdvisor = canAccessAny(['financial_advisor']);
+    const canBalance = canAccessAny(['balance', 'banks']);
     const canBankCertificates = canAccessAny(['bank_certificates']);
     const canFixedAssets = canAccessAny(['fixed_assets']);
-    const canExchangeRates = canAccessAny(['exchange_rates']);
+    const canExchangeRates = canAccessAny(['exchange_rates', 'currencies']);
     const canGoldPrice = canAccessAny(['gold_price']);
     const canExpenses = canAccessAny(['expenses']);
     const canExpenseCategories = canAccessAny(['expense-categories']);
@@ -40,7 +41,7 @@ function renderSidebar() {
                 <span data-i18n="nav_dashboard">Dashboard</span>
             </button>` : ''}
 
-            ${!showWelcomeOnly ? `
+            ${!showWelcomeOnly && canFinancialAdvisor ? `
             <button class="nav-item" onclick="navigate('financial-advisor')">
                 <i class="bi bi-graph-up-arrow"></i>
                 <span data-i18n="nav_financial_advisor">Financial Advisor</span>

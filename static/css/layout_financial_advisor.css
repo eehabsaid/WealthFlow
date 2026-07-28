@@ -1,0 +1,401 @@
+/* Financial Intelligence executive sections */
+.fi-section-title {
+  margin-top: 14px;
+  margin-bottom: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.fi-metric-tile {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 124px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+
+.fi-metric-tile.fi-priority {
+  border-color: var(--accent-primary);
+}
+
+.fi-metric-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.fi-metric-title {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fi-metric-main {
+  color: var(--text-primary);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.fi-metric-sub {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.fi-amount-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.fi-amount-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fi-amount-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.fi-amount-tile {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.fi-amount-tile.fi-up {
+  border-color: var(--accent-green);
+}
+
+.fi-amount-value {
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.fi-amount-tile.fi-up .fi-amount-value {
+  color: var(--accent-green);
+}
+
+.fi-amount-caption {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fi-top-grid {
+  align-items: stretch;
+}
+
+.fi-top-grid > [class*='col-'],
+.fi-cash-grid > [class*='col-'] {
+  display: flex;
+}
+
+.fi-emphasis-band {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: rgba(26, 110, 245, 0.1);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.fi-band-icon {
+  line-height: 1;
+}
+
+.fi-emphasis-neutral {
+  border-color: rgba(123, 147, 201, 0.45);
+  background: rgba(123, 147, 201, 0.1);
+}
+
+.fi-emphasis-primary {
+  border-color: rgba(26, 110, 245, 0.45);
+  background: rgba(26, 110, 245, 0.14);
+}
+
+.fi-emphasis-health {
+  border-color: rgba(0, 214, 143, 0.35);
+  background: rgba(0, 214, 143, 0.12);
+}
+
+.fi-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.fi-metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 2px 0 10px;
+  border-bottom: 1px dashed rgba(123, 147, 201, 0.22);
+}
+
+.fi-metric-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.fi-metric-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.6;
+}
+
+.fi-metric-value {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.fi-label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fi-trend-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  padding: 3px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.fi-accent {
+  color: var(--accent-primary);
+}
+
+.fi-positive {
+  color: var(--accent-green);
+}
+
+.fi-warning {
+  color: var(--accent-yellow);
+}
+
+.fi-negative {
+  color: var(--accent-red);
+}
+
+.fi-neutral {
+  color: var(--text-primary);
+}
+
+.fi-paragraph {
+  margin-top: 8px;
+  color: var(--text-primary);
+  line-height: 1.85;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.fi-sub-paragraph {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.fi-info-box {
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  padding: 12px 14px;
+  color: var(--text-primary);
+  line-height: 1.75;
+}
+
+.fi-allocation-sentence {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.fi-highlight-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.fi-highlight-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(26, 110, 245, 0.35);
+  background: rgba(26, 110, 245, 0.12);
+  border-inline-start: 3px solid var(--accent-primary);
+  border-radius: 10px;
+  padding: 11px 12px;
+}
+
+.fi-highlight-row .fi-metric-label {
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.fi-highlight-row .fi-metric-value {
+  justify-self: end;
+  min-width: 0;
+  text-align: end;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.fi-value-inline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.fi-highlight-row .fi-value-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-wrap: nowrap;
+}
+
+.fi-highlight-row .num-fmtpresent {
+  font-size: 15px;
+  line-height: 1.15;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.fi-highlight-row .fi-value-unit {
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.fi-value-unit {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.fi-badge-row {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.fi-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.fi-status-badge.fi-positive {
+  background: rgba(0, 214, 143, 0.12);
+}
+
+.fi-status-badge.fi-warning {
+  background: rgba(255, 209, 102, 0.14);
+}
+
+.fi-status-badge.fi-negative {
+  background: rgba(255, 77, 109, 0.12);
+}
+
+.fi-status-badge.fi-neutral {
+  background: rgba(123, 147, 201, 0.12);
+}
+
+.fi-list-compact {
+  display: grid;
+  gap: 8px;
+}
+
+/* ── Amount colours ── */
+.amt-positive {
+  color: var(--accent-green);
+}
+
+.amt-negative {
+  color: var(--accent-red);
+}
+
+.amt-zero {
+  color: var(--text-muted);
+}
+
+/* ── Year pills ── */
+.year-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.year-pill {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  transition: all .15s;
+}
+
+.year-pill:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.year-pill.active {
+  background: var(--accent-primary);
+  color: #fff;
+  border-color: var(--accent-primary);
+}

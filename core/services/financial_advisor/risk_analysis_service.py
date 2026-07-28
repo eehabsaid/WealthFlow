@@ -141,21 +141,8 @@ class RiskAnalysisService:
         return min(100.0, score), reason_key, {"pct": str(round(pct * 100))}
 
     def _calc_income_stability_risk(self, income_sources: List[dict]) -> Tuple[float, str, dict]:
-        total_income = sum(s["value"] for s in income_sources)
-        if total_income <= 0:
-            return 80.0, "risk_analysis_reason_inc_none", {}
-            
-        num_sources = len(income_sources)
-        salary_source = next((s for s in income_sources if s["id"] == "salary"), None)
-        salary_val = salary_source["value"] if salary_source else 0.0
-        non_salary_pct = ((total_income - salary_val) / total_income) * 100.0
-
-        if num_sources >= 2 and non_salary_pct > 15.0:
-            return 10.0, "risk_analysis_reason_inc_good", {}
-        if num_sources >= 2:
-            return 30.0, "risk_analysis_reason_inc_mod", {}
-            
-        return 60.0, "risk_analysis_reason_inc_high", {}
+        from core.services.financial_advisor.risk_analysis_calculations import calc_income_stability_risk
+        return calc_income_stability_risk(income_sources)
 
     def _calc_goal_completion_risk(self) -> Tuple[float, str, dict]:
         goal_payload = self._goal_service.payload()

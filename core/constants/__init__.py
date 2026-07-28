@@ -2,26 +2,34 @@ from decimal import Decimal
 
 PAGE_PERMISSION_CHOICES = [
     ("dashboard", "Dashboard"),
-    ("companies", "Companies"),
-    ("salary", "Salary"),
-    ("all_companies", "All Companies"),
-    ("banks", "Banks"),
-    ("bank_certificates", "Bank Certificates"),
-    ("currencies", "Currencies"),
+    ("financial_advisor", "Financial Advisor"),
+    ("employment", "Employment"),
     ("balance", "Balance"),
-    ("settings", "Settings"),
-    ("expense-categories", "Expense Categories"),
+    ("bank_certificates", "Bank Certificates"),
+    ("fixed_assets", "Fixed Assets"),
     ("exchange_rates", "Exchange Rates"),
     ("gold_price", "Gold Price"),
-    ("user_management", "User Management"),
     ("expenses", "Expenses"),
+    ("expense-categories", "Expense Categories"),
     ("reports", "Reports"),
-    ("fixed_assets", "Fixed Assets"),
     ("advanced_reports", "Advanced Reports"),
-    ("financial_advisor", "Financial Advisor"),
+    ("settings", "Settings"),
+    ("user_management", "User Management"),
 ]
 
-PAGE_PERMISSION_KEYS = [key for key, _ in PAGE_PERMISSION_CHOICES]
+# Supported keys including legacy aliases for backward compatibility
+PAGE_PERMISSION_KEYS = list(
+    dict.fromkeys(
+        [key for key, _ in PAGE_PERMISSION_CHOICES]
+        + [
+            "salary",
+            "companies",
+            "all_companies",
+            "banks",
+            "currencies",
+        ]
+    )
+)
 
 MONTH_ORDER = [
     "January",
