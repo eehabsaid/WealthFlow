@@ -36,11 +36,17 @@ class SalaryListView(View):
         )
 
     def post(self, request):
-        data = json.loads(request.body)
+        data = json.loads(request.body) if request.body else {}
+        company_id = data.get("company_id")
+        year = data.get("year")
+        month = data.get("month")
+        if not company_id or not year or not month:
+            return JsonResponse({"error": "company_id, year, and month are required"}, status=400)
+
         entry = SalaryEntry.objects.create(
-            company_id=data["company_id"],
-            year=data["year"],
-            month=data["month"],
+            company_id=company_id,
+            year=year,
+            month=month,
             expected=data.get("expected", 0),
             paid=data.get("paid", 0),
             bonus=data.get("bonus", 0),

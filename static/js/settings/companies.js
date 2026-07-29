@@ -31,7 +31,9 @@ async function renderCompanySettings() {
             </td>
         </tr>`).join('');
 
-    document.getElementById('settingsContent').innerHTML = `
+    const contentEl = document.getElementById('settingsContent');
+    if (!contentEl) return;
+    contentEl.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
             <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_companies"></div>
             <button class="btn-primary-custom" onclick="showCompanyModal(null)" data-i18n="btn_add">

@@ -63,8 +63,12 @@ class BalanceListView(View):
         return JsonResponse(NetWorthService().balance_payload())
 
     def post(self, request):
-        data = json.loads(request.body)
-        balance_type = data["balance_type"]
+        data = json.loads(request.body) if request.body else {}
+        balance_type = data.get("balance_type")
+        title = data.get("title")
+        if not balance_type or not title:
+            return JsonResponse({"error": "balance_type and title are required"}, status=400)
+
         purity = data.get("purity", "")
         if balance_type == BalanceEntry.BalanceType.GOLD:
             purity = _normalize_gold_purity(purity)
@@ -72,7 +76,7 @@ class BalanceListView(View):
             purity = ""
 
         entry = BalanceEntry.objects.create(
-            title=data["title"],
+            title=title,
             balance_type=balance_type,
             bank_id=data.get("bank_id"),
             currency_id=data.get("currency_id", 1),

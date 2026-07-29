@@ -17,7 +17,9 @@ async function renderDashboardSettings() {
                 onchange="saveAppSetting('${key}', this.checked ? 'true' : 'false')">
         </div>`;
 
-    document.getElementById('settingsContent').innerHTML = `
+    const contentEl = document.getElementById('settingsContent');
+    if (!contentEl) return;
+    contentEl.innerHTML = `
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);
                     border-radius:12px;padding:20px">
             <div style="font-weight:700;color:var(--text-primary);margin-bottom:16px"

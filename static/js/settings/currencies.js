@@ -18,7 +18,9 @@ async function renderCurrencySettings() {
             </td>
         </tr>`).join('');
 
-    document.getElementById('settingsContent').innerHTML = `
+    const contentEl = document.getElementById('settingsContent');
+    if (!contentEl) return;
+    contentEl.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
             <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_currency"></div>
             <button class="btn-primary-custom" onclick="showCurrencyModal(null)" data-i18n="add_currency">

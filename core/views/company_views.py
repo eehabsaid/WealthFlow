@@ -21,10 +21,14 @@ class CompanyListView(View):
         return JsonResponse({"companies": [c.to_dict() for c in companies]})
 
     def post(self, request):
-        data = json.loads(request.body)
+        data = json.loads(request.body) if request.body else {}
+        name = data.get("name")
+        if not name:
+            return JsonResponse({"error": "name is required"}, status=400)
+
         company = Company.objects.create(
-            name=data["name"],
-            display_name=data.get("display_name", data["name"]),
+            name=name,
+            display_name=data.get("display_name", name),
             group_name=data.get("group_name", ""),
             color_hex=data.get("color_hex", "#0d6efd"),
             is_active=data.get("is_active", True),
