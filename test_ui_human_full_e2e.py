@@ -73,7 +73,7 @@ def main():
     parser.add_argument("--headed", action="store_true", default=True, help="Run browser in visual headed mode")
     parser.add_argument("--headless", action="store_true", default=False, help="Run browser in headless mode")
     parser.add_argument("--slowmo", type=int, default=150, help="Slow mo delay in milliseconds")
-    parser.add_argument("--screenshots", default="failures_only", choices=["all", "failures_only", "off"])
+    parser.add_argument("--screenshots", default="all", choices=["all", "failures_only", "off"])
 
     args = parser.parse_args()
 
@@ -100,7 +100,7 @@ def main():
 
     try:
         with sync_playwright() as p:
-            ctx = TestContext(p, headed=headed, slow_mo=args.slowmo, device=args.device)
+            ctx = TestContext(p, headed=headed, slow_mo=args.slowmo, device=args.device, theme=args.theme)
 
             # Step 1: Login
             print("\n[STEP 1] Authenticating user session...")

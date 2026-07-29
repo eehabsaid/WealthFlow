@@ -10,11 +10,12 @@ import json
 import time
 
 class TestContext:
-    def __init__(self, playwright, headed=False, slow_mo=150, device="desktop"):
+    def __init__(self, playwright, headed=False, slow_mo=150, device="desktop", theme="dark"):
         self.playwright = playwright
         self.headed = headed
         self.slow_mo = slow_mo
         self.device = device
+        self.theme = theme
         
         # Viewport mappings
         self.viewports = {
@@ -34,6 +35,8 @@ class TestContext:
         vp = self.viewports.get(self.device, self.viewports["desktop"])
         is_mobile = (self.device == "mobile")
         
+        color_scheme = "dark" if self.theme == "dark" else "light"
+
         self.browser = self.playwright.chromium.launch(
             headless=not self.headed,
             slow_mo=self.slow_mo
@@ -41,8 +44,18 @@ class TestContext:
         self.context = self.browser.new_context(
             viewport=vp,
             is_mobile=is_mobile,
+            color_scheme=color_scheme,
             accept_downloads=True
         )
+
+        # Inject theme pre-initialization into localStorage & DOM before page load
+        self.context.add_init_script(f"""
+            try {{
+                localStorage.setItem('theme', '{self.theme}');
+                document.documentElement.setAttribute('data-bs-theme', '{self.theme}');
+            }} catch(e) {{}}
+        """)
+
         self.page = self.context.new_page()
 
         # Listeners
@@ -83,11 +96,16 @@ class TestContext:
 
     def set_theme(self, theme="dark"):
         """Switches UI Theme ('dark' or 'light')."""
+        self.theme = theme
         self.page.evaluate(f"""(th) => {{
-            if (typeof toggleTheme === 'function') {{
-                const current = document.documentElement.getAttribute('data-bs-theme') || 'dark';
-                if (current !== th) toggleTheme();
-            }}
+            try {{
+                localStorage.setItem('theme', th);
+                document.documentElement.setAttribute('data-bs-theme', th);
+                if (typeof toggleTheme === 'function') {{
+                    const current = document.documentElement.getAttribute('data-bs-theme') || 'dark';
+                    if (current !== th) toggleTheme();
+                }}
+            }} catch(e) {{}}
         }}""", theme)
         self.page.wait_for_timeout(500)
 
@@ -99,22 +117,24 @@ class TestContext:
         self.page.wait_for_timeout(800)
 
     def reload(self):
-        """Refreshes the current page."""
         self.page.reload()
         self.page.wait_for_timeout(800)
 
     def go_back(self):
-        """Browser Back button action."""
         self.page.go_back()
-        self.page.wait_for_timeout(800)
+        self.page.wait_for_timeout(500)
 
     def go_forward(self):
-        """Browser Forward button action."""
         self.page.go_forward()
-        self.page.wait_for_timeout(800)
+        self.page.wait_for_timeout(500)
 
     def close(self):
         try:
-            self.browser.close()
+            if hasattr(self, 'page') and self.page:
+                self.page.close()
+            if hasattr(self, 'context') and self.context:
+                self.context.close()
+            if hasattr(self, 'browser') and self.browser:
+                self.browser.close()
         except Exception:
             pass
