@@ -70,14 +70,14 @@ def main():
     parser.add_argument("--lang", default="en", choices=["en", "ar", "fr", "de"])
     parser.add_argument("--theme", default="dark", choices=["dark", "light"])
     parser.add_argument("--device", default="desktop", choices=["desktop", "tablet", "mobile"])
-    parser.add_argument("--headed", action="store_true", default=True, help="Run browser in visual headed mode")
-    parser.add_argument("--headless", action="store_true", default=False, help="Run browser in headless mode")
+    parser.add_argument("--headed", action="store_true", default=False, help="Run browser in visual headed mode (for local debugging on a machine with a display)")
+    parser.add_argument("--headless", action="store_true", default=False, help="Run browser in headless mode (default)")
     parser.add_argument("--slowmo", type=int, default=150, help="Slow mo delay in milliseconds")
     parser.add_argument("--screenshots", default="all", choices=["all", "failures_only", "off"])
 
     args = parser.parse_args()
 
-    headed = not args.headless if args.headless else args.headed
+    headed = args.headed and not args.headless
 
     setup_django()
 
@@ -97,6 +97,9 @@ def main():
 
     reporter = QAReporter(output_dir="test_reports")
     screenshot_logger = ScreenshotLogger(output_dir="test_reports/screenshots", mode=args.screenshots)
+
+    aborted_for_timeout = False
+    max_duration_seconds = 20 * 60 if args.mode == "full" else 8 * 60
 
     try:
         with sync_playwright() as p:
@@ -124,7 +127,25 @@ def main():
                     "financial_advisor", "settings", "translations"
                 ]
 
+            # Suite-level watchdog: a hard wall-clock ceiling on the whole run.
+            # Checked between modules (not via a hard process kill) so the
+            # existing try/finally below still runs the DB restore and the
+            # report is still generated with whatever data exists so far -
+            # a killed process would skip both of those safety steps.
+            run_started_at = time.time()
+
             for mod in modules_to_run:
+                elapsed = time.time() - run_started_at
+                if elapsed > max_duration_seconds:
+                    aborted_for_timeout = True
+                    print(f"\n[WATCHDOG] Aborting: suite exceeded the {max_duration_seconds}s time budget "
+                          f"({elapsed:.0f}s elapsed). Remaining modules will be skipped.")
+                    reporter.add_step(
+                        "Suite Watchdog Timeout", "System", "FAIL",
+                        f"Exceeded {max_duration_seconds}s time budget after {elapsed:.0f}s - "
+                        f"remaining modules ({', '.join(modules_to_run[modules_to_run.index(mod):])}) were skipped."
+                    )
+                    break
                 print(f"\n[RUNNING MODULE] Executing '{mod.upper()}' module test suite...")
                 if mod == "auth":
                     test_authentication_module(ctx, reporter, screenshot_logger)
@@ -178,6 +199,12 @@ def main():
     print(f"  HTML Report         : {html_path}")
     print(f"  JSON Report         : {json_path}")
     print("==================================================================")
+
+    if aborted_for_timeout:
+        print(f"\n[WATCHDOG] ABORTED: run exceeded its {max_duration_seconds}s time budget and was "
+              f"stopped early. Database was restored safely; the reports above only reflect the "
+              f"modules that completed before the abort.")
+        return False
 
     if reporter.failed_count == 0:
         print("\nSUCCESS: 100% CLEAN PASS! The regression test suite completed successfully with ZERO errors!")

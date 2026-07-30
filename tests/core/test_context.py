@@ -9,6 +9,8 @@ import os
 import json
 import time
 
+from tests.core.cdn_fallback import install_cdn_fallback
+
 class TestContext:
     def __init__(self, playwright, headed=False, slow_mo=150, device="desktop", theme="dark"):
         self.playwright = playwright
@@ -57,6 +59,18 @@ class TestContext:
         """)
 
         self.page = self.context.new_page()
+        install_cdn_fallback(self.page)
+
+        # Global default timeout for this context. Without this, every
+        # click/wait_for_selector/goto across all test modules falls back to
+        # Playwright's own default, and with zero explicit timeouts set
+        # anywhere in tests/modules/*.py (confirmed), a single network-
+        # blocked or missing element has no fast, bounded failure - it can
+        # contribute to the whole suite appearing to hang. 12 seconds is
+        # long enough for real slow-but-working UI, short enough that one
+        # bad element doesn't stall the run for minutes.
+        self.context.set_default_timeout(12000)
+        self.context.set_default_navigation_timeout(15000)
 
         # Listeners
         def on_console(msg):
