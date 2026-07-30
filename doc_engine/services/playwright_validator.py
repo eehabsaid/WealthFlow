@@ -16,9 +16,22 @@ class PlaywrightValidator:
         """Validates environment readiness for running Python screenshot capture."""
         errors = []
 
-        python_exe = os.path.join(sys.prefix, "Scripts", "python.exe") if os.name == 'nt' else sys.executable
-        if not os.path.exists(python_exe):
-            python_exe = sys.executable
+        python_exe = None
+        try:
+            from django.conf import settings
+            if hasattr(settings, 'BASE_DIR'):
+                venv_python = os.path.join(settings.BASE_DIR, 'venv', 'Scripts', 'python.exe') if os.name == 'nt' else os.path.join(settings.BASE_DIR, 'venv', 'bin', 'python')
+                if os.path.exists(venv_python):
+                    python_exe = venv_python
+        except Exception:
+            pass
+
+        if not python_exe:
+            prefix_python = os.path.join(sys.prefix, "Scripts", "python.exe") if os.name == 'nt' else os.path.join(sys.prefix, "bin", "python")
+            if os.path.exists(prefix_python):
+                python_exe = prefix_python
+            else:
+                python_exe = sys.executable
 
         try:
             subprocess.run([python_exe, "-c", "import playwright"], check=True, capture_output=True)

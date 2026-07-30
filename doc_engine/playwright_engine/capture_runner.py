@@ -8,7 +8,7 @@ from typing import Dict, List, Any, Optional
 
 from playwright.sync_api import sync_playwright, Page
 
-from doc_engine.config import LATEST_SCREENSHOTS_DIR
+from doc_engine.config import LATEST_SCREENSHOTS_DIR, SCREENSHOTS_DIR
 from doc_engine.services.inventory_provider import InventoryProvider
 from doc_engine.services.navigation_planner import NavigationPlanner, sanitize_filename, safe_filename
 from doc_engine.services.documentation_metadata_service import DocumentationMetadataService
@@ -104,7 +104,9 @@ class PythonPlaywrightCaptureEngine:
         self.planner = NavigationPlanner(self.base_url)
         self.manifest_service = DocumentationMetadataService(language=self.language, theme=self.theme, device=self.device)
 
-
+        device_str = self.device or 'desktop'
+        device_clean = "".join(c if (c.isalnum() or c in ("-", "_", ".")) else "_" for c in device_str)
+        self.device_output_dir = os.path.join(SCREENSHOTS_DIR, device_clean)
         self.output_dir = LATEST_SCREENSHOTS_DIR
         self.global_context = {
             "page_id": None,
@@ -145,8 +147,10 @@ class PythonPlaywrightCaptureEngine:
         page.wait_for_timeout(800)
 
     def capture_screenshot(self, page: Page, filename: str) -> None:
+        os.makedirs(self.device_output_dir, exist_ok=True)
         os.makedirs(self.output_dir, exist_ok=True)
-        filepath = os.path.join(self.output_dir, f"{filename}.png")
+        filepath_device = os.path.join(self.device_output_dir, f"{filename}.png")
+        filepath_latest = os.path.join(self.output_dir, f"{filename}.png")
 
         style_handle = page.add_style_tag(content="""
             html, body {
@@ -184,7 +188,12 @@ class PythonPlaywrightCaptureEngine:
 
 
         page.wait_for_timeout(200)
-        page.screenshot(path=filepath, full_page=True)
+        page.screenshot(path=filepath_device, full_page=True)
+        try:
+            shutil.copy2(filepath_device, filepath_latest)
+        except Exception as e:
+            log(f"[WARNING] Could not copy screenshot to latest folder: {e}")
+
         try:
             page.evaluate("(el) => el.remove()", style_handle)
         except Exception:
@@ -801,9 +810,14 @@ class PythonPlaywrightCaptureEngine:
         log(f'[CONFIG] Theme: {self.theme.upper()} | Language: {self.language.upper()}')
         if self.device:
             log(f'[CONFIG] Device: {self.device}')
-        log(f'[CONFIG] Output folder: {self.output_dir}')
+        log(f'[CONFIG] Device Output Folder: {self.device_output_dir}')
+        log(f'[CONFIG] Latest Output Folder: {self.output_dir}')
 
-        log('Cleaning up old screenshots...')
+        log(f'Cleaning up old screenshots for device {self.device or "desktop"}...')
+        if os.path.exists(self.device_output_dir):
+            shutil.rmtree(self.device_output_dir, ignore_errors=True)
+        os.makedirs(self.device_output_dir, exist_ok=True)
+
         if os.path.exists(self.output_dir):
             shutil.rmtree(self.output_dir, ignore_errors=True)
         os.makedirs(self.output_dir, exist_ok=True)

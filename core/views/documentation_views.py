@@ -14,7 +14,7 @@ from core.views.auth_views import AdminRequiredMixin
 BASE_DIR = settings.BASE_DIR
 DOCS_DIR = os.path.join(BASE_DIR, "docs")
 GENERATED_DIR = os.path.join(DOCS_DIR, "generated")
-SCREENSHOTS_DIR = os.path.join(DOCS_DIR, "screenshots", "latest")
+SCREENSHOTS_DIR = os.path.join(DOCS_DIR, "screenshots")
 RUNTIME_DIR = os.path.join(GENERATED_DIR, "runtime")
 HISTORY_FILE = os.path.join(GENERATED_DIR, "history.json")
 STATUS_FILE = os.path.join(RUNTIME_DIR, "status.json")
