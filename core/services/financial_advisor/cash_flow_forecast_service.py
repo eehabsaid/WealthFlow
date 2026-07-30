@@ -15,7 +15,6 @@ from core.models import (
     BankCertificateInterestHistory,
     Expense,
     ReminderRule,
-    SalaryEntry,
     _is_certificate_active,
 )
 from core.services.certificate.certificate_interest_service import CertificateInterestService
@@ -105,9 +104,9 @@ class CashFlowForecastService:
         month_count = len(active_months) or 1
         return total / month_count
 
-    def _monthly_salary_egp(self) -> float:
-        latest_salary = SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
-        return _to_float(latest_salary.paid) if latest_salary else 0.0
+    def _monthly_salary_egp(self, year: int = None, month: str = None) -> float:
+        from core.services.salary.salary_service import get_current_monthly_salary
+        return get_current_monthly_salary(year=year, month=month)
 
     def _get_salary_rule(self):
         if self._salary_rule is not None:
@@ -243,18 +242,21 @@ class CashFlowForecastService:
         return out
 
     def _build_events(self) -> tuple[List[ForecastEvent], Dict[str, float]]:
+        from core.services.salary.salary_service import MONTH_ORDER
         rates = self._rates()
-        monthly_salary = self._monthly_salary_egp()
+        current_monthly_salary = self._monthly_salary_egp()
         monthly_rental = self._monthly_rental_egp()
         monthly_expense = self._monthly_expense_egp(rates)
         monthly_mortgage = self._monthly_mortgage_installment_egp()
 
         events: List[ForecastEvent] = []
         for month_end in self._month_end_dates():
+            month_name = MONTH_ORDER[month_end.month - 1]
+            m_salary = self._monthly_salary_egp(year=month_end.year, month=month_name)
             salary_day = self._salary_payment_day(month_end.year, month_end.month)
             salary_date = date(month_end.year, month_end.month, salary_day)
-            if monthly_salary > 0 and self.today < salary_date <= self.timeline_end_date:
-                events.append(ForecastEvent(salary_date, "salary", monthly_salary, {}))
+            if m_salary > 0 and self.today < salary_date <= self.timeline_end_date:
+                events.append(ForecastEvent(salary_date, "salary", m_salary, {}))
             if monthly_rental > 0:
                 events.append(ForecastEvent(month_end, "rental_income", monthly_rental, {}))
             if monthly_expense > 0:
@@ -267,7 +269,7 @@ class CashFlowForecastService:
         events.sort(key=lambda event: (event.event_date, event.event_type))
 
         return events, {
-            "monthly_salary": monthly_salary,
+            "monthly_salary": current_monthly_salary,
             "monthly_rental": monthly_rental,
             "monthly_expense": monthly_expense,
             "monthly_mortgage": monthly_mortgage,

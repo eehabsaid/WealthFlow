@@ -19,7 +19,6 @@ from core.models import (
     GoldPrice,
     GoldPriceHistory,
     GoldPuritySetting,
-    SalaryEntry,
     _is_certificate_active,
 )
 from core.services.balance.financial_sync_service import FinancialSyncService
@@ -528,8 +527,8 @@ class NetWorthService:
         obligations_90 = avg_monthly_expenses * 3
 
         monthly_certificate_income = _to_float(comp["certificate_interest_total_egp"])
-        latest_salary = SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
-        monthly_salary = _to_float(latest_salary.paid) if latest_salary else 0
+        from core.services.salary.salary_service import get_current_monthly_salary
+        monthly_salary = get_current_monthly_salary()
         total_monthly_income = monthly_salary + monthly_certificate_income + monthly_rental_income
 
         cash_coverage_months = cash_balance / avg_monthly_expenses if avg_monthly_expenses > 0 else None

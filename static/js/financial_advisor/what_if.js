@@ -203,9 +203,9 @@
                   <label class="form-label small fw-semibold m-0" style="color:var(--text-primary);" data-i18n="whatif_salary_label">Salary Change</label>
                   <span id="whatif-salary-val-badge" class="badge bg-primary px-2 py-1">${salaryPctFormatted}</span>
                 </div>
-                <input type="range" class="form-range" id="whatif-salary-slider" min="-50" max="100" step="5" value="${_salaryChangePct}">
+                <input type="range" class="form-range" id="whatif-salary-slider" min="-100" max="100" step="5" value="${_salaryChangePct}">
                 <div class="d-flex justify-content-between extra-small" style="color:var(--text-muted);">
-                  <span>-50%</span>
+                  <span>-100% (Resign)</span>
                   <span>Current: ${salaryValStr} EGP/mo</span>
                   <span>+100%</span>
                 </div>
@@ -308,11 +308,12 @@
     function updateSalaryTooltip() {
       const curr = _whatIfData?.current_values || {};
       const baseSalary = Number(curr.monthly_salary || 0);
-      const actualSalary = baseSalary * (1 + _salaryChangePct / 100);
+      const actualSalary = Math.max(0, baseSalary * (1 + _salaryChangePct / 100));
       const pctStr = _salaryChangePct >= 0 ? `+${_salaryChangePct}%` : `${_salaryChangePct}%`;
+      const resignNote = _salaryChangePct === -100 ? " (Resigned)" : "";
       const tooltipText = baseSalary > 0
-        ? `${pctStr} (EGP ${_money(actualSalary)}${perMonthText})`
-        : `${pctStr}`;
+        ? `${pctStr}${resignNote} (EGP ${_money(actualSalary)}${perMonthText})`
+        : `${pctStr}${resignNote}`;
       _showSliderTooltip(salarySlider, tooltipText);
     }
 

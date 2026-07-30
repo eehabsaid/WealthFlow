@@ -142,3 +142,48 @@ class SalaryService:
             ).update(amount=F("amount") - entry.paid)
             
         entry.delete()
+
+
+def get_current_monthly_salary(year: int = None, month: str = None) -> float:
+    """
+    Centralized resolver for active monthly salary across all analytics, dashboards, and financial advisor services.
+
+    Rules:
+    1. If a paid SalaryEntry exists for the target/current month (year, month), return that paid amount (actual income received for the month).
+    2. Else if a company is marked as is_active=True:
+       a) Return latest paid SalaryEntry for that active company.
+       b) Or expected SalaryEntry for current month for that active company.
+       c) Or active company's current_salary_amount setting.
+    3. Else (no active company and no paid salary entry for target/current month):
+       Return 0.0 (user has resigned or has no active employment for this month).
+    """
+    try:
+        if not year or not month:
+            now = datetime.now()
+            year = year or now.year
+            month = month or MONTH_ORDER[now.month - 1]
+
+        # 1. Paid salary entry for current/specified year & month
+        current_paid_entry = SalaryEntry.objects.filter(year=year, month=month, paid__gt=0).first()
+        if current_paid_entry:
+            return float(current_paid_entry.paid)
+
+        # 2. Check active company
+        active_company = Company.objects.filter(is_active=True).order_by("order", "id").first()
+        if active_company:
+            active_paid_entry = SalaryEntry.objects.filter(company=active_company, paid__gt=0).order_by("-year", "-id").first()
+            if active_paid_entry:
+                return float(active_paid_entry.paid)
+
+            active_month_entry = SalaryEntry.objects.filter(company=active_company, year=year, month=month).first()
+            if active_month_entry and float(active_month_entry.expected) > 0:
+                return float(active_month_entry.expected)
+
+            if float(active_company.current_salary_amount) > 0:
+                return float(active_company.current_salary_amount)
+
+    except Exception:
+        pass
+
+    # 3. No active company and no paid salary for current month -> 0.0 (Resigned / No active employment)
+    return 0.0

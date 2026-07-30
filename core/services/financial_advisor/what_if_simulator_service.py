@@ -39,7 +39,7 @@ class WhatIfSimulatorService:
     """Computes baseline + adjusted financial projections for the What-If tab."""
 
     # Slider parameter ranges
-    SALARY_CHANGE_MIN = -50.0
+    SALARY_CHANGE_MIN = -100.0
     SALARY_CHANGE_MAX = 100.0
     EXPENSES_CHANGE_MIN = -50.0
     EXPENSES_CHANGE_MAX = 100.0
@@ -232,8 +232,8 @@ class WhatIfSimulatorService:
             adjusted_nw_12m = adjusted_points[-1]["net_worth"] if adjusted_points else baseline_nw_12m
 
             # ── Adjusted risk score via RiskAnalysisService with overridden inputs
-            adj_salary_for_risk = monthly_salary * salary_scale if monthly_salary > 0 else None
-            adj_expenses_for_risk = avg_monthly_expenses * expense_scale if avg_monthly_expenses > 0 else None
+            adj_salary_for_risk = max(0.0, monthly_salary * salary_scale) if salary_change_pct != 0 else None
+            adj_expenses_for_risk = max(0.0, avg_monthly_expenses * expense_scale) if expenses_change_pct != 0 else None
             adjusted_risk_score = self._compute_risk_score(adj_salary_for_risk, adj_expenses_for_risk)
 
             # ── Adjusted cash coverage via NetWorthService formula ────────────

@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 
 from django.db.models import Sum
 
-from core.models import BankCertificate, BalanceEntry, Expense, FixedAsset, SalaryEntry, _is_certificate_active
+from core.models import BankCertificate, BalanceEntry, Expense, FixedAsset, _is_certificate_active
 from core.services.balance.net_worth_service import NetWorthService
 
 def _to_float(value) -> float:
@@ -366,8 +366,8 @@ class PortfolioOptimizerService:
         return total
 
     def _latest_monthly_income(self) -> float:
-        latest_salary = SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
-        salary_value = _to_float(latest_salary.paid) if latest_salary else 0.0
+        from core.services.salary.salary_service import get_current_monthly_salary
+        salary_value = get_current_monthly_salary()
         certificate_income = _to_float(self.net_worth.portfolio_components().get("certificate_interest_total_egp"))
         return salary_value + certificate_income
 

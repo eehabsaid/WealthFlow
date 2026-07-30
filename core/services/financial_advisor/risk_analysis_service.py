@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Dict, List, Tuple
 
-from core.models import SalaryEntry
 from core.services.balance.net_worth_service import NetWorthService
 from core.services.financial_advisor.portfolio_optimizer_service import PortfolioOptimizerService
 from core.services.financial_advisor.goal_planning_service import GoalPlanningService
@@ -174,8 +173,8 @@ class RiskAnalysisService:
         if self._salary_override is not None:
             salary_value = max(0.0, self._salary_override)
         else:
-            latest_salary = SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
-            salary_value = _to_float(latest_salary.paid) if latest_salary else 0.0
+            from core.services.salary.salary_service import get_current_monthly_salary
+            salary_value = get_current_monthly_salary()
         if salary_value > 0:
             sources.append({"id": "salary", "label_key": "risk_analysis_income_salary", "value": salary_value})
             
@@ -302,9 +301,10 @@ class RiskAnalysisService:
             }
         ]
         
-        salary_source = SalaryEntry.objects.filter(paid__gt=0).order_by("-year", "-id").first()
-        if salary_source:
-            salary_annual_impact = _to_float(salary_source.paid) * 6 * -1.0 # 6 months loss
+        from core.services.salary.salary_service import get_current_monthly_salary
+        salary_val = get_current_monthly_salary()
+        if salary_val > 0:
+            salary_annual_impact = salary_val * 6 * -1.0 # 6 months loss
             scenarios.append({
                 "id": "salary_down",
                 "icon": "bi-briefcase",
