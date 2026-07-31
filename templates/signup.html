@@ -42,14 +42,14 @@
       </div>
 
       {% if error_key %}
-      <div class="alert-dark-danger">
+      <div class="alert-dark-danger" role="alert">
         <i class="bi bi-exclamation-circle"></i>
         <span data-i18n="{{ error_key }}">{{ error_key }}</span>
       </div>
       {% endif %}
 
       {% if success_key %}
-      <div class="alert-dark-success">
+      <div class="alert-dark-success" role="alert">
         <i class="bi bi-check-circle"></i>
         <span data-i18n="{{ success_key }}">{{ success_key }}</span>
       </div>
@@ -72,24 +72,26 @@
         </div>
 
         <div class="mb-form">
-          <label class="form-label">
+          <label class="form-label" for="signupFullNameInput">
             <span data-i18n="auth_full_name_label">Full Name</span>
             <span class="optional-tag" data-i18n="auth_optional_label">(optional)</span>
           </label>
           <input
             type="text"
             name="full_name"
+            id="signupFullNameInput"
             class="form-control"
             data-i18n-placeholder="auth_full_name_placeholder"
             placeholder="e.g. Ehab Mohamed"
             value="{{ prefill_full_name|default:'' }}"
+            autocomplete="name"
             tabindex="1"
           />
         </div>
 
         <div class="row g-2">
           <div class="col-md-6 col-12 mb-form">
-            <label class="form-label" data-i18n="auth_username_label">Username</label>
+            <label class="form-label" for="signupUsernameInput" data-i18n="auth_username_label">Username</label>
             <input
               type="text"
               name="username"
@@ -98,14 +100,15 @@
               data-i18n-placeholder="auth_signup_username_placeholder"
               placeholder="Choose a username"
               value="{{ prefill_username|default:'' }}"
+              autocomplete="username"
               required
               tabindex="2"
             />
-            <div id="usernameHint" class="field-hint"></div>
+            <div id="usernameHint" class="field-hint" role="status"></div>
           </div>
 
           <div class="col-md-6 col-12 mb-form">
-            <label class="form-label" data-i18n="auth_email_label">Email</label>
+            <label class="form-label" for="signupEmailInput" data-i18n="auth_email_label">Email</label>
             <input
               type="email"
               name="email"
@@ -114,10 +117,11 @@
               data-i18n-placeholder="auth_email_placeholder"
               placeholder="your@email.com"
               value="{{ prefill_email|default:'' }}"
+              autocomplete="email"
               required
               tabindex="3"
             />
-            <div id="emailHint" class="field-hint"></div>
+            <div id="emailHint" class="field-hint" role="status"></div>
           </div>
         </div>
 
@@ -129,8 +133,8 @@
 
         <div class="mb-form">
           <div class="strength-header">
-            <label class="form-label mb-0" data-i18n="auth_password_label">Password</label>
-            <span id="strengthText" class="strength-text"></span>
+            <label class="form-label mb-0" for="signupPasswordInput" data-i18n="auth_password_label">Password</label>
+            <span id="strengthText" class="strength-text" role="status"></span>
           </div>
           <div class="input-group mt-1">
             <input
@@ -140,6 +144,7 @@
               class="form-control"
               data-i18n-placeholder="auth_signup_password_placeholder"
               placeholder="At least 8 characters"
+              autocomplete="new-password"
               required
               tabindex="4"
             />
@@ -150,14 +155,14 @@
           <div class="strength-bar">
             <div class="strength-fill" id="strengthFill"></div>
           </div>
-          <div id="signupCapsLockWarning" class="caps-lock-warning d-none">
+          <div id="signupCapsLockWarning" class="caps-lock-warning d-none" role="status">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <span data-i18n="auth_caps_lock_on">Caps Lock is ON</span>
           </div>
         </div>
 
         <div class="mb-form">
-          <label class="form-label" data-i18n="auth_confirm_password_label">Confirm Password</label>
+          <label class="form-label" for="signupConfirmPasswordInput" data-i18n="auth_confirm_password_label">Confirm Password</label>
           <div class="input-group">
             <input
               type="password"
@@ -166,6 +171,7 @@
               class="form-control"
               data-i18n-placeholder="auth_confirm_password_placeholder"
               placeholder="Repeat password"
+              autocomplete="new-password"
               required
               tabindex="5"
             />
@@ -173,7 +179,7 @@
               <i class="bi bi-eye" id="confirmEyeIcon"></i>
             </button>
           </div>
-          <div class="match-warning" id="passwordMatchWarning" data-i18n="auth_error_passwords_mismatch">
+          <div class="match-warning" id="passwordMatchWarning" data-i18n="auth_error_passwords_mismatch" role="status">
             Passwords do not match
           </div>
         </div>
