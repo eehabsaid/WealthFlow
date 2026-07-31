@@ -1,6 +1,3 @@
-import re
-import os
-
 filepath = r"d:\MyApps\WealthFlow\static\js\fixed_assets\details.js"
 
 with open(filepath, "r", encoding="utf-8") as f:

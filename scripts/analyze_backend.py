@@ -8,7 +8,6 @@ Usage:
     python analyze_backend.py
 """
 
-import os
 import re
 from pathlib import Path
 
@@ -162,9 +161,6 @@ def generate_report_summary(output_file='BACKEND_ANALYSIS_REPORT.txt'):
     print(f"\nGenerating {output_file}...\n")
     
     # Capture all output
-    import io
-    import sys
-    
     print(f"✅ Report will be saved to: {output_file}")
 
 def main():

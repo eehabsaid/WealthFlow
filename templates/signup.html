@@ -5,227 +5,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title data-i18n="auth_signup_page_title">Sign Up - WealthFlow</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --bg-primary: #070d1f;
-        --bg-secondary: #0c1428;
-        --bg-tertiary: #101c38;
-        --border-color: #1a3460;
-        --accent: #1a6ef5;
-        --accent-hover: #3381ff;
-        --accent-glow: rgba(26, 110, 245, 0.25);
-        --text-primary: #dce8ff;
-        --text-secondary: #7b97cc;
-        --text-muted: #3f5a8a;
-        --accent-red: #ff4d6d;
-        --accent-green: #00d68f;
-      }
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      body {
-        background: var(--bg-primary);
-        color: var(--text-primary);
-        font-family: "Segoe UI", system-ui, sans-serif;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-      }
-      .auth-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 40px 36px;
-        width: 100%;
-        max-width: 440px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      }
-      .auth-logo {
-        text-align: center;
-        margin-bottom: 28px;
-      }
-      .auth-logo .logo-icon {
-        width: 56px;
-        height: 56px;
-        background: linear-gradient(135deg, var(--accent), #0f45c8);
-        border-radius: 14px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 26px;
-        margin-bottom: 12px;
-        box-shadow: 0 0 20px var(--accent-glow);
-      }
-      .auth-logo h1 {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 4px;
-      }
-      .auth-logo p {
-        font-size: 13px;
-        color: var(--text-muted);
-      }
-      .form-label {
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        margin-bottom: 6px;
-      }
-      .form-control {
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-color);
-        color: var(--text-primary);
-        border-radius: 8px;
-        padding: 10px 14px;
-        font-size: 14px;
-        transition:
-          border-color 0.15s,
-          box-shadow 0.15s;
-      }
-      .form-control::placeholder {
-        color: var(--text-muted);
-      }
-      .form-control:focus {
-        background: var(--bg-tertiary);
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-glow);
-        color: var(--text-primary);
-        outline: none;
-      }
-      .input-group .form-control {
-        border-radius: 8px 0 0 8px;
-      }
-      .input-group .btn-eye {
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-color);
-        border-left: none;
-        color: var(--text-muted);
-        border-radius: 0 8px 8px 0;
-        padding: 0 14px;
-        cursor: pointer;
-      }
-      .input-group .btn-eye:hover {
-        color: var(--text-primary);
-      }
-      .btn-submit {
-        width: 100%;
-        background: var(--accent);
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 11px;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        transition:
-          background 0.15s,
-          box-shadow 0.15s;
-        margin-top: 8px;
-      }
-      .btn-submit:hover {
-        background: var(--accent-hover);
-        box-shadow: 0 0 16px var(--accent-glow);
-      }
-      .auth-divider {
-        border: none;
-        border-top: 1px solid var(--border-color);
-        margin: 24px 0;
-      }
-      .auth-footer {
-        text-align: center;
-        font-size: 13px;
-        color: var(--text-muted);
-      }
-      .auth-footer a {
-        color: var(--accent);
-        text-decoration: none;
-        font-weight: 600;
-      }
-      .auth-footer a:hover {
-        color: var(--accent-hover);
-      }
-      .alert-dark-danger {
-        background: rgba(255, 77, 109, 0.1);
-        border: 1px solid rgba(255, 77, 109, 0.35);
-        color: #ff8099;
-        border-radius: 8px;
-        padding: 10px 14px;
-        font-size: 13px;
-        margin-bottom: 18px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .mb-form {
-        margin-bottom: 16px;
-      }
-      .optional-tag {
-        font-size: 10px;
-        color: var(--text-muted);
-        font-weight: 400;
-        text-transform: none;
-        letter-spacing: 0;
-        margin-left: 6px;
-      }
-      .strength-bar {
-        height: 3px;
-        border-radius: 2px;
-        background: var(--bg-tertiary);
-        margin-top: 6px;
-        overflow: hidden;
-      }
-      .strength-fill {
-        height: 100%;
-        width: 0;
-        transition:
-          width 0.3s,
-          background 0.3s;
-        border-radius: 2px;
-      }
-      .auth-lang {
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 18px;
-      }
-      .auth-lang select {
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-color);
-        color: var(--text-primary);
-        border-radius: 8px;
-        padding: 8px 12px;
-        font-size: 13px;
-      }
-      .alert-dark-success {
-        background: rgba(0, 214, 143, 0.1);
-        border: 1px solid rgba(0, 214, 143, 0.35);
-        color: #7ef2c6;
-        border-radius: 8px;
-        padding: 10px 14px;
-        font-size: 13px;
-        margin-bottom: 18px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="{% static 'css/authentication/auth.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/authentication/forms.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/authentication/animations.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/authentication/responsive.css' %}" rel="stylesheet" />
   </head>
-  <body>
-    <div class="auth-card">
+  <body class="auth-page">
+    <div class="auth-card signup-card" si-modern-card>
       <div class="auth-lang">
         <select id="authLanguageSelect" aria-label="Language selector">
           <option value="en">English</option>
@@ -233,9 +21,22 @@
           <option value="fr">Français</option>
           <option value="de">Deutsch</option>
         </select>
+        <button class="icon-btn" id="theme-toggle" type="button" onclick="WFAuth.toggleTheme()" aria-label="Toggle theme">🌙</button>
       </div>
       <div class="auth-logo">
-        <div class="logo-icon">💰</div>
+        <div class="logo-icon">
+          <svg width="34" height="34" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="14" stroke="url(#wfLogoGradSignup)" stroke-width="2.5" fill="rgba(37, 99, 235, 0.12)"/>
+            <path d="M9 21L14 14.5L17.5 17.5L23 10.5" stroke="url(#wfLogoGradSignup)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="23" cy="10.5" r="2" fill="#3b82f6"/>
+            <defs>
+              <linearGradient id="wfLogoGradSignup" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#3b82f6"/>
+                <stop offset="1" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
         <h1 data-i18n="auth_signup_heading">Create Account</h1>
         <p data-i18n="auth_signup_subtitle">Join WealthFlow</p>
       </div>
@@ -260,9 +61,15 @@
       </div>
       {% endif %}
 
-      <form method="post">
+      <form method="post" id="signupForm">
         {% csrf_token %}
         <input type="hidden" name="lang" value="{{ lang_code|default:'en' }}" class="lang-hidden-input" />
+
+        <!-- Identity Section -->
+        <div class="form-section-header">
+          <i class="bi bi-person-badge"></i>
+          <span data-i18n="auth_sec_identity">Identity</span>
+        </div>
 
         <div class="mb-form">
           <label class="form-label">
@@ -276,58 +83,76 @@
             data-i18n-placeholder="auth_full_name_placeholder"
             placeholder="e.g. Ehab Mohamed"
             value="{{ prefill_full_name|default:'' }}"
+            tabindex="1"
           />
         </div>
 
-        <div class="mb-form">
-          <label class="form-label" data-i18n="auth_username_label">Username</label>
-          <input
-            type="text"
-            name="username"
-            class="form-control"
-            data-i18n-placeholder="auth_signup_username_placeholder"
-            placeholder="Choose a username"
-            value="{{ prefill_username|default:'' }}"
-            required
-          />
+        <div class="row g-2">
+          <div class="col-md-6 col-12 mb-form">
+            <label class="form-label" data-i18n="auth_username_label">Username</label>
+            <input
+              type="text"
+              name="username"
+              id="signupUsernameInput"
+              class="form-control"
+              data-i18n-placeholder="auth_signup_username_placeholder"
+              placeholder="Choose a username"
+              value="{{ prefill_username|default:'' }}"
+              required
+              tabindex="2"
+            />
+            <div id="usernameHint" class="field-hint"></div>
+          </div>
+
+          <div class="col-md-6 col-12 mb-form">
+            <label class="form-label" data-i18n="auth_email_label">Email</label>
+            <input
+              type="email"
+              name="email"
+              id="signupEmailInput"
+              class="form-control"
+              data-i18n-placeholder="auth_email_placeholder"
+              placeholder="your@email.com"
+              value="{{ prefill_email|default:'' }}"
+              required
+              tabindex="3"
+            />
+            <div id="emailHint" class="field-hint"></div>
+          </div>
+        </div>
+
+        <!-- Security Section -->
+        <div class="form-section-header">
+          <i class="bi bi-shield-lock"></i>
+          <span data-i18n="auth_sec_security">Security</span>
         </div>
 
         <div class="mb-form">
-          <label class="form-label" data-i18n="auth_email_label">Email</label>
-          <input
-            type="email"
-            name="email"
-            class="form-control"
-            data-i18n-placeholder="auth_email_placeholder"
-            placeholder="your@email.com"
-            value="{{ prefill_email|default:'' }}"
-            required
-          />
-        </div>
-
-        <div class="mb-form">
-          <label class="form-label" data-i18n="auth_password_label">Password</label>
-          <div class="input-group">
+          <div class="strength-header">
+            <label class="form-label mb-0" data-i18n="auth_password_label">Password</label>
+            <span id="strengthText" class="strength-text"></span>
+          </div>
+          <div class="input-group mt-1">
             <input
               type="password"
               name="password"
-              id="pw1"
+              id="signupPasswordInput"
               class="form-control"
               data-i18n-placeholder="auth_signup_password_placeholder"
               placeholder="At least 8 characters"
               required
-              oninput="checkStrength(this.value)"
+              tabindex="4"
             />
-            <button
-              type="button"
-              class="btn-eye"
-              onclick="togglePw('pw1', 'eye1')"
-            >
-              <i class="bi bi-eye" id="eye1"></i>
+            <button type="button" class="btn-eye" onclick="WFAuth.togglePassword('signupPasswordInput', 'signupEyeIcon')" aria-label="Toggle password visibility" tabindex="-1">
+              <i class="bi bi-eye" id="signupEyeIcon"></i>
             </button>
           </div>
           <div class="strength-bar">
             <div class="strength-fill" id="strengthFill"></div>
+          </div>
+          <div id="signupCapsLockWarning" class="caps-lock-warning d-none">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span data-i18n="auth_caps_lock_on">Caps Lock is ON</span>
           </div>
         </div>
 
@@ -337,55 +162,36 @@
             <input
               type="password"
               name="confirm_password"
-              id="pw2"
+              id="signupConfirmPasswordInput"
               class="form-control"
               data-i18n-placeholder="auth_confirm_password_placeholder"
               placeholder="Repeat password"
               required
+              tabindex="5"
             />
-            <button
-              type="button"
-              class="btn-eye"
-              onclick="togglePw('pw2', 'eye2')"
-            >
-              <i class="bi bi-eye" id="eye2"></i>
+            <button type="button" class="btn-eye" onclick="WFAuth.togglePassword('signupConfirmPasswordInput', 'confirmEyeIcon')" aria-label="Toggle password visibility" tabindex="-1">
+              <i class="bi bi-eye" id="confirmEyeIcon"></i>
             </button>
+          </div>
+          <div class="match-warning" id="passwordMatchWarning" data-i18n="auth_error_passwords_mismatch">
+            Passwords do not match
           </div>
         </div>
 
-        <button type="submit" class="btn-submit">
+        <button type="submit" class="btn-submit" tabindex="6">
           <i class="bi bi-person-plus"></i>
-          <span data-i18n="auth_signup_button">Create Account</span>
+          <span data-i18n="auth_create_account_button">Create Account</span>
         </button>
       </form>
 
       <hr class="auth-divider" />
       <div class="auth-footer">
-        <span data-i18n="auth_signup_have_account">Already have an account?</span>
-        <a href="/accounts/login/" data-i18n="auth_login_button">Sign in</a>
+        <span data-i18n="auth_already_have_account">Already have an account?</span>
+        <a href="/accounts/login/" data-i18n="auth_login_link" tabindex="7">Sign in</a>
       </div>
     </div>
 
-    <script src="{% static 'js/auth_i18n.js' %}"></script>
-    <script>
-      function togglePw(id, iconId) {
-        const inp = document.getElementById(id);
-        const icon = document.getElementById(iconId);
-        inp.type = inp.type === "password" ? "text" : "password";
-        icon.className = inp.type === "text" ? "bi bi-eye-slash" : "bi bi-eye";
-      }
-      function checkStrength(pw) {
-        const fill = document.getElementById("strengthFill");
-        let score = 0;
-        if (pw.length >= 8) score++;
-        if (/[A-Z]/.test(pw)) score++;
-        if (/[0-9]/.test(pw)) score++;
-        if (/[^A-Za-z0-9]/.test(pw)) score++;
-        const widths = ["0%", "25%", "50%", "75%", "100%"];
-        const colors = ["#ff4d6d", "#ff4d6d", "#ffd166", "#ffd166", "#00d68f"];
-        fill.style.width = widths[score];
-        fill.style.background = colors[score];
-      }
-    </script>
+    <script src="{% static 'js/authentication/shared.js' %}"></script>
+    <script src="{% static 'js/authentication/signup.js' %}"></script>
   </body>
 </html>

@@ -7,7 +7,6 @@ Provides reusable helpers for:
  4. Immediate downstream cross-module impact assertions.
 """
 
-import time
 
 def fill_form_field(page, selector, value, field_type="text"):
     """Fills a form field based on control type."""
@@ -33,15 +32,15 @@ def fill_form_field(page, selector, value, field_type="text"):
     elif field_type == "radio":
         elem.click()
     elif field_type == "slider":
-        page.evaluate(f"""(sel, val) => {{
+        page.evaluate("""(sel, val) => {
             const el = document.querySelector(sel);
-            if (el) {{ el.value = val; el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); }}
-        }}""", selector, value)
+            if (el) { el.value = val; el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); }
+        }""", selector, value)
     elif field_type == "color":
-        page.evaluate(f"""(sel, val) => {{
+        page.evaluate("""(sel, val) => {
             const el = document.querySelector(sel);
-            if (el) {{ el.value = val; el.dispatchEvent(new Event('change')); }}
-        }}""", selector, value)
+            if (el) { el.value = val; el.dispatchEvent(new Event('change')); }
+        }""", selector, value)
     elif field_type in ["file", "image"]:
         # Handle file upload inputs if available
         pass

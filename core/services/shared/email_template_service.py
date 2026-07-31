@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from django.conf import settings
 from core.models import EmailTemplate
-from core.services.shared.auth_workflow_service import EMAIL_TEMPLATE_DEFINITIONS
+from core.authentication.emails import EMAIL_TEMPLATE_DEFINITIONS
 
 class EmailTemplateService:
     locale_dir = Path(settings.BASE_DIR) / "static" / "i18n"

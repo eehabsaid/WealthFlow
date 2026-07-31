@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 
@@ -202,6 +202,4 @@ class PagePermissionChoicesView(AdminRequiredMixin, View):
 
 @login_required(login_url="/accounts/login/")
 def user_management_page(request):
-    if not request.user.is_staff:
-        return redirect("/")
-    return render(request, "user_management.html")
+    return redirect("/#settings-users")

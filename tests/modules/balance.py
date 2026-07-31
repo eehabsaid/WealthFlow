@@ -29,7 +29,7 @@ def test_balance_module(context, reporter, screenshot_logger):
         context.page.wait_for_timeout(600)
         reporter.modals_opened.add("Add/Edit Balance Entry Modal")
 
-        shot1 = screenshot_logger.capture(context.page, "balance", "modal_open", "showBalanceModal", "open", "ok")
+        screenshot_logger.capture(context.page, "balance", "modal_open", "showBalanceModal", "open", "ok")
 
         if context.page.query_selector("#bTitle"):
             context.page.fill("#bTitle", account_data["title"])

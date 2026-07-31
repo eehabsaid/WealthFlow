@@ -156,7 +156,7 @@ def main():
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(pristine_json, f, indent=4, ensure_ascii=False)
         
-    print(f"[✓] Translation sync pipeline processed successfully.")
+    print("[✓] Translation sync pipeline processed successfully.")
     print(f"[*] Total valid code keys loaded inside en1.json: {len(pristine_json)}")
 
 if __name__ == "__main__":

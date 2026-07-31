@@ -147,6 +147,7 @@ class PythonPlaywrightCaptureEngine:
         page.wait_for_timeout(800)
 
     def capture_screenshot(self, page: Page, filename: str) -> None:
+        check_cancelled_and_exit(self.manifest_service)
         os.makedirs(self.device_output_dir, exist_ok=True)
         os.makedirs(self.output_dir, exist_ok=True)
         filepath_device = os.path.join(self.device_output_dir, f"{filename}.png")
@@ -311,6 +312,9 @@ class PythonPlaywrightCaptureEngine:
         log('  -> Processing per-type asset modals (View & Edit)...')
 
         page.evaluate("""async () => {
+            if (typeof fixedAssetsState !== 'undefined' && fixedAssetsState.loadAssets && (!fixedAssetsState.assets || fixedAssetsState.assets.length === 0)) {
+                try { await fixedAssetsState.loadAssets(); } catch(e) {}
+            }
             let attempts = 0;
             while (attempts < 20) {
                 if (typeof fixedAssetsState !== 'undefined' && fixedAssetsState.assets && fixedAssetsState.assets.length > 0) {
@@ -322,7 +326,7 @@ class PythonPlaywrightCaptureEngine:
             return false;
         }""")
 
-        distinct_assets = page.evaluate("""() => {
+        distinct_assets = page.evaluate(r"""() => {
             const assets = (typeof fixedAssetsState !== 'undefined' && fixedAssetsState.assets) ? fixedAssetsState.assets : [];
             const map = new Map();
             for (const asset of assets) {
@@ -332,6 +336,24 @@ class PythonPlaywrightCaptureEngine:
                 if (!map.has(assetType)) {
                     map.set(assetType, { id: asset.id, type: assetType, isGold, purity });
                 }
+            }
+            if (map.size === 0) {
+                const rows = Array.from(document.querySelectorAll('#assets-table tbody tr, .table tbody tr'));
+                rows.forEach((tr, i) => {
+                    const editBtn = tr.querySelector('button[onclick*="showFixedAssetModal"], button[onclick*="openGold"]');
+                    const viewBtn = tr.querySelector('button[onclick*="showFixedAssetDetails"], button[onclick*="showGold"]');
+                    const typeTd = tr.querySelector('td:nth-child(2)');
+                    const assetType = typeTd ? typeTd.textContent.trim() : ('AssetType_' + i);
+                    const isGold = assetType.toLowerCase() === 'gold';
+                    if (editBtn || viewBtn) {
+                        const onclick = (editBtn || viewBtn).getAttribute('onclick') || '';
+                        const idMatch = onclick.match(/\((\d+)/);
+                        const id = idMatch ? parseInt(idMatch[1], 10) : (i + 1);
+                        if (!map.has(assetType)) {
+                            map.set(assetType, { id, type: assetType, isGold, purity: isGold ? '24k' : null });
+                        }
+                    }
+                });
             }
             return Array.from(map.values());
         }""")

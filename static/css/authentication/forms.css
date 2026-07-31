@@ -1,0 +1,199 @@
+/* WealthFlow Authentication Design System - Form Controls & Field Styling */
+
+.mb-form {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--wf-auth-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.optional-tag {
+  font-size: 10px;
+  color: var(--wf-auth-text-muted);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.form-control {
+  background: var(--wf-auth-bg-tertiary);
+  border: 1px solid var(--wf-auth-border);
+  color: var(--wf-auth-text-primary);
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  min-height: 44px; /* Touch target accessibility */
+}
+
+.form-control::placeholder {
+  color: var(--wf-auth-text-muted);
+}
+
+.form-control:focus,
+.form-control:focus-visible {
+  background: var(--wf-auth-bg-tertiary);
+  border-color: var(--wf-auth-accent);
+  box-shadow: 0 0 0 3px var(--wf-auth-accent-glow);
+  color: var(--wf-auth-text-primary);
+  outline: none;
+}
+
+/* Input validation states */
+.form-control.is-valid-custom {
+  border-color: var(--wf-auth-green) !important;
+}
+
+.form-control.is-invalid-custom {
+  border-color: var(--wf-auth-red) !important;
+}
+
+/* Input group password toggle */
+.input-group {
+  display: flex;
+  position: relative;
+}
+
+.input-group .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.input-group .btn-eye {
+  background: var(--wf-auth-bg-tertiary);
+  border: 1px solid var(--wf-auth-border);
+  border-left: none;
+  color: var(--wf-auth-text-muted);
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  padding: 0 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, border-color 0.2s ease;
+  min-height: 44px;
+}
+
+.input-group .btn-eye:hover {
+  color: var(--wf-auth-text-primary);
+}
+
+.input-group:focus-within .btn-eye {
+  border-color: var(--wf-auth-accent);
+}
+
+/* Submit Button - Enhanced Hover Lift & Glow */
+.btn-submit {
+  width: 100%;
+  background: linear-gradient(135deg, var(--wf-auth-accent), #7c3aed);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.btn-submit:hover {
+  background: linear-gradient(135deg, var(--wf-auth-accent-hover), #8b5cf6);
+  box-shadow: 0 8px 24px var(--wf-auth-accent-glow);
+  transform: translateY(-2px);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px var(--wf-auth-accent-glow);
+}
+
+.btn-submit:focus-visible {
+  outline: 2px solid var(--wf-auth-accent);
+  outline-offset: 2px;
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Password Strength Indicator & Label */
+.strength-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.strength-text {
+  font-size: 11px;
+  font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+.strength-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--wf-auth-bg-tertiary);
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  width: 0;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  border-radius: 2px;
+}
+
+/* Caps Lock Warning */
+.caps-lock-warning {
+  color: #f59e0b;
+  font-size: 11px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+/* Match & Live Field Warnings */
+.field-hint {
+  font-size: 11px;
+  margin-top: 4px;
+  display: none;
+  font-weight: 500;
+}
+
+.field-hint.hint-error {
+  color: var(--wf-auth-red);
+}
+
+.field-hint.hint-success {
+  color: var(--wf-auth-green);
+}
+
+.match-warning {
+  display: none;
+  color: var(--wf-auth-red);
+  font-size: 11px;
+  margin-top: 4px;
+}

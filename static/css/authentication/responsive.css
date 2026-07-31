@@ -1,0 +1,53 @@
+/* WealthFlow Authentication Design System - Responsive Layouts */
+
+@media (max-width: 576px) {
+  body.auth-page {
+    padding: 12px;
+  }
+
+  .auth-card, [si-modern-card] {
+    padding: 24px 18px;
+    border-radius: 14px;
+    max-width: 100% !important;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .auth-logo .logo-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .auth-logo h1 {
+    font-size: 20px;
+  }
+
+  .btn-submit {
+    padding: 12px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+
+  .form-control {
+    min-height: 44px;
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 577px) and (max-width: 992px) {
+  .auth-card, [si-modern-card] {
+    max-width: 480px;
+  }
+  .auth-card.signup-card {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 993px) {
+  .auth-card, [si-modern-card] {
+    max-width: 480px;
+  }
+  .auth-card.signup-card {
+    max-width: 540px;
+  }
+}

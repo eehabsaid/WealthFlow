@@ -1,6 +1,5 @@
 import ast
 import os
-import shutil
 
 ROOT_DIR = r"d:\MyApps\WealthFlow"
 VIEWS_FILE = os.path.join(ROOT_DIR, "core", "views", "fixed_asset_views.py")

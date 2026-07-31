@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import json
 import threading
 import subprocess
@@ -137,25 +138,70 @@ def run_documentation_permutations(languages, themes, devices, execution_id, mod
                     log_file.flush()
                     
                     try:
-                        result = subprocess.run(cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
+                        pid_file = os.path.join(RUNTIME_DIR, "capture.pid")
+                        proc = subprocess.Popen(cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
+                        os.makedirs(RUNTIME_DIR, exist_ok=True)
+                        with open(pid_file, "w", encoding="utf-8") as pf:
+                            pf.write(str(proc.pid))
+
+                        while proc.poll() is None:
+                            if os.path.exists(CANCEL_FILE):
+                                log_file.write("\n[System] Cancel requested. Terminating subprocess.\n")
+                                try:
+                                    if os.name == 'nt':
+                                        subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                    else:
+                                        proc.kill()
+                                except Exception:
+                                    pass
+                                break
+                            time.sleep(0.2)
+
+                        if os.path.exists(pid_file):
+                            try:
+                                os.remove(pid_file)
+                            except Exception:
+                                pass
+
                         if os.path.exists(CANCEL_FILE):
                             break
-                        elif result.returncode != 0:
+                        elif proc.returncode != 0:
                             has_fatal_error = True
                             break
                         else:
                             if mode == "BOTH":
-                                # Run the document generator backend now that manifest is written
-                                log_file.write("\\n[System] Running Document Generator...\\n")
+                                log_file.write("\n[System] Running Document Generator...\n")
                                 log_file.flush()
                                 doc_cmd = [python_exe, "-c", "import sys, os; sys.path.insert(0, os.path.abspath('.')); from doc_engine.document_generator import DocumentationGenerator; DocumentationGenerator().generate_all('all')"]
-                                doc_result = subprocess.run(doc_cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
-                                if doc_result.returncode != 0:
+                                doc_proc = subprocess.Popen(doc_cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
+                                with open(pid_file, "w", encoding="utf-8") as pf:
+                                    pf.write(str(doc_proc.pid))
+                                while doc_proc.poll() is None:
+                                    if os.path.exists(CANCEL_FILE):
+                                        try:
+                                            if os.name == 'nt':
+                                                subprocess.run(["taskkill", "/F", "/T", "/PID", str(doc_proc.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                            else:
+                                                doc_proc.kill()
+                                        except Exception:
+                                            pass
+                                        break
+                                    time.sleep(0.2)
+
+                                if os.path.exists(pid_file):
+                                    try:
+                                        os.remove(pid_file)
+                                    except Exception:
+                                        pass
+
+                                if os.path.exists(CANCEL_FILE):
+                                    break
+                                elif doc_proc.returncode != 0:
                                     has_fatal_error = True
-                                    log_file.write("\\n[System] Document Generator failed.\\n")
+                                    log_file.write("\n[System] Document Generator failed.\n")
                                     break
                     except Exception as e:
-                        log_file.write(f"\\n[System] Exception occurred: {str(e)}\\n")
+                        log_file.write(f"\n[System] Exception occurred: {str(e)}\n")
                         has_fatal_error = True
                         break
     
@@ -453,10 +499,57 @@ class GenerateDocumentsView(AdminRequiredMixin, View):
 @method_decorator(csrf_exempt, name="dispatch")
 class CancelDocumentationView(AdminRequiredMixin, View):
     def post(self, request):
+        from django.utils.timezone import now
+        from core.models import DocumentationExecution
+        from core.models.documentation import DocumentationExecutionStatus
+
         os.makedirs(os.path.dirname(CANCEL_FILE), exist_ok=True)
-        with open(CANCEL_FILE, "w") as f:
+        with open(CANCEL_FILE, "w", encoding="utf-8") as f:
             f.write("cancel")
-        return JsonResponse({"success": True})
+
+        status = read_json_file(STATUS_FILE, {})
+        status["status"] = "CANCELLED"
+        status["finished_at"] = now().isoformat()
+        status["error"] = "Cancelled by user"
+        write_json_file(STATUS_FILE, status)
+
+        DocumentationExecution.objects.filter(
+            status=DocumentationExecutionStatus.RUNNING
+        ).update(status=DocumentationExecutionStatus.CANCELLED, finished_at=now())
+
+        pid_file = os.path.join(RUNTIME_DIR, "capture.pid")
+        if os.path.exists(pid_file):
+            try:
+                with open(pid_file, "r", encoding="utf-8") as pf:
+                    pid = int(pf.read().strip())
+                if os.name == 'nt':
+                    subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                else:
+                    os.kill(pid, 9)
+            except Exception:
+                pass
+            try:
+                os.remove(pid_file)
+            except Exception:
+                pass
+
+        doc_server_pid = os.path.join(DOCS_DIR, "generated", "server.pid")
+        if os.path.exists(doc_server_pid):
+            try:
+                with open(doc_server_pid, "r", encoding="utf-8") as pf:
+                    spid = int(pf.read().strip())
+                if os.name == 'nt':
+                    subprocess.run(["taskkill", "/F", "/T", "/PID", str(spid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                else:
+                    os.kill(spid, 9)
+            except Exception:
+                pass
+            try:
+                os.remove(doc_server_pid)
+            except Exception:
+                pass
+
+        return JsonResponse({"success": True, "status": "CANCELLED"})
 
 @method_decorator(csrf_exempt, name="dispatch")
 class OpenFolderView(AdminRequiredMixin, View):

@@ -5,9 +5,7 @@ theme switching (dark/light), language switching (en/ar/fr/de), console/network 
 and browser navigation controls (reload, back/forward, keyboard nav).
 """
 
-import os
 import json
-import time
 
 from tests.core.cdn_fallback import install_cdn_fallback
 
@@ -111,23 +109,23 @@ class TestContext:
     def set_theme(self, theme="dark"):
         """Switches UI Theme ('dark' or 'light')."""
         self.theme = theme
-        self.page.evaluate(f"""(th) => {{
-            try {{
+        self.page.evaluate("""(th) => {
+            try {
                 localStorage.setItem('theme', th);
                 document.documentElement.setAttribute('data-bs-theme', th);
-                if (typeof toggleTheme === 'function') {{
+                if (typeof toggleTheme === 'function') {
                     const current = document.documentElement.getAttribute('data-bs-theme') || 'dark';
                     if (current !== th) toggleTheme();
-                }}
-            }} catch(e) {{}}
-        }}""", theme)
+                }
+            } catch(e) {}
+        }""", theme)
         self.page.wait_for_timeout(500)
 
     def set_language(self, lang="en"):
         """Switches active application language ('en', 'ar', 'fr', 'de')."""
-        self.page.evaluate(f"""(l) => {{
+        self.page.evaluate("""(l) => {
             if (typeof loadLanguage === 'function') loadLanguage(l);
-        }}""", lang)
+        }""", lang)
         self.page.wait_for_timeout(800)
 
     def reload(self):

@@ -151,14 +151,6 @@
       "Save your changes."
     ]
   },
-  "/user-management/": {
-    "purpose": "Manage system users, assign role permissions, and control administrative access rights.",
-    "steps": [
-      "Navigate to User Management from the main navigation menu.",
-      "View the list of registered users and their current permission statuses.",
-      "Click Manage Permissions or Add User to grant or adjust role privileges."
-    ]
-  },
   "financial-advisor::overview": {
     "purpose": "Get AI-driven insights summarizing your entire financial standing and immediate action items.",
     "steps": [

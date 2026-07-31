@@ -2,7 +2,6 @@
   { "route": "dashboard", "title": "Dashboard", "nested_navigation": [
       { "name": "User Profile", "type": "modal", "trigger": "eval:window.showProfileModal && window.showProfileModal()" }
   ]},
-  { "route": "/user-management/", "title": "User Management", "is_admin": true },
   { "route": "financial-advisor", "title": "Financial Advisor", "tabs": [
     { "name": "Overview", "id": "overview" }, 
     { "name": "Cash Flow", "id": "cash-flow" }, 
