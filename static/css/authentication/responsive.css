@@ -2,52 +2,82 @@
 
 @media (max-width: 576px) {
   body.auth-page {
-    padding: 12px;
+    padding: 8px !important;
   }
 
   .auth-card, [si-modern-card] {
-    padding: 24px 18px;
-    border-radius: 14px;
+    padding: 16px 14px !important;
+    border-radius: 12px !important;
     max-width: 100% !important;
-    width: 100%;
-    margin-top: 0;
+    width: 100% !important;
+    margin-top: 0 !important;
+  }
+
+  .auth-logo {
+    margin-bottom: 10px !important;
   }
 
   .auth-logo .logo-icon {
-    width: 48px;
-    height: 48px;
+    width: 38px !important;
+    height: 38px !important;
+    margin-bottom: 4px !important;
   }
 
   .auth-logo h1 {
-    font-size: 20px;
+    font-size: 18px !important;
+  }
+
+  .auth-logo p {
+    font-size: 11px !important;
+  }
+
+  .mb-form {
+    margin-bottom: 8px !important;
   }
 
   .btn-submit {
-    padding: 12px;
-    font-size: 14px;
-    min-height: 44px;
+    padding: 9px !important;
+    font-size: 13px !important;
+    min-height: 38px !important;
   }
 
   .form-control {
-    min-height: 44px;
-    font-size: 14px;
+    min-height: 36px !important;
+    font-size: 13px !important;
+    padding: 6px 10px !important;
+  }
+
+  .form-section-header {
+    margin-top: 8px !important;
+    margin-bottom: 6px !important;
+    font-size: 10.5px !important;
   }
 }
 
-@media (min-width: 577px) and (max-width: 992px) {
-  .auth-card, [si-modern-card] {
-    max-width: 480px;
+@media (max-height: 650px) {
+  .auth-logo {
+    margin-bottom: 8px !important;
   }
-  .auth-card.signup-card {
-    max-width: 540px;
-  }
-}
 
-@media (min-width: 993px) {
-  .auth-card, [si-modern-card] {
-    max-width: 480px;
+  .auth-logo .logo-icon {
+    width: 34px !important;
+    height: 34px !important;
+    margin-bottom: 2px !important;
   }
-  .auth-card.signup-card {
-    max-width: 540px;
+
+  .auth-logo h1 {
+    font-size: 17px !important;
+  }
+
+  .mb-form {
+    margin-bottom: 6px !important;
+  }
+
+  .auth-card, [si-modern-card] {
+    padding: 14px 20px !important;
+  }
+
+  .auth-divider {
+    margin: 8px 0 !important;
   }
 }

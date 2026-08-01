@@ -43,7 +43,7 @@ def _render_auth(request, template_name, extra_context=None):
 def _render_auth_status(request, *, title_key, message_key, tone="info", cta_href="", cta_key=""):
     return _render_auth(
         request,
-        "auth_status.html",
+        "authentication/auth_status.html",
         {
             "title_key": title_key,
             "message_key": message_key,
@@ -62,7 +62,7 @@ def login_view(request):
         if user_for_status is not None:
             block_key = AuthWorkflowService.get_login_block(user_for_status)
             if block_key != "auth_error_invalid_login":
-                return _render_auth(request, "login.html", {"error_key": block_key, "prefill_username": username})
+                return _render_auth(request, "authentication/login.html", {"error_key": block_key, "prefill_username": username})
         user = authenticate(request, username=username, password=password)
         if user is not None:
             profile = AuthWorkflowService.get_profile(user)
@@ -72,8 +72,8 @@ def login_view(request):
             response = redirect("/")
             response.set_cookie("wf_lang", lang, max_age=31536000, samesite="Lax")
             return response
-        return _render_auth(request, "login.html", {"error_key": "auth_error_invalid_login", "prefill_username": username})
-    return _render_auth(request, "login.html")
+        return _render_auth(request, "authentication/login.html", {"error_key": "auth_error_invalid_login", "prefill_username": username})
+    return _render_auth(request, "authentication/login.html")
 
 def signup_view(request):
     if request.method == "POST":
@@ -93,14 +93,14 @@ def signup_view(request):
         }
         if result.ok:
             context["success_key"] = result.message_key
-            return _render_auth(request, "signup.html", context)
+            return _render_auth(request, "authentication/signup.html", context)
 
         context["error_key"] = result.error_key
         if result.extra:
             context.update(result.extra)
-        return _render_auth(request, "signup.html", context)
+        return _render_auth(request, "authentication/signup.html", context)
 
-    return _render_auth(request, "signup.html")
+    return _render_auth(request, "authentication/signup.html")
 
 def forgot_password_view(request):
     if request.method == "POST":
@@ -116,14 +116,14 @@ def forgot_password_view(request):
             return JsonResponse(payload, status=status_code)
         return _render_auth(
             request,
-            "forgot_password.html",
+            "authentication/forgot_password.html",
             {
                 "success_key": result.message_key if result.ok else "",
                 "error_key": result.error_key if not result.ok else "",
                 "prefill_email": identifier.strip(),
             },
         )
-    return _render_auth(request, "forgot_password.html", {"prefill_email": request.GET.get("email", "").strip()})
+    return _render_auth(request, "authentication/forgot_password.html", {"prefill_email": request.GET.get("email", "").strip()})
 
 def reset_password_view(request, token):
     if request.method == "GET":
@@ -137,7 +137,7 @@ def reset_password_view(request, token):
                 cta_href="/accounts/forgot-password/",
                 cta_key="auth_forgot_password_button",
             )
-        return _render_auth(request, "reset_password.html", {"reset_token": token})
+        return _render_auth(request, "authentication/reset_password.html", {"reset_token": token})
 
     if request.method == "POST":
         result = AuthWorkflowService.reset_password(
@@ -154,8 +154,8 @@ def reset_password_view(request, token):
                 cta_href="/accounts/login/",
                 cta_key="auth_login_button",
             )
-        return _render_auth(request, "reset_password.html", {"error_key": result.error_key, "reset_token": token})
-    return _render_auth(request, "reset_password.html", {"reset_token": token})
+        return _render_auth(request, "authentication/reset_password.html", {"error_key": result.error_key, "reset_token": token})
+    return _render_auth(request, "authentication/reset_password.html", {"reset_token": token})
 
 def verify_email_view(request, token):
     result = AuthWorkflowService.verify_email(request, token)

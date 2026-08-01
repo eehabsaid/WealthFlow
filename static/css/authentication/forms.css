@@ -1,7 +1,7 @@
 /* WealthFlow Authentication Design System - Form Controls & Field Styling */
 
 .mb-form {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .form-label {
@@ -10,7 +10,7 @@
   color: var(--wf-auth-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -28,12 +28,12 @@
   background: var(--wf-auth-bg-tertiary);
   border: 1px solid var(--wf-auth-border);
   color: var(--wf-auth-text-primary);
-  border-radius: 10px;
-  padding: 11px 14px;
-  font-size: 14px;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
-  min-height: 44px; /* Touch target accessibility */
+  min-height: 38px;
 }
 
 .form-control::placeholder {
@@ -44,7 +44,7 @@
 .form-control:focus-visible {
   background: var(--wf-auth-bg-tertiary);
   border-color: var(--wf-auth-accent);
-  box-shadow: 0 0 0 3px var(--wf-auth-accent-glow);
+  box-shadow: 0 0 0 2px var(--wf-auth-accent-glow);
   color: var(--wf-auth-text-primary);
   outline: none;
 }
@@ -74,15 +74,15 @@
   border: 1px solid var(--wf-auth-border);
   border-left: none;
   color: var(--wf-auth-text-muted);
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-  padding: 0 16px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  padding: 0 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: color 0.15s ease, border-color 0.2s ease;
-  min-height: 44px;
+  min-height: 38px;
 }
 
 .input-group .btn-eye:hover {
@@ -99,29 +99,29 @@
   background: linear-gradient(135deg, var(--wf-auth-accent), #7c3aed);
   color: #ffffff;
   border: none;
-  border-radius: 10px;
-  padding: 12px;
-  font-size: 14px;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: 8px;
+  margin-top: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 44px;
+  gap: 6px;
+  min-height: 40px;
 }
 
 .btn-submit:hover {
   background: linear-gradient(135deg, var(--wf-auth-accent-hover), #8b5cf6);
-  box-shadow: 0 8px 24px var(--wf-auth-accent-glow);
+  box-shadow: 0 6px 20px var(--wf-auth-accent-glow);
   transform: translateY(-2px);
 }
 
 .btn-submit:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px var(--wf-auth-accent-glow);
+  box-shadow: 0 3px 10px var(--wf-auth-accent-glow);
 }
 
 .btn-submit:focus-visible {
@@ -144,16 +144,16 @@
 }
 
 .strength-text {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   transition: color 0.3s ease;
 }
 
 .strength-bar {
-  height: 4px;
+  height: 3px;
   border-radius: 2px;
   background: var(--wf-auth-bg-tertiary);
-  margin-top: 6px;
+  margin-top: 4px;
   overflow: hidden;
 }
 
@@ -167,8 +167,8 @@
 /* Caps Lock Warning */
 .caps-lock-warning {
   color: #f59e0b;
-  font-size: 11px;
-  margin-top: 6px;
+  font-size: 10.5px;
+  margin-top: 4px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -177,8 +177,8 @@
 
 /* Match & Live Field Warnings */
 .field-hint {
-  font-size: 11px;
-  margin-top: 4px;
+  font-size: 10.5px;
+  margin-top: 3px;
   display: none;
   font-weight: 500;
 }
@@ -194,6 +194,6 @@
 .match-warning {
   display: none;
   color: var(--wf-auth-red);
-  font-size: 11px;
-  margin-top: 4px;
+  font-size: 10.5px;
+  margin-top: 3px;
 }

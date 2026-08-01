@@ -13,14 +13,15 @@
     <link href="{% static 'css/authentication/responsive.css' %}" rel="stylesheet" />
     <style>
       .status-box {
-        border-radius: 12px;
-        padding: 20px;
+        border-radius: 10px;
+        padding: 14px 18px;
         border: 1px solid var(--wf-auth-border);
         background: var(--wf-auth-bg-tertiary);
         color: var(--wf-auth-text-primary);
-        line-height: 1.7;
+        line-height: 1.6;
         text-align: center;
-        margin-top: 12px;
+        margin-top: 10px;
+        font-size: 13px;
       }
       .status-box.success {
         border-color: var(--wf-auth-green-border);
@@ -33,7 +34,7 @@
     </style>
   </head>
   <body class="auth-page">
-    <div class="auth-card" style="max-width: 520px" si-modern-card>
+    <div class="auth-card" style="max-width: 480px" si-modern-card>
       <div class="auth-lang">
         <select id="authLanguageSelect" aria-label="Language selector">
           <option value="en">English</option>
@@ -63,8 +64,8 @@
         <span data-i18n="{{ message_key }}">{{ message_key }}</span>
       </div>
       {% if cta_href and cta_key %}
-      <div style="text-align: center">
-        <a class="btn-submit" href="{{ cta_href }}" data-i18n="{{ cta_key }}" style="text-decoration: none; margin-top: 24px; display: inline-flex;">{{ cta_key }}</a>
+      <div style="text-align: center; margin-top: 14px;">
+        <a class="btn-submit" href="{{ cta_href }}" data-i18n="{{ cta_key }}" style="text-decoration: none;">{{ cta_key }}</a>
       </div>
       {% endif %}
     </div>
