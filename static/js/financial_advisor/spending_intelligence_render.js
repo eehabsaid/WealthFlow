@@ -74,7 +74,10 @@ function _renderMonthlyTrendBars(payload, selectedCatId = "all") {
     let barsHtml = '';
     barsData.forEach((m, idx) => {
       const heightPct = maxAmount > 0 ? (m.total_egp / maxAmount) * 100 : 0;
-      const monthName = new Date(m.year, m.month - 1).toLocaleString('en-US', { month: 'short' });
+      const monthKey = `month_short_${m.month}`;
+      const monthName = (typeof t === 'function')
+        ? t(monthKey)
+        : new Date(m.year, m.month - 1).toLocaleString('en-US', { month: 'short' });
 
       let diffHtml = '';
       if (idx > 0 && barsData.length >= 3) {
@@ -95,7 +98,7 @@ function _renderMonthlyTrendBars(payload, selectedCatId = "all") {
 
       barsHtml += `
         <div class="d-flex flex-column align-items-center" style="width:100px;">
-          <div style="height:36px; display:flex; align-items:flex-end; justify-content:center;">
+          <div style="min-height:50px; height:auto; display:flex; align-items:flex-end; justify-content:center;">
              ${diffHtml}
           </div>
           <div style="width:100%; height:160px; display:flex; align-items:flex-end; margin-top:8px; margin-bottom:16px;">
