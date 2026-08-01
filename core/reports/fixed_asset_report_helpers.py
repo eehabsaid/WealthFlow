@@ -6,7 +6,7 @@ from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
 from core.models import FixedAsset
 from core.services.balance.net_worth_service import NetWorthService
 from core.utils.date_formatter import format_date
-from core.reports.report_utils import get_translations, format_arabic, get_text
+from core.reports.report_utils import get_translations, get_text
 
 def fixed_asset_report_queryset():
     return (
@@ -73,10 +73,12 @@ def fixed_asset_display_value(value, lang="en"):
 def fixed_asset_report_label(t, lang, key, default):
     return get_text(key, lang, t, default)
 
-def fixed_asset_user_text(value, lang):
+from core.reports.pdf_font_utils import process_pdf_text
+
+def fixed_asset_user_text(value, lang="en"):
     if not value or str(value).strip() in ("", "None"):
         return "-"
-    return format_arabic(value) if lang == "ar" else str(value)
+    return process_pdf_text(value)
 
 def fixed_asset_pdf_table(rows, col_widths, font_name):
     style = TableStyle(
@@ -97,7 +99,7 @@ def fixed_asset_pdf_table(rows, col_widths, font_name):
             if isinstance(item, Paragraph):
                 formatted_row.append(item)
             else:
-                formatted_row.append(str(item))
+                formatted_row.append(process_pdf_text(str(item) if item is not None else ""))
         formatted_rows.append(formatted_row)
     return Table(formatted_rows, colWidths=col_widths, style=style)
 
@@ -105,7 +107,7 @@ def build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_sty
     data = asset.to_dict()
     story = []
 
-    story.append(Paragraph(f"{fixed_asset_report_label(t, lang, 'asset_details', 'Asset Details')}: {fixed_asset_user_text(asset.name, lang)}", heading_style))
+    story.append(Paragraph(process_pdf_text(f"{fixed_asset_report_label(t, lang, 'asset_details', 'Asset Details')}: {asset.name}"), heading_style))
 
     basic_rows = [
         [fixed_asset_report_label(t, lang, "asset_name", "Asset Name"), fixed_asset_user_text(data.get("name"), lang)],
@@ -124,7 +126,7 @@ def build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_sty
     def append_collection(section_label, collection_data, headers_and_keys, item_row_builder):
         if not collection_data:
             return
-        story.append(Paragraph(section_label, heading_style))
+        story.append(Paragraph(process_pdf_text(section_label), heading_style))
         header_row = [title for _, title in headers_and_keys]
         rows = [header_row]
         for item in collection_data:

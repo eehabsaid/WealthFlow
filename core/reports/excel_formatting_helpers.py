@@ -3,8 +3,8 @@ import datetime
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 # ── Exact formats from original ───────────────────────────────────────────────
-FMT_EGP = "[$ج.م.\u200f-C01]\\ #,##0.00_-"
-FMT_EGP_RED = "[$ج.م.\u200f-C01]\\ #,##0.00;[Red][$ج.م.\u200f-C01]\\ #,##0.00"
+FMT_EGP = "[$EGP]\\ #,##0.00_-"
+FMT_EGP_RED = "[$EGP]\\ #,##0.00;[Red][$EGP]\\ #,##0.00"
 FMT_USD = '"$"#,##0.00;[Red]"$"#,##0.00'
 FMT_EUR = "[$EUR]\\ #,##0.00;[Red][$EUR]\\ #,##0.00"
 FMT_SAR = "[$SAR]\\ #,##0.00;[Red][$SAR]\\ #,##0.00"
@@ -14,6 +14,14 @@ FMT_EGP_CERT_R = "[$EGP]\\ #,##0.00;[Red][$EGP]\\ #,##0.00"
 FMT_PCT = "0.00%"
 FMT_DATE = "dd-mmm-yyyy"
 FMT_INT = "0"
+
+def apply_sheet_direction(ws, lang="en"):
+    """Enforces Right-to-Left view layout in openpyxl for Arabic worksheets."""
+    if lang == "ar":
+        try:
+            ws.sheet_view.rightToLeft = True
+        except Exception:
+            pass
 
 GREY = "FF7F7F7F"
 RED = "FFFF0000"

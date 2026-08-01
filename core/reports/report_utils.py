@@ -3,8 +3,6 @@ import json as _json
 import os
 import datetime
 from django.conf import settings
-from arabic_reshaper import reshape
-from bidi.algorithm import get_display
 
 MONTH_ORDER = [
     "January",
@@ -35,12 +33,13 @@ def get_translations(lang):
     except Exception:
         return {}
 
+from core.reports.pdf_font_utils import process_pdf_text
+
 def format_arabic(text):
-    return get_display(reshape(str(text)))
+    return process_pdf_text(text)
 
 def get_text(key, lang, t, default=""):
-    text = t.get(key, default)
-    return format_arabic(text) if lang == "ar" else text
+    return t.get(key, default) if t and key in t else default
 
 def parse_iso_date(value):
     if not value or str(value).strip() in ("", "None"):

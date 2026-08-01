@@ -1,7 +1,4 @@
-# pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false, reportRedeclaration=false, reportAssignmentType=false
-import os
 import io
-from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from core.models import FixedAsset
 from reportlab.lib.pagesizes import A4
@@ -14,8 +11,6 @@ from reportlab.platypus import (
     Spacer,
     PageBreak,
 )
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 
 from core.reports.fixed_asset_report_helpers import (
     fixed_asset_report_context as _fixed_asset_report_context,
@@ -41,13 +36,8 @@ class FixedAssetPdfReportGenerator(object):
         scope = context["scope"]
         portfolio_snapshot = context.get("portfolio_snapshot") or {}
 
-        font_path = os.path.join(settings.BASE_DIR, "static", "fonts", "arial.ttf")
-        font_exists = os.path.exists(font_path)
-        if font_exists:
-            pdfmetrics.registerFont(TTFont("ArabicFont", font_path))
-
-        font_name = "ArabicFont" if font_exists else "Helvetica"
-        font_name_bold = "ArabicFont" if font_name == "ArabicFont" else "Helvetica-Bold"
+        from core.reports.pdf_font_utils import get_arabic_pdf_font
+        font_name, font_name_bold = get_arabic_pdf_font()
 
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(
@@ -94,7 +84,9 @@ class FixedAssetPdfReportGenerator(object):
         if scope == "single":
             report_title = f"{report_title} - {_fixed_asset_user_text(assets[0].name, lang)}"
 
-        story = [Paragraph(report_title, title_style), Spacer(1, 0.35 * cm)]
+        from core.reports.pdf_font_utils import process_pdf_text
+
+        story = [Paragraph(process_pdf_text(report_title), title_style), Spacer(1, 0.35 * cm)]
 
         if scope == "portfolio":
             summary_rows = [
@@ -111,7 +103,7 @@ class FixedAssetPdfReportGenerator(object):
                     f"{float(portfolio_snapshot.get('net_worth_contribution') or 0):,.2f}%",
                 ],
             ]
-            story.append(Paragraph(_fixed_asset_report_label(t, lang, "portfolio_distribution", "Portfolio Distribution"), heading_style))
+            story.append(Paragraph(process_pdf_text(_fixed_asset_report_label(t, lang, "portfolio_distribution", "Portfolio Distribution")), heading_style))
             story.append(_fixed_asset_pdf_table(summary_rows, [7 * cm, 8.5 * cm], font_name))
             story.append(Spacer(1, 0.35 * cm))
 

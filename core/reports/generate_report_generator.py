@@ -1,6 +1,4 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false, reportRedeclaration=false, reportAssignmentType=false
-import os
-from django.conf import settings
 from core.models import Expense, BankCertificate
 from core.utils.date_formatter import format_date
 from core.reports.report_utils import get_translations, format_arabic, get_text
@@ -34,8 +32,6 @@ class GenerateReportGenerator(object):
                 HRFlowable,
             )
             from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
-            from reportlab.pdfbase import pdfmetrics
-            from reportlab.pdfbase.ttfonts import TTFont
             import io
         except ImportError:
             return JsonResponse(
@@ -47,13 +43,8 @@ class GenerateReportGenerator(object):
         lang = data.get("lang", "en")
         t = get_translations(lang)
 
-        # Register Arabic-compatible font if the file exists
-        font_path = os.path.join(settings.BASE_DIR, "static", "fonts", "arial.ttf")
-        if os.path.exists(font_path):
-            pdfmetrics.registerFont(TTFont("ArabicFont", font_path))
-
-        # Decide which font style template to use
-        pdf_font = "ArabicFont" if lang == "ar" else "Helvetica-Bold"
+        from core.reports.pdf_font_utils import get_arabic_pdf_font, process_pdf_text
+        pdf_font, pdf_font_bold = get_arabic_pdf_font()
 
         rtype = data.get("type", "monthly")
         year = int(data.get("year", datetime.date.today().year))
@@ -67,29 +58,11 @@ class GenerateReportGenerator(object):
         qs = Expense.objects.select_related("category", "subcategory").all()
         if rtype == "monthly":
             qs = qs.filter(year=year, month=month)
-            month_name = datetime.date(year, month, 1).strftime("%B")
-            json_month_key = f"month_{month_name.lower()}"
-            translated_month = t.get(json_month_key)
-
-            if not translated_month:
-                if lang == "ar":
-                    ARABIC_MONTHS = {
-                        "January": "يناير",
-                        "February": "فبراير",
-                        "March": "مارس",
-                        "April": "أبريل",
-                        "May": "مايو",
-                        "June": "يونيو",
-                        "July": "يوليو",
-                        "August": "أغسطس",
-                        "September": "سبتمبر",
-                        "October": "أكتوبر",
-                        "November": "نوفمبر",
-                        "December": "ديسمبر",
-                    }
-                    translated_month = ARABIC_MONTHS.get(month_name, month_name)
-                else:
-                    translated_month = month_name
+            json_month_key = f"month_short_{month}"
+            translated_month = t.get(json_month_key) or t.get(
+                f"month_{datetime.date(year, month, 1).strftime('%B').lower()}",
+                datetime.date(year, month, 1).strftime("%B"),
+            )
 
             title_str = f"{t.get('monthly_report', 'Monthly Report')} - {translated_month} {year}"
             filename = f"report_{year}_{month:02d}.pdf"
@@ -177,19 +150,22 @@ class GenerateReportGenerator(object):
 
         story = []
 
+        def pdf_t(key, default=""):
+            return process_pdf_text(get_text(key, lang, t, default))
+
         # Cover
         story.append(Spacer(1, 1 * cm))
-        report_text = get_text("financial_report", lang, t, "Financial Report")
+        report_text = pdf_t("financial_report", "Financial Report")
 
-        story.append(Paragraph(report_text, H1))
-        story.append(Paragraph(title_str, H11))
+        story.append(Paragraph(process_pdf_text(report_text), H1))
+        story.append(Paragraph(process_pdf_text(title_str), H11))
         story.append(HRFlowable(width="100%", thickness=1, color=blue))
         story.append(Spacer(1, 0.5 * cm))
         table_title_style = ParagraphStyle(
             "TableTitle", parent=H2, alignment=TA_RIGHT if lang == "ar" else TA_LEFT
         )
         story.append(
-            Paragraph(get_text("summary", lang, t, "Summary"), table_title_style)
+            Paragraph(pdf_t("summary", "Summary"), table_title_style)
         )
 
         cell_L = ParagraphStyle(
@@ -215,21 +191,21 @@ class GenerateReportGenerator(object):
 
         kpi_data = [
             [
-                Paragraph(get_text("metric", lang, t, "Metric"), cell_HL),
-                Paragraph(get_text("amount", lang, t, "Amount (EGP)"), cell_HR),
+                Paragraph(pdf_t("metric", "Metric"), cell_HL),
+                Paragraph(pdf_t("amount", "Amount (EGP)"), cell_HR),
             ],
             [
-                Paragraph(get_text("total_income", lang, t, "Total Income"), cell_L),
+                Paragraph(pdf_t("total_income", "Total Income"), cell_L),
                 Paragraph(f"{total_inc:,.2f}", cell_R),
             ],
             [
                 Paragraph(
-                    get_text("total_expenses", lang, t, "Total Expenses"), cell_L
+                    pdf_t("total_expenses", "Total Expenses"), cell_L
                 ),
                 Paragraph(f"{total_exp:,.2f}", cell_R),
             ],
             [
-                Paragraph(get_text("net_savings", lang, t, "Net Savings"), cell_L),
+                Paragraph(pdf_t("net_savings", "Net Savings"), cell_L),
                 Paragraph(
                     f"{net_sav:,.2f}",
                     ParagraphStyle(
@@ -240,7 +216,7 @@ class GenerateReportGenerator(object):
                 ),
             ],
             [
-                Paragraph(get_text("savings_rate", lang, t, "Savings Rate"), cell_L),
+                Paragraph(pdf_t("savings_rate", "Savings Rate"), cell_L),
                 Paragraph(f"{sav_rate:.1f}%", cell_R),
             ],
         ]
@@ -271,7 +247,7 @@ class GenerateReportGenerator(object):
         if cat_totals:
             story.append(
                 Paragraph(
-                    get_text("cat_breakdown", lang, t, "Expense Breakdown by Category"),
+                    pdf_t("cat_breakdown", "Expense Breakdown by Category"),
                     table_title_style,
                 )
             )
@@ -307,15 +283,15 @@ class GenerateReportGenerator(object):
 
             cat_data = [
                 [
-                    Paragraph(get_text("category", lang, t, "Category"), cell_HL9),
-                    Paragraph(get_text("amount", lang, t, "Amount (EGP)"), cell_HR9),
-                    Paragraph(get_text("pct", lang, t, "% of Total"), cell_HR9),
+                    Paragraph(pdf_t("category", "Category"), cell_HL9),
+                    Paragraph(pdf_t("amount", "Amount (EGP)"), cell_HR9),
+                    Paragraph(pdf_t("pct", "% of Total"), cell_HR9),
                 ]
             ]
 
             for cname, ctotal in sorted(cat_totals.items(), key=lambda x: -x[1]):
                 pct = (ctotal / total_exp * 100) if total_exp > 0 else 0
-                display_cname = format_arabic(cname) if lang == "ar" else cname
+                display_cname = process_pdf_text(cname)
 
                 cat_data.append(
                     [
@@ -327,7 +303,7 @@ class GenerateReportGenerator(object):
 
             cat_data.append(
                 [
-                    Paragraph(get_text("total", lang, t, "TOTAL"), cell_L9),
+                    Paragraph(pdf_t("total", "TOTAL"), cell_L9),
                     Paragraph(f"{total_exp:,.2f}", cell_R9),
                     Paragraph("100%", cell_R9),
                 ]
@@ -365,7 +341,7 @@ class GenerateReportGenerator(object):
         if expenses:
             story.append(
                 Paragraph(
-                    get_text("expense_entries", lang, t, "Expense Entries"),
+                    pdf_t("expense_entries", "Expense Entries"),
                     table_title_style,
                 )
             )
@@ -401,13 +377,13 @@ class GenerateReportGenerator(object):
 
             exp_data = [
                 [
-                    Paragraph(get_text("date", lang, t, "Date"), cell_HL8),
-                    Paragraph(get_text("category", lang, t, "Category"), cell_HL8),
+                    Paragraph(pdf_t("date", "Date"), cell_HL8),
+                    Paragraph(pdf_t("category", "Category"), cell_HL8),
                     Paragraph(
-                        get_text("description", lang, t, "Description"), cell_HL8
+                        pdf_t("description", "Description"), cell_HL8
                     ),
-                    Paragraph(get_text("method", lang, t, "Method"), cell_HL8),
-                    Paragraph(get_text("amount", lang, t, "Amount"), cell_HR8),
+                    Paragraph(pdf_t("method", "Method"), cell_HL8),
+                    Paragraph(pdf_t("amount", "Amount"), cell_HR8),
                 ]
             ]
 
@@ -416,12 +392,9 @@ class GenerateReportGenerator(object):
                 desc = e.description or "—"
                 method = e.payment_method or "—"
 
-                if lang == "ar":
-                    cname = format_arabic(cname)
-                    desc = format_arabic(desc[:40])
-                    method = format_arabic(method)
-                else:
-                    desc = desc[:40]
+                cname = process_pdf_text(cname)
+                desc = process_pdf_text(desc[:40])
+                method = process_pdf_text(method)
 
                 exp_data.append(
                     [

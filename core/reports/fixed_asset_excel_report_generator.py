@@ -32,6 +32,12 @@ class FixedAssetExcelReportGenerator(object):
         else:
             summary_ws.title = "Summary"
 
+        if lang == "ar":
+            try:
+                summary_ws.sheet_view.rightToLeft = True
+            except Exception:
+                pass
+
         header_font = Font(bold=True)
 
         summary_headers = [
