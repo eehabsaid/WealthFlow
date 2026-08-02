@@ -872,12 +872,15 @@
               </div>
               <div class="modal-footer border-secondary">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-i18n-key="cancel">Cancel</button>
-                <button type="submit" class="btn btn-primary" data-i18n-key="create">Create Scenario</button>
+                <button type="submit" class="btn btn-primary" data-i18n-key="scenario_planner_btn_create">Create Scenario</button>
               </div>
             </form>
           </div>
         </div>`;
       document.body.appendChild(modalEl);
+    }
+    if (typeof applyTranslations === "function") {
+      applyTranslations(modalEl);
     }
     return modalEl;
   }
@@ -888,8 +891,13 @@
     const inputDesc = modalEl.querySelector("#sp-new-scenario-desc");
     const form = modalEl.querySelector("#form-create-scenario");
 
-    inputName.value = "New Scenario";
+    const defaultName = (typeof getTranslation === "function" && getTranslation("scenario_planner_default_name")) || "New Scenario";
+    inputName.value = defaultName;
     inputDesc.value = "";
+
+    if (typeof applyTranslations === "function") {
+      applyTranslations(modalEl);
+    }
 
     let bsModal = null;
     if (typeof bootstrap !== "undefined" && bootstrap.Modal) {
