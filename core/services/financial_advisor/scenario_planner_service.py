@@ -495,9 +495,15 @@ class ScenarioPlannerService:
                 .get("risk_score", {})
                 .get("score")
             )
-            baseline_goal_pct = _to_float(
-                self._goal_service.payload().get("summary", {}).get("overall_progress_pct")
-            )
+            baseline_goal_payload = self._goal_service.payload()
+            baseline_goals_list = baseline_goal_payload.get("goals", [])
+            if baseline_goals_list:
+                favorable_statuses = {"achieved", "on_track", "watch"}
+                favorable_count = sum(1 for g in baseline_goals_list if g.get("status") in favorable_statuses)
+                baseline_goal_pct = round((favorable_count / len(baseline_goals_list)) * 100.0, 1)
+            else:
+                baseline_goal_pct = 100.0
+
             baseline_coverage = round(cash_balance / avg_monthly_expenses, 1) if avg_monthly_expenses > 0 else None
 
             baseline_retire = self._compute_retirement_readiness(
@@ -517,7 +523,7 @@ class ScenarioPlannerService:
                 "total_debt": round(real_debt_baseline, 2),
                 "cash_coverage_months": baseline_coverage,
                 "risk_score": round(baseline_risk_score, 1),
-                "goal_achievement_pct": round(baseline_goal_pct, 1),
+                "goal_achievement_pct": baseline_goal_pct,
                 "gold_allocation_pct": round(gold_pct, 1),
                 "retirement_readiness": baseline_retire,
                 "series": [
@@ -553,6 +559,11 @@ class ScenarioPlannerService:
                     adj_income = max(0.0, (total_monthly_income - monthly_salary) + adj_salary)
                     adj_expenses = max(0.0, (avg_monthly_expenses * exp_scale) + exp_delta)
 
+                    # Net lump sum monthly impact over 12m projection
+                    total_lump_out = sum(_to_float(item.get("amount")) for item in overrides.get("lump_sum_outflows", []))
+                    total_lump_in = sum(_to_float(item.get("amount")) for item in overrides.get("lump_sum_inflows", []))
+                    lump_monthly_net = (total_lump_out - total_lump_in) / 12.0
+
                     sc_risk_svc = RiskAnalysisService(
                         today=self.today,
                         net_worth_service=self._net_worth_service,
@@ -570,14 +581,21 @@ class ScenarioPlannerService:
                         sc_nw_12m, adj_expenses, target_age_to_use
                     )
 
-                    # Per-scenario goal achievement calculation
-                    sc_monthly_capacity = max(0.0, adj_income - adj_expenses)
+                    # Per-scenario capacity-sensitive goal achievement (% of goals with sufficient monthly capacity)
+                    sc_monthly_capacity = max(0.0, (adj_income - adj_expenses) - lump_monthly_net)
                     sc_goal_svc = GoalPlanningService(
                         today=self.today,
                         net_worth_service=self._net_worth_service,
                         monthly_capacity_override=sc_monthly_capacity,
                     )
-                    sc_goal_pct = _to_float(sc_goal_svc.payload().get("summary", {}).get("overall_progress_pct"))
+                    sc_goal_payload = sc_goal_svc.payload()
+                    sc_goals_list = sc_goal_payload.get("goals", [])
+                    if sc_goals_list:
+                        favorable_statuses = {"achieved", "on_track", "watch"}
+                        favorable_count = sum(1 for g in sc_goals_list if g.get("status") in favorable_statuses)
+                        sc_goal_pct = round((favorable_count / len(sc_goals_list)) * 100.0, 1)
+                    else:
+                        sc_goal_pct = 100.0
 
                     sc_dict = {
                         "id": sc.id,
