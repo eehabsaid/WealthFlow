@@ -11,6 +11,7 @@ const FINANCIAL_ADVISOR_TABS = [
   { id: "opportunity-detection", key: "financial_advisor_tab_opportunity_detection", shortKey: "financial_advisor_tab_opportunities" },
   { id: "performance", key: "financial_advisor_tab_performance", shortKey: "financial_advisor_tab_performance" },
   { id: "what-if-simulator", key: "financial_advisor_tab_what_if_simulator" },
+  { id: "scenario-planner", key: "financial_advisor_tab_scenario_planner" },
 ];
 
 const FINANCIAL_ADVISOR_ACTIVE_TAB_KEY = "wf_financial_advisor_active_tab";

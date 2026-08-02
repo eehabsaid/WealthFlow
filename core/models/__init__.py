@@ -23,6 +23,7 @@ from .fixed_assets_history import AssetRenovation, AssetFurniture, AssetValuatio
 from .documents import Document
 from .photos import AssetPhoto
 from .documentation import DocumentationExecution
+from .scenario import Scenario, ScenarioEvent
 
 __all__ = [
     "Company",
@@ -79,4 +80,6 @@ __all__ = [
     "Document",
     "AssetPhoto",
     "DocumentationExecution",
+    "Scenario",
+    "ScenarioEvent",
 ]

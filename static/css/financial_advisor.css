@@ -427,3 +427,17 @@
   }
 }
 
+/* ── Scenario Planner Component Extensions ── */
+.sp-event-type-card {
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.sp-event-type-card:hover {
+  border-color: var(--accent-primary) !important;
+}
+
+[data-theme="light"] .sp-event-type-card.border-primary {
+  background-color: rgba(26, 110, 245, 0.08) !important;
+}
+
+

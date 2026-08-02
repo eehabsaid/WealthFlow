@@ -33,6 +33,7 @@ def test_financial_advisor_module(context, reporter, screenshot_logger):
         ("opportunity-detection", "Opportunity Detection"),
         ("performance", "Performance Analytics"),
         ("what-if-simulator", "What-If Simulator"),
+        ("scenario-planner", "Scenario Planner"),
     ]
 
     for tab_id, tab_label in fa_tabs:

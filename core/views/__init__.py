@@ -88,6 +88,14 @@ from .balance_forecast_views import OpportunityDetectionView
 from .balance_forecast_views import PerformanceView
 from .balance_forecast_views import WhatIfSimulatorView
 from .balance_forecast_views import OverviewView
+from .balance_forecast_views import (
+    ScenarioEventDefinitionsView,
+    ScenarioListCreateView,
+    ScenarioDetailView,
+    ScenarioEventListCreateView,
+    ScenarioEventDetailView,
+    ScenarioComparisonView,
+)
 from .dashboard_views import index
 from .dashboard_views import _api_auth_required
 from .dashboard_views import _parse_iso_date
@@ -246,6 +254,12 @@ __all__ = [
     "PerformanceView",
     "WhatIfSimulatorView",
     "OverviewView",
+    "ScenarioEventDefinitionsView",
+    "ScenarioListCreateView",
+    "ScenarioDetailView",
+    "ScenarioEventListCreateView",
+    "ScenarioEventDetailView",
+    "ScenarioComparisonView",
     "index",
     "_api_auth_required",
     "_parse_iso_date",

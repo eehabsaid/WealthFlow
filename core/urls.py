@@ -242,6 +242,30 @@ urlpatterns = [
         views.WhatIfSimulatorView.as_view(),
     ),
     path(
+        "api/financial-advisor/scenario-planner/compare/",
+        views.ScenarioComparisonView.as_view(),
+    ),
+    path(
+        "api/scenarios/event-definitions/",
+        views.ScenarioEventDefinitionsView.as_view(),
+    ),
+    path(
+        "api/scenarios/",
+        views.ScenarioListCreateView.as_view(),
+    ),
+    path(
+        "api/scenarios/<int:pk>/",
+        views.ScenarioDetailView.as_view(),
+    ),
+    path(
+        "api/scenarios/<int:pk>/events/",
+        views.ScenarioEventListCreateView.as_view(),
+    ),
+    path(
+        "api/scenarios/<int:pk>/events/<int:event_id>/",
+        views.ScenarioEventDetailView.as_view(),
+    ),
+    path(
         "api/financial-advisor/goal-planning/",
         views.GoalPlanningView.as_view(),
     ),
