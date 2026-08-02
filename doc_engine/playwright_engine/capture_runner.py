@@ -384,7 +384,9 @@ class PythonPlaywrightCaptureEngine:
                 }""", info)
 
                 if view_clicked:
+                    self.global_context["modal_id"] = f"view_{sanitize_filename(asset_type.lower())}"
                     self.capture_modal_tabs(page, f"fixed_assets_assets_view_{sanitize_filename(asset_type.lower())}", close_after=False)
+                    self.global_context["modal_id"] = None
                     self.ensure_modals_closed(page)
 
                 log(f"     -> Selecting Edit asset type: {asset_type}")
@@ -404,7 +406,9 @@ class PythonPlaywrightCaptureEngine:
                 }""", info)
 
                 if edit_clicked:
+                    self.global_context["modal_id"] = f"edit_{sanitize_filename(asset_type.lower())}"
                     self.capture_modal_tabs(page, f"fixed_assets_assets_edit_{sanitize_filename(asset_type.lower())}", close_after=False)
+                    self.global_context["modal_id"] = None
                     self.ensure_modals_closed(page)
 
         log('  -> Processing Add New Asset modal combinations...')
@@ -449,7 +453,9 @@ class PythonPlaywrightCaptureEngine:
                         page.wait_for_timeout(500)
 
                         type_filename = sanitize_filename(t_info['value'])
+                        self.global_context["modal_id"] = f"add_{type_filename}"
                         self.capture_modal_tabs(page, f"{route_prefix}_add_{type_filename}", close_after=False)
+                        self.global_context["modal_id"] = None
 
                     self.ensure_modals_closed(page)
                 else:

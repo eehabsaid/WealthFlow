@@ -15,7 +15,8 @@
     { "name": "Spending Intelligence", "id": "spending-intelligence" }, 
     { "name": "Opportunity Detection", "id": "opportunity-detection" }, 
     { "name": "Performance", "id": "performance" }, 
-    { "name": "What If Simulator", "id": "what-if-simulator" }
+    { "name": "What If Simulator", "id": "what-if-simulator" },
+    { "name": "Scenario Planner", "id": "scenario-planner" }
   ]},
   { "route": "employment", "title": "Employment" },
   { "route": "balance", "title": "Balance", "tabs": [

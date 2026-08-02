@@ -95,6 +95,7 @@ from .balance_forecast_views import (
     ScenarioEventListCreateView,
     ScenarioEventDetailView,
     ScenarioComparisonView,
+    ScenarioDuplicateView,
 )
 from .dashboard_views import index
 from .dashboard_views import _api_auth_required
@@ -260,6 +261,7 @@ __all__ = [
     "ScenarioEventListCreateView",
     "ScenarioEventDetailView",
     "ScenarioComparisonView",
+    "ScenarioDuplicateView",
     "index",
     "_api_auth_required",
     "_parse_iso_date",

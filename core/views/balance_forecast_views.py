@@ -363,7 +363,34 @@ class ScenarioComparisonView(View):
                 if item_str.isdigit():
                     scenario_ids.append(int(item_str))
 
-        svc = ScenarioPlannerService(today=datetime.date.today())
+        svc = ScenarioPlannerService(today=datetime.date.today(), user=request.user)
         payload = svc.payload(scenario_ids=scenario_ids)
         return JsonResponse(payload)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ScenarioDuplicateView(View):
+    def post(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        sc = Scenario.objects.filter(id=pk).prefetch_related("events").first()
+        if not sc:
+            return JsonResponse({"error": "Scenario not found"}, status=404)
+        new_sc = Scenario.objects.create(
+            name=f"{sc.name} (Copy)",
+            description=sc.description or "",
+            is_baseline_pinned=False,
+        )
+        for ev in sc.events.all():
+            ScenarioEvent.objects.create(
+                scenario=new_sc,
+                event_type=ev.event_type,
+                event_date=ev.event_date,
+                params=dict(ev.params or {}),
+                order=ev.order,
+            )
+        return JsonResponse(new_sc.to_dict(), status=201)
+
+
 

@@ -266,6 +266,10 @@ urlpatterns = [
         views.ScenarioEventDetailView.as_view(),
     ),
     path(
+        "api/scenarios/<int:pk>/duplicate/",
+        views.ScenarioDuplicateView.as_view(),
+    ),
+    path(
         "api/financial-advisor/goal-planning/",
         views.GoalPlanningView.as_view(),
     ),

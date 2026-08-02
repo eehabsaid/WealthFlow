@@ -231,6 +231,14 @@
       "Review the projected impact on your long-term wealth."
     ]
   },
+  "financial-advisor::scenario-planner": {
+    "purpose": "Simulate multi-event life scenarios and compare trajectories against your real baseline.",
+    "steps": [
+      "Navigate to the Scenario Planner.",
+      "Configure life events like buying a house, salary changes, marriage, or starting a business.",
+      "Review the side-by-side N-scenario comparison and rule-based insights."
+    ]
+  },
   "employment": {
     "purpose": "Manage your income streams, salary structures, and employment benefits across employers.",
     "steps": [
