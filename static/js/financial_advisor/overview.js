@@ -30,8 +30,10 @@ function switchFinancialAdvisorTab(tabId) {
   const tabButton = document.getElementById(`fa-tab-${tabId}`);
   if (tabButton) {
     tabButton.click();
-    const tabTrigger = new bootstrap.Tab(tabButton);
-    tabTrigger.show();
+    if (typeof bootstrap !== "undefined" && bootstrap.Tab) {
+      const tabTrigger = new bootstrap.Tab(tabButton);
+      tabTrigger.show();
+    }
   }
 }
 

@@ -844,28 +844,101 @@
     });
   }
 
+  function _getOrCreateNewScenarioModal() {
+    let modalEl = document.getElementById("modal-create-scenario");
+    if (!modalEl) {
+      modalEl = document.createElement("div");
+      modalEl.id = "modal-create-scenario";
+      modalEl.className = "modal fade";
+      modalEl.tabIndex = -1;
+      modalEl.setAttribute("aria-hidden", "true");
+      modalEl.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content border-secondary text-light" style="background-color: var(--si-card-bg, #1e293b);">
+            <div class="modal-header border-secondary">
+              <h5 class="modal-title" data-i18n-key="scenario_planner_new_modal_title">Create New Scenario</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-create-scenario">
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label for="sp-new-scenario-name" class="form-label" data-i18n-key="scenario_planner_name_label">Scenario Name</label>
+                  <input type="text" class="form-control bg-dark text-light border-secondary" id="sp-new-scenario-name" required value="New Scenario" />
+                </div>
+                <div class="mb-3">
+                  <label for="sp-new-scenario-desc" class="form-label" data-i18n-key="scenario_planner_desc_label">Description (Optional)</label>
+                  <textarea class="form-control bg-dark text-light border-secondary" id="sp-new-scenario-desc" rows="2"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-i18n-key="cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary" data-i18n-key="create">Create Scenario</button>
+              </div>
+            </form>
+          </div>
+        </div>`;
+      document.body.appendChild(modalEl);
+    }
+    return modalEl;
+  }
+
   async function _createNewScenarioPrompt() {
-    const name = prompt("Enter scenario name:", "New Scenario");
-    if (!name) return;
+    const modalEl = _getOrCreateNewScenarioModal();
+    const inputName = modalEl.querySelector("#sp-new-scenario-name");
+    const inputDesc = modalEl.querySelector("#sp-new-scenario-desc");
+    const form = modalEl.querySelector("#form-create-scenario");
 
-    try {
-      const resp = await fetch("/api/scenarios/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), description: "" }),
-      });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const sc = await resp.json();
+    inputName.value = "New Scenario";
+    inputDesc.value = "";
 
-      _cachedScenarios.push(sc);
-      _activeScenarioId = sc.id;
-      if (!_selectedScenarioIds.includes(sc.id)) {
-        _selectedScenarioIds.push(sc.id);
+    let bsModal = null;
+    if (typeof bootstrap !== "undefined" && bootstrap.Modal) {
+      bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    }
+
+    const onSubmit = async (e) => {
+      e.preventDefault();
+      const name = inputName.value.trim();
+      const desc = inputDesc.value.trim();
+      if (!name) return;
+
+      if (bsModal) {
+        bsModal.hide();
       }
 
-      await _recalculateBackend();
-    } catch (err) {
-      console.error("Failed to create scenario:", err);
+      form.removeEventListener("submit", onSubmit);
+
+      try {
+        const resp = await fetch("/api/scenarios/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name, description: desc }),
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const sc = await resp.json();
+
+        _cachedScenarios.push(sc);
+        _activeScenarioId = sc.id;
+        if (!_selectedScenarioIds.includes(sc.id)) {
+          _selectedScenarioIds.push(sc.id);
+        }
+
+        await _recalculateBackend();
+      } catch (err) {
+        console.error("Failed to create scenario:", err);
+      }
+    };
+
+    form.onsubmit = onSubmit;
+
+    if (bsModal) {
+      bsModal.show();
+    } else {
+      const name = prompt("Enter scenario name:", "New Scenario");
+      if (name) {
+        inputName.value = name;
+        form.dispatchEvent(new Event("submit"));
+      }
     }
   }
 
