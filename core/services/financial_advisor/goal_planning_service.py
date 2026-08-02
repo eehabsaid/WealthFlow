@@ -32,9 +32,16 @@ class GoalCalc:
     linked_asset_name: str
 
 class GoalPlanningService:
-    def __init__(self, today: date | None = None, net_worth_service: NetWorthService | None = None):
+    def __init__(
+        self,
+        today: date | None = None,
+        net_worth_service: NetWorthService | None = None,
+        *,
+        monthly_capacity_override: float | None = None,
+    ):
         self.today = today or date.today()
         self._net_worth_service = net_worth_service or NetWorthService()
+        self._capacity_override = monthly_capacity_override
 
     def _rates(self) -> Dict[str, float]:
         comp = self._net_worth_service.portfolio_components()
@@ -109,6 +116,8 @@ class GoalPlanningService:
         )
 
     def _monthly_capacity_egp(self) -> float:
+        if self._capacity_override is not None:
+            return self._capacity_override
         payload = self._net_worth_service.certificate_forecast_payload(today=self.today)
         total_income = _to_float(payload.get("total_monthly_income"))
         monthly_expenses = _to_float(payload.get("monthly_expenses"))

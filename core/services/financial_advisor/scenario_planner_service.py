@@ -194,10 +194,12 @@ class ScenarioPlannerService:
             total_debt += rem * rate
         return total_debt
 
-    def _events_to_overrides(self, events: List[ScenarioEvent]) -> tuple[dict, float]:
+    def _events_to_overrides(
+        self, events: List[ScenarioEvent], monthly_salary: float = 0.0
+    ) -> tuple[dict, float, int | None]:
         """Translates a list of ScenarioEvents into WealthGrowthForecastService overrides.
 
-        Returns (overrides_dict, scenario_added_debt).
+        Returns (overrides_dict, scenario_added_debt, scenario_target_age).
         Reuses existing override keys (monthly_salary_scale, monthly_expense_scale)
         and minimal extended keys (monthly_salary_delta, monthly_expense_delta,
         lump_sum_outflows, lump_sum_inflows).
@@ -208,6 +210,7 @@ class ScenarioPlannerService:
         lump_outflows: List[dict] = []
         lump_inflows: List[dict] = []
         added_debt = 0.0
+        scenario_target_age: int | None = None
 
         for idx, ev in enumerate(events):
             etype = str(ev.event_type or "").lower()
@@ -273,7 +276,7 @@ class ScenarioPlannerService:
 
             elif etype == "medical":
                 cost = _to_float(p.get("one_time_cost"))
-                ongoing = _to_float(p.get("ongoing_cost"))
+                ongoing = _to_float(p.get("monthly_ongoing_cost") or p.get("ongoing_cost"))
                 if cost > 0:
                     lump_outflows.append({"month_index": m_index, "amount": cost})
                 if ongoing > 0:
@@ -287,8 +290,17 @@ class ScenarioPlannerService:
                 salary_delta += profit
 
             elif etype == "job_loss":
-                # Job loss sets salary scale to 0.0 for duration
-                salary_scale = 0.0
+                # Approximation: Lump-sum hit for duration_months of lost salary vs flat global scale-to-zero.
+                duration = int(_to_float(p.get("duration_months") or 12))
+                duration = max(1, min(duration, 12))
+                lost_salary = monthly_salary * duration
+                if lost_salary > 0:
+                    lump_outflows.append({"month_index": m_index, "amount": lost_salary})
+
+            elif etype == "retirement":
+                age_val = _to_float(p.get("target_age"))
+                if age_val > 0:
+                    scenario_target_age = int(age_val)
 
         overrides: Dict[str, Any] = {}
         if salary_scale != 1.0:
@@ -302,7 +314,7 @@ class ScenarioPlannerService:
         if lump_inflows:
             overrides["lump_sum_inflows"] = lump_inflows
 
-        return overrides, added_debt
+        return overrides, added_debt, scenario_target_age
 
     def _compute_retirement_readiness(
         self,
@@ -473,26 +485,21 @@ class ScenarioPlannerService:
             gold_pct = (gold_value / total_net_worth * 100.0) if total_net_worth > 0 else 0.0
             real_debt_baseline = self._get_current_real_debt()
 
-            # Baseline calculation (no overrides)
-            baseline_series_data = self._forecast_service.forecast_with_overrides("expected", None)
+            baseline_series_data = self._forecast_service.forecast_with_overrides("expected", {})
             baseline_pts = baseline_series_data.get("points", [])
-            baseline_nw_12m = baseline_pts[-1]["net_worth"] if baseline_pts else total_net_worth
+            baseline_nw_12m = baseline_pts[-1]["net_worth"] if baseline_pts else 0.0
 
-            # Baseline Risk Score
-            risk_svc = RiskAnalysisService(
-                today=self.today,
-                net_worth_service=self._net_worth_service,
+            baseline_risk_score = _to_float(
+                RiskAnalysisService(today=self.today, net_worth_service=self._net_worth_service)
+                .payload()
+                .get("risk_score", {})
+                .get("score")
             )
-            baseline_risk = _to_float(risk_svc.payload().get("risk_score", {}).get("score"))
-
-            # Baseline Goal Achievement
-            goal_payload = self._goal_service.payload()
-            baseline_goal_pct = _to_float(goal_payload.get("summary", {}).get("overall_progress_pct"))
-
-            # Baseline Cash Coverage
+            baseline_goal_pct = _to_float(
+                self._goal_service.payload().get("summary", {}).get("overall_progress_pct")
+            )
             baseline_coverage = round(cash_balance / avg_monthly_expenses, 1) if avg_monthly_expenses > 0 else None
 
-            # Baseline Retirement Readiness
             baseline_retire = self._compute_retirement_readiness(
                 baseline_nw_12m, avg_monthly_expenses, self.config["DEFAULT_RETIREMENT_AGE"]
             )
@@ -500,7 +507,7 @@ class ScenarioPlannerService:
             baseline_dict = {
                 "id": 0,
                 "name": "Baseline",
-                "description": "Current real trajectory (no changes)",
+                "description": "Current active financial trajectory",
                 "is_baseline_pinned": True,
                 "net_worth_12m": round(baseline_nw_12m, 2),
                 "monthly_salary": round(monthly_salary, 2),
@@ -509,7 +516,7 @@ class ScenarioPlannerService:
                 "monthly_cash_flow": round(total_monthly_income - avg_monthly_expenses, 2),
                 "total_debt": round(real_debt_baseline, 2),
                 "cash_coverage_months": baseline_coverage,
-                "risk_score": round(baseline_risk, 1),
+                "risk_score": round(baseline_risk_score, 1),
                 "goal_achievement_pct": round(baseline_goal_pct, 1),
                 "gold_allocation_pct": round(gold_pct, 1),
                 "retirement_readiness": baseline_retire,
@@ -517,10 +524,10 @@ class ScenarioPlannerService:
                     {"month_end": pt["month_end"], "net_worth": pt["net_worth"]}
                     for pt in baseline_pts
                 ],
+                "events": [],
             }
 
-            # N-Scenario Evaluation
-            scenarios_out: List[dict] = []
+            scenarios_out = []
             if scenario_ids:
                 scenarios_qs = (
                     Scenario.objects.filter(id__in=scenario_ids)
@@ -529,7 +536,7 @@ class ScenarioPlannerService:
                 )
                 for sc in scenarios_qs:
                     events = list(sc.events.all())
-                    overrides, added_debt = self._events_to_overrides(events)
+                    overrides, added_debt, sc_target_age = self._events_to_overrides(events, monthly_salary=monthly_salary)
 
                     # Series with scenario overrides
                     sc_series_data = self._forecast_service.forecast_with_overrides("expected", overrides)
@@ -558,9 +565,19 @@ class ScenarioPlannerService:
                     sc_total_debt = real_debt_baseline + added_debt
 
                     # Retirement readiness presentation metric
+                    target_age_to_use = sc_target_age if sc_target_age is not None else self.config["DEFAULT_RETIREMENT_AGE"]
                     sc_retire = self._compute_retirement_readiness(
-                        sc_nw_12m, adj_expenses, self.config["DEFAULT_RETIREMENT_AGE"]
+                        sc_nw_12m, adj_expenses, target_age_to_use
                     )
+
+                    # Per-scenario goal achievement calculation
+                    sc_monthly_capacity = max(0.0, adj_income - adj_expenses)
+                    sc_goal_svc = GoalPlanningService(
+                        today=self.today,
+                        net_worth_service=self._net_worth_service,
+                        monthly_capacity_override=sc_monthly_capacity,
+                    )
+                    sc_goal_pct = _to_float(sc_goal_svc.payload().get("summary", {}).get("overall_progress_pct"))
 
                     sc_dict = {
                         "id": sc.id,
@@ -575,7 +592,7 @@ class ScenarioPlannerService:
                         "total_debt": round(sc_total_debt, 2),
                         "cash_coverage_months": sc_coverage,
                         "risk_score": round(sc_risk_score, 1),
-                        "goal_achievement_pct": round(baseline_goal_pct, 1),  # reuse GoalPlanningService
+                        "goal_achievement_pct": round(sc_goal_pct, 1),
                         "gold_allocation_pct": round(gold_pct, 1),
                         "retirement_readiness": sc_retire,
                         "series": [
