@@ -20,11 +20,9 @@ Architectural Constraints:
 from __future__ import annotations
 
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from django.db.models import Sum
-
-from core.models import Scenario, ScenarioEvent, AssetMortgage, Goal
+from core.models import Scenario, ScenarioEvent, AssetMortgage
 from core.services.balance.net_worth_service import NetWorthService
 from core.services.financial_advisor.wealth_growth_forecast_service import WealthGrowthForecastService
 from core.services.financial_advisor.risk_analysis_service import RiskAnalysisService
