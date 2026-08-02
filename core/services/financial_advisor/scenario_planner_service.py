@@ -498,8 +498,8 @@ class ScenarioPlannerService:
             baseline_goal_payload = self._goal_service.payload()
             baseline_goals_list = baseline_goal_payload.get("goals", [])
             if baseline_goals_list:
-                favorable_statuses = {"achieved", "on_track"}
-                favorable_count = sum(1 for g in baseline_goals_list if g.get("status") in favorable_statuses)
+                unfavorable_statuses = {"at_risk", "critical"}
+                favorable_count = sum(1 for g in baseline_goals_list if g.get("status") not in unfavorable_statuses)
                 baseline_goal_pct = round((favorable_count / len(baseline_goals_list)) * 100.0, 1)
             else:
                 baseline_goal_pct = 100.0
@@ -591,8 +591,8 @@ class ScenarioPlannerService:
                     sc_goal_payload = sc_goal_svc.payload()
                     sc_goals_list = sc_goal_payload.get("goals", [])
                     if sc_goals_list:
-                        favorable_statuses = {"achieved", "on_track"}
-                        favorable_count = sum(1 for g in sc_goals_list if g.get("status") in favorable_statuses)
+                        unfavorable_statuses = {"at_risk", "critical"}
+                        favorable_count = sum(1 for g in sc_goals_list if g.get("status") not in unfavorable_statuses)
                         sc_goal_pct = round((favorable_count / len(sc_goals_list)) * 100.0, 1)
                     else:
                         sc_goal_pct = 100.0
