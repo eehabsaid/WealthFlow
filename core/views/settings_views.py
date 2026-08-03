@@ -23,6 +23,10 @@ from core.models import (
 from core.services.shared.exchange_rate_service import ExchangeRateService
 from core.services.fixed_assets.gold_valuation_service import GoldValuationService
 from core.services.shared.auth_workflow_service import AuthWorkflowService, EmailTemplateService
+from core.integrations.ai_provider import (
+    AVAILABLE_AI_PROVIDERS,
+    get_ai_provider,
+)
 
 User = get_user_model()
 
@@ -430,6 +434,240 @@ class BackupRestoreView(AdminRequiredMixin, View):
 
 
 # ══════════════════════════════════════════════════════════════
-# EXPENSE VIEWS
+# AI ADVISOR SETTINGS VIEWS (Phase 1 Infrastructure)
 # ══════════════════════════════════════════════════════════════
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AISettingsView(AdminRequiredMixin, View):
+    def get(self, request):
+        enabled_str = AppSettings.get("ai_enabled", "false").strip().lower()
+        enabled = enabled_str in ("true", "1", "yes")
+
+        provider = AppSettings.get("ai_provider", "ollama").strip()
+        ollama_url = AppSettings.get("ai_ollama_url", "http://localhost:11434").strip()
+        model = AppSettings.get("ai_model", "llama3.2:latest").strip()
+
+        try:
+            temperature = float(AppSettings.get("ai_temperature", "0.7"))
+        except (ValueError, TypeError):
+            temperature = 0.7
+
+        try:
+            context_size = int(AppSettings.get("ai_context_size", "4096"))
+        except (ValueError, TypeError):
+            context_size = 4096
+
+        try:
+            timeout = int(AppSettings.get("ai_timeout", "15"))
+        except (ValueError, TypeError):
+            timeout = 15
+
+        system_prompt = AppSettings.get(
+            "ai_system_prompt", "You are a helpful financial advisor assistant."
+        ).strip()
+
+        try:
+            max_tokens = int(AppSettings.get("ai_max_tokens", "2048"))
+        except (ValueError, TypeError):
+            max_tokens = 2048
+
+        try:
+            top_p = float(AppSettings.get("ai_top_p", "0.9"))
+        except (ValueError, TypeError):
+            top_p = 0.9
+
+        try:
+            top_k = int(AppSettings.get("ai_top_k", "40"))
+        except (ValueError, TypeError):
+            top_k = 40
+
+        try:
+            repeat_penalty = float(AppSettings.get("ai_repeat_penalty", "1.1"))
+        except (ValueError, TypeError):
+            repeat_penalty = 1.1
+
+        seed = AppSettings.get("ai_seed", "").strip()
+        keep_alive = AppSettings.get("ai_keep_alive", "5m").strip()
+
+        return JsonResponse({
+            "ai_enabled": enabled,
+            "ai_provider": provider,
+            "ai_ollama_url": ollama_url,
+            "ai_model": model,
+            "ai_temperature": temperature,
+            "ai_context_size": context_size,
+            "ai_timeout": timeout,
+            "ai_system_prompt": system_prompt,
+            "ai_max_tokens": max_tokens,
+            "ai_top_p": top_p,
+            "ai_top_k": top_k,
+            "ai_repeat_penalty": repeat_penalty,
+            "ai_seed": seed,
+            "ai_keep_alive": keep_alive,
+        })
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body or "{}")
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+        provider = str(data.get("ai_provider", "ollama")).strip().lower()
+        if provider not in AVAILABLE_AI_PROVIDERS:
+            return JsonResponse(
+                {"error": f"Invalid provider '{provider}'. Must be one of {list(AVAILABLE_AI_PROVIDERS.keys())}"},
+                status=400,
+            )
+
+        try:
+            temperature = float(data.get("ai_temperature", 0.7))
+            if not (0.0 <= temperature <= 2.0):
+                raise ValueError()
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "ai_temperature must be a float between 0.0 and 2.0"}, status=400)
+
+        try:
+            context_size = int(data.get("ai_context_size", 4096))
+            if context_size <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "ai_context_size must be a positive integer"}, status=400)
+
+        try:
+            timeout = int(data.get("ai_timeout", 15))
+            if timeout <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "ai_timeout must be a positive integer"}, status=400)
+
+        try:
+            max_tokens = int(data.get("ai_max_tokens", 2048))
+            if max_tokens <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "ai_max_tokens must be a positive integer"}, status=400)
+
+        try:
+            top_p = float(data.get("ai_top_p", 0.9))
+            if not (0.0 <= top_p <= 1.0):
+                raise ValueError()
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "ai_top_p must be a float between 0.0 and 1.0"}, status=400)
+
+        try:
+            top_k = int(data.get("ai_top_k", 40))
+            if top_k <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "ai_top_k must be a positive integer"}, status=400)
+
+        try:
+            repeat_penalty = float(data.get("ai_repeat_penalty", 1.1))
+            if repeat_penalty <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "ai_repeat_penalty must be a positive number"}, status=400)
+
+        enabled = bool(data.get("ai_enabled", False))
+        ollama_url = str(data.get("ai_ollama_url", "http://localhost:11434")).strip()
+        model = str(data.get("ai_model", "llama3.2:latest")).strip()
+        system_prompt = str(data.get("ai_system_prompt", "You are a helpful financial advisor assistant.")).strip()
+        seed = str(data.get("ai_seed", "")).strip()
+        keep_alive = str(data.get("ai_keep_alive", "5m")).strip()
+
+        AppSettings.set("ai_enabled", "true" if enabled else "false")
+        AppSettings.set("ai_provider", provider)
+        AppSettings.set("ai_ollama_url", ollama_url)
+        AppSettings.set("ai_model", model)
+        AppSettings.set("ai_temperature", str(temperature))
+        AppSettings.set("ai_context_size", str(context_size))
+        AppSettings.set("ai_timeout", str(timeout))
+        AppSettings.set("ai_system_prompt", system_prompt)
+        AppSettings.set("ai_max_tokens", str(max_tokens))
+        AppSettings.set("ai_top_p", str(top_p))
+        AppSettings.set("ai_top_k", str(top_k))
+        AppSettings.set("ai_repeat_penalty", str(repeat_penalty))
+        AppSettings.set("ai_seed", seed)
+        AppSettings.set("ai_keep_alive", keep_alive)
+
+        # Run connection test post-save to report connection status
+        connection_ok = False
+        test_error = None
+        if enabled:
+            provider_inst = get_ai_provider(provider, base_url=ollama_url, model=model, timeout=timeout)
+            if provider_inst:
+                conn_res = provider_inst.check_connection()
+                model_avail = provider_inst.check_model_available(model)
+                connection_ok = bool(conn_res.get("reachable")) and model_avail
+                test_error = conn_res.get("error") if not conn_res.get("reachable") else (None if model_avail else "Model not found")
+
+        message_key = "ai_save_success" if (not enabled or connection_ok) else "ai_save_success_test_failed"
+
+        return JsonResponse({
+            "ok": True,
+            "connection_ok": connection_ok,
+            "message_key": message_key,
+            "test_error": test_error,
+        })
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AIConnectionTestView(AdminRequiredMixin, View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body or "{}")
+        except json.JSONDecodeError:
+            data = {}
+
+        provider_key = str(data.get("provider") or AppSettings.get("ai_provider", "ollama")).strip().lower()
+        base_url = str(data.get("base_url") or AppSettings.get("ai_ollama_url", "http://localhost:11434")).strip()
+        model = str(data.get("model") or AppSettings.get("ai_model", "llama3.2:latest")).strip()
+
+        try:
+            timeout = int(data.get("timeout") or AppSettings.get("ai_timeout", "15"))
+        except (ValueError, TypeError):
+            timeout = 15
+
+        provider_inst = get_ai_provider(provider_key, base_url=base_url, model=model, timeout=timeout)
+        if not provider_inst:
+            return JsonResponse({
+                "ok": False,
+                "message_key": "ai_provider_invalid",
+                "reachable": False,
+                "version": None,
+                "error": f"Invalid provider '{provider_key}'",
+                "response_time_ms": 0,
+                "models": [],
+                "model_available": False,
+            }, status=400)
+
+        conn_res = provider_inst.check_connection()
+        models = provider_inst.list_models()
+        model_avail = provider_inst.check_model_available(model)
+
+        reachable = bool(conn_res.get("reachable"))
+        ok = reachable and model_avail
+
+        return JsonResponse({
+            "ok": ok,
+            "message_key": "ai_connection_success" if ok else "ai_connection_failed",
+            "reachable": reachable,
+            "version": conn_res.get("version"),
+            "error": conn_res.get("error"),
+            "response_time_ms": conn_res.get("response_time_ms", 0),
+            "models": models,
+            "model_available": model_avail,
+        }, status=200 if ok else 400)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AIProviderListView(AdminRequiredMixin, View):
+    def get(self, request):
+        providers = [
+            {"key": k, "label_key": f"ai_provider_{k}"}
+            for k in AVAILABLE_AI_PROVIDERS.keys()
+        ]
+        return JsonResponse({"providers": providers})
+
 

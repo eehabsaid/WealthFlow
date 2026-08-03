@@ -104,6 +104,9 @@ from .settings_views import SettingsView
 from .settings_views import EmailTemplateListView
 from .settings_views import EmailTemplateDetailView
 from .settings_views import EmailSettingsTestView
+from .settings_views import AISettingsView
+from .settings_views import AIConnectionTestView
+from .settings_views import AIProviderListView
 from .settings_views import GoldTypeSettingsListView
 from .settings_views import GoldTypeSettingsDetailView
 from .settings_views import GoldPuritySettingsListView
