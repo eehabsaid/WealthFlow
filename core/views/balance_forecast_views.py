@@ -163,6 +163,7 @@ from core.models.scenario import Scenario, ScenarioEvent
 from core.services.financial_advisor.scenario_planner_service import (
     ScenarioPlannerService,
     EVENT_SCHEMA,
+    SCENARIO_EVENT_SCHEMA_VERSION,
 )
 
 
@@ -172,7 +173,7 @@ class ScenarioEventDefinitionsView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        return JsonResponse({"event_schema": EVENT_SCHEMA})
+        return JsonResponse({"schema_version": SCENARIO_EVENT_SCHEMA_VERSION, "event_schema": EVENT_SCHEMA})
 
 
 @method_decorator(csrf_exempt, name="dispatch")

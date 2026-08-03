@@ -51,6 +51,8 @@ SCENARIO_PLANNER_CONFIG = {
 
 
 # ── Backend Event Schema Registry (Single Source of Truth) ───────────────────
+SCENARIO_EVENT_SCHEMA_VERSION = 1
+
 EVENT_SCHEMA = [
     {
         "event_type": "house",

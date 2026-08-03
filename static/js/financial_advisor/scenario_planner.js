@@ -6,6 +6,7 @@
   let _scenarioPlannerData = null;
   let _cachedScenarios = [];
   let _cachedEventSchema = null;
+  let _cachedEventSchemaVersion = null;
   let _activeScenarioId = null;
   let _selectedScenarioIds = [];
   let _activeSubTab = "dashboard"; // "builder" | "dashboard" | "compare" | "insights"
@@ -50,6 +51,7 @@
       const resp = await fetch("/api/scenarios/event-definitions/");
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
+      _cachedEventSchemaVersion = data.schema_version || 1;
       _cachedEventSchema = data.event_schema || [];
       return _cachedEventSchema;
     } catch (err) {
