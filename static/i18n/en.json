@@ -1801,5 +1801,10 @@
   "ai_load_failed_title": "Unable to load AI Advisor Settings",
   "ai_load_failed_desc": "Could not retrieve configuration from the backend server. Please try refreshing or check server logs.",
   "ai_saved_success": "Configuration saved successfully ✓",
-  "ai_saved_conn_failed": "Configuration saved, but connection test failed ⚠️"
+  "ai_saved_conn_failed": "Configuration saved, but connection test failed ⚠️",
+  "ai_tool_activity_create_scenario": "Creating scenario...",
+  "ai_tool_activity_compare_scenarios": "Comparing scenarios...",
+  "ai_tool_activity_summarize_report": "Summarizing report...",
+  "ai_tool_activity_explain_chart": "Explaining chart data...",
+  "ai_tool_activity_suggest_optimizations": "Analyzing optimization opportunities..."
 }

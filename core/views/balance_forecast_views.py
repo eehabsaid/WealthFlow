@@ -164,6 +164,7 @@ from core.services.financial_advisor.scenario_planner_service import (
     ScenarioPlannerService,
     EVENT_SCHEMA,
     SCENARIO_EVENT_SCHEMA_VERSION,
+    create_scenario_record,
 )
 
 
@@ -194,16 +195,16 @@ class ScenarioListCreateView(View):
         except Exception:
             return JsonResponse({"error": "Invalid JSON body"}, status=400)
 
-        name = str(body.get("name", "")).strip()
-        if not name:
-            return JsonResponse({"error": "Name is required"}, status=400)
-
-        sc = Scenario.objects.create(
-            name=name,
-            description=str(body.get("description", "")).strip(),
-            is_baseline_pinned=bool(body.get("is_baseline_pinned", False)),
-        )
-        return JsonResponse(sc.to_dict(), status=201)
+        try:
+            sc = create_scenario_record(
+                name=body.get("name"),
+                description=body.get("description", ""),
+                is_baseline_pinned=body.get("is_baseline_pinned", False),
+                events=body.get("events"),
+            )
+            return JsonResponse(sc.to_dict(), status=201)
+        except ValueError as err:
+            return JsonResponse({"error": str(err)}, status=400)
 
 
 @method_decorator(csrf_exempt, name="dispatch")

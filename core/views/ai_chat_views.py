@@ -15,6 +15,10 @@ from django.utils.decorators import method_decorator
 from core.integrations.ai_provider import get_active_ai_provider
 from core.models import AppSettings, AIConversation, AIMessage
 from core.services.ai.context_builder_service import ContextBuilderService
+from core.services.ai.tools import (
+    get_registered_tool_schemas,
+    validate_and_execute_tool,
+)
 
 
 def _api_auth_required(request):
@@ -99,10 +103,16 @@ class AIChatView(View):
         builder = ContextBuilderService()
         messages_seq, sources = builder.assemble_messages(user_text, prior_messages)
 
+        # Tool calling setup
+        tools_param = None
+        if getattr(provider, "supports_tools", False):
+            tools_param = get_registered_tool_schemas()
+
         # Execute provider call
-        res = provider.generate(messages_seq)
+        res = provider.generate(messages_seq, tools=tools_param)
         error_str = res.get("error")
         content_str = res.get("content", "")
+        tool_calls_req = res.get("tool_calls") or []
 
         if error_str:
             # Save error response in history to preserve execution record
@@ -111,6 +121,7 @@ class AIChatView(View):
                 role="assistant",
                 content="",
                 sources=sources,
+                tool_calls=[],
             )
             return JsonResponse(
                 {
@@ -125,12 +136,44 @@ class AIChatView(View):
                 status=200,
             )
 
-        # Save successful assistant response
+        executed_tool_calls = []
+        # Rule 4: At most ONE tool call per user message turn
+        if tool_calls_req and isinstance(tool_calls_req, list):
+            tc = tool_calls_req[0]
+            if isinstance(tc, dict):
+                fn_info = tc.get("function", {}) if isinstance(tc.get("function"), dict) else {}
+                fn_name = str(fn_info.get("name") or tc.get("name") or "").strip()
+                fn_args = fn_info.get("arguments") or tc.get("arguments") or {}
+
+                audit_rec, tool_res = validate_and_execute_tool(fn_name, fn_args, request.user)
+                executed_tool_calls.append(audit_rec)
+
+                # Feed tool result back into context for narration/explanation (without offering tools again)
+                tool_summary_str = json.dumps(tool_res, default=str)
+                messages_seq.append(
+                    {
+                        "role": "system",
+                        "content": (
+                            f"TOOL CALLED: '{fn_name}'\n"
+                            f"TOOL EXECUTION RESULT: {tool_summary_str}\n\n"
+                            "Instructions: Please summarize, explain, or narrate this real tool result clearly to the user. "
+                            "Do not execute further tools."
+                        ),
+                    }
+                )
+
+                # Generate model's natural language narration
+                followup_res = provider.generate(messages_seq)
+                if followup_res.get("content"):
+                    content_str = followup_res["content"]
+
+        # Save successful assistant response with tool execution audit trail
         ai_msg = AIMessage.objects.create(
             conversation=conversation,
             role="assistant",
             content=content_str,
             sources=sources,
+            tool_calls=executed_tool_calls,
         )
 
         # Update conversation title if default

@@ -1801,5 +1801,10 @@
   "ai_load_failed_title": "KI-Berater-Einstellungen konnten nicht geladen werden",
   "ai_load_failed_desc": "Konfiguration konnte nicht vom Backend-Server abgerufen werden.",
   "ai_saved_success": "Konfiguration erfolgreich gespeichert ✓",
-  "ai_saved_conn_failed": "Konfiguration gespeichert, aber Verbindungstest fehlgeschlagen ⚠️"
+  "ai_saved_conn_failed": "Konfiguration gespeichert, aber Verbindungstest fehlgeschlagen ⚠️",
+  "ai_tool_activity_create_scenario": "Szenario wird erstellt...",
+  "ai_tool_activity_compare_scenarios": "Szenarien werden verglichen...",
+  "ai_tool_activity_summarize_report": "Finanzbericht wird zusammengefasst...",
+  "ai_tool_activity_explain_chart": "Diagrammdaten werden analysiert...",
+  "ai_tool_activity_suggest_optimizations": "Optimierungsmöglichkeiten werden analysiert..."
 }

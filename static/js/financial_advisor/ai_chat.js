@@ -95,7 +95,7 @@ function _loadAIChatMessages(convId) {
       if (msgs.length === 0) return;
 
       msgContainer.innerHTML = "";
-      msgs.forEach((m) => _appendAIChatMessageBubble(m.role, m.content, false));
+      msgs.forEach((m) => _appendAIChatMessageBubble(m.role, m.content, false, false, m.tool_calls || []));
       _scrollAIChatToBottom();
     })
     .catch(() => {});
@@ -143,7 +143,13 @@ function _handleAIChatSubmit(e) {
         _appendAIChatMessageBubble("assistant", localizedMsg, true, true);
         _updateAIChatStatusBadge(false);
       } else if (data.message) {
-        _appendAIChatMessageBubble("assistant", data.message.content, true);
+        _appendAIChatMessageBubble(
+          "assistant",
+          data.message.content,
+          true,
+          false,
+          data.message.tool_calls || []
+        );
         _updateAIChatStatusBadge(true);
       }
     })
@@ -183,7 +189,7 @@ function _handleAIChatClear() {
     .catch(() => {});
 }
 
-function _appendAIChatMessageBubble(role, content, animate = false, isError = false) {
+function _appendAIChatMessageBubble(role, content, animate = false, isError = false, toolCalls = []) {
   const msgContainer = document.getElementById("ai-chat-message-list");
   if (!msgContainer) return;
 
@@ -221,16 +227,56 @@ function _appendAIChatMessageBubble(role, content, animate = false, isError = fa
     ? `<i class="bi bi-person"></i> You`
     : `<i class="bi bi-robot"></i> AI Financial Advisor`;
 
+  bubble.appendChild(roleHeader);
+
+  if (toolCalls && Array.isArray(toolCalls) && toolCalls.length > 0) {
+    toolCalls.forEach((tc) => {
+      if (!tc || typeof tc !== "object") return;
+      const toolName = tc.tool || "action";
+      const status = tc.status || "success";
+      const toolDiv = document.createElement("div");
+      toolDiv.className = "small mb-2 px-2 py-1 rounded d-flex align-items-center gap-2";
+      toolDiv.style.background = "var(--bg-secondary)";
+      toolDiv.style.border = "1px solid var(--border-color)";
+      toolDiv.style.color = "var(--text-secondary)";
+      toolDiv.style.fontSize = "0.82rem";
+
+      const i18nKey = `ai_tool_activity_${toolName}`;
+      let iconClass = "bi-gear-fill text-primary";
+      if (status === "rejected") {
+        iconClass = "bi-x-circle text-danger";
+      } else if (status === "failed") {
+        iconClass = "bi-exclamation-triangle text-warning";
+      }
+
+      const defaultText =
+        toolName === "create_scenario"
+          ? "Creating scenario..."
+          : toolName === "compare_scenarios"
+          ? "Comparing scenarios..."
+          : toolName === "summarize_report"
+          ? "Summarizing report..."
+          : toolName === "explain_chart"
+          ? "Explaining chart data..."
+          : toolName === "suggest_optimizations"
+          ? "Analyzing optimization opportunities..."
+          : `Executing ${toolName}...`;
+
+      toolDiv.innerHTML = `<i class="bi ${iconClass}"></i> <span data-i18n="${i18nKey}">${defaultText}</span>`;
+      bubble.appendChild(toolDiv);
+    });
+  }
+
   const textBody = document.createElement("div");
   textBody.style.whiteSpace = "pre-wrap";
   textBody.style.wordBreak = "break-word";
   textBody.textContent = content;
 
-  bubble.appendChild(roleHeader);
   bubble.appendChild(textBody);
   wrapper.appendChild(bubble);
 
   msgContainer.appendChild(wrapper);
+  if (typeof applyTranslations === "function") applyTranslations();
   _scrollAIChatToBottom();
 }
 

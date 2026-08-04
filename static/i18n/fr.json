@@ -1801,5 +1801,10 @@
   "ai_load_failed_title": "Impossible de charger les paramètres du Conseiller IA",
   "ai_load_failed_desc": "Impossible de récupérer la configuration depuis le serveur backend.",
   "ai_saved_success": "Configuration enregistrée avec succès ✓",
-  "ai_saved_conn_failed": "Configuration enregistrée, mais le test de connexion a échoué ⚠️"
+  "ai_saved_conn_failed": "Configuration enregistrée, mais le test de connexion a échoué ⚠️",
+  "ai_tool_activity_create_scenario": "Création du scénario...",
+  "ai_tool_activity_compare_scenarios": "Comparaison des scénarios...",
+  "ai_tool_activity_summarize_report": "Synthèse du rapport financier...",
+  "ai_tool_activity_explain_chart": "Analyse des données du graphique...",
+  "ai_tool_activity_suggest_optimizations": "Analyse des opportunités d'optimisation..."
 }

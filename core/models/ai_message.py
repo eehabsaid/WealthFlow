@@ -26,6 +26,7 @@ class AIMessage(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="user")
     content = models.TextField()
     sources = models.JSONField(default=list, blank=True)
+    tool_calls = models.JSONField(default=list, blank=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -39,6 +40,7 @@ class AIMessage(models.Model):
             "role": self.role,
             "content": self.content,
             "sources": self.sources or [],
+            "tool_calls": self.tool_calls or [],
             "is_deleted": self.is_deleted,
             "created_at": _date_to_iso(self.created_at),
         }

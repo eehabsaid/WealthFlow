@@ -27,6 +27,7 @@ class BaseAIProvider(ABC):
     """
 
     PROVIDER_NAME: str = "unknown"
+    supports_tools: bool = False
 
     @abstractmethod
     def check_connection(self) -> dict[str, Any]:
@@ -58,11 +59,16 @@ class BaseAIProvider(ABC):
         """
 
     @abstractmethod
-    def generate(self, messages: list[dict[str, Any]], **kwargs: Any) -> dict[str, Any]:
+    def generate(
+        self,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Generate chat response for given message sequence.
         Returns:
-            {"content": str, "error": str | None}
+            {"content": str, "tool_calls": list | None, "error": str | None}
         Must never raise out to caller.
         """
 
@@ -74,6 +80,7 @@ class OllamaProvider(BaseAIProvider):
     """
 
     PROVIDER_NAME = "ollama"
+    supports_tools: bool = True
 
     def __init__(
         self,
@@ -87,7 +94,12 @@ class OllamaProvider(BaseAIProvider):
         self.timeout = max(1, int(timeout))
         self.user_agent = user_agent
 
-    def generate(self, messages: list[dict[str, Any]], **kwargs: Any) -> dict[str, Any]:
+    def generate(
+        self,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         chat_url = f"{self.base_url}/api/chat"
         headers = {
             "User-Agent": self.user_agent,
@@ -98,11 +110,13 @@ class OllamaProvider(BaseAIProvider):
         model_name = str(kwargs.get("model") or self.model or "").strip()
         timeout = int(kwargs.get("timeout") or self.timeout)
 
-        payload = {
+        payload: dict[str, Any] = {
             "model": model_name,
             "messages": messages,
             "stream": False,
         }
+        if tools:
+            payload["tools"] = tools
 
         try:
             req_data = json.dumps(payload).encode("utf-8")
@@ -110,15 +124,19 @@ class OllamaProvider(BaseAIProvider):
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 msg = data.get("message", {})
-                content = str(msg.get("content", "")).strip() if isinstance(msg, dict) else ""
-                return {"content": content, "error": None}
+                content = ""
+                tool_calls = None
+                if isinstance(msg, dict):
+                    content = str(msg.get("content", "")).strip()
+                    tool_calls = msg.get("tool_calls")
+                return {"content": content, "tool_calls": tool_calls, "error": None}
         except urllib.error.HTTPError as exc:
             err_msg = f"HTTP {exc.code}: {exc.reason}"
             logger.warning("Ollama generate HTTPError: %s", err_msg)
-            return {"content": "", "error": err_msg}
+            return {"content": "", "tool_calls": None, "error": err_msg}
         except Exception as exc:
             logger.warning("Ollama generate failed for %s: %s", self.base_url, exc)
-            return {"content": "", "error": str(exc)}
+            return {"content": "", "tool_calls": None, "error": str(exc)}
 
     def check_connection(self) -> dict[str, Any]:
         start_time = time.perf_counter()

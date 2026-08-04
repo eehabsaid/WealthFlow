@@ -1801,5 +1801,10 @@
   "ai_load_failed_title": "تعذر تحميل إعدادات المستشار الذكي",
   "ai_load_failed_desc": "لم نتمكن من استرداد التهيئة من الخادم. يرجى إعادة التحميل أو فحص سجلات الخادم.",
   "ai_saved_success": "تم حفظ الإعدادات بنجاح ✓",
-  "ai_saved_conn_failed": "تم حفظ الإعدادات، ولكن فشل اختبار الاتصال ⚠️"
+  "ai_saved_conn_failed": "تم حفظ الإعدادات، ولكن فشل اختبار الاتصال ⚠️",
+  "ai_tool_activity_create_scenario": "جارٍ إنشاء سيناريو جديد...",
+  "ai_tool_activity_compare_scenarios": "جارٍ مقارنة السيناريوهات...",
+  "ai_tool_activity_summarize_report": "جارٍ تلخيص التقرير المالي...",
+  "ai_tool_activity_explain_chart": "جارٍ تحليل وتفسير بيانات الرسم البياني...",
+  "ai_tool_activity_suggest_optimizations": "جارٍ تحليل فرص التحسين المتاحة..."
 }
