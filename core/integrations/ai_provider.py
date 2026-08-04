@@ -57,11 +57,20 @@ class BaseAIProvider(ABC):
         Must never raise out to caller.
         """
 
+    @abstractmethod
+    def generate(self, messages: list[dict[str, Any]], **kwargs: Any) -> dict[str, Any]:
+        """
+        Generate chat response for given message sequence.
+        Returns:
+            {"content": str, "error": str | None}
+        Must never raise out to caller.
+        """
+
 
 class OllamaProvider(BaseAIProvider):
     """
     Ollama implementation of BaseAIProvider.
-    Interacts with Ollama's HTTP API (/api/version, /api/tags).
+    Interacts with Ollama's HTTP API (/api/version, /api/tags, /api/chat).
     """
 
     PROVIDER_NAME = "ollama"
@@ -77,6 +86,39 @@ class OllamaProvider(BaseAIProvider):
         self.model = model or ""
         self.timeout = max(1, int(timeout))
         self.user_agent = user_agent
+
+    def generate(self, messages: list[dict[str, Any]], **kwargs: Any) -> dict[str, Any]:
+        chat_url = f"{self.base_url}/api/chat"
+        headers = {
+            "User-Agent": self.user_agent,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        }
+
+        model_name = str(kwargs.get("model") or self.model or "").strip()
+        timeout = int(kwargs.get("timeout") or self.timeout)
+
+        payload = {
+            "model": model_name,
+            "messages": messages,
+            "stream": False,
+        }
+
+        try:
+            req_data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(chat_url, data=req_data, headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                msg = data.get("message", {})
+                content = str(msg.get("content", "")).strip() if isinstance(msg, dict) else ""
+                return {"content": content, "error": None}
+        except urllib.error.HTTPError as exc:
+            err_msg = f"HTTP {exc.code}: {exc.reason}"
+            logger.warning("Ollama generate HTTPError: %s", err_msg)
+            return {"content": "", "error": err_msg}
+        except Exception as exc:
+            logger.warning("Ollama generate failed for %s: %s", self.base_url, exc)
+            return {"content": "", "error": str(exc)}
 
     def check_connection(self) -> dict[str, Any]:
         start_time = time.perf_counter()

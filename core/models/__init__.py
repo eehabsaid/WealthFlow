@@ -24,6 +24,8 @@ from .documents import Document
 from .photos import AssetPhoto
 from .documentation import DocumentationExecution
 from .scenario import Scenario, ScenarioEvent
+from .ai_conversation import AIConversation
+from .ai_message import AIMessage
 
 __all__ = [
     "Company",
@@ -82,4 +84,6 @@ __all__ = [
     "DocumentationExecution",
     "Scenario",
     "ScenarioEvent",
+    "AIConversation",
+    "AIMessage",
 ]

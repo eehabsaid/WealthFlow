@@ -276,6 +276,18 @@ urlpatterns = [
         "api/financial-advisor/goal-planning/",
         views.GoalPlanningView.as_view(),
     ),
+    path(
+        "api/financial-advisor/ai/chat/",
+        views.AIChatView.as_view(),
+    ),
+    path(
+        "api/financial-advisor/ai/conversations/",
+        views.AIConversationListView.as_view(),
+    ),
+    path(
+        "api/financial-advisor/ai/conversations/<int:pk>/",
+        views.AIConversationDetailView.as_view(),
+    ),
     path("api/goals/", views.GoalListView.as_view()),
     path("api/goals/<int:pk>/", views.GoalDetailView.as_view()),
     path(

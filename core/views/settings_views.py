@@ -487,6 +487,16 @@ class AISettingsView(AdminRequiredMixin, View):
         except (ValueError, TypeError):
             repeat_penalty = 1.1
 
+        try:
+            history_window = int(AppSettings.get("ai_history_window", "10"))
+        except (ValueError, TypeError):
+            history_window = 10
+
+        try:
+            context_token_budget = int(AppSettings.get("ai_context_token_budget", "2048"))
+        except (ValueError, TypeError):
+            context_token_budget = 2048
+
         seed = AppSettings.get("ai_seed", "").strip()
         keep_alive = AppSettings.get("ai_keep_alive", "5m").strip()
 
@@ -505,6 +515,8 @@ class AISettingsView(AdminRequiredMixin, View):
             "ai_repeat_penalty": repeat_penalty,
             "ai_seed": seed,
             "ai_keep_alive": keep_alive,
+            "ai_history_window": history_window,
+            "ai_context_token_budget": context_token_budget,
         })
 
     def post(self, request):
@@ -569,6 +581,20 @@ class AISettingsView(AdminRequiredMixin, View):
         except (ValueError, TypeError):
             return JsonResponse({"error": "ai_repeat_penalty must be a positive number"}, status=400)
 
+        try:
+            history_window = int(data.get("ai_history_window", 10))
+            if history_window <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "ai_history_window must be a positive integer"}, status=400)
+
+        try:
+            context_token_budget = int(data.get("ai_context_token_budget", 2048))
+            if context_token_budget <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "ai_context_token_budget must be a positive integer"}, status=400)
+
         enabled = bool(data.get("ai_enabled", False))
         ollama_url = str(data.get("ai_ollama_url", "http://localhost:11434")).strip()
         model = str(data.get("ai_model", "llama3.2:latest")).strip()
@@ -590,6 +616,8 @@ class AISettingsView(AdminRequiredMixin, View):
         AppSettings.set("ai_repeat_penalty", str(repeat_penalty))
         AppSettings.set("ai_seed", seed)
         AppSettings.set("ai_keep_alive", keep_alive)
+        AppSettings.set("ai_history_window", str(history_window))
+        AppSettings.set("ai_context_token_budget", str(context_token_budget))
 
         # Run connection test post-save to report connection status
         connection_ok = False

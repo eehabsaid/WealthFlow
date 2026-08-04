@@ -333,7 +333,19 @@ __all__ = [
     "GenerateDocumentsView",
     "CancelDocumentationView",
     "OpenFolderView",
+    "AISettingsView",
+    "AIConnectionTestView",
+    "AIProviderListView",
+    "AIChatView",
+    "AIConversationListView",
+    "AIConversationDetailView",
 ]
+
+from .ai_chat_views import (
+    AIChatView,
+    AIConversationListView,
+    AIConversationDetailView,
+)
 
 from .documentation_views import (
     DocumentationStatusView,
