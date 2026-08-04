@@ -8,7 +8,10 @@ without coupling consumer components (e.g., ContextBuilder) directly to concrete
 from __future__ import annotations
 
 import datetime
+import logging
 from typing import Any, Callable
+
+logger = logging.getLogger(__name__)
 
 from core.services.financial_advisor.cash_flow_forecast_service import CashFlowForecastService
 from core.services.financial_advisor.goal_planning_service import GoalPlanningService
@@ -93,7 +96,13 @@ def get_financial_advisor_payload(service_key: str, today: datetime.date | None 
         return {}
     try:
         return provider(today)
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "Failed to retrieve payload for financial advisor service '%s': %s",
+            key,
+            exc,
+            exc_info=True,
+        )
         return {}
 
 
