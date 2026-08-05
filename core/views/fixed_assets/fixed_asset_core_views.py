@@ -42,6 +42,38 @@ def _clear_non_selected_asset_details(asset):
     if asset.asset_type not in OTHER_ASSET_TYPES and hasattr(asset, "other_asset_details"):
         asset.other_asset_details.delete()
 
+def _resolve_asset_usd_rate_and_price(data, current_usd_rate=0, current_price_usd=0):
+    from decimal import Decimal
+    from core.models import Currency
+    from core.services.shared.currency_conversion_service import CurrencyConversionService
+
+    purchase_price = Decimal(str(data.get("purchase_price", 0) or 0))
+    usd_rate = Decimal(str(data.get("purchase_usd_rate", current_usd_rate) or 0))
+    price_usd = Decimal(str(data.get("purchase_price_usd", current_price_usd) or 0))
+    purchase_currency_id = data.get("purchase_currency_id")
+
+    code = "EGP"
+    if purchase_currency_id:
+        c = Currency.objects.filter(id=purchase_currency_id).first()
+        if c:
+            code = c.code.upper()
+
+    if usd_rate <= 0:
+        if code == "USD":
+            usd_rate = Decimal("1.000000")
+        else:
+            usd_rate = CurrencyConversionService.calculate_exchange_rate(code, "USD")
+
+    if price_usd <= 0 and purchase_price > 0 and usd_rate > 0:
+        if code == "USD":
+            price_usd = purchase_price
+        elif code == "EGP":
+            price_usd = (purchase_price / usd_rate).quantize(Decimal("0.01"))
+        else:
+            price_usd = (purchase_price * usd_rate).quantize(Decimal("0.01"))
+
+    return usd_rate, price_usd
+
 @method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetListView(View):
 
@@ -104,14 +136,16 @@ class FixedAssetListView(View):
                     purchase_currency_id=data.get("purchase_currency_id"),
                 )
 
+                usd_rate, price_usd = _resolve_asset_usd_rate_and_price(data)
+
                 asset = FixedAsset.objects.create(
                     name=data["name"],
                     asset_type=data["asset_type"],
                     status=data.get("status", "Owned"),
                     purchase_date=data["purchase_date"],
                     purchase_price=data.get("purchase_price", 0),
-                    purchase_usd_rate=data.get("purchase_usd_rate", 0),
-                    purchase_price_usd=data.get("purchase_price_usd", 0),
+                    purchase_usd_rate=usd_rate,
+                    purchase_price_usd=price_usd,
                     current_market_value=data.get("current_market_value", 0),
                     valuation_source=data.get("valuation_source", "Manual"),
                     last_valuation_date=data.get("last_valuation_date") or None,
@@ -262,6 +296,14 @@ class FixedAssetDetailView(View):
                 for field in fields:
                     if field in data:
                         setattr(asset, field, data[field])
+
+                usd_rate, price_usd = _resolve_asset_usd_rate_and_price(
+                    data,
+                    current_usd_rate=asset.purchase_usd_rate,
+                    current_price_usd=asset.purchase_price_usd
+                )
+                asset.purchase_usd_rate = usd_rate
+                asset.purchase_price_usd = price_usd
 
                 asset.save()
 
