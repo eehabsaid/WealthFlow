@@ -1,6 +1,3 @@
-import os
-import sys
-import time
 from playwright.sync_api import sync_playwright
 
 def run_checklist_verification():

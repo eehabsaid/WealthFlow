@@ -9,7 +9,6 @@ import django
 django.setup()
 
 from decimal import Decimal
-from django.db import transaction
 from django.contrib.auth.models import User
 from core.models import BalanceEntry, CurrencyExchange, Currency
 from core.services.shared.currency_conversion_service import CurrencyConversionService

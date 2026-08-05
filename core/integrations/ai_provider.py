@@ -13,6 +13,7 @@ Standard urllib.request is used for all outbound calls — zero external depende
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 from abc import ABC, abstractmethod

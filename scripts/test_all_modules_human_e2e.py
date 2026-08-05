@@ -17,9 +17,7 @@ from core.models import (
     CurrencyExchange,
     PerDiem,
     Company,
-    Expense,
     ExpenseCategory,
-    FixedAsset
 )
 from core.services.shared.currency_conversion_service import CurrencyConversionService
 from core.services.salary.per_diem_service import PerDiemService
