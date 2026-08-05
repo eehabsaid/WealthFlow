@@ -28,7 +28,7 @@
   "ai_chat_status_disabled": "AI Offline",
   "ai_chat_thinking": "AI Financial Advisor is thinking...",
   "ai_chat_empty_state": "Start a conversation with AI Financial Advisor! Ask about your net worth, cash flow forecast, risk analysis, or goal progress.",
-  "ai_error_provider_unavailable": "Unable to connect to AI provider. Please ensure Ollama is running and accessible.",
+  "ai_error_provider_unavailable": "Unable to connect to AI provider. Please check your AI settings and connection.",
   "ai_error_generic": "An error occurred while generating a response from AI provider.",
   "performance_header_subtitle": "Analyze historical performance of key assets and currencies",
   "performance_all_values_egp": "All values in EGP unless otherwise stated",

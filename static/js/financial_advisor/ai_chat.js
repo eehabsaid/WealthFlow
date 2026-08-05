@@ -137,10 +137,11 @@ function _handleAIChatSubmit(e) {
       }
 
       if (!data.ok) {
+        const serverErr = (data.error || "").trim();
         const errorKey = data.error_key || "ai_error_generic";
-        const fallbackText = data.error || (typeof t === "function" ? t(errorKey) : "An error occurred");
-        const localizedMsg = typeof t === "function" ? t(errorKey, fallbackText) : fallbackText;
-        _appendAIChatMessageBubble("assistant", localizedMsg, true, true);
+        const localizedPrefix = typeof t === "function" ? t(errorKey, "Unable to connect to AI provider.") : "Unable to connect to AI provider.";
+        const displayMsg = serverErr ? `${localizedPrefix}\n(${serverErr})` : localizedPrefix;
+        _appendAIChatMessageBubble("assistant", displayMsg, true, true);
         _updateAIChatStatusBadge(false);
       } else if (data.message) {
         _appendAIChatMessageBubble(
@@ -156,9 +157,11 @@ function _handleAIChatSubmit(e) {
     .catch((err) => {
       _setAIChatLoading(false);
       const localizedErr = typeof t === "function" ? t("ai_error_provider_unavailable") : "Unable to connect to AI service.";
-      _appendAIChatMessageBubble("assistant", localizedErr, true, true);
+      const displayMsg = err && err.message ? `${localizedErr}\n(${err.message})` : localizedErr;
+      _appendAIChatMessageBubble("assistant", displayMsg, true, true);
       _updateAIChatStatusBadge(false);
     });
+
 }
 
 function _handleAIChatClear() {

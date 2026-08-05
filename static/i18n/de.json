@@ -28,7 +28,7 @@
   "ai_chat_status_disabled": "Offline",
   "ai_chat_thinking": "KI-Finanzberater denkt nach...",
   "ai_chat_empty_state": "Starten Sie eine Unterhaltung mit dem KI-Finanzberater! Fragen Sie nach Vermögen, Cashflow-Prognose oder Zielen.",
-  "ai_error_provider_unavailable": "Verbindung zum KI-Anbieter nicht möglich. Bitte stellen Sie sicher, dass Ollama läuft.",
+  "ai_error_provider_unavailable": "Verbindung zum KI-Anbieter nicht möglich. Bitte prüfen Sie Ihre Einstellungen und die Verbindung.",
   "ai_error_generic": "Bei der Generierung einer Antwort ist ein Fehler aufgetreten.",
   "performance_header_subtitle": "Analysieren Sie die historische Entwicklung wichtiger Vermögenswerte und Währungen",
   "performance_all_values_egp": "Alle Werte in EGP, sofern nicht anders angegeben",
