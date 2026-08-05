@@ -2,22 +2,15 @@ from __future__ import annotations
 from decimal import Decimal
 from django.db import transaction
 from django.db.models import F
-from core.models import PerDiem, Company, Currency, Bank, BalanceEntry, ExchangeRate
+from core.models import PerDiem, Company, Currency, Bank, BalanceEntry
+from core.services.shared.currency_conversion_service import CurrencyConversionService
 
 class PerDiemService:
     def get_latest_buy_rate(self, currency_code: str) -> Decimal:
         """
-        Retrieves the latest buy rate for a given currency code.
-        If the currency is EGP, returns 1.0.
+        Retrieves the latest buy rate for a given currency code via CurrencyConversionService.
         """
-        code = str(currency_code or "").upper().strip()
-        if code == "EGP":
-            return Decimal("1.000000")
-        
-        rate = ExchangeRate.objects.filter(currency_code=code).order_by("-fetched_at").first()
-        if rate:
-            return Decimal(str(rate.buy_rate))
-        return Decimal("0.000000")
+        return CurrencyConversionService.get_latest_buy_rate(currency_code)
 
     def apply_balance_posting(self, bank: Bank | None, currency: Currency, amount: Decimal):
         """

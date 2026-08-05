@@ -81,17 +81,17 @@ class ExpenseService(object):
             currency_id = data.get("currency_id")
             if currency_id:
                 from core.models import Currency, ExchangeRate
+                from core.services.shared.currency_conversion_service import CurrencyConversionService
                 try:
                     curr = Currency.objects.get(id=currency_id)
                     if curr.code.upper() != "EGP":
-                        rate_obj = ExchangeRate.objects.filter(
+                        has_rate = ExchangeRate.objects.filter(
                             currency_code__iexact=curr.code,
                             fetched_at__date__lte=d
-                        ).order_by('-fetched_at').first()
-                        if rate_obj and rate_obj.mid_rate:
-                            exchange_rate_val = Decimal(str(rate_obj.mid_rate))
-                        else:
+                        ).exists()
+                        if not has_rate:
                             raise ValueError("exchange_rate_missing")
+                        exchange_rate_val = CurrencyConversionService.get_latest_buy_rate(curr.code, target_date=d)
                 except Currency.DoesNotExist:
                     pass
             amount_egp_val = amount_value * exchange_rate_val
@@ -167,17 +167,17 @@ class ExpenseService(object):
                 exchange_rate_val = Decimal("1")
                 if exp.currency_id:
                     from core.models import Currency, ExchangeRate
+                    from core.services.shared.currency_conversion_service import CurrencyConversionService
                     try:
                         curr = Currency.objects.get(id=exp.currency_id)
                         if curr.code.upper() != "EGP":
-                            rate_obj = ExchangeRate.objects.filter(
+                            has_rate = ExchangeRate.objects.filter(
                                 currency_code__iexact=curr.code,
                                 fetched_at__date__lte=exp.date
-                            ).order_by('-fetched_at').first()
-                            if rate_obj and rate_obj.mid_rate:
-                                exchange_rate_val = Decimal(str(rate_obj.mid_rate))
-                            else:
+                            ).exists()
+                            if not has_rate:
                                 raise ValueError("exchange_rate_missing")
+                            exchange_rate_val = CurrencyConversionService.get_latest_buy_rate(curr.code, target_date=exp.date)
                     except Currency.DoesNotExist:
                         pass
                 exp.exchange_rate = exchange_rate_val

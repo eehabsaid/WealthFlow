@@ -13,7 +13,6 @@ from core.models import (
     AssetMortgage,
     AssetRental,
     BankCertificate,
-    ExchangeRate,
     Expense,
     FixedAsset,
     GoldPrice,
@@ -66,12 +65,8 @@ class NetWorthService:
 
     def _latest_rates(self) -> Dict[str, float]:
         def _load():
-            rates: Dict[str, float] = {}
-            for rate in ExchangeRate.objects.order_by("currency_code", "-fetched_at"):
-                code = str(rate.currency_code or "").upper()
-                if code and code not in rates:
-                    rates[code] = _to_float(rate.buy_rate)
-            return rates
+            from core.services.shared.currency_conversion_service import CurrencyConversionService
+            return {code: float(rate) for code, rate in CurrencyConversionService.get_all_latest_buy_rates().items()}
 
         return self._cached("latest_rates", _load)
 
