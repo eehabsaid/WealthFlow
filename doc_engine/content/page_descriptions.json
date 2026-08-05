@@ -383,6 +383,14 @@
       "Enter the amount and date, then save."
     ]
   },
+  "balance::transfers::edit_transfer": {
+    "purpose": "Modify or update an existing internal transfer transaction.",
+    "steps": [
+      "Click the Edit icon next to a transfer entry in the table.",
+      "Adjust transfer amounts, dates, or accounts as required.",
+      "Click Save to update the transfer and re-balance accounts."
+    ]
+  },
   "balance::currency_exchange": {
     "purpose": "Record and manage currency exchanges between balances in different currencies.",
     "steps": [
@@ -398,6 +406,14 @@
       "Select source balance and destination balance.",
       "Enter the exchange amount and verify exchange rate and received amount.",
       "Click Save Exchange to post the transaction."
+    ]
+  },
+  "balance::currency_exchange::edit_exchange": {
+    "purpose": "Modify or update an existing active currency exchange transaction.",
+    "steps": [
+      "Click the Edit icon next to an active exchange in the table.",
+      "Adjust exchange rates or amounts as required.",
+      "Click Save Exchange to apply atomic balance recalculation."
     ]
   },
   "balance::allocation": {

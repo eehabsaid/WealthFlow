@@ -26,10 +26,12 @@
         { "name": "Edit Balance Entry", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showBalanceModal\"]'); if(btn) btn.click(); else if(typeof showBalanceModal === \"function\") showBalanceModal(1);" }
     ]}, 
     { "name": "Transfers", "id": "transfers", "nested_navigation": [
-        { "name": "Add Transfer", "type": "modal", "trigger": "eval:showTransferModal(null)" }
+        { "name": "Add Transfer", "type": "modal", "trigger": "eval:showTransferModal(null)" },
+        { "name": "Edit Transfer", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showTransferModal\"]'); if(btn) btn.click(); else if(typeof showTransferModal === \"function\") showTransferModal(1);" }
     ]}, 
     { "name": "Currency Exchange", "id": "currency_exchange", "nested_navigation": [
-        { "name": "New Exchange", "type": "modal", "trigger": "eval:showExchangeModal()" }
+        { "name": "New Exchange", "type": "modal", "trigger": "eval:showExchangeModal()" },
+        { "name": "Edit Exchange", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showExchangeModal\"]'); if(btn) btn.click(); else if(typeof showExchangeModal === \"function\") showExchangeModal(1);" }
     ]}, 
     { "name": "Allocation", "id": "allocation" }, 
     { "name": "Forecasts", "id": "forecasts" }, 

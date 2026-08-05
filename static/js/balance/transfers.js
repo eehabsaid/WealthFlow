@@ -61,8 +61,7 @@ function renderBalanceTransfers(data) {
     }
 
     pane.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 style="color:var(--accent-primary);font-size:1.2rem;font-weight:700;margin:0" data-i18n="balance_tab_transfers">${t('balance_tab_transfers', 'Transfers')}</h5>
+        <div class="d-flex justify-content-end align-items-center mb-3">
             <button class="btn-primary-custom" onclick="showTransferModal()">
                 <i class="bi bi-plus-lg me-1"></i>
                 <span data-i18n="new_transfer">${newTransText}</span>
