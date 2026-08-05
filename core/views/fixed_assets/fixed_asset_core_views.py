@@ -68,7 +68,7 @@ def _resolve_asset_usd_rate_and_price(data, current_usd_rate=0, current_price_us
         if code == "USD":
             price_usd = purchase_price
         elif code == "EGP":
-            price_usd = (purchase_price / usd_rate).quantize(Decimal("0.01"))
+            price_usd = (purchase_price * usd_rate).quantize(Decimal("0.01"))
         else:
             price_usd = (purchase_price * usd_rate).quantize(Decimal("0.01"))
 
