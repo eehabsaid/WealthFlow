@@ -2962,8 +2962,84 @@ class CurrencyExchangeTestCase(TestCase):
         self.assertEqual(res.status_code, 400)
         self.assertIn("same_balance_error", res.json()["error"])
 
+    def test_filter_by_currency(self):
+        """GET /api/currency-exchanges/?currency=USD must return 200 and only
+        exchanges where from_currency or to_currency matches USD."""
+        payload = {
+            "exchange_date": "2026-08-05",
+            "from_balance_id": self.bal_usd.id,
+            "to_balance_id": self.bal_egp.id,
+            "from_amount": 100.00,
+            "exchange_rate": 50.0,
+            "notes": "USD-EGP filter test"
+        }
+        self.client.post("/api/currency-exchanges/", json.dumps(payload), content_type="application/json")
 
+        res = self.client.get("/api/currency-exchanges/?currency=USD")
+        self.assertEqual(res.status_code, 200)
+        exchanges = res.json()["exchanges"]
+        self.assertGreaterEqual(len(exchanges), 1)
+        for ex in exchanges:
+            self.assertTrue(
+                ex["from_currency_code"] == "USD" or ex["to_currency_code"] == "USD",
+                f"Exchange {ex['id']} does not involve USD"
+            )
 
+        # Filter by a currency not used — should return empty
+        res_sar = self.client.get("/api/currency-exchanges/?currency=SAR")
+        self.assertEqual(res_sar.status_code, 200)
+        self.assertEqual(len(res_sar.json()["exchanges"]), 0)
+
+    def test_filter_by_balance_id(self):
+        """GET /api/currency-exchanges/?balance_id=<id> must return 200 and only
+        exchanges where from_balance or to_balance matches the given id."""
+        payload = {
+            "exchange_date": "2026-08-05",
+            "from_balance_id": self.bal_usd.id,
+            "to_balance_id": self.bal_egp.id,
+            "from_amount": 100.00,
+            "exchange_rate": 50.0,
+        }
+        self.client.post("/api/currency-exchanges/", json.dumps(payload), content_type="application/json")
+
+        res = self.client.get(f"/api/currency-exchanges/?balance_id={self.bal_usd.id}")
+        self.assertEqual(res.status_code, 200)
+        exchanges = res.json()["exchanges"]
+        self.assertGreaterEqual(len(exchanges), 1)
+        for ex in exchanges:
+            self.assertTrue(
+                ex["from_balance_id"] == self.bal_usd.id or ex["to_balance_id"] == self.bal_usd.id,
+                f"Exchange {ex['id']} does not involve balance {self.bal_usd.id}"
+            )
+
+        # Filter by uninvolved balance — should return empty
+        res_eur = self.client.get(f"/api/currency-exchanges/?balance_id={self.bal_eur.id}")
+        self.assertEqual(res_eur.status_code, 200)
+        self.assertEqual(len(res_eur.json()["exchanges"]), 0)
+
+    def test_filter_by_user(self):
+        """GET /api/currency-exchanges/?user=<username> must return 200 and
+        filter exchanges by user username or id. The critical assertion is
+        that this returns HTTP 200, NOT 500 (the original NameError bug)."""
+        payload = {
+            "exchange_date": "2026-08-05",
+            "from_balance_id": self.bal_usd.id,
+            "to_balance_id": self.bal_egp.id,
+            "from_amount": 100.00,
+            "exchange_rate": 50.0,
+        }
+        self.client.post("/api/currency-exchanges/", json.dumps(payload), content_type="application/json")
+
+        # Filter by username — should return 200 with results
+        res = self.client.get("/api/currency-exchanges/?user=ce_testuser")
+        self.assertEqual(res.status_code, 200)
+        exchanges = res.json()["exchanges"]
+        self.assertIsInstance(exchanges, list)
+
+        # Filter by numeric user ID that doesn't exist — should return 200 with empty list
+        res_none = self.client.get("/api/currency-exchanges/?user=99999")
+        self.assertEqual(res_none.status_code, 200)
+        self.assertEqual(len(res_none.json()["exchanges"]), 0)
 
 
 

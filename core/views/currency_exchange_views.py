@@ -5,7 +5,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
-from django.db import transaction
+from django.db import models, transaction
 
 from core.models import CurrencyExchange, BalanceEntry, Currency
 from core.services.shared.currency_conversion_service import CurrencyConversionService
