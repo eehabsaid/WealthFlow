@@ -28,7 +28,9 @@
     { "name": "Transfers", "id": "transfers", "nested_navigation": [
         { "name": "Add Transfer", "type": "modal", "trigger": "eval:showTransferModal(null)" }
     ]}, 
-
+    { "name": "Currency Exchange", "id": "currency_exchange", "nested_navigation": [
+        { "name": "New Exchange", "type": "modal", "trigger": "eval:showExchangeModal()" }
+    ]}, 
     { "name": "Allocation", "id": "allocation" }, 
     { "name": "Forecasts", "id": "forecasts" }, 
     { "name": "Recommendations", "id": "recommendations" }

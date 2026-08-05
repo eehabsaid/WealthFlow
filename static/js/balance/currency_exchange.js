@@ -101,8 +101,7 @@ async function renderBalanceCurrencyExchange(data) {
     }
 
     pane.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 style="color:var(--accent-primary);font-size:1.2rem;font-weight:700;margin:0" data-i18n="balance_tab_currency_exchange">${t('balance_tab_currency_exchange', 'Currency Exchange')}</h5>
+        <div class="d-flex justify-content-end align-items-center mb-3">
             <button class="btn-primary-custom" onclick="showExchangeModal()">
                 <i class="bi bi-plus-lg me-1"></i>
                 <span data-i18n="new_exchange">${newExchText}</span>

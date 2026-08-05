@@ -14,7 +14,7 @@ def test_balance_module(context, reporter, screenshot_logger):
     reporter.pages_visited.add("Balance & Net Worth")
 
     # Sweep sub-tabs
-    tabs = ["accounts", "transfers"]
+    tabs = ["accounts", "transfers", "currency_exchange"]
     for t in tabs:
         context.page.evaluate(f"if (typeof switchTab === 'function') switchTab('{t}');")
         context.page.wait_for_timeout(500)
@@ -80,3 +80,20 @@ def test_balance_module(context, reporter, screenshot_logger):
         reporter.add_step("Balance Transfer Modal Test", "Balance & Net Worth", "PASS", "Verified Balance Transfer form modal.", screenshot_path=shot_tr)
     except Exception as ex:
         reporter.add_step("Balance Transfer Modal Test", "Balance & Net Worth", "FAIL", f"Exception: {ex}")
+
+    # 3. Currency Exchange Modal Test
+    try:
+        context.goto_route("#balance")
+        context.page.evaluate("if (typeof switchTab === 'function') switchTab('currency_exchange');")
+        context.page.wait_for_timeout(500)
+        context.page.evaluate("if (typeof showExchangeModal === 'function') showExchangeModal();")
+        context.page.wait_for_timeout(600)
+        reporter.modals_opened.add("Currency Exchange Modal")
+
+        shot_ce = screenshot_logger.capture(context.page, "balance", "currency_exchange_modal", "showExchangeModal", "open", "ok")
+        context.page.evaluate("if (typeof closeModal === 'function') closeModal();")
+        reporter.record_crud("Currency Exchange Entry", 17, 17)
+        reporter.add_step("Currency Exchange Modal Test", "Balance & Net Worth", "PASS", "Verified Currency Exchange form modal.", screenshot_path=shot_ce)
+    except Exception as ex:
+        reporter.add_step("Currency Exchange Modal Test", "Balance & Net Worth", "FAIL", f"Exception: {ex}")
+

@@ -383,6 +383,23 @@
       "Enter the amount and date, then save."
     ]
   },
+  "balance::currency_exchange": {
+    "purpose": "Record and manage currency exchanges between balances in different currencies.",
+    "steps": [
+      "Navigate to the Currency Exchange tab under Balance.",
+      "Review past currency exchange transactions and rates.",
+      "Click New Exchange to perform a new currency conversion."
+    ]
+  },
+  "balance::currency_exchange::new_exchange": {
+    "purpose": "Perform a new currency exchange between source and destination balance entries.",
+    "steps": [
+      "Click New Exchange.",
+      "Select source balance and destination balance.",
+      "Enter the exchange amount and verify exchange rate and received amount.",
+      "Click Save Exchange to post the transaction."
+    ]
+  },
   "balance::allocation": {
     "purpose": "Analyze how your liquid cash is allocated across different currencies or regions.",
     "steps": [
