@@ -11,9 +11,10 @@ from core.reports.excel_sheets_builder import (
     build_bank_certificates_sheet,
     build_balance_sheet,
     build_expenses_sheet,
+    build_currency_exchanges_sheet,
 )
 
-def generate_excel(output_path=None):
+def generate_excel(output_path=None, lang="ar"):
     from core.models import (
         Company,
         BalanceEntry,
@@ -21,6 +22,7 @@ def generate_excel(output_path=None):
         ExchangeRate,
         GoldPrice,
         Expense,
+        CurrencyExchange,
     )
 
     wb = Workbook()
@@ -65,6 +67,10 @@ def generate_excel(output_path=None):
 
     ws_bal = wb.create_sheet("BALANCE")
     build_balance_sheet(ws_bal, balance_entries, company_sheet_rows)
+
+    ws_ce = wb.create_sheet("Currency Exchanges")
+    build_currency_exchanges_sheet(ws_ce, CurrencyExchange.objects.all(), lang=lang)
+    auto_adjust_columns(ws_ce)
 
     ws_exp = wb.create_sheet("Expenses")
     build_expenses_sheet(ws_exp, Expense.objects.all())

@@ -113,3 +113,68 @@
 .balance-page-card > .card-body {
   padding: 10px 12px !important;
 }
+
+/* ── Currency Exchange Tab & Form Controls Contrast Fixes ── */
+#bal-pane-currency_exchange {
+  padding: 0;
+}
+
+#bal-pane-currency_exchange .data-table th {
+  color: var(--text-secondary, #94a3b8) !important;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  padding: 10px 14px;
+}
+
+#bal-pane-currency_exchange .form-control,
+#bal-pane-currency_exchange .form-select {
+  background-color: var(--bg-tertiary, #1e293b) !important;
+  color: var(--text-primary, #f8fafc) !important;
+  border: 1px solid var(--border-color, rgba(148, 163, 184, 0.25)) !important;
+}
+
+#bal-pane-currency_exchange .form-control::placeholder {
+  color: var(--text-secondary, #94a3b8) !important;
+  opacity: 0.75 !important;
+}
+
+#bal-pane-currency_exchange input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+}
+
+/* Ensure all select option text is crisp and readable in light & dark mode */
+select option,
+.form-select option,
+select option:disabled,
+.form-select option:disabled {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  padding: 8px 12px;
+}
+
+/* High contrast modal label & form control readability */
+#modal-container .form-label,
+#modal-container label {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+#modal-container .form-control,
+#modal-container .form-select {
+  color: var(--text-primary) !important;
+  background-color: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Currency Exchange Reset Button High Contrast */
+#bal-pane-currency_exchange button[onclick="resetCurrencyExchangeFilters()"] {
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--bg-tertiary) !important;
+}
+
+#bal-pane-currency_exchange button[onclick="resetCurrencyExchangeFilters()"]:hover {
+  background-color: var(--accent-primary) !important;
+  color: #ffffff !important;
+}

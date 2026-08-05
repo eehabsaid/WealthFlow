@@ -146,7 +146,7 @@ def get_model_export_order():
         UserProfile, AuthToken, AuthAuditLog,
         PagePermission,
         AppSettings, EmailTemplate,
-        BalanceEntry, BalanceTransfer,
+        BalanceEntry, BalanceTransfer, CurrencyExchange,
         ExchangeRate,
         SalaryEntry, PerDiem,
         BankCertificate, BankCertificateInterestHistory, CertificateStatus,
@@ -186,6 +186,7 @@ def get_model_export_order():
         # ── Financial core ────────────────────────────────────────────────
         ("15", BalanceEntry,                 None),
         ("16", BalanceTransfer,              None),
+        ("16b", CurrencyExchange,             None),
         ("17", ExchangeRate,                 None),
         # ── Income / salary ───────────────────────────────────────────────
         ("18", SalaryEntry,                  None),

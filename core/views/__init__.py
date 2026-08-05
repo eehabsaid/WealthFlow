@@ -157,6 +157,12 @@ from .balance_transfer_views import (
     BalanceTransferListView,
     BalanceTransferDetailView
 )
+from .currency_exchange_views import (
+    CurrencyExchangeListView,
+    CurrencyExchangeDetailView,
+    CurrencyExchangeCalculateView,
+    CurrencyExchangeFormOptionsView,
+)
 from .reminder_views import ReminderRuleListView
 from .reminder_views import ReminderRuleDetailView
 from .reminder_views import ReminderCheckView
@@ -316,6 +322,10 @@ __all__ = [
     "User",
     "BalanceTransferListView",
     "BalanceTransferDetailView",
+    "CurrencyExchangeListView",
+    "CurrencyExchangeDetailView",
+    "CurrencyExchangeCalculateView",
+    "CurrencyExchangeFormOptionsView",
     "ReminderRuleListView",
     "ReminderRuleDetailView",
     "ReminderCheckView",

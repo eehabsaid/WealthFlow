@@ -57,6 +57,10 @@ urlpatterns = [
     path("api/balance/<int:pk>/", views.BalanceDetailView.as_view()),
     path("api/balance-transfers/", views.BalanceTransferListView.as_view()),
     path("api/balance-transfers/<int:pk>/", views.BalanceTransferDetailView.as_view()),
+    path("api/currency-exchanges/", views.CurrencyExchangeListView.as_view()),
+    path("api/currency-exchanges/<int:pk>/", views.CurrencyExchangeDetailView.as_view()),
+    path("api/currency-exchanges/calculate/", views.CurrencyExchangeCalculateView.as_view()),
+    path("api/currency-exchanges/options/", views.CurrencyExchangeFormOptionsView.as_view()),
     # Expenses
     path("api/expense-categories/", views.ExpenseCategoryListView.as_view()),
     path("api/expense-categories/<int:pk>/", views.ExpenseCategoryDetailView.as_view()),
