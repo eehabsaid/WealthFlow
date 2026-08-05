@@ -1,0 +1,342 @@
+# WealthFlow Deployment & Ollama Setup Guide
+
+## Step 1 – Install Python
+
+Install the same Python version used by WealthFlow.
+
+Example:
+
+* Python 3.12.x
+
+Verify:
+
+```bash
+python --version
+```
+
+---
+
+## Step 2 – Clone the Project
+
+```bash
+git clone <repository>
+cd WealthFlow
+```
+
+---
+
+## Step 3 – Create Virtual Environment
+
+Windows
+
+```bash
+python -m venv .venv
+```
+
+Activate
+
+```bash
+.venv\Scripts\activate
+```
+
+---
+
+## Step 4 – Install Python Packages
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Step 5 – Install Node Packages
+
+```bash
+npm install
+```
+
+---
+
+## Step 6 – Configure Environment Variables
+
+Create a **.env** file (or use Windows Environment Variables if you prefer).
+
+Example:
+
+```text
+DJANGO_SECRET_KEY=xxxxxxxxxxxxxxxx
+
+OLLAMA_MODELS=D:\AI\Models\Ollama
+
+WEALTHFLOW_AI_ENCRYPTION_KEY=xxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### What these variables mean
+
+**DJANGO_SECRET_KEY**
+
+* Django uses this internally.
+* Keep the same value for your deployment.
+
+---
+
+**OLLAMA_MODELS**
+
+This tells Ollama where to store downloaded models.
+
+Example:
+
+```text
+D:\AI\Models\Ollama
+```
+
+You may choose any folder.
+
+Example:
+
+```text
+E:\Ollama\Models
+```
+
+---
+
+**WEALTHFLOW_AI_ENCRYPTION_KEY**
+
+Used to encrypt cloud provider API keys.
+
+Generate it once.
+
+Never change it after production deployment.
+
+---
+
+## Step 7 – Install Ollama
+
+Download:
+
+https://ollama.com/download
+
+Install normally.
+
+---
+
+## Step 8 – Configure Ollama Models Folder
+
+If you already configured
+
+```text
+OLLAMA_MODELS
+```
+
+before downloading models,
+
+Ollama will automatically store all models there.
+
+Example:
+
+```text
+D:\AI\Models\Ollama
+```
+
+No further configuration is required.
+
+---
+
+## Step 9 – Pull Your AI Model
+
+Recommended for your machine:
+
+```bash
+ollama pull qwen2.5:7b-instruct
+```
+
+Alternative:
+
+```bash
+ollama pull llama3.1:8b
+```
+or
+ollama pull qwen3:8b
+---
+
+## Step 10 – Verify Ollama
+
+Run:
+
+```bash
+ollama list
+```
+
+Example:
+
+```text
+NAME
+
+qwen2.5:7b-instruct
+```
+
+---
+
+## Step 11 – Start Ollama
+
+Normally:
+
+```bash
+ollama serve
+```
+
+Or simply start the Ollama application.
+
+---
+
+## Step 12 – Configure WealthFlow AI Settings
+
+Open:
+
+Settings
+
+↓
+
+AI Advisor
+
+Configure:
+
+Provider
+
+```
+Ollama
+```
+
+Server
+
+```
+http://127.0.0.1:11434
+```
+
+Model
+
+```
+qwen2.5:7b-instruct
+```
+
+Save.
+
+Test Connection.
+
+---
+
+## Step 13 – Run Django
+
+```bash
+python manage.py migrate
+
+python manage.py runserver
+```
+
+---
+
+# Moving to a New Machine
+
+## 1. Install Python
+
+## 2. Clone WealthFlow
+
+## 3. Create Virtual Environment
+
+## 4. Install Requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+## 5. Install Node Packages
+
+```bash
+npm install
+```
+
+## 6. Install Ollama
+
+Download from
+
+https://ollama.com
+
+## 7. Configure Environment Variables
+
+Copy your existing values:
+
+```text
+DJANGO_SECRET_KEY
+
+OLLAMA_MODELS
+
+WEALTHFLOW_AI_ENCRYPTION_KEY
+```
+
+These should be the same as the old machine.
+
+## 8. Download Models Again
+
+Example:
+
+```bash
+ollama pull qwen2.5:7b-instruct
+```
+
+Or copy the existing models folder to the new machine.
+
+## 9. Configure WealthFlow
+
+Provider
+
+```
+Ollama
+```
+
+Server
+
+```
+http://127.0.0.1:11434
+```
+
+Model
+
+```
+qwen2.5:7b-instruct
+```
+
+## 10. Run
+
+```bash
+python manage.py migrate
+
+python manage.py runserver
+```
+
+Everything will work exactly as on the previous machine.
+
+---
+
+# Future Cloud Providers
+
+When Phase 4 is implemented, the deployment steps remain almost identical.
+
+Instead of downloading Ollama models, you only:
+
+* Create an API key from the provider.
+* Enter it in WealthFlow Settings.
+* Select the provider.
+* Select the model.
+* Save.
+
+Supported providers:
+
+* Ollama
+* OpenAI
+* Claude
+* Gemini
+* Azure OpenAI
+
+The application architecture stays the same.
+
+Only the provider configuration changes.

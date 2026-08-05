@@ -52,9 +52,9 @@ class ClaudeProvider(BaseAIProvider):
         model = AppSettings.get("ai_claude_model", "").strip()
         base_url = AppSettings.get("ai_claude_base_url", "https://api.anthropic.com/v1").strip()
         try:
-            timeout = int(AppSettings.get("ai_timeout", "15"))
+            timeout = int(AppSettings.get("ai_timeout", "60"))
         except (ValueError, TypeError):
-            timeout = 15
+            timeout = 60
 
         return cls(api_key=api_key, model=model, base_url=base_url, timeout=timeout)
 
@@ -164,12 +164,13 @@ class ClaudeProvider(BaseAIProvider):
             payload["tools"] = c_tools
 
         secrets = [self.api_key]
+        timeout = int(kwargs.get("timeout") or max(self.timeout, 120))
         data, status, err = make_json_http_request(
             url=url,
             method="POST",
             headers=headers,
             payload=payload,
-            timeout=self.timeout,
+            timeout=timeout,
             secrets=secrets,
         )
 

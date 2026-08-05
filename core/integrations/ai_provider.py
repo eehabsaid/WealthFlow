@@ -116,9 +116,9 @@ class OllamaProvider(BaseAIProvider):
         base_url = AppSettings.get("ai_ollama_url", "http://localhost:11434").strip()
         model = AppSettings.get("ai_model", "llama3.2:latest").strip()
         try:
-            timeout = int(AppSettings.get("ai_timeout", "15"))
+            timeout = int(AppSettings.get("ai_timeout", "60"))
         except (ValueError, TypeError):
-            timeout = 15
+            timeout = 60
 
         return cls(base_url=base_url, model=model, timeout=timeout)
 
@@ -164,15 +164,30 @@ class OllamaProvider(BaseAIProvider):
         tools: list[dict[str, Any]] | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
+        from core.models import AppSettings
+
         chat_url = f"{self.base_url}/api/chat"
         model_name = str(kwargs.get("model") or self.model or "").strip()
-        timeout = int(kwargs.get("timeout") or self.timeout)
+        # For chat generation, allow up to 180s (3 minutes) by default to accommodate local LLMs
+        timeout = int(kwargs.get("timeout") or max(self.timeout, 180))
+
+        options: dict[str, Any] = {}
+        try:
+            options["num_predict"] = int(kwargs.get("max_tokens") or AppSettings.get("ai_max_tokens", "2048"))
+        except (ValueError, TypeError):
+            pass
+        try:
+            options["temperature"] = float(kwargs.get("temperature") or AppSettings.get("ai_temperature", "0.7"))
+        except (ValueError, TypeError):
+            pass
 
         payload: dict[str, Any] = {
             "model": model_name,
             "messages": messages,
             "stream": False,
         }
+        if options:
+            payload["options"] = options
         if tools:
             payload["tools"] = tools
 
@@ -182,6 +197,7 @@ class OllamaProvider(BaseAIProvider):
             payload=payload,
             timeout=timeout,
         )
+
 
         if err:
             safe_err = redact_secrets(err)
@@ -196,6 +212,17 @@ class OllamaProvider(BaseAIProvider):
         if isinstance(msg, dict):
             content = str(msg.get("content", "")).strip()
             tool_calls = msg.get("tool_calls")
+            if not tool_calls and content and content.startswith("{") and ("function" in content or "name" in content):
+                try:
+                    parsed = json.loads(content)
+                    if isinstance(parsed, dict):
+                        fn_name = parsed.get("function") or parsed.get("name")
+                        fn_args = parsed.get("parameters") or parsed.get("arguments") or {}
+                        if isinstance(fn_name, str) and fn_name and isinstance(fn_args, dict):
+                            tool_calls = [{"function": {"name": fn_name, "arguments": fn_args}}]
+                            content = ""
+                except (json.JSONDecodeError, TypeError, ValueError):
+                    pass
 
         prompt_eval = data.get("prompt_eval_count")
         eval_count = data.get("eval_count")

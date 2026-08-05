@@ -101,7 +101,7 @@ async function renderAIAdvisorSettings() {
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold" data-i18n="ai_timeout">${t('ai_timeout', 'Timeout (sec)')}</label>
-                    <input id="aiTimeoutInput" type="number" step="1" min="1" class="form-control" value="${currentAISettings.ai_timeout ?? 15}">
+                    <input id="aiTimeoutInput" type="number" step="1" min="1" class="form-control" value="${currentAISettings.ai_timeout ?? 60}">
                 </div>
             </div>
 
@@ -233,7 +233,7 @@ async function testAIConnectionFromGui() {
     const payload = {
         provider: provider,
         model: model,
-        timeout: parseInt(timeout, 10) || 15
+        timeout: parseInt(timeout, 10) || 60
     };
 
     // Include provider specific fields
@@ -361,7 +361,7 @@ async function saveAISettingsFromGui() {
     const model = (document.getElementById('aiModelInput')?.value || '').trim();
     const temperature = parseFloat(document.getElementById('aiTemperatureInput')?.value || '0.7');
     const contextSize = parseInt(document.getElementById('aiContextSizeInput')?.value || '4096', 10);
-    const timeout = parseInt(document.getElementById('aiTimeoutInput')?.value || '15', 10);
+    const timeout = parseInt(document.getElementById('aiTimeoutInput')?.value || '60', 10);
 
     const systemPrompt = (document.getElementById('aiSystemPromptInput')?.value || '').trim();
     const maxTokens = parseInt(document.getElementById('aiMaxTokensInput')?.value || '2048', 10);

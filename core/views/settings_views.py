@@ -471,9 +471,9 @@ class AISettingsView(AdminRequiredMixin, View):
             context_size = 4096
 
         try:
-            timeout = int(AppSettings.get("ai_timeout", "15"))
+            timeout = int(AppSettings.get("ai_timeout", "60"))
         except (ValueError, TypeError):
-            timeout = 15
+            timeout = 60
 
         system_prompt = AppSettings.get(
             "ai_system_prompt", "You are a helpful financial advisor assistant."

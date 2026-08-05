@@ -50,9 +50,9 @@ class AzureOpenAIProvider(BaseAIProvider):
         deployment = AppSettings.get("ai_azure_deployment", "").strip()
         api_version = AppSettings.get("ai_azure_api_version", "2024-06-01").strip()
         try:
-            timeout = int(AppSettings.get("ai_timeout", "15"))
+            timeout = int(AppSettings.get("ai_timeout", "60"))
         except (ValueError, TypeError):
-            timeout = 15
+            timeout = 60
 
         return cls(
             api_key=api_key,
@@ -140,12 +140,13 @@ class AzureOpenAIProvider(BaseAIProvider):
             payload["tools"] = tools
 
         secrets = [self.api_key]
+        timeout = int(kwargs.get("timeout") or max(self.timeout, 120))
         data, status, err = make_json_http_request(
             url=url,
             method="POST",
             headers=headers,
             payload=payload,
-            timeout=self.timeout,
+            timeout=timeout,
             secrets=secrets,
         )
 
