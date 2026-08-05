@@ -1,21 +1,25 @@
 """
 AI Provider abstraction layer.
 
-Supports pluggable AI providers behind BaseAIProvider interface.
-Default concrete provider: OllamaProvider (local / self-hosted Ollama instance).
+Supports pluggable AI providers behind BaseAIProvider interface:
+- OllamaProvider (local / self-hosted Ollama instance)
+- OpenAIProvider (OpenAI Chat Completions API)
+- ClaudeProvider (Anthropic Messages API)
+- GeminiProvider (Google Generative AI REST API)
+- AzureOpenAIProvider (Azure OpenAI Deployment API)
 
 Standard urllib.request is used for all outbound calls — zero external dependencies.
 """
 
 from __future__ import annotations
 
-import json
 import logging
 import time
-import urllib.error
-import urllib.request
 from abc import ABC, abstractmethod
 from typing import Any, Optional, Type
+
+from core.integrations.provider_utils import make_json_http_request
+from core.services.ai.credential_encryption import redact_secrets
 
 logger = logging.getLogger(__name__)
 
@@ -23,23 +27,34 @@ logger = logging.getLogger(__name__)
 class BaseAIProvider(ABC):
     """
     Abstract base class for all AI provider implementations.
-    Future providers (OpenAI, Claude, Gemini) will inherit from this base class.
+    Every concrete provider MUST implement from_settings(), capabilities, get_config_schema(),
+    check_connection(), list_models(), check_model_available(), and generate().
     """
 
     PROVIDER_NAME: str = "unknown"
     supports_tools: bool = False
+
+    @classmethod
+    @abstractmethod
+    def from_settings(cls) -> Optional[BaseAIProvider]:
+        """Construct provider instance from AppSettings configuration."""
+
+    @property
+    @abstractmethod
+    def capabilities(self) -> dict[str, Any]:
+        """Returns dict of capability flags (e.g. supports_tools, max_context_tokens)."""
+
+    @classmethod
+    @abstractmethod
+    def get_config_schema(cls) -> dict[str, Any]:
+        """Returns provider configuration schema metadata for settings UI rendering."""
 
     @abstractmethod
     def check_connection(self) -> dict[str, Any]:
         """
         Check reachability and version of the provider endpoint.
         Returns:
-            {
-                "reachable": bool,
-                "version": str | None,
-                "error": str | None,
-                "response_time_ms": int,
-            }
+            {"reachable": bool, "version": str | None, "error": str | None, "response_time_ms": int}
         Must never raise out to caller.
         """
 
@@ -68,7 +83,7 @@ class BaseAIProvider(ABC):
         """
         Generate chat response for given message sequence.
         Returns:
-            {"content": str, "tool_calls": list | None, "error": str | None}
+            {"content": str, "tool_calls": list | None, "prompt_tokens": int | None, "completion_tokens": int | None, "error": str | None}
         Must never raise out to caller.
         """
 
@@ -94,6 +109,55 @@ class OllamaProvider(BaseAIProvider):
         self.timeout = max(1, int(timeout))
         self.user_agent = user_agent
 
+    @classmethod
+    def from_settings(cls) -> Optional[OllamaProvider]:
+        from core.models import AppSettings
+
+        base_url = AppSettings.get("ai_ollama_url", "http://localhost:11434").strip()
+        model = AppSettings.get("ai_model", "llama3.2:latest").strip()
+        try:
+            timeout = int(AppSettings.get("ai_timeout", "15"))
+        except (ValueError, TypeError):
+            timeout = 15
+
+        return cls(base_url=base_url, model=model, timeout=timeout)
+
+    @classmethod
+    def get_config_schema(cls) -> dict[str, Any]:
+        return {
+            "key": cls.PROVIDER_NAME,
+            "label_key": "ai_provider_ollama",
+            "capabilities": {
+                "supports_tools": True,
+                "max_context_tokens": None,
+            },
+            "fields": [
+                {
+                    "name": "ai_ollama_url",
+                    "type": "url",
+                    "is_secret": False,
+                    "label_key": "ai_ollama_url",
+                    "placeholder": "http://localhost:11434",
+                    "required": False,
+                },
+                {
+                    "name": "ai_model",
+                    "type": "text",
+                    "is_secret": False,
+                    "label_key": "ai_model",
+                    "placeholder": "e.g. llama3.2:latest",
+                    "required": False,
+                },
+            ],
+        }
+
+    @property
+    def capabilities(self) -> dict[str, Any]:
+        return {
+            "supports_tools": self.supports_tools,
+            "max_context_tokens": None,
+        }
+
     def generate(
         self,
         messages: list[dict[str, Any]],
@@ -101,12 +165,6 @@ class OllamaProvider(BaseAIProvider):
         **kwargs: Any,
     ) -> dict[str, Any]:
         chat_url = f"{self.base_url}/api/chat"
-        headers = {
-            "User-Agent": self.user_agent,
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        }
-
         model_name = str(kwargs.get("model") or self.model or "").strip()
         timeout = int(kwargs.get("timeout") or self.timeout)
 
@@ -118,100 +176,85 @@ class OllamaProvider(BaseAIProvider):
         if tools:
             payload["tools"] = tools
 
-        try:
-            req_data = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(chat_url, data=req_data, headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                msg = data.get("message", {})
-                content = ""
-                tool_calls = None
-                if isinstance(msg, dict):
-                    content = str(msg.get("content", "")).strip()
-                    tool_calls = msg.get("tool_calls")
-                return {"content": content, "tool_calls": tool_calls, "error": None}
-        except urllib.error.HTTPError as exc:
-            err_msg = f"HTTP {exc.code}: {exc.reason}"
-            logger.warning("Ollama generate HTTPError: %s", err_msg)
-            return {"content": "", "tool_calls": None, "error": err_msg}
-        except Exception as exc:
-            logger.warning("Ollama generate failed for %s: %s", self.base_url, exc)
-            return {"content": "", "tool_calls": None, "error": str(exc)}
+        data, status, err = make_json_http_request(
+            url=chat_url,
+            method="POST",
+            payload=payload,
+            timeout=timeout,
+        )
+
+        if err:
+            safe_err = redact_secrets(err)
+            return {"content": "", "tool_calls": None, "prompt_tokens": None, "completion_tokens": None, "error": safe_err}
+
+        if not isinstance(data, dict):
+            return {"content": "", "tool_calls": None, "prompt_tokens": None, "completion_tokens": None, "error": "Invalid JSON response from Ollama API."}
+
+        msg = data.get("message", {})
+        content = ""
+        tool_calls = None
+        if isinstance(msg, dict):
+            content = str(msg.get("content", "")).strip()
+            tool_calls = msg.get("tool_calls")
+
+        prompt_eval = data.get("prompt_eval_count")
+        eval_count = data.get("eval_count")
+
+        return {
+            "content": content,
+            "tool_calls": tool_calls,
+            "prompt_tokens": int(prompt_eval) if isinstance(prompt_eval, (int, float)) else None,
+            "completion_tokens": int(eval_count) if isinstance(eval_count, (int, float)) else None,
+            "error": None,
+        }
 
     def check_connection(self) -> dict[str, Any]:
         start_time = time.perf_counter()
         version_url = f"{self.base_url}/api/version"
-        headers = {"User-Agent": self.user_agent, "Accept": "application/json"}
 
-        try:
-            req = urllib.request.Request(version_url, headers=headers, method="GET")
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                elapsed_ms = int((time.perf_counter() - start_time) * 1000)
-                return {
-                    "reachable": True,
-                    "version": data.get("version", "unknown"),
-                    "error": None,
-                    "response_time_ms": elapsed_ms,
-                }
-        except urllib.error.HTTPError as exc:
-            # Fallback to /api/tags if /api/version returned 404 on older Ollama versions
-            if exc.code == 404:
-                return self._check_tags_connection(start_time)
-            elapsed_ms = int((time.perf_counter() - start_time) * 1000)
+        data, status, err = make_json_http_request(url=version_url, method="GET", timeout=self.timeout)
+        elapsed_ms = int((time.perf_counter() - start_time) * 1000)
+
+        if not err and isinstance(data, dict):
             return {
-                "reachable": False,
-                "version": None,
-                "error": f"HTTP {exc.code}: {exc.reason}",
+                "reachable": True,
+                "version": data.get("version", "unknown"),
+                "error": None,
                 "response_time_ms": elapsed_ms,
             }
-        except Exception as exc:
-            elapsed_ms = int((time.perf_counter() - start_time) * 1000)
-            logger.warning("Ollama connection check failed for %s: %s", self.base_url, exc)
-            return {
-                "reachable": False,
-                "version": None,
-                "error": str(exc),
-                "response_time_ms": elapsed_ms,
-            }
+
+        # Fallback to /api/tags if /api/version returned 404 or failed
+        return self._check_tags_connection(start_time)
 
     def _check_tags_connection(self, start_time: float) -> dict[str, Any]:
         tags_url = f"{self.base_url}/api/tags"
-        headers = {"User-Agent": self.user_agent, "Accept": "application/json"}
-        try:
-            req = urllib.request.Request(tags_url, headers=headers, method="GET")
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-                json.loads(resp.read().decode("utf-8"))
-                elapsed_ms = int((time.perf_counter() - start_time) * 1000)
-                return {
-                    "reachable": True,
-                    "version": "unknown",
-                    "error": None,
-                    "response_time_ms": elapsed_ms,
-                }
-        except Exception as exc:
-            elapsed_ms = int((time.perf_counter() - start_time) * 1000)
+        data, status, err = make_json_http_request(url=tags_url, method="GET", timeout=self.timeout)
+        elapsed_ms = int((time.perf_counter() - start_time) * 1000)
+
+        if not err and isinstance(data, dict):
             return {
-                "reachable": False,
-                "version": None,
-                "error": str(exc),
+                "reachable": True,
+                "version": "unknown",
+                "error": None,
                 "response_time_ms": elapsed_ms,
             }
 
+        safe_err = redact_secrets(err or "Connection failed")
+        return {
+            "reachable": False,
+            "version": None,
+            "error": safe_err,
+            "response_time_ms": elapsed_ms,
+        }
+
     def list_models(self) -> list[dict[str, Any]]:
         tags_url = f"{self.base_url}/api/tags"
-        headers = {"User-Agent": self.user_agent, "Accept": "application/json"}
-        try:
-            req = urllib.request.Request(tags_url, headers=headers, method="GET")
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                models = data.get("models", [])
-                if isinstance(models, list):
-                    return models
-                return []
-        except Exception as exc:
-            logger.warning("Ollama list_models failed for %s: %s", self.base_url, exc)
-            return []
+        data, status, err = make_json_http_request(url=tags_url, method="GET", timeout=self.timeout)
+        if not err and isinstance(data, dict):
+            models = data.get("models", [])
+            if isinstance(models, list):
+                return models
+        return []
 
     def check_model_available(self, model: str) -> bool:
         target_model = (model or self.model or "").strip().lower()
@@ -229,8 +272,17 @@ class OllamaProvider(BaseAIProvider):
         return False
 
 
+from core.integrations.azure_openai_provider import AzureOpenAIProvider
+from core.integrations.claude_provider import ClaudeProvider
+from core.integrations.gemini_provider import GeminiProvider
+from core.integrations.openai_provider import OpenAIProvider
+
 AVAILABLE_AI_PROVIDERS: dict[str, Type[BaseAIProvider]] = {
     "ollama": OllamaProvider,
+    "openai": OpenAIProvider,
+    "claude": ClaudeProvider,
+    "gemini": GeminiProvider,
+    "azure": AzureOpenAIProvider,
 }
 
 
@@ -247,8 +299,9 @@ def get_ai_provider(provider_key: str, **kwargs: Any) -> Optional[BaseAIProvider
 
 def get_active_ai_provider() -> Optional[BaseAIProvider]:
     """
-    Read AI settings from AppSettings and instantiate the active provider.
+    Read AI settings from AppSettings and instantiate the active provider via from_settings().
     Returns None if AI is disabled or provider key is unconfigured/unknown.
+    Zero provider-specific branches exist in this factory.
     """
     from core.models import AppSettings
 
@@ -256,13 +309,8 @@ def get_active_ai_provider() -> Optional[BaseAIProvider]:
     if enabled_str not in ("true", "1", "yes"):
         return None
 
-    provider_key = AppSettings.get("ai_provider", "ollama").strip()
-    ollama_url = AppSettings.get("ai_ollama_url", "http://localhost:11434").strip()
-    model = AppSettings.get("ai_model", "llama3.2:latest").strip()
-
-    try:
-        timeout = int(AppSettings.get("ai_timeout", "15"))
-    except (ValueError, TypeError):
-        timeout = 15
-
-    return get_ai_provider(provider_key, base_url=ollama_url, model=model, timeout=timeout)
+    provider_key = AppSettings.get("ai_provider", "ollama").strip().lower()
+    cls = AVAILABLE_AI_PROVIDERS.get(provider_key)
+    if not cls:
+        return None
+    return cls.from_settings()

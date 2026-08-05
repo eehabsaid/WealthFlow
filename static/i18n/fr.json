@@ -1806,5 +1806,17 @@
   "ai_tool_activity_compare_scenarios": "Comparaison des scénarios...",
   "ai_tool_activity_summarize_report": "Synthèse du rapport financier...",
   "ai_tool_activity_explain_chart": "Analyse des données du graphique...",
-  "ai_tool_activity_suggest_optimizations": "Analyse des opportunités d'optimisation..."
+  "ai_tool_activity_suggest_optimizations": "Analyse des opportunités d'optimisation...",
+  "ai_provider_openai": "OpenAI",
+  "ai_provider_claude": "Anthropic Claude",
+  "ai_provider_gemini": "Google Gemini",
+  "ai_provider_azure": "Azure OpenAI",
+  "ai_openai_api_key": "Clé API OpenAI",
+  "ai_claude_api_key": "Clé API Anthropic",
+  "ai_gemini_api_key": "Clé API Gemini",
+  "ai_azure_api_key": "Clé API Azure",
+  "ai_azure_endpoint": "Point de terminaison Azure",
+  "ai_azure_deployment": "Nom de déploiement Azure",
+  "ai_azure_api_version": "Version de l'API Azure",
+  "ai_base_url": "URL de base de l'API"
 }

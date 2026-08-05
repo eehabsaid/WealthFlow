@@ -1806,5 +1806,17 @@
   "ai_tool_activity_compare_scenarios": "جارٍ مقارنة السيناريوهات...",
   "ai_tool_activity_summarize_report": "جارٍ تلخيص التقرير المالي...",
   "ai_tool_activity_explain_chart": "جارٍ تحليل وتفسير بيانات الرسم البياني...",
-  "ai_tool_activity_suggest_optimizations": "جارٍ تحليل فرص التحسين المتاحة..."
+  "ai_tool_activity_suggest_optimizations": "جارٍ تحليل فرص التحسين المتاحة...",
+  "ai_provider_openai": "OpenAI",
+  "ai_provider_claude": "Anthropic Claude",
+  "ai_provider_gemini": "Google Gemini",
+  "ai_provider_azure": "Azure OpenAI",
+  "ai_openai_api_key": "مفتاح API الخاص بـ OpenAI",
+  "ai_claude_api_key": "مفتاح API الخاص بـ Anthropic",
+  "ai_gemini_api_key": "مفتاح API الخاص بـ Gemini",
+  "ai_azure_api_key": "مفتاح API الخاص بـ Azure",
+  "ai_azure_endpoint": "نقطة نهاية مورد Azure",
+  "ai_azure_deployment": "اسم نُشرة Azure Deployment",
+  "ai_azure_api_version": "إصدار API لـ Azure",
+  "ai_base_url": "عنوان الرابط الأساسي للـ API"
 }

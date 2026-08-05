@@ -27,6 +27,8 @@ class AIMessage(models.Model):
     content = models.TextField()
     sources = models.JSONField(default=list, blank=True)
     tool_calls = models.JSONField(default=list, blank=True)
+    prompt_tokens = models.IntegerField(null=True, blank=True)
+    completion_tokens = models.IntegerField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -41,6 +43,8 @@ class AIMessage(models.Model):
             "content": self.content,
             "sources": self.sources or [],
             "tool_calls": self.tool_calls or [],
+            "prompt_tokens": self.prompt_tokens,
+            "completion_tokens": self.completion_tokens,
             "is_deleted": self.is_deleted,
             "created_at": _date_to_iso(self.created_at),
         }

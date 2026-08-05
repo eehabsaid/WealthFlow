@@ -23,10 +23,22 @@ from core.models import (
 from core.services.shared.exchange_rate_service import ExchangeRateService
 from core.services.fixed_assets.gold_valuation_service import GoldValuationService
 from core.services.shared.auth_workflow_service import AuthWorkflowService, EmailTemplateService
+from core.services.ai.credential_encryption import (
+    decrypt_credential,
+    encrypt_credential,
+    is_masked,
+    mask_credential,
+)
 from core.integrations.ai_provider import (
     AVAILABLE_AI_PROVIDERS,
-    get_ai_provider,
+    AzureOpenAIProvider,
+    ClaudeProvider,
+    GeminiProvider,
+    OllamaProvider,
+    OpenAIProvider,
+    get_active_ai_provider,
 )
+
 
 User = get_user_model()
 
@@ -500,6 +512,16 @@ class AISettingsView(AdminRequiredMixin, View):
         seed = AppSettings.get("ai_seed", "").strip()
         keep_alive = AppSettings.get("ai_keep_alive", "5m").strip()
 
+        # Decrypt secret API keys to generate masked UI display values
+        openai_key_dec = decrypt_credential(AppSettings.get("ai_openai_api_key", "").strip())
+        claude_key_dec = decrypt_credential(AppSettings.get("ai_claude_api_key", "").strip())
+        gemini_key_dec = decrypt_credential(AppSettings.get("ai_gemini_api_key", "").strip())
+        azure_key_dec = decrypt_credential(AppSettings.get("ai_azure_api_key", "").strip())
+
+        providers_schema = [
+            cls.get_config_schema() for cls in AVAILABLE_AI_PROVIDERS.values()
+        ]
+
         return JsonResponse({
             "ai_enabled": enabled,
             "ai_provider": provider,
@@ -517,6 +539,23 @@ class AISettingsView(AdminRequiredMixin, View):
             "ai_keep_alive": keep_alive,
             "ai_history_window": history_window,
             "ai_context_token_budget": context_token_budget,
+            # Provider-specific fields
+            "ai_openai_api_key": mask_credential(openai_key_dec),
+            "ai_openai_is_configured": bool(openai_key_dec),
+            "ai_openai_model": AppSettings.get("ai_openai_model", "").strip(),
+            "ai_openai_base_url": AppSettings.get("ai_openai_base_url", "https://api.openai.com/v1").strip(),
+            "ai_claude_api_key": mask_credential(claude_key_dec),
+            "ai_claude_is_configured": bool(claude_key_dec),
+            "ai_claude_model": AppSettings.get("ai_claude_model", "").strip(),
+            "ai_gemini_api_key": mask_credential(gemini_key_dec),
+            "ai_gemini_is_configured": bool(gemini_key_dec),
+            "ai_gemini_model": AppSettings.get("ai_gemini_model", "").strip(),
+            "ai_azure_api_key": mask_credential(azure_key_dec),
+            "ai_azure_is_configured": bool(azure_key_dec),
+            "ai_azure_endpoint": AppSettings.get("ai_azure_endpoint", "").strip(),
+            "ai_azure_deployment": AppSettings.get("ai_azure_deployment", "").strip(),
+            "ai_azure_api_version": AppSettings.get("ai_azure_api_version", "2024-06-01").strip(),
+            "providers_schema": providers_schema,
         })
 
     def post(self, request):
@@ -619,16 +658,48 @@ class AISettingsView(AdminRequiredMixin, View):
         AppSettings.set("ai_history_window", str(history_window))
         AppSettings.set("ai_context_token_budget", str(context_token_budget))
 
+        # Save provider specific non-secret fields
+        if "ai_openai_model" in data:
+            AppSettings.set("ai_openai_model", str(data["ai_openai_model"] or "").strip())
+        if "ai_openai_base_url" in data:
+            AppSettings.set("ai_openai_base_url", str(data["ai_openai_base_url"] or "").strip())
+        if "ai_claude_model" in data:
+            AppSettings.set("ai_claude_model", str(data["ai_claude_model"] or "").strip())
+        if "ai_gemini_model" in data:
+            AppSettings.set("ai_gemini_model", str(data["ai_gemini_model"] or "").strip())
+        if "ai_azure_endpoint" in data:
+            AppSettings.set("ai_azure_endpoint", str(data["ai_azure_endpoint"] or "").strip())
+        if "ai_azure_deployment" in data:
+            AppSettings.set("ai_azure_deployment", str(data["ai_azure_deployment"] or "").strip())
+        if "ai_azure_api_version" in data:
+            AppSettings.set("ai_azure_api_version", str(data["ai_azure_api_version"] or "").strip())
+
+        # Save secret fields securely with Fernet encryption
+        # CRITICAL: If user submits a masked string (starts with '••••'), DO NOT re-encrypt or overwrite!
+        secret_keys = ("ai_openai_api_key", "ai_claude_api_key", "ai_gemini_api_key", "ai_azure_api_key")
+        for sk in secret_keys:
+            if sk in data:
+                val = str(data[sk] or "").strip()
+                if not val:
+                    AppSettings.set(sk, "")
+                elif is_masked(val):
+                    # Keep existing stored ciphertext untouched
+                    pass
+                else:
+                    enc_val = encrypt_credential(val)
+                    AppSettings.set(sk, enc_val)
+
         # Run connection test post-save to report connection status
         connection_ok = False
         test_error = None
         if enabled:
-            provider_inst = get_ai_provider(provider, base_url=ollama_url, model=model, timeout=timeout)
-            if provider_inst:
-                conn_res = provider_inst.check_connection()
-                model_avail = provider_inst.check_model_available(model)
+            active_provider = get_active_ai_provider()
+            if active_provider:
+                conn_res = active_provider.check_connection()
+                m_name = getattr(active_provider, "model", "") or getattr(active_provider, "deployment", "") or model
+                model_avail = active_provider.check_model_available(m_name)
                 connection_ok = bool(conn_res.get("reachable")) and model_avail
-                test_error = conn_res.get("error") if not conn_res.get("reachable") else (None if model_avail else "Model not found")
+                test_error = conn_res.get("error") if not conn_res.get("reachable") else (None if model_avail else "Model/Deployment not available")
 
         message_key = "ai_save_success" if (not enabled or connection_ok) else "ai_save_success_test_failed"
 
@@ -649,16 +720,8 @@ class AIConnectionTestView(AdminRequiredMixin, View):
             data = {}
 
         provider_key = str(data.get("provider") or AppSettings.get("ai_provider", "ollama")).strip().lower()
-        base_url = str(data.get("base_url") or AppSettings.get("ai_ollama_url", "http://localhost:11434")).strip()
-        model = str(data.get("model") or AppSettings.get("ai_model", "llama3.2:latest")).strip()
-
-        try:
-            timeout = int(data.get("timeout") or AppSettings.get("ai_timeout", "15"))
-        except (ValueError, TypeError):
-            timeout = 15
-
-        provider_inst = get_ai_provider(provider_key, base_url=base_url, model=model, timeout=timeout)
-        if not provider_inst:
+        cls = AVAILABLE_AI_PROVIDERS.get(provider_key)
+        if not cls:
             return JsonResponse({
                 "ok": False,
                 "message_key": "ai_provider_invalid",
@@ -670,9 +733,48 @@ class AIConnectionTestView(AdminRequiredMixin, View):
                 "model_available": False,
             }, status=400)
 
-        conn_res = provider_inst.check_connection()
-        models = provider_inst.list_models()
-        model_avail = provider_inst.check_model_available(model)
+        # Build test instance using submitted fields or fallback to stored settings
+        try:
+            timeout = int(data.get("timeout") or AppSettings.get("ai_timeout", "15"))
+        except (ValueError, TypeError):
+            timeout = 15
+
+        if provider_key == "ollama":
+            base_url = str(data.get("base_url") or data.get("ai_ollama_url") or AppSettings.get("ai_ollama_url", "http://localhost:11434")).strip()
+            model = str(data.get("model") or data.get("ai_model") or AppSettings.get("ai_model", "llama3.2:latest")).strip()
+            provider_inst = OllamaProvider(base_url=base_url, model=model, timeout=timeout)
+        elif provider_key == "openai":
+            key_raw = str(data.get("api_key") or data.get("ai_openai_api_key") or "").strip()
+            key_val = decrypt_credential(AppSettings.get("ai_openai_api_key", "").strip()) if is_masked(key_raw) or not key_raw else key_raw
+            model = str(data.get("model") or data.get("ai_openai_model") or AppSettings.get("ai_openai_model", "")).strip()
+            base_url = str(data.get("base_url") or data.get("ai_openai_base_url") or AppSettings.get("ai_openai_base_url", "https://api.openai.com/v1")).strip()
+            provider_inst = OpenAIProvider(api_key=key_val, model=model, base_url=base_url, timeout=timeout)
+        elif provider_key == "claude":
+            key_raw = str(data.get("api_key") or data.get("ai_claude_api_key") or "").strip()
+            key_val = decrypt_credential(AppSettings.get("ai_claude_api_key", "").strip()) if is_masked(key_raw) or not key_raw else key_raw
+            model = str(data.get("model") or data.get("ai_claude_model") or AppSettings.get("ai_claude_model", "")).strip()
+            provider_inst = ClaudeProvider(api_key=key_val, model=model, timeout=timeout)
+        elif provider_key == "gemini":
+            key_raw = str(data.get("api_key") or data.get("ai_gemini_api_key") or "").strip()
+            key_val = decrypt_credential(AppSettings.get("ai_gemini_api_key", "").strip()) if is_masked(key_raw) or not key_raw else key_raw
+            model = str(data.get("model") or data.get("ai_gemini_model") or AppSettings.get("ai_gemini_model", "")).strip()
+            provider_inst = GeminiProvider(api_key=key_val, model=model, timeout=timeout)
+        elif provider_key == "azure":
+            key_raw = str(data.get("api_key") or data.get("ai_azure_api_key") or "").strip()
+            key_val = decrypt_credential(AppSettings.get("ai_azure_api_key", "").strip()) if is_masked(key_raw) or not key_raw else key_raw
+            endpoint = str(data.get("endpoint") or data.get("ai_azure_endpoint") or AppSettings.get("ai_azure_endpoint", "")).strip()
+            deployment = str(data.get("deployment") or data.get("ai_azure_deployment") or AppSettings.get("ai_azure_deployment", "")).strip()
+            api_version = str(data.get("api_version") or data.get("ai_azure_api_version") or AppSettings.get("ai_azure_api_version", "2024-06-01")).strip()
+            provider_inst = AzureOpenAIProvider(api_key=key_val, endpoint=endpoint, deployment=deployment, api_version=api_version, timeout=timeout)
+            model = deployment
+        else:
+            provider_inst = cls.from_settings()
+            model = str(data.get("model") or "").strip()
+
+        conn_res = provider_inst.check_connection() if provider_inst else {"reachable": False, "error": "Provider init failed"}
+        models = provider_inst.list_models() if provider_inst else []
+        target_model = model or getattr(provider_inst, "model", "") or getattr(provider_inst, "deployment", "")
+        model_avail = provider_inst.check_model_available(target_model) if provider_inst else False
 
         reachable = bool(conn_res.get("reachable"))
         ok = reachable and model_avail
@@ -693,9 +795,9 @@ class AIConnectionTestView(AdminRequiredMixin, View):
 class AIProviderListView(AdminRequiredMixin, View):
     def get(self, request):
         providers = [
-            {"key": k, "label_key": f"ai_provider_{k}"}
-            for k in AVAILABLE_AI_PROVIDERS.keys()
+            cls.get_config_schema() for cls in AVAILABLE_AI_PROVIDERS.values()
         ]
         return JsonResponse({"providers": providers})
+
 
 

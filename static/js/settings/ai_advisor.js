@@ -1,5 +1,5 @@
 "use strict";
-// AI Financial Advisor settings panel logic (Phase 1 Infrastructure)
+// AI Financial Advisor settings panel logic (Phase 4 Multi-Provider & Security Hardening)
 
 function escapeHtml(value) {
     if (value === null || value === undefined) return '';
@@ -10,6 +10,9 @@ function escapeHtml(value) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
+
+let currentAISettings = null;
+let currentProviderSchemas = [];
 
 async function renderAIAdvisorSettings() {
     const container = document.getElementById('settingsContent');
@@ -23,26 +26,15 @@ async function renderAIAdvisorSettings() {
             </div>
         </div>`;
 
-    let providersData, settingsData;
     try {
-        const [providersRes, settingsRes] = await Promise.all([
-            fetch('/api/settings/ai/providers/'),
-            fetch('/api/settings/ai/')
-        ]);
-
-        if (!providersRes.ok || !settingsRes.ok) {
+        const res = await fetch('/api/settings/ai/');
+        if (!res.ok) {
             throw new Error('Failed to load AI settings from backend.');
         }
 
-        providersData = await providersRes.json();
-        settingsData = await settingsRes.json();
-
-        if (!providersData || !Array.isArray(providersData.providers) || !settingsData) {
-            throw new Error('Invalid or malformed settings payload from backend.');
-        }
+        currentAISettings = await res.json();
+        currentProviderSchemas = Array.isArray(currentAISettings.providers_schema) ? currentAISettings.providers_schema : [];
     } catch (err) {
-        // Strict adherence to Rule 5: If backend fails, show error state and halt rendering.
-        // No hardcoded fallbacks in JS.
         container.innerHTML = `
             <div class="alert alert-danger d-flex align-items-center m-3" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
@@ -54,20 +46,20 @@ async function renderAIAdvisorSettings() {
         return;
     }
 
-    const providers = providersData.providers || [];
-    const providerOptions = providers.map(p => {
-        const selected = p.key === settingsData.ai_provider ? 'selected' : '';
+    const activeProviderKey = currentAISettings.ai_provider || 'ollama';
+    const providerOptions = currentProviderSchemas.map(p => {
+        const selected = p.key === activeProviderKey ? 'selected' : '';
         const label = t(p.label_key, p.key.toUpperCase());
         return `<option value="${p.key}" ${selected}>${label}</option>`;
     }).join('');
 
-    const enabledChecked = settingsData.ai_enabled ? 'checked' : '';
+    const enabledChecked = currentAISettings.ai_enabled ? 'checked' : '';
 
     container.innerHTML = `
         <div class="si-modern-card p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                 <div>
-                    <p class="text-muted small mb-0" data-i18n="ai_settings_desc">${t('ai_settings_desc', 'Configure local AI provider integration, endpoint parameters, and model parameters.')}</p>
+                    <p class="text-muted small mb-0" data-i18n="ai_settings_desc">${t('ai_settings_desc', 'Configure AI provider integration, API endpoints, model selection, and security parameters.')}</p>
                 </div>
                 <div class="form-check form-switch fs-5">
                     <input class="form-check-input" type="checkbox" id="aiEnabledToggle" ${enabledChecked}>
@@ -75,46 +67,48 @@ async function renderAIAdvisorSettings() {
                 </div>
             </div>
 
-            <!-- Basic & Endpoint Configuration -->
+            <!-- Provider Selection & Dynamic Fields Container -->
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" data-i18n="ai_provider">${t('ai_provider', 'Provider')}</label>
-                    <select id="aiProviderSelect" class="form-select">
+                    <select id="aiProviderSelect" class="form-select" onchange="onAIProviderChanged()">
                         ${providerOptions}
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold" data-i18n="ai_ollama_url">${t('ai_ollama_url', 'Ollama Base URL')}</label>
-                    <input id="aiOllamaUrl" type="url" class="form-control" value="${escapeHtml(settingsData.ai_ollama_url || '')}">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold" data-i18n="ai_model">${t('ai_model', 'Model Name')}</label>
+                    <label class="form-label fw-semibold" data-i18n="ai_model">${t('ai_model', 'Model Name / Deployment')}</label>
                     <div class="input-group">
-                        <input id="aiModelInput" type="text" class="form-control" value="${escapeHtml(settingsData.ai_model || '')}" placeholder="e.g. llama3.2:latest">
+                        <input id="aiModelInput" type="text" class="form-control" value="${escapeHtml(getProviderModelValue(activeProviderKey))}" placeholder="e.g. llama3.2:latest, gpt-4o">
                         <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="aiModelDropdownBtn" data-i18n="ai_select_model">${t('ai_select_model', 'Models')}</button>
                         <ul class="dropdown-menu dropdown-menu-end" id="aiModelDropdownList">
                             <li><span class="dropdown-item text-muted small" data-i18n="ai_test_to_load_models">${t('ai_test_to_load_models', 'Run Test Connection to list models')}</span></li>
                         </ul>
                     </div>
                 </div>
-                <div class="col-md-2">
+
+                <!-- Container for provider-specific config inputs (API Key, Base URL, etc.) -->
+                <div class="col-12">
+                    <div id="providerSpecificFields" class="row g-3"></div>
+                </div>
+
+                <div class="col-md-4">
                     <label class="form-label fw-semibold" data-i18n="ai_temperature">${t('ai_temperature', 'Temperature')}</label>
-                    <input id="aiTemperatureInput" type="number" step="0.05" min="0.0" max="2.0" class="form-control" value="${settingsData.ai_temperature ?? 0.7}">
+                    <input id="aiTemperatureInput" type="number" step="0.05" min="0.0" max="2.0" class="form-control" value="${currentAISettings.ai_temperature ?? 0.7}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-4">
                     <label class="form-label fw-semibold" data-i18n="ai_context_size">${t('ai_context_size', 'Context Size')}</label>
-                    <input id="aiContextSizeInput" type="number" step="128" min="256" class="form-control" value="${settingsData.ai_context_size ?? 4096}">
+                    <input id="aiContextSizeInput" type="number" step="128" min="256" class="form-control" value="${currentAISettings.ai_context_size ?? 4096}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-4">
                     <label class="form-label fw-semibold" data-i18n="ai_timeout">${t('ai_timeout', 'Timeout (sec)')}</label>
-                    <input id="aiTimeoutInput" type="number" step="1" min="1" class="form-control" value="${settingsData.ai_timeout ?? 15}">
+                    <input id="aiTimeoutInput" type="number" step="1" min="1" class="form-control" value="${currentAISettings.ai_timeout ?? 15}">
                 </div>
             </div>
 
             <!-- Diagnostics Card / Result -->
             <div id="aiTestDiagnosticResult" class="mb-4" style="display: none;"></div>
 
-            <!-- Advanced / Future Parameters Accordion -->
+            <!-- Advanced Parameters Accordion -->
             <div class="accordion mb-4" id="aiAdvancedAccordion">
                 <div class="accordion-item" style="border: 1px solid var(--border-color); background: var(--bg-secondary);">
                     <h2 class="accordion-header" id="headingAdvanced">
@@ -126,32 +120,32 @@ async function renderAIAdvisorSettings() {
                         <div class="accordion-body">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold" data-i18n="ai_system_prompt">${t('ai_system_prompt', 'System Prompt')}</label>
-                                <textarea id="aiSystemPromptInput" class="form-control" rows="3">${escapeHtml(settingsData.ai_system_prompt || '')}</textarea>
+                                <textarea id="aiSystemPromptInput" class="form-control" rows="3">${escapeHtml(currentAISettings.ai_system_prompt || '')}</textarea>
                             </div>
                             <div class="row g-3">
                                 <div class="col-md-3">
                                     <label class="form-label fw-semibold" data-i18n="ai_max_tokens">${t('ai_max_tokens', 'Max Tokens')}</label>
-                                    <input id="aiMaxTokensInput" type="number" step="64" min="64" class="form-control" value="${settingsData.ai_max_tokens ?? 2048}">
+                                    <input id="aiMaxTokensInput" type="number" step="64" min="64" class="form-control" value="${currentAISettings.ai_max_tokens ?? 2048}">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label fw-semibold" data-i18n="ai_top_p">${t('ai_top_p', 'Top P')}</label>
-                                    <input id="aiTopPInput" type="number" step="0.05" min="0.0" max="1.0" class="form-control" value="${settingsData.ai_top_p ?? 0.9}">
+                                    <input id="aiTopPInput" type="number" step="0.05" min="0.0" max="1.0" class="form-control" value="${currentAISettings.ai_top_p ?? 0.9}">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label fw-semibold" data-i18n="ai_top_k">${t('ai_top_k', 'Top K')}</label>
-                                    <input id="aiTopKInput" type="number" step="1" min="1" class="form-control" value="${settingsData.ai_top_k ?? 40}">
+                                    <input id="aiTopKInput" type="number" step="1" min="1" class="form-control" value="${currentAISettings.ai_top_k ?? 40}">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label fw-semibold" data-i18n="ai_repeat_penalty">${t('ai_repeat_penalty', 'Repeat Penalty')}</label>
-                                    <input id="aiRepeatPenaltyInput" type="number" step="0.05" min="0.5" class="form-control" value="${settingsData.ai_repeat_penalty ?? 1.1}">
+                                    <input id="aiRepeatPenaltyInput" type="number" step="0.05" min="0.5" class="form-control" value="${currentAISettings.ai_repeat_penalty ?? 1.1}">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold" data-i18n="ai_seed">${t('ai_seed', 'Seed (Optional)')}</label>
-                                    <input id="aiSeedInput" type="text" class="form-control" value="${escapeHtml(settingsData.ai_seed || '')}" placeholder="Leave empty for random seed">
+                                    <input id="aiSeedInput" type="text" class="form-control" value="${escapeHtml(currentAISettings.ai_seed || '')}" placeholder="Leave empty for random seed">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold" data-i18n="ai_keep_alive">${t('ai_keep_alive', 'Keep Alive')}</label>
-                                    <input id="aiKeepAliveInput" type="text" class="form-control" value="${escapeHtml(settingsData.ai_keep_alive || '5m')}" placeholder="e.g. 5m, 1h, -1">
+                                    <input id="aiKeepAliveInput" type="text" class="form-control" value="${escapeHtml(currentAISettings.ai_keep_alive || '5m')}" placeholder="e.g. 5m, 1h, -1">
                                 </div>
                             </div>
                         </div>
@@ -170,6 +164,58 @@ async function renderAIAdvisorSettings() {
             </div>
         </div>`;
 
+    renderProviderFields(activeProviderKey);
+
+    if (typeof applyTranslations === 'function') {
+        applyTranslations();
+    }
+}
+
+function getProviderModelValue(providerKey) {
+    if (!currentAISettings) return '';
+    if (providerKey === 'ollama') return currentAISettings.ai_model || '';
+    if (providerKey === 'openai') return currentAISettings.ai_openai_model || '';
+    if (providerKey === 'claude') return currentAISettings.ai_claude_model || '';
+    if (providerKey === 'gemini') return currentAISettings.ai_gemini_model || '';
+    if (providerKey === 'azure') return currentAISettings.ai_azure_deployment || '';
+    return currentAISettings.ai_model || '';
+}
+
+function onAIProviderChanged() {
+    const pKey = document.getElementById('aiProviderSelect')?.value || 'ollama';
+    renderProviderFields(pKey);
+    const mInput = document.getElementById('aiModelInput');
+    if (mInput) {
+        mInput.value = getProviderModelValue(pKey);
+    }
+}
+
+function renderProviderFields(providerKey) {
+    const container = document.getElementById('providerSpecificFields');
+    if (!container) return;
+
+    const schema = currentProviderSchemas.find(s => s.key === providerKey);
+    if (!schema || !Array.isArray(schema.fields) || schema.fields.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = schema.fields.map(f => {
+        if (f.name === 'ai_model' || f.name === 'ai_openai_model' || f.name === 'ai_claude_model' || f.name === 'ai_gemini_model' || f.name === 'ai_azure_deployment') {
+            return ''; // Model is rendered in main top control
+        }
+        const val = currentAISettings ? (currentAISettings[f.name] ?? '') : '';
+        const label = t(f.label_key || f.name, f.name);
+        const inputType = f.type || 'text';
+        const placeholder = f.placeholder ? `placeholder="${escapeHtml(f.placeholder)}"` : '';
+
+        return `
+            <div class="col-md-6">
+                <label class="form-label fw-semibold" data-i18n="${f.label_key || f.name}">${label}</label>
+                <input id="${f.name}" type="${inputType}" class="form-control" value="${escapeHtml(val)}" ${placeholder}>
+            </div>`;
+    }).join('');
+
     if (typeof applyTranslations === 'function') {
         applyTranslations();
     }
@@ -180,10 +226,24 @@ async function testAIConnectionFromGui() {
     const resultDiv = document.getElementById('aiTestDiagnosticResult');
     if (!resultDiv) return;
 
-    const provider = document.getElementById('aiProviderSelect')?.value || '';
-    const baseUrl = (document.getElementById('aiOllamaUrl')?.value || '').trim();
+    const provider = document.getElementById('aiProviderSelect')?.value || 'ollama';
     const model = (document.getElementById('aiModelInput')?.value || '').trim();
     const timeout = (document.getElementById('aiTimeoutInput')?.value || '').trim();
+
+    const payload = {
+        provider: provider,
+        model: model,
+        timeout: parseInt(timeout, 10) || 15
+    };
+
+    // Include provider specific fields
+    const schema = currentProviderSchemas.find(s => s.key === provider);
+    if (schema && Array.isArray(schema.fields)) {
+        schema.fields.forEach(f => {
+            const el = document.getElementById(f.name);
+            if (el) payload[f.name] = el.value.trim();
+        });
+    }
 
     if (btn) {
         btn.disabled = true;
@@ -201,12 +261,7 @@ async function testAIConnectionFromGui() {
         const res = await fetch('/api/settings/ai/test-connection/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                provider: provider,
-                base_url: baseUrl,
-                model: model,
-                timeout: parseInt(timeout, 10) || 15
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await res.json();
@@ -276,7 +331,7 @@ function renderAIDiagnosticResult(data) {
             </div>
             <div class="row g-2 small">
                 <div class="col-md-4">
-                    <strong>${t('ai_version_label', 'Ollama Version')}:</strong> ${escapeHtml(version)}
+                    <strong>${t('ai_version_label', 'Version')}:</strong> ${escapeHtml(version)}
                 </div>
                 <div class="col-md-4">
                     <strong>${t('ai_response_time_label', 'Response Time')}:</strong> ${responseTimeMs} ms
@@ -303,7 +358,6 @@ async function saveAISettingsFromGui() {
     const btn = document.getElementById('aiSaveBtn');
     const enabled = document.getElementById('aiEnabledToggle')?.checked || false;
     const provider = document.getElementById('aiProviderSelect')?.value || 'ollama';
-    const baseUrl = (document.getElementById('aiOllamaUrl')?.value || '').trim();
     const model = (document.getElementById('aiModelInput')?.value || '').trim();
     const temperature = parseFloat(document.getElementById('aiTemperatureInput')?.value || '0.7');
     const contextSize = parseInt(document.getElementById('aiContextSizeInput')?.value || '4096', 10);
@@ -317,6 +371,41 @@ async function saveAISettingsFromGui() {
     const seed = (document.getElementById('aiSeedInput')?.value || '').trim();
     const keepAlive = (document.getElementById('aiKeepAliveInput')?.value || '5m').trim();
 
+    const payload = {
+        ai_enabled: enabled,
+        ai_provider: provider,
+        ai_model: model,
+        ai_temperature: temperature,
+        ai_context_size: contextSize,
+        ai_timeout: timeout,
+        ai_system_prompt: systemPrompt,
+        ai_max_tokens: maxTokens,
+        ai_top_p: topP,
+        ai_top_k: topK,
+        ai_repeat_penalty: repeatPenalty,
+        ai_seed: seed,
+        ai_keep_alive: keepAlive,
+    };
+
+    // Save provider specific models
+    if (provider === 'ollama') payload.ai_model = model;
+    if (provider === 'openai') payload.ai_openai_model = model;
+    if (provider === 'claude') payload.ai_claude_model = model;
+    if (provider === 'gemini') payload.ai_gemini_model = model;
+    if (provider === 'azure') payload.ai_azure_deployment = model;
+
+    // Collect all provider specific inputs
+    currentProviderSchemas.forEach(schema => {
+        if (Array.isArray(schema.fields)) {
+            schema.fields.forEach(f => {
+                const el = document.getElementById(f.name);
+                if (el) {
+                    payload[f.name] = el.value.trim();
+                }
+            });
+        }
+    });
+
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span> ${t('saving', 'Saving...')}`;
@@ -326,22 +415,7 @@ async function saveAISettingsFromGui() {
         const res = await fetch('/api/settings/ai/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ai_enabled: enabled,
-                ai_provider: provider,
-                ai_ollama_url: baseUrl,
-                ai_model: model,
-                ai_temperature: temperature,
-                ai_context_size: contextSize,
-                ai_timeout: timeout,
-                ai_system_prompt: systemPrompt,
-                ai_max_tokens: maxTokens,
-                ai_top_p: topP,
-                ai_top_k: topK,
-                ai_repeat_penalty: repeatPenalty,
-                ai_seed: seed,
-                ai_keep_alive: keepAlive
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await res.json();
@@ -349,7 +423,6 @@ async function saveAISettingsFromGui() {
             throw new Error(data.error || t('settings_save_failed', 'Save failed'));
         }
 
-        // Post-save connection test validation messaging (User requirement #14)
         if (!enabled) {
             showToast(t('settings_saved', 'Settings saved ✓'));
         } else if (data.connection_ok) {
@@ -357,6 +430,7 @@ async function saveAISettingsFromGui() {
         } else {
             showToast(t('ai_saved_conn_failed', 'Configuration saved, but connection test failed ⚠️'), 'warning');
         }
+        await renderAIAdvisorSettings();
     } catch (err) {
         if (typeof showToast === 'function') {
             showToast(err.message || t('settings_save_failed', 'Save failed'), 'error');
