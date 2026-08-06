@@ -54,16 +54,23 @@ async function renderAIAdvisorSettings() {
     }).join('');
 
     const enabledChecked = currentAISettings.ai_enabled ? 'checked' : '';
+    const readOnlyChecked = (currentAISettings.ai_read_only ?? true) ? 'checked' : '';
 
     container.innerHTML = `
         <div class="si-modern-card p-4 mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
                     <p class="text-muted small mb-0" data-i18n="ai_settings_desc">${t('ai_settings_desc', 'Configure AI provider integration, API endpoints, model selection, and security parameters.')}</p>
                 </div>
-                <div class="form-check form-switch fs-5">
-                    <input class="form-check-input" type="checkbox" id="aiEnabledToggle" ${enabledChecked}>
-                    <label class="form-check-label fs-6 fw-semibold ms-2" for="aiEnabledToggle" data-i18n="ai_enabled">${t('ai_enabled', 'Enable AI Advisor')}</label>
+                <div class="d-flex align-items-center gap-4 flex-wrap">
+                    <div class="form-check form-switch fs-5 mb-0">
+                        <input class="form-check-input" type="checkbox" id="aiReadOnlyToggle" ${readOnlyChecked}>
+                        <label class="form-check-label fs-6 fw-semibold ms-2" for="aiReadOnlyToggle" data-i18n="ai_read_only_label">${t('ai_read_only_label', 'Enforce Read-Only Tools')}</label>
+                    </div>
+                    <div class="form-check form-switch fs-5 mb-0">
+                        <input class="form-check-input" type="checkbox" id="aiEnabledToggle" ${enabledChecked}>
+                        <label class="form-check-label fs-6 fw-semibold ms-2" for="aiEnabledToggle" data-i18n="ai_enabled">${t('ai_enabled', 'Enable AI Advisor')}</label>
+                    </div>
                 </div>
             </div>
 
@@ -357,6 +364,7 @@ function selectAIModel(modelName) {
 async function saveAISettingsFromGui() {
     const btn = document.getElementById('aiSaveBtn');
     const enabled = document.getElementById('aiEnabledToggle')?.checked || false;
+    const readOnly = document.getElementById('aiReadOnlyToggle')?.checked ?? true;
     const provider = document.getElementById('aiProviderSelect')?.value || 'ollama';
     const model = (document.getElementById('aiModelInput')?.value || '').trim();
     const temperature = parseFloat(document.getElementById('aiTemperatureInput')?.value || '0.7');
@@ -373,6 +381,7 @@ async function saveAISettingsFromGui() {
 
     const payload = {
         ai_enabled: enabled,
+        ai_read_only: readOnly,
         ai_provider: provider,
         ai_model: model,
         ai_temperature: temperature,

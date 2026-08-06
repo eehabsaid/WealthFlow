@@ -34,11 +34,20 @@ function loadAIChat() {
       </div>
 
       <div class="card-footer p-3" style="background:var(--bg-primary); border-top:1px solid var(--border-color);">
-        <form id="ai-chat-form" class="d-flex gap-2">
+        <form id="ai-chat-form" class="d-flex gap-2 flex-wrap">
+          <select 
+            id="ai-chat-domain-select" 
+            class="form-select form-select-sm" 
+            style="max-width:240px; background:var(--bg-secondary); color:var(--text-primary); border-color:var(--border-color);"
+            aria-label="Question Domain"
+          >
+            <option value="business_data_analysis" selected data-i18n="ai_domain_business_data">Business / Data Analysis</option>
+            <option value="app_features_architecture" data-i18n="ai_domain_app_features">Application Features & Architecture</option>
+          </select>
           <input 
             type="text" 
             id="ai-chat-input" 
-            class="form-control" 
+            class="form-control flex-grow-1" 
             style="background:var(--bg-secondary); color:var(--text-primary); border-color:var(--border-color);" 
             placeholder="Ask a financial question..." 
             data-i18n-placeholder="ai_chat_input_placeholder"
@@ -111,6 +120,9 @@ function _handleAIChatSubmit(e) {
   const text = inputEl.value.trim();
   if (!text) return;
 
+  const domainSelect = document.getElementById("ai-chat-domain-select");
+  const selectedDomain = domainSelect ? domainSelect.value : "business_data_analysis";
+
   inputEl.value = "";
   _appendAIChatMessageBubble("user", text, true);
 
@@ -119,6 +131,7 @@ function _handleAIChatSubmit(e) {
   const payload = {
     message: text,
     conversation_id: _aiChatConversationId,
+    question_domain: selectedDomain,
   };
 
   fetch("/api/financial-advisor/ai/chat/", {
@@ -263,6 +276,14 @@ function _appendAIChatMessageBubble(role, content, animate = false, isError = fa
           ? "Explaining chart data..."
           : toolName === "suggest_optimizations"
           ? "Analyzing optimization opportunities..."
+          : toolName === "read_live_app_structure"
+          ? "Discovering live app structure..."
+          : toolName === "suggest_app_feature"
+          ? "Drafting feature requirement document..."
+          : toolName === "query_application_data"
+          ? "Querying business data across modules..."
+          : toolName === "read_application_codebase"
+          ? "Indexing and querying codebase architecture..."
           : `Executing ${toolName}...`;
 
       toolDiv.innerHTML = `<i class="bi ${iconClass}"></i> <span data-i18n="${i18nKey}">${defaultText}</span>`;

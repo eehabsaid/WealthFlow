@@ -512,6 +512,9 @@ class AISettingsView(AdminRequiredMixin, View):
         seed = AppSettings.get("ai_seed", "").strip()
         keep_alive = AppSettings.get("ai_keep_alive", "5m").strip()
 
+        read_only_str = AppSettings.get("ai_read_only", "true").strip().lower()
+        read_only = read_only_str in ("true", "1", "yes")
+
         # Decrypt secret API keys to generate masked UI display values
         openai_key_dec = decrypt_credential(AppSettings.get("ai_openai_api_key", "").strip())
         claude_key_dec = decrypt_credential(AppSettings.get("ai_claude_api_key", "").strip())
@@ -524,6 +527,7 @@ class AISettingsView(AdminRequiredMixin, View):
 
         return JsonResponse({
             "ai_enabled": enabled,
+            "ai_read_only": read_only,
             "ai_provider": provider,
             "ai_ollama_url": ollama_url,
             "ai_model": model,
@@ -635,6 +639,7 @@ class AISettingsView(AdminRequiredMixin, View):
             return JsonResponse({"error": "ai_context_token_budget must be a positive integer"}, status=400)
 
         enabled = bool(data.get("ai_enabled", False))
+        read_only = bool(data.get("ai_read_only", True))
         ollama_url = str(data.get("ai_ollama_url", "http://localhost:11434")).strip()
         model = str(data.get("ai_model", "llama3.2:latest")).strip()
         system_prompt = str(data.get("ai_system_prompt", "You are a helpful financial advisor assistant.")).strip()
@@ -642,6 +647,7 @@ class AISettingsView(AdminRequiredMixin, View):
         keep_alive = str(data.get("ai_keep_alive", "5m")).strip()
 
         AppSettings.set("ai_enabled", "true" if enabled else "false")
+        AppSettings.set("ai_read_only", "true" if read_only else "false")
         AppSettings.set("ai_provider", provider)
         AppSettings.set("ai_ollama_url", ollama_url)
         AppSettings.set("ai_model", model)

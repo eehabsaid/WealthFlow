@@ -25,6 +25,7 @@ User = get_user_model()
 
 class AIToolsUnitTestSuite(TestCase):
     def setUp(self):
+        AppSettings.set("ai_read_only", "false")
         self.user = User.objects.create_user(username="action_user", password="password123")
         self.inactive_user = User.objects.create_user(
             username="inactive_user", password="password123", is_active=False
@@ -32,13 +33,17 @@ class AIToolsUnitTestSuite(TestCase):
 
     def test_registered_tools_schema_structure(self):
         schemas = get_registered_tool_schemas()
-        self.assertEqual(len(schemas), 5)
+        self.assertEqual(len(schemas), 9)
         names = [s["function"]["name"] for s in schemas]
         self.assertIn("create_scenario", names)
         self.assertIn("compare_scenarios", names)
         self.assertIn("summarize_report", names)
         self.assertIn("explain_chart", names)
         self.assertIn("suggest_optimizations", names)
+        self.assertIn("read_live_app_structure", names)
+        self.assertIn("suggest_app_feature", names)
+        self.assertIn("query_application_data", names)
+        self.assertIn("read_application_codebase", names)
 
     def test_validation_pipeline_step_1_unknown_tool_rejection(self):
         # Step 1: Unknown tool name MUST return status="rejected" audit record and error (User rule & Rule 3)

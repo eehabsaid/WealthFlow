@@ -103,10 +103,12 @@ class AIChatView(View):
         builder = ContextBuilderService()
         messages_seq, sources = builder.assemble_messages(user_text, prior_messages)
 
+        question_domain = str(body.get("question_domain", "")).strip() or None
+
         # Tool calling setup
         tools_param = None
         if getattr(provider, "supports_tools", False):
-            tools_param = get_registered_tool_schemas()
+            tools_param = get_registered_tool_schemas(domain=question_domain)
 
         # Execute provider call
         res = provider.generate(messages_seq, tools=tools_param)
