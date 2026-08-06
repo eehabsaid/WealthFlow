@@ -101,7 +101,7 @@ class AIChatView(View):
 
         # Build context and messages sequence
         builder = ContextBuilderService()
-        messages_seq, sources = builder.assemble_messages(user_text, prior_messages)
+        messages_seq, sources = builder.assemble_messages(user_text, prior_messages, user=request.user)
 
         question_domain = str(body.get("question_domain", "")).strip() or None
 
