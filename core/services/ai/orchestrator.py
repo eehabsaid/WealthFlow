@@ -77,7 +77,7 @@ class AIContextOrchestrator:
         if "business_data_providers" in sources_needed:
             try:
                 limit = min(int(clean_params.get("limit", 20) or 20), 100)
-                bus_data = get_all_providers_data(user=user, focus_area=focus_area, limit=limit)
+                bus_data = get_all_providers_data(user=user, limit=limit)
                 payload_data["business_data"] = bus_data
                 context_sources.append("business_data_providers")
                 modules_consulted.extend([k for k in bus_data.keys() if not k.endswith("_error")])

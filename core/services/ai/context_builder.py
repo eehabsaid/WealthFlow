@@ -60,9 +60,9 @@ class AIContextBuilder:
         return res_data
 
     @classmethod
-    def build_business_context(cls, user: Any, query_type: str = "all", focus_area: str = "", limit: int = 20) -> dict[str, Any]:
-        """Fetch read-only business data signals via Data Provider Registry."""
-        return get_all_providers_data(user, focus_area=focus_area, limit=limit)
+    def build_business_context(cls, user: Any, limit: int = 20) -> dict[str, Any]:
+        """Fetch complete read-only business data signals via Data Provider Registry."""
+        return get_all_providers_data(user, limit=limit)
 
     @classmethod
     def build_codebase_context(

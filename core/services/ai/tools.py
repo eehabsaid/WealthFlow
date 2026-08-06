@@ -242,14 +242,10 @@ def _handle_query_application_data(user: Any, params: dict[str, Any]) -> dict[st
     """
     from core.services.ai.context_builder import AIContextBuilder
 
-    query_type = str(params.get("query_type", "all")).strip().lower()
-    focus_area = str(params.get("focus_area", "")).strip().lower()
     limit = min(int(params.get("limit", 20) or 20), 100)
 
     res = AIContextBuilder.build_business_context(
         user=user,
-        query_type=query_type,
-        focus_area=focus_area,
         limit=limit,
     )
     if isinstance(res, dict) and "_explanation_metadata" not in res:
@@ -516,16 +512,6 @@ AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "query_type": {
-                            "type": "string",
-                            "description": "Query type ('all', 'financial_position', 'expense_vs_salary', 'asset_net_worth_contribution', 'long_term_growth_categories', 'exchange_rate_correlation', 'cross_module_summary')",
-                            "default": "all"
-                        },
-                        "focus_area": {
-                            "type": "string",
-                            "description": "Module focus ('all', 'bank_certificates', 'market_data', 'balances', 'fixed_assets', 'salary', 'expenses', 'financial_advisor' or comma-separated list like 'bank_certificates,market_data,balances'). Default is 'all'.",
-                            "default": "all"
-                        },
                         "limit": {
                             "type": "integer",
                             "description": "Max records per dataset (default 20, max 100)",

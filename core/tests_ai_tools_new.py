@@ -205,20 +205,12 @@ class NewAIToolsUnitTestSuite(TestCase):
         self.assertIn("salary", DATA_PROVIDER_REGISTRY)
         self.assertIn("expenses", DATA_PROVIDER_REGISTRY)
 
-        data = get_all_providers_data(self.user, focus_area="salary")
+        data = get_all_providers_data(self.user)
         self.assertIn("salary", data)
-
-    def test_get_all_providers_data_aliases_and_multi_focus(self):
-        from core.services.ai.providers import get_all_providers_data
-        multi_data = get_all_providers_data(self.user, focus_area="gold, certificates, cash")
-        self.assertIn("market_data", multi_data)
-        self.assertIn("bank_certificates", multi_data)
-        self.assertIn("balances", multi_data)
-
-        all_data = get_all_providers_data(self.user, focus_area="all")
-        self.assertIn("salary", all_data)
-        self.assertIn("bank_certificates", all_data)
-        self.assertIn("market_data", all_data)
+        self.assertIn("bank_certificates", data)
+        self.assertIn("market_data", data)
+        self.assertIn("balances", data)
+        self.assertIn("fixed_assets", data)
 
     def test_ai_cache_manager(self):
         from core.services.ai.cache_manager import AICacheManager
