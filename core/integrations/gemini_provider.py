@@ -22,9 +22,11 @@ from core.services.ai.credential_encryption import (
 logger = logging.getLogger(__name__)
 
 GEMINI_DEFAULT_MODELS = [
-    {"name": "gemini-1.5-pro", "model": "gemini-1.5-pro"},
-    {"name": "gemini-1.5-flash", "model": "gemini-1.5-flash"},
     {"name": "gemini-2.0-flash", "model": "gemini-2.0-flash"},
+    {"name": "gemini-flash-latest", "model": "gemini-flash-latest"},
+    {"name": "gemini-2.5-flash", "model": "gemini-2.5-flash"},
+    {"name": "gemini-1.5-flash", "model": "gemini-1.5-flash"},
+    {"name": "gemini-1.5-pro", "model": "gemini-1.5-pro"},
 ]
 
 
@@ -81,7 +83,7 @@ class GeminiProvider(BaseAIProvider):
                     "type": "text",
                     "is_secret": False,
                     "label_key": "ai_model",
-                    "placeholder": "e.g. gemini-1.5-flash, gemini-1.5-pro",
+                    "placeholder": "e.g. gemini-2.0-flash, gemini-flash-latest, gemini-1.5-flash",
                     "required": False,
                 },
             ],

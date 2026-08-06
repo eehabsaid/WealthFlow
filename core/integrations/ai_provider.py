@@ -181,6 +181,10 @@ class OllamaProvider(BaseAIProvider):
             options["temperature"] = float(kwargs.get("temperature") or AppSettings.get("ai_temperature", "0.7"))
         except (ValueError, TypeError):
             pass
+        try:
+            options["num_ctx"] = int(kwargs.get("context_size") or AppSettings.get("ai_context_size", "4096"))
+        except (ValueError, TypeError):
+            pass
 
         payload: dict[str, Any] = {
             "model": model_name,
