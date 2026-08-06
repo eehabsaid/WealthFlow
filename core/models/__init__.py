@@ -27,6 +27,7 @@ from .documentation import DocumentationExecution
 from .scenario import Scenario, ScenarioEvent
 from .ai_conversation import AIConversation
 from .ai_message import AIMessage
+from .ai_knowledge import AIKnowledgeEntry, AIModelVersion, AIBenchmarkReport
 
 __all__ = [
     "Company",
@@ -88,4 +89,7 @@ __all__ = [
     "ScenarioEvent",
     "AIConversation",
     "AIMessage",
+    "AIKnowledgeEntry",
+    "AIModelVersion",
+    "AIBenchmarkReport",
 ]

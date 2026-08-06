@@ -9,70 +9,97 @@ function loadAIChat() {
 
   container.innerHTML = `
     <div class="card border-0 si-modern-card" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; overflow:hidden;">
-      <div class="card-header d-flex align-items-center justify-content-between py-3 px-4" style="background:var(--bg-primary); border-bottom:1px solid var(--border-color);">
-        <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-robot fs-5" style="color:var(--accent-color, #0d6efd);"></i>
-          <div>
-            <h6 class="mb-0 fw-semibold" style="color:var(--text-primary);" data-i18n="ai_chat_header_title">AI Financial Advisor</h6>
-            <small style="color:var(--text-secondary);" data-i18n="ai_chat_header_subtitle">Ask questions about your financial health, cash flow, goals, and risk</small>
+      <div class="card-body p-0">
+        <div class="row g-0">
+          <!-- Sidebar: Threads & New Chat -->
+          <div class="col-md-4 col-lg-3 p-3 border-end d-flex flex-column" style="border-color:var(--border-color) !important; background:var(--bg-primary); min-height:550px;">
+            <button id="ai-chat-new-thread-btn" class="btn btn-primary w-100 mb-3 d-flex align-items-center justify-content-center gap-2" type="button">
+              <i class="bi bi-plus-lg"></i>
+              <span data-i18n="ai_chat_new_chat_btn">New Chat</span>
+            </button>
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <small class="fw-bold text-uppercase" style="color:var(--text-secondary); font-size:0.75rem;" data-i18n="ai_chat_sidebar_conversations">Conversations</small>
+            </div>
+            <div id="ai-chat-thread-list" class="flex-grow-1 overflow-y-auto pe-1" style="max-height:450px;">
+              <!-- Dynamic thread items -->
+            </div>
+          </div>
+
+          <!-- Main Chat Panel -->
+          <div class="col-md-8 col-lg-9 d-flex flex-column" style="min-height:550px;">
+            <!-- Header -->
+            <div class="card-header d-flex align-items-center justify-content-between py-3 px-4" style="background:var(--bg-primary); border-bottom:1px solid var(--border-color);">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-robot fs-5" style="color:var(--accent-color, #0d6efd);"></i>
+                <div>
+                  <h6 id="ai-chat-active-title" class="mb-0 fw-semibold" style="color:var(--text-primary);" data-i18n="ai_chat_header_title">AI Financial Advisor</h6>
+                  <small style="color:var(--text-secondary);" data-i18n="ai_chat_header_subtitle">Ask questions about your financial health, cash flow, goals, and risk</small>
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span id="ai-chat-status-badge" class="badge rounded-pill bg-secondary" data-i18n="ai_chat_status_disabled">AI Offline</span>
+                <button id="ai-chat-clear-btn" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" type="button" title="Clear Conversation">
+                  <i class="bi bi-trash"></i>
+                  <span data-i18n="ai_chat_clear_history">Clear</span>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Message List -->
+            <div class="card-body p-4 flex-grow-1" style="min-height:380px; max-height:480px; overflow-y:auto;" id="ai-chat-message-list">
+              <div class="text-center py-5" id="ai-chat-empty-state">
+                <i class="bi bi-chat-left-dots fs-1 mb-3" style="color:var(--text-secondary); opacity:0.5;"></i>
+                <p style="color:var(--text-secondary);" data-i18n="ai_chat_empty_state">Start a conversation with AI Financial Advisor! Ask about your net worth, cash flow forecast, risk analysis, or goal progress.</p>
+              </div>
+            </div>
+
+            <!-- Footer / Input -->
+            <div class="card-footer p-3" style="background:var(--bg-primary); border-top:1px solid var(--border-color);">
+              <form id="ai-chat-form" class="d-flex gap-2 flex-wrap">
+                <select 
+                  id="ai-chat-domain-select" 
+                  class="form-select form-select-sm" 
+                  style="max-width:240px; background:var(--bg-secondary); color:var(--text-primary); border-color:var(--border-color);"
+                  aria-label="Question Domain"
+                >
+                  <option value="business_data_analysis" selected data-i18n="ai_domain_business_data">Business / Data Analysis</option>
+                  <option value="app_features_architecture" data-i18n="ai_domain_app_features">Application Features & Architecture</option>
+                </select>
+                <textarea 
+                  id="ai-chat-input" 
+                  class="form-control flex-grow-1" 
+                  rows="1"
+                  style="background:var(--bg-secondary); color:var(--text-primary); border-color:var(--border-color); resize:none; overflow-y:auto; max-height:120px;" 
+                  placeholder="Ask a financial or business data question..." 
+                  data-i18n-placeholder="ai_chat_input_placeholder_business"
+                  required
+                ></textarea>
+                <button type="submit" id="ai-chat-send-btn" class="btn btn-primary px-4 d-flex align-items-center gap-2">
+                  <span data-i18n="ai_chat_send_button">Send</span>
+                  <i class="bi bi-send"></i>
+                </button>
+              </form>
+            </div>
           </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
-          <span id="ai-chat-status-badge" class="badge rounded-pill bg-secondary" data-i18n="ai_chat_status_disabled">AI Offline</span>
-          <button id="ai-chat-clear-btn" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" type="button" title="Clear Conversation">
-            <i class="bi bi-trash"></i>
-            <span data-i18n="ai_chat_clear_history">Clear</span>
-          </button>
-        </div>
-      </div>
-      
-      <div class="card-body p-4" style="min-height:380px; max-height:550px; overflow-y:auto;" id="ai-chat-message-list">
-        <div class="text-center py-5" id="ai-chat-empty-state">
-          <i class="bi bi-chat-left-dots fs-1 mb-3" style="color:var(--text-secondary); opacity:0.5;"></i>
-          <p style="color:var(--text-secondary);" data-i18n="ai_chat_empty_state">Start a conversation with AI Financial Advisor! Ask about your net worth, cash flow forecast, risk analysis, or goal progress.</p>
-        </div>
-      </div>
-
-      <div class="card-footer p-3" style="background:var(--bg-primary); border-top:1px solid var(--border-color);">
-        <form id="ai-chat-form" class="d-flex gap-2 flex-wrap">
-          <select 
-            id="ai-chat-domain-select" 
-            class="form-select form-select-sm" 
-            style="max-width:240px; background:var(--bg-secondary); color:var(--text-primary); border-color:var(--border-color);"
-            aria-label="Question Domain"
-          >
-            <option value="business_data_analysis" selected data-i18n="ai_domain_business_data">Business / Data Analysis</option>
-            <option value="app_features_architecture" data-i18n="ai_domain_app_features">Application Features & Architecture</option>
-          </select>
-          <textarea 
-            id="ai-chat-input" 
-            class="form-control flex-grow-1" 
-            rows="1"
-            style="background:var(--bg-secondary); color:var(--text-primary); border-color:var(--border-color); resize:none; overflow-y:auto; max-height:150px;" 
-            placeholder="Ask a financial or business data question..." 
-            data-i18n-placeholder="ai_chat_input_placeholder_business"
-            required
-          ></textarea>
-          <button type="submit" id="ai-chat-send-btn" class="btn btn-primary px-4 d-flex align-items-center gap-2">
-            <span data-i18n="ai_chat_send_button">Send</span>
-            <i class="bi bi-send"></i>
-          </button>
-        </form>
       </div>
     </div>
   `;
 
   if (typeof applyTranslations === "function") applyTranslations();
 
+  const newBtn = document.getElementById("ai-chat-new-thread-btn");
+  if (newBtn) {
+    newBtn.addEventListener("click", _startNewAIChatConversation);
+  }
+
   const inputEl = document.getElementById("ai-chat-input");
   if (inputEl) {
     inputEl.addEventListener("keydown", function(e) {
       if (e.key === "Enter") {
         if (e.shiftKey) {
-          // Shift + Enter: Allow natural newline insertion
           return;
         }
-        // Enter (without Shift): Submit form
         e.preventDefault();
         const form = document.getElementById("ai-chat-form");
         if (form) {
@@ -83,7 +110,7 @@ function loadAIChat() {
 
     inputEl.addEventListener("input", function() {
       this.style.height = "auto";
-      this.style.height = Math.min(this.scrollHeight, 150) + "px";
+      this.style.height = Math.min(this.scrollHeight, 120) + "px";
     });
   }
 
@@ -108,34 +135,107 @@ function loadAIChat() {
   _fetchAIChatConversations();
 }
 
+function _startNewAIChatConversation() {
+  _aiChatConversationId = null;
+  const msgContainer = document.getElementById("ai-chat-message-list");
+  if (msgContainer) {
+    msgContainer.innerHTML = `
+      <div class="text-center py-5" id="ai-chat-empty-state">
+        <i class="bi bi-chat-left-dots fs-1 mb-3" style="color:var(--text-secondary); opacity:0.5;"></i>
+        <p style="color:var(--text-secondary);" data-i18n="ai_chat_empty_state">Start a conversation with AI Financial Advisor!</p>
+      </div>
+    `;
+  }
+  const inputEl = document.getElementById("ai-chat-input");
+  if (inputEl) inputEl.value = "";
+
+  const titleEl = document.getElementById("ai-chat-active-title");
+  if (titleEl) titleEl.textContent = typeof t === "function" ? t("ai_chat_header_title") : "AI Financial Advisor";
+
+  _fetchAIChatConversations();
+}
+
 function _fetchAIChatConversations() {
   fetch("/api/financial-advisor/ai/conversations/")
-    .then((res) => (res.ok ? res.json() : { conversations: [] }))
+    .then((res) => res.json())
     .then((data) => {
-      const list = data.conversations || [];
-      if (list.length > 0) {
-        _aiChatConversationId = list[0].id;
-        _loadAIChatMessages(_aiChatConversationId);
+      const threadList = document.getElementById("ai-chat-thread-list");
+      if (!threadList) return;
+
+      const conversations = (data && data.conversations) || [];
+      if (conversations.length === 0) {
+        threadList.innerHTML = `<small class="text-muted text-center d-block py-3" data-i18n="ai_chat_no_conversations">No past conversations</small>`;
+        if (typeof applyTranslations === "function") applyTranslations();
+        return;
       }
+
+      let html = "";
+      conversations.forEach((conv) => {
+        const activeClass = conv.id === _aiChatConversationId ? "btn-secondary active" : "btn-outline-secondary";
+        html += `
+          <div class="d-flex align-items-center justify-content-between mb-1 group-hover">
+            <button class="btn ${activeClass} btn-sm text-start text-truncate flex-grow-1 me-1" style="font-size:0.85rem;" type="button" onclick="_switchAIChatConversation(${conv.id})">
+              <i class="bi bi-chat-text me-1"></i> ${conv.title || "Conversation"}
+            </button>
+            <button class="btn btn-sm btn-link text-danger p-0 ms-1" type="button" title="Delete" onclick="_deleteAIChatConversation(${conv.id})">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </div>
+        `;
+      });
+      threadList.innerHTML = html;
     })
     .catch(() => {});
 }
 
-function _loadAIChatMessages(convId) {
-  if (!convId) return;
-  fetch(`/api/financial-advisor/ai/conversations/${convId}/`)
-    .then((res) => (res.ok ? res.json() : null))
+function _switchAIChatConversation(id) {
+  _aiChatConversationId = id;
+  _fetchAIChatConversations();
+
+  fetch(`/api/financial-advisor/ai/conversations/${id}/`)
+    .then((res) => res.json())
     .then((data) => {
-      if (!data || !data.conversation) return;
-      const msgs = data.conversation.messages || [];
+      const conv = data && data.conversation;
+      if (!conv) return;
+
+      const titleEl = document.getElementById("ai-chat-active-title");
+      if (titleEl) titleEl.textContent = conv.title || "AI Financial Advisor";
+
       const msgContainer = document.getElementById("ai-chat-message-list");
       if (!msgContainer) return;
-
-      if (msgs.length === 0) return;
-
       msgContainer.innerHTML = "";
-      msgs.forEach((m) => _appendAIChatMessageBubble(m.role, m.content, false, false, m.tool_calls || []));
-      _scrollAIChatToBottom();
+
+      const messages = conv.messages || [];
+      if (messages.length === 0) {
+        msgContainer.innerHTML = `
+          <div class="text-center py-5" id="ai-chat-empty-state">
+            <i class="bi bi-chat-left-dots fs-1 mb-3" style="color:var(--text-secondary); opacity:0.5;"></i>
+            <p style="color:var(--text-secondary);" data-i18n="ai_chat_empty_state">Start a conversation with AI Financial Advisor!</p>
+          </div>
+        `;
+        return;
+      }
+
+      messages.forEach((msg) => {
+        _appendAIChatMessageBubble(msg.role, msg.content, false, false, msg.tool_calls || []);
+      });
+    })
+    .catch(() => {});
+}
+
+function _deleteAIChatConversation(id) {
+  fetch(`/api/financial-advisor/ai/conversations/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "X-CSRFToken": _getAIChatCSRFToken(),
+    },
+  })
+    .then(() => {
+      if (_aiChatConversationId === id) {
+        _startNewAIChatConversation();
+      } else {
+        _fetchAIChatConversations();
+      }
     })
     .catch(() => {});
 }
@@ -147,22 +247,16 @@ function _handleAIChatSubmit(e) {
   const inputEl = document.getElementById("ai-chat-input");
   if (!inputEl) return;
 
-  const text = inputEl.value.trim();
-  if (!text) return;
+  const userText = inputEl.value.trim();
+  if (!userText) return;
 
   const domainSelect = document.getElementById("ai-chat-domain-select");
-  const selectedDomain = domainSelect ? domainSelect.value : "business_data_analysis";
+  const questionDomain = domainSelect ? domainSelect.value : "business_data_analysis";
 
   inputEl.value = "";
-  _appendAIChatMessageBubble("user", text, true);
-
+  inputEl.style.height = "auto";
+  _appendAIChatMessageBubble("user", userText);
   _setAIChatLoading(true);
-
-  const payload = {
-    message: text,
-    conversation_id: _aiChatConversationId,
-    question_domain: selectedDomain,
-  };
 
   fetch("/api/financial-advisor/ai/chat/", {
     method: "POST",
@@ -170,31 +264,31 @@ function _handleAIChatSubmit(e) {
       "Content-Type": "application/json",
       "X-CSRFToken": _getAIChatCSRFToken(),
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      message: userText,
+      conversation_id: _aiChatConversationId,
+      question_domain: questionDomain,
+    }),
   })
     .then((res) => res.json())
     .then((data) => {
       _setAIChatLoading(false);
-      if (data.conversation_id) {
-        _aiChatConversationId = data.conversation_id;
+      if (!data.ok && data.error_key === "ai_chat_disabled_desc") {
+        _appendAIChatMessageBubble("assistant", typeof t === "function" ? t("ai_chat_disabled_desc") : "AI Assistant is disabled.", true, true);
+        _updateAIChatStatusBadge(false);
+        return;
       }
 
-      if (!data.ok) {
-        const serverErr = (data.error || "").trim();
-        const errorKey = data.error_key || "ai_error_generic";
-        const localizedPrefix = typeof t === "function" ? t(errorKey, "Unable to connect to AI provider.") : "Unable to connect to AI provider.";
-        const displayMsg = serverErr ? `${localizedPrefix}\n(${serverErr})` : localizedPrefix;
-        _appendAIChatMessageBubble("assistant", displayMsg, true, true);
-        _updateAIChatStatusBadge(false);
-      } else if (data.message) {
-        _appendAIChatMessageBubble(
-          "assistant",
-          data.message.content,
-          true,
-          false,
-          data.message.tool_calls || []
-        );
+      if (data.conversation_id) {
+        _aiChatConversationId = data.conversation_id;
+        _fetchAIChatConversations();
+      }
+
+      if (data.message && data.message.content) {
+        _appendAIChatMessageBubble("assistant", data.message.content, true, false, data.message.tool_calls || []);
         _updateAIChatStatusBadge(true);
+      } else if (data.error) {
+        _appendAIChatMessageBubble("assistant", data.error, true, true);
       }
     })
     .catch((err) => {
@@ -204,35 +298,14 @@ function _handleAIChatSubmit(e) {
       _appendAIChatMessageBubble("assistant", displayMsg, true, true);
       _updateAIChatStatusBadge(false);
     });
-
 }
 
 function _handleAIChatClear() {
   if (!_aiChatConversationId) {
-    const msgContainer = document.getElementById("ai-chat-message-list");
-    if (msgContainer) {
-      msgContainer.innerHTML = `
-        <div class="text-center py-5" id="ai-chat-empty-state">
-          <i class="bi bi-chat-left-dots fs-1 mb-3" style="color:var(--text-secondary); opacity:0.5;"></i>
-          <p style="color:var(--text-secondary);" data-i18n="ai_chat_empty_state">Start a conversation with AI Financial Advisor!</p>
-        </div>
-      `;
-      if (typeof applyTranslations === "function") applyTranslations();
-    }
+    _startNewAIChatConversation();
     return;
   }
-
-  fetch(`/api/financial-advisor/ai/conversations/${_aiChatConversationId}/`, {
-    method: "DELETE",
-    headers: {
-      "X-CSRFToken": _getAIChatCSRFToken(),
-    },
-  })
-    .then(() => {
-      _aiChatConversationId = null;
-      loadAIChat();
-    })
-    .catch(() => {});
+  _deleteAIChatConversation(_aiChatConversationId);
 }
 
 function _appendAIChatMessageBubble(role, content, animate = false, isError = false, toolCalls = []) {
@@ -299,27 +372,7 @@ function _appendAIChatMessageBubble(role, content, animate = false, isError = fa
         iconClass = "bi-exclamation-triangle text-warning";
       }
 
-      const defaultText =
-        toolName === "create_scenario"
-          ? "Creating scenario..."
-          : toolName === "compare_scenarios"
-          ? "Comparing scenarios..."
-          : toolName === "summarize_report"
-          ? "Summarizing report..."
-          : toolName === "explain_chart"
-          ? "Explaining chart data..."
-          : toolName === "suggest_optimizations"
-          ? "Analyzing optimization opportunities..."
-          : toolName === "read_live_app_structure"
-          ? "Discovering live app structure..."
-          : toolName === "suggest_app_feature"
-          ? "Drafting feature requirement document..."
-          : toolName === "query_application_data"
-          ? "Querying business data across modules..."
-          : toolName === "read_application_codebase"
-          ? "Indexing and querying codebase architecture..."
-          : `Executing ${toolName}...`;
-
+      const defaultText = `Executing ${toolName}...`;
       toolDiv.innerHTML = `<i class="bi ${iconClass}"></i> <span data-i18n="${i18nKey}">${defaultText}</span>`;
       bubble.appendChild(toolDiv);
     });
@@ -402,7 +455,6 @@ function _renderAIChatFormattedContent(content) {
   if (!content) return "";
   let text = String(content);
 
-  // Replace raw internal translation keys if any exist in text
   text = text
     .replace(/portfolio_optimizer_asset_cash/g, typeof t === "function" ? t("portfolio_optimizer_asset_cash", "Cash") : "Cash")
     .replace(/portfolio_optimizer_asset_certificates/g, typeof t === "function" ? t("portfolio_optimizer_asset_certificates", "Bank Certificates") : "Bank Certificates")
@@ -411,20 +463,18 @@ function _renderAIChatFormattedContent(content) {
     .replace(/portfolio_optimizer_asset_vehicles/g, typeof t === "function" ? t("portfolio_optimizer_asset_vehicles", "Vehicles") : "Vehicles")
     .replace(/portfolio_optimizer_asset_other_assets/g, typeof t === "function" ? t("portfolio_optimizer_asset_other_assets", "Other Assets") : "Other Assets");
 
-  // Escape HTML tags to prevent XSS except for our rendered tags
   let safe = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // Convert Markdown tables into clean Bootstrap HTML tables
   safe = safe.replace(/(?:(?:\|.+?\|\r?\n)+)/g, function(tableBlock) {
     const lines = tableBlock.trim().split(/\r?\n/);
     if (lines.length < 2) return tableBlock;
     let html = '<div class="table-responsive my-2"><table class="table table-sm table-bordered align-middle text-start mb-0" style="border-color:var(--border-color); background:transparent;">';
     let isHeader = true;
     lines.forEach(line => {
-      if (line.includes('---')) return; // skip header separator
+      if (line.includes('---')) return;
       const cells = line.split('|').filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
       if (cells.length === 0) return;
       if (isHeader) {
@@ -442,20 +492,11 @@ function _renderAIChatFormattedContent(content) {
     return html;
   });
 
-  // Convert Bold **text**
   safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  
-  // Convert Italic *text*
-  safe = safe.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-  // Convert Headers ### Header
+  safe = safe.replace(/\*(.*?)\*/g, 'em>$1</em>');
   safe = safe.replace(/^###\s+(.*$)/gim, '<h6 class="fw-bold mt-2 mb-1" style="color:var(--text-primary);">$1</h6>');
   safe = safe.replace(/^##\s+(.*$)/gim, '<h5 class="fw-bold mt-2 mb-1" style="color:var(--text-primary);">$1</h5>');
-
-  // Convert bullet points (- item or * item)
   safe = safe.replace(/^\s*[\-\*]\s+(.*$)/gim, '<li class="ms-3 mb-1">$1</li>');
-
-  // Convert newlines
   safe = safe.replace(/\n/g, '<br>');
 
   return safe;
@@ -478,3 +519,5 @@ function _updateAIChatInputPlaceholder(domain) {
 }
 
 window.loadAIChat = loadAIChat;
+window._switchAIChatConversation = _switchAIChatConversation;
+window._deleteAIChatConversation = _deleteAIChatConversation;

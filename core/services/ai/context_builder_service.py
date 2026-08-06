@@ -91,7 +91,11 @@ class ContextBuilderService:
             "   - DO NOT summarize or report on unrequested background modules (such as employee salary entries or company payments) when the user specifies a particular focus area.\n"
             "7. Keep responses concise, professional, accurate, and visually structured."
         )
-        return f"{base_prompt}{guardrails}"
+
+        from core.services.ai.knowledge_engine import AIKnowledgeEngine
+        knowledge_context = AIKnowledgeEngine.build_knowledge_context(user=user)
+
+        return f"{base_prompt}{guardrails}{knowledge_context}"
 
     def summarize_payload(self, service_key: str, payload: dict[str, Any]) -> str:
         """
