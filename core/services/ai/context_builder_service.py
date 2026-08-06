@@ -86,7 +86,10 @@ class ContextBuilderService:
             "   - NEVER output raw JSON objects, raw dictionaries, or raw internal keys (such as 'portfolio_optimizer_asset_cash').\n"
             "   - Always map internal keys to human-readable labels (e.g. 'portfolio_optimizer_asset_cash' -> 'Cash', 'portfolio_optimizer_asset_certificates' -> 'Bank Certificates', 'portfolio_optimizer_asset_gold' -> 'Gold', 'portfolio_optimizer_asset_real_estate' -> 'Real Estate', 'portfolio_optimizer_asset_vehicles' -> 'Vehicles', 'portfolio_optimizer_asset_other_assets' -> 'Other Assets').\n"
             "   - Present financial comparisons, breakdowns, and allocations using clean Markdown tables, structured bullet points, and bold section headers.\n"
-            "6. Keep responses concise, professional, accurate, and visually structured."
+            "6. TOPIC RELEVANCE & FOCUS:\n"
+            "   - When the user explicitly asks you to focus on specific topics (e.g. Gold, Bank Certificates, Liquid Cash), answer ONLY about those requested topics.\n"
+            "   - DO NOT summarize or report on unrequested background modules (such as employee salary entries or company payments) when the user specifies a particular focus area.\n"
+            "7. Keep responses concise, professional, accurate, and visually structured."
         )
         return f"{base_prompt}{guardrails}"
 

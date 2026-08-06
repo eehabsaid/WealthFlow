@@ -37,9 +37,14 @@ class SalaryDataProvider(BaseContextProvider):
             total_expected=Sum("expected"),
             count=Count("id"),
         )
+        company_summary = list(
+            SalaryEntry.objects.values("company__name")
+            .annotate(total_paid=Sum("paid"), total_expected=Sum("expected"))
+            .order_by("-total_paid")
+        )
         recent_salaries = list(
             SalaryEntry.objects.select_related("company")
-            .order_by("-year", "-month")[:limit]
+            .order_by("-year", "-month")[:min(limit, 5)]
             .values("year", "month", "company__name", "paid", "bonus", "expected")
         )
         return {
@@ -48,6 +53,7 @@ class SalaryDataProvider(BaseContextProvider):
                 "total_bonus": float(sal_agg["total_bonus"] or 0),
                 "total_expected": float(sal_agg["total_expected"] or 0),
                 "count": sal_agg["count"] or 0,
+                "company_breakdown": company_summary,
             },
             "recent_entries": recent_salaries,
         }

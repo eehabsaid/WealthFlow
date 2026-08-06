@@ -36,10 +36,16 @@ class FixedAssetsDataProvider(BaseContextProvider):
             .annotate(total_value=Sum("purchase_price"), count=Count("id"))
             .order_by("-total_value")
         )
+        gold_assets = list(
+            FixedAsset.objects.filter(asset_type__iexact="gold")
+            .values("id", "name", "purchase_price", "current_market_value", "status")
+        )
         asset_list = list(
             FixedAsset.objects.values("id", "name", "asset_type", "purchase_price", "status", "current_market_value")[:limit]
         )
         return {
             "by_type": assets_by_type,
+            "gold_assets": gold_assets,
+            "gold_total_market_value": sum(float(g.get("current_market_value") or g.get("purchase_price") or 0) for g in gold_assets),
             "items": asset_list,
         }
