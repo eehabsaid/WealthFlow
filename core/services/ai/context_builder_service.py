@@ -69,7 +69,12 @@ class ContextBuilderService:
             "2. Every metric, balance, forecast, and figure in your response MUST come directly from the provided financial context payload.\n"
             "3. Do NOT make up, guess, or fabricate financial figures or details that are not present in the data.\n"
             "4. If the user asks about metrics or details not present in the provided context, state clearly that the specific metric is not available in the current financial payload.\n"
-            "5. Keep responses concise, objective, accurate, and structured."
+            "5. FORMATTING & PRESENTATION STANDARDS:\n"
+            "   - NEVER output raw JSON objects, raw dictionaries, or raw internal keys (such as 'portfolio_optimizer_asset_cash').\n"
+            "   - Always map internal keys to human-readable labels (e.g. 'portfolio_optimizer_asset_cash' -> 'Cash', 'portfolio_optimizer_asset_certificates' -> 'Bank Certificates', 'portfolio_optimizer_asset_gold' -> 'Gold', 'portfolio_optimizer_asset_real_estate' -> 'Real Estate', 'portfolio_optimizer_asset_vehicles' -> 'Vehicles', 'portfolio_optimizer_asset_other_assets' -> 'Other Assets').\n"
+            "   - Format ALL monetary amounts and numerical figures with currency codes/symbols and thousands separators (e.g. '3,343,010.47 EGP' or '$2,929,000.00').\n"
+            "   - Present financial comparisons, breakdowns, and allocations using clean Markdown tables, structured bullet points, and bold section headers.\n"
+            "6. Keep responses concise, professional, accurate, and visually structured."
         )
         return f"{base_prompt}{guardrails}"
 

@@ -222,18 +222,22 @@ function _appendAIChatMessageBubble(role, content, animate = false, isError = fa
   bubble.style.padding = "12px 16px";
 
   if (isUser) {
-    bubble.style.background = "var(--accent-color, #0d6efd)";
-    bubble.style.color = "#ffffff";
+    bubble.style.background = "rgba(13, 110, 253, 0.12)";
+    bubble.style.color = "var(--text-primary)";
+    bubble.style.border = "1px solid rgba(13, 110, 253, 0.35)";
+    bubble.style.backdropFilter = "blur(8px)";
     bubble.style.borderBottomRightRadius = "2px";
   } else if (isError) {
-    bubble.style.background = "rgba(220, 53, 69, 0.15)";
+    bubble.style.background = "rgba(220, 53, 69, 0.12)";
     bubble.style.color = "var(--text-primary)";
-    bubble.style.border = "1px solid rgba(220, 53, 69, 0.3)";
+    bubble.style.border = "1px solid rgba(220, 53, 69, 0.35)";
+    bubble.style.backdropFilter = "blur(8px)";
     bubble.style.borderBottomLeftRadius = "2px";
   } else {
-    bubble.style.background = "var(--bg-primary)";
+    bubble.style.background = "rgba(255, 255, 255, 0.04)";
     bubble.style.color = "var(--text-primary)";
     bubble.style.border = "1px solid var(--border-color)";
+    bubble.style.backdropFilter = "blur(8px)";
     bubble.style.borderBottomLeftRadius = "2px";
   }
 
@@ -292,9 +296,8 @@ function _appendAIChatMessageBubble(role, content, animate = false, isError = fa
   }
 
   const textBody = document.createElement("div");
-  textBody.style.whiteSpace = "pre-wrap";
   textBody.style.wordBreak = "break-word";
-  textBody.textContent = content;
+  textBody.innerHTML = _renderAIChatFormattedContent(content);
 
   bubble.appendChild(textBody);
   wrapper.appendChild(bubble);
@@ -363,6 +366,69 @@ function _getAIChatCSRFToken() {
     .find((row) => row.startsWith("csrftoken="))
     ?.split("=")[1];
   return cookieValue || "";
+}
+
+function _renderAIChatFormattedContent(content) {
+  if (!content) return "";
+  let text = String(content);
+
+  // Replace raw internal translation keys if any exist in text
+  text = text
+    .replace(/portfolio_optimizer_asset_cash/g, typeof t === "function" ? t("portfolio_optimizer_asset_cash", "Cash") : "Cash")
+    .replace(/portfolio_optimizer_asset_certificates/g, typeof t === "function" ? t("portfolio_optimizer_asset_certificates", "Bank Certificates") : "Bank Certificates")
+    .replace(/portfolio_optimizer_asset_gold/g, typeof t === "function" ? t("portfolio_optimizer_asset_gold", "Gold") : "Gold")
+    .replace(/portfolio_optimizer_asset_real_estate/g, typeof t === "function" ? t("portfolio_optimizer_asset_real_estate", "Real Estate") : "Real Estate")
+    .replace(/portfolio_optimizer_asset_vehicles/g, typeof t === "function" ? t("portfolio_optimizer_asset_vehicles", "Vehicles") : "Vehicles")
+    .replace(/portfolio_optimizer_asset_other_assets/g, typeof t === "function" ? t("portfolio_optimizer_asset_other_assets", "Other Assets") : "Other Assets");
+
+  // Escape HTML tags to prevent XSS except for our rendered tags
+  let safe = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // Convert Markdown tables into clean Bootstrap HTML tables
+  safe = safe.replace(/(?:(?:\|.+?\|\r?\n)+)/g, function(tableBlock) {
+    const lines = tableBlock.trim().split(/\r?\n/);
+    if (lines.length < 2) return tableBlock;
+    let html = '<div class="table-responsive my-2"><table class="table table-sm table-bordered align-middle text-start mb-0" style="border-color:var(--border-color); background:transparent;">';
+    let isHeader = true;
+    lines.forEach(line => {
+      if (line.includes('---')) return; // skip header separator
+      const cells = line.split('|').filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+      if (cells.length === 0) return;
+      if (isHeader) {
+        html += '<thead><tr style="background:rgba(255,255,255,0.05);">';
+        cells.forEach(c => html += `<th class="px-2 py-1">${c.trim()}</th>`);
+        html += '</tr></thead><tbody>';
+        isHeader = false;
+      } else {
+        html += '<tr>';
+        cells.forEach(c => html += `<td class="px-2 py-1">${c.trim()}</td>`);
+        html += '</tr>';
+      }
+    });
+    html += '</tbody></table></div>';
+    return html;
+  });
+
+  // Convert Bold **text**
+  safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Convert Italic *text*
+  safe = safe.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+  // Convert Headers ### Header
+  safe = safe.replace(/^###\s+(.*$)/gim, '<h6 class="fw-bold mt-2 mb-1" style="color:var(--text-primary);">$1</h6>');
+  safe = safe.replace(/^##\s+(.*$)/gim, '<h5 class="fw-bold mt-2 mb-1" style="color:var(--text-primary);">$1</h5>');
+
+  // Convert bullet points (- item or * item)
+  safe = safe.replace(/^\s*[\-\*]\s+(.*$)/gim, '<li class="ms-3 mb-1">$1</li>');
+
+  // Convert newlines
+  safe = safe.replace(/\n/g, '<br>');
+
+  return safe;
 }
 
 window.loadAIChat = loadAIChat;
