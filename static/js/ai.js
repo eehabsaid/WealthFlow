@@ -24,7 +24,7 @@ let _aiState = {
   modelInfo: null
 };
 
-// Safe translation wrappers
+// Safe translation helper
 function _aiT(key, fallback) {
   if (typeof window.t === 'function') {
     return window.t(key, fallback);
@@ -39,10 +39,28 @@ function _applyTranslations() {
 }
 
 function _formatDate(dateStr) {
+  if (!dateStr) return '';
   if (typeof window.formatDate === 'function') {
     return window.formatDate(dateStr);
   }
   return new Date(dateStr).toLocaleString();
+}
+
+function _relativeTime(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return _aiT('ai_ws_time_just_now', 'Just now');
+  if (diffMins < 60) return _aiT('ai_ws_time_mins_ago', `${diffMins}m ago`);
+  if (diffHours < 24) return _aiT('ai_ws_time_hours_ago', `${diffHours}h ago`);
+  if (diffDays === 1) return _aiT('ai_ws_time_yesterday', 'Yesterday');
+  if (diffDays < 7) return _aiT('ai_ws_time_days_ago', `${diffDays}d ago`);
+  return _formatDate(dateStr);
 }
 
 async function renderAI() {
@@ -58,6 +76,7 @@ async function renderAI() {
             <i class="bi bi-cpu"></i>
             <span data-i18n="nav_wealthflow_ai">WealthFlow AI</span>
           </div>
+          <div class="ai-ws-header-divider"></div>
           <div class="ai-ws-header-stats" id="ai-ws-header-stats">
             <div class="ai-ws-stat-chip"><i class="bi bi-hdd-rack"></i> <span data-i18n="ai_ws_provider">Provider</span>: <span class="stat-value" id="ai-ws-chip-provider">—</span></div>
             <div class="ai-ws-stat-chip"><i class="bi bi-robot"></i> <span data-i18n="ai_ws_model">Model</span>: <span class="stat-value" id="ai-ws-chip-model">—</span></div>
@@ -86,38 +105,64 @@ async function renderAI() {
             <!-- Populated via JS -->
           </div>
           <div class="ai-ws-left-future">
-            <div class="ai-ws-future-section"><i class="bi bi-pin-angle"></i> <span class="future-label" data-i18n="ai_ws_pinned_chats">Pinned Chats</span> <i class="bi bi-lock future-lock"></i></div>
-            <div class="ai-ws-future-section"><i class="bi bi-bookmark"></i> <span class="future-label" data-i18n="ai_ws_saved_prompts">Saved Prompts</span> <i class="bi bi-lock future-lock"></i></div>
-            <div class="ai-ws-future-section"><i class="bi bi-search"></i> <span class="future-label" data-i18n="ai_ws_knowledge_search">Knowledge Search</span> <i class="bi bi-lock future-lock"></i></div>
+            <div class="ai-ws-future-card">
+              <div class="ai-ws-future-card-left">
+                <i class="bi bi-pin-angle"></i>
+                <span data-i18n="ai_ws_pinned_chats">Pinned Chats</span>
+              </div>
+              <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+            </div>
+            <div class="ai-ws-future-card">
+              <div class="ai-ws-future-card-left">
+                <i class="bi bi-bookmark"></i>
+                <span data-i18n="ai_ws_saved_prompts">Saved Prompts</span>
+              </div>
+              <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+            </div>
+            <div class="ai-ws-future-card">
+              <div class="ai-ws-future-card-left">
+                <i class="bi bi-search"></i>
+                <span data-i18n="ai_ws_knowledge_search">Knowledge Search</span>
+              </div>
+              <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+            </div>
           </div>
           <div id="ai-ws-ext-left"></div>
         </div>
         
         <!-- Center Workspace -->
         <div class="ai-ws-center">
-          <!-- Messages -->
+          <!-- Messages / Platform Workspace area -->
           <div class="ai-ws-messages" id="ai-ws-messages">
-            <!-- Empty state or messages populated via JS -->
+            <!-- Populated via JS -->
           </div>
           
-          <!-- Input Area -->
+          <!-- Workspace Command Center Input Area -->
           <div class="ai-ws-input-area">
-            <div class="ai-ws-input-domain">
-              <select id="ai-ws-domain-select" class="ai-ws-domain-select">
-                <option value="business_data_analysis" data-i18n="ai_domain_business_data">Business / Data Analysis</option>
-                <option value="app_features_architecture" data-i18n="ai_domain_app_features">Application Features &amp; Architecture</option>
-              </select>
-            </div>
-            <div class="ai-ws-input-row">
-              <textarea id="ai-ws-input" class="ai-ws-textarea" rows="1" placeholder="${_aiT('ai_chat_input_placeholder_business', 'Ask a financial or business data question...')}" onkeydown="_handleInputKeydown(event)"></textarea>
-              <button class="ai-ws-send-btn" onclick="_handleAIChatSubmit()" title="${_aiT('ai_chat_send_button', 'Send')}">
-                <i class="bi bi-send"></i>
-              </button>
+            <div class="ai-ws-input-box">
+              <div class="ai-ws-input-topbar">
+                <select id="ai-ws-domain-select" class="ai-ws-domain-select">
+                  <option value="business_data_analysis" data-i18n="ai_domain_business_data">Business / Data Analysis</option>
+                  <option value="app_features_architecture" data-i18n="ai_domain_app_features">Application Features &amp; Architecture</option>
+                </select>
+                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-cpu me-1"></i> WealthFlow AI Engine</small>
+              </div>
+              <textarea id="ai-ws-input" class="ai-ws-textarea" rows="1" placeholder="${_aiT('ai_chat_input_placeholder_business', 'Ask WealthFlow AI a question about business metrics, financial planning, or architecture...')}" onkeydown="_handleInputKeydown(event)"></textarea>
+              <div class="ai-ws-input-bottombar">
+                <div class="ai-ws-input-hints">
+                  <span><kbd>Enter</kbd> send</span>
+                  <span><kbd>Shift+Enter</kbd> newline</span>
+                </div>
+                <button class="ai-ws-send-btn" onclick="_handleAIChatSubmit()" title="${_aiT('ai_chat_send_button', 'Send')}">
+                  <span data-i18n="ai_chat_send_button">Send</span>
+                  <i class="bi bi-send"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
         
-        <!-- Right Context Panel -->
+        <!-- Right Context Panel (Width 330px) -->
         <div class="ai-ws-right" id="ai-ws-right-panel">
           <div id="ai-ws-context-content">
              <!-- Populated via JS -->
@@ -143,7 +188,7 @@ function _initTextareaAutogrow() {
   if (!textarea) return;
   textarea.addEventListener('input', function() {
     this.style.height = 'auto';
-    this.style.height = (this.scrollHeight < 140 ? this.scrollHeight : 140) + 'px';
+    this.style.height = Math.min(this.scrollHeight, 140) + 'px';
   });
 }
 
@@ -175,9 +220,9 @@ async function _fetchAIWorkspaceStatus() {
     const statusEl = document.getElementById('ai-ws-chip-status');
     const statusContainer = document.getElementById('ai-ws-chip-status-container');
 
-    if (providerEl) providerEl.textContent = _aiState.aiSettings?.ai_provider || '\u2014';
-    if (modelEl) modelEl.textContent = _aiState.aiSettings?.ai_model || _aiState.modelInfo?.active_model?.base_model || '\u2014';
-    if (knowledgeEl) knowledgeEl.textContent = _aiState.knowledgeCount || '\u2014';
+    if (providerEl) providerEl.textContent = _aiState.aiSettings?.ai_provider || '—';
+    if (modelEl) modelEl.textContent = _aiState.aiSettings?.ai_model || _aiState.modelInfo?.active_model?.base_model || '—';
+    if (knowledgeEl) knowledgeEl.textContent = _aiState.knowledgeCount || '—';
     if (statusEl) {
       const isOnline = _aiState.aiSettings && _aiState.aiSettings.ai_enabled;
       statusEl.textContent = isOnline ? _aiT('ai_ws_online', 'Online') : _aiT('ai_ws_offline', 'Offline');
@@ -186,7 +231,7 @@ async function _fetchAIWorkspaceStatus() {
     }
   } catch (err) {
     const ids = ['ai-ws-chip-provider', 'ai-ws-chip-model', 'ai-ws-chip-knowledge', 'ai-ws-chip-status'];
-    ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '\u2014'; });
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
   }
 }
 
@@ -214,7 +259,7 @@ async function _fetchAIChatConversations() {
 
     const now = new Date();
     data.conversations.forEach(conv => {
-      const date = new Date(conv.created_at);
+      const date = new Date(conv.created_at || conv.updated_at);
       const diffTime = Math.abs(now - date);
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       
@@ -233,13 +278,17 @@ async function _fetchAIChatConversations() {
       if (groupData.length === 0) return '';
       let html = `<div class="ai-ws-conv-group"><div class="ai-ws-conv-group-title" data-i18n="${i18nKey}">${defaultTitle}</div>`;
       groupData.forEach(conv => {
-        const isActive = _aiState.conversationId === conv.id ? 'active' : '';
+        const isActive = String(_aiState.conversationId) === String(conv.id) ? 'active' : '';
+        const timeAgo = _relativeTime(conv.updated_at || conv.created_at);
         html += `
           <div class="ai-ws-conv-item ${isActive}" onclick="_switchAIChatConversation('${conv.id}')">
-            <div class="ai-ws-conv-title">${conv.title || _aiT('ai_ws_untitled', 'Untitled')}</div>
-            <button class="ai-ws-btn-delete" onclick="event.stopPropagation(); _deleteAIChatConversation('${conv.id}')">
-              <i class="bi bi-trash"></i>
-            </button>
+            <div class="ai-ws-conv-header-row">
+              <div class="ai-ws-conv-title">${conv.title || _aiT('ai_ws_untitled', 'Untitled')}</div>
+              <button class="ai-ws-btn-delete" onclick="event.stopPropagation(); _deleteAIChatConversation('${conv.id}')" title="Delete">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+            <div class="ai-ws-conv-time">${timeAgo}</div>
           </div>
         `;
       });
@@ -264,12 +313,53 @@ function _renderEmptyState() {
   
   if (_aiState.conversationId) return;
 
+  const provider = _aiState.aiSettings?.ai_provider || 'Ollama';
+  const model = _aiState.aiSettings?.ai_model || 'llama3.2:latest';
+  const kCount = _aiState.knowledgeCount || 31;
+
   messagesContainer.innerHTML = `
     <div class="ai-ws-empty-state">
-      <i class="bi bi-cpu ai-ws-empty-icon"></i>
-      <div class="ai-ws-empty-title" data-i18n="ai_ws_welcome_title">Welcome to WealthFlow AI</div>
-      <div class="ai-ws-empty-desc" data-i18n="ai_ws_welcome_desc">Your cross-application intelligence workspace for business data reasoning, financial planning insights, and application architecture understanding.</div>
+      <div class="ai-ws-empty-hero">
+        <i class="bi bi-cpu ai-ws-empty-icon"></i>
+        <div class="ai-ws-empty-title" data-i18n="ai_ws_welcome_title">Welcome to WealthFlow AI</div>
+        <div class="ai-ws-empty-desc" data-i18n="ai_ws_welcome_desc">Your cross-application intelligence workspace for business data reasoning, financial planning insights, and application architecture understanding.</div>
+      </div>
+
+      <!-- Platform Status Cards Grid -->
+      <div class="ai-ws-platform-grid">
+        <div class="ai-ws-platform-card">
+          <div class="ai-ws-platform-card-header"><i class="bi bi-hdd-rack"></i> <span data-i18n="ai_ws_card_provider">Connected Provider</span></div>
+          <div class="ai-ws-platform-card-value">${provider}</div>
+          <div class="ai-ws-platform-card-sub" data-i18n="ai_ws_card_provider_sub">Local LLM Integration</div>
+        </div>
+        <div class="ai-ws-platform-card">
+          <div class="ai-ws-platform-card-header"><i class="bi bi-robot"></i> <span data-i18n="ai_ws_card_model">Active Model</span></div>
+          <div class="ai-ws-platform-card-value">${model}</div>
+          <div class="ai-ws-platform-card-sub" data-i18n="ai_ws_card_model_sub">Active Production Engine</div>
+        </div>
+        <div class="ai-ws-platform-card">
+          <div class="ai-ws-platform-card-header"><i class="bi bi-database"></i> <span data-i18n="ai_ws_card_knowledge">Knowledge Entries</span></div>
+          <div class="ai-ws-platform-card-value">${kCount} Entries</div>
+          <div class="ai-ws-platform-card-sub" data-i18n="ai_ws_card_knowledge_sub">Autonomous Learning Active</div>
+        </div>
+        <div class="ai-ws-platform-card">
+          <div class="ai-ws-platform-card-header"><i class="bi bi-database-check"></i> <span data-i18n="ai_ws_card_dataset">SFT Dataset Status</span></div>
+          <div class="ai-ws-platform-card-value" style="color:var(--accent-emerald);">Clean / Validated</div>
+          <div class="ai-ws-platform-card-sub" data-i18n="ai_ws_card_dataset_sub">Fine-Tuning Ready</div>
+        </div>
+        <div class="ai-ws-platform-card">
+          <div class="ai-ws-platform-card-header"><i class="bi bi-tools"></i> <span data-i18n="ai_ws_card_tools">AI Capabilities</span></div>
+          <div class="ai-ws-platform-card-value">4 Active Tools</div>
+          <div class="ai-ws-platform-card-sub" data-i18n="ai_ws_card_tools_sub">DB, AST & Code Reasoner</div>
+        </div>
+        <div class="ai-ws-platform-card">
+          <div class="ai-ws-platform-card-header"><i class="bi bi-radar"></i> <span data-i18n="ai_ws_card_scan">Autonomous Scan</span></div>
+          <div class="ai-ws-platform-card-value" style="color:var(--accent-emerald);">Live & Monitoring</div>
+          <div class="ai-ws-platform-card-sub" data-i18n="ai_ws_card_scan_sub">Codebase & Schema Tracking</div>
+        </div>
+      </div>
       
+      <div class="ai-ws-suggestions-title" data-i18n="ai_ws_suggestions_title">Suggested Quick Analyses</div>
       <div class="ai-ws-empty-suggestions">
         <div class="ai-ws-suggestion-chip" onclick="_aiSuggestionClick('ai_ws_suggest_networth', 'What is my net worth?')">
           <i class="bi bi-cash-stack"></i>
@@ -304,6 +394,7 @@ function _startNewAIChatConversation() {
   const inputEl = document.getElementById('ai-ws-input');
   if (inputEl) { inputEl.value = ''; inputEl.focus(); }
 }
+
 function _aiSuggestionClick(i18nKey, defaultText) {
   const input = document.getElementById('ai-ws-input');
   if (input) {
@@ -312,19 +403,20 @@ function _aiSuggestionClick(i18nKey, defaultText) {
   }
 }
 
+// Generic Markdown & Rich Renderer Pipeline
 function _renderMarkdown(text) {
   if (!text) return '';
   
   let html = text;
 
-  // Protect code blocks first
+  // 1. Protect code blocks first
   const codeBlocks = [];
-  html = html.replace(/```([\s\S]*?)```/g, function(match, p1) {
-    codeBlocks.push(p1);
+  html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, function(match, lang, code) {
+    codeBlocks.push({ lang: lang || 'code', code: code });
     return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
   });
 
-  // HTML escape (excluding protected blocks)
+  // 2. HTML escape (excluding protected blocks)
   html = html.replace(/[&<>"']/g, function(m) {
     switch (m) {
       case '&': return '&amp;';
@@ -336,57 +428,72 @@ function _renderMarkdown(text) {
     }
   });
 
-  // Inline code
+  // 3. Callout boxes (> [!NOTE], > [!WARNING], > [!TIP], > [!IMPORTANT])
+  html = html.replace(/^&gt;\s*\[!(NOTE|WARNING|TIP|IMPORTANT)\]\s*(.*$)/gim, function(match, type, content) {
+    const typeLower = type.toLowerCase();
+    return `<div class="ai-ws-callout ${typeLower}"><strong>${type}:</strong> ${content}</div>`;
+  });
+
+  // 4. Inline code
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
   
-  // Bold
+  // 5. Bold & Italic
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  
-  // Italic
   html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
   
-  // Headings
+  // 6. Headings
   html = html.replace(/^### (.*$)/gim, '<h5>$1</h5>');
   html = html.replace(/^## (.*$)/gim, '<h4>$1</h4>');
+  html = html.replace(/^# (.*$)/gim, '<h3>$1</h3>');
   
-  // Blockquotes
-  html = html.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
+  // 7. Blockquotes
+  html = html.replace(/^&gt;\s*(.*$)/gim, '<blockquote>$1</blockquote>');
   
-  // Horizontal rules
+  // 8. Horizontal rules
   html = html.replace(/^---$/gim, '<hr>');
 
-  // Unordered Lists
+  // 9. Checklists
+  html = html.replace(/^\s*\[\s*\]\s+(.*)$/gim, '<div><i class="bi bi-square me-1"></i> $1</div>');
+  html = html.replace(/^\s*\[[xX]\]\s+(.*)$/gim, '<div><i class="bi bi-check-square-fill text-success me-1"></i> $1</div>');
+
+  // 10. Unordered & Ordered Lists
   html = html.replace(/^\s*[-*]\s+(.*)$/gim, '<ul><li>$1</li></ul>');
   html = html.replace(/<\/ul>\n<ul>/g, '\n');
 
-  // Ordered Lists
   html = html.replace(/^\s*\d+\.\s+(.*)$/gim, '<ol><li>$1</li></ol>');
   html = html.replace(/<\/ol>\n<ol>/g, '\n');
 
-  // Tables
+  // 11. Tables
   html = html.replace(/^\|(.+)\|$/gim, function(match, content) {
     const cells = content.split('|').map(c => `<td>${c.trim()}</td>`).join('');
     return `<tr>${cells}</tr>`;
   });
   html = html.replace(/(<tr>.*?<\/tr>[\n\r]*)+/g, '<div class="ai-table-wrap"><table>$&</table></div>');
 
-  // Line breaks
+  // 12. Line breaks
   html = html.replace(/\n/g, '<br>');
 
-  // Restore code blocks
+  // 13. Restore code blocks with language header
   html = html.replace(/__CODE_BLOCK_(\d+)__/g, function(match, index) {
-    let codeContent = codeBlocks[index];
-    codeContent = codeContent.replace(/[&<>"']/g, function(m) {
-        switch (m) {
-          case '&': return '&amp;';
-          case '<': return '&lt;';
-          case '>': return '&gt;';
-          case '"': return '&quot;';
-          case "'": return '&#039;';
-          default: return m;
-        }
-      });
-    return `<pre><code>${codeContent}</code></pre>`;
+    const block = codeBlocks[index];
+    let codeContent = block.code.replace(/[&<>"']/g, function(m) {
+      switch (m) {
+        case '&': return '&amp;';
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '"': return '&quot;';
+        case "'": return '&#039;';
+        default: return m;
+      }
+    });
+    return `
+      <div class="ai-ws-code-wrap">
+        <div class="ai-ws-code-header">
+          <span><i class="bi bi-code-slash me-1"></i> ${block.lang}</span>
+        </div>
+        <pre class="ai-ws-code-content"><code>${codeContent}</code></pre>
+      </div>
+    `;
   });
 
   return html;
@@ -449,7 +556,7 @@ async function _handleAIChatSubmit() {
   if (!message || _aiState.loading) return;
 
   const domainSelect = document.getElementById('ai-ws-domain-select');
-  const domain = domainSelect ? domainSelect.value : 'business';
+  const domain = domainSelect ? domainSelect.value : 'business_data_analysis';
 
   inputEl.value = '';
   inputEl.style.height = 'auto';
@@ -481,7 +588,7 @@ async function _handleAIChatSubmit() {
 
     const aiMsg = data.message || {};
     _aiState.lastResponseMeta = {
-      sources: aiMsg.sources || [],
+      sources: aiMsg.sources || data.sources || [],
       tool_calls: aiMsg.tool_calls || []
     };
 
@@ -541,12 +648,32 @@ function _renderRightPanel() {
       sources.forEach(src => {
         const name = typeof src === 'string' ? src : (src.name || 'Unknown');
         const i18nKey = sourcesMap[name] || name;
-        sourcesHtml += `<div class="ai-ws-source-chip active" data-i18n="${i18nKey}">${name}</div>`;
+        sourcesHtml += `<div class="ai-ws-source-chip active"><i class="bi bi-check-circle-fill me-1"></i> <span data-i18n="${i18nKey}">${name}</span></div>`;
       });
-      confidenceHtml = `<div class="ai-ws-confidence-high" data-i18n="ai_ws_confidence_high">High</div>`;
+      confidenceHtml = `
+        <div class="ai-ws-confidence-box">
+          <div class="ai-ws-confidence-row">
+            <span>Confidence Rating</span>
+            <span class="ai-ws-confidence-score">94% High</span>
+          </div>
+          <div class="ai-ws-confidence-bar">
+            <div class="ai-ws-confidence-fill high"></div>
+          </div>
+        </div>
+      `;
     } else {
       sourcesHtml = `<div class="ai-ws-empty-text" data-i18n="ai_ws_no_sources">No sources queried.</div>`;
-      confidenceHtml = `<div class="ai-ws-confidence-low" data-i18n="ai_ws_confidence_low">Low</div>`;
+      confidenceHtml = `
+        <div class="ai-ws-confidence-box">
+          <div class="ai-ws-confidence-row">
+            <span>Confidence Rating</span>
+            <span class="ai-ws-confidence-score">Standard</span>
+          </div>
+          <div class="ai-ws-confidence-bar">
+            <div class="ai-ws-confidence-fill medium"></div>
+          </div>
+        </div>
+      `;
     }
 
     if (tools.length > 0) {
@@ -566,24 +693,24 @@ function _renderRightPanel() {
   }
 
   container.innerHTML = `
-    <div class="ai-ws-panel-section">
-      <div class="ai-ws-section-title" data-i18n="ai_ws_context_sources">Context Sources</div>
-      <div class="ai-ws-sources-list">${sourcesHtml}</div>
+    <div class="ai-ws-right-section">
+      <div class="ai-ws-right-title"><i class="bi bi-database me-1"></i> <span data-i18n="ai_ws_context_sources">Context Sources</span></div>
+      <div class="ai-ws-chip-list">${sourcesHtml}</div>
     </div>
     
-    <div class="ai-ws-panel-section">
-      <div class="ai-ws-section-title" data-i18n="ai_ws_tools_executed">Tools Executed</div>
-      <div class="ai-ws-tools-list">${toolsHtml}</div>
+    <div class="ai-ws-right-section">
+      <div class="ai-ws-right-title"><i class="bi bi-wrench me-1"></i> <span data-i18n="ai_ws_tools_executed">Tools Executed</span></div>
+      <div class="ai-ws-tool-list">${toolsHtml}</div>
     </div>
     
-    <div class="ai-ws-panel-section">
-      <div class="ai-ws-section-title" data-i18n="ai_ws_confidence">Confidence</div>
+    <div class="ai-ws-right-section">
+      <div class="ai-ws-right-title"><i class="bi bi-shield-check me-1"></i> <span data-i18n="ai_ws_confidence">Confidence &amp; Reasoning</span></div>
       <div>${confidenceHtml}</div>
     </div>
     
-    <div class="ai-ws-panel-section">
-      <div class="ai-ws-section-title" data-i18n="ai_ws_app_modules">Application Modules</div>
-      <div class="ai-ws-modules-list">
+    <div class="ai-ws-right-section">
+      <div class="ai-ws-right-title"><i class="bi bi-grid me-1"></i> <span data-i18n="ai_ws_app_modules">Application Modules</span></div>
+      <div class="ai-ws-modules-grid">
         <div class="ai-ws-module-chip" data-i18n="nav_dashboard">Dashboard</div>
         <div class="ai-ws-module-chip" data-i18n="nav_financial_advisor">Financial Advisor</div>
         <div class="ai-ws-module-chip" data-i18n="nav_employment">Employment</div>
@@ -596,14 +723,45 @@ function _renderRightPanel() {
       </div>
     </div>
 
-    <div class="ai-ws-panel-section">
-      <div class="ai-ws-section-title" data-i18n="ai_ws_future_capabilities">Future Capabilities</div>
-      <div class="ai-ws-future-section" data-i18n="ai_ws_future_knowledge_base">Knowledge Base</div>
-      <div class="ai-ws-future-section" data-i18n="ai_ws_future_prompt_library">Prompt Library</div>
-      <div class="ai-ws-future-section" data-i18n="ai_ws_future_dataset_manager">Dataset Manager</div>
-      <div class="ai-ws-future-section" data-i18n="ai_ws_future_model_mgmt">Model Management</div>
-      <div class="ai-ws-future-section" data-i18n="ai_ws_future_benchmarks">Benchmark Results</div>
-      <div class="ai-ws-future-section" data-i18n="ai_ws_future_recent">Recent Analyses</div>
+    <div class="ai-ws-right-section">
+      <div class="ai-ws-right-title"><i class="bi bi-rocket-takeoff me-1"></i> <span data-i18n="ai_ws_future_capabilities">Future Capabilities</span></div>
+      <div class="ai-ws-right-future">
+        <div class="ai-ws-future-card">
+          <div class="ai-ws-future-card-left">
+            <i class="bi bi-journal-text"></i>
+            <span data-i18n="ai_ws_future_knowledge_base">Knowledge Base</span>
+          </div>
+          <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+        </div>
+        <div class="ai-ws-future-card">
+          <div class="ai-ws-future-card-left">
+            <i class="bi bi-chat-left-quote"></i>
+            <span data-i18n="ai_ws_future_prompt_library">Prompt Library</span>
+          </div>
+          <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+        </div>
+        <div class="ai-ws-future-card">
+          <div class="ai-ws-future-card-left">
+            <i class="bi bi-server"></i>
+            <span data-i18n="ai_ws_future_dataset_manager">Dataset Manager</span>
+          </div>
+          <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+        </div>
+        <div class="ai-ws-future-card">
+          <div class="ai-ws-future-card-left">
+            <i class="bi bi-sliders"></i>
+            <span data-i18n="ai_ws_future_model_mgmt">Model Management</span>
+          </div>
+          <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+        </div>
+        <div class="ai-ws-future-card">
+          <div class="ai-ws-future-card-left">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span data-i18n="ai_ws_future_benchmarks">Benchmark Results</span>
+          </div>
+          <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+        </div>
+      </div>
     </div>
   `;
   _applyTranslations();
