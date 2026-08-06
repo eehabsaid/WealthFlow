@@ -60,11 +60,27 @@ def get_data_provider(key: str) -> BaseContextProvider | None:
     return _DATA_PROVIDER_REGISTRY.get(str(key or "").strip().lower())
 
 
+ALIAS_MAP = {
+    "gold": ["market_data", "fixed_assets"],
+    "gold_price": ["market_data"],
+    "exchange_rates": ["market_data"],
+    "certificates": ["bank_certificates"],
+    "certificate": ["bank_certificates"],
+    "cash": ["balances"],
+    "balance": ["balances"],
+    "assets": ["fixed_assets"],
+    "asset": ["fixed_assets"],
+    "advisor": ["financial_advisor"],
+    "health": ["financial_advisor"],
+    "income": ["salary"],
+}
+
+
 def get_all_providers_data(user: Any, focus_area: str = "", limit: int = 20) -> dict[str, Any]:
     """
     Query auto-discovered providers safely.
-    If focus_area matches a specific provider key, returns that provider's data;
-    otherwise queries all registered providers.
+    Supports comma-separated focus_area strings and key aliases (e.g. 'gold, certificates').
+    If focus_area is 'all', empty, or ambiguous, queries all registered providers.
     """
     if not _DATA_PROVIDER_REGISTRY:
         autodiscover_providers()
@@ -72,18 +88,26 @@ def get_all_providers_data(user: Any, focus_area: str = "", limit: int = 20) -> 
     clean_focus = str(focus_area or "").strip().lower()
     res: dict[str, Any] = {}
 
-    if clean_focus in _DATA_PROVIDER_REGISTRY:
-        provider = _DATA_PROVIDER_REGISTRY[clean_focus]
-        try:
-            res[provider.key] = provider.get_data(user, limit=limit)
-        except Exception as exc:
-            res[f"{provider.key}_error"] = str(exc)
-        return res
+    if not clean_focus or clean_focus == "all":
+        target_keys = set(_DATA_PROVIDER_REGISTRY.keys())
+    else:
+        parts = [p.strip() for p in clean_focus.replace(";", ",").split(",") if p.strip()]
+        target_keys = set()
+        for p in parts:
+            if p in _DATA_PROVIDER_REGISTRY:
+                target_keys.add(p)
+            elif p in ALIAS_MAP:
+                target_keys.update(ALIAS_MAP[p])
 
-    for key, provider in _DATA_PROVIDER_REGISTRY.items():
-        try:
-            res[key] = provider.get_data(user, limit=limit)
-        except Exception as exc:
-            res[f"{key}_error"] = str(exc)
+        if not target_keys:
+            target_keys = set(_DATA_PROVIDER_REGISTRY.keys())
+
+    for key in target_keys:
+        provider = _DATA_PROVIDER_REGISTRY.get(key)
+        if provider:
+            try:
+                res[provider.key] = provider.get_data(user, limit=limit)
+            except Exception as exc:
+                res[f"{provider.key}_error"] = str(exc)
 
     return res

@@ -523,7 +523,8 @@ AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {
                         },
                         "focus_area": {
                             "type": "string",
-                            "description": "Module focus ('salary', 'balance', 'expenses', 'fixed_assets', 'bank_certificates', 'exchange_rates', 'gold_price', 'financial_advisor')"
+                            "description": "Module focus ('all', 'bank_certificates', 'market_data', 'balances', 'fixed_assets', 'salary', 'expenses', 'financial_advisor' or comma-separated list like 'bank_certificates,market_data,balances'). Default is 'all'.",
+                            "default": "all"
                         },
                         "limit": {
                             "type": "integer",
