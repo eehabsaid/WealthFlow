@@ -175,61 +175,61 @@ async function renderAIAdvisorSettings() {
         <div class="si-modern-card p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold mb-0" style="color:var(--text-primary);">
-                    <i class="bi bi-cpu-fill text-primary me-2"></i> Self-Evolving AI Platform & Model Lifecycle
+                    <i class="bi bi-cpu-fill text-primary me-2"></i> <span data-i18n="ai_platform_lifecycle_title">${t('ai_platform_lifecycle_title', 'Self-Evolving AI Platform & Model Lifecycle')}</span>
                 </h5>
                 <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" onclick="runAutonomousAppScan(this)">
-                    <i class="bi bi-radar"></i> Trigger Autonomous Scan
+                    <i class="bi bi-radar"></i> <span data-i18n="ai_platform_trigger_scan">${t('ai_platform_trigger_scan', 'Trigger Autonomous Scan')}</span>
                 </button>
             </div>
 
             <div class="row g-3">
                 <div class="col-md-6">
                     <div class="p-3 rounded" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
-                        <h6 class="fw-semibold mb-2" style="color:var(--text-primary);"><i class="bi bi-database-check me-1 text-info"></i> SFT Dataset Health</h6>
+                        <h6 class="fw-semibold mb-2" style="color:var(--text-primary);"><i class="bi bi-database-check me-1 text-info"></i> <span data-i18n="ai_platform_dataset_health">${t('ai_platform_dataset_health', 'SFT Dataset Health')}</span></h6>
                         <div id="aiPlatformDatasetHealth">
-                            <small class="text-muted">Loading dataset health metrics...</small>
+                            <small class="text-muted" data-i18n="ai_platform_loading_dataset_health">${t('ai_platform_loading_dataset_health', 'Loading dataset health metrics...')}</small>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-info mt-2" onclick="refreshDatasetStats(this)">
-                            Re-validate Dataset
+                        <button type="button" class="btn btn-sm btn-outline-info mt-2" onclick="refreshDatasetStats(this)" data-i18n="ai_platform_revalidate_dataset">
+                            ${t('ai_platform_revalidate_dataset', 'Re-validate Dataset')}
                         </button>
                     </div>
                 </div>
 
                 <div class="col-md-6">
                     <div class="p-3 rounded" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
-                        <h6 class="fw-semibold mb-2" style="color:var(--text-primary);"><i class="bi bi-sliders2 me-1 text-warning"></i> Training Backend & Fine-Tuning</h6>
+                        <h6 class="fw-semibold mb-2" style="color:var(--text-primary);"><i class="bi bi-sliders2 me-1 text-warning"></i> <span data-i18n="ai_platform_training_backend">${t('ai_platform_training_backend', 'Training Backend & Fine-Tuning')}</span></h6>
                         <div class="mb-2">
-                            <label class="form-label small text-muted mb-1">Select Training Backend Adapter</label>
+                            <label class="form-label small text-muted mb-1" data-i18n="ai_platform_select_backend_adapter">${t('ai_platform_select_backend_adapter', 'Select Training Backend Adapter')}</label>
                             <select id="aiTrainingBackendSelect" class="form-select form-select-sm">
-                                <option value="ollama" selected>Ollama Adapter</option>
-                                <option value="unsloth">Unsloth Adapter</option>
-                                <option value="axolotl">Axolotl Adapter</option>
-                                <option value="llamacpp">llama.cpp Ecosystem</option>
+                                <option value="ollama" selected data-i18n="ai_platform_ollama_adapter">${t('ai_platform_ollama_adapter', 'Ollama Adapter')}</option>
+                                <option value="unsloth" data-i18n="ai_platform_unsloth_adapter">${t('ai_platform_unsloth_adapter', 'Unsloth Adapter')}</option>
+                                <option value="axolotl" data-i18n="ai_platform_axolotl_adapter">${t('ai_platform_axolotl_adapter', 'Axolotl Adapter')}</option>
+                                <option value="llamacpp" data-i18n="ai_platform_llamacpp_ecosystem">${t('ai_platform_llamacpp_ecosystem', 'llama.cpp Ecosystem')}</option>
                             </select>
                         </div>
                         <button type="button" class="btn btn-sm btn-success w-100" onclick="triggerModelFineTuning(this)">
-                            <i class="bi bi-play-circle me-1"></i> Launch Dataset-First Fine-Tuning Pipeline
+                            <i class="bi bi-play-circle me-1"></i> <span data-i18n="ai_platform_launch_finetune_pipeline">${t('ai_platform_launch_finetune_pipeline', 'Launch Dataset-First Fine-Tuning Pipeline')}</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="col-12 mt-3">
-                    <h6 class="fw-semibold mb-2" style="color:var(--text-primary);"><i class="bi bi-diagram-3 me-1 text-primary"></i> Installed Models & Pre-Promotion Benchmark History</h6>
+                    <h6 class="fw-semibold mb-2" style="color:var(--text-primary);"><i class="bi bi-diagram-3 me-1 text-primary"></i> <span data-i18n="ai_platform_installed_models_history">${t('ai_platform_installed_models_history', 'Installed Models & Pre-Promotion Benchmark History')}</span></h6>
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered align-middle text-start" style="border-color:var(--border-color); background:transparent;">
                             <thead>
                                 <tr style="background:rgba(255,255,255,0.05);">
-                                    <th>Version</th>
-                                    <th>Base Model</th>
-                                    <th>Backend</th>
-                                    <th>Dataset</th>
-                                    <th>Benchmark Score</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
+                                    <th data-i18n="ai_platform_th_version">${t('ai_platform_th_version', 'Version')}</th>
+                                    <th data-i18n="ai_platform_th_base_model">${t('ai_platform_th_base_model', 'Base Model')}</th>
+                                    <th data-i18n="ai_platform_th_backend">${t('ai_platform_th_backend', 'Backend')}</th>
+                                    <th data-i18n="ai_platform_th_dataset">${t('ai_platform_th_dataset', 'Dataset')}</th>
+                                    <th data-i18n="ai_platform_th_benchmark_score">${t('ai_platform_th_benchmark_score', 'Benchmark Score')}</th>
+                                    <th data-i18n="ai_platform_th_status">${t('ai_platform_th_status', 'Status')}</th>
+                                    <th data-i18n="ai_platform_th_action">${t('ai_platform_th_action', 'Action')}</th>
                                 </tr>
                             </thead>
                             <tbody id="aiPlatformModelList">
-                                <tr><td colspan="7" class="text-muted text-center py-2">Loading model versions...</td></tr>
+                                <tr><td colspan="7" class="text-muted text-center py-2" data-i18n="ai_platform_loading_models">${t('ai_platform_loading_models', 'Loading model versions...')}</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -534,9 +534,9 @@ async function loadAIPlatformOverviewData() {
             if (container) {
                 container.innerHTML = `
                     <div class="small">
-                        <div><strong>Total SFT Samples:</strong> ${stats.total_samples || 0}</div>
-                        <div><strong>Duplicates Removed:</strong> ${stats.duplicates_removed || 0}</div>
-                        <div><strong>Validation Status:</strong> <span class="badge bg-success">${stats.validation_status || 'Clean'}</span></div>
+                        <div><strong data-i18n="ai_platform_total_sft_samples">${t('ai_platform_total_sft_samples', 'Total SFT Samples:')}</strong> ${stats.total_samples || 0}</div>
+                        <div><strong data-i18n="ai_platform_duplicates_removed">${t('ai_platform_duplicates_removed', 'Duplicates Removed:')}</strong> ${stats.duplicates_removed || 0}</div>
+                        <div><strong data-i18n="ai_platform_validation_status">${t('ai_platform_validation_status', 'Validation Status:')}</strong> <span class="badge bg-success">${stats.validation_status || 'Clean'}</span></div>
                     </div>
                 `;
             }
@@ -548,16 +548,16 @@ async function loadAIPlatformOverviewData() {
             const tbody = document.getElementById('aiPlatformModelList');
             if (tbody) {
                 if (versions.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-muted text-center py-2">No custom model versions found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-muted text-center py-2" data-i18n="ai_platform_no_models">${t('ai_platform_no_models', 'No custom model versions found.')}</td></tr>`;
                 } else {
                     let html = '';
                     versions.forEach(v => {
                         const activeBadge = v.is_active
-                            ? `<span class="badge bg-primary">Active Production</span>`
-                            : `<span class="badge bg-secondary">Archived</span>`;
+                            ? `<span class="badge bg-primary" data-i18n="ai_platform_active_production">${t('ai_platform_active_production', 'Active Production')}</span>`
+                            : `<span class="badge bg-secondary" data-i18n="ai_platform_archived">${t('ai_platform_archived', 'Archived')}</span>`;
                         const actionBtn = v.is_active
-                            ? `<button class="btn btn-sm btn-outline-secondary" disabled>Active</button>`
-                            : `<button class="btn btn-sm btn-outline-success" onclick="promoteModelVersion('${v.version_name}')">Promote</button>`;
+                            ? `<button class="btn btn-sm btn-outline-secondary" disabled data-i18n="ai_platform_btn_active">${t('ai_platform_btn_active', 'Active')}</button>`
+                            : `<button class="btn btn-sm btn-outline-success" onclick="promoteModelVersion('${v.version_name}')" data-i18n="ai_platform_btn_promote">${t('ai_platform_btn_promote', 'Promote')}</button>`;
                         html += `
                             <tr>
                                 <td class="fw-bold">${v.version_name}</td>
@@ -573,6 +573,10 @@ async function loadAIPlatformOverviewData() {
                     tbody.innerHTML = html;
                 }
             }
+        }
+
+        if (typeof applyTranslations === 'function') {
+            applyTranslations();
         }
     } catch (err) {
         console.error("Failed to load AI Platform overview:", err);

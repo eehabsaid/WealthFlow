@@ -2,6 +2,7 @@
   { "route": "dashboard", "title": "Dashboard", "nested_navigation": [
       { "name": "User Profile", "type": "modal", "trigger": "eval:window.showProfileModal && window.showProfileModal()" }
   ]},
+  { "route": "ai", "title": "WealthFlow AI" },
   { "route": "financial-advisor", "title": "Financial Advisor", "tabs": [
     { "name": "Overview", "id": "overview" }, 
     { "name": "Cash Flow", "id": "cash-flow" }, 
@@ -113,6 +114,7 @@
 
     { "name": "Dashboard", "id": "settings-dashboard" }, 
     { "name": "Backup and Restore", "id": "settings-backuprestore" },
-    { "name": "Documentation", "id": "settings-documentation" }
+    { "name": "Documentation", "id": "settings-documentation" },
+    { "name": "AI Advisor", "id": "settings-aiadvisor" }
   ]}
 ]

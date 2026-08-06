@@ -1,4 +1,20 @@
 {
+  "ai": {
+    "purpose": "WealthFlow AI Intelligence Platform workspace for business data reasoning, architecture inquiries, and cross-application assistance.",
+    "steps": [
+      "Select a question domain (Business Data or App Architecture).",
+      "Ask a natural language query about your financial metrics or codebase.",
+      "Manage conversations and switch between multi-thread chats."
+    ]
+  },
+  "settings::settings-aiadvisor": {
+    "purpose": "Configure Self-Evolving AI Platform settings, SFT dataset matrix, training backends, and fine-tuning controls.",
+    "steps": [
+      "Review SFT dataset metrics.",
+      "Select training backend.",
+      "Trigger model fine-tuning or autonomous learning scan."
+    ]
+  },
   "settings::settings-languages": {
     "purpose": "Configure the administrative settings and preferences for Settings Languages.",
     "steps": [

@@ -10,6 +10,9 @@ function routeAllowed(hash) {
     if (hash === 'dashboard') {
         return canAccessAny(['dashboard']);
     }
+    if (hash === 'ai' || hash === 'wealthflow-ai' || hash.startsWith('ai')) {
+        return canAccessAny(['ai', 'wealthflow_ai', 'financial_advisor']);
+    }
     if (hash === 'financial-advisor' || hash.startsWith('financial-advisor')) {
         return canAccessAny(['financial_advisor']);
     }
@@ -62,7 +65,7 @@ function getFirstAllowedRoute() {
         }
     }
 
-    const candidates = ['dashboard', 'financial-advisor', 'employment', 'balance', 'bank-certificates', 'fixed-assets', 'exchange-rates', 'gold-price', 'expenses', 'expense-categories', 'reports', 'advanced-reports', 'settings-languages'];
+    const candidates = ['dashboard', 'ai', 'financial-advisor', 'employment', 'balance', 'bank-certificates', 'fixed-assets', 'exchange-rates', 'gold-price', 'expenses', 'expense-categories', 'reports', 'advanced-reports', 'settings-languages'];
     for (const candidate of candidates) {
         if (routeAllowed(candidate)) {
             return candidate;
@@ -73,6 +76,7 @@ function getFirstAllowedRoute() {
 
 function permissionToRoute(pageKey) {
     if (pageKey === 'dashboard') return 'dashboard';
+    if (pageKey === 'ai' || pageKey === 'wealthflow_ai') return 'ai';
     if (pageKey === 'financial_advisor') return 'financial-advisor';
     if (pageKey === 'balance' || pageKey === 'banks') return 'balance';
     if (pageKey === 'bank_certificates') return 'bank-certificates';

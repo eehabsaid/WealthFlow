@@ -6,6 +6,7 @@ function renderSidebar() {
 
     const canSalary = canAccessAny(['employment', 'salary', 'companies', 'all_companies']);
     const canDashboard = canAccessAny(['dashboard']);
+    const canAI = canAccessAny(['ai', 'wealthflow_ai', 'financial_advisor']);
     const canFinancialAdvisor = canAccessAny(['financial_advisor']);
     const canBalance = canAccessAny(['balance', 'banks']);
     const canBankCertificates = canAccessAny(['bank_certificates']);
@@ -39,6 +40,12 @@ function renderSidebar() {
             <button class="nav-item" onclick="navigate('dashboard')">
                 <i class="bi bi-speedometer2"></i>
                 <span data-i18n="nav_dashboard">Dashboard</span>
+            </button>` : ''}
+
+            ${!showWelcomeOnly && canAI ? `
+            <button class="nav-item" data-route="ai" onclick="navigate('ai')">
+                <i class="bi bi-cpu"></i>
+                <span data-i18n="nav_wealthflow_ai">WealthFlow AI</span>
             </button>` : ''}
 
             ${!showWelcomeOnly && canFinancialAdvisor ? `

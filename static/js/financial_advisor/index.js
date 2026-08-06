@@ -105,14 +105,6 @@ function renderFinancialAdvisor() {
       `;
     }
 
-    if (tab.id === "ai-chat") {
-      return `
-        <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
-          <div id="fa-ai-chat-content"></div>
-        </div>
-      `;
-    }
-
     return `
       <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
         <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
@@ -204,8 +196,6 @@ function renderFinancialAdvisor() {
           if (typeof loadWhatIfSimulator === "function") loadWhatIfSimulator();
         } else if (targetSelector === "#fa-pane-scenario-planner") {
           if (typeof loadScenarioPlanner === "function") loadScenarioPlanner();
-        } else if (targetSelector === "#fa-pane-ai-chat") {
-          if (typeof loadAIChat === "function") loadAIChat();
         }
       });
     });
@@ -231,8 +221,6 @@ function renderFinancialAdvisor() {
     if (typeof loadPerformance === "function") loadPerformance();
   } else if (activeTabId === "what-if-simulator") {
     if (typeof loadWhatIfSimulator === "function") loadWhatIfSimulator();
-  } else if (activeTabId === "ai-chat") {
-    if (typeof loadAIChat === "function") loadAIChat();
   }
 }
 
@@ -256,4 +244,3 @@ window.loadOpportunityDetection = (typeof loadOpportunityDetection !== 'undefine
 window.loadPerformance = (typeof loadPerformance !== 'undefined') ? loadPerformance : (window.loadPerformance || (() => {}));
 window.loadWhatIfSimulator = (typeof loadWhatIfSimulator !== 'undefined') ? loadWhatIfSimulator : (window.loadWhatIfSimulator || (() => {}));
 window.loadScenarioPlanner = (typeof loadScenarioPlanner !== 'undefined') ? loadScenarioPlanner : (window.loadScenarioPlanner || (() => {}));
-window.loadAIChat = (typeof loadAIChat !== 'undefined') ? loadAIChat : (window.loadAIChat || (() => {}));

@@ -59,13 +59,14 @@ from tests.modules.fixed_assets import test_fixed_assets_module
 from tests.modules.reports import test_reports_module
 from tests.modules.reminders import test_reminders_module
 from tests.modules.financial_advisor import test_financial_advisor_module
+from tests.modules.ai import test_ai_module
 from tests.modules.settings import test_settings_module
 from tests.modules.translations import test_translations_module
 
 def main():
     parser = argparse.ArgumentParser(description="WealthFlow Human QA End-to-End Regression Suite")
     parser.add_argument("--mode", default="full", choices=["full", "smoke", "module", "page", "crud", "lang", "theme", "device"])
-    parser.add_argument("--module", default="all", choices=["all", "auth", "dashboard", "balance", "salary", "expenses", "certificates", "fixed_assets", "reports", "reminders", "financial_advisor", "settings", "translations"])
+    parser.add_argument("--module", default="all", choices=["all", "auth", "dashboard", "ai", "balance", "salary", "expenses", "certificates", "fixed_assets", "reports", "reminders", "financial_advisor", "settings", "translations"])
     parser.add_argument("--page", default=None)
     parser.add_argument("--lang", default="en", choices=["en", "ar", "fr", "de"])
     parser.add_argument("--theme", default="dark", choices=["dark", "light"])
@@ -122,7 +123,7 @@ def main():
                 modules_to_run = [args.module]
             else:
                 modules_to_run = [
-                    "auth", "dashboard", "balance", "salary", "certificates",
+                    "auth", "dashboard", "ai", "balance", "salary", "certificates",
                     "fixed_assets", "expenses", "reports", "reminders",
                     "financial_advisor", "settings", "translations"
                 ]
@@ -151,6 +152,8 @@ def main():
                     test_authentication_module(ctx, reporter, screenshot_logger)
                 elif mod == "dashboard":
                     test_dashboard_module(ctx, reporter, screenshot_logger)
+                elif mod == "ai":
+                    test_ai_module(ctx, reporter, screenshot_logger)
                 elif mod == "balance":
                     test_balance_module(ctx, reporter, screenshot_logger)
                 elif mod == "salary":

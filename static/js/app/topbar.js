@@ -67,6 +67,8 @@ async function loadLangMenu() {
 // Route definitions: hash → { i18nKey, addBtn, render }
 const ROUTES = {
     'dashboard':          { key: 'nav_dashboard',         add: false, fn: () => renderDashboard()     },
+    'ai':                 { key: 'nav_wealthflow_ai',     add: false, fn: () => renderAI()            },
+    'wealthflow-ai':      { key: 'nav_wealthflow_ai',     add: false, fn: () => renderAI()            },
     'financial-advisor':  { key: 'nav_financial_advisor', add: false, fn: () => renderFinancialAdvisor() },
     'balance':            { key: 'nav_balance',           add: false, fn: () => renderBalance()       },
     'bank-certificates':  { key: 'nav_bank_certificates', add: true,  fn: () => renderBankCertificates() },
