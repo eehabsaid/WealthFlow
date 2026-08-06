@@ -44,16 +44,15 @@ function loadAIChat() {
             <option value="business_data_analysis" selected data-i18n="ai_domain_business_data">Business / Data Analysis</option>
             <option value="app_features_architecture" data-i18n="ai_domain_app_features">Application Features & Architecture</option>
           </select>
-          <input 
-            type="text" 
+          <textarea 
             id="ai-chat-input" 
             class="form-control flex-grow-1" 
-            style="background:var(--bg-secondary); color:var(--text-primary); border-color:var(--border-color);" 
-            placeholder="Ask a financial question..." 
-            data-i18n-placeholder="ai_chat_input_placeholder"
-            autocomplete="off"
+            rows="1"
+            style="background:var(--bg-secondary); color:var(--text-primary); border-color:var(--border-color); resize:none; overflow-y:auto; max-height:150px;" 
+            placeholder="Ask a financial or business data question..." 
+            data-i18n-placeholder="ai_chat_input_placeholder_business"
             required
-          />
+          ></textarea>
           <button type="submit" id="ai-chat-send-btn" class="btn btn-primary px-4 d-flex align-items-center gap-2">
             <span data-i18n="ai_chat_send_button">Send</span>
             <i class="bi bi-send"></i>
@@ -64,6 +63,37 @@ function loadAIChat() {
   `;
 
   if (typeof applyTranslations === "function") applyTranslations();
+
+  const inputEl = document.getElementById("ai-chat-input");
+  if (inputEl) {
+    inputEl.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        if (e.shiftKey) {
+          // Shift + Enter: Allow natural newline insertion
+          return;
+        }
+        // Enter (without Shift): Submit form
+        e.preventDefault();
+        const form = document.getElementById("ai-chat-form");
+        if (form) {
+          form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+        }
+      }
+    });
+
+    inputEl.addEventListener("input", function() {
+      this.style.height = "auto";
+      this.style.height = Math.min(this.scrollHeight, 150) + "px";
+    });
+  }
+
+  const domainSelect = document.getElementById("ai-chat-domain-select");
+  if (domainSelect) {
+    domainSelect.addEventListener("change", function() {
+      _updateAIChatInputPlaceholder(this.value);
+    });
+    _updateAIChatInputPlaceholder(domainSelect.value);
+  }
 
   const form = document.getElementById("ai-chat-form");
   if (form) {
@@ -429,6 +459,22 @@ function _renderAIChatFormattedContent(content) {
   safe = safe.replace(/\n/g, '<br>');
 
   return safe;
+}
+
+function _updateAIChatInputPlaceholder(domain) {
+  const inputEl = document.getElementById("ai-chat-input");
+  if (!inputEl) return;
+
+  const key = domain === "app_features_architecture"
+    ? "ai_chat_input_placeholder_app_features"
+    : "ai_chat_input_placeholder_business";
+
+  inputEl.setAttribute("data-i18n-placeholder", key);
+  const fallback = domain === "app_features_architecture"
+    ? "Ask about application features, codebase, or architecture..."
+    : "Ask a financial or business data question...";
+
+  inputEl.placeholder = typeof t === "function" ? t(key, fallback) : fallback;
 }
 
 window.loadAIChat = loadAIChat;

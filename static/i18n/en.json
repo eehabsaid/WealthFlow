@@ -20,6 +20,8 @@
   "ai_chat_header_title": "AI Financial Advisor",
   "ai_chat_header_subtitle": "Ask questions about your financial health, cash flow, goals, and risk",
   "ai_chat_input_placeholder": "Ask a financial question...",
+  "ai_chat_input_placeholder_business": "Ask a financial or business data question...",
+  "ai_chat_input_placeholder_app_features": "Ask about application features, codebase, or architecture...",
   "ai_chat_send_button": "Send",
   "ai_chat_clear_history": "Clear",
   "ai_chat_disabled_title": "AI Assistant is Disabled",

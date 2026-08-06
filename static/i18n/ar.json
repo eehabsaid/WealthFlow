@@ -20,6 +20,8 @@
   "ai_chat_header_title": "المستشار المالي الذكي",
   "ai_chat_header_subtitle": "اطرح أسئلة حول صحتك المالية وتدفقاتك النقدية وأهدافك والمخاطر",
   "ai_chat_input_placeholder": "اسأل سؤالاً مالياً...",
+  "ai_chat_input_placeholder_business": "اسأل سؤالاً مالياً أو تحليل بيانات...",
+  "ai_chat_input_placeholder_app_features": "اسأل عن ميزات التطبيق، البرمجية، أو الهيكلية...",
   "ai_chat_send_button": "إرسال",
   "ai_chat_clear_history": "مسح",
   "ai_chat_disabled_title": "المساعد الذكي معطل",

@@ -20,6 +20,8 @@
   "ai_chat_header_title": "KI-Finanzberater",
   "ai_chat_header_subtitle": "Stellen Sie Fragen zu Ihrer finanziellen Gesundheit, Ihrem Cashflow, Ihren Zielen und Risiken",
   "ai_chat_input_placeholder": "Stellen Sie eine finanzielle Frage...",
+  "ai_chat_input_placeholder_business": "Stellen Sie eine Finanz- oder Datenfrage...",
+  "ai_chat_input_placeholder_app_features": "Fragen Sie nach App-Funktionen, Code oder Architektur...",
   "ai_chat_send_button": "Senden",
   "ai_chat_clear_history": "Löschen",
   "ai_chat_disabled_title": "KI-Assistent ist deaktiviert",
