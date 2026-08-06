@@ -10,7 +10,10 @@ function showModal(html) {
         document.body.appendChild(el);
     }
 
-    //<div class="modal-dialog modal-dialog-centered"> small dialog
+    // Reset any legacy inline padding on body before showing modal
+    document.body.style.paddingRight = '';
+    document.body.style.overflow = '';
+
     el.innerHTML = `
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">${html}</div>
@@ -26,9 +29,19 @@ function showModal(html) {
 function closeModal() {
     const el = document.getElementById('globalModal');
     if (el) bootstrap.Modal.getInstance(el)?.hide();
+    document.body.style.paddingRight = '';
+    document.body.style.overflow = '';
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// TOAST
-// ════════════════════════════════════════════════════════════════════════════
+// ── Global Modal Lifecycle Protection against Body Padding Accumulation ──
+document.addEventListener('show.bs.modal', function () {
+    document.body.style.paddingRight = '';
+});
 
+document.addEventListener('hidden.bs.modal', function () {
+    if (!document.querySelector('.modal.show')) {
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+        document.body.style.overflow = '';
+    }
+});

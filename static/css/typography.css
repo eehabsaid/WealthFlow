@@ -1,33 +1,59 @@
+/* ── Typography & System Fonts ── */
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-family-body);
   font-size: 14px;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
-.portfolio-optimizer-header h4 {
-  margin: 0;
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--font-family-display);
   color: var(--text-primary);
+  letter-spacing: -0.025em;
   font-weight: 700;
+  line-height: 1.25;
 }
 
-.portfolio-optimizer-header p {
-  margin: 4px 0 0;
-  color: var(--text-secondary);
-  font-size: 12px;
+h1, .h1 { font-size: 1.85rem; }
+h2, .h2 { font-size: 1.5rem; }
+h3, .h3 { font-size: 1.25rem; }
+h4, .h4 { font-size: 1.05rem; }
+h5, .h5 { font-size: 0.95rem; }
+h6, .h6 { font-size: 0.85rem; }
+
+.section-label,
+.nav-section-label,
+.kpi-label,
+.micro-label {
+  font-family: var(--font-family-display);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
+.portfolio-optimizer-header h4,
 .goal-planning-header h4 {
   margin: 0;
   color: var(--text-primary);
   font-weight: 700;
 }
 
+.portfolio-optimizer-header p,
 .goal-planning-header p {
   margin: 4px 0 0;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 #toast-container .toast-body {
@@ -37,7 +63,7 @@ body {
   padding: 0;
   color: var(--text-primary);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -49,17 +75,16 @@ body {
   width: 24px;
   height: 24px;
   flex: 0 0 24px;
-  border-radius: 999px;
-  background: rgba(80, 216, 144, 0.14);
-  color: var(--accent-green);
-  font-size: 14px;
+  border-radius: var(--radius-full);
+  background: var(--accent-emerald-light);
+  color: var(--accent-emerald);
+  font-size: 13px;
   font-weight: 800;
 }
 
-#toast-container .toast[style*="accent-red"] .toast-body::before {
+#toast-container .toast[style*="accent-red"] .toast-body::before,
+#toast-container .toast.toast-danger .toast-body::before {
   content: "!";
-  background: rgba(255, 77, 109, 0.14);
-  color: var(--accent-red);
+  background: var(--accent-rose-light);
+  color: var(--accent-rose);
 }
-
-body { overflow-x: hidden; }

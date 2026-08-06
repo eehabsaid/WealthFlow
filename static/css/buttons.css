@@ -1,77 +1,116 @@
-/* ── Buttons ── */
-.btn-primary-custom {
+/* ── Custom Buttons ── */
+
+.btn-primary-custom,
+.btn-primary {
   background: var(--accent-primary);
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 8px 16px;
-  font-size: 13px;
+  color: var(--text-inverse, #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm, 8px);
+  padding: 8px 18px;
+  font-size: 13.5px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   cursor: pointer;
-  transition: background .15s;
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 
-.btn-primary-custom:hover {
+.btn-primary-custom:hover,
+.btn-primary:hover {
   background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
+  color: #ffffff;
+}
+
+.btn-primary-custom:active,
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary-custom:focus-visible,
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .btn-primary-custom:disabled,
 .btn-primary-custom[disabled] {
-  background: var(--accent-primary) !important;
-  color: #fff !important;
-  opacity: 0.75;
+  opacity: 0.6;
+  transform: none !important;
+  box-shadow: none !important;
   cursor: not-allowed;
 }
 
-.btn-secondary-custom {
+.btn-secondary-custom,
+.btn-secondary,
+.btn-outline-secondary {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--bg-tertiary);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm, 6px);
+  border-radius: var(--radius-sm, 8px);
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all .15s;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
-.btn-secondary-custom:hover {
-  background: var(--border-color);
+.btn-secondary-custom:hover,
+.btn-secondary:hover,
+.btn-outline-secondary:hover {
+  background: var(--bg-card-hover);
   color: var(--text-primary);
-  border-color: var(--accent-primary);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.btn-secondary-custom:active,
+.btn-secondary:active {
+  transform: translateY(0);
 }
 
 .btn-icon {
-  background: none;
-  border: none;
-  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
   cursor: pointer;
-  padding: 4px 7px;
-  border-radius: 5px;
+  padding: 6px 9px;
+  border-radius: var(--radius-sm, 8px);
   font-size: 14px;
-  transition: all .15s;
+  transition: all var(--transition-fast);
 }
 
 .btn-icon:hover {
   color: var(--text-primary);
   background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  transform: translateY(-1px);
 }
 
-.btn-icon.del:hover {
-  color: var(--accent-red);
+.btn-icon.del:hover,
+.btn-icon-danger:hover {
+  color: var(--accent-rose);
+  background: var(--accent-rose-light);
+  border-color: rgba(244, 63, 94, 0.3);
 }
 
 .goal-header-actions .btn {
-  min-width: 124px;
+  min-width: 120px;
 }
 
 .goal-actions .btn {
   border-width: 1px;
-  border-radius: 10px;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+  border-radius: var(--radius-sm, 8px);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .goal-actions .btn:hover {
@@ -79,10 +118,15 @@
 }
 
 .goal-calendar-btn {
-  border-radius: 8px;
+  border-radius: var(--radius-sm, 8px);
 }
 
 #toast-container .btn-close {
   margin-left: auto !important;
-  opacity: 0.72;
+  opacity: 0.75;
+  transition: opacity var(--transition-fast);
+}
+
+#toast-container .btn-close:hover {
+  opacity: 1;
 }

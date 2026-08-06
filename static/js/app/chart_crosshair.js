@@ -60,13 +60,15 @@
       'position:absolute',
       'pointer-events:none',
       'z-index:10',
-      'background:rgba(10,20,46,0.94)',
-      'border:1px solid rgba(123,147,201,0.28)',
-      'border-radius:10px',
+      'background:var(--bg-secondary)',
+      'border:1px solid var(--border-color)',
+      'border-radius:var(--radius-md, 12px)',
       'padding:10px 14px',
       'min-width:130px',
       'max-width:220px',
-      'backdrop-filter:blur(4px)',
+      'box-shadow:var(--shadow-lg)',
+      'backdrop-filter:blur(12px)',
+      '-webkit-backdrop-filter:blur(12px)',
       'transition:opacity 0.12s',
       'opacity:0',
       'display:none',
@@ -130,10 +132,10 @@
           (typeof window.fmt === 'function' ? window.fmt(raw) : raw);
       }
 
-      const color = ds.borderColor || '#7b93c9';
+      const color = ds.borderColor || 'var(--accent-primary)';
       return `<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
         <span style="display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${color};"></span>
-        <span style="color:#b8caf0;font-size:12px;white-space:nowrap;">${formatted}</span>
+        <span style="color:var(--text-primary);font-size:12px;font-weight:600;white-space:nowrap;">${formatted}</span>
       </div>`;
     }).join('');
 
@@ -144,7 +146,7 @@
     }
 
     card.innerHTML = `
-      <div style="color:#7b93c9;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">${typeof formatDate === 'function' ? formatDate(label) : label}</div>
+      <div style="color:var(--text-muted);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">${typeof formatDate === 'function' ? formatDate(label) : label}</div>
       ${rows}
     `;
     card.style.display = 'block';

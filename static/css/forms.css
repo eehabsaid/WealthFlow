@@ -1,12 +1,76 @@
-.data-table input::selection {
-    background-color: var(--accent-primary) !important;
-    color: #ffffff !important;
+/* ── Form Controls & Inputs ── */
+
+.form-control,
+.form-select,
+textarea {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm, 8px);
+  padding: 9px 14px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
 }
 
-.data-table input {
-    background-color: transparent !important; /* Let the parent row background show through */
-    color: var(--text-primary) !important;
-    
+.form-control:focus,
+.form-select:focus,
+textarea:focus {
+  background: var(--bg-secondary);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  outline: none;
+  color: var(--text-primary);
+}
+
+.form-control::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.form-label {
+  font-family: var(--font-family-display);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-check-input,
+.data-table input[type="checkbox"].form-check-input {
+  width: 1.15em;
+  height: 1.15em;
+  background-color: var(--bg-tertiary) !important;
+  border: 1.5px solid var(--border-strong) !important;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.form-check-input:hover,
+.data-table input[type="checkbox"].form-check-input:hover {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.form-check-input:checked,
+.data-table input[type="checkbox"].form-check-input:checked {
+  background-color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+.data-table input:not([type="checkbox"]):not([type="radio"]) {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: 1px solid transparent;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs, 4px);
+}
+
+.data-table input:not([type="checkbox"]):not([type="radio"]):focus {
+  border-color: var(--accent-primary);
+  background: var(--bg-tertiary) !important;
 }
 
 #realEstateSection .fa-chip-check .form-check-input {
@@ -14,8 +78,8 @@
   margin: 0;
   width: 1.05em;
   height: 1.05em;
-  border-color: var(--text-secondary) !important;
-  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-strong) !important;
+  background-color: var(--bg-tertiary) !important;
 }
 
 #realEstateSection .fa-chip-check .form-check-input:checked {
@@ -24,72 +88,30 @@
 }
 
 .goal-toolbar .form-control,
-.goal-toolbar .form-select {
-  background: var(--bg-tertiary);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.goal-toolbar .form-control::placeholder {
-  color: var(--text-secondary);
-}
-
+.goal-toolbar .form-select,
 .expense-filters .form-select,
-.expense-filters .form-control {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 13px;
-  padding: 5px 10px;
-  border-radius: var(--radius-sm);
-}
-
-.expense-filters .form-select:focus,
-.expense-filters .form-control:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-glow);
-  outline: none;
-}
-
+.expense-filters .form-control,
 .report-controls .form-select,
-.report-controls .form-control {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 13px;
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
-  min-width: 130px;
-}
-
-.report-controls .form-select:focus,
-.report-controls .form-control:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-glow);
-  outline: none;
-}
-
-/* ════════════════════════════════════════════════════════════
-   SETTINGS PAGE — Users & Translations filter bars
-   ════════════════════════════════════════════════════════════ */
-
-/* Target the inline-styled filter containers in settings tabs */
+.report-controls .form-control,
 #settingsContent .form-control,
 #settingsContent .form-select {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   font-size: 13px;
-  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  border-radius: var(--radius-sm, 8px);
 }
 
+.goal-toolbar .form-control:focus,
+.goal-toolbar .form-select:focus,
+.expense-filters .form-select:focus,
+.expense-filters .form-control:focus,
+.report-controls .form-select:focus,
+.report-controls .form-control:focus,
 #settingsContent .form-control:focus,
 #settingsContent .form-select:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-glow);
+  box-shadow: 0 0 0 3px var(--accent-glow);
   outline: none;
-}
-
-#settingsContent .form-control::placeholder {
-  color: var(--text-muted);
 }
