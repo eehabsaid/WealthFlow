@@ -15,20 +15,26 @@ function showModal(html) {
     document.body.style.overflow = '';
 
     el.innerHTML = `
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">${html}</div>
         </div>`;
-    bootstrap.Modal.getInstance(el)?.dispose();
-    const modal = new bootstrap.Modal(el, {
-        backdrop: 'static',
-        keyboard: false,
-    });
+
+    let modal = bootstrap.Modal.getInstance(el);
+    if (!modal) {
+        modal = new bootstrap.Modal(el, {
+            backdrop: 'static',
+            keyboard: false,
+        });
+    }
     modal.show();
 }
 
 function closeModal() {
     const el = document.getElementById('globalModal');
-    if (el) bootstrap.Modal.getInstance(el)?.hide();
+    if (el) {
+        const modal = bootstrap.Modal.getInstance(el);
+        if (modal) modal.hide();
+    }
     document.body.style.paddingRight = '';
     document.body.style.overflow = '';
 }

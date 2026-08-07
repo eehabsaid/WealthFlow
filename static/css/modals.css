@@ -216,6 +216,7 @@
 }
 
 .asset-modal-dialog {
+  width: min(100% - 24px, 1200px);
   max-width: 1200px;
 }
 

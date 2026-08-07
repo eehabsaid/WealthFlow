@@ -21,7 +21,7 @@
 }
 
 .asset-title{
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 1vw + 1.1rem, 1.5rem);
     font-weight: 700;
     color: var(--text-primary);
 }
@@ -34,7 +34,7 @@
 }
 
 .asset-value-large{
-    font-size: 1.45rem;
+    font-size: clamp(1.2rem, 1vw + 1rem, 1.45rem);
     font-weight: 700;
 }
 
@@ -48,7 +48,7 @@
 
 .asset-summary-value{
     color: var(--text-primary);
-    font-size: 1.25rem;
+    font-size: clamp(1.05rem, 0.8vw + 1rem, 1.25rem);
     font-weight: 700;
 }
 

@@ -419,8 +419,6 @@
    ══════════════════════════════════════ */
 
 @media (max-width: 575.98px) {
-  .page-title { font-size: 18px; }
-  .kpi-value { font-size: 20px !important; }
   .year-pill { padding: 4px 11px; font-size: 11.5px; }
 
   /* Modal full width */

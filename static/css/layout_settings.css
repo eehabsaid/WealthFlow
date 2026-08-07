@@ -7,7 +7,7 @@
 }
 
 .page-title {
-  font-size: 20px;
+  font-size: clamp(18px, 1.5vw + 12px, 20px);
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -155,7 +155,7 @@
 .portfolio-score-center {
   z-index: 1;
   color: var(--text-primary);
-  font-size: 42px;
+  font-size: clamp(30px, 3vw + 20px, 42px);
   font-weight: 800;
   line-height: 1;
 }
@@ -194,7 +194,7 @@
 
 .portfolio-allocation-pct {
   color: var(--text-primary);
-  font-size: 24px;
+  font-size: clamp(18px, 1.8vw + 14px, 24px);
   font-weight: 800;
   line-height: 1.2;
 }
