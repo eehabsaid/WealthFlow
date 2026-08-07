@@ -1,7 +1,8 @@
 """
 Salary Data Provider for AI business context. Read-only.
-Provides complete analytical data, full chronological monthly timeline,
-exact ORM aggregations, multi-year/multi-company support, and explicit currency preservation.
+Provides complete analytical data, hierarchical yearly/monthly timelines,
+exact ORM aggregations across all years, multi-year/multi-company support,
+and explicit currency preservation without context window bloating.
 """
 
 from __future__ import annotations
@@ -49,7 +50,7 @@ class SalaryDataProvider(BaseContextProvider):
             "consumes": ["SalaryEntry", "Company", "Currency"],
             "used_by": ["Financial Advisor", "Cash Flow Forecast", "AI Advisor"],
             "inputs": ["year", "month", "company_id"],
-            "outputs": ["summary", "yearly_summary", "company_breakdown", "monthly_timeline"],
+            "outputs": ["latest_active_year_summary", "recent_monthly_timeline", "summary", "yearly_summary", "company_breakdown"],
             "description": "Calculates historical, expected, and bonus salary income, growth trends, monthly timelines, and currency analytics per company.",
         }]
 
@@ -117,26 +118,40 @@ class SalaryDataProvider(BaseContextProvider):
 
         yearly_summary = []
         prev_paid = None
+        current_year_stats = None
+        max_year = max((y["year"] for y in yearly_raw), default=None)
+
         for y in yearly_raw:
             y_paid = float(y["total_paid"] or 0)
+            y_exp = float(y["total_expected"] or 0)
+            y_bon = float(y["total_bonus"] or 0)
             yoy_growth_pct = None
             if prev_paid and prev_paid > 0:
                 yoy_growth_pct = round(((y_paid - prev_paid) / prev_paid) * 100.0, 2)
             prev_paid = y_paid
 
-            yearly_summary.append({
+            y_item = {
                 "year": y["year"],
                 "total_paid": y_paid,
-                "total_expected": float(y["total_expected"] or 0),
-                "total_bonus": float(y["total_bonus"] or 0),
+                "total_expected": y_exp,
+                "total_bonus": y_bon,
                 "entries_count": y["count"],
                 "yoy_growth_pct": yoy_growth_pct,
                 "currency": currency_code,
-            })
+            }
+            yearly_summary.append(y_item)
 
-        # 5. Complete Chronological Monthly Timeline
+            if max_year and y["year"] == max_year:
+                current_year_stats = y_item
+
+        # 5. Chronological Monthly Timeline (Prioritize recent entries first, reverse sorted by year then month)
         all_entries = list(SalaryEntry.objects.select_related("company").all())
-        all_entries.sort(key=_month_sort_key)
+        all_entries.sort(key=_month_sort_key, reverse=True)  # Newest entries (2026) FIRST!
+
+        # Expose last 24 entries (2 full years of monthly timeline) to fit comfortably within context budget
+        timeline_entries = all_entries[:24]
+        # Re-sort the exposed recent timeline chronologically for natural LLM reading
+        timeline_entries.sort(key=_month_sort_key)
 
         monthly_timeline = []
         paid_consistent_count = 0
@@ -146,8 +161,6 @@ class SalaryDataProvider(BaseContextProvider):
         for entry in all_entries:
             p_val = float(entry.paid or 0)
             e_val = float(entry.expected or 0)
-            b_val = float(entry.bonus or 0)
-
             if first_paid is None and p_val > 0:
                 first_paid = p_val
             if p_val > 0:
@@ -155,13 +168,14 @@ class SalaryDataProvider(BaseContextProvider):
                 if p_val >= e_val:
                     paid_consistent_count += 1
 
+        for entry in timeline_entries:
             monthly_timeline.append({
                 "year": entry.year,
                 "month": entry.month,
                 "company": entry.company.name if entry.company else "",
-                "paid": p_val,
-                "expected": e_val,
-                "bonus": b_val,
+                "paid": float(entry.paid or 0),
+                "expected": float(entry.expected or 0),
+                "bonus": float(entry.bonus or 0),
                 "remaining": entry.remaining,
                 "currency": currency_code,
                 "notes": entry.notes or "",
@@ -178,10 +192,12 @@ class SalaryDataProvider(BaseContextProvider):
 
         return {
             "currency": currency_code,
+            "latest_active_year_summary": current_year_stats,
+            "recent_monthly_timeline": monthly_timeline,
             "summary": {
-                "total_paid": total_paid,
-                "total_expected": total_expected,
-                "total_bonus": total_bonus,
+                "total_paid_all_time": total_paid,
+                "total_expected_all_time": total_expected,
+                "total_bonus_all_time": total_bonus,
                 "total_entries_count": total_count,
                 "average_monthly_paid": round(avg_monthly_paid, 2),
                 "overall_growth_pct": overall_growth_pct,
@@ -190,5 +206,4 @@ class SalaryDataProvider(BaseContextProvider):
                 "company_breakdown": company_breakdown,
             },
             "yearly_summary": yearly_summary,
-            "monthly_timeline": monthly_timeline,
         }
