@@ -2505,7 +2505,7 @@ class ExchangeRateHistoryServiceTest(TestCase):
             "EUR": 0.018519,
         }
         with patch(
-            "core.integrations.exchange_rate_api.fetch_latest_exchange_rates",
+            "core.integrations.fetch_latest_exchange_rates",
             return_value=fake_raw,
         ):
             ExchangeRateService().refresh_latest_rates()
@@ -2526,7 +2526,7 @@ class ExchangeRateHistoryServiceTest(TestCase):
 
         fake_raw = {"USD": 0.02}
         with patch(
-            "core.integrations.exchange_rate_api.fetch_latest_exchange_rates",
+            "core.integrations.fetch_latest_exchange_rates",
             return_value=fake_raw,
         ), patch(
             "core.services.exchange_rate_history_service.ExchangeRateHistoryService._archive_current_rates_inner",
