@@ -2023,6 +2023,9 @@
   "ai_prompt_seed_rebalance_content": "Évaluez la défense du pouvoir d'achat de mon patrimoine global. Évaluez l'équilibre entre l'or, les certificats à intérêt et l'immobilier par rapport aux tendances de l'inflation.",
   "ai_prompt_seed_execsum_name": "Synthèse Exécutive Mensuelle",
   "ai_prompt_seed_execsum_desc": "Génère un résumé exécutif formel de l'évolution du patrimoine et des jalons financiers.",
-  "ai_prompt_seed_execsum_content": "Créez une synthèse exécutive concise de ma valeur nette totale, de la croissance mensuelle du patrimoine, des faits marquants et des recommandations pour le mois prochain."
+  "ai_prompt_seed_execsum_content": "Créez une synthèse exécutive concise de ma valeur nette totale, de la croissance mensuelle du patrimoine, des faits marquants et des recommandations pour le mois prochain.",
+  "ai_ws_thinking": "Réflexion...",
+  "ai_ws_thinking_status": "WealthFlow AI fléchit et traite..."
 }
+
 

@@ -2023,6 +2023,9 @@
   "ai_prompt_seed_rebalance_content": "Beurteilen Sie den Kaufkraftschutz meines Gesamtvermögens. Bewerten Sie die Balance zwischen Gold, verzinsten Zertifikaten und Immobilien im Vergleich zur Inflation.",
   "ai_prompt_seed_execsum_name": "Monatliche Vorstands-Zusammenfassung",
   "ai_prompt_seed_execsum_desc": "Erstellt eine formelle Zusammenfassung der Vermögensentwicklung und Meilensteine.",
-  "ai_prompt_seed_execsum_content": "Erstellen Sie eine prägnante Zusammenfassung meines Nettovermögens, des monatlichen Vermögenswachstums, der Portfolio-Highlights und strategischer Empfehlungen."
+  "ai_prompt_seed_execsum_content": "Erstellen Sie eine prägnante Zusammenfassung meines Nettovermögens, des monatlichen Vermögenswachstums, der Portfolio-Highlights und strategischer Empfehlungen.",
+  "ai_ws_thinking": "Denken...",
+  "ai_ws_thinking_status": "WealthFlow AI denkt nach..."
 }
+
 

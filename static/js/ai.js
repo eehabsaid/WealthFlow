@@ -554,6 +554,63 @@ function _appendMessage(role, content, toolCalls, sources, timestamp) {
   _applyTranslations();
 }
 
+function _setLoadingUI(loading) {
+  _aiState.loading = loading;
+
+  const inputEl = document.getElementById('ai-ws-input');
+  const sendBtn = document.querySelector('.ai-ws-send-btn');
+  const messagesContainer = document.getElementById('ai-ws-messages');
+
+  if (inputEl) {
+    inputEl.disabled = loading;
+  }
+
+  if (sendBtn) {
+    sendBtn.disabled = loading;
+    if (loading) {
+      sendBtn.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+        <span data-i18n="ai_ws_thinking">${_escapeHtml(_aiT('ai_ws_thinking', 'Thinking...'))}</span>
+      `;
+    } else {
+      sendBtn.innerHTML = `
+        <span data-i18n="ai_chat_send_button">${_escapeHtml(_aiT('ai_chat_send_button', 'Send'))}</span>
+        <i class="bi bi-send"></i>
+      `;
+    }
+  }
+
+  if (messagesContainer) {
+    const existingBubble = document.getElementById('ai-ws-typing-bubble');
+    if (loading && !existingBubble) {
+      const bubbleHtml = `
+        <div class="ai-ws-msg" id="ai-ws-typing-bubble">
+          <div class="ai-ws-msg-avatar assistant">
+            <i class="bi bi-robot"></i>
+          </div>
+          <div class="ai-ws-msg-body">
+            <div class="ai-ws-msg-role">
+              <span data-i18n="ai_role_assistant">WealthFlow AI</span>
+            </div>
+            <div class="ai-ws-msg-content text-muted d-flex align-items-center gap-2 pt-1">
+              <span class="spinner-grow spinner-grow-sm text-primary" role="status" aria-hidden="true"></span>
+              <span class="font-monospace small" data-i18n="ai_ws_thinking_status">${_escapeHtml(_aiT('ai_ws_thinking_status', 'WealthFlow AI is thinking...'))}</span>
+            </div>
+          </div>
+        </div>
+      `;
+      messagesContainer.innerHTML += bubbleHtml;
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    } else if (!loading && existingBubble) {
+      existingBubble.remove();
+    }
+  }
+
+  if (window._applyTranslations) {
+    window._applyTranslations();
+  }
+}
+
 async function _handleAIChatSubmit() {
   const inputEl = document.getElementById('ai-ws-input');
   if (!inputEl) return;
@@ -565,9 +622,9 @@ async function _handleAIChatSubmit() {
 
   inputEl.value = '';
   inputEl.style.height = 'auto';
-  _aiState.loading = true;
 
   _appendMessage('user', message, null, null, new Date().toISOString());
+  _setLoadingUI(true);
 
   try {
     const res = await fetch('/api/financial-advisor/ai/chat/', {
@@ -597,17 +654,20 @@ async function _handleAIChatSubmit() {
       tool_calls: aiMsg.tool_calls || []
     };
 
+    _setLoadingUI(false);
     _appendMessage('assistant', aiMsg.content || '', aiMsg.tool_calls, aiMsg.sources, aiMsg.created_at || new Date().toISOString());
     
     _renderRightPanel();
     _fetchAIChatConversations();
 
   } catch (err) {
+    _setLoadingUI(false);
     _appendMessage('assistant', _aiT('ai_ws_error_processing', 'Sorry, there was an error processing your request.'), null, null, new Date().toISOString());
   } finally {
-    _aiState.loading = false;
+    _setLoadingUI(false);
   }
 }
+
 
 function _toggleAIContextPanel() {
   const rightPanel = document.getElementById('ai-ws-right-panel');

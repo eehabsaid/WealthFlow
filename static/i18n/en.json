@@ -2023,6 +2023,9 @@
   "ai_prompt_seed_rebalance_content": "Assess the purchasing power defense of my total wealth. Evaluate the balance between gold holdings, interest-bearing certificates, and real estate assets relative to current inflation trends.",
   "ai_prompt_seed_execsum_name": "Monthly Executive Wealth Summary",
   "ai_prompt_seed_execsum_desc": "Generates a formal executive summary of net worth changes and key financial milestones.",
-  "ai_prompt_seed_execsum_content": "Create a concise executive summary of my total net worth, month-over-month wealth growth, key portfolio highlights, and strategic recommendations for next month."
+  "ai_prompt_seed_execsum_content": "Create a concise executive summary of my total net worth, month-over-month wealth growth, key portfolio highlights, and strategic recommendations for next month.",
+  "ai_ws_thinking": "Thinking...",
+  "ai_ws_thinking_status": "WealthFlow AI is thinking..."
 }
+
 
