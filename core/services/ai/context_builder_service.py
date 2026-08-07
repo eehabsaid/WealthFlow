@@ -47,15 +47,27 @@ class ContextBuilderService:
         return max(1, len(text) // 4)
 
     def determine_relevant_services(self, query: str) -> list[str]:
-        q = (query or "").lower()
+        q = (query or "").lower().strip()
         selected = list(DEFAULT_CORE_SERVICES)
 
+        # Dynamic capability evaluation against registered advisor service providers
+        from core.services.financial_advisor.registry import get_available_advisor_services
+        available_services = get_available_advisor_services()
+
+        for service_key in available_services:
+            clean_key = service_key.replace("_", " ").lower()
+            if any(term in q for term in clean_key.split()):
+                if service_key not in selected:
+                    selected.append(service_key)
+
+        # Topic keyword map lookup (preserved for backwards compatibility)
         for service_key, keywords in TOPIC_KEYWORD_MAP.items():
             if any(kw in q for kw in keywords):
                 if service_key not in selected:
                     selected.append(service_key)
 
         return selected
+
 
     def build_system_prompt(self, user: Any = None) -> str:
         base_prompt = AppSettings.get(

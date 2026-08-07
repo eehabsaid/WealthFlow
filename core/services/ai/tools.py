@@ -261,15 +261,18 @@ def _handle_query_application_data(user: Any, params: dict[str, Any]) -> dict[st
     """
     from core.services.ai.context_builder import AIContextBuilder
 
+    search_query = str(params.get("search_query") or params.get("query") or params.get("focus_area") or "").strip()
     limit = min(int(params.get("limit", 20) or 20), 100)
 
     res = AIContextBuilder.build_business_context(
         user=user,
+        search_query=search_query,
         limit=limit,
     )
     if isinstance(res, dict) and "_explanation_metadata" not in res:
         res["_explanation_metadata"] = {
             "intent": "business_analysis",
+            "search_query": search_query,
             "context_sources": ["business_data_providers"],
             "modules_consulted": [k for k in res.keys() if not k.endswith("_error")],
             "confidence": "high",
@@ -277,6 +280,7 @@ def _handle_query_application_data(user: Any, params: dict[str, Any]) -> dict[st
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()),
         }
     return res
+
 
 
 def _handle_suggest_app_feature(user: Any, params: dict[str, Any]) -> dict[str, Any]:
@@ -519,7 +523,7 @@ AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {
     },
     "query_application_data": {
         "name": "query_application_data",
-        "description": "Fetch real read-only business data across all modules (Salary, Balance, Expenses, Assets, Certificates, Market Rates, Advisor) for cross-module reasoning.",
+        "description": "Fetch real read-only business data across relevant modules based on user intent and search query.",
         "is_read_only": True,
         "domain": "business_data_analysis",
         "handler": _handle_query_application_data,
@@ -527,10 +531,14 @@ AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {
             "type": "function",
             "function": {
                 "name": "query_application_data",
-                "description": "Fetch real read-only business data across all modules for cross-module reasoning.",
+                "description": "Fetch real read-only business data across relevant modules matching the search query.",
                 "parameters": {
                     "type": "object",
                     "properties": {
+                        "search_query": {
+                            "type": "string",
+                            "description": "Natural-language search terms or query describing the required financial data (e.g. 'liquid bank deposits certificates gold real estate portfolio')"
+                        },
                         "limit": {
                             "type": "integer",
                             "description": "Max records per dataset (default 20, max 100)",
@@ -541,6 +549,7 @@ AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {
             }
         }
     },
+
     "read_application_codebase": {
         "name": "read_application_codebase",
         "description": "Inspect structural AST index of codebase classes, services, models, views, docstrings, methods, and dependencies to answer architectural reuse questions.",

@@ -321,3 +321,45 @@ class NewAIToolsUnitTestSuite(TestCase):
                     duplicates.append(k)
                 seen.add(k)
             self.assertEqual(len(duplicates), 0, f"Duplicate keys found in {filepath}: {duplicates}")
+
+    def test_query_application_data_intent_driven_matching(self):
+        from core.services.ai.providers import get_relevant_providers_data
+
+        # 1. Portfolio query matching liquid deposits, certificates, gold, and real estate assets
+        portfolio_res = get_relevant_providers_data(
+            self.user,
+            search_query="Analyze my current portfolio breakdown across liquid bank deposits, certificates, gold, and real estate assets"
+        )
+        meta_portfolio = portfolio_res.get("_explanation_metadata", {})
+        self.assertTrue(meta_portfolio.get("intent_matched"))
+        matched_portfolio = meta_portfolio.get("matched_providers", [])
+
+        self.assertIn("balances", matched_portfolio)
+        self.assertIn("bank_certificates", matched_portfolio)
+        self.assertIn("fixed_assets", matched_portfolio)
+        self.assertNotIn("salary", matched_portfolio)
+        self.assertNotIn("expenses", matched_portfolio)
+
+        # 2. Salary query matching salary provider and excluding fixed assets and certificates
+        salary_res = get_relevant_providers_data(
+            self.user,
+            search_query="What is my monthly salary income and employment details?"
+        )
+        meta_salary = salary_res.get("_explanation_metadata", {})
+        self.assertTrue(meta_salary.get("intent_matched"))
+        matched_salary = meta_salary.get("matched_providers", [])
+
+        self.assertIn("salary", matched_salary)
+        self.assertNotIn("bank_certificates", matched_salary)
+        self.assertNotIn("fixed_assets", matched_salary)
+
+        # 3. Tool execution test with search_query parameter
+        audit_rec, tool_res = validate_and_execute_tool(
+            "query_application_data",
+            {"search_query": "bank certificates and maturity"},
+            self.user
+        )
+        self.assertTrue(audit_rec["success"])
+        self.assertIn("bank_certificates", tool_res)
+        self.assertNotIn("salary", tool_res)
+

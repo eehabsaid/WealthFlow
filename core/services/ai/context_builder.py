@@ -13,8 +13,9 @@ import time
 from typing import Any
 from django.urls import get_resolver, URLResolver, URLPattern
 
-from core.services.ai.providers import get_all_providers_data
+from core.services.ai.providers import get_relevant_providers_data
 from core.services.ai.codebase_indexer import CodebaseIndexer
+
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +68,11 @@ class AIContextBuilder:
         return res_data
 
     @classmethod
-    def build_business_context(cls, user: Any, limit: int = 20) -> dict[str, Any]:
-        """Fetch complete read-only business data signals via Data Provider Registry."""
-        return get_all_providers_data(user, limit=limit)
+    def build_business_context(cls, user: Any, search_query: str = "", limit: int = 20) -> dict[str, Any]:
+        """Fetch read-only business data signals matching search query intent via Data Provider Registry."""
+        return get_relevant_providers_data(user, search_query=search_query, limit=limit)
+
+
 
     @classmethod
     def build_codebase_context(

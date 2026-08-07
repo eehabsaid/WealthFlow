@@ -147,6 +147,17 @@ class AIChatView(View):
                 fn_name = str(fn_info.get("name") or tc.get("name") or "").strip()
                 fn_args = fn_info.get("arguments") or tc.get("arguments") or {}
 
+                if isinstance(fn_args, str):
+                    try:
+                        fn_args = json.loads(fn_args)
+                    except Exception:
+                        fn_args = {}
+
+                if isinstance(fn_args, dict) and fn_name == "query_application_data":
+                    if not fn_args.get("search_query"):
+                        fn_args["search_query"] = user_text
+
+
                 audit_rec, tool_res = validate_and_execute_tool(fn_name, fn_args, request.user)
                 executed_tool_calls.append(audit_rec)
 
@@ -158,11 +169,12 @@ class AIChatView(View):
                         "content": (
                             f"TOOL CALLED: '{fn_name}'\n"
                             f"TOOL EXECUTION RESULT: {tool_summary_str}\n\n"
-                            "Instructions: Please summarize, explain, or narrate this real tool result clearly to the user. "
-                            "Do not execute further tools."
+                            f"Instructions: Please summarize and analyze ONLY the provided data relevant to the user's query: '{user_text}'. "
+                            "Do not summarize or report on unrequested background modules. Do not execute further tools."
                         ),
                     }
                 )
+
 
                 # Generate model's natural language narration
                 followup_res = provider.generate(messages_seq)
