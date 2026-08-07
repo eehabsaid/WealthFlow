@@ -7,6 +7,7 @@ from core.services.ai.providers.registry import (
     DATA_PROVIDER_REGISTRY,
     get_data_provider,
     get_all_providers_data,
+    get_relevant_providers_data,
 )
 
 __all__ = [
@@ -14,4 +15,6 @@ __all__ = [
     "DATA_PROVIDER_REGISTRY",
     "get_data_provider",
     "get_all_providers_data",
+    "get_relevant_providers_data",
 ]
+
