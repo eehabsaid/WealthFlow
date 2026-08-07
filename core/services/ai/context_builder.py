@@ -8,12 +8,15 @@ CRITICAL CONSTRAINT: 100% READ-ONLY. Zero write/save/delete calls.
 
 from __future__ import annotations
 
+import logging
 import time
 from typing import Any
 from django.urls import get_resolver, URLResolver, URLPattern
 
 from core.services.ai.providers import get_all_providers_data
 from core.services.ai.codebase_indexer import CodebaseIndexer
+
+logger = logging.getLogger(__name__)
 
 _LIVE_STRUCTURE_CACHE: dict[str, Any] = {}
 _CACHE_TTL_SECONDS = 600.0
@@ -39,12 +42,15 @@ class AIContextBuilder:
         routes_info = cls._get_live_django_routes_with_metadata()
 
         live_pages = []
+        crawl_error = None
         if include_playwright:
             try:
                 from core.services.ai.tools import _crawl_live_pages_with_playwright
-                live_pages = _crawl_live_pages_with_playwright(routes_info)
-            except Exception:
+                live_pages, crawl_error = _crawl_live_pages_with_playwright(base_url="http://127.0.0.1:8001", routes_info=routes_info)
+            except Exception as ex:
+                logger.warning("Playwright live page crawl failed: %s", ex)
                 live_pages = []
+                crawl_error = str(ex)
 
         res_data = {
             "cached": False,
@@ -53,6 +59,7 @@ class AIContextBuilder:
             "django_routes": routes_info,
             "live_pages": live_pages,
             "playwright_executed": bool(include_playwright and live_pages),
+            "crawl_error": crawl_error,
         }
 
         _LIVE_STRUCTURE_CACHE["timestamp"] = now

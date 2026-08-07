@@ -99,12 +99,19 @@ def _get_live_django_routes() -> list[dict[str, str]]:
     return routes
 
 
-def _crawl_live_pages_with_playwright(base_url: str = "http://127.0.0.1:8001") -> tuple[list[dict[str, Any]], str | None]:
+def _crawl_live_pages_with_playwright(
+    base_url: str | list[dict[str, Any]] = "http://127.0.0.1:8001",
+    routes_info: list[dict[str, Any]] | None = None,
+    max_pages: int = 15,
+) -> tuple[list[dict[str, Any]], str | None]:
     """
     Crawls live application pages in headless mode using Playwright to inspect rendered DOM.
     Returns (page_structures, crawl_error).
     CRITICAL CONSTRAINT: 100% READ-ONLY safe browsing - inspects DOM elements only, never submits forms or clicks write/delete actions.
     """
+    if isinstance(base_url, list):
+        base_url = "http://127.0.0.1:8001"
+
     structures = []
     crawl_error = None
 
@@ -119,14 +126,18 @@ def _crawl_live_pages_with_playwright(base_url: str = "http://127.0.0.1:8001") -
             install_cdn_fallback(page)
 
             # Perform login as eehab_said / Eehabdev1
-            page.goto(f"{base_url}/accounts/login/", timeout=8000)
-            page.wait_for_load_state("networkidle", timeout=5000)
-
-            if page.query_selector('input[name="username"]'):
-                page.fill('input[name="username"]', "eehab_said")
-                page.fill('input[name="password"]', "Eehabdev1")
-                page.click('button[type="submit"], input[type="submit"], .btn-login')
+            login_url = f"{base_url.rstrip('/')}/accounts/login/"
+            try:
+                page.goto(login_url, timeout=8000)
                 page.wait_for_load_state("networkidle", timeout=5000)
+
+                if page.query_selector('input[name="username"]'):
+                    page.fill('input[name="username"]', "eehab_said")
+                    page.fill('input[name="password"]', "Eehabdev1")
+                    page.click('button[type="submit"], input[type="submit"], .btn-login')
+                    page.wait_for_load_state("networkidle", timeout=5000)
+            except Exception as login_exc:
+                logger.warning("Playwright login attempt error on %s: %s", login_url, login_exc)
 
             sections = [
                 ("dashboard", "Dashboard"),
@@ -144,19 +155,23 @@ def _crawl_live_pages_with_playwright(base_url: str = "http://127.0.0.1:8001") -
                 ("settings", "Settings"),
             ]
 
+            crawled_count = 0
             for route_name, fallback_title in sections:
-                url = f"{base_url}/#{route_name}" if route_name != "dashboard" else f"{base_url}/"
+                if crawled_count >= max_pages:
+                    break
+                crawled_count += 1
+                url = f"{base_url.rstrip('/')}/#{route_name}" if route_name != "dashboard" else f"{base_url.rstrip('/')}/"
                 try:
                     page.goto(url, timeout=5000)
                     page.wait_for_load_state("networkidle", timeout=3000)
                     page.wait_for_timeout(200)
 
                     dom_data = page.evaluate("""() => {
-                        const titleEl = document.querySelector('h1, h2, h3, .page-header, .brand-text');
+                        const titleEl = document.querySelector('h1, h2, h3, .page-header, .brand-text, .page-title');
                         const pageTitle = titleEl ? titleEl.textContent.trim() : '';
 
                         const tabEls = Array.from(document.querySelectorAll(
-                            '#main-content button, #main-content .nav-link, #main-content .nav-item, #main-content [role="tab"], #main-content .wf-tab'
+                            '#main-content button, #main-content .nav-link, #main-content .nav-item, #main-content [role="tab"], #main-content .wf-tab, .nav-tabs .nav-link'
                         ));
                         const tabs = [];
                         const seenTabs = new Set();
@@ -188,23 +203,27 @@ def _crawl_live_pages_with_playwright(base_url: str = "http://127.0.0.1:8001") -
                     structures.append({
                         "route": route_name,
                         "title": dom_data.get("pageTitle") or fallback_title,
+                        "url": url,
                         "tabs": dom_data.get("tabs", []),
                         "modals_or_forms": dom_data.get("modals", []),
+                        "status": "ok",
                     })
                 except Exception as page_exc:
-                    logger.debug("Failed to inspect route '%s': %s", route_name, page_exc)
+                    logger.warning("Skipped live crawl for route '%s': %s", route_name, page_exc)
                     structures.append({
                         "route": route_name,
                         "title": fallback_title,
+                        "url": url,
                         "tabs": [],
                         "modals_or_forms": [],
-                        "error": str(page_exc),
+                        "status": "error",
+                        "error_reason": str(page_exc),
                     })
 
             browser.close()
     except Exception as exc:
-        logger.warning("Playwright live DOM crawl failed: %s", exc)
-        crawl_error = f"Playwright crawl error: {exc}"
+        logger.error("Playwright browser execution failed: %s", exc, exc_info=True)
+        crawl_error = str(exc)
 
     return structures, crawl_error
 
