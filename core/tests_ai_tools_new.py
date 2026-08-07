@@ -363,3 +363,37 @@ class NewAIToolsUnitTestSuite(TestCase):
         self.assertIn("bank_certificates", tool_res)
         self.assertNotIn("salary", tool_res)
 
+    def test_salary_data_provider_complete_analytics_and_currency(self):
+        from core.models import Company, SalaryEntry
+        from core.services.ai.providers.salary_provider import SalaryDataProvider
+
+        company = Company.objects.create(name="Test Giza Systems", is_active=True)
+        SalaryEntry.objects.create(company=company, year=2026, month="January", paid=87643.86, expected=87643.86, bonus=0)
+        SalaryEntry.objects.create(company=company, year=2026, month="February", paid=87643.86, expected=87643.86, bonus=0)
+        SalaryEntry.objects.create(company=company, year=2026, month="March", paid=87643.86, expected=87643.86, bonus=0)
+        SalaryEntry.objects.create(company=company, year=2026, month="April", paid=89030.96, expected=89030.96, bonus=0)
+        SalaryEntry.objects.create(company=company, year=2026, month="May", paid=89030.96, expected=89030.96, bonus=0)
+        SalaryEntry.objects.create(company=company, year=2026, month="June", paid=89030.96, expected=89030.96, bonus=0)
+        SalaryEntry.objects.create(company=company, year=2026, month="July", paid=89030.00, expected=89030.00, bonus=0)
+
+        provider = SalaryDataProvider()
+        data = provider.get_data(self.user)
+
+        self.assertEqual(data["currency"], "EGP")
+        self.assertIn("summary", data)
+        self.assertIn("monthly_timeline", data)
+
+        summary = data["summary"]
+        self.assertAlmostEqual(summary["total_paid"], 619054.46, places=2)
+        self.assertEqual(summary["total_entries_count"], 7)
+        self.assertEqual(summary["currency"], "EGP")
+
+        timeline = data["monthly_timeline"]
+        self.assertEqual(len(timeline), 7)
+        months_found = [m["month"] for m in timeline]
+        self.assertIn("February", months_found)
+        self.assertIn("April", months_found)
+        for entry in timeline:
+            self.assertEqual(entry["currency"], "EGP")
+
+
