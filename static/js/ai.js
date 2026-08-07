@@ -112,13 +112,14 @@ async function renderAI() {
               </div>
               <span class="ai-ws-future-badge">🔒 COMING SOON</span>
             </div>
-            <div class="ai-ws-future-card">
+            <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-saved-prompts" onclick="openPromptLibraryModal()" style="cursor: pointer;">
               <div class="ai-ws-future-card-left">
-                <i class="bi bi-bookmark"></i>
+                <i class="bi bi-bookmark text-primary"></i>
                 <span data-i18n="ai_ws_saved_prompts">Saved Prompts</span>
               </div>
-              <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+              <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
             </div>
+
             <div class="ai-ws-future-card">
               <div class="ai-ws-future-card-left">
                 <i class="bi bi-search"></i>
@@ -145,8 +146,12 @@ async function renderAI() {
                   <option value="business_data_analysis" data-i18n="ai_domain_business_data">Business / Data Analysis</option>
                   <option value="app_features_architecture" data-i18n="ai_domain_app_features">Application Features &amp; Architecture</option>
                 </select>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-auto me-2" id="ai-ws-btn-prompt-lib" onclick="openPromptLibraryModal()" title="Prompt Library">
+                  <i class="bi bi-chat-left-quote me-1"></i> <span data-i18n="ai_ws_prompt_library_title">Prompt Library</span>
+                </button>
                 <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-cpu me-1"></i> WealthFlow AI Engine</small>
               </div>
+
               <textarea id="ai-ws-input" class="ai-ws-textarea" rows="1" placeholder="${_aiT('ai_chat_input_placeholder_business', 'Ask WealthFlow AI a question about business metrics, financial planning, or architecture...')}" onkeydown="_handleInputKeydown(event)"></textarea>
               <div class="ai-ws-input-bottombar">
                 <div class="ai-ws-input-hints">
@@ -733,13 +738,14 @@ function _renderRightPanel() {
           </div>
           <span class="ai-ws-future-badge">🔒 COMING SOON</span>
         </div>
-        <div class="ai-ws-future-card">
+        <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-prompt-library" onclick="openPromptLibraryModal()" style="cursor: pointer;">
           <div class="ai-ws-future-card-left">
-            <i class="bi bi-chat-left-quote"></i>
+            <i class="bi bi-chat-left-quote text-primary"></i>
             <span data-i18n="ai_ws_future_prompt_library">Prompt Library</span>
           </div>
-          <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+          <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
         </div>
+
         <div class="ai-ws-future-card">
           <div class="ai-ws-future-card-left">
             <i class="bi bi-server"></i>

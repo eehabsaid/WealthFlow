@@ -1092,3 +1092,38 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Prompt Library Modern Styling ─────────────────────────────────────── */
+.ai-ws-active-card {
+  transition: all 0.2s ease-in-out;
+  border-color: var(--bs-primary-border-subtle, rgba(13, 110, 253, 0.3)) !important;
+}
+
+.ai-ws-active-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: var(--bs-primary) !important;
+}
+
+.prompt-lib-toolbar {
+  background-color: var(--bs-tertiary-bg, rgba(255, 255, 255, 0.05));
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.prompt-lib-item {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.prompt-lib-item:hover {
+  background-color: var(--bs-tertiary-bg, rgba(255, 255, 255, 0.08));
+}
+
+.prompt-lib-cat-badge {
+  white-space: nowrap !important;
+  max-width: none !important;
+  display: inline-flex !important;
+  align-items: center;
+  height: 22px;
+}
+
+

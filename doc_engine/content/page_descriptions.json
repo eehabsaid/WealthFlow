@@ -1,12 +1,34 @@
 {
   "ai": {
-    "purpose": "WealthFlow AI Intelligence Platform workspace for business data reasoning, architecture inquiries, and cross-application assistance.",
+    "purpose": "WealthFlow AI Intelligence Platform workspace for business data reasoning, architecture inquiries, prompt library management, and cross-application assistance.",
     "steps": [
       "Select a question domain (Business Data or App Architecture).",
+      "Open the Prompt Library to choose, search, filter, or insert reusable prompts into the chat input.",
+      "Create, edit, favorite, and manage custom AI prompts organized by categories.",
       "Ask a natural language query about your financial metrics or codebase.",
       "Manage conversations and switch between multi-thread chats."
     ]
   },
+  "ai::modal::prompt-library": {
+    "purpose": "Centralized repository for browsing, searching, filtering, and inserting reusable prompts into the AI Workspace chat input.",
+    "steps": [
+      "Open the Prompt Library from the AI Workspace sidebar card or input toolbar button.",
+      "Search prompts by name, description, or content, or filter by category and favorites.",
+      "Preview full prompt template content with formatting preserved.",
+      "Click 'Insert Prompt' to populate the chat input field without auto-submitting.",
+      "Favorite, duplicate, edit, or delete existing prompts."
+    ]
+  },
+  "ai::modal::create-prompt": {
+    "purpose": "Create or edit custom reusable prompts with name, category, description, and template content.",
+    "steps": [
+      "Click 'New Prompt' inside the Prompt Library modal.",
+      "Enter a unique prompt name and select an active category.",
+      "Provide an optional short description and the exact prompt template content.",
+      "Mark as favorite if desired, then save the prompt."
+    ]
+  },
+
   "settings::settings-aiadvisor": {
     "purpose": "Configure Self-Evolving AI Platform settings, SFT dataset matrix, training backends, and fine-tuning controls.",
     "steps": [

@@ -308,7 +308,33 @@ urlpatterns = [
         "api/ai-platform/benchmarks/",
         views.AIPlatformBenchmarkView.as_view(),
     ),
+    # ── AI Prompt Library ────────────────────────────────────────────────────
+    path(
+        "api/ai-platform/prompts/categories/",
+        views.AIPromptCategoryListView.as_view(),
+    ),
+    path(
+        "api/ai-platform/prompts/",
+        views.AIPromptListView.as_view(),
+    ),
+    path(
+        "api/ai-platform/prompts/<int:pk>/",
+        views.AIPromptDetailView.as_view(),
+    ),
+    path(
+        "api/ai-platform/prompts/<int:pk>/favorite/",
+        views.AIPromptFavoriteView.as_view(),
+    ),
+    path(
+        "api/ai-platform/prompts/<int:pk>/use/",
+        views.AIPromptUseView.as_view(),
+    ),
+    path(
+        "api/ai-platform/prompts/<int:pk>/duplicate/",
+        views.AIPromptDuplicateView.as_view(),
+    ),
     path("api/goals/", views.GoalListView.as_view()),
+
     path("api/goals/<int:pk>/", views.GoalDetailView.as_view()),
     path(
         "api/documents/categories/",

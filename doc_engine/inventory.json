@@ -2,7 +2,11 @@
   { "route": "dashboard", "title": "Dashboard", "nested_navigation": [
       { "name": "User Profile", "type": "modal", "trigger": "eval:window.showProfileModal && window.showProfileModal()" }
   ]},
-  { "route": "ai", "title": "WealthFlow AI" },
+  { "route": "ai", "title": "WealthFlow AI", "nested_navigation": [
+      { "name": "Prompt Library", "type": "modal", "trigger": "eval:window.openPromptLibraryModal && window.openPromptLibraryModal()" },
+      { "name": "Create Prompt", "type": "modal", "trigger": "eval:if(window.openPromptLibraryModal){ window.openPromptLibraryModal(); setTimeout(() => { if(window._promptLibNewForm) window._promptLibNewForm(); }, 400); }" }
+  ]},
+
   { "route": "financial-advisor", "title": "Financial Advisor", "tabs": [
     { "name": "Overview", "id": "overview" }, 
     { "name": "Cash Flow", "id": "cash-flow" }, 

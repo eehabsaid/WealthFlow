@@ -353,7 +353,14 @@ __all__ = [
     "AIPlatformDatasetView",
     "AIPlatformModelView",
     "AIPlatformBenchmarkView",
+    "AIPromptListView",
+    "AIPromptDetailView",
+    "AIPromptFavoriteView",
+    "AIPromptUseView",
+    "AIPromptDuplicateView",
+    "AIPromptCategoryListView",
 ]
+
 
 from .ai_chat_views import (
     AIChatView,
@@ -368,6 +375,15 @@ from .ai_platform_views import (
     AIPlatformBenchmarkView,
 )
 
+from .ai_prompt_views import (
+    AIPromptListView,
+    AIPromptDetailView,
+    AIPromptFavoriteView,
+    AIPromptUseView,
+    AIPromptDuplicateView,
+    AIPromptCategoryListView,
+)
+
 from .documentation_views import (
     DocumentationStatusView,
     DocumentationDevicesView,
@@ -379,3 +395,4 @@ from .documentation_views import (
     CancelDocumentationView,
     OpenFolderView,
 )
+
