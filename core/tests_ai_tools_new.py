@@ -381,19 +381,28 @@ class NewAIToolsUnitTestSuite(TestCase):
 
         self.assertEqual(data["currency"], "EGP")
         self.assertIn("summary", data)
-        self.assertIn("monthly_timeline", data)
+        self.assertIn("latest_active_year", data)
+        self.assertEqual(data["latest_active_year"], 2026)
+        self.assertIn("recent_monthly_timeline", data)
 
         summary = data["summary"]
-        self.assertAlmostEqual(summary["total_paid"], 619054.46, places=2)
-        self.assertEqual(summary["total_entries_count"], 7)
+        self.assertIn("total_paid_all_time_formatted", summary)
+        self.assertIn("EGP", summary["total_paid_all_time_formatted"])
         self.assertEqual(summary["currency"], "EGP")
 
-        timeline = data["monthly_timeline"]
-        self.assertEqual(len(timeline), 7)
-        months_found = [m["month"] for m in timeline]
+        latest_summary = data["latest_active_year_summary"]
+        self.assertEqual(latest_summary["year"], 2026)
+        self.assertAlmostEqual(latest_summary["total_paid"], 619054.46, places=2)
+        self.assertEqual(latest_summary["total_paid_formatted"], "619,054.46 EGP")
+        self.assertEqual(latest_summary["entries_count"], 7)
+
+        timeline = data["recent_monthly_timeline"]
+        months_found = [m["month"] for m in timeline if m["year"] == 2026]
         self.assertIn("February", months_found)
         self.assertIn("April", months_found)
         for entry in timeline:
             self.assertEqual(entry["currency"], "EGP")
+            self.assertIn("EGP", entry["paid_formatted"])
+
 
 
