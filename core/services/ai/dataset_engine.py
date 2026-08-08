@@ -25,9 +25,9 @@ class AIDatasetEngine:
 
     @classmethod
     def get_dataset_dir(cls) -> str:
-        brain_dir = os.path.join(settings.BASE_DIR, ".brain", "datasets")
-        os.makedirs(brain_dir, exist_ok=True)
-        return brain_dir
+        dataset_dir = os.path.join(settings.BASE_DIR, "ai_knowledge", "datasets")
+        os.makedirs(dataset_dir, exist_ok=True)
+        return dataset_dir
 
     @classmethod
     def generate_sft_datasets(cls) -> dict[str, Any]:

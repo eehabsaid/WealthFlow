@@ -85,6 +85,13 @@ class AIAutonomousLearningEngine:
         except Exception as exc:
             logger.error("Error generating SFT datasets in autonomous learning: %s", exc)
 
+        # 5. Regenerate System Knowledge Manifest & Markdown Files in ai_knowledge/
+        try:
+            from core.services.ai.knowledge_generator import KnowledgeGenerator
+            KnowledgeGenerator.generate_all()
+        except Exception as exc:
+            logger.error("Error regenerating ai_knowledge files in autonomous learning: %s", exc)
+
         return {
             "ok": True,
             "updated_entries_count": len(updated_entries),

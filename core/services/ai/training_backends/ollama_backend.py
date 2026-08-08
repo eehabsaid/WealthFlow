@@ -22,7 +22,7 @@ class OllamaTrainingBackend(BaseTrainingBackend):
     @property
     def is_available(self) -> bool:
         try:
-            res = subprocess.run(["ollama", "--version"], capture_output=True, text=True, timeout=3)
+            res = subprocess.run(["ollama", "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=3)
             return res.returncode == 0
         except Exception:
             return False
@@ -38,7 +38,7 @@ class OllamaTrainingBackend(BaseTrainingBackend):
         Builds a custom Ollama Modelfile incorporating system directives and creates new model version.
         """
         config = config or {}
-        modelfile_dir = os.path.join(settings.BASE_DIR, ".brain", "modelfiles")
+        modelfile_dir = os.path.join(settings.BASE_DIR, "ai_knowledge", "modelfiles")
         os.makedirs(modelfile_dir, exist_ok=True)
 
         modelfile_path = os.path.join(modelfile_dir, f"Modelfile_{output_version_name}")
@@ -60,7 +60,7 @@ PARAMETER temperature 0.2
 
         try:
             cmd = ["ollama", "create", output_version_name, "-f", modelfile_path]
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
             if res.returncode == 0:
                 return {
                     "ok": True,
