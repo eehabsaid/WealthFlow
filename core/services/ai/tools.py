@@ -262,7 +262,8 @@ def _handle_query_application_data(user: Any, params: dict[str, Any]) -> dict[st
     from core.services.ai.context_builder import AIContextBuilder
 
     search_query = str(params.get("search_query") or params.get("query") or params.get("focus_area") or "").strip()
-    limit = min(int(params.get("limit", 20) or 20), 100)
+    limit_val = params.get("limit")
+    limit = int(limit_val) if limit_val is not None and str(limit_val).isdigit() else None
 
     res = AIContextBuilder.build_business_context(
         user=user,
@@ -541,8 +542,7 @@ AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {
                         },
                         "limit": {
                             "type": "integer",
-                            "description": "Max records per dataset (default 20, max 100)",
-                            "default": 20
+                            "description": "Optional max records limit per dataset (default is null/unlimited to return full user dataset)"
                         }
                     }
                 }

@@ -3,17 +3,19 @@ AI Context Builder Service.
 
 Assembles relevant financial data context from existing financial_advisor services
 via the centralized registry layer (zero duplicated math, zero direct concrete class coupling).
-Formats data, enforces system prompt guardrails, and applies context token budgeting.
+Formats data, enforces system prompt guardrails, and applies priority-based context token budgeting.
 """
 
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any, Sequence
 
 from core.models import AppSettings, AIMessage
 from core.services.financial_advisor.registry import get_financial_advisor_payload
 
+logger = logging.getLogger(__name__)
 
 DEFAULT_CORE_SERVICES = ["overview", "cash_flow", "goal_planning", "risk_analysis"]
 
@@ -31,13 +33,14 @@ TOPIC_KEYWORD_MAP: dict[str, list[str]] = {
 class ContextBuilderService:
     """
     Assembles structured financial context for AI reasoning and formats model messages.
+    Enforces priority-based context assembly to prevent JSON truncation syntax corruption.
     """
 
     def get_token_budget(self) -> int:
         budget_str = AppSettings.get("ai_context_token_budget", "2048")
         try:
             val = int(budget_str)
-            return max(500, val)
+            return max(1000, val)
         except (ValueError, TypeError):
             return 2048
 
@@ -50,7 +53,6 @@ class ContextBuilderService:
         q = (query or "").lower().strip()
         selected = list(DEFAULT_CORE_SERVICES)
 
-        # Dynamic capability evaluation against registered advisor service providers
         from core.services.financial_advisor.registry import get_available_advisor_services
         available_services = get_available_advisor_services()
 
@@ -60,7 +62,6 @@ class ContextBuilderService:
                 if service_key not in selected:
                     selected.append(service_key)
 
-        # Topic keyword map lookup (preserved for backwards compatibility)
         for service_key, keywords in TOPIC_KEYWORD_MAP.items():
             if any(kw in q for kw in keywords):
                 if service_key not in selected:
@@ -68,8 +69,7 @@ class ContextBuilderService:
 
         return selected
 
-
-    def build_system_prompt(self, user: Any = None) -> str:
+    def build_system_prompt(self, user: Any = None, query: str = "") -> str:
         base_prompt = AppSettings.get(
             "ai_system_prompt",
             "You are the WealthFlow AI Financial Advisor. Answer financial questions strictly using provided data.",
@@ -105,7 +105,7 @@ class ContextBuilderService:
         )
 
         from core.services.ai.knowledge_engine import AIKnowledgeEngine
-        knowledge_context = AIKnowledgeEngine.build_knowledge_context(user=user)
+        knowledge_context = AIKnowledgeEngine.build_knowledge_context(user=user, query=query)
 
         return f"{base_prompt}{guardrails}{knowledge_context}"
 
@@ -133,36 +133,69 @@ class ContextBuilderService:
     ) -> tuple[list[dict[str, str]], list[str]]:
         """
         Assembles message list for the AI provider along with source service names.
-        Applies token budgeting to ensure context + history fits within budget.
+        Enforces PRIORITY-BASED SECTION-AWARE CONTEXT ASSEMBLY:
+        1. System Directives & Guardrails (Preserved 100%)
+        2. Intent-Matched System Knowledge Manifest (Preserved 100%)
+        3. Deterministic Financial Summaries & Pre-Computed Metrics (Preserved First)
+        4. Category & Yearly Summary Breakdowns (Preserved Second)
+        5. Historical Monthly Timeline Entries & Raw Items (Degraded Cleanly Section-by-Section if Budget Limit Reached)
+        Guarantees 0% broken JSON syntax.
         """
         token_budget = self.get_token_budget()
+        max_chars = token_budget * 4
+
         service_keys = self.determine_relevant_services(user_query)
 
-        # Gather payloads via centralized registry
-        context_parts = []
+        # 1. Gather System Instruction (Priority 1 & 2)
+        system_instruction = self.build_system_prompt(user=user, query=user_query)
+        current_chars = len(system_instruction) + 50
+
+        # 2. Separate Payload Data into High-Priority Summaries vs Low-Priority Timelines
+        high_priority_blocks = []
+        low_priority_blocks = []
         sources = []
 
         for key in service_keys:
             payload = get_financial_advisor_payload(key)
-            if payload:
-                sources.append(key)
-                context_parts.append(self.summarize_payload(key, payload))
+            if not payload:
+                continue
 
-        system_instruction = self.build_system_prompt(user=user)
+            sources.append(key)
+            if isinstance(payload, dict):
+                # Separate summary from raw items/timelines if present
+                summary_part = {k: v for k, v in payload.items() if k not in {"items", "recent_monthly_timeline", "recent_expenses"}}
+                detail_part = {k: v for k, v in payload.items() if k in {"items", "recent_monthly_timeline", "recent_expenses"}}
+
+                if summary_part:
+                    high_priority_blocks.append(self.summarize_payload(f"{key}_summary", summary_part))
+                if detail_part:
+                    low_priority_blocks.append(self.summarize_payload(f"{key}_details", detail_part))
+            else:
+                high_priority_blocks.append(self.summarize_payload(key, payload))
+
+        # 3. Assemble System Context String safely within token budget
+        context_parts = []
+        for block in high_priority_blocks:
+            if current_chars + len(block) <= max_chars:
+                context_parts.append(block)
+                current_chars += len(block)
+
+        # Append degradable low priority blocks section-by-section cleanly
+        for block in low_priority_blocks:
+            if current_chars + len(block) <= max_chars:
+                context_parts.append(block)
+                current_chars += len(block)
+            else:
+                # Omit low-priority detail block cleanly without breaking JSON syntax
+                logger.info("Token budget reached: Omitted detailed timeline block cleanly.")
+                break
+
         full_context_str = "\n".join(context_parts)
-
-        # Estimate system tokens
         system_content = f"{system_instruction}\n\n=== FINANCIAL CONTEXT DATA ===\n{full_context_str}"
-        sys_tokens = self.estimate_tokens(system_content)
-
-        # Truncate context if it alone exceeds budget
-        if sys_tokens > token_budget:
-            allowed_chars = token_budget * 4
-            system_content = system_content[:allowed_chars] + "\n...[Context truncated to fit token budget]..."
 
         messages: list[dict[str, str]] = [{"role": "system", "content": system_content}]
 
-        # Append historical messages if budget permits
+        # 4. Append Historical Messages if budget permits
         current_tokens = self.estimate_tokens(system_content)
         user_q_tokens = self.estimate_tokens(user_query)
         available_history_budget = token_budget - current_tokens - user_q_tokens
@@ -170,7 +203,6 @@ class ContextBuilderService:
         formatted_history: list[dict[str, str]] = []
         if history_messages and available_history_budget > 100:
             history_list = list(history_messages)
-            # Process from newest to oldest to fit budget
             accumulated_tokens = 0
             for msg in reversed(history_list):
                 msg_str = f"{msg.role}: {msg.content}"

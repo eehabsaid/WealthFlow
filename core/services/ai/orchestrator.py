@@ -18,12 +18,13 @@ from core.services.ai.providers.registry import get_all_providers_data
 
 class AIContextOrchestrator:
     SUPPORTED_INTENTS = {
-        "business_analysis": ["business_data_providers", "capability_registry"],
-        "feature_suggestion": ["live_app_structure", "business_data_providers", "codebase_ast_index", "capability_registry"],
-        "architecture_question": ["codebase_ast_index", "capability_registry", "live_app_structure"],
-        "codebase_question": ["codebase_ast_index", "capability_registry"],
-        "financial_advice": ["business_data_providers", "capability_registry"],
+        "business_analysis": ["business_data_providers", "capability_registry", "system_knowledge_manifest"],
+        "feature_suggestion": ["live_app_structure", "business_data_providers", "codebase_ast_index", "capability_registry", "system_knowledge_manifest"],
+        "architecture_question": ["codebase_ast_index", "capability_registry", "live_app_structure", "system_knowledge_manifest"],
+        "codebase_question": ["codebase_ast_index", "capability_registry", "system_knowledge_manifest"],
+        "financial_advice": ["business_data_providers", "capability_registry", "system_knowledge_manifest"],
     }
+
 
     @classmethod
     def assemble_context(
@@ -76,7 +77,8 @@ class AIContextOrchestrator:
         # 2. Business Data Providers
         if "business_data_providers" in sources_needed:
             try:
-                limit = min(int(clean_params.get("limit", 20) or 20), 100)
+                limit_val = clean_params.get("limit", None)
+                limit = int(limit_val) if limit_val is not None and str(limit_val).isdigit() else None
                 bus_data = get_all_providers_data(user=user, limit=limit)
                 payload_data["business_data"] = bus_data
                 context_sources.append("business_data_providers")
@@ -106,6 +108,17 @@ class AIContextOrchestrator:
                 context_sources.append("capability_registry")
             except Exception as exc:
                 unavailable_context.append(f"capability_registry ({exc})")
+
+        # 5. System Knowledge Manifest
+        if "system_knowledge_manifest" in sources_needed:
+            try:
+                from core.services.ai.system_knowledge_engine import SystemKnowledgeEngine
+                manifest = SystemKnowledgeEngine.load_manifest()
+                payload_data["system_knowledge_manifest"] = manifest
+                context_sources.append("system_knowledge_manifest")
+            except Exception as exc:
+                unavailable_context.append(f"system_knowledge_manifest ({exc})")
+
 
         confidence = "high"
         if unavailable_context:

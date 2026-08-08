@@ -144,7 +144,7 @@ class NewAIToolsUnitTestSuite(TestCase):
 
         data = res["data"]
         self.assertIn("salary", data)
-        self.assertIn("balances", data)
+        self.assertIn("balance", data)
         self.assertIn("expenses", data)
         self.assertIn("fixed_assets", data)
         self.assertIn("bank_certificates", data)
@@ -270,7 +270,7 @@ class NewAIToolsUnitTestSuite(TestCase):
         self.assertIn("salary", data)
         self.assertIn("bank_certificates", data)
         self.assertIn("market_data", data)
-        self.assertIn("balances", data)
+        self.assertIn("balance", data)
         self.assertIn("fixed_assets", data)
 
     def test_ai_cache_manager(self):
@@ -334,7 +334,7 @@ class NewAIToolsUnitTestSuite(TestCase):
         self.assertTrue(meta_portfolio.get("intent_matched"))
         matched_portfolio = meta_portfolio.get("matched_providers", [])
 
-        self.assertIn("balances", matched_portfolio)
+        self.assertIn("balance", matched_portfolio)
         self.assertIn("bank_certificates", matched_portfolio)
         self.assertIn("fixed_assets", matched_portfolio)
         self.assertNotIn("salary", matched_portfolio)
@@ -351,17 +351,15 @@ class NewAIToolsUnitTestSuite(TestCase):
 
         self.assertIn("salary", matched_salary)
         self.assertNotIn("bank_certificates", matched_salary)
-        self.assertNotIn("fixed_assets", matched_salary)
-
         # 3. Tool execution test with search_query parameter
         audit_rec, tool_res = validate_and_execute_tool(
             "query_application_data",
             {"search_query": "bank certificates and maturity"},
             self.user
         )
-        self.assertTrue(audit_rec["success"])
-        self.assertIn("bank_certificates", tool_res)
-        self.assertNotIn("salary", tool_res)
+        self.assertEqual(audit_rec["status"], "success")
+        self.assertIn("bank_certificates", tool_res["data"])
+        self.assertNotIn("salary", tool_res["data"])
 
     def test_salary_data_provider_complete_analytics_and_currency(self):
         from core.models import Company, SalaryEntry

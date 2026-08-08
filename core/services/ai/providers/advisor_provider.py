@@ -29,7 +29,7 @@ class FinancialAdvisorDataProvider(BaseContextProvider):
             "description": "Provides financial health score, alerts, KPIs, cash flow forecast, and opportunity detection.",
         }]
 
-    def get_data(self, user: Any, limit: int = 20) -> dict[str, Any]:
+    def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         return {
             "overview": get_financial_advisor_payload("overview"),
             "opportunity_detection": get_financial_advisor_payload("opportunity_detection"),

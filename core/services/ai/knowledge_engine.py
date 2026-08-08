@@ -75,16 +75,23 @@ class AIKnowledgeEngine:
         return extracted
 
     @classmethod
-    def build_knowledge_context(cls, user: Any = None) -> str:
+    def build_knowledge_context(cls, user: Any = None, query: str = "") -> str:
         """
-        Formats active knowledge entries into concise, high-priority system directives.
+        Formats system knowledge manifest and active database knowledge entries into concise system directives.
         """
+        from core.services.ai.system_knowledge_engine import SystemKnowledgeEngine
+
+        parts = []
+        system_knowledge = SystemKnowledgeEngine.build_system_knowledge_context(query=query)
+        if system_knowledge:
+            parts.append(system_knowledge)
+
         entries = cls.get_active_knowledge_entries()
-        if not entries:
-            return ""
+        if entries:
+            lines = ["\n\nDYNAMIC USER & APPLICATION PREFERENCES:"]
+            for entry in entries[:15]:  # Top 15 knowledge entries
+                lines.append(f"- [{entry.category.upper()}] {entry.title}: {entry.content}")
+            parts.append("\n".join(lines))
 
-        lines = ["\n\nLONG-TERM APPLICATION & DOMAIN KNOWLEDGE:"]
-        for entry in entries[:15]:  # Top 15 knowledge entries
-            lines.append(f"- [{entry.category.upper()}] {entry.title}: {entry.content}")
+        return "".join(parts)
 
-        return "\n".join(lines)

@@ -90,8 +90,12 @@ def _score_provider_relevance(provider: BaseContextProvider, search_query: str) 
 
     full_meta_text = " ".join(meta_tokens)
 
-    # Tokenize query, stripping common noise words
-    stop_words = {"the", "a", "an", "and", "or", "in", "of", "to", "my", "me", "is", "for", "with", "across", "current", "highlight"}
+    # Tokenize query, stripping common noise & meta-intent words
+    stop_words = {
+        "the", "a", "an", "and", "or", "in", "of", "to", "my", "me", "is", "for", "with", "across",
+        "current", "highlight", "analyze", "analysis", "breakdown", "overview", "details", "summary",
+        "report", "data", "list", "show", "get", "view"
+    }
     raw_terms = [t.strip(",.?!;:()\"'") for t in q_str.split()]
     query_terms = [t for t in raw_terms if len(t) > 1 and t not in stop_words]
 
@@ -127,7 +131,7 @@ def _score_provider_relevance(provider: BaseContextProvider, search_query: str) 
     return score
 
 
-def get_relevant_providers_data(user: Any, search_query: str = "", limit: int = 20) -> dict[str, Any]:
+def get_relevant_providers_data(user: Any, search_query: str = "", limit: int | None = None) -> dict[str, Any]:
     """
     Dynamically queries relevant data providers matching the user's intent or search query.
     Performs capability metadata matching across all registered providers without hardcoded enums.
@@ -145,9 +149,17 @@ def get_relevant_providers_data(user: Any, search_query: str = "", limit: int = 
             logger.warning("Error scoring provider '%s': %s", key, exc)
             scores[key] = 1.0
 
-    # If any provider scored > 0, select only positive scoring providers; otherwise fallback to all
-    positive_keys = [k for k, s in scores.items() if s > 0.0]
-    selected_keys = positive_keys if (positive_keys and query_str) else list(_DATA_PROVIDER_REGISTRY.keys())
+    # Filter out weak trailing noise scores relative to top-scoring provider
+    positive_scores = [s for s in scores.values() if s > 0.0]
+    max_score = max(positive_scores) if positive_scores else 0.0
+    
+    if max_score >= 3.0:
+        rel_threshold = max(3.0, max_score * 0.30)
+        selected_keys = [k for k, s in scores.items() if scores[k] >= rel_threshold]
+    elif positive_scores:
+        selected_keys = [k for k, s in scores.items() if scores[k] > 0.0]
+    else:
+        selected_keys = list(_DATA_PROVIDER_REGISTRY.keys())
 
     res: dict[str, Any] = {}
     for key in selected_keys:
@@ -160,7 +172,7 @@ def get_relevant_providers_data(user: Any, search_query: str = "", limit: int = 
 
     res["_explanation_metadata"] = {
         "search_query": query_str,
-        "intent_matched": bool(query_str and positive_keys),
+        "intent_matched": bool(query_str and positive_scores),
         "matched_providers": selected_keys,
         "total_providers_registered": len(_DATA_PROVIDER_REGISTRY),
         "skipped_providers": [k for k in _DATA_PROVIDER_REGISTRY.keys() if k not in selected_keys],
@@ -169,7 +181,7 @@ def get_relevant_providers_data(user: Any, search_query: str = "", limit: int = 
     return res
 
 
-def get_all_providers_data(user: Any, focus_area: str = "", limit: int = 20) -> dict[str, Any]:
+def get_all_providers_data(user: Any, focus_area: str = "", limit: int | None = None) -> dict[str, Any]:
     """
     Queries data providers for user. Delegates to get_relevant_providers_data for intent-driven retrieval.
     """

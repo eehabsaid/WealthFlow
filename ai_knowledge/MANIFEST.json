@@ -1,0 +1,172 @@
+{
+  "manifest_version": "1.0.0",
+  "system_name": "WealthFlow AI System Knowledge Base",
+  "description": "Permanent architectural, database schema, business rule, financial calculation, and investigation knowledge for WealthFlow AI.",
+  "sections": [
+    {
+      "id": "application_architecture",
+      "file": "01_application_architecture.md",
+      "title": "WealthFlow Application Architecture & Routing",
+      "category": "architecture",
+      "keywords": [
+        "architecture",
+        "django",
+        "routing",
+        "urls",
+        "services",
+        "providers",
+        "context builder",
+        "capability registry",
+        "orchestrator",
+        "read-only",
+        "design"
+      ],
+      "description": "High-level view of WealthFlow's Django structure, URL routing, service registries, read-only context builders, and provider-independent AI orchestration."
+    },
+    {
+      "id": "database_schema",
+      "file": "02_database_schema.md",
+      "title": "WealthFlow Database Schema & Model Reference",
+      "category": "schema",
+      "keywords": [
+        "database",
+        "schema",
+        "models",
+        "fields",
+        "foreign key",
+        "relationships",
+        "bankaccount",
+        "bankbalance",
+        "bankcertificate",
+        "fixedasset",
+        "gold",
+        "expense",
+        "salary",
+        "goal",
+        "scenariosimulation",
+        "userprofile"
+      ],
+      "description": "Comprehensive specification of every Django model in core, including fields, meanings, relationships, foreign keys, calculated properties, and business ownership."
+    },
+    {
+      "id": "business_rules",
+      "file": "03_business_rules.md",
+      "title": "WealthFlow Business Concepts & Rules",
+      "category": "business",
+      "keywords": [
+        "business rules",
+        "concepts",
+        "liquid cash",
+        "illiquid assets",
+        "certificates",
+        "interest",
+        "gold karats",
+        "real estate",
+        "vehicles",
+        "salary payments",
+        "expense categories",
+        "financial goals",
+        "what-if scenarios"
+      ],
+      "description": "Domain definitions and business rules governing liquid vs illiquid holdings, certificates, gold pricing, expense classification, fixed asset valuations, and financial goals."
+    },
+    {
+      "id": "financial_rules",
+      "file": "04_financial_rules.md",
+      "title": "WealthFlow Financial & Calculation Rules",
+      "category": "finance",
+      "keywords": [
+        "financial rules",
+        "calculations",
+        "formulas",
+        "home currency",
+        "exchange rates",
+        "conversion",
+        "net worth",
+        "compound interest",
+        "gold spot price",
+        "assets vs liabilities",
+        "forecasting assumptions"
+      ],
+      "description": "Detailed mathematical and logical rules for home currency conversion, net worth aggregation, gold spot pricing, certificate maturity math, asset depreciation, and growth forecasts."
+    },
+    {
+      "id": "investigation_protocols",
+      "file": "05_investigation_protocols.md",
+      "title": "WealthFlow AI Investigation & Analytical Protocols",
+      "category": "investigation",
+      "keywords": [
+        "investigation",
+        "protocols",
+        "portfolio analysis",
+        "salary audit",
+        "net worth breakdown",
+        "expense audit",
+        "certificate review",
+        "data requirements",
+        "validation steps",
+        "missing information"
+      ],
+      "description": "Methodological workflows for investigating user queries (salary, portfolio, net worth, assets, expenses), identifying missing signals, validating consistency, and synthesizing findings."
+    },
+    {
+      "id": "reasoning_guidelines",
+      "file": "06_reasoning_guidelines.md",
+      "title": "WealthFlow AI Reasoning & Self-Discovery Guidelines",
+      "category": "reasoning",
+      "keywords": [
+        "reasoning",
+        "guidelines",
+        "factual grounding",
+        "no assumptions",
+        "incomplete data",
+        "confidence reporting",
+        "decoupling",
+        "provider independent",
+        "self-describing"
+      ],
+      "description": "Core directives instructing the AI to reason strictly from factual context data, report missing metrics explicitly, maintain provider independence, and self-discover capabilities."
+    },
+    {
+      "id": "response_guidelines",
+      "file": "07_response_guidelines.md",
+      "title": "WealthFlow AI Response & Formatting Standards",
+      "category": "formatting",
+      "keywords": [
+        "response guidelines",
+        "formatting",
+        "currency format",
+        "thousands separator",
+        "markdown tables",
+        "executive summary",
+        "clean presentation",
+        "no raw json",
+        "bullet points"
+      ],
+      "description": "Presentation rules requiring thousands separators, explicit currency codes, clean Markdown tables, structured bullet points, executive summaries, and zero raw dictionary/JSON key leaks."
+    },
+    {
+      "id": "ai_operating_manual",
+      "file": "08_ai_operating_manual.md",
+      "title": "WealthFlow AI Operating Manual",
+      "category": "operating_manual",
+      "keywords": [
+        "operating manual",
+        "ai advisor",
+        "system knowledge",
+        "live data",
+        "integration",
+        "multi provider",
+        "ollama",
+        "openai",
+        "gemini",
+        "claude"
+      ],
+      "description": "Complete operational manual for combining static system knowledge with dynamic user context payloads to deliver financially sound, user-centric insights across any AI provider."
+    }
+  ],
+  "knowledge_version": "1.1.0",
+  "schema_version": "2.0.0",
+  "generated_at": "2026-08-07T17:00:22.552385+00:00",
+  "application_version": "1.0.0"
+}

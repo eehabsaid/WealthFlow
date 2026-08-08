@@ -1,10 +1,12 @@
 """
 Bank Certificates Data Provider for AI business context. Read-only.
+Enforces multi-tenant scoping, yield calculations, maturity dates, and home currency conversions.
 """
 
 from __future__ import annotations
 
 from typing import Any
+from datetime import date
 from core.models import BankCertificate
 from core.services.ai.providers.base import BaseContextProvider
 
@@ -16,55 +18,89 @@ class BankCertificatesDataProvider(BaseContextProvider):
 
     @property
     def name(self) -> str:
-        return "Bank Investment Certificates"
+        return "Bank Certificates & Fixed Deposits"
 
     def get_capabilities(self) -> list[dict[str, Any]]:
         return [{
-            "name": "Investment Certificate Yield & Maturity Tracking",
+            "name": "Bank Certificates & Fixed Deposits",
             "provided_by": "BankCertificatesDataProvider",
-            "consumes": ["BankCertificate", "BankCertificateInterestHistory"],
-            "used_by": ["Portfolio", "Opportunities", "Cash Flow"],
-            "inputs": ["bank_id", "status"],
-            "outputs": ["items"],
-            "description": "Monitors active bank certificates, interest rates, posted interest, and maturity dates.",
+            "consumes": ["BankCertificate", "Bank", "Currency"],
+            "used_by": ["Financial Advisor", "Cash Flow Forecast", "AI Advisor"],
+            "inputs": ["user"],
+            "outputs": ["summary", "items"],
+            "description": "Calculates active certificates principal, monthly interest payouts, weighted interest yield %, maturity countdowns, and currency conversions deterministically.",
         }]
 
-    def get_data(self, user: Any, limit: int = 20) -> dict[str, Any]:
-        from datetime import date, timedelta
+    def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
+        home_currency = self.get_user_primary_currency(user)
+
+        # 1. Multi-tenant User Scoping
+        qs = BankCertificate.objects.all()
+        has_user_field = any(f.name == "user" for f in BankCertificate._meta.fields)
+        if user and user.is_authenticated and has_user_field:
+            qs = qs.filter(user=user)
+
+        active_qs = qs.filter(status__iexact="active").select_related("bank", "currency")
+        if limit is not None and limit > 0:
+            active_qs = active_qs[:limit]
+
+        certs_raw = list(active_qs)
+
+        total_principal_home = 0.0
+        total_monthly_interest_home = 0.0
+        weighted_rate_sum = 0.0
+        items = []
         today = date.today()
-        one_year_later = today + timedelta(days=365)
 
-        active_certs = list(BankCertificate.objects.filter(status__iexact="active").select_related("bank"))
-        
-        tot_amount = sum(float(c.amount or 0) for c in active_certs)
-        tot_monthly = sum(float(c.interest_value or 0) for c in active_certs)
+        for cert in certs_raw:
+            c_code = cert.currency.code if cert.currency else home_currency
+            principal = float(cert.amount or 0)
+            interest_val = float(cert.interest_value or 0)
+            rate_pct = float(cert.interest_rate or 0)
 
-        near_maturities = []
-        for c in active_certs:
-            if c.expiry_date and today <= c.expiry_date <= one_year_later:
-                near_maturities.append({
-                    "id": c.id,
-                    "bank": c.bank.name if c.bank else "",
-                    "amount": float(c.amount or 0),
-                    "interest_rate": float(c.interest_rate or 0),
-                    "issue_date": str(c.issue_date),
-                    "expiry_date": str(c.expiry_date),
-                    "days_to_maturity": (c.expiry_date - today).days,
-                })
+            principal_home = self.convert_to_home_currency(principal, c_code, home_currency)
+            interest_home = self.convert_to_home_currency(interest_val, c_code, home_currency)
 
-        certs = list(
-            BankCertificate.objects.select_related("bank")
-            .order_by("-amount")
-            .values("id", "amount", "interest_rate", "interest_value", "issue_date", "expiry_date", "bank__name", "status")[:limit]
+            total_principal_home += principal_home
+            total_monthly_interest_home += interest_home
+            weighted_rate_sum += rate_pct * principal_home
+
+            days_to_maturity = None
+            if cert.expiry_date:
+                days_to_maturity = (cert.expiry_date - today).days
+
+            items.append({
+                "id": cert.id,
+                "bank_name": cert.bank.name if cert.bank else "",
+                "amount": principal,
+                "currency": c_code,
+                "amount_formatted": self.format_currency(principal, c_code),
+                "amount_in_home_currency": principal_home,
+                "amount_in_home_currency_formatted": self.format_currency(principal_home, home_currency),
+                "interest_rate": rate_pct,
+                "interest_rate_formatted": f"{rate_pct:.2f}%",
+                "interest_value_monthly": interest_val,
+                "interest_value_monthly_formatted": self.format_currency(interest_val, c_code),
+                "issue_date": cert.issue_date.isoformat() if cert.issue_date else "",
+                "expiry_date": cert.expiry_date.isoformat() if cert.expiry_date else "",
+                "days_to_maturity": days_to_maturity,
+                "status": cert.status,
+            })
+
+        avg_weighted_rate = (
+            round(weighted_rate_sum / total_principal_home, 2)
+            if total_principal_home > 0 else 0.0
         )
 
         return {
             "summary": {
-                "total_active_certificates_principal": tot_amount,
-                "total_monthly_interest_income": tot_monthly,
-                "active_certificates_count": len(active_certs),
-                "maturing_near_future_count": len(near_maturities),
+                "total_active_certificates_principal": round(total_principal_home, 2),
+                "total_active_certificates_principal_formatted": self.format_currency(round(total_principal_home, 2), home_currency),
+                "total_monthly_interest_income": round(total_monthly_interest_home, 2),
+                "total_monthly_interest_income_formatted": self.format_currency(round(total_monthly_interest_home, 2), home_currency),
+                "average_weighted_interest_rate_pct": avg_weighted_rate,
+                "active_certificates_count": len(items),
+                "home_currency": home_currency,
             },
-            "near_maturities": near_maturities,
-            "items": certs,
+            "items": items,
         }

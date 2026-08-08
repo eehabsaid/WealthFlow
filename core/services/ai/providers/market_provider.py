@@ -30,9 +30,12 @@ class MarketDataProvider(BaseContextProvider):
             "description": "Fetches current forex mid/buy/sell rates and latest 24K gold market price per gram.",
         }]
 
-    def get_data(self, user: Any, limit: int = 20) -> dict[str, Any]:
+    def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         latest_rate_ids = ExchangeRate.objects.values("currency_code").annotate(max_id=Max("id")).values_list("max_id", flat=True)
-        rates = list(ExchangeRate.objects.filter(id__in=latest_rate_ids).values("currency_code", "mid_rate", "buy_rate", "sell_rate", "fetched_at")[:limit])
+        qs = ExchangeRate.objects.filter(id__in=latest_rate_ids).values("currency_code", "mid_rate", "buy_rate", "sell_rate", "fetched_at")
+        if limit is not None and limit > 0:
+            qs = qs[:limit]
+        rates = list(qs)
         gold = GoldPrice.objects.order_by("-fetched_at").first()
         return {
             "exchange_rates": rates,
