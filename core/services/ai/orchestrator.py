@@ -79,7 +79,7 @@ class AIContextOrchestrator:
             try:
                 limit_val = clean_params.get("limit", None)
                 limit = int(limit_val) if limit_val is not None and str(limit_val).isdigit() else None
-                bus_data = get_all_providers_data(user=user, limit=limit)
+                bus_data = get_all_providers_data(user=user, focus_area=(search_term or focus_area), limit=limit)
                 payload_data["business_data"] = bus_data
                 context_sources.append("business_data_providers")
                 modules_consulted.extend([k for k in bus_data.keys() if not k.endswith("_error")])
