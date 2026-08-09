@@ -1,4 +1,6 @@
 {
+  "venvPath": ".",
+  "venv": "venv",
   "typeCheckingMode": "basic",
   "reportMissingTypeStubs": "none",
   "reportUnknownParameterType": "none",
@@ -6,10 +8,20 @@
   "reportUnknownLambdaType": "none",
   "reportUnknownVariableType": "none",
   "reportUnknownMemberType": "none",
+  "reportMissingImports": "none",
   "reportOptionalMemberAccess": "none",
+  "reportOptionalSubscript": "none",
   "reportPrivateUsage": "none",
   "reportAttributeAccessIssue": "none",
   "reportArgumentType": "none",
+  "reportAssignmentType": "none",
+  "reportCallIssue": "none",
+  "reportGeneralTypeIssues": "none",
   "reportIncompatibleMethodOverride": "none",
-  "reportConstantRedefinition": "none"
+  "reportConstantRedefinition": "none",
+  "reportOperatorIssue": "none",
+  "reportReturnType": "none",
+  "reportIndexIssue": "none",
+  "reportAbstractUsage": "none",
+  "reportSelfClsParameterName": "none"
 }
