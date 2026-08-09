@@ -293,6 +293,10 @@ urlpatterns = [
         views.AIConversationDetailView.as_view(),
     ),
     path(
+        "api/financial-advisor/ai/progress/",
+        views.AIProgressView.as_view(),
+    ),
+    path(
         "api/ai-platform/knowledge/",
         views.AIPlatformKnowledgeView.as_view(),
     ),

@@ -554,7 +554,44 @@ function _appendMessage(role, content, toolCalls, sources, timestamp) {
   _applyTranslations();
 }
 
-function _setLoadingUI(loading) {
+let _progressPollInterval = null;
+
+function _updateThinkingBubbleText(text) {
+  const statusEl = document.getElementById('ai-ws-thinking-status-text');
+  if (statusEl) {
+    statusEl.textContent = text;
+  }
+}
+
+function _startProgressPolling(conversationId) {
+  if (_progressPollInterval) return;
+  _progressPollInterval = setInterval(async () => {
+    if (!conversationId) return;
+    try {
+      const res = await fetch(`/api/financial-advisor/ai/progress/?conversation_id=${encodeURIComponent(conversationId)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.status === 'running' && data.step && data.tool) {
+        _updateThinkingBubbleText(
+          `Step ${data.step}/${data.max_steps || 8}: investigating ${data.tool.replace(/_/g, ' ')}\u2026`
+        );
+      } else if (data.status === 'done') {
+        _stopProgressPolling();
+      }
+    } catch (_e) {
+      // Polling errors are silent — the user still gets the final answer
+    }
+  }, 2000);
+}
+
+function _stopProgressPolling() {
+  if (_progressPollInterval) {
+    clearInterval(_progressPollInterval);
+    _progressPollInterval = null;
+  }
+}
+
+function _setLoadingUI(loading, conversationId) {
   _aiState.loading = loading;
 
   const inputEl = document.getElementById('ai-ws-input');
@@ -583,6 +620,7 @@ function _setLoadingUI(loading) {
   if (messagesContainer) {
     const existingBubble = document.getElementById('ai-ws-typing-bubble');
     if (loading && !existingBubble) {
+      const defaultStatus = _escapeHtml(_aiT('ai_ws_thinking_status', 'WealthFlow AI is thinking...'));
       const bubbleHtml = `
         <div class="ai-ws-msg" id="ai-ws-typing-bubble">
           <div class="ai-ws-msg-avatar assistant">
@@ -594,14 +632,18 @@ function _setLoadingUI(loading) {
             </div>
             <div class="ai-ws-msg-content text-muted d-flex align-items-center gap-2 pt-1">
               <span class="spinner-grow spinner-grow-sm text-primary" role="status" aria-hidden="true"></span>
-              <span class="font-monospace small" data-i18n="ai_ws_thinking_status">${_escapeHtml(_aiT('ai_ws_thinking_status', 'WealthFlow AI is thinking...'))}</span>
+              <span class="font-monospace small" id="ai-ws-thinking-status-text">${defaultStatus}</span>
             </div>
           </div>
         </div>
       `;
       messagesContainer.innerHTML += bubbleHtml;
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      if (conversationId) {
+        _startProgressPolling(conversationId);
+      }
     } else if (!loading && existingBubble) {
+      _stopProgressPolling();
       existingBubble.remove();
     }
   }
@@ -624,7 +666,8 @@ async function _handleAIChatSubmit() {
   inputEl.style.height = 'auto';
 
   _appendMessage('user', message, null, null, new Date().toISOString());
-  _setLoadingUI(true);
+  // Pass conversationId so progress polling can start immediately if known
+  _setLoadingUI(true, _aiState.conversationId);
 
   try {
     const res = await fetch('/api/financial-advisor/ai/chat/', {
@@ -643,7 +686,7 @@ async function _handleAIChatSubmit() {
     if (!res.ok) throw new Error('Network response was not ok');
 
     const data = await res.json();
-    
+
     if (data.conversation_id) {
       _aiState.conversationId = data.conversation_id;
     }
@@ -656,14 +699,16 @@ async function _handleAIChatSubmit() {
 
     _setLoadingUI(false);
     _appendMessage('assistant', aiMsg.content || '', aiMsg.tool_calls, aiMsg.sources, aiMsg.created_at || new Date().toISOString());
-    
+
     _renderRightPanel();
     _fetchAIChatConversations();
 
   } catch (err) {
+    _stopProgressPolling();
     _setLoadingUI(false);
     _appendMessage('assistant', _aiT('ai_ws_error_processing', 'Sorry, there was an error processing your request.'), null, null, new Date().toISOString());
   } finally {
+    _stopProgressPolling();
     _setLoadingUI(false);
   }
 }

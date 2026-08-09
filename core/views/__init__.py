@@ -349,6 +349,7 @@ __all__ = [
     "AIChatView",
     "AIConversationListView",
     "AIConversationDetailView",
+    "AIProgressView",
     "AIPlatformKnowledgeView",
     "AIPlatformDatasetView",
     "AIPlatformModelView",
@@ -362,11 +363,10 @@ __all__ = [
 ]
 
 
-from .ai_chat_views import (
-    AIChatView,
-    AIConversationListView,
-    AIConversationDetailView,
-)
+from .ai_chat_views import AIChatView
+from .ai_chat_views import AIConversationListView
+from .ai_chat_views import AIConversationDetailView
+from .ai_chat_views import AIProgressView
 
 from .ai_platform_views import (
     AIPlatformKnowledgeView,
