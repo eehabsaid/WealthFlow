@@ -2025,7 +2025,18 @@
   "ai_prompt_seed_execsum_desc": "Generates a formal executive summary of net worth changes and key financial milestones.",
   "ai_prompt_seed_execsum_content": "Create a concise executive summary of my total net worth, month-over-month wealth growth, key portfolio highlights, and strategic recommendations for next month.",
   "ai_ws_thinking": "Thinking...",
-  "ai_ws_thinking_status": "WealthFlow AI is thinking..."
+  "ai_ws_thinking_status": "WealthFlow AI is thinking...",
+  "dp_prev_month": "Previous month",
+  "dp_next_month": "Next month",
+  "dp_clear": "Clear",
+  "dp_cancel": "Cancel",
+  "dp_set": "Set",
+  "dp_today": "Today",
+  "dp_day_sun": "Su",
+  "dp_day_mon": "Mo",
+  "dp_day_tue": "Tu",
+  "dp_day_wed": "We",
+  "dp_day_thu": "Th",
+  "dp_day_fri": "Fr",
+  "dp_day_sat": "Sa"
 }
-
-

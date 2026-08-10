@@ -2025,7 +2025,18 @@
   "ai_prompt_seed_execsum_desc": "Erstellt eine formelle Zusammenfassung der Vermögensentwicklung und Meilensteine.",
   "ai_prompt_seed_execsum_content": "Erstellen Sie eine prägnante Zusammenfassung meines Nettovermögens, des monatlichen Vermögenswachstums, der Portfolio-Highlights und strategischer Empfehlungen.",
   "ai_ws_thinking": "Denken...",
-  "ai_ws_thinking_status": "WealthFlow AI denkt nach..."
+  "ai_ws_thinking_status": "WealthFlow AI denkt nach...",
+  "dp_prev_month": "Vorheriger Monat",
+  "dp_next_month": "Nächster Monat",
+  "dp_clear": "Löschen",
+  "dp_cancel": "Abbrechen",
+  "dp_set": "Setzen",
+  "dp_today": "Heute",
+  "dp_day_sun": "So",
+  "dp_day_mon": "Mo",
+  "dp_day_tue": "Di",
+  "dp_day_wed": "Mi",
+  "dp_day_thu": "Do",
+  "dp_day_fri": "Fr",
+  "dp_day_sat": "Sa"
 }
-
-

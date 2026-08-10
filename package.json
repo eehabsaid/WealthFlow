@@ -1,0 +1,36 @@
+{
+  "name": "wealthflow",
+  "version": "1.0.0",
+  "description": "WealthFlow is a Django-based personal finance and wealth tracking application.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "lint:js": "eslint --no-eslintrc -c config/linting/.eslintrc.json \"static/js/**/*.js\"",
+    "lint:css": "stylelint --config config/linting/.stylelintrc.json \"static/css/**/*.css\"",
+    "lint:html": "htmlhint --config config/linting/.htmlhintrc \"templates/**/*.html\"",
+    "lint:format": "prettier --config config/linting/.prettierrc.json --check \"static/js/**/*.js\" \"static/css/**/*.css\"",
+    "format": "prettier --config config/linting/.prettierrc.json --write \"static/js/**/*.js\" \"static/css/**/*.css\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eehabsaid/WealthFlow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/eehabsaid/WealthFlow/issues"
+  },
+  "homepage": "https://github.com/eehabsaid/WealthFlow#readme",
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "htmlhint": "^1.9.2",
+    "prettier": "^3.9.6",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard": "^40.0.0"
+  }
+}

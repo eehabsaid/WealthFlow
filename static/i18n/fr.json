@@ -2025,7 +2025,18 @@
   "ai_prompt_seed_execsum_desc": "Génère un résumé exécutif formel de l'évolution du patrimoine et des jalons financiers.",
   "ai_prompt_seed_execsum_content": "Créez une synthèse exécutive concise de ma valeur nette totale, de la croissance mensuelle du patrimoine, des faits marquants et des recommandations pour le mois prochain.",
   "ai_ws_thinking": "Réflexion...",
-  "ai_ws_thinking_status": "WealthFlow AI fléchit et traite..."
+  "ai_ws_thinking_status": "WealthFlow AI fléchit et traite...",
+  "dp_prev_month": "Mois précédent",
+  "dp_next_month": "Mois suivant",
+  "dp_clear": "Effacer",
+  "dp_cancel": "Annuler",
+  "dp_set": "Définir",
+  "dp_today": "Aujourd'hui",
+  "dp_day_sun": "Di",
+  "dp_day_mon": "Lu",
+  "dp_day_tue": "Ma",
+  "dp_day_wed": "Me",
+  "dp_day_thu": "Je",
+  "dp_day_fri": "Ve",
+  "dp_day_sat": "Sa"
 }
-
-

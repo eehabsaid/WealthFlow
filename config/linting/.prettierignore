@@ -1,0 +1,5 @@
+node_modules/
+venv/
+static/i18n/
+*.min.js
+*.min.css
