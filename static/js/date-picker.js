@@ -98,6 +98,30 @@
     return true;
   }
 
+  /**
+   * Move focus to document.body as a safe fallback when the intended focus
+   * target is inside an aria-hidden/inert subtree.
+   *
+   * document.body is not focusable by default, so we temporarily set
+   * tabindex="-1", focus it, then remove the attribute once focus has moved.
+   * This prevents the browser from "restoring" focus to the last-known
+   * element in the document — which may be inside a now-hidden modal.
+   */
+  function _focusBody() {
+    const body = document.body;
+    const hadTabIndex = body.hasAttribute("tabindex");
+    if (!hadTabIndex) body.setAttribute("tabindex", "-1");
+    body.focus({ preventScroll: true });
+    // Clean up after the browser has processed the focus event.
+    if (!hadTabIndex) {
+      requestAnimationFrame(() => {
+        if (document.activeElement === body) {
+          body.removeAttribute("tabindex");
+        }
+      });
+    }
+  }
+
   /* ── WealthFlowDatePicker ─────────────────────────────────── */
 
   class WealthFlowDatePicker {
@@ -270,28 +294,26 @@
         document.addEventListener("click", this._closeHandler, true);
       }, 0);
 
-      // Keyboard handler — note: do NOT stopPropagation on Escape.
-      // Letting it propagate allows Bootstrap (or other modal managers) to
-      // run their own close logic in the correct sequence.
+      // Keyboard handler — do NOT stopPropagation on Escape.
+      // Letting it propagate allows Bootstrap modal to run its own handler too.
       this._keyHandler = (e) => {
         if (!this._popup) return;
         if (e.key === "Escape") {
-          this._close();
-          // Only restore focus to the trigger if it is still safely focusable
-          // (i.e. not inside an aria-hidden ancestor — e.g. a closing modal).
-          if (_isFocusable(this._trigger)) {
-            this._trigger.focus();
-          }
+          // _close() now handles all focus management internally.
+          this._close(true);
         }
       };
       document.addEventListener("keydown", this._keyHandler, true);
 
       // Close the picker automatically if its host Bootstrap modal hides.
-      // Bootstrap dispatches "hide.bs.modal" before setting aria-hidden.
+      // Bootstrap dispatches "hide.bs.modal" at the START of the hide animation,
+      // before aria-hidden is set — giving us the correct window to close cleanly.
+      // Also listen for "hidden.bs.modal" as a belt-and-suspenders fallback.
       const hostModal = this._trigger.closest(".modal");
       if (hostModal) {
-        this._modalHideHandler = () => this._close();
+        this._modalHideHandler = () => this._close(false);
         hostModal.addEventListener("hide.bs.modal", this._modalHideHandler);
+        hostModal.addEventListener("hidden.bs.modal", this._modalHideHandler);
       }
 
       // Focus first focusable element in popup
@@ -301,8 +323,42 @@
       if (firstFocusable) firstFocusable.focus();
     }
 
-    _close() {
+    /**
+     * Close the picker popup.
+     *
+     * @param {boolean} [returnFocus=true] - When true, attempt to return focus
+     *   to the trigger button. Pass false when the modal itself is closing and
+     *   Bootstrap will manage its own focus restoration.
+     */
+    _close(returnFocus = true) {
       if (this._popup) {
+        // ── FOCUS SAFETY FIRST ──────────────────────────────────────────────
+        // We must explicitly move focus BEFORE removing the popup from the DOM.
+        // If we don't, the browser's natural focus-restoration picks the last
+        // focused element in document order — which may be a button inside a
+        // now-aria-hidden modal. That violates WAI-ARIA §6.6.3 and generates
+        // a browser warning.
+        //
+        // Decision tree:
+        //   1. returnFocus && trigger is safely focusable  → focus trigger
+        //   2. returnFocus && trigger is inside aria-hidden → focus body safely
+        //   3. !returnFocus (modal managing focus)          → only focus body if
+        //      the currently active element would end up in aria-hidden
+        if (returnFocus) {
+          if (_isFocusable(this._trigger)) {
+            this._trigger.focus();
+          } else {
+            _focusBody();
+          }
+        } else {
+          // Modal is handling its own focus. Only intervene if the current
+          // active element is already inside an unsafe container.
+          const active = document.activeElement;
+          if (active && !_isFocusable(active)) {
+            _focusBody();
+          }
+        }
+
         this._popup.remove();
         this._popup = null;
       }
@@ -314,11 +370,12 @@
         document.removeEventListener("keydown", this._keyHandler, true);
         this._keyHandler = null;
       }
-      // Remove Bootstrap modal hide listener if one was registered
+      // Remove Bootstrap modal hide listeners
       if (this._modalHideHandler) {
         const hostModal = this._trigger.closest(".modal");
         if (hostModal) {
           hostModal.removeEventListener("hide.bs.modal", this._modalHideHandler);
+          hostModal.removeEventListener("hidden.bs.modal", this._modalHideHandler);
         }
         this._modalHideHandler = null;
       }
