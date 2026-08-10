@@ -1,0 +1,127 @@
+/* WealthFlow AI — mobile overflow fixes */
+
+@media (max-width: 991.98px) {
+  .ai-ws-header {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .ai-ws-header-left,
+  .ai-ws-header-stats,
+  .ai-ws-header-actions {
+    min-width: 0;
+  }
+
+  .ai-ws-header-stats {
+    overflow: hidden;
+  }
+
+  .ai-ws-stat-chip {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ai-ws-input-area,
+  .ai-ws-input-box,
+  .ai-ws-input-topbar,
+  .ai-ws-input-bottombar {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .ai-ws-input-topbar {
+    overflow: hidden;
+  }
+
+  .ai-ws-domain-select {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ai-ws-textarea {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .ai-ws-header-brand {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .ai-ws-header-brand span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ai-ws-header-stats {
+    flex: 0 0 auto;
+  }
+
+  .ai-ws-header-actions {
+    flex: 0 0 auto;
+  }
+
+  .ai-ws-input-topbar > * {
+    min-width: 0;
+  }
+
+  .ai-ws-input-bottombar {
+    gap: 8px;
+  }
+
+  .ai-ws-input-hints {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .ai-ws-send-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .ai-ws-header {
+    padding-inline: 8px;
+  }
+
+  .ai-ws-header-brand {
+    max-width: 46%;
+  }
+
+  .ai-ws-header-brand span {
+    max-width: 100%;
+  }
+
+  .ai-ws-header-stats {
+    max-width: 34%;
+  }
+
+  .ai-ws-header-actions {
+    max-width: 24%;
+  }
+
+  .ai-ws-input-topbar {
+    padding: 7px 8px;
+  }
+
+  .ai-ws-domain-select {
+    width: 100%;
+  }
+
+  .ai-ws-input-bottombar {
+    padding: 6px 8px;
+  }
+
+  .ai-ws-send-btn {
+    min-width: 88px;
+    padding-inline: 11px;
+  }
+}
