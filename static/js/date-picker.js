@@ -78,6 +78,26 @@
     "value"
   );
 
+  /**
+   * Returns true if the element can safely receive focus — i.e. none of its
+   * ancestors have aria-hidden="true" and the element itself is not hidden.
+   * Focusing an element inside an aria-hidden subtree triggers an
+   * accessibility violation (WAI-ARIA spec §6.6.3).
+   *
+   * @param {Element} el
+   * @returns {boolean}
+   */
+  function _isFocusable(el) {
+    if (!el || !document.body.contains(el)) return false;
+    let node = el;
+    while (node && node !== document.body) {
+      if (node.getAttribute("aria-hidden") === "true") return false;
+      if (node.hasAttribute("inert")) return false;
+      node = node.parentElement;
+    }
+    return true;
+  }
+
   /* ── WealthFlowDatePicker ─────────────────────────────────── */
 
   class WealthFlowDatePicker {
@@ -97,6 +117,7 @@
       this._trigger = null;
       this._closeHandler = null;
       this._keyHandler = null;
+      this._modalHideHandler = null;
       this._focusTrap = null;
 
       this._build();
@@ -249,16 +270,29 @@
         document.addEventListener("click", this._closeHandler, true);
       }, 0);
 
-      // Keyboard handler
+      // Keyboard handler — note: do NOT stopPropagation on Escape.
+      // Letting it propagate allows Bootstrap (or other modal managers) to
+      // run their own close logic in the correct sequence.
       this._keyHandler = (e) => {
         if (!this._popup) return;
         if (e.key === "Escape") {
-          e.stopPropagation();
           this._close();
-          this._trigger.focus();
+          // Only restore focus to the trigger if it is still safely focusable
+          // (i.e. not inside an aria-hidden ancestor — e.g. a closing modal).
+          if (_isFocusable(this._trigger)) {
+            this._trigger.focus();
+          }
         }
       };
       document.addEventListener("keydown", this._keyHandler, true);
+
+      // Close the picker automatically if its host Bootstrap modal hides.
+      // Bootstrap dispatches "hide.bs.modal" before setting aria-hidden.
+      const hostModal = this._trigger.closest(".modal");
+      if (hostModal) {
+        this._modalHideHandler = () => this._close();
+        hostModal.addEventListener("hide.bs.modal", this._modalHideHandler);
+      }
 
       // Focus first focusable element in popup
       const firstFocusable = this._popup.querySelector(
@@ -279,6 +313,14 @@
       if (this._keyHandler) {
         document.removeEventListener("keydown", this._keyHandler, true);
         this._keyHandler = null;
+      }
+      // Remove Bootstrap modal hide listener if one was registered
+      if (this._modalHideHandler) {
+        const hostModal = this._trigger.closest(".modal");
+        if (hostModal) {
+          hostModal.removeEventListener("hide.bs.modal", this._modalHideHandler);
+        }
+        this._modalHideHandler = null;
       }
       this._trigger.classList.remove("wf-dp-open");
       this._trigger.setAttribute("aria-expanded", "false");
