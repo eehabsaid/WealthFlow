@@ -4,6 +4,7 @@ venv/
 .agents/
 .ruff_cache/
 .vscode/
+.mypy_cache
 Apartment_s ceramic.xlsx
 
 # WealthFlow backup archives
