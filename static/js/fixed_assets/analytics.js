@@ -280,7 +280,7 @@ function getFixedAssetsAnalyticsMetrics(assets) {
     const appreciation =
       asset.appreciation !== undefined
         ? asset.appreciation
-        : (investmentBase > 0 ? (gainAmount / investmentBase) : 0);
+        : (purchasePrice > 0 ? ((currentValue - purchasePrice) / purchasePrice) : 0);
 
     const purchaseDate = asset.purchase_date ? new Date(asset.purchase_date) : null;
     const holdingYearsRaw = purchaseDate ? (now - purchaseDate) / (1000 * 60 * 60 * 24 * 365.25) : 0;
