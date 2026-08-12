@@ -13,7 +13,7 @@ function fmt(n) {
 
 function fmtpresent(n) {
     if (n === null || n === undefined) return '-';
-    return Number(n).toLocaleString(getNumberLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return Number(n).toLocaleString(getNumberLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 }
 
 // Rewritten into a super compact format to keep your file line-count ultra-low:

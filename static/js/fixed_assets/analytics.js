@@ -262,24 +262,38 @@ function getFixedAssetsAnalyticsMetrics(assets) {
       0,
     );
     const acquisitionCost = asset.total_acquisition_costs !== undefined ? asset.total_acquisition_costs : 0;
-    const investmentBase = asset.total_investment !== undefined ? asset.total_investment : (purchasePrice + renovationCost + acquisitionCost);
+    const investmentBase =
+      asset.total_investment !== undefined
+        ? asset.total_investment
+        : (purchasePrice + renovationCost + acquisitionCost);
 
-    const gainAmount = asset.gain_loss !== undefined ? asset.gain_loss : (currentValue - investmentBase);
-    const roi = asset.roi !== undefined ? asset.roi : (investmentBase > 0 ? (gainAmount / investmentBase) * 100 : 0);
-    const appreciation = asset.appreciation !== undefined ? asset.appreciation : (investmentBase > 0 ? (gainAmount / investmentBase) * 100 : 0);
+    const gainAmount =
+      asset.gain_loss !== undefined
+        ? asset.gain_loss
+        : (currentValue - investmentBase);
+
+    const roi =
+      asset.roi !== undefined
+        ? asset.roi
+        : (investmentBase > 0 ? (gainAmount / investmentBase) : 0);
+
+    const appreciation =
+      asset.appreciation !== undefined
+        ? asset.appreciation
+        : (investmentBase > 0 ? (gainAmount / investmentBase) : 0);
 
     const purchaseDate = asset.purchase_date ? new Date(asset.purchase_date) : null;
     const holdingYearsRaw = purchaseDate ? (now - purchaseDate) / (1000 * 60 * 60 * 24 * 365.25) : 0;
     const holdingYears = holdingYearsRaw > 0 ? holdingYearsRaw : 0;
     const annualReturn = asset.annual_return !== undefined ? asset.annual_return : (
       investmentBase > 0 && holdingYears > 0
-        ? (Math.pow(currentValue / investmentBase, 1 / holdingYears) - 1) * 100
+        ? (Math.pow(currentValue / investmentBase, 1 / holdingYears) - 1)
         : 0
     );
     const holdingMonths = purchaseDate
       ? Math.max(0, Math.round((now - purchaseDate) / (1000 * 60 * 60 * 24 * 30.4375)))
       : 0;
-    const renovationCostPercent = purchasePrice > 0 ? (renovationCost / purchasePrice) * 100 : 0;
+    const renovationCostPercent = purchasePrice > 0 ? (renovationCost / purchasePrice) : 0;
 
     return {
       name: asset.name || "—",

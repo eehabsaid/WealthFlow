@@ -52,7 +52,18 @@ function buildDashboardAnalyticsAssets(assets) {
         current_market_value: 0,
         purchase_date: asset.purchase_date || null,
         renovations: [],
+
+        // Aggregated Gold Analytics must recalculate these values
+        // from the aggregated purchase/current values.
+        total_acquisition_costs: 0,
+        total_renovation_costs: 0,
       };
+
+      delete groupedGoldMap[purityKey].total_investment;
+      delete groupedGoldMap[purityKey].gain_loss;
+      delete groupedGoldMap[purityKey].roi;
+      delete groupedGoldMap[purityKey].appreciation;
+      delete groupedGoldMap[purityKey].annual_return;
     }
 
     groupedGoldMap[purityKey].purchase_price += parseFloat(asset.purchase_price) || 0;
