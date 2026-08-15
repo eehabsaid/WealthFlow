@@ -116,12 +116,19 @@ class AIContextBuilder:
                 "Data & Existing Code Reuse Opportunities",
                 "Real Gaps / Unknowns",
             ],
-            "instructions": (
-                "SUGGESTION ONLY: Generate a structured Business Requirements Document based on the provided live application structure, "
-                "real business data signals, codebase architecture signals, and capabilities. Ground all proposed features in existing app routes, "
-                "reusable backend services/models, and genuine user data gaps. Do NOT output any code, do NOT create files, and do NOT perform any write operations."
-            ),
-        }
+             "instructions": (
+                 "SUGGESTION ONLY: Generate a structured Business Requirements Document based on the provided live application structure, "
+                 "real business data signals, codebase architecture signals, and capabilities. Ground all proposed features in existing app routes, "
+                 "reusable backend services/models, and genuine user data gaps. Do NOT output any code, do NOT create files, and do NOT perform any write operations. "
+                 "CRITICAL ACCURACY RULE: Only reference specific data categories, asset types, or values that literally appear in the "
+                 "real_business_data_signals provided below. Some field names in the codebase/capability signals describe what the SYSTEM "
+                 "supports in general (e.g. a schema may define an asset type that this specific user has zero records of) - this does NOT "
+                 "mean the user has that data. Before mentioning any specific category (e.g. an asset type, expense category, or account type), "
+                 "verify it actually appears with a non-zero count/value in real_business_data_signals. If it does not appear there, do not "
+                 "mention it by name - refer to it only in general terms (e.g. 'if additional asset types are added in the future') or omit it "
+                 "entirely, rather than stating it as something the user currently has."
+             ),
+         }
 
     @classmethod
     def _get_live_django_routes_with_metadata(cls) -> list[dict[str, Any]]:
