@@ -289,7 +289,15 @@ def _handle_query_application_data(user: Any, params: dict[str, Any]) -> dict[st
             "per-month/per-period values unless a field explicitly labeled as monthly/period totals is "
             "present in the data. If asked for a single latest value, quote the id, date, amount, and "
             "category fields exactly as they appear in index 0 of the relevant list — do not paraphrase "
-            "or estimate the number."
+            "or estimate the number. "
+            "NO CROSS-DOMAIN MIXING: this response may contain data from several top-level keys "
+            "(e.g. 'expenses', 'salary', 'balance', 'bank_certificates') if multiple modules matched "
+            "the search query. Each top-level key is a SEPARATE data domain. When the user asks about "
+            "expenses specifically, use ONLY the 'expenses' key's data (and its nested 'recent_expenses' "
+            "list) — never substitute a value, company name, or amount from 'salary', 'bank_certificates', "
+            "or any other key, even if it looks similar or more recent. If the 'expenses' key is absent "
+            "from this response, say plainly that no expense data was found rather than using another "
+            "domain's data as a stand-in."
         )
     return res
 

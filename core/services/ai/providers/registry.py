@@ -154,7 +154,7 @@ def get_relevant_providers_data(user: Any, search_query: str = "", limit: int | 
     max_score = max(positive_scores) if positive_scores else 0.0
     
     if max_score >= 3.0:
-        rel_threshold = max(3.0, max_score * 0.30)
+        rel_threshold = max(3.0, max_score * 0.60)
         selected_keys = [k for k, s in scores.items() if scores[k] >= rel_threshold]
     elif positive_scores:
         selected_keys = [k for k, s in scores.items() if scores[k] > 0.0]
