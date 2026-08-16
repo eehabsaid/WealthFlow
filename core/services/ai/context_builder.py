@@ -126,7 +126,10 @@ class AIContextBuilder:
                  "mean the user has that data. Before mentioning any specific category (e.g. an asset type, expense category, or account type), "
                  "verify it actually appears with a non-zero count/value in real_business_data_signals. If it does not appear there, do not "
                  "mention it by name - refer to it only in general terms (e.g. 'if additional asset types are added in the future') or omit it "
-                 "entirely, rather than stating it as something the user currently has."
+                 "entirely, rather than stating it as something the user currently has. "
+                 "EXISTING CODE RULE: If a class, service, or provider already appears in codebase_architecture_signals or capability_registry, "
+                 "never describe it as something to 'add', 'implement', or 'build' - it already exists. Instead describe it as something to "
+                 "extend, configure, wire up, or expose in the UI."
              ),
          }
 
