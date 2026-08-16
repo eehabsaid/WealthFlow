@@ -266,10 +266,10 @@ def _handle_query_application_data(user: Any, params: dict[str, Any]) -> dict[st
     limit = int(limit_val) if limit_val is not None and str(limit_val).isdigit() else None
 
     res = AIContextBuilder.build_business_context(
-        user=user,
-        search_query=search_query,
-        limit=limit,
-    )
+            user=user,
+            search_query=search_query,
+            limit=limit,
+        )
     if isinstance(res, dict) and "_explanation_metadata" not in res:
         res["_explanation_metadata"] = {
             "intent": "business_analysis",
@@ -280,6 +280,17 @@ def _handle_query_application_data(user: Any, params: dict[str, Any]) -> dict[st
             "unavailable_context": [k for k in res.keys() if k.endswith("_error")],
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()),
         }
+    if isinstance(res, dict):
+        res["instructions"] = (
+            "CRITICAL ACCURACY RULE: Only report values that literally appear in this data. "
+            "For any 'latest'/'most recent'/'newest' request on a list field (e.g. recent_expenses, "
+            "recent_transactions), the correct answer is ALWAYS the item at list index 0 — every such "
+            "list here is already sorted newest-first. Do NOT group, aggregate, average, or invent "
+            "per-month/per-period values unless a field explicitly labeled as monthly/period totals is "
+            "present in the data. If asked for a single latest value, quote the id, date, amount, and "
+            "category fields exactly as they appear in index 0 of the relevant list — do not paraphrase "
+            "or estimate the number."
+        )
     return res
 
 
