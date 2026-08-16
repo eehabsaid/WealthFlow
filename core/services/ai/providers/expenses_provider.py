@@ -9,6 +9,12 @@ from typing import Any
 from core.models import Expense
 from core.services.ai.providers.base import BaseContextProvider
 
+# Caps how many individual transactions are included in the AI-facing 'recent_expenses'
+# list, independent of the caller's `limit` param. Aggregates (summary, category_breakdown)
+# are always computed over the FULL queryset regardless of this cap — only the per-row
+# list is capped, to keep the JSON payload small enough to reliably fit in the model's
+# context window without truncation.
+MAX_RECENT_EXPENSES_FOR_AI = 20
 
 class ExpensesDataProvider(BaseContextProvider):
     @property
@@ -101,10 +107,12 @@ class ExpensesDataProvider(BaseContextProvider):
                 "home_currency": home_currency,
             },
             "category_breakdown": category_breakdown,
-            "recent_expenses": recent_expenses,
+            "recent_expenses": recent_expenses[:MAX_RECENT_EXPENSES_FOR_AI],
             "recent_expenses_note": (
-                "recent_expenses is a flat list of individual transactions ordered newest-first "
-                "by date (index 0 = the single latest expense entry). It is NOT grouped or "
-                "aggregated by month/year — no such monthly totals exist in this data."
+                f"recent_expenses is a flat list of individual transactions ordered newest-first "
+                f"by date (index 0 = the single latest expense entry). It is capped to the {MAX_RECENT_EXPENSES_FOR_AI} "
+                f"most recent transactions out of {len(recent_expenses)} total on record — summary and "
+                f"category_breakdown above are still computed over ALL transactions, not just this list. "
+                f"It is NOT grouped or aggregated by month/year — no such monthly totals exist in this data."
             ),
         }
