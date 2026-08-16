@@ -31,6 +31,38 @@ MAX_TOOL_ITERATIONS = 8
 # This caps the worst-case (MAX_TOOL_ITERATIONS × per-call timeout) accumulation.
 LOOP_TOTAL_TIMEOUT_SECONDS = 300
 
+# Human-readable progress labels per registered tool, shown in the "thinking" bubble.
+# {arg} is substituted from the tool's own call arguments when present.
+TOOL_PROGRESS_LABELS = {
+    "query_application_data": "Checking your data ({arg})",
+    "read_application_codebase": "Reading codebase ({arg})",
+    "read_live_app_structure": "Inspecting live app structure",
+    "create_scenario": "Building scenario",
+    "compare_scenarios": "Comparing scenarios",
+    "summarize_report": "Summarizing report",
+    "explain_chart": "Analyzing chart data",
+    "suggest_optimizations": "Looking for optimizations",
+    "suggest_app_feature": "Reviewing feature context",
+}
+
+# Which argument key to surface in {arg} for each tool, if any.
+TOOL_PROGRESS_ARG_KEY = {
+    "query_application_data": "search_query",
+    "read_application_codebase": "search_term",
+}
+
+
+def _tool_progress_label(fn_name: str, fn_args: dict) -> str:
+    """Builds a human-readable progress label for a tool call, e.g. 'Checking your data (companies)'."""
+    template = TOOL_PROGRESS_LABELS.get(fn_name, fn_name.replace("_", " ").capitalize())
+    arg_key = TOOL_PROGRESS_ARG_KEY.get(fn_name)
+    if arg_key and "{arg}" in template:
+        arg_val = str((fn_args or {}).get(arg_key, "")).strip()
+        if arg_val:
+            return template.format(arg=arg_val[:40])
+        return template.split(" (")[0]
+    return template
+
 
 def _get_loop_timeout() -> int:
     """Read the total loop wall-clock budget from AppSettings with safe fallback."""
@@ -309,7 +341,18 @@ class AIChatView(View):
                 content_str = final_res["content"]
 
         # Clear progress state
-        cache_mgr.set(progress_key, {"status": "done"}, ttl_seconds=10.0)
+        cache_mgr.set(
+                progress_key,
+                {
+                    "step": iteration,
+                    "max_steps": MAX_TOOL_ITERATIONS,
+                    "tool": fn_name,
+                    "label": _tool_progress_label(fn_name, fn_args),
+                    "status": "running",
+                    "elapsed_s": round(time.monotonic() - loop_start, 1),
+                },
+                ttl_seconds=120.0,
+            )
 
         # Save successful assistant response with full tool execution audit trail
         ai_msg = AIMessage.objects.create(

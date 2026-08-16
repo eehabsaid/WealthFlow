@@ -572,8 +572,9 @@ function _startProgressPolling(conversationId) {
       if (!res.ok) return;
       const data = await res.json();
       if (data.status === 'running' && data.step && data.tool) {
+        const desc = data.label || data.tool.replace(/_/g, ' ');
         _updateThinkingBubbleText(
-          `Step ${data.step}/${data.max_steps || 8}: investigating ${data.tool.replace(/_/g, ' ')}\u2026`
+          `Step ${data.step}/${data.max_steps || 8}: ${desc}\u2026`
         );
       } else if (data.status === 'done') {
         _stopProgressPolling();
