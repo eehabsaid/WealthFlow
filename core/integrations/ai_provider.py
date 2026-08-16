@@ -279,13 +279,19 @@ class OllamaProvider(BaseAIProvider):
             "response_time_ms": elapsed_ms,
         }
 
-    def list_models(self) -> list[dict[str, Any]]:
+    def list_models(self, include_fine_tuned: bool = False) -> list[dict[str, Any]]:
         tags_url = f"{self.base_url}/api/tags"
         data, status, err = make_json_http_request(url=tags_url, method="GET", timeout=self.timeout)
         if not err and isinstance(data, dict):
             models = data.get("models", [])
-            if isinstance(models, list):
+            if not isinstance(models, list):
+                return []
+            if include_fine_tuned:
                 return models
+            return [
+                m for m in models
+                if not str(m.get("name", "")).strip().lower().startswith("wealthflow-v")
+            ]
         return []
 
     def check_model_available(self, model: str) -> bool:
