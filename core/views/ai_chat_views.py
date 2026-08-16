@@ -230,7 +230,6 @@ class AIChatView(View):
         # Progress cache for frontend polling
         cache_mgr = AICacheManager()
         progress_key = f"ai_loop_progress:{request.user.id}:{conversation.id}"
-
         iteration = 0
         while tool_calls_req and isinstance(tool_calls_req, list) and iteration < MAX_TOOL_ITERATIONS:
             # ── Wall-clock budget check ───────────────────────────────────────
@@ -290,6 +289,7 @@ class AIChatView(View):
                     "step": iteration,
                     "max_steps": MAX_TOOL_ITERATIONS,
                     "tool": fn_name,
+                    "label": _tool_progress_label(fn_name, fn_args),
                     "status": "running",
                     "elapsed_s": round(time.monotonic() - loop_start, 1),
                 },
@@ -343,15 +343,8 @@ class AIChatView(View):
         # Clear progress state
         cache_mgr.set(
                 progress_key,
-                {
-                    "step": iteration,
-                    "max_steps": MAX_TOOL_ITERATIONS,
-                    "tool": fn_name,
-                    "label": _tool_progress_label(fn_name, fn_args),
-                    "status": "running",
-                    "elapsed_s": round(time.monotonic() - loop_start, 1),
-                },
-                ttl_seconds=120.0,
+                {"status": "done"},
+                ttl_seconds=30.0,
             )
 
         # Save successful assistant response with full tool execution audit trail

@@ -52,7 +52,9 @@ class ExpensesDataProvider(BaseContextProvider):
         for exp in expenses_raw:
             c_code = exp.currency.code if exp.currency else home_currency
             amt = float(exp.amount or 0)
-            amt_home = self.convert_to_home_currency(amt, c_code, home_currency)
+            # amount_egp is pre-calculated at save time (amount * exchange_rate -> EGP).
+            amt_egp = float(exp.amount_egp or 0)
+            amt_home = amt_egp if home_currency == "EGP" else self.convert_to_home_currency(amt_egp, "EGP", home_currency)
 
             cat_name = exp.category.name if exp.category else "Uncategorized"
 
@@ -100,4 +102,9 @@ class ExpensesDataProvider(BaseContextProvider):
             },
             "category_breakdown": category_breakdown,
             "recent_expenses": recent_expenses,
+            "recent_expenses_note": (
+                "recent_expenses is a flat list of individual transactions ordered newest-first "
+                "by date (index 0 = the single latest expense entry). It is NOT grouped or "
+                "aggregated by month/year — no such monthly totals exist in this data."
+            ),
         }
