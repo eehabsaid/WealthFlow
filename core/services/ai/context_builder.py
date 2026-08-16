@@ -129,7 +129,10 @@ class AIContextBuilder:
                  "entirely, rather than stating it as something the user currently has. "
                  "EXISTING CODE RULE: If a class, service, or provider already appears in codebase_architecture_signals or capability_registry, "
                  "never describe it as something to 'add', 'implement', or 'build' - it already exists. Instead describe it as something to "
-                 "extend, configure, wire up, or expose in the UI."
+                 "extend, configure, wire up, or expose in the UI. "
+                 "DIRECT ANSWER RULE: All context needed (live_app_structure, real_business_data_signals, codebase_architecture_signals, "
+                 "capability_registry) is already provided below. Do not ask the user for more information or focus areas - "
+                 "analyze the provided context and give a specific, concrete recommendation directly."
              ),
          }
 
