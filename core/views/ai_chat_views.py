@@ -71,6 +71,15 @@ def _get_loop_timeout() -> int:
     except (ValueError, TypeError):
         return LOOP_TOTAL_TIMEOUT_SECONDS
 
+def _aiT_fallback_no_answer() -> str:
+    """User-facing fallback text when the model returns no content and no tool
+    call even after a retry nudge. Keeps the assistant message non-empty so the
+    frontend always has something visible to render."""
+    return (
+        "I wasn't able to generate a response to that question. This can happen with "
+        "smaller local models on complex requests — try rephrasing your question more "
+        "specifically, or switch to a larger model in AI Advisor settings and try again."
+    )
 
 def _parse_tool_call(tc: dict) -> tuple[str, dict]:
     """Extract (fn_name, fn_args) from a raw tool_call dict. Returns ('', {}) on failure."""
@@ -220,7 +229,28 @@ class AIChatView(View):
                 },
                 status=200,
             )
+        # ── Guard against a "silent" empty response ────────────────────────────
+        # Some smaller/local models occasionally return no content AND no tool
+        # call on the first turn (not an API error — just an unproductive reply).
+        # Without this, the investigation loop below never runs (it's gated on
+        # tool_calls_req being non-empty) and we'd silently save an empty
+        # assistant message. Give the model one explicit nudge before giving up.
+        if not content_str.strip() and not tool_calls_req:
+            messages_seq.append({
+                "role": "system",
+                "content": (
+                    "Your previous reply was empty. You must either call one of the "
+                    "available tools to investigate the user's question, or provide a "
+                    "direct text answer. Do not return an empty response."
+                ),
+            })
+            retry_res = provider.generate(messages_seq, tools=tools_param)
+            content_str = retry_res.get("content", "") or content_str
+            tool_calls_req = retry_res.get("tool_calls") or []
 
+            if not content_str.strip() and not tool_calls_req:
+                content_str = _aiT_fallback_no_answer()
+                
         # ── Bounded multi-step investigation loop ─────────────────────────────
         executed_tool_calls = []
         loop_start = time.monotonic()
