@@ -9,6 +9,12 @@ from typing import Any
 from django.db.models import Sum, Count, Avg
 from core.models import SalaryEntry, Company
 from core.services.ai.providers.base import BaseContextProvider
+# Caps how many entries are included in the AI-facing 'recent_monthly_timeline' list
+# when the caller does not pass an explicit `limit`. Aggregates (summary, yearly_summary,
+# company_breakdown) are always computed over the FULL queryset regardless of this cap —
+# only the per-row timeline list is capped, to keep the JSON payload small enough to
+# reliably fit in the model's context window without truncation.
+MAX_TIMELINE_ENTRIES_FOR_AI = 20
 
 MONTH_NAME_TO_INT = {
     "january": 1, "jan": 1, "1": 1, "01": 1,
@@ -190,7 +196,7 @@ class SalaryDataProvider(BaseContextProvider):
         if limit is not None and limit > 0:
             timeline_entries = all_entries_desc[:limit]
         else:
-            timeline_entries = all_entries_desc
+            timeline_entries = all_entries_desc[:MAX_TIMELINE_ENTRIES_FOR_AI]
         timeline_entries.sort(key=_month_sort_key)
 
         recent_monthly_timeline = []
@@ -219,6 +225,14 @@ class SalaryDataProvider(BaseContextProvider):
             "latest_active_year": latest_active_year,
             "latest_active_year_summary": latest_active_year_summary,
             "recent_monthly_timeline": recent_monthly_timeline,
+            "recent_monthly_timeline_note": (
+                f"recent_monthly_timeline is capped to at most {MAX_TIMELINE_ENTRIES_FOR_AI} entries "
+                f"(out of {total_count} total salary entries on record) when no explicit limit is given, "
+                f"sorted chronologically (oldest to newest within the returned slice). summary, "
+                f"yearly_summary, and company_breakdown above are still computed over ALL entries, "
+                f"not just this list. For the single most recent salary entry, use "
+                f"latest_active_year_summary rather than scanning this timeline."
+            ),
             "summary": {
                 "total_paid_all_time": total_paid,
                 "total_paid_all_time_formatted": self.format_currency(total_paid, currency_code),

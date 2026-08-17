@@ -9,6 +9,12 @@ from typing import Any
 from core.models import BalanceEntry
 from core.services.ai.providers.base import BaseContextProvider
 
+# Caps how many accounts are included in the AI-facing 'items' list when the caller
+# does not pass an explicit `limit`. Aggregates (summary) are always computed over
+# ALL accounts regardless of this cap — only the per-row list is capped, to keep the
+# JSON payload small enough to reliably fit in the model's context window without
+# truncation.
+MAX_BALANCE_ITEMS_FOR_AI = 20
 
 class BalanceDataProvider(BaseContextProvider):
     @property
@@ -39,9 +45,7 @@ class BalanceDataProvider(BaseContextProvider):
         if user and user.is_authenticated and has_user_field:
             qs = qs.filter(user=user)
 
-        qs = qs.select_related("bank", "currency")
-        if limit is not None and limit > 0:
-            qs = qs[:limit]
+        qs = qs.select_related("bank", "currency").order_by("-id")
 
         items_raw = list(qs)
 
@@ -75,6 +79,8 @@ class BalanceDataProvider(BaseContextProvider):
             for code, val in balances_by_curr.items()
         }
 
+        effective_limit = limit if (limit is not None and limit > 0) else MAX_BALANCE_ITEMS_FOR_AI
+
         return {
             "summary": {
                 "total_liquid_in_home_currency": round(total_liquid_home, 2),
@@ -83,5 +89,9 @@ class BalanceDataProvider(BaseContextProvider):
                 "total_accounts_count": len(items),
                 "balances_by_currency": by_curr_formatted,
             },
-            "items": items,
+            "items": items[:effective_limit],
+            "items_note": (
+                f"items is capped to {effective_limit} accounts out of {len(items)} total on record — "
+                f"summary above is still computed over ALL accounts, not just this list."
+            ),
         }

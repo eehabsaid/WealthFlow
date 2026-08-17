@@ -9,7 +9,12 @@ from typing import Any
 from datetime import date
 from core.models import BankCertificate
 from core.services.ai.providers.base import BaseContextProvider
-
+# Caps how many certificates are included in the AI-facing 'items' list when the
+# caller does not pass an explicit `limit`. Aggregates (summary) are always computed
+# over ALL active certificates regardless of this cap — only the per-row list is
+# capped, to keep the JSON payload small enough to reliably fit in the model's
+# context window without truncation.
+MAX_CERTIFICATES_FOR_AI = 20
 
 class BankCertificatesDataProvider(BaseContextProvider):
     @property
@@ -40,9 +45,7 @@ class BankCertificatesDataProvider(BaseContextProvider):
         if user and user.is_authenticated and has_user_field:
             qs = qs.filter(user=user)
 
-        active_qs = qs.filter(status__iexact="active").select_related("bank", "currency")
-        if limit is not None and limit > 0:
-            active_qs = active_qs[:limit]
+        active_qs = qs.filter(status__iexact="active").select_related("bank", "currency").order_by("-issue_date", "-id")
 
         certs_raw = list(active_qs)
 
@@ -92,6 +95,8 @@ class BankCertificatesDataProvider(BaseContextProvider):
             if total_principal_home > 0 else 0.0
         )
 
+        effective_limit = limit if (limit is not None and limit > 0) else MAX_CERTIFICATES_FOR_AI
+
         return {
             "summary": {
                 "total_active_certificates_principal": round(total_principal_home, 2),
@@ -102,5 +107,11 @@ class BankCertificatesDataProvider(BaseContextProvider):
                 "active_certificates_count": len(items),
                 "home_currency": home_currency,
             },
-            "items": items,
+            "items": items[:effective_limit],
+            "items_note": (
+                f"items is a flat list of active certificates ordered newest-first by issue date "
+                f"(index 0 = the most recently issued certificate). It is capped to {effective_limit} "
+                f"entries out of {len(items)} active certificates total — summary above is still "
+                f"computed over ALL active certificates, not just this list."
+            ),
         }
