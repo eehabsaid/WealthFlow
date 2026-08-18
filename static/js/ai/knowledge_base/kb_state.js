@@ -87,10 +87,14 @@ window.KB.triggerScan = async function () {
       body: JSON.stringify({ action: 'scan' }),
     });
     state.scanResult = res.ok ? await res.json() : { ok: false, error: true };
-  } catch (_e) {
+    } catch (_e) {
     state.scanResult = { ok: false, error: true };
   } finally {
     state.scanning = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="bi bi-radar"></i> <span data-i18n="ai_kb_scan_btn">${window.KB.escapeHtml(window.KB.t('ai_kb_scan_btn', 'Run Autonomous Scan'))}</span>`;
+    }
     await window.KB.loadEntries();
   }
 };
