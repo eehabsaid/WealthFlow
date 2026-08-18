@@ -189,7 +189,7 @@ class SalaryDataProvider(BaseContextProvider):
             if total_count > 0 else 100.0
         )
 
-        # 6. Timeline Entry Assembly
+                # 6. Timeline Entry Assembly (chronological, oldest -> newest)
         all_entries_desc = list(all_entries_asc)
         all_entries_desc.reverse()
 
@@ -220,18 +220,51 @@ class SalaryDataProvider(BaseContextProvider):
                 "notes": entry.notes or "",
             })
 
+        # The single most recent salary entry (by year+month), as an unambiguous
+        # standalone object — NOT an aggregate. This is the correct field to answer
+        # "what is the latest paid salary" — do not use yearly_summary/company_breakdown
+        # (those are SUMS across many entries) or scan recent_monthly_timeline for this.
+        latest_salary_entry = None
+        if all_entries_asc:
+            latest_entry_obj = all_entries_asc[-1]
+            latest_salary_entry = {
+                "year": latest_entry_obj.year,
+                "month": latest_entry_obj.month,
+                "company": latest_entry_obj.company.name if latest_entry_obj.company else "",
+                "paid": float(latest_entry_obj.paid or 0),
+                "paid_formatted": self.format_currency(float(latest_entry_obj.paid or 0), currency_code),
+                "expected": float(latest_entry_obj.expected or 0),
+                "expected_formatted": self.format_currency(float(latest_entry_obj.expected or 0), currency_code),
+                "bonus": float(latest_entry_obj.bonus or 0),
+                "bonus_formatted": self.format_currency(float(latest_entry_obj.bonus or 0), currency_code),
+            }
+
         return {
             "currency": currency_code,
             "latest_active_year": latest_active_year,
             "latest_active_year_summary": latest_active_year_summary,
+            "latest_active_year_summary_note": (
+                "latest_active_year_summary is a YEARLY AGGREGATE (sum of total_paid across all "
+                "months in the most recent year) — it is NOT the most recent single paid salary "
+                "amount. Do not use it to answer 'what is the latest paid salary'."
+            ),
+            "latest_salary_entry": latest_salary_entry,
+            "latest_salary_entry_note": (
+                "latest_salary_entry is the single most recent individual salary entry (one "
+                "specific year+month+company), already identified for you. THIS is the correct "
+                "field to answer any 'latest/most recent paid salary' question — use its 'paid' "
+                "value exactly as given. Do not compute, sum, or infer this value from "
+                "recent_monthly_timeline, yearly_summary, or company_breakdown."
+            ),
             "recent_monthly_timeline": recent_monthly_timeline,
             "recent_monthly_timeline_note": (
                 f"recent_monthly_timeline is capped to at most {MAX_TIMELINE_ENTRIES_FOR_AI} entries "
                 f"(out of {total_count} total salary entries on record) when no explicit limit is given, "
-                f"sorted chronologically (oldest to newest within the returned slice). summary, "
-                f"yearly_summary, and company_breakdown above are still computed over ALL entries, "
-                f"not just this list. For the single most recent salary entry, use "
-                f"latest_active_year_summary rather than scanning this timeline."
+                f"sorted chronologically OLDEST-FIRST (ascending) — the LAST item in this list is the "
+                f"most recent, not the first. summary, yearly_summary, and company_breakdown above are "
+                f"still computed over ALL entries, not just this list. For the single most recent "
+                f"salary entry, use the separate 'latest_salary_entry' field instead of scanning this "
+                f"list."
             ),
             "summary": {
                 "total_paid_all_time": total_paid,
