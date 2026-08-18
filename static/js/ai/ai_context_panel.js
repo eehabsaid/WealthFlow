@@ -129,12 +129,12 @@ function _renderRightPanel() {
     <div class="ai-ws-right-section">
       <div class="ai-ws-right-title"><i class="bi bi-rocket-takeoff me-1"></i> <span data-i18n="ai_ws_future_capabilities">Future Capabilities</span></div>
       <div class="ai-ws-right-future">
-        <div class="ai-ws-future-card">
+        <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-knowledge-base" onclick="openKnowledgeBaseModal()" style="cursor: pointer;">
           <div class="ai-ws-future-card-left">
-            <i class="bi bi-journal-text"></i>
+            <i class="bi bi-journal-text text-primary"></i>
             <span data-i18n="ai_ws_future_knowledge_base">Knowledge Base</span>
           </div>
-          <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+          <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
         </div>
         <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-prompt-library" onclick="openPromptLibraryModal()" style="cursor: pointer;">
           <div class="ai-ws-future-card-left">

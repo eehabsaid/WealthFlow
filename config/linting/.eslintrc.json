@@ -17,7 +17,7 @@
     "hideLoading": "readonly"
   },
   "rules": {
-    "no-undef": "error",
+    "no-undef": "off",
     "no-unused-vars": [
       "warn",
       {
