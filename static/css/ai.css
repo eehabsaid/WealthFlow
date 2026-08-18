@@ -1074,9 +1074,7 @@
   .ai-ws-conv-group-title,
   .ai-ws-conv-title,
   .ai-ws-conv-time,
-  .ai-ws-btn-delete,
-  .ai-ws-future-card span,
-  .ai-ws-future-badge {
+  .ai-ws-btn-delete {
     display: none;
   }
   .ai-ws-platform-grid {
@@ -1125,5 +1123,3 @@
   align-items: center;
   height: 22px;
 }
-
-
