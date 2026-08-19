@@ -29,7 +29,7 @@ async function renderAI() {
           </div>
         </div>
         <div class="ai-ws-header-actions">
-          <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 ai-ws-sidebar-toggle" onclick="_toggleAISidebar()" title="${_aiT('ai_ws_toggle_sidebar', 'Toggle Sidebar')}">
+          <button class="btn btn-sm btn-outline-secondary align-items-center gap-1 ai-ws-sidebar-toggle" onclick="_toggleAISidebar()" title="${_aiT('ai_ws_toggle_sidebar', 'Toggle Sidebar')}">
             <i class="bi bi-list"></i>
           </button>
           <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" onclick="_toggleAIContextPanel()" title="${_aiT('ai_ws_toggle_context', 'Toggle Context Panel')}">

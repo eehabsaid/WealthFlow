@@ -81,7 +81,7 @@ function _renderRightPanel() {
 
     if (tools.length > 0) {
       tools.forEach(tool => {
-        const name = typeof tool === 'string' ? tool : (tool.name || 'Unknown');
+        const name = typeof tool === 'string' ? tool : (tool.tool || tool.name || 'Unknown');
         const i18nKey = toolsMap[name] || name;
         toolsHtml += `<div class="ai-ws-tool-item"><i class="bi bi-check-circle-fill success"></i> <span data-i18n="${i18nKey}">${name}</span></div>`;
       });
