@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from typing import Optional
 from urllib import parse
@@ -65,14 +66,96 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
 
         return round(area * rate_value, 2)
 
+    def _normalize_location(self, s: str) -> str:
+        if not s:
+            return ""
+        s = s.strip().lower()
+        arabic_diacritics = [
+            "\u064b", "\u064c", "\u064d", "\u064e", "\u064f", "\u0650", "\u0651", "\u0652"
+        ]
+        for d in arabic_diacritics:
+            s = s.replace(d, "")
+        s = s.replace("أ", "ا").replace("إ", "ا").replace("آ", "ا")
+        s = s.replace("ة", "ه").replace("ى", "ي")
+        return s
+
     def _iget(self, mapping: dict, key: str):
-        """Case-insensitive dict lookup; tries exact match first, then lowercased."""
+        """Flexible dict lookup supporting case-insensitivity, Arabic/English bilingual aliases,
+        and slash/comma separated multi-key entries.
+        """
+        if not key or not mapping:
+            return None
+
         if key in mapping:
             return mapping[key]
-        key_lower = key.lower()
+
+        key_clean = str(key).strip()
+        key_norm = self._normalize_location(key_clean)
+
+        LOCATION_ALIASES = {
+            "cairo": {"cairo", "القاهرة", "القاهره", "el cairo", "cairo city"},
+            "giza": {"giza", "الجيزة", "الجيزه", "el giza", "el giza governorate"},
+            "alexandria": {"alexandria", "الإسكندرية", "الاسكندرية", "الإسكندريه", "الاسكندريه", "alex"},
+            "sharm el sheikh": {"sharm el sheikh", "sharm el-sheikh", "شرم الشيخ", "شرم"},
+            "hurghada": {"hurghada", "الغردقة", "الغردقه"},
+            "luxor": {"luxor", "الأقصر", "الاقصر"},
+            "aswan": {"aswan", "أسوان", "اسوان"},
+            "mansoura": {"mansoura", "المنصورة", "المنصوره", "el mansoura"},
+            "tanta": {"tanta", "طنطا"},
+            "port said": {"port said", "بورسعيد", "بور سعيد"},
+            "ismailia": {"ismailia", "الإسماعيلية", "الاسماعيلية", "الإسماعيليه", "الاسماعيليه"},
+            "suez": {"suez", "السويس"},
+            "dakahlia": {"dakahlia", "الدقهلية", "الدقهليه"},
+            "sharqia": {"sharqia", "الشرقية", "الشرقيه"},
+            "gharbia": {"gharbia", "الغربية", "الغربيه"},
+            "monufia": {"monufia", "المنوفية", "المنوفيه"},
+            "beheira": {"beheira", "البحيرة", "البحيره"},
+            "qalyubia": {"qalyubia", "القليوبية", "القليوبيه"},
+            "kafr el sheikh": {"kafr el sheikh", "كفر الشيخ"},
+            "minya": {"minya", "المنيا"},
+            "beni suef": {"beni suef", "بني سويف"},
+            "fayoum": {"fayoum", "الفيوم"},
+            "sohag": {"sohag", "سوهاج"},
+            "qena": {"qena", "قنا"},
+            "red sea": {"red sea", "البحر الأحمر", "البحر الاحمر"},
+            "matrouh": {"matrouh", "مطروح", "مرسى مطروح", "marsa matrouh"},
+            "north sinai": {"north sinai", "شمال سيناء"},
+            "south sinai": {"south sinai", "جنوب سيناء"},
+            "new valley": {"new valley", "الوادي الجديد"},
+            "damietta": {"damietta", "دمياط"},
+            "assiut": {"assiut", "أسيوط", "اسيوط"},
+            "6th of october": {"6th of october", "6 october", "السادس من أكتوبر", "6 أكتوبر", "أكتوبر", "اكتوبر"},
+            "sheikh zayed": {"sheikh zayed", "الشيخ زايد", "زايد"},
+            "new cairo": {"new cairo", "القاهرة الجديدة", "التجمع", "التجمع الخامس", "5th settlement"},
+            "nasr city": {"nasr city", "مدينة نصر"},
+            "heliopolis": {"heliopolis", "مصر الجديدة"},
+            "maadi": {"maadi", "المعادي"},
+            "zamalek": {"zamalek", "الزمالك"},
+        }
+
+        input_aliases = {key_norm}
+        for alias_group in LOCATION_ALIASES.values():
+            normalized_group = {self._normalize_location(item) for item in alias_group}
+            if key_norm in normalized_group:
+                input_aliases.update(normalized_group)
+                break
+
         for k, v in mapping.items():
-            if k.lower() == key_lower:
-                return v
+            parts = [p.strip() for p in re.split(r"[/,\|]", str(k)) if p.strip()]
+            for part in parts:
+                part_norm = self._normalize_location(part)
+                if part_norm in input_aliases:
+                    return v
+
+                for alias_group in LOCATION_ALIASES.values():
+                    normalized_group = {self._normalize_location(item) for item in alias_group}
+                    if part_norm in normalized_group and (normalized_group & input_aliases):
+                        return v
+
+                if len(part_norm) >= 3 and len(key_norm) >= 3:
+                    if part_norm in key_norm or key_norm in part_norm:
+                        return v
+
         return None
 
     def _load_config(self):
