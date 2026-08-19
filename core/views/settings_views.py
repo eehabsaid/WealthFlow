@@ -9,6 +9,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 from core.models import (
     AppSettings,
     ExchangeRate,
@@ -86,9 +87,51 @@ class SettingsView(View):
         return JsonResponse({"settings": {s.key: s.value for s in settings}})
 
     def post(self, request):
-        data = json.loads(request.body)
-        obj = AppSettings.set(data["key"], data["value"])
-        return JsonResponse({"key": obj.key, "value": obj.value})
+        data = json.loads(request.body or "{}")
+        items = []
+
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict) and "key" in item and "value" in item:
+                    items.append((str(item["key"]), item["value"]))
+        elif isinstance(data, dict):
+            if "settings" in data:
+                raw_settings = data["settings"]
+                if isinstance(raw_settings, dict):
+                    for k, v in raw_settings.items():
+                        items.append((str(k), v))
+                elif isinstance(raw_settings, list):
+                    for item in raw_settings:
+                        if isinstance(item, dict) and "key" in item and "value" in item:
+                            items.append((str(item["key"]), item["value"]))
+            elif "key" in data and "value" in data:
+                items.append((str(data["key"]), data["value"]))
+            else:
+                for k, v in data.items():
+                    items.append((str(k), v))
+
+        if not items:
+            return JsonResponse({"error": "No settings provided"}, status=400)
+
+        saved = {}
+        with transaction.atomic():
+            for key, val in items:
+                val_str = (
+                    val
+                    if isinstance(val, str)
+                    else json.dumps(val)
+                    if isinstance(val, (dict, list))
+                    else str(val)
+                    if val is not None
+                    else ""
+                )
+                obj = AppSettings.set(key, val_str)
+                saved[obj.key] = obj.value
+
+        if isinstance(data, dict) and "key" in data and "value" in data and len(items) == 1 and "settings" not in data:
+            return JsonResponse({"key": items[0][0], "value": saved.get(items[0][0], "")})
+
+        return JsonResponse({"status": "ok", "settings": saved})
 
 @method_decorator(csrf_exempt, name="dispatch")
 class EmailTemplateListView(AdminRequiredMixin, View):

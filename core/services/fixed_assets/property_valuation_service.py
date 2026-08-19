@@ -49,9 +49,9 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
         by_governorate = config.get("by_governorate") or {}
 
         if city:
-            rate = by_city.get(city)
+            rate = self._iget(by_city, city)                   
         if rate in (None, "") and governorate:
-            rate = by_governorate.get(governorate)
+            rate = self._iget(by_governorate, governorate)
         if rate in (None, ""):
             rate = config.get("default")
 
@@ -64,6 +64,16 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
             return None
 
         return round(area * rate_value, 2)
+
+    def _iget(self, mapping: dict, key: str):
+        """Case-insensitive dict lookup; tries exact match first, then lowercased."""
+        if key in mapping:
+            return mapping[key]
+        key_lower = key.lower()
+        for k, v in mapping.items():
+            if k.lower() == key_lower:
+                return v
+        return None
 
     def _load_config(self):
         raw = AppSettings.get("property_valuation_rate_map", "")

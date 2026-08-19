@@ -53,15 +53,19 @@ async function savePropertyValuationSettings() {
         ['property_valuation_external_headers', externalHeadersRaw],
     ];
 
-    const responses = await Promise.all(settingsToSave.map(([key, value]) => fetch('/api/settings/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, value }),
-    })));
+    try {
+        const res = await fetch('/api/settings/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ settings: Object.fromEntries(settingsToSave) }),
+        });
 
-    if (responses.every(r => r.ok)) {
-        showToast(t('property_valuation_settings_saved', 'Property valuation settings saved.'), 'success');
-    } else {
+        if (res.ok) {
+            showToast(t('property_valuation_settings_saved', 'Property valuation settings saved.'), 'success');
+        } else {
+            showToast(t('error_saving_property_valuation_settings', 'Failed to save property valuation settings.'), 'error');
+        }
+    } catch {
         showToast(t('error_saving_property_valuation_settings', 'Failed to save property valuation settings.'), 'error');
     }
 }
