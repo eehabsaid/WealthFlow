@@ -28,3 +28,17 @@ $$\text{Savings Rate} = \left( \frac{\text{Net Cash Flow}}{\text{Monthly Net Inc
 - Long-term growth projections apply compounding interest formulas to liquid holdings reinvested at the user's weighted average certificate/yield rate.
 - Inflation stress tests compound baseline expenses at annual inflation rate $i$:
 $$E_{t} = E_0 \times (1 + i)^t$$
+
+## 6. Expense Amount Field Rule — CRITICAL
+- Always use `amount_egp` for all expense calculations, totals, and AI context payloads.
+- `amount` stores the original currency value; `amount_egp` stores the EGP-converted value.
+- Using `amount` instead of `amount_egp` produces wrong totals for multi-currency expense data.
+
+## 7. Net Worth Formula (Plain Text Reference)
+Net Worth = Liquid Cash (all currencies → home) + Certificates Principal (→ home) + Gold Market Value + Real Estate Value + Vehicles & Other Assets − Active Liabilities
+All non-home-currency values must be converted using live `ExchangeRate` records before summing.
+
+## 8. Row-Cap Rule for AI Payloads
+- All provider list payloads are capped at 20 most recent rows for token efficiency.
+- Aggregates (totals, averages, counts) MUST be computed over the full queryset BEFORE slicing.
+- Slicing first then aggregating produces incorrect totals — this is a known anti-pattern in this codebase.

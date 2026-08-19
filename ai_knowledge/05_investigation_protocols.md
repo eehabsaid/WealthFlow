@@ -1,40 +1,52 @@
 # WealthFlow AI Investigation & Analytical Protocols
 
-When evaluating user requests, the AI must follow standardized domain investigation workflows.
+## 1. Portfolio Analysis
+**Trigger**: "analyze my portfolio", "asset allocation", "rebalance", "diversification"
+**Required data providers**: balance, certificates, gold, fixed_assets, exchange rates
+**Steps**:
+1. Aggregate total holdings per asset class in home currency.
+2. Calculate % distribution: Liquid Cash, Certificates, Gold, Real Estate, Vehicles, Other.
+3. Flag concentration risk (>70% in single asset class).
+4. Evaluate liquidity ratio: (Liquid Cash + monthly certificate income) vs 6-month essential expenses.
+**Output**: Asset breakdown table, concentration flags, rebalancing suggestions.
 
-## 1. Portfolio Analysis Workflow ("analyze my portfolio", "asset allocation", "rebalance")
-1. **Required Context**: Bank balances, bank certificates, gold holdings, real estate, vehicles, active currency rates.
-2. **Investigation Steps**:
-   - Aggregate total holdings per asset class in primary currency.
-   - Calculate percentage distribution across Liquid Cash, Certificates, Gold, Real Estate, Vehicles, and Other.
-   - Identify concentration risk (e.g. over 70% in a single asset class or currency).
-   - Evaluate liquidity ratios (Liquid Cash + Monthly Certificate Income vs 6-Month Essential Expenses).
-3. **Synthesis**: Present asset breakdown table, highlight concentration risks, and provide actionable rebalancing suggestions.
+## 2. Net Worth Audit
+**Trigger**: "net worth", "total wealth", "net worth audit"
+**Required data providers**: balance, certificates, gold, fixed_assets, liabilities
+**Steps**:
+1. Sum all assets converted to home currency.
+2. Subtract total active liabilities.
+3. Check for missing/stale valuations.
+**Output**: Net worth summary table, liquid vs illiquid breakdown.
 
-## 2. Net Worth Audit Workflow ("analyze my net worth", "net worth audit")
-1. **Required Context**: Total assets (cash, certificates, gold, property, vehicles) and active liabilities.
-2. **Investigation Steps**:
-   - Verify all asset figures are updated and converted accurately to user's home currency.
-   - Check if any asset category lacks recent valuation data.
-   - Subtract total liabilities from total assets.
-3. **Synthesis**: Present Net Worth summary table, historical growth comparison (if available), and breakdown of liquid vs illiquid wealth.
+## 3. Salary & Cash Flow
+**Trigger**: "salary", "income", "cash flow", "savings rate"
+**Required data providers**: salary, expenses
+**Steps**:
+1. Gross salary → subtract deductions → add per diems = net income.
+2. Net income − monthly average expenses = net cash flow.
+3. Savings rate = (net cash flow / net income) × 100%.
+**Output**: Salary breakdown, top expense categories, savings efficiency.
 
-## 3. Salary & Cash Flow Workflow ("analyze my salary", "cash flow audit")
-1. **Required Context**: Salary entries, recurring deductions, per diems, monthly expenses.
-2. **Investigation Steps**:
-   - Compare gross salary vs net received income after deductions.
-   - Calculate net cash flow after deducting monthly average expenses.
-   - Determine savings rate percentage.
-3. **Synthesis**: Summarize salary breakdown, highlight top expense categories, and report savings efficiency.
+## 4. Expense Audit
+**Trigger**: "expenses", "spending", "budget", "category breakdown"
+**Required data providers**: spending_intelligence, expenses
+**Steps**:
+1. Rank expense categories by total (using `amount_egp` field only).
+2. Separate fixed vs discretionary.
+3. Flag spikes vs prior period.
+**Output**: Categorical breakdown table, savings opportunities, budget thresholds.
 
-## 4. Expense Audit Workflow ("analyze my expenses", "spending review")
-1. **Required Context**: Expense records by category and date range.
-2. **Investigation Steps**:
-   - Rank expense categories by total spending amount.
-   - Identify recurring fixed costs vs discretionary spending.
-   - Flag sudden spending spikes or unusual category surges.
-3. **Synthesis**: Provide categorical breakdown table, identify potential savings areas, and suggest monthly budget thresholds.
+## 5. Certificate Analysis
+**Trigger**: "certificates", "interest", "maturity", "yield"
+**Required data providers**: certificates
+**Steps**:
+1. List active certificates with principal, rate, maturity date, payout frequency.
+2. Calculate annual interest per certificate: `principal × annual_rate`.
+3. Identify certificates maturing within 90 days.
+**Output**: Certificate table, total annual yield, maturity calendar.
 
-## 5. Handling Missing Information
-- If a required data signal is empty or absent from the live payload, state clearly: "No data available for [module/signal] in the current system context."
-- Never invent missing bank names, balances, certificate terms, or salary numbers.
+## 6. Missing Data Protocol
+- If a required signal is absent: state "No data available for [module] in the current context."
+- Never invent balances, rates, or certificate terms.
+- If `amount_egp` is zero or missing on expenses, flag it rather than using `amount`.

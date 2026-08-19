@@ -386,6 +386,17 @@ class AIChatView(View):
             tool_calls=executed_tool_calls,
         )
 
+        # Extract and persist long-term knowledge from this conversation turn
+        try:
+            from core.services.ai.knowledge_engine import AIKnowledgeEngine
+            AIKnowledgeEngine.extract_knowledge_from_conversation(
+                user=request.user,
+                user_query=user_text,
+                ai_response=content_str,
+            )
+        except Exception:
+            pass  # Knowledge extraction is non-critical — never fail a chat response
+
         # Update conversation title if default
         if conversation.title in ("New Conversation", ""):
             conversation.title = user_text[:30] + ("..." if len(user_text) > 30 else "")

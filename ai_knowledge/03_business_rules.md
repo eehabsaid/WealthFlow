@@ -1,20 +1,33 @@
 # WealthFlow Business Concepts & Rules
 
 ## 1. Asset Classification & Liquidity
-- **Liquid Cash**: Immediately accessible funds stored in bank accounts (`BankBalance`) or physical currency holdings.
-- **Semi-Liquid Holdings**: High-yield bank certificates (`BankCertificate`). Funds are locked until maturity, but yield predictable recurring interest income (payout frequency: monthly, quarterly, annual, at maturity).
-- **Illiquid Fixed Assets**: Real estate, vehicles, and specialized collectibles. Value is based on periodic market revaluation (`FixedAssetValuationHistory`).
-- **Precious Metals (Gold)**: Valued continuously by multiplying total pure gold mass (converted to 24K equivalent grams) by current market gold spot price per gram.
+- **Liquid Cash** (`BankBalance`): Immediately accessible. Balances stored per account per currency.
+- **Bank Certificates** (`BankCertificate`): Semi-liquid. Locked until maturity. Yield: monthly, quarterly, annual, or at-maturity payout. Key fields: `principal`, `annual_rate`, `start_date`, `maturity_date`, `payout_frequency`, `currency`.
+- **Gold** (`GoldAsset`): Valued by weight × karat purity × live spot price. Weight in grams; karat stored as integer (e.g. 21).
+- **Real Estate / Vehicles / Other Fixed Assets** (`FixedAsset`, `FixedAssetValuationHistory`): Illiquid. Value from most recent valuation record.
+- **Salary** (`SalaryEntry`, `SalaryDeduction`, `PerDiem`): Multi-employer. Net = gross − deductions + per diems.
+- **Expenses** (`Expense`, `ExpenseCategory`): Categorized under parent categories. Amount stored as `amount_egp` (always in EGP regardless of original currency).
 
 ## 2. Multi-Currency Operations
-- Users operate with a designated **Primary/Home Currency** (stored in `UserProfile.preferred_currency`, defaulting to EGP).
-- Accounts, certificates, salary payments, and expenses can exist in foreign currencies (USD, EUR, SAR).
-- All overall net worth calculations must convert non-home currency figures into the active home currency using live exchange rates from `ExchangeRate`.
+- Home currency stored in `UserProfile.preferred_currency` (default: EGP).
+- Supported foreign currencies: USD, EUR, SAR.
+- Live exchange rates from `ExchangeRate` model. Used for all net worth conversions.
+- `amount_egp` on `Expense` is always the EGP-equivalent amount — use this field for expense calculations, NOT `amount`.
 
-## 3. Net Worth Calculation Business Rule
-Total Net Worth is defined as:
-$$\text{Net Worth} = \text{Total Liquid Cash} + \text{Total Certificates Principal} + \text{Total Gold Market Value} + \text{Total Real Estate Market Value} + \text{Total Vehicle & Other Asset Market Value} - \text{Total Active Liabilities/Mortgages}$$
+## 3. Net Worth Formula
+Net Worth = Liquid Cash (all currencies → home) + Certificates Principal (→ home) + Gold Market Value + Real Estate Value + Vehicle & Other Asset Value − Active Liabilities
 
-## 4. Expense Categorization & Budgeting
-- Expenses are grouped under parent categories (e.g., Housing, Transportation, Food & Dining, Utilities, Healthcare, Discretionary).
-- Monthly spending trends compare total monthly expenses against net salary income to derive monthly net cash flow and savings rate.
+
+## 4. Expense Field Rule — CRITICAL
+- Always use `amount_egp` for expense totals and AI context, not `amount`.
+- `amount` stores the original currency amount; `amount_egp` stores the converted EGP value.
+
+## 5. Row Cap Rules for AI Context
+- All provider payloads cap list items to the 20 most recent rows to control token usage.
+- Aggregates (totals, averages, counts) are computed over the FULL queryset before capping — never over the sliced list.
+
+## 6. AppSettings Keys (Runtime Config)
+- `ai_system_prompt` — base system prompt text
+- `ai_context_token_budget` — token budget for context assembly (default: 2048)
+- `home_currency` — fallback home currency if user profile not set
+- `ai_provider` — active AI provider name (e.g. `ollama`, `openai`)
