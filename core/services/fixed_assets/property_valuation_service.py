@@ -92,6 +92,10 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
         key_clean = str(key).strip()
         key_norm = self._normalize_location(key_clean)
 
+        for k, v in mapping.items():
+            if self._normalize_location(str(k)) == key_norm:
+                return v
+
         LOCATION_ALIASES = {
             "cairo": {"cairo", "القاهرة", "القاهره", "el cairo", "cairo city"},
             "giza": {"giza", "الجيزة", "الجيزه", "el giza", "el giza governorate"},
