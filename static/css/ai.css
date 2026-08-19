@@ -1123,3 +1123,67 @@
   align-items: center;
   height: 22px;
 }
+/* ── Sidebar hamburger toggle (mobile/tablet) ───────────────────────────── */
+.ai-ws-sidebar-toggle {
+  display: none;
+}
+
+.ai-ws-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1040;
+}
+
+.ai-ws-overlay--visible {
+  display: block;
+}
+
+@media (max-width: 767.98px) {
+  .ai-ws-sidebar-toggle {
+    display: flex;
+  }
+
+  .ai-ws-left {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+    z-index: 1050;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    display: flex !important;
+  }
+
+  [dir="rtl"] .ai-ws-left {
+    left: auto;
+    right: 0;
+    transform: translateX(100%);
+  }
+
+  .ai-ws-left--open {
+    transform: translateX(0) !important;
+  }
+
+  .ai-ws-new-chat-btn span,
+  .ai-ws-conv-group-title,
+  .ai-ws-conv-title,
+  .ai-ws-conv-time,
+  .ai-ws-btn-delete,
+  .ai-ws-left-future {
+    display: flex !important;
+  }
+
+  .ai-ws-conv-title,
+  .ai-ws-conv-time {
+    display: block !important;
+  }
+
+  .ai-ws-conv-group-title {
+    display: block !important;
+  }
+}

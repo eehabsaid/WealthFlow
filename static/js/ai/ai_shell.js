@@ -29,11 +29,17 @@ async function renderAI() {
           </div>
         </div>
         <div class="ai-ws-header-actions">
+          <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 ai-ws-sidebar-toggle" onclick="_toggleAISidebar()" title="${_aiT('ai_ws_toggle_sidebar', 'Toggle Sidebar')}">
+            <i class="bi bi-list"></i>
+          </button>
           <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" onclick="_toggleAIContextPanel()" title="${_aiT('ai_ws_toggle_context', 'Toggle Context Panel')}">
             <i class="bi bi-layout-sidebar-reverse"></i>
           </button>
         </div>
       </div>
+
+      <!-- Sidebar overlay (mobile) -->
+      <div id="ai-ws-sidebar-overlay" class="ai-ws-overlay" onclick="_toggleAISidebar()"></div>
 
       <!-- Three-Panel Body -->
       <div class="ai-ws-body">
@@ -150,6 +156,21 @@ function _handleInputKeydown(event) {
 
 function loadAIChat() {
   renderAI();
+}
+
+
+function _toggleAISidebar() {
+  const left = document.querySelector('.ai-ws-left');
+  const overlay = document.getElementById('ai-ws-sidebar-overlay');
+  if (!left || !overlay) return;
+  const isOpen = left.classList.contains('ai-ws-left--open');
+  if (isOpen) {
+    left.classList.remove('ai-ws-left--open');
+    overlay.classList.remove('ai-ws-overlay--visible');
+  } else {
+    left.classList.add('ai-ws-left--open');
+    overlay.classList.add('ai-ws-overlay--visible');
+  }
 }
 
 window.renderAI = renderAI;

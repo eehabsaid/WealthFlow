@@ -125,6 +125,20 @@ async function _switchAIChatConversation(convId) {
     }
 
     _renderRightPanel();
+
+    // Resume thinking state if backend is still processing for this conversation
+    try {
+      const progressRes = await fetch(`/api/financial-advisor/ai/progress/?conversation_id=${encodeURIComponent(convId)}`);
+      if (progressRes.ok) {
+        const progressData = await progressRes.json();
+        if (progressData.status === 'running') {
+          _setLoadingUI(true, convId);
+        }
+      }
+    } catch (_e) {
+      // Non-critical — ignore
+    }
+
   } catch (err) {
     _renderEmptyState();
   }
