@@ -126,11 +126,20 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
             "assiut": {"assiut", "أسيوط", "اسيوط"},
             "6th of october": {"6th of october", "6 october", "السادس من أكتوبر", "6 أكتوبر", "أكتوبر", "اكتوبر"},
             "sheikh zayed": {"sheikh zayed", "الشيخ زايد", "زايد"},
-            "new cairo": {"new cairo", "القاهرة الجديدة", "التجمع", "التجمع الخامس", "5th settlement"},
+            "new cairo": {"new cairo", "القاهرة الجديدة"},
+            "fifth settlement": {"fifth settlement", "5th settlement", "التجمع الخامس", "التجمع"},
             "nasr city": {"nasr city", "مدينة نصر"},
             "heliopolis": {"heliopolis", "مصر الجديدة"},
-            "maadi": {"maadi", "المعادي"},
+            "maadi": {"maadi", "el maadi", "المعادي"},
             "zamalek": {"zamalek", "الزمالك"},
+            "wadi hoff": {"wadi hoff", "wadi hof", "وادي حوف"},
+            "helwan": {"helwan", "حلوان"},
+            "mokattam": {"mokattam", "المقطم"},
+            "dokki": {"dokki", "الدقي"},
+            "mohandessin": {"mohandessin", "mohandseen", "المهندسين"},
+            "new administrative capital": {"new administrative capital", "administrative capital", "العاصمة الإدارية", "العاصمة الإدارية الجديدة", "العاصمه الاداريه"},
+            "new alamein": {"new alamein", "alamein", "العلمين الجديدة", "العلمين"},
+            "north coast": {"north coast", "الساحل الشمالي", "الساحل"},
         }
 
         input_aliases = {key_norm}

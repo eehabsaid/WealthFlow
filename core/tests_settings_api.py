@@ -102,3 +102,43 @@ class SettingsAPITestCase(TestCase):
         self.assertEqual(provider, "configured_market_rate")
         self.assertEqual(float(asset.current_market_value), 2500000.0)
 
+    def test_arabic_city_valuation_matching(self):
+        from datetime import date
+        from core.models import FixedAsset, RealEstateDetails
+        from core.services.fixed_assets.property_valuation_service import (
+            PropertyValuationService,
+        )
+
+        asset = FixedAsset.objects.create(
+            name="شقة المعادي",
+            asset_type="Real Estate",
+            status="Owned",
+            purchase_date=date(2026, 1, 1),
+            purchase_price=500000,
+            current_market_value=500000,
+        )
+        RealEstateDetails.objects.create(
+            asset=asset,
+            city="المعادي",
+            governorate="القاهرة",
+            area_m2=100,
+        )
+
+        AppSettings.set(
+            "property_valuation_rate_map",
+            json.dumps({
+                "by_city": {
+                    "Maadi": 26950,
+                    "Fifth Settlement": 61550,
+                    "Wadi Hoff": 18000
+                },
+                "default": 33000
+            }),
+        )
+
+        updated, provider = PropertyValuationService().refresh_asset(asset)
+        asset.refresh_from_db()
+        self.assertTrue(updated)
+        self.assertEqual(provider, "configured_market_rate")
+        self.assertEqual(float(asset.current_market_value), 2695000.0)
+
