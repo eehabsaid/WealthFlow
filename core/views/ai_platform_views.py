@@ -6,18 +6,20 @@ Model Version Control, Pluggable Training Triggers, and Pre-Promotion Benchmarks
 """
 
 import json
+
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
-from core.services.ai.knowledge_engine import AIKnowledgeEngine
-from core.services.ai.autonomous_learning_engine import AIAutonomousLearningEngine
-from core.services.ai.dataset_engine import AIDatasetEngine
-from core.services.ai.model_manager import AIModelManager
-from core.services.ai.benchmark_engine import AIBenchmarkEngine
-from core.services.ai.training_backends import get_available_training_backends
 from core.models import AIBenchmarkReport, AIKnowledgeEntry
+from core.services.ai.autonomous_learning_engine import \
+    AIAutonomousLearningEngine
+from core.services.ai.benchmark_engine import AIBenchmarkEngine
+from core.services.ai.dataset_engine import AIDatasetEngine
+from core.services.ai.knowledge_engine import AIKnowledgeEngine
+from core.services.ai.model_manager import AIModelManager
+from core.services.ai.training_backends import get_available_training_backends
 
 
 def _api_auth_required(request):
