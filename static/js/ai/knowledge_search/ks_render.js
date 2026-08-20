@@ -118,6 +118,10 @@ window.KS.renderBody = function () {
     body.innerHTML = `<div class="text-center text-muted py-5"><span class="spinner-border spinner-border-sm me-2"></span>${esc(t('ai_ks_searching', 'Searching...'))}</div>`;
     return;
   }
+  if (state.error) {
+    body.innerHTML = `<div class="alert alert-danger m-4">${esc(state.error)}</div>`;
+    return;
+  }
   if (!state.searched) {
     body.innerHTML = `<div class="text-center text-muted py-5"><i class="bi bi-search fs-1 d-block mb-2"></i>${esc(t('ai_ks_prompt', 'Type to search your knowledge base.'))}</div>`;
     return;

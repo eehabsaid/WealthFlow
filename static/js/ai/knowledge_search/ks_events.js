@@ -12,6 +12,7 @@ window.openKnowledgeSearchModal = function () {
   window.KS.state.loading = false;
   window.KS.state.searched = false;
   window.KS.state.expanded = null;
+  window.KS.state.error = null;
 
   showModal(window.KS.renderModalShell());
   window.KS.renderBody();

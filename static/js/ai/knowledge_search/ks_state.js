@@ -13,6 +13,7 @@ window.KS.state = {
   searched: false,
   expanded: null,
   editing: null,
+  error: null,
 };
 
 window.KS._debounceTimer = null;
@@ -53,6 +54,7 @@ window.KS.search = function (query) {
     window.KS._abortController = controller;
 
     window.KS.state.loading = true;
+    window.KS.state.error = null;
     window.KS.renderBody();
 
     fetch('/api/ai-platform/knowledge/?search=' + encodeURIComponent(query.trim()), {
@@ -75,6 +77,7 @@ window.KS.search = function (query) {
         window.KS.state.loading = false;
         window.KS.state.searched = true;
         window.KS.state.results = [];
+        window.KS.state.error = window.KS.t('ai_ks_error', 'Search failed. Please try again.');
         window.KS.renderBody();
       });
   }, 350);
