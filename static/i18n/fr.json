@@ -2123,5 +2123,6 @@
   "ai_ks_delete_error": "Échec de la suppression.",
   "ai_ks_copy_ok": "Copié dans le presse-papiers.",
   "ai_ks_inject_ok": "Connaissance injectée dans le chat.",
-  "ai_ks_inject_no_input": "Ouvrez d'abord le chat IA."
+  "ai_ks_inject_no_input": "Ouvrez d'abord le chat IA.",
+  "ai_ks_error": "La recherche a échoué. Veuillez réessayer."
 }

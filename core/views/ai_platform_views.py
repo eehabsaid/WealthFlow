@@ -38,7 +38,13 @@ class AIPlatformKnowledgeView(View):
         entries = AIKnowledgeEngine.get_active_knowledge_entries(category=category)
         if search:
             sl = search.lower()
-            entries = [e for e in entries if sl in e.title.lower() or sl in e.content.lower()]
+            entries = [
+                e
+                for e in entries
+                if (e.title and sl in e.title.lower())
+                or (e.content and sl in e.content.lower())
+                or (e.key and sl in e.key.lower())
+            ]
         return JsonResponse({"entries": [e.to_dict() for e in entries]})
 
     def post(self, request):

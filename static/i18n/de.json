@@ -2123,5 +2123,6 @@
   "ai_ks_delete_error": "Fehler beim Löschen.",
   "ai_ks_copy_ok": "In Zwischenablage kopiert.",
   "ai_ks_inject_ok": "Wissen in Chat eingefügt.",
-  "ai_ks_inject_no_input": "Öffnen Sie zuerst den KI-Chat."
+  "ai_ks_inject_no_input": "Öffnen Sie zuerst den KI-Chat.",
+  "ai_ks_error": "Suche fehlgeschlagen. Bitte versuchen Sie es erneut."
 }

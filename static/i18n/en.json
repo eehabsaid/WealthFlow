@@ -2123,5 +2123,6 @@
   "ai_ks_delete_error": "Failed to delete entry.",
   "ai_ks_copy_ok": "Copied to clipboard.",
   "ai_ks_inject_ok": "Knowledge injected into chat.",
-  "ai_ks_inject_no_input": "Open the AI chat first."
+  "ai_ks_inject_no_input": "Open the AI chat first.",
+  "ai_ks_error": "Search failed. Please try again."
 }

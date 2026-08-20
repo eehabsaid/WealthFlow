@@ -53,7 +53,7 @@ window.KS.renderEntry = function (e) {
   const esc = window.KS.escapeHtml;
   const state = window.KS.state;
   const isExpanded = state.expanded === e.id;
-  const isEditing = state.editing && state.editing.id === e.id;
+  const isEditing = Boolean(state.editing && state.editing.id === e.id);
   const catColor = window.KS.CATEGORY_COLORS[e.category] || 'bg-secondary';
   const catLabel = (e.category || '').replace(/_/g, ' ');
   const preview = (e.content || '').substring(0, 120) + ((e.content || '').length > 120 ? '…' : '');
@@ -74,20 +74,20 @@ window.KS.renderEntry = function (e) {
       </button>
     </div>`;
 
-  const editForm = `
+  const editForm = isEditing ? `
     <div class="mt-2" onclick="event.stopPropagation()">
-      <input id="ks-edit-title-${e.id}" type="text" class="form-control form-control-sm mb-2" value="${esc(state.editing.title)}">
+      <input id="ks-edit-title-${e.id}" type="text" class="form-control form-control-sm mb-2" value="${esc(state.editing ? state.editing.title : '')}">
       <select id="ks-edit-category-${e.id}" class="form-select form-select-sm mb-2">
         ${window.KS.CATEGORIES.map(function(c) {
           return '<option value="' + c[0] + '"' + (e.category === c[0] ? ' selected' : '') + '>' + esc(c[1]) + '</option>';
         }).join('')}
       </select>
-      <textarea id="ks-edit-content-${e.id}" class="form-control form-control-sm mb-2" rows="5">${esc(state.editing.content)}</textarea>
+      <textarea id="ks-edit-content-${e.id}" class="form-control form-control-sm mb-2" rows="5">${esc(state.editing ? state.editing.content : '')}</textarea>
       <div class="d-flex gap-2">
         <button class="btn btn-sm btn-primary" onclick="window.KS.saveEdit(${e.id})"><i class="bi bi-check-lg me-1"></i>${esc(t('ai_ks_save', 'Save'))}</button>
         <button class="btn btn-sm btn-outline-secondary" onclick="window.KS.cancelEdit()">${esc(t('ai_ks_cancel', 'Cancel'))}</button>
       </div>
-    </div>`;
+    </div>` : '';
 
   const expandedContent = isEditing ? editForm : `
     <div class="mt-2 text-body small border-start border-primary ps-3" style="white-space:pre-wrap;">${esc(e.content)}</div>
@@ -133,5 +133,5 @@ window.KS.renderBody = function () {
 
   const items = state.results.map(window.KS.renderEntry).join('');
   body.innerHTML = `<div class="small text-muted px-4 py-2">${state.results.length} ${esc(t('ai_ks_results_found', 'results found'))}</div>${items}`;
-  if (window.applyTranslations) window.applyTranslations();
+  if (window.applyTranslations) window.applyTranslations(body);
 };
