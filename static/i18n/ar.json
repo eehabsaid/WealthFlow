@@ -2109,5 +2109,19 @@
   "ai_ks_prompt": "اكتب للبحث في قاعدة المعرفة.",
   "ai_ks_no_results": "لم يتم العثور على نتائج لهذا الاستعلام.",
   "ai_ks_confidence": "الثقة",
-  "ai_ks_results_found": "نتائج"
+  "ai_ks_results_found": "نتائج",
+  "ai_ks_inject": "حقن",
+  "ai_ks_copy": "نسخ",
+  "ai_ks_edit": "تعديل",
+  "ai_ks_delete": "حذف",
+  "ai_ks_save": "حفظ",
+  "ai_ks_cancel": "إلغاء",
+  "ai_ks_edit_ok": "تم تحديث الإدخال.",
+  "ai_ks_edit_error": "فشل تحديث الإدخال.",
+  "ai_ks_delete_confirm": "هل تريد حذف هذه المعرفة؟",
+  "ai_ks_delete_ok": "تم الحذف.",
+  "ai_ks_delete_error": "فشل الحذف.",
+  "ai_ks_copy_ok": "تم النسخ إلى الحافظة.",
+  "ai_ks_inject_ok": "تم حقن المعرفة في المحادثة.",
+  "ai_ks_inject_no_input": "افتح محادثة الذكاء الاصطناعي أولاً."
 }

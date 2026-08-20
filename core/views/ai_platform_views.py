@@ -17,7 +17,7 @@ from core.services.ai.dataset_engine import AIDatasetEngine
 from core.services.ai.model_manager import AIModelManager
 from core.services.ai.benchmark_engine import AIBenchmarkEngine
 from core.services.ai.training_backends import get_available_training_backends
-from core.models import AIBenchmarkReport
+from core.models import AIBenchmarkReport, AIKnowledgeEntry
 
 
 def _api_auth_required(request):
@@ -154,3 +154,48 @@ class AIPlatformBenchmarkView(View):
         active = AIModelManager.get_active_model_version()
         report = AIBenchmarkEngine.evaluate_model_version(candidate_version=active, active_version=active)
         return JsonResponse({"ok": True, "benchmark_report": report.to_dict()})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AIPlatformKnowledgeDetailView(View):
+    """
+    Per-entry knowledge operations.
+    URL: PATCH/DELETE /api/ai-platform/knowledge/<int:pk>/
+    """
+
+    def patch(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+
+        try:
+            entry = AIKnowledgeEntry.objects.get(id=pk)
+        except AIKnowledgeEntry.DoesNotExist:
+            return JsonResponse({"error": "Not found"}, status=404)
+
+        try:
+            body = json.loads(request.body or "{}")
+        except json.JSONDecodeError:
+            body = {}
+
+        if "title" in body:
+            entry.title = str(body["title"]).strip()
+        if "content" in body:
+            entry.content = str(body["content"]).strip()
+        if "category" in body:
+            entry.category = str(body["category"]).strip()
+        entry.save()
+        return JsonResponse({"entry": entry.to_dict()})
+
+    def delete(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+
+        try:
+            entry = AIKnowledgeEntry.objects.get(id=pk)
+        except AIKnowledgeEntry.DoesNotExist:
+            return JsonResponse({"error": "Not found"}, status=404)
+
+        entry.delete()
+        return JsonResponse({"ok": True, "id": pk})

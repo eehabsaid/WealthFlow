@@ -2109,5 +2109,19 @@
   "ai_ks_prompt": "Type to search your knowledge base.",
   "ai_ks_no_results": "No entries found for that query.",
   "ai_ks_confidence": "Confidence",
-  "ai_ks_results_found": "results found"
+  "ai_ks_results_found": "results found",
+  "ai_ks_inject": "Inject",
+  "ai_ks_copy": "Copy",
+  "ai_ks_edit": "Edit",
+  "ai_ks_delete": "Delete",
+  "ai_ks_save": "Save",
+  "ai_ks_cancel": "Cancel",
+  "ai_ks_edit_ok": "Entry updated.",
+  "ai_ks_edit_error": "Failed to update entry.",
+  "ai_ks_delete_confirm": "Delete this knowledge entry?",
+  "ai_ks_delete_ok": "Entry deleted.",
+  "ai_ks_delete_error": "Failed to delete entry.",
+  "ai_ks_copy_ok": "Copied to clipboard.",
+  "ai_ks_inject_ok": "Knowledge injected into chat.",
+  "ai_ks_inject_no_input": "Open the AI chat first."
 }

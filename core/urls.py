@@ -301,6 +301,10 @@ urlpatterns = [
         views.AIPlatformKnowledgeView.as_view(),
     ),
     path(
+        "api/ai-platform/knowledge/<int:pk>/",
+        views.AIPlatformKnowledgeDetailView.as_view(),
+    ),
+    path(
         "api/ai-platform/datasets/",
         views.AIPlatformDatasetView.as_view(),
     ),
