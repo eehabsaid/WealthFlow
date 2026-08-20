@@ -12,10 +12,11 @@ window.KS.state = {
   loading: false,
   searched: false,
   expanded: null,
-  editing: null,   // { id, title, content, category }
+  editing: null,
 };
 
 window.KS._debounceTimer = null;
+window.KS._abortController = null;
 
 window.KS.t = function (key, fallback) {
   return (window.t && window.t(key, fallback)) || fallback || key;
@@ -29,27 +30,51 @@ window.KS.escapeHtml = function (str) {
 
 window.KS.search = function (query) {
   window.KS.state.query = query;
+
+  // Cancel previous debounce
   clearTimeout(window.KS._debounceTimer);
+
+  // Cancel previous in-flight request
+  if (window.KS._abortController) {
+    window.KS._abortController.abort();
+    window.KS._abortController = null;
+  }
+
   if (!query.trim()) {
     window.KS.state.results = [];
+    window.KS.state.loading = false;
     window.KS.state.searched = false;
     window.KS.renderBody();
     return;
   }
+
   window.KS._debounceTimer = setTimeout(function () {
+    var controller = new AbortController();
+    window.KS._abortController = controller;
+
     window.KS.state.loading = true;
     window.KS.renderBody();
-    fetch('/api/ai-platform/knowledge/?search=' + encodeURIComponent(query.trim()))
-      .then(function (r) { return r.json(); })
+
+    fetch('/api/ai-platform/knowledge/?search=' + encodeURIComponent(query.trim()), {
+      signal: controller.signal,
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
       .then(function (data) {
+        window.KS._abortController = null;
         window.KS.state.results = data.entries || [];
         window.KS.state.loading = false;
         window.KS.state.searched = true;
         window.KS.renderBody();
       })
-      .catch(function () {
+      .catch(function (err) {
+        if (err && err.name === 'AbortError') return; // Cancelled — do nothing
+        window.KS._abortController = null;
         window.KS.state.loading = false;
         window.KS.state.searched = true;
+        window.KS.state.results = [];
         window.KS.renderBody();
       });
   }, 350);
@@ -62,7 +87,7 @@ window.KS.toggleExpand = function (id) {
 };
 
 window.KS.startEdit = function (id) {
-  const entry = window.KS.state.results.find(function (e) { return e.id === id; });
+  var entry = window.KS.state.results.find(function (e) { return e.id === id; });
   if (!entry) return;
   window.KS.state.editing = { id: entry.id, title: entry.title, content: entry.content, category: entry.category };
   window.KS.state.expanded = id;
@@ -75,9 +100,9 @@ window.KS.cancelEdit = function () {
 };
 
 window.KS.saveEdit = function (id) {
-  const titleEl = document.getElementById('ks-edit-title-' + id);
-  const contentEl = document.getElementById('ks-edit-content-' + id);
-  const categoryEl = document.getElementById('ks-edit-category-' + id);
+  var titleEl = document.getElementById('ks-edit-title-' + id);
+  var contentEl = document.getElementById('ks-edit-content-' + id);
+  var categoryEl = document.getElementById('ks-edit-category-' + id);
   if (!titleEl || !contentEl) return;
 
   fetch('/api/ai-platform/knowledge/' + id + '/', {
@@ -85,9 +110,9 @@ window.KS.saveEdit = function (id) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title: titleEl.value, content: contentEl.value, category: categoryEl ? categoryEl.value : undefined }),
   })
-    .then(function (r) { return r.json(); })
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function (data) {
-      const idx = window.KS.state.results.findIndex(function (e) { return e.id === id; });
+      var idx = window.KS.state.results.findIndex(function (e) { return e.id === id; });
       if (idx !== -1) window.KS.state.results[idx] = data.entry;
       window.KS.state.editing = null;
       showToast(window.KS.t('ai_ks_edit_ok', 'Entry updated.'), 'success');
@@ -101,6 +126,7 @@ window.KS.saveEdit = function (id) {
 window.KS.deleteEntry = function (id) {
   if (!confirm(window.KS.t('ai_ks_delete_confirm', 'Delete this knowledge entry?'))) return;
   fetch('/api/ai-platform/knowledge/' + id + '/', { method: 'DELETE' })
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function () {
       window.KS.state.results = window.KS.state.results.filter(function (e) { return e.id !== id; });
       showToast(window.KS.t('ai_ks_delete_ok', 'Entry deleted.'), 'success');
@@ -112,7 +138,7 @@ window.KS.deleteEntry = function (id) {
 };
 
 window.KS.copyEntry = function (id) {
-  const entry = window.KS.state.results.find(function (e) { return e.id === id; });
+  var entry = window.KS.state.results.find(function (e) { return e.id === id; });
   if (!entry) return;
   navigator.clipboard.writeText(entry.content).then(function () {
     showToast(window.KS.t('ai_ks_copy_ok', 'Copied to clipboard.'), 'success');
@@ -120,14 +146,14 @@ window.KS.copyEntry = function (id) {
 };
 
 window.KS.injectEntry = function (id) {
-  const entry = window.KS.state.results.find(function (e) { return e.id === id; });
+  var entry = window.KS.state.results.find(function (e) { return e.id === id; });
   if (!entry) return;
-  const inputEl = document.getElementById('ai-ws-input');
+  var inputEl = document.getElementById('ai-ws-input');
   if (!inputEl) {
     showToast(window.KS.t('ai_ks_inject_no_input', 'Open the AI chat first.'), 'error');
     return;
   }
-  const prefix = '[Knowledge: ' + entry.title + ']\n' + entry.content + '\n\n';
+  var prefix = '[Knowledge: ' + entry.title + ']\n' + entry.content + '\n\n';
   inputEl.value = prefix + inputEl.value;
   inputEl.focus();
   closeModal();
