@@ -21,6 +21,7 @@ class AIConversation(models.Model):
     )
     title = models.CharField(max_length=255, default="New Conversation", blank=True)
     is_deleted = models.BooleanField(default=False)
+    is_pinned = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -32,6 +33,7 @@ class AIConversation(models.Model):
             "id": self.id,
             "title": self.title,
             "is_deleted": self.is_deleted,
+            "is_pinned": self.is_pinned,
             "created_at": _date_to_iso(self.created_at),
             "updated_at": _date_to_iso(self.updated_at),
             "messages_count": self.messages.filter(is_deleted=False).count(),

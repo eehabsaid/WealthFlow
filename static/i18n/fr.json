@@ -2093,5 +2093,21 @@
   "ai_br_score_code": "Compréhension du Code",
   "ai_br_score_features": "Suggestions de Fonctionnalités",
   "ai_br_score_hallucination": "Résistance aux Hallucinations",
-  "ai_br_score_instructions": "Suivi des Instructions"
+  "ai_br_score_instructions": "Suivi des Instructions",
+  "ai_pc_title": "Chats épinglés",
+  "ai_pc_subtitle": "Vos conversations sauvegardées",
+  "ai_pc_loading": "Chargement des chats épinglés...",
+  "ai_pc_empty": "Aucun chat épinglé pour l'instant. Épinglez une conversation avec l'icône.",
+  "ai_pc_error": "Échec du chargement des chats épinglés.",
+  "ai_pc_unpin": "Désépingler",
+  "ai_pc_unpin_error": "Échec du désépinglage.",
+  "ai_pc_pin_error": "Échec de la mise à jour de l'épingle.",
+  "ai_ks_title": "Recherche de Connaissances",
+  "ai_ks_subtitle": "Recherchez dans votre base de connaissances IA",
+  "ai_ks_placeholder": "Rechercher par titre ou contenu...",
+  "ai_ks_searching": "Recherche en cours...",
+  "ai_ks_prompt": "Tapez pour rechercher dans la base de connaissances.",
+  "ai_ks_no_results": "Aucune entrée trouvée pour cette requête.",
+  "ai_ks_confidence": "Confiance",
+  "ai_ks_results_found": "résultats trouvés"
 }

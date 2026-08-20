@@ -469,8 +469,10 @@ class AIConversationListView(View):
         if auth_error:
             return auth_error
 
-        conversations = AIConversation.objects.filter(user=request.user, is_deleted=False)
-        data = [c.to_dict() for c in conversations]
+        qs = AIConversation.objects.filter(user=request.user, is_deleted=False)
+        if request.GET.get("pinned") == "true":
+            qs = qs.filter(is_pinned=True)
+        data = [c.to_dict() for c in qs]
         return JsonResponse({"conversations": data})
 
     def post(self, request):
@@ -528,3 +530,24 @@ class AIConversationDetailView(View):
         conversation.messages.filter(is_deleted=False).update(is_deleted=True)
 
         return JsonResponse({"ok": True, "id": pk})
+
+    def patch(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+
+        try:
+            conversation = AIConversation.objects.get(id=pk, user=request.user, is_deleted=False)
+        except AIConversation.DoesNotExist:
+            return JsonResponse({"error": "Conversation not found"}, status=404)
+
+        try:
+            body = json.loads(request.body or "{}")
+        except json.JSONDecodeError:
+            body = {}
+
+        if "is_pinned" in body:
+            conversation.is_pinned = bool(body["is_pinned"])
+            conversation.save(update_fields=["is_pinned"])
+
+        return JsonResponse({"conversation": conversation.to_dict()})

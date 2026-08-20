@@ -55,12 +55,12 @@ async function renderAI() {
             <!-- Populated via JS -->
           </div>
           <div class="ai-ws-left-future">
-            <div class="ai-ws-future-card">
+            <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-pinned-chats" onclick="openPinnedChatsModal()" style="cursor: pointer;">
               <div class="ai-ws-future-card-left">
-                <i class="bi bi-pin-angle"></i>
+                <i class="bi bi-pin-angle-fill text-primary"></i>
                 <span data-i18n="ai_ws_pinned_chats">Pinned Chats</span>
               </div>
-              <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+              <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
             </div>
             <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-saved-prompts" onclick="openPromptLibraryModal()" style="cursor: pointer;">
               <div class="ai-ws-future-card-left">
@@ -69,13 +69,12 @@ async function renderAI() {
               </div>
               <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
             </div>
-
-            <div class="ai-ws-future-card">
+            <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-knowledge-search" onclick="openKnowledgeSearchModal()" style="cursor: pointer;">
               <div class="ai-ws-future-card-left">
-                <i class="bi bi-search"></i>
+                <i class="bi bi-search text-primary"></i>
                 <span data-i18n="ai_ws_knowledge_search">Knowledge Search</span>
               </div>
-              <span class="ai-ws-future-badge">🔒 COMING SOON</span>
+              <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
             </div>
           </div>
           <div id="ai-ws-ext-left"></div>

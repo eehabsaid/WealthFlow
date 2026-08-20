@@ -34,7 +34,11 @@ class AIPlatformKnowledgeView(View):
             return auth_error
 
         category = request.GET.get("category")
+        search = request.GET.get("search", "").strip()
         entries = AIKnowledgeEngine.get_active_knowledge_entries(category=category)
+        if search:
+            sl = search.lower()
+            entries = [e for e in entries if sl in e.title.lower() or sl in e.content.lower()]
         return JsonResponse({"entries": [e.to_dict() for e in entries]})
 
     def post(self, request):

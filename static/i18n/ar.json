@@ -2093,5 +2093,21 @@
   "ai_br_score_code": "فهم الكود",
   "ai_br_score_features": "اقتراحات الميزات",
   "ai_br_score_hallucination": "مقاومة الهلوسة",
-  "ai_br_score_instructions": "اتباع التعليمات"
+  "ai_br_score_instructions": "اتباع التعليمات",
+  "ai_pc_title": "المحادثات المثبتة",
+  "ai_pc_subtitle": "محادثاتك المحفوظة",
+  "ai_pc_loading": "جارٍ تحميل المحادثات المثبتة...",
+  "ai_pc_empty": "لا توجد محادثات مثبتة بعد. ثبّت محادثة باستخدام أيقونة الدبوس.",
+  "ai_pc_error": "فشل تحميل المحادثات المثبتة.",
+  "ai_pc_unpin": "إلغاء التثبيت",
+  "ai_pc_unpin_error": "فشل إلغاء تثبيت المحادثة.",
+  "ai_pc_pin_error": "فشل تحديث التثبيت.",
+  "ai_ks_title": "البحث في المعرفة",
+  "ai_ks_subtitle": "ابحث في قاعدة معرفة الذكاء الاصطناعي",
+  "ai_ks_placeholder": "ابحث بالعنوان أو المحتوى...",
+  "ai_ks_searching": "جارٍ البحث...",
+  "ai_ks_prompt": "اكتب للبحث في قاعدة المعرفة.",
+  "ai_ks_no_results": "لم يتم العثور على نتائج لهذا الاستعلام.",
+  "ai_ks_confidence": "الثقة",
+  "ai_ks_results_found": "نتائج"
 }

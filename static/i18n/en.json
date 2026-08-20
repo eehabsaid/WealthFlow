@@ -2093,5 +2093,21 @@
   "ai_br_score_code": "Code Understanding",
   "ai_br_score_features": "Feature Suggestions",
   "ai_br_score_hallucination": "Hallucination Resistance",
-  "ai_br_score_instructions": "Instruction Following"
+  "ai_br_score_instructions": "Instruction Following",
+  "ai_pc_title": "Pinned Chats",
+  "ai_pc_subtitle": "Your bookmarked conversations",
+  "ai_pc_loading": "Loading pinned chats...",
+  "ai_pc_empty": "No pinned chats yet. Pin a conversation using the pin icon.",
+  "ai_pc_error": "Failed to load pinned chats.",
+  "ai_pc_unpin": "Unpin",
+  "ai_pc_unpin_error": "Failed to unpin conversation.",
+  "ai_pc_pin_error": "Failed to update pin.",
+  "ai_ks_title": "Knowledge Search",
+  "ai_ks_subtitle": "Search your AI knowledge base",
+  "ai_ks_placeholder": "Search by title or content...",
+  "ai_ks_searching": "Searching...",
+  "ai_ks_prompt": "Type to search your knowledge base.",
+  "ai_ks_no_results": "No entries found for that query.",
+  "ai_ks_confidence": "Confidence",
+  "ai_ks_results_found": "results found"
 }

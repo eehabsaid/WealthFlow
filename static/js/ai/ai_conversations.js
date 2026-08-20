@@ -52,10 +52,14 @@ async function _fetchAIChatConversations() {
       groupData.forEach(conv => {
         const isActive = String(_aiState.conversationId) === String(conv.id) ? 'active' : '';
         const timeAgo = _relativeTime(conv.updated_at || conv.created_at);
+        const isPinned = conv.is_pinned || false;
         html += `
           <div class="ai-ws-conv-item ${isActive}" onclick="_switchAIChatConversation('${conv.id}')">
             <div class="ai-ws-conv-header-row">
               <div class="ai-ws-conv-title">${conv.title || _aiT('ai_ws_untitled', 'Untitled')}</div>
+              <button class="ai-ws-btn-delete" onclick="event.stopPropagation(); togglePinConversation('${conv.id}', ${isPinned})" title="${isPinned ? 'Unpin' : 'Pin'}" style="opacity:${isPinned ? 1 : 0.4};">
+                <i class="bi bi-pin-angle${isPinned ? '-fill' : ''}"></i>
+              </button>
               <button class="ai-ws-btn-delete" onclick="event.stopPropagation(); _deleteAIChatConversation('${conv.id}')" title="Delete">
                 <i class="bi bi-trash"></i>
               </button>

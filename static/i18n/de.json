@@ -2093,5 +2093,21 @@
   "ai_br_score_code": "Code-Verständnis",
   "ai_br_score_features": "Funktionsvorschläge",
   "ai_br_score_hallucination": "Halluzinationsresistenz",
-  "ai_br_score_instructions": "Befolgung von Anweisungen"
+  "ai_br_score_instructions": "Befolgung von Anweisungen",
+  "ai_pc_title": "Angeheftete Chats",
+  "ai_pc_subtitle": "Ihre gespeicherten Gespräche",
+  "ai_pc_loading": "Angeheftete Chats werden geladen...",
+  "ai_pc_empty": "Noch keine angehefteten Chats. Heften Sie ein Gespräch mit dem Pin-Symbol an.",
+  "ai_pc_error": "Fehler beim Laden der angehefteten Chats.",
+  "ai_pc_unpin": "Loslösen",
+  "ai_pc_unpin_error": "Fehler beim Lösen des Chats.",
+  "ai_pc_pin_error": "Fehler beim Aktualisieren des Pins.",
+  "ai_ks_title": "Wissenssuche",
+  "ai_ks_subtitle": "Durchsuchen Sie Ihre KI-Wissensbasis",
+  "ai_ks_placeholder": "Nach Titel oder Inhalt suchen...",
+  "ai_ks_searching": "Suche läuft...",
+  "ai_ks_prompt": "Tippen Sie, um die Wissensbasis zu durchsuchen.",
+  "ai_ks_no_results": "Keine Einträge für diese Suchanfrage gefunden.",
+  "ai_ks_confidence": "Konfidenz",
+  "ai_ks_results_found": "Ergebnisse gefunden"
 }
