@@ -360,6 +360,7 @@ __all__ = [
     "AIPromptUseView",
     "AIPromptDuplicateView",
     "AIPromptCategoryListView",
+    "AIPlatformKnowledgeDetailView",
 ]
 
 
@@ -373,6 +374,7 @@ from .ai_platform_views import (
     AIPlatformDatasetView,
     AIPlatformModelView,
     AIPlatformBenchmarkView,
+    AIPlatformKnowledgeDetailView,
 )
 
 from .ai_prompt_views import (
