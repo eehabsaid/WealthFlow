@@ -103,7 +103,12 @@ async function renderGoldSettings() {
                     <div style="font-weight:600;color:var(--text-secondary)" data-i18n="property_valuation_settings">${t('property_valuation_settings', 'Property Valuation Settings')}</div>
                     <div style="font-size:12px;color:var(--text-muted)" data-i18n="property_valuation_rate_map_hint">${t('property_valuation_rate_map_hint', 'Provide JSON with by_city, by_governorate, and optional default EGP-per-square-meter rates.')}</div>
                 </div>
-                <button class="btn-primary-custom" onclick="savePropertyValuationSettings()" data-i18n="save_property_valuation_settings">${t('save_property_valuation_settings', 'Save Valuation Settings')}</button>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <button id="btnScrapeAqarmap" class="btn-secondary-custom" onclick="scrapePropertyRates(false)" data-i18n="scrape_property_rates" title="${t('scrape_property_rates_hint', 'Auto-fetch Cairo district rates from Aqarmap')}"><i class="bi bi-cloud-download"></i> ${t('scrape_property_rates', 'Scrape from Aqarmap')}</button>
+                    <button class="btn-secondary-custom" onclick="scrapePropertyRates(true)" data-i18n="load_baseline_rates" title="${t('load_baseline_rates_hint', 'Load hardcoded baseline rates instantly')}"><i class="bi bi-database"></i> ${t('load_baseline_rates', 'Load Baseline')}</button>
+                    <span id="scrapeStatusBadge" style="font-size:12px;"></span>
+                    <button class="btn-primary-custom" onclick="savePropertyValuationSettings()" data-i18n="save_property_valuation_settings">${t('save_property_valuation_settings', 'Save Valuation Settings')}</button>
+                </div>
             </div>
             <div class="row g-3" style="margin-bottom:12px;">
                 <div class="col-md-4">

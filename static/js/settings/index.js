@@ -124,6 +124,7 @@ window.saveEmailTemplate = saveEmailTemplate;
 window.renderGoldSettings = renderGoldSettings;
 window.showGoldTypeModal = showGoldTypeModal;
 window.savePropertyValuationSettings = savePropertyValuationSettings;
+window.scrapePropertyRates = scrapePropertyRates;
 window.saveGoldType = saveGoldType;
 window.disableGoldType = disableGoldType;
 window.showGoldPurityModal = showGoldPurityModal;

@@ -2124,5 +2124,14 @@
   "ai_ks_copy_ok": "In Zwischenablage kopiert.",
   "ai_ks_inject_ok": "Wissen in Chat eingefügt.",
   "ai_ks_inject_no_input": "Öffnen Sie zuerst den KI-Chat.",
-  "ai_ks_error": "Suche fehlgeschlagen. Bitte versuchen Sie es erneut."
+  "ai_ks_error": "Suche fehlgeschlagen. Bitte versuchen Sie es erneut.",
+  "scrape_property_rates": "Von Aqarmap importieren",
+  "scrape_property_rates_hint": "EGP/m²-Preise je Bezirk automatisch von Aqarmap abrufen",
+  "scraping_property_rates": "Wird abgerufen…",
+  "property_rates_scraped": "Preise aktualisiert",
+  "error_scraping_property_rates": "Preise von Aqarmap konnten nicht abgerufen werden",
+  "load_baseline_rates": "Standardpreise laden",
+  "load_baseline_rates_hint": "Vordefinierte Bezirkspreise sofort laden (ohne Import)",
+  "districts": "Bezirke",
+  "baseline": "Standard"
 }

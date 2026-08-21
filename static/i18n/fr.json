@@ -2124,5 +2124,14 @@
   "ai_ks_copy_ok": "Copié dans le presse-papiers.",
   "ai_ks_inject_ok": "Connaissance injectée dans le chat.",
   "ai_ks_inject_no_input": "Ouvrez d'abord le chat IA.",
-  "ai_ks_error": "La recherche a échoué. Veuillez réessayer."
+  "ai_ks_error": "La recherche a échoué. Veuillez réessayer.",
+  "scrape_property_rates": "Importer d'Aqarmap",
+  "scrape_property_rates_hint": "Récupérer automatiquement les prix EGP/m² par quartier depuis Aqarmap",
+  "scraping_property_rates": "Importation…",
+  "property_rates_scraped": "Tarifs mis à jour",
+  "error_scraping_property_rates": "Échec de la récupération des tarifs Aqarmap",
+  "load_baseline_rates": "Charger les tarifs de base",
+  "load_baseline_rates_hint": "Charger instantanément les tarifs de base (sans importation)",
+  "districts": "quartiers",
+  "baseline": "base"
 }

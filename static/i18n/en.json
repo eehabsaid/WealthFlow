@@ -2124,5 +2124,14 @@
   "ai_ks_copy_ok": "Copied to clipboard.",
   "ai_ks_inject_ok": "Knowledge injected into chat.",
   "ai_ks_inject_no_input": "Open the AI chat first.",
-  "ai_ks_error": "Search failed. Please try again."
+  "ai_ks_error": "Search failed. Please try again.",
+  "scrape_property_rates": "Scrape from Aqarmap",
+  "scrape_property_rates_hint": "Auto-fetch Cairo district EGP/sqm rates from Aqarmap",
+  "scraping_property_rates": "Scraping…",
+  "property_rates_scraped": "Rates updated",
+  "error_scraping_property_rates": "Failed to fetch rates from Aqarmap",
+  "load_baseline_rates": "Load Baseline",
+  "load_baseline_rates_hint": "Load hardcoded Cairo district rates instantly (no scraping)",
+  "districts": "districts",
+  "baseline": "baseline"
 }

@@ -2124,5 +2124,14 @@
   "ai_ks_copy_ok": "تم النسخ إلى الحافظة.",
   "ai_ks_inject_ok": "تم حقن المعرفة في المحادثة.",
   "ai_ks_inject_no_input": "افتح محادثة الذكاء الاصطناعي أولاً.",
-  "ai_ks_error": "فشل البحث. يرجى المحاولة مرة أخرى."
+  "ai_ks_error": "فشل البحث. يرجى المحاولة مرة أخرى.",
+  "scrape_property_rates": "استيراد من Aqarmap",
+  "scrape_property_rates_hint": "جلب أسعار الأحياء بالجنيه/م² تلقائياً من عقارماب",
+  "scraping_property_rates": "جارٍ الاستيراد…",
+  "property_rates_scraped": "تم تحديث الأسعار",
+  "error_scraping_property_rates": "فشل جلب الأسعار من عقارماب",
+  "load_baseline_rates": "تحميل الأسعار الافتراضية",
+  "load_baseline_rates_hint": "تحميل أسعار الأحياء الافتراضية فوراً بدون استيراد",
+  "districts": "أحياء",
+  "baseline": "افتراضي"
 }

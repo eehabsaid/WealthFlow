@@ -107,6 +107,7 @@ from .settings_views import EmailSettingsTestView
 from .settings_views import AISettingsView
 from .settings_views import AIConnectionTestView
 from .settings_views import AIProviderListView
+from .settings_views import ScrapePropertyRatesView
 from .settings_views import GoldTypeSettingsListView
 from .settings_views import GoldTypeSettingsDetailView
 from .settings_views import GoldPuritySettingsListView
@@ -346,6 +347,7 @@ __all__ = [
     "AISettingsView",
     "AIConnectionTestView",
     "AIProviderListView",
+    "ScrapePropertyRatesView",
     "AIChatView",
     "AIConversationListView",
     "AIConversationDetailView",
