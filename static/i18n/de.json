@@ -1319,6 +1319,8 @@
   "last_estimated_market_price": "Letzter geschaetzter Marktpreis",
   "valuation_provider": "Bewertungsanbieter",
   "refresh_property_valuation": "Bewertung aktualisieren",
+  "sync_now": "Jetzt synchronisieren",
+  "syncing": "Synchronisierung...",
   "property_valuation_unavailable": "Fuer diese Immobilie war keine automatische Bewertung verfuegbar.",
   "property_valuation_refreshed": "Immobilienbewertung aktualisiert.",
   "error_refreshing_property_valuation": "Aktualisierung der Immobilienbewertung fehlgeschlagen.",

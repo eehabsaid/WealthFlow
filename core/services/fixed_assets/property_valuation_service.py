@@ -10,6 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from core.models import AppSettings, FixedAsset, RealEstateDetails
+from core.services.fixed_assets.valuation_history_service import record_valuation_history
 
 @dataclass
 class PropertyValuationResult:
@@ -42,7 +43,6 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
         if not config:
             return None
 
-        district = str(details.district or "").strip()
         city = str(details.city or "").strip()
         governorate = str(details.governorate or "").strip()
 
@@ -50,10 +50,8 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
         by_city = config.get("by_city") or {}
         by_governorate = config.get("by_governorate") or {}
 
-        if district:
-            rate = self._iget(by_city, district)
-        if rate in (None, "") and city:
-            rate = self._iget(by_city, city)
+        if city:
+            rate = self._iget(by_city, city)                   
         if rate in (None, "") and governorate:
             rate = self._iget(by_governorate, governorate)
         if rate in (None, ""):
@@ -389,3 +387,11 @@ class PropertyValuationService:
         asset.valuation_source = "Automatic"
         asset.last_valuation_date = valuation_date
         asset.save(update_fields=["current_market_value", "valuation_source", "last_valuation_date"])
+
+        record_valuation_history(
+            asset,
+            market_value=estimate,
+            source="Automatic",
+            valuation_date=valuation_date,
+            notes=f"Auto-synced via {provider_name}",
+        )

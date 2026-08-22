@@ -1319,6 +1319,8 @@
   "last_estimated_market_price": "آخر سعر سوقي تقديري",
   "valuation_provider": "مزود التقييم",
   "refresh_property_valuation": "تحديث التقييم",
+  "sync_now": "مزامنة الآن",
+  "syncing": "جارٍ المزامنة...",
   "property_valuation_unavailable": "لا يتوفر تقييم تلقائي لهذا العقار.",
   "property_valuation_refreshed": "تم تحديث تقييم العقار.",
   "error_refreshing_property_valuation": "تعذر تحديث تقييم العقار.",

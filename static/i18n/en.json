@@ -1317,6 +1317,8 @@
   "last_estimated_market_price": "Last Estimated Market Price",
   "valuation_provider": "Valuation Provider",
   "refresh_property_valuation": "Refresh Valuation",
+  "sync_now": "Sync Now",
+  "syncing": "Syncing...",
   "property_valuation_unavailable": "No automatic valuation was available for this property.",
   "property_valuation_refreshed": "Property valuation refreshed.",
   "error_refreshing_property_valuation": "Failed to refresh property valuation.",

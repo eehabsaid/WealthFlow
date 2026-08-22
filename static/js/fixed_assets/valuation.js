@@ -70,7 +70,11 @@ function addValuationRow(data = {}, expand = false) {
       </div>
       <div class="item-header-right">
         <span class="item-amount-preview">${initialAmountPreview}</span>
-        <button type="button" class="item-remove-btn" title="Remove" onclick="const r = this.closest('.valuation-row'); r.remove(); updateValuationSummary();">
+        <button type="button" class="valuation-sync-btn btn btn-outline-primary btn-sm" title="${t("sync_now", "Sync Now")}" data-i18n-title="sync_now" style="display:none;" onclick="event.stopPropagation(); syncValuationRow(this);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/></svg>
+          <span data-i18n="sync_now">${t("sync_now", "Sync Now")}</span>
+        </button>
+        <button type="button" class="item-remove-btn" title="Remove" onclick="event.stopPropagation(); const r = this.closest('.valuation-row'); r.remove(); updateValuationSummary();">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
         </button>
       </div>
@@ -108,6 +112,7 @@ function addValuationRow(data = {}, expand = false) {
   }
 
   row.querySelector(".valuation-source").value = sourceVal;
+  updateValuationSyncButtonVisibility(row);
 
   // Event Listeners for Live Sync
   const dateInput = row.querySelector(".valuation-date");
@@ -123,6 +128,7 @@ function addValuationRow(data = {}, expand = false) {
     const s = sourceSelect.value;
     sourceBadge.setAttribute("data-i18n", `val_${s.toLowerCase()}`);
     sourceBadge.textContent = s;
+    updateValuationSyncButtonVisibility(row);
     if (typeof applyTranslations === "function") {
       applyTranslations();
     }
@@ -148,6 +154,74 @@ function addValuationRow(data = {}, expand = false) {
   }
 
   updateValuationSummary();
+}
+
+function updateValuationSyncButtonVisibility(row) {
+  const syncBtn = row.querySelector(".valuation-sync-btn");
+  if (!syncBtn) return;
+
+  const sourceSelect = row.querySelector(".valuation-source");
+  const isAutomatic = sourceSelect && sourceSelect.value === "Automatic";
+  const typeField = document.getElementById("fa_type");
+  const isSupportedAssetType =
+    typeof isRealEstateAssetType === "function" && typeField
+      ? isRealEstateAssetType(typeField.value)
+      : true;
+  const isSavedAsset = !!currentEditingAssetId;
+
+  syncBtn.style.display = isAutomatic && isSupportedAssetType && isSavedAsset ? "" : "none";
+}
+
+async function syncValuationRow(buttonEl) {
+  const row = buttonEl.closest(".valuation-row");
+  if (!row || !currentEditingAssetId) return;
+
+  buttonEl.disabled = true;
+  const originalHTML = buttonEl.innerHTML;
+  buttonEl.innerHTML = `<span>${t("syncing", "Syncing...")}</span>`;
+
+  try {
+    const response = await fetch(`/api/fixed-assets/${currentEditingAssetId}/valuation/refresh/`, {
+      method: "POST",
+    });
+    const payload = await response.json();
+
+    if (!response.ok) {
+      throw new Error(payload.error || t("error_refreshing_property_valuation", "Failed to refresh property valuation."));
+    }
+
+    if (!payload.updated) {
+      showToast(t("property_valuation_unavailable", "No automatic valuation was available for this property."), "warning");
+      return;
+    }
+
+    const asset = payload.asset || {};
+    const latestEntry = (asset.valuation_history || [])[0];
+
+    if (latestEntry) {
+      row.querySelector(".valuation-date").value = latestEntry.valuation_date || "";
+      row.querySelector(".valuation-market-value").value = latestEntry.market_value || 0;
+      row.querySelector(".valuation-notes").value = latestEntry.notes || "";
+
+      const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      row.querySelector(".item-amount-preview").textContent = `EGP ${fmt(parseFloat(latestEntry.market_value) || 0)}`;
+      row.querySelector(".item-name-preview").textContent = latestEntry.valuation_date || t("unnamed_item", "(Unnamed item)");
+    }
+
+    // Keep the General tab's current-value fields consistent with the sync too.
+    const currentValueField = document.getElementById("fa_current_value");
+    const lastValuationDateField = document.getElementById("fa_last_valuation_date");
+    if (currentValueField) currentValueField.value = asset.current_market_value || 0;
+    if (lastValuationDateField) lastValuationDateField.value = asset.last_valuation_date || "";
+
+    updateValuationSummary();
+    showToast(t("property_valuation_refreshed", "Property valuation refreshed."), "success");
+  } catch (error) {
+    showToast(error.message || t("error_refreshing_property_valuation", "Failed to refresh property valuation."), "error");
+  } finally {
+    buttonEl.disabled = false;
+    buttonEl.innerHTML = originalHTML;
+  }
 }
 
 function collectValuationHistory() {
