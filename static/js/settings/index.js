@@ -16,6 +16,7 @@ async function renderSettings(route) {
         reminders:         'reminders',
         certstatus:        'certstatus',
         goldsettings:      'goldsettings',
+        propertyvaluation: 'propertyvaluation',
         'settings-dashboard': 'dashboard',
         languages:         'languages',
         backuprestore:     'backuprestore',
@@ -40,6 +41,7 @@ async function renderSettings(route) {
         { id: 'reminders',          i18n: 'tab_reminders',              fallback: 'Reminders',         route: 'settings-reminders'          },
         { id: 'certstatus',         i18n: 'tab_cert_status',            fallback: 'Certificate Status', route: 'settings-certstatus'         },
         { id: 'goldsettings',       i18n: 'tab_gold_settings',          fallback: 'Gold Settings',    route: 'settings-goldsettings'       },
+        { id: 'propertyvaluation',  i18n: 'tab_property_valuation',     fallback: 'Property Valuation Settings', route: 'settings-propertyvaluation' },
         { id: 'dashboard',          i18n: 'tab_dashboard_sett',         fallback: 'Dashboard',         route: 'settings-dashboard'          },
         { id: 'backuprestore',      i18n: 'settings_backup_restore',    fallback: 'Backup & Restore',  route: 'settings-backuprestore'      },
         { id: 'documentation',      i18n: 'settings_documentation',     fallback: 'Documentation',     route: 'settings-documentation'      },
@@ -92,6 +94,7 @@ async function renderSettings(route) {
         reminders:          renderReminderSettings,
         certstatus:         renderCertStatusSettings,
         goldsettings:       renderGoldSettings,
+        propertyvaluation:  renderPropertyValuationSettings,
         dashboard:          renderDashboardSettings,
         banks:              renderBankSettings,
         backuprestore:      renderBackupRestoreSettings,
@@ -123,6 +126,7 @@ window.showEmailTemplateModal = showEmailTemplateModal;
 window.saveEmailTemplate = saveEmailTemplate;
 window.renderGoldSettings = renderGoldSettings;
 window.showGoldTypeModal = showGoldTypeModal;
+window.renderPropertyValuationSettings = renderPropertyValuationSettings;
 window.savePropertyValuationSettings = savePropertyValuationSettings;
 window.scrapePropertyRates = scrapePropertyRates;
 window.saveGoldType = saveGoldType;
