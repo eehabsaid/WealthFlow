@@ -61,7 +61,7 @@ async function renderCertStatusSettings() {
     document.getElementById('settingsContent').innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <div>
-                <div style="font-weight:700;color:var(--text-primary)" data-i18n="cert_statuses">${certStatusesTitle}</div>
+                
                 <div style="font-size:12px;color:var(--text-muted);margin-top:2px" data-i18n="cert_statuses_desc">
                     ${certStatusesDesc}
                 </div>

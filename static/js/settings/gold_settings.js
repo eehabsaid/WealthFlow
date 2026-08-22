@@ -41,9 +41,7 @@ async function renderGoldSettings() {
     `).join('');
 
     document.getElementById('settingsContent').innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-            <div style="font-weight:700;color:var(--text-primary)" data-i18n="tab_gold_settings">${t('tab_gold_settings', 'Gold Settings')}</div>
-        </div>
+
 
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:14px;margin-bottom:16px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">

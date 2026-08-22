@@ -15,14 +15,9 @@ async function renderPropertyValuationSettings() {
     const externalHeaders = settingsData?.settings?.property_valuation_external_headers || '';
 
     document.getElementById('settingsContent').innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-            <div style="font-weight:700;color:var(--text-primary)" data-i18n="tab_property_valuation">${t('tab_property_valuation', 'Property Valuation Settings')}</div>
-        </div>
-
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:14px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px;flex-wrap:wrap;">
                 <div>
-                    
                     <div style="font-size:12px;color:var(--text-muted)" data-i18n="property_valuation_rate_map_hint">${t('property_valuation_rate_map_hint', 'Provide JSON with by_city, by_governorate, and optional default EGP-per-square-meter rates.')}</div>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">

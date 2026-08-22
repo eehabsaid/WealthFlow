@@ -24,8 +24,8 @@ async function renderBankSettings() {
     const contentEl = document.getElementById('settingsContent');
     if (!contentEl) return;
     contentEl.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-            <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_banks"></div>
+        <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:14px">
+            
             <button class="btn-primary-custom" onclick="showBankModal(null)" data-i18n="btn_add">
                 <i class="bi bi-plus-lg"></i>
             </button>

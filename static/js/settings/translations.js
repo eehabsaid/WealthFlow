@@ -31,8 +31,8 @@ async function renderLanguageSettings() {
         </tr>`).join('');
 
     document.getElementById('settingsContent').innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-            <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_languages"></div>
+        <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:14px">
+            
             <button class="btn-primary-custom" onclick="showAddLangModal()" data-i18n="add_language_btn">
                 <i class="bi bi-plus-lg"></i>
             </button>
@@ -221,9 +221,9 @@ async function renderTranslationSettings() {
     }).join('');
 
     document.getElementById('settingsContent').innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;
+        <div style="display:flex;justify-content:flex-end;align-items:center;
                     margin-bottom:14px;width:100%">
-            <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_translations"></div>
+            
             <div style="display:flex;gap:10px;align-items:center">
                 <input type="text" id="translationSearch" class="form-control"
                     style="width:180px" placeholder="Search key..."
@@ -329,8 +329,8 @@ async function renderTranslationCoverage() {
         </tr>`).join('');
 
     document.getElementById('settingsContent').innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-            <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_translation_coverage"></div>
+        <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:14px">
+            
             <button class="btn-primary-custom" onclick="showMissingTranslationsReport()" data-i18n="missing_report">Missing Report</button>
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">${cards}</div>

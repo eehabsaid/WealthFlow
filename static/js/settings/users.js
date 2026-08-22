@@ -26,7 +26,18 @@ async function loadUsers({ page = 1, pageSize = 10, q = '' } = {}) {
 
     container.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div style="font-weight:600;color:var(--text-secondary)" data-i18n="settings_users">Users</div>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn-secondary-custom" onclick="toggleSelectAll()" data-i18n="btn_toggle_select">Toggle Select</button>
+                <select id="bulkActionSelect" class="form-select" style="width:220px">
+                    <option value=""             data-i18n="bulk_actions">Bulk actions</option>
+                    <option value="activate"     data-i18n="activate_selected">Activate selected</option>
+                    <option value="deactivate"   data-i18n="deactivate_selected">Deactivate selected</option>
+                    <option value="delete"       data-i18n="delete_selected">Delete selected</option>
+                    <option value="set_staff_true"  data-i18n="set_staff">Set staff</option>
+                    <option value="set_staff_false" data-i18n="unset_staff">Unset staff</option>
+                </select>
+                <button class="btn-primary-custom" onclick="applyBulkAction()" data-i18n="btn_apply">Apply</button>
+            </div>
             <div style="display:flex;gap:8px">
                 <input id="userSearch" class="form-control"
                     data-i18n-placeholder="search_placeholder" value="${q}"
@@ -36,18 +47,6 @@ async function loadUsers({ page = 1, pageSize = 10, q = '' } = {}) {
                     <i class="bi bi-plus-lg"></i>
                 </button>
             </div>
-        </div>
-        <div style="margin-bottom:8px;display:flex;gap:8px;align-items:center">
-            <button class="btn-secondary-custom" onclick="toggleSelectAll()" data-i18n="btn_toggle_select">Toggle Select</button>
-            <select id="bulkActionSelect" class="form-select" style="width:220px">
-                <option value=""             data-i18n="bulk_actions">Bulk actions</option>
-                <option value="activate"     data-i18n="activate_selected">Activate selected</option>
-                <option value="deactivate"   data-i18n="deactivate_selected">Deactivate selected</option>
-                <option value="delete"       data-i18n="delete_selected">Delete selected</option>
-                <option value="set_staff_true"  data-i18n="set_staff">Set staff</option>
-                <option value="set_staff_false" data-i18n="unset_staff">Unset staff</option>
-            </select>
-            <button class="btn-primary-custom" onclick="applyBulkAction()" data-i18n="btn_apply">Apply</button>
         </div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);
                     border-radius:12px;overflow:visible">
@@ -255,4 +254,3 @@ async function deleteUser(id) {
     if (res.ok) { showToast('Deleted'); renderUserSettings(); }
     else showToast('Error deleting user', 'error');
 }
-

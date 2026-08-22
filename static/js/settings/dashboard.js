@@ -22,8 +22,7 @@ async function renderDashboardSettings() {
     contentEl.innerHTML = `
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);
                     border-radius:12px;padding:20px">
-            <div style="font-weight:700;color:var(--text-primary);margin-bottom:16px"
-                data-i18n="dashboard_settings"></div>
+
             ${toggle('dashboard_show_certs',     'dashboard_show_certs',     'dashboard_show_certs_desc',     s.dashboard_show_certs     !== 'false')}
             ${toggle('dashboard_show_reminders', 'dashboard_show_reminders', 'dashboard_show_reminders_desc', s.dashboard_show_reminders !== 'false')}
             <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
