@@ -43,6 +43,7 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
         if not config:
             return None
 
+        district = str(details.district or "").strip()
         city = str(details.city or "").strip()
         governorate = str(details.governorate or "").strip()
 
@@ -50,8 +51,10 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
         by_city = config.get("by_city") or {}
         by_governorate = config.get("by_governorate") or {}
 
-        if city:
-            rate = self._iget(by_city, city)                   
+        if district:
+            rate = self._iget(by_city, district)
+        if rate in (None, "") and city:
+            rate = self._iget(by_city, city)
         if rate in (None, "") and governorate:
             rate = self._iget(by_governorate, governorate)
         if rate in (None, ""):
