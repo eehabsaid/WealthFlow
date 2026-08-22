@@ -2,10 +2,14 @@
 Aqarmap EGP/sqm scraper for Cairo districts.
 
 Fetches https://aqarmap.com.eg/en/for-sale/property-type/cairo/{slug}/
-for each known district, parses the RSC payload (Next.js App Router),
-extracts averagePriceData → latest apartment price per sqm.
+for each known district, parses the Next.js RSC payload, and extracts
+averagePriceData → latest apartment price per sqm.
 
-Falls back to hardcoded baseline if scraping fails.
+KEY VALIDATION: the returned averagePriceData.location.slug must end
+with the requested slug. If it doesn't, Aqarmap redirected to the
+city-wide page (returning the Cairo default ~27,100) — that value is
+discarded and baseline is used instead.
+
 source values:
   "aqarmap_live+baseline"  → live data merged with baseline gaps
   "baseline_only"          → scraping failed or skipped
@@ -14,15 +18,15 @@ from __future__ import annotations
 
 import json
 import logging
+import random
 import re
 import time
-import random
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# District slug → display name mapping
+# District slug → display name
 # Names must align with LOCATION_ALIASES in property_valuation_service.py
 # ---------------------------------------------------------------------------
 DISTRICT_SLUGS: dict[str, str] = {
@@ -50,15 +54,15 @@ DISTRICT_SLUGS: dict[str, str] = {
     "el-obour": "Obour",
     "agouza": "Agouza",
     "imbaba": "Imbaba",
-    "wadi-hof": "Wadi Hof",
     "el-matariya": "Matariya",
     "boulaq": "Boulaq",
+    "wadi-hof": "Wadi Hof",
 }
 
 BASE_URL = "https://aqarmap.com.eg/en/for-sale/property-type/cairo/{slug}/"
 
 # ---------------------------------------------------------------------------
-# Baseline — 2024/2025 Cairo market midpoints (EGP / sqm)
+# Baseline — used for missing/invalid districts
 # ---------------------------------------------------------------------------
 CAIRO_BASELINE: dict[str, float] = {
     "Zamalek": 95_000,
@@ -125,10 +129,10 @@ _MAX_RATE = 500_000
 
 
 # ---------------------------------------------------------------------------
-# RSC parser
+# RSC helpers
 # ---------------------------------------------------------------------------
 def _decode_rsc(html: str) -> str:
-    """Concatenate all self.__next_f.push([1, "..."]) payloads."""
+    """Concatenate all self.__next_f.push([1, '...']) payloads."""
     chunks = re.findall(r'self\.__next_f\.push\(\[1,(".*?")\]\)', html, re.DOTALL)
     out = ""
     for c in chunks:
@@ -162,10 +166,7 @@ def _extract_avg_price_data(rsc_text: str) -> Optional[dict]:
 
 
 def _latest_apartment_price(avg_data: dict) -> Optional[float]:
-    """
-    From averagePriceData, return the most recent valid apartment
-    (type "1") average_price per sqm.
-    """
+    """Return the most recent valid apartment (type '1') price per sqm."""
     try:
         entries = avg_data["data"]["1"]["data"]["average_price"]
         valid = [
@@ -178,18 +179,31 @@ def _latest_apartment_price(avg_data: dict) -> Optional[float]:
         return None
 
 
+def _slug_matches(avg_data: dict, requested_slug: str) -> bool:
+    """
+    Validate that Aqarmap returned data for the district we requested,
+    not a redirect to the city-wide page.
+
+    When a slug doesn't exist, Aqarmap silently redirects to the main
+    Cairo page whose averagePriceData.location.slug == "cairo".
+    We reject that and fall back to baseline for that district.
+    """
+    returned_slug = avg_data.get("location", {}).get("slug", "")
+    return returned_slug.endswith(requested_slug)
+
+
 # ---------------------------------------------------------------------------
 # Main scraper
 # ---------------------------------------------------------------------------
 def _scrape_districts(timeout: int = 20) -> dict[str, float]:
     """
-    Fetch each district page and return {district_name: price_per_sqm}.
-    Returns empty dict if cloudscraper is unavailable.
+    Fetch each district page, validate slug, return {name: price_per_sqm}.
+    Districts that redirect to the city default are skipped (baseline used).
     """
     try:
         import cloudscraper
     except ImportError:
-        logger.warning("cloudscraper not installed")
+        logger.warning("cloudscraper not installed — scraping skipped")
         return {}
 
     scraper = cloudscraper.create_scraper(
@@ -197,31 +211,39 @@ def _scrape_districts(timeout: int = 20) -> dict[str, float]:
     )
 
     results: dict[str, float] = {}
-    slugs = list(DISTRICT_SLUGS.items())
 
-    for slug, name in slugs:
+    for slug, name in DISTRICT_SLUGS.items():
         url = BASE_URL.format(slug=slug)
         try:
             r = scraper.get(url, headers=_HEADERS, timeout=timeout)
             if r.status_code != 200:
-                logger.debug("Skip %s → HTTP %d", slug, r.status_code)
+                logger.debug("%-25s HTTP %d — using baseline", slug, r.status_code)
                 continue
 
             rsc = _decode_rsc(r.text)
             avg_data = _extract_avg_price_data(rsc)
+
             if not avg_data:
-                logger.debug("No averagePriceData for %s", slug)
+                logger.debug("%-25s no averagePriceData — using baseline", slug)
+                continue
+
+            if not _slug_matches(avg_data, slug):
+                returned = avg_data.get("location", {}).get("slug", "?")
+                logger.info(
+                    "%-25s slug mismatch (got '%s') — redirect detected, using baseline",
+                    slug, returned,
+                )
                 continue
 
             price = _latest_apartment_price(avg_data)
             if price:
                 results[name] = price
-                logger.info("%-30s %10,.0f EGP/sqm", name, price)
+                logger.info("%-30s %10,.0f EGP/sqm  [live]", name, price)
             else:
-                logger.debug("No valid price for %s", slug)
+                logger.debug("%-25s no valid price entries — using baseline", slug)
 
         except Exception as exc:
-            logger.warning("Error fetching %s: %s", slug, exc)
+            logger.warning("%-25s error: %s — using baseline", slug, exc)
 
         time.sleep(random.uniform(0.5, 1.2))
 
@@ -234,9 +256,7 @@ def _scrape_districts(timeout: int = 20) -> dict[str, float]:
 def build_rate_map(timeout_ms: int = 25_000) -> dict:
     """
     Always returns a valid property_valuation_rate_map dict.
-    source:
-      'aqarmap_live+baseline'  live Aqarmap data merged with baseline gaps
-      'baseline_only'          scraping failed, baseline returned
+    Baseline fills any district not returned by the live scrape.
     """
     timeout_secs = max(10, timeout_ms // 1_000)
 
@@ -246,13 +266,14 @@ def build_rate_map(timeout_ms: int = 25_000) -> dict:
     except Exception as exc:
         logger.warning("Scraping failed entirely: %s", exc)
 
+    # Baseline first, live data overrides only validated districts
     by_city: dict[str, float] = CAIRO_BASELINE.copy()
 
     if scraped:
         by_city.update(scraped)
         source = "aqarmap_live+baseline"
         logger.info(
-            "Rate map: %d live + %d baseline = %d total districts",
+            "Rate map: %d live + %d baseline-only = %d total",
             len(scraped), len(by_city) - len(scraped), len(by_city),
         )
     else:
