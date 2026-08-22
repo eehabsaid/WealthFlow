@@ -91,8 +91,8 @@ CAIRO_BASELINE: dict[str, float] = {
     "Ain Shams": 18_000,
     "Imbaba": 18_000,
     "Matariya": 16_000,
-    "Wadi Hof": 14_000,
-    "Helwan": 12_000,
+    "Wadi Hof": 22_000,
+    "Helwan": 22_000,
 }
 
 GOVERNORATE_BASELINE: dict[str, float] = {
