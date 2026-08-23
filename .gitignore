@@ -21,3 +21,4 @@ test_reports/
 # i18n audit – unused keys archive
 unused.json
 .pytest_cache
+file-line-counts.txt
