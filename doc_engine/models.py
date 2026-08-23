@@ -24,6 +24,22 @@ class DocumentationModel:
         self.validation_warnings = []
         self._build_tree()
         
+    def _auto_purpose(self, title, tab, nested_tab, modal, route_title):
+        """
+        Generates a readable, generic purpose sentence for pages/tabs/modals
+        that have no hand-written entry in content/page_descriptions.json.
+        This keeps generated docs readable for anything discovered
+        automatically (new pages, tabs, or CRUD popups added to the app)
+        without requiring a matching manual content entry for every one.
+        """
+        if modal:
+            return f"Provides the '{title}' form/view within {route_title}."
+        if nested_tab:
+            return f"Shows the '{title}' view within {route_title}."
+        if tab:
+            return f"Covers the '{title}' section of {route_title}."
+        return f"Overview of the {title} page."
+
     def _get_stable_key(self, page_entry):
         keys = [page_entry.get('route')]
         if page_entry.get('tab_id'):
@@ -56,8 +72,9 @@ class DocumentationModel:
                 
             raw_title = s.get('page_title') or modal or nested_tab or tab or s.get('page_id') or route
             title = str(raw_title).replace('-', ' ').replace('_', ' ').title()
-            
-            purpose = desc.get("purpose", "[Content Pending]")
+            route_title = str(route).replace('-', ' ').replace('_', ' ').title() if route else ""
+
+            purpose = desc.get("purpose") or self._auto_purpose(title, tab, nested_tab, modal, route_title)
             steps = desc.get("steps", [])
             s_path = s.get('screenshot_path')
             if s_path:
@@ -65,7 +82,6 @@ class DocumentationModel:
                 s_path = os.path.join(base_dir, "docs", "screenshots", "latest", os.path.basename(s_path))
             
             navigation = []
-            route_title = str(route).replace('-', ' ').replace('_', ' ').title() if route else ""
             if route: navigation.append(route_title)
             
             if not tab and not nested_tab and not modal:

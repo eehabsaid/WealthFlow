@@ -3,8 +3,15 @@
       { "name": "User Profile", "type": "modal", "trigger": "eval:window.showProfileModal && window.showProfileModal()" }
   ]},
   { "route": "ai", "title": "WealthFlow AI", "nested_navigation": [
+      { "name": "Pinned Chats", "type": "modal", "trigger": "eval:window.openPinnedChatsModal && window.openPinnedChatsModal()" },
       { "name": "Prompt Library", "type": "modal", "trigger": "eval:window.openPromptLibraryModal && window.openPromptLibraryModal()" },
-      { "name": "Create Prompt", "type": "modal", "trigger": "eval:if(window.openPromptLibraryModal){ window.openPromptLibraryModal(); setTimeout(() => { if(window._promptLibNewForm) window._promptLibNewForm(); }, 400); }" }
+      { "name": "Create Prompt", "type": "modal", "trigger": "eval:if(window.openPromptLibraryModal){ window.openPromptLibraryModal(); setTimeout(() => { if(window._promptLibNewForm) window._promptLibNewForm(); }, 400); }" },
+      { "name": "Knowledge Search", "type": "modal", "trigger": "eval:window.openKnowledgeSearchModal && window.openKnowledgeSearchModal()" },
+      { "name": "Knowledge Base", "type": "modal", "trigger": "eval:window.openKnowledgeBaseModal && window.openKnowledgeBaseModal()" },
+      { "name": "Add Knowledge Entry", "type": "modal", "trigger": "eval:if(window.openKnowledgeBaseModal){ window.openKnowledgeBaseModal(); setTimeout(() => { if(window.KB && window.KB.newForm) window.KB.newForm(); }, 400); }" },
+      { "name": "Dataset Manager", "type": "modal", "trigger": "eval:window.openDatasetManagerModal && window.openDatasetManagerModal()" },
+      { "name": "Model Management", "type": "modal", "trigger": "eval:window.openModelManagementModal && window.openModelManagementModal()" },
+      { "name": "Benchmark Results", "type": "modal", "trigger": "eval:window.openBenchmarkResultsModal && window.openBenchmarkResultsModal()" }
   ]},
 
   { "route": "financial-advisor", "title": "Financial Advisor", "tabs": [
@@ -115,6 +122,7 @@
         { "name": "Add Gold Purity", "type": "modal", "trigger": "eval:showGoldPurityModal()" },
         { "name": "Edit Gold Purity", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showGoldPurityModal\"]'); if(btn) btn.click(); else if(window.showGoldPurityModal) showGoldPurityModal(1);" }
     ]}, 
+    { "name": "Property Valuation Settings", "id": "settings-propertyvaluation" },
 
     { "name": "Dashboard", "id": "settings-dashboard" }, 
     { "name": "Backup and Restore", "id": "settings-backuprestore" },

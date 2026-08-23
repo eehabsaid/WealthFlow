@@ -204,7 +204,25 @@ class PythonPlaywrightCaptureEngine:
         log(f"[INFO] Captured: {filename}.png")
 
     def ensure_modals_closed(self, page: Page) -> None:
-        """Forcefully clears return context, hides all visible modals, and removes lingering backdrops."""
+        """
+        Forcefully clears return context, hides all visible modals, and
+        removes lingering backdrops.
+
+        IMPORTANT: also DISPOSES each Bootstrap modal instance after hiding
+        it, not just hiding it. The app shares a single reusable modal
+        container (#globalModal, see static/js/app/modals.js) across ~30
+        different features (Fixed Assets Add/Edit/View, most AI Workspace
+        modals, Bank Certificates, Balance, Expenses, Reminders, etc.) - the
+        SAME Bootstrap.Modal JS instance is reused every time, just with its
+        inner HTML swapped out. Bootstrap's own .show() call silently does
+        nothing if it thinks the instance is still mid-hide-transition, so
+        force-hiding via class/style changes alone (without disposing) can
+        leave the instance in a state where the VERY NEXT modal opened
+        immediately after this one closes never actually appears - it fails
+        silently and the capture times out with no error. Disposing here
+        guarantees every subsequent showModal() call gets a clean instance,
+        regardless of timing between consecutive modal captures.
+        """
         try:
             page.evaluate("""() => {
                 if (typeof clearGoldPurityReturnContext === 'function') {
@@ -219,6 +237,7 @@ class PythonPlaywrightCaptureEngine:
                         const inst = window.bootstrap.Modal.getInstance(m);
                         if (inst) {
                             try { inst.hide(); } catch(e) {}
+                            try { inst.dispose(); } catch(e) {}
                         }
                     }
                     m.classList.remove('show');
@@ -309,108 +328,11 @@ class PythonPlaywrightCaptureEngine:
                 pass
 
     def process_asset_rows(self, page: Page, route_prefix: str) -> None:
-        log('  -> Processing per-type asset modals (View & Edit)...')
-
-        page.evaluate("""async () => {
-            if (typeof fixedAssetsState !== 'undefined' && fixedAssetsState.loadAssets && (!fixedAssetsState.assets || fixedAssetsState.assets.length === 0)) {
-                try { await fixedAssetsState.loadAssets(); } catch(e) {}
-            }
-            let attempts = 0;
-            while (attempts < 20) {
-                if (typeof fixedAssetsState !== 'undefined' && fixedAssetsState.assets && fixedAssetsState.assets.length > 0) {
-                    return true;
-                }
-                await new Promise(resolve => setTimeout(resolve, 250));
-                attempts++;
-            }
-            return false;
-        }""")
-
-        distinct_assets = page.evaluate(r"""() => {
-            const assets = (typeof fixedAssetsState !== 'undefined' && fixedAssetsState.assets) ? fixedAssetsState.assets : [];
-            const map = new Map();
-            for (const asset of assets) {
-                const assetType = asset.asset_type || asset.type || 'Other Assets';
-                const isGold = assetType.toLowerCase() === 'gold';
-                const purity = isGold ? (asset.gold_details?.purity || asset.purity || '24k') : null;
-                if (!map.has(assetType)) {
-                    map.set(assetType, { id: asset.id, type: assetType, isGold, purity });
-                }
-            }
-            if (map.size === 0) {
-                const rows = Array.from(document.querySelectorAll('#assets-table tbody tr, .table tbody tr'));
-                rows.forEach((tr, i) => {
-                    const editBtn = tr.querySelector('button[onclick*="showFixedAssetModal"], button[onclick*="openGold"]');
-                    const viewBtn = tr.querySelector('button[onclick*="showFixedAssetDetails"], button[onclick*="showGold"]');
-                    const typeTd = tr.querySelector('td:nth-child(2)');
-                    const assetType = typeTd ? typeTd.textContent.trim() : ('AssetType_' + i);
-                    const isGold = assetType.toLowerCase() === 'gold';
-                    if (editBtn || viewBtn) {
-                        const onclick = (editBtn || viewBtn).getAttribute('onclick') || '';
-                        const idMatch = onclick.match(/\((\d+)/);
-                        const id = idMatch ? parseInt(idMatch[1], 10) : (i + 1);
-                        if (!map.has(assetType)) {
-                            map.set(assetType, { id, type: assetType, isGold, purity: isGold ? '24k' : null });
-                        }
-                    }
-                });
-            }
-            return Array.from(map.values());
-        }""")
-
-        if not distinct_assets or len(distinct_assets) == 0:
-            log("     No fixed assets found in the table. Skipping View/Edit per-row capture.")
-        else:
-            self.manifest_service.update_status('running', 'Discovering Assets...')
-            for info in distinct_assets:
-                check_cancelled_and_exit(self.manifest_service)
-                asset_type = info.get("type", "Other Assets")
-                log(f"     -> Selecting View asset type: {asset_type}")
-
-
-                view_clicked = page.evaluate("""(assetInfo) => {
-                    if (assetInfo.isGold) {
-                        if (typeof openGoldPurchaseDetails === 'function') {
-                            openGoldPurchaseDetails(assetInfo.id, assetInfo.purity || '24k');
-                            return true;
-                        }
-                    } else {
-                        if (typeof showFixedAssetDetails === 'function') {
-                            showFixedAssetDetails(assetInfo.id);
-                            return true;
-                        }
-                    }
-                    return false;
-                }""", info)
-
-                if view_clicked:
-                    self.global_context["modal_id"] = f"view_{sanitize_filename(asset_type.lower())}"
-                    self.capture_modal_tabs(page, f"fixed_assets_assets_view_{sanitize_filename(asset_type.lower())}", close_after=False)
-                    self.global_context["modal_id"] = None
-                    self.ensure_modals_closed(page)
-
-                log(f"     -> Selecting Edit asset type: {asset_type}")
-                edit_clicked = page.evaluate("""(assetInfo) => {
-                    if (assetInfo.isGold) {
-                        if (typeof openGoldPurchaseEditor === 'function') {
-                            openGoldPurchaseEditor(assetInfo.id, assetInfo.purity || '24k');
-                            return true;
-                        }
-                    } else {
-                        if (typeof showFixedAssetModal === 'function') {
-                            showFixedAssetModal(assetInfo.id);
-                            return true;
-                        }
-                    }
-                    return false;
-                }""", info)
-
-                if edit_clicked:
-                    self.global_context["modal_id"] = f"edit_{sanitize_filename(asset_type.lower())}"
-                    self.capture_modal_tabs(page, f"fixed_assets_assets_edit_{sanitize_filename(asset_type.lower())}", close_after=False)
-                    self.global_context["modal_id"] = None
-                    self.ensure_modals_closed(page)
-
+        # Order matches the actual page layout, top to bottom: the "Add New
+        # Asset" button sits above the table, so its modal is captured first;
+        # per-row View/Edit actions (further down the page, one per existing
+        # row) are captured second. This keeps generated docs in the same
+        # visual order a user encounters them in the app.
         log('  -> Processing Add New Asset modal combinations...')
         try:
             add_btn_clicked = page.evaluate("""() => {
@@ -465,6 +387,108 @@ class PythonPlaywrightCaptureEngine:
         finally:
             self.ensure_modals_closed(page)
 
+        log('  -> Processing per-type asset modals (View & Edit)...')
+
+        page.evaluate("""async () => {
+            if (typeof fixedAssetsState !== 'undefined' && fixedAssetsState.loadAssets && (!fixedAssetsState.assets || fixedAssetsState.assets.length === 0)) {
+                try { await fixedAssetsState.loadAssets(); } catch(e) {}
+            }
+            let attempts = 0;
+            while (attempts < 20) {
+                if (typeof fixedAssetsState !== 'undefined' && fixedAssetsState.assets && fixedAssetsState.assets.length > 0) {
+                    return true;
+                }
+                await new Promise(resolve => setTimeout(resolve, 250));
+                attempts++;
+            }
+            return false;
+        }""")
+
+        distinct_assets = page.evaluate(r"""() => {
+            const assets = (typeof fixedAssetsState !== 'undefined' && fixedAssetsState.assets) ? fixedAssetsState.assets : [];
+            const map = new Map();
+            for (const asset of assets) {
+                const assetType = asset.asset_type || asset.type || 'Other Assets';
+                const isGold = assetType.toLowerCase() === 'gold';
+                const purity = isGold ? (asset.gold_details?.purity || asset.purity || '24k') : null;
+                if (!map.has(assetType)) {
+                    map.set(assetType, { id: asset.id, type: assetType, isGold, purity });
+                }
+            }
+            if (map.size === 0) {
+                const rows = Array.from(document.querySelectorAll('#assets-table tbody tr, .table tbody tr'));
+                rows.forEach((tr, i) => {
+                    const editBtn = tr.querySelector('button[onclick*="showFixedAssetModal"], button[onclick*="openGold"]');
+                    const viewBtn = tr.querySelector('button[onclick*="showFixedAssetDetails"], button[onclick*="showGold"]');
+                    const typeTd = tr.querySelector('td:nth-child(2)');
+                    const assetType = typeTd ? typeTd.textContent.trim() : ('AssetType_' + i);
+                    const isGold = assetType.toLowerCase() === 'gold';
+                    if (editBtn || viewBtn) {
+                        const onclick = (editBtn || viewBtn).getAttribute('onclick') || '';
+                        const idMatch = onclick.match(/\((\d+)/);
+                        const id = idMatch ? parseInt(idMatch[1], 10) : (i + 1);
+                        if (!map.has(assetType)) {
+                            map.set(assetType, { id, type: assetType, isGold, purity: isGold ? '24k' : null });
+                        }
+                    }
+                });
+            }
+            return Array.from(map.values());
+        }""")
+
+        if not distinct_assets or len(distinct_assets) == 0:
+            log("     No fixed assets found in the table. Skipping View/Edit per-row capture.")
+            return
+
+        self.manifest_service.update_status('running', 'Discovering Assets...')
+        for info in distinct_assets:
+            check_cancelled_and_exit(self.manifest_service)
+            asset_type = info.get("type", "Other Assets")
+            log(f"     -> Selecting View asset type: {asset_type}")
+
+            view_clicked = page.evaluate("""(assetInfo) => {
+                if (assetInfo.isGold) {
+                    if (typeof openGoldPurchaseDetails === 'function') {
+                        openGoldPurchaseDetails(assetInfo.id, assetInfo.purity || '24k');
+                        return true;
+                    }
+                } else {
+                    if (typeof showFixedAssetDetails === 'function') {
+                        showFixedAssetDetails(assetInfo.id);
+                        return true;
+                    }
+                }
+                return false;
+            }""", info)
+
+            if view_clicked:
+                self.global_context["modal_id"] = f"view_{sanitize_filename(asset_type.lower())}"
+                self.capture_modal_tabs(page, f"fixed_assets_assets_view_{sanitize_filename(asset_type.lower())}", close_after=False)
+                self.global_context["modal_id"] = None
+                self.ensure_modals_closed(page)
+
+            log(f"     -> Selecting Edit asset type: {asset_type}")
+            edit_clicked = page.evaluate("""(assetInfo) => {
+                if (assetInfo.isGold) {
+                    if (typeof openGoldPurchaseEditor === 'function') {
+                        openGoldPurchaseEditor(assetInfo.id, assetInfo.purity || '24k');
+                        return true;
+                    }
+                } else {
+                    if (typeof showFixedAssetModal === 'function') {
+                        showFixedAssetModal(assetInfo.id);
+                        return true;
+                    }
+                }
+                return false;
+            }""", info)
+
+            if edit_clicked:
+                self.global_context["modal_id"] = f"edit_{sanitize_filename(asset_type.lower())}"
+                self.capture_modal_tabs(page, f"fixed_assets_assets_edit_{sanitize_filename(asset_type.lower())}", close_after=False)
+                self.global_context["modal_id"] = None
+                self.ensure_modals_closed(page)
+
     def click_tab_by_id(self, page: Page, tab: Dict[str, Any]) -> bool:
         self.ensure_modals_closed(page)
         return page.evaluate("""(tabData) => {
@@ -501,6 +525,34 @@ class PythonPlaywrightCaptureEngine:
             }
             return false;
         }""", tab)
+
+    def _extract_triggered_fn_names(self, nested_nav: List[Dict[str, Any]]) -> List[str]:
+        """
+        Pulls out every JS function name (including dotted paths like
+        'window.KB.newForm' -> 'KB.newForm') referenced in
+        nested_navigation's explicit triggers, normalized the same way the
+        generic auto-discovery pass normalizes real onclick attributes
+        (stripping a leading 'window.'). Used so the generic pass never
+        re-captures a modal that's already explicitly and precisely handled
+        in inventory.json - avoiding duplicate screenshots.
+        """
+        import re
+        names = set()
+        control_keywords = {"if", "eval", "settimeout", "function", "for", "while", "else"}
+        for m in nested_nav or []:
+            trigger = m.get("trigger", "") or ""
+            for match in re.finditer(r'([A-Za-z_][A-Za-z0-9_.]*)\s*\(', trigger):
+                fn = match.group(1)
+                if fn.lower() in control_keywords:
+                    continue
+                normalized = fn[len("window."):] if fn.startswith("window.") else fn
+                names.add(normalized)
+                # Also keep the last dotted segment as a fallback match target
+                # (e.g. 'newForm' from 'KB.newForm'), since some real onclick
+                # attributes in the app call it without the 'window.' prefix.
+                if "." in normalized:
+                    names.add(normalized.split(".")[-1])
+        return list(names)
 
     def process_modals(self, page: Page, route_prefix: str, modals: List[Dict[str, Any]]) -> None:
         for modal in modals:
@@ -601,54 +653,216 @@ class PythonPlaywrightCaptureEngine:
         page.click('button[type="submit"], input[type="submit"], .btn-login')
         self.wait_for_ui_ready(page)
 
-    def process_table_row_edits(self, page: Page, route_prefix: str) -> None:
+    def discover_sidebar_routes(self, page: Page) -> List[Dict[str, str]]:
         """
-        Discovers and captures Edit modals triggered by table row buttons across all views.
-        Skips fixed assets and salary/employment pages to avoid duplicate execution.
+        Reads the REAL rendered sidebar and extracts every navigable route,
+        in the order they appear on screen. This is a safety net: if a page
+        is added to the sidebar in the future but nobody remembers to add it
+        to inventory.json, it still gets captured (with a basic single
+        screenshot) instead of being silently skipped.
+        Never clicks anything here - pure read-only DOM inspection.
+        """
+        try:
+            return page.evaluate(r"""() => {
+                const items = Array.from(document.querySelectorAll('#sidebar .nav-item[onclick*="navigate("]'));
+                const seen = new Set();
+                const results = [];
+                for (const el of items) {
+                    const onclick = el.getAttribute('onclick') || '';
+                    const m = onclick.match(/navigate\(\s*['"]([^'"]+)['"]/);
+                    if (!m) continue;
+                    const route = m[1];
+                    if (seen.has(route)) continue;
+                    seen.add(route);
+                    const label = el.querySelector('span')?.textContent?.trim() || route;
+                    results.push({ route, title: label });
+                }
+                return results;
+            }""")
+        except Exception as e:
+            log(f"[WARNING] Sidebar route discovery failed: {e}")
+            return []
+
+    def discover_page_tabs(self, page: Page) -> List[Dict[str, str]]:
+        """
+        Reads the REAL rendered page-level tab bar (the app's consistent
+        '.wf-tab' convention used by Settings, Balance, Fixed Assets,
+        Financial Advisor, etc.) and returns each tab's visible name, in
+        DOM order. Used as a safety net to catch any tab not declared in
+        inventory.json, regardless of which underlying mechanism that page
+        uses to switch tabs (navigate(), Bootstrap data-bs-toggle, or a
+        custom switch function) - we only need to know the button exists
+        and can be clicked, not how it works internally.
+        Never clicks anything here - pure read-only DOM inspection.
+        """
+        try:
+            return page.evaluate(r"""() => {
+                const bar = document.querySelector('#main-content .wf-tabs-row, #main-content [role="tablist"]');
+                if (!bar) return [];
+                const buttons = Array.from(bar.querySelectorAll('.wf-tab, [role="tab"]'));
+                return buttons.map((b, i) => ({
+                    name: b.textContent.trim(),
+                    domIndex: i
+                })).filter(t => t.name);
+            }""")
+        except Exception as e:
+            log(f"[WARNING] Page tab discovery failed: {e}")
+            return []
+
+    def merge_discovered_tabs(self, route: str, declared_tabs: List[Dict[str, Any]], discovered_tabs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+        """
+        Appends any tab found live on the page that isn't already declared
+        in inventory.json (matched by visible name, case-insensitive). Never
+        removes or reorders declared tabs - only fills gaps, so hand-tuned
+        ordering and nested_navigation for known tabs are preserved exactly.
+        """
+        declared_names = {str(t.get("name", "")).strip().lower() for t in declared_tabs}
+        merged = list(declared_tabs)
+        for dt in discovered_tabs:
+            name = dt.get("name", "").strip()
+            if not name or name.lower() in declared_names:
+                continue
+            log(f"  [AUTO-DISCOVERED] New tab found on '{route}' not in inventory.json: '{name}'. Capturing it automatically.")
+            merged.append({
+                "name": name,
+                "id": sanitize_filename(name),
+                "_auto_discovered": True,
+            })
+            declared_names.add(name.lower())
+        return merged
+
+    def merge_discovered_routes(self, inventory: List[Dict[str, Any]], discovered_routes: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+        """
+        Appends any sidebar route found live in the app that isn't already
+        declared in inventory.json. Never removes or reorders declared
+        routes. A discovered route is treated as already covered if it
+        exactly matches a declared route, OR if it's a sub-route of one
+        (e.g. the sidebar's Settings link goes straight to
+        'settings-languages', which is really just the default tab of the
+        already-declared 'settings' route with all 16 tabs) - otherwise
+        we'd wrongly add a duplicate bare entry alongside the real one.
+        """
+        declared_routes = {str(item.get("route", "")) for item in inventory}
+        merged = list(inventory)
+        for r in discovered_routes:
+            route = r.get("route", "")
+            if not route:
+                continue
+            already_covered = any(
+                route == d or route.startswith(d + "-") or d.startswith(route + "-")
+                for d in declared_routes
+            )
+            if already_covered:
+                continue
+            log(f"  [AUTO-DISCOVERED] New sidebar page not in inventory.json: '{route}' ({r.get('title')}). Capturing it automatically.")
+            merged.append({
+                "route": route,
+                "title": r.get("title") or route,
+                "_auto_discovered": True,
+            })
+            declared_routes.add(route)
+        return merged
+
+    # Action buttons matching these keywords are NEVER auto-clicked, even if
+    # they also match an "opener" keyword below. Checked first. This is the
+    # hard safety boundary: nothing that inserts, updates, deletes, or saves
+    # real data is ever triggered by the capture engine - only buttons whose
+    # entire job is to open a view/form/popup are clicked.
+    _ACTION_DENYLIST_KEYWORDS = [
+        "delete", "remove", "destroy", "logout", "signout", "sign-out",
+        "submit", "confirm", "save", "update", "pay", "checkout",
+        "approve", "reject", "cancel", "promote", "finetune", "fine-tune",
+        "generate", "scan", "sync", "export", "download", "print",
+        "runbenchmark", "run_benchmark", "sendemail", "send_email",
+    ]
+
+    # Buttons are only considered candidates for auto-discovery if they
+    # match one of these "opens something to look at" keywords.
+    _OPENER_INCLUDE_KEYWORDS = [
+        "edit", "add", "new", "show", "open", "view", "details", "manage",
+        "history", "list", "search", "permission",
+    ]
+
+    def process_table_row_edits(self, page: Page, route_prefix: str, skip_fn_names: Optional[List[str]] = None) -> None:
+        """
+        Discovers and captures Add/Edit/View-style modals triggered by
+        buttons ANYWHERE on the page or open modal - not just inside
+        <table>/.card elements, so card-style triggers (e.g. clickable divs
+        used by the AI Workspace context panel) are picked up automatically
+        too. Buttons are matched against a strict opener-keyword allowlist
+        and a hard denylist (see _ACTION_DENYLIST_KEYWORDS) that is always
+        checked first, so nothing that inserts/updates/deletes/saves real
+        data is ever clicked - only buttons that open a view/form/popup.
+
+        skip_fn_names: onclick handler names already captured explicitly via
+        inventory.json's nested_navigation for this page/tab, so this
+        generic pass doesn't capture (and duplicate) the same modal twice.
         """
         if route_prefix.startswith('fixed_assets') or 'fixed_assets' in route_prefix or route_prefix.startswith('salary_') or route_prefix.startswith('employment_') or 'employment' in route_prefix or 'salary' in route_prefix:
             return
 
-        edit_buttons = page.evaluate("""() => {
-            const btns = Array.from(document.querySelectorAll('table button, .table button, table a, .table a, .card button'));
-            const matches = btns.filter(b => {
+        skip_set = set(skip_fn_names or [])
+
+        candidate_buttons = page.evaluate("""(cfg) => {
+            const denylist = cfg.denylist;
+            const allowlist = cfg.allowlist;
+            const els = Array.from(document.querySelectorAll(
+                'table button, .table button, table a, .table a, .card button, ' +
+                'button[onclick], a[onclick], div[onclick], [role="button"][onclick]'
+            ));
+            const matches = els.filter(b => {
                 if (b.closest('#sidebar') || b.closest('.modal')) return false;
                 if (b.offsetParent === null || b.closest('.d-none') || b.closest('.tab-pane:not(.active)')) return false;
                 const onclick = (b.getAttribute('onclick') || '').toLowerCase();
                 const title = (b.getAttribute('title') || '').toLowerCase();
                 const text = b.textContent.trim().toLowerCase();
                 const html = b.innerHTML.toLowerCase();
-                return (
-                    onclick.includes('edit') || onclick.includes('show') || onclick.includes('open') || onclick.includes('permission') ||
-                    title.includes('edit') || title.includes('manage') ||
-                    text === 'edit' || text.includes('edit') ||
-                    html.includes('fa-pencil') || html.includes('fa-edit') || html.includes('bi-pencil') || html.includes('btn-edit')
-                );
+                const haystack = onclick + ' ' + title + ' ' + text;
+
+                // Hard safety boundary: never even consider a denylisted action.
+                for (const bad of denylist) {
+                    if (haystack.includes(bad)) return false;
+                }
+
+                const iconMatch = html.includes('fa-pencil') || html.includes('fa-edit') ||
+                                   html.includes('bi-pencil') || html.includes('btn-edit') ||
+                                   html.includes('fa-plus') || html.includes('bi-plus');
+                const keywordMatch = allowlist.some(k => haystack.includes(k));
+                return iconMatch || keywordMatch;
             });
 
             const map = new Map();
             for (const btn of matches) {
                 const onclick = btn.getAttribute('onclick') || '';
-                const fnName = onclick.split('(')[0].trim() || btn.getAttribute('title') || 'edit_action';
+                const fnName = onclick.split('(')[0].trim() || btn.getAttribute('title') || btn.textContent.trim() || 'open_action';
                 if (fnName && !map.has(fnName)) {
                     map.set(fnName, { fnName, onclick, text: btn.textContent.trim(), title: btn.getAttribute('title') });
                 }
             }
             return Array.from(map.values());
-        }""")
+        }""", {"denylist": self._ACTION_DENYLIST_KEYWORDS, "allowlist": self._OPENER_INCLUDE_KEYWORDS})
 
-        if not edit_buttons or len(edit_buttons) == 0:
+        if not candidate_buttons or len(candidate_buttons) == 0:
             return
 
-        for idx, btn_info in enumerate(edit_buttons):
+        for idx, btn_info in enumerate(candidate_buttons):
             check_cancelled_and_exit(self.manifest_service)
-            fn_name = btn_info.get("fnName") or f"edit_action_{idx+1}"
-            clean_fn = sanitize_filename(fn_name.replace('window.', '').replace('async', '').strip())
-            log(f"  -> Discovering table row Edit modal: {fn_name}")
+            fn_name = btn_info.get("fnName") or f"open_action_{idx+1}"
+            clean_fn_key = fn_name.replace('window.', '').replace('async', '').strip()
+
+            if clean_fn_key in skip_set:
+                continue
+
+            clean_fn = sanitize_filename(clean_fn_key)
+            display_label = btn_info.get("text") or btn_info.get("title") or fn_name
+            log(f"  -> [AUTO-DISCOVERED] Opening trigger not in inventory.json: {display_label} ({fn_name})")
 
             opened = page.evaluate("""(info) => {
-                const btns = Array.from(document.querySelectorAll('table button, .table button, table a, .table a, .card button'));
-                const matches = btns.filter(b => !b.closest('#sidebar') && !b.closest('.modal') && b.offsetParent !== null && !b.closest('.d-none') && !b.closest('.tab-pane:not(.active)'));
+                const els = Array.from(document.querySelectorAll(
+                    'table button, .table button, table a, .table a, .card button, ' +
+                    'button[onclick], a[onclick], div[onclick], [role="button"][onclick]'
+                ));
+                const matches = els.filter(b => !b.closest('#sidebar') && !b.closest('.modal') && b.offsetParent !== null && !b.closest('.d-none') && !b.closest('.tab-pane:not(.active)'));
                 let target = matches.find(b => (b.getAttribute('onclick') || '').includes(info.fnName));
                 if (!target && info.onclick) {
                     target = matches.find(b => b.getAttribute('onclick') == info.onclick);
@@ -664,10 +878,10 @@ class PythonPlaywrightCaptureEngine:
             if opened:
                 try:
                     page.wait_for_selector('.modal.show', timeout=3000)
-                    modal_name = f"edit_{clean_fn}"
+                    modal_name = f"auto_{clean_fn}"
                     self.capture_modal_tabs(page, f"{route_prefix}_{modal_name}", close_after=True)
                 except Exception as e:
-                    log(f"     Edit modal for {fn_name} did not appear: {e}")
+                    log(f"     Auto-discovered trigger for {fn_name} did not open a modal (may just toggle inline UI): {e}")
                 finally:
                     self.ensure_modals_closed(page)
 
@@ -774,13 +988,21 @@ class PythonPlaywrightCaptureEngine:
         tabs = item.get("tabs", [])
         nested_nav = item.get("nested_navigation", [])
 
+        # Safety net: compare the LIVE page's rendered tab bar against what's
+        # declared in inventory.json and append anything missing. Declared
+        # tabs (and their hand-tuned ordering/nested_navigation) are never
+        # touched - this only fills gaps.
+        discovered_tabs = self.discover_page_tabs(page)
+        if discovered_tabs:
+            tabs = self.merge_discovered_tabs(route, tabs, discovered_tabs)
+
         if tabs and len(tabs) > 0:
             for tab in tabs:
                 check_cancelled_and_exit(self.manifest_service)
                 self.manifest_service.current_progress += 1
                 self.manifest_service.update_status('running', title, tab.get("name", ""))
 
-                def capture_tab_action():
+                def capture_tab_action(tab=tab):
                     log(f"  -> Clicking tab: {tab.get('name')}")
                     clicked = self.click_tab_by_id(page, tab)
                     if not clicked:
@@ -802,13 +1024,21 @@ class PythonPlaywrightCaptureEngine:
                     else:
                         self.capture_screenshot(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
 
+                    tab_nested_nav = tab.get("nested_navigation")
                     if route == 'fixed-assets' and tab_id == 'assets':
                         self.process_asset_rows(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
-                    elif tab.get("nested_navigation"):
-                        self.process_modals(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}", tab.get("nested_navigation"))
-                    elif route != 'fixed-assets':
-                        self.process_table_row_edits(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
-                    
+                    else:
+                        if tab_nested_nav:
+                            self.process_modals(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}", tab_nested_nav)
+                        if route != 'fixed-assets':
+                            # Always run the safety-net generic discovery too (not just
+                            # when nested_navigation is absent), so any Add/Edit/View
+                            # trigger not explicitly declared still gets captured. Triggers
+                            # already fired above via nested_navigation are skipped to
+                            # avoid duplicate screenshots.
+                            skip_fn_names = self._extract_triggered_fn_names(tab_nested_nav)
+                            self.process_table_row_edits(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}", skip_fn_names=skip_fn_names)
+
                     self.ensure_modals_closed(page)
                     self.global_context["tab_id"] = None
 
@@ -825,7 +1055,8 @@ class PythonPlaywrightCaptureEngine:
                 self.capture_screenshot(page, route_prefix)
                 if nested_nav and not tabs:
                     self.process_modals(page, route_prefix, nested_nav)
-                self.process_table_row_edits(page, route_prefix)
+                skip_fn_names = self._extract_triggered_fn_names(nested_nav)
+                self.process_table_row_edits(page, route_prefix, skip_fn_names=skip_fn_names)
 
 
             try:
@@ -947,6 +1178,16 @@ class PythonPlaywrightCaptureEngine:
                 self.perform_login(page)
                 raw_inventory = self.inventory_provider.get_page_inventory()
                 inventory = self.inject_dynamic_routes(page, raw_inventory)
+
+                # Safety net: compare the LIVE sidebar against inventory.json
+                # and append any page not already declared. Declared routes
+                # (and their hand-tuned tabs/nested_navigation) are never
+                # touched or reordered - this only fills gaps, so a page
+                # added to the sidebar in the future is still captured even
+                # if nobody remembers to update inventory.json.
+                discovered_routes = self.discover_sidebar_routes(page)
+                if discovered_routes:
+                    inventory = self.merge_discovered_routes(inventory, discovered_routes)
 
                 for item in inventory:
                     check_cancelled_and_exit(self.manifest_service)

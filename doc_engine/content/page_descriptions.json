@@ -9,7 +9,7 @@
       "Manage conversations and switch between multi-thread chats."
     ]
   },
-  "ai::modal::prompt-library": {
+  "ai::prompt_library": {
     "purpose": "Centralized repository for browsing, searching, filtering, and inserting reusable prompts into the AI Workspace chat input.",
     "steps": [
       "Open the Prompt Library from the AI Workspace sidebar card or input toolbar button.",
@@ -19,7 +19,7 @@
       "Favorite, duplicate, edit, or delete existing prompts."
     ]
   },
-  "ai::modal::create-prompt": {
+  "ai::create_prompt": {
     "purpose": "Create or edit custom reusable prompts with name, category, description, and template content.",
     "steps": [
       "Click 'New Prompt' inside the Prompt Library modal.",
@@ -28,7 +28,65 @@
       "Mark as favorite if desired, then save the prompt."
     ]
   },
-
+  "ai::pinned_chats": {
+    "purpose": "Quick access panel listing all conversations the user has pinned for fast retrieval, separate from the full chronological chat history.",
+    "steps": [
+      "Open Pinned Chats from the AI Workspace sidebar card.",
+      "Click a pinned conversation to jump directly into it.",
+      "Unpin a conversation to remove it from this list."
+    ]
+  },
+  "ai::knowledge_search": {
+    "purpose": "Search across all Knowledge Base entries and inject relevant results directly into the active AI chat conversation.",
+    "steps": [
+      "Open Knowledge Search from the AI Workspace sidebar card.",
+      "Type a search term to filter Knowledge Base entries in real time.",
+      "Expand an entry to review its full content.",
+      "Inject, copy, edit, or delete an entry directly from the results list."
+    ]
+  },
+  "ai::knowledge_base": {
+    "purpose": "Central repository of curated business, financial, and application knowledge entries that the AI engine references when answering questions.",
+    "steps": [
+      "Open Knowledge Base from the AI Workspace context panel.",
+      "Filter entries by category using the tab bar.",
+      "Trigger a scan to detect new candidate knowledge from recent activity.",
+      "Select an entry to review its full content, or add a new one."
+    ]
+  },
+  "ai::add_knowledge_entry": {
+    "purpose": "Add a new Knowledge Base entry with category, title, and content that the AI engine can draw on for future responses.",
+    "steps": [
+      "Open Knowledge Base and click 'New Entry'.",
+      "Select a category and provide a title.",
+      "Enter the knowledge content.",
+      "Save the entry to make it available to the AI engine."
+    ]
+  },
+  "ai::dataset_manager": {
+    "purpose": "Review generated training/fine-tuning dataset statistics and trigger generation of new datasets from application activity.",
+    "steps": [
+      "Open Dataset Manager from the AI Workspace context panel.",
+      "Review current dataset statistics broken down by category.",
+      "Refresh statistics or generate a new dataset."
+    ]
+  },
+  "ai::model_management": {
+    "purpose": "Review available AI model backends and versions, promote a version to active, or trigger fine-tuning.",
+    "steps": [
+      "Open Model Management from the AI Workspace context panel.",
+      "Review the list of model versions and their status.",
+      "Promote a version to active, or trigger a new fine-tuning run."
+    ]
+  },
+  "ai::benchmark_results": {
+    "purpose": "Review AI model quality benchmark reports scored across multiple evaluation dimensions.",
+    "steps": [
+      "Open Benchmark Results from the AI Workspace context panel.",
+      "Review existing benchmark reports and their scores.",
+      "Run a new benchmark evaluation."
+    ]
+  },
   "settings::settings-aiadvisor": {
     "purpose": "Configure Self-Evolving AI Platform settings, SFT dataset matrix, training backends, and fine-tuning controls.",
     "steps": [
@@ -868,6 +926,15 @@
       "Navigate to the Settings panel.",
       "Adjust the system preferences as needed.",
       "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-propertyvaluation": {
+    "purpose": "Configure baseline property valuation rates per district, used to estimate current market value for Real Estate fixed assets.",
+    "steps": [
+      "Navigate to Settings > Property Valuation Settings.",
+      "Scrape current district rates from Aqarmap, or load hardcoded baseline rates.",
+      "Review and adjust rates per district as needed.",
+      "Save the valuation settings to apply them across the application."
     ]
   },
   "advanced-reports::company": {
