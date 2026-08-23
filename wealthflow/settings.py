@@ -58,7 +58,9 @@ WSGI_APPLICATION = "wealthflow.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        # Overridable so tooling (e.g. scripts/run_e2e_tests.sh) can point the
+        # app at a disposable copy of the database instead of production.
+        "NAME": os.path.join(BASE_DIR, os.environ.get("WEALTHFLOW_DB_NAME", "db.sqlite3")),
         "OPTIONS": {
             "timeout": 20,
         },
