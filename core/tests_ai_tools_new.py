@@ -200,7 +200,7 @@ class NewAIToolsUnitTestSuite(TestCase):
         self.client.force_login(self.user)
         AppSettings.set("ai_enabled", "true")
 
-        with patch("core.views.ai_chat_views.get_active_ai_provider") as mock_get_provider:
+        with patch("core.views.ai_chat.ai_chat_core_views.get_active_ai_provider") as mock_get_provider:
             mock_provider = MagicMock()
             mock_provider.supports_tools = True
             mock_provider.generate.return_value = {
