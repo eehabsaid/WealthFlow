@@ -23,6 +23,14 @@ async function loadFixedAssetSyncDropdownData() {
     fixedAssetSyncBanks = Array.isArray(bankData.banks) ? bankData.banks.filter((b) => b?.is_active !== false) : [];
   }
 
+  if (!fixedAssetBanksWithBalance.length) {
+    const withBalanceRes = await fetch("/api/banks/with-balance/");
+    if (withBalanceRes.ok) {
+      const withBalanceData = await withBalanceRes.json();
+      fixedAssetBanksWithBalance = Array.isArray(withBalanceData.banks) ? withBalanceData.banks : [];
+    }
+  }
+
   const saleCurrency = document.getElementById("fa_deposit_currency");
   if (saleCurrency) {
     saleCurrency.innerHTML = renderMonetaryCurrencyOptions();
@@ -284,6 +292,21 @@ async function saveFixedAsset(assetId = null) {
 
   payload.furniture = isRealEstate ? collectFurniture() : [];
   payload.valuation_history = (isRealEstate || isVehicle || isOther) ? collectValuationHistory() : [];
+
+  const moneyMovementGroups = [
+    { label: t("acquisition_costs", "Acquisition Costs"), rows: payload.acquisition_costs || [] },
+    { label: t("renovation", "Renovation"), rows: payload.renovations || [] },
+    { label: t("furniture", "Furniture"), rows: payload.furniture || [] },
+    { label: t("rental", "Rental"), rows: payload.rental_details && (payload.rental_details.monthly_rent > 0) ? [payload.rental_details] : [] },
+  ];
+  for (const group of moneyMovementGroups) {
+    for (const row of group.rows) {
+      if (shouldRequireBankForMethod(row.payment_method || row.receive_method) && !row.bank_id) {
+        hideLoading();
+        throw new Error(`${group.label}: ${t("bank_account_required", "Bank account is required for this payment method")}`);
+      }
+    }
+  }
 
   showLoading();
   try {

@@ -30,6 +30,13 @@ function resetRentalForm() {
     const field = document.getElementById(id);
     if (field) field.value = "";
   });
+  const methodField = document.getElementById("fa_rental_receive_method");
+  if (methodField) {
+    methodField.value = "Cash";
+    toggleMoneyMovementBankField(methodField, "rental");
+  }
+  const bankField = document.getElementById("fa_rental_bank");
+  if (bankField) bankField.value = "";
 }
 
 async function deleteRentalDetails() {
@@ -50,6 +57,15 @@ function populateRentalForm(rental) {
   document.getElementById("fa_contract_start").value = rental.contract_start || "";
   document.getElementById("fa_contract_end").value = rental.contract_end || "";
   document.getElementById("fa_rental_notes").value = rental.notes || "";
+
+  const methodField = document.getElementById("fa_rental_receive_method");
+  if (methodField) {
+    methodField.value = rental.receive_method || "Cash";
+    toggleMoneyMovementBankField(methodField, "rental");
+  }
+  const bankField = document.getElementById("fa_rental_bank");
+  if (bankField) bankField.value = rental.bank_id || "";
+
   updateRentalSummary();
 }
 
@@ -60,6 +76,8 @@ function collectRentalPayload() {
     tenant_name: document.getElementById("fa_tenant_name")?.value || "",
     contract_start: document.getElementById("fa_contract_start")?.value || null,
     contract_end: document.getElementById("fa_contract_end")?.value || null,
+    receive_method: document.getElementById("fa_rental_receive_method")?.value || "Cash",
+    bank_id: parseInt(document.getElementById("fa_rental_bank")?.value, 10) || null,
     notes: document.getElementById("fa_rental_notes")?.value || "",
   };
 }

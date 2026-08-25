@@ -40,6 +40,7 @@ from .salary_views import PerDiemDetailView
 from .salary_views import PerDiemCurrencyListView
 from .bank_views import BankListView
 from .bank_views import BankDetailView
+from .bank_views import BankWithBalanceListView
 from .certificate_views import BankCertificateListView
 from .certificate_views import BankCertificateDetailView
 from .certificate_views import BankCertificateInterestHistoryView
@@ -217,6 +218,7 @@ __all__ = [
     "PerDiemCurrencyListView",
     "BankListView",
     "BankDetailView",
+    "BankWithBalanceListView",
     "BankCertificateListView",
     "BankCertificateDetailView",
     "BankCertificateInterestHistoryView",

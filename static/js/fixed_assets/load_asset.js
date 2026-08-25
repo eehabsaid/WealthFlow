@@ -128,6 +128,9 @@ async function loadFixedAsset(assetId) {
       populatePropertyValuationFields({});
     }
 
+    // ---------- Furniture options (captured early so Renovation's furniture-link dropdown can use them) ----------
+    currentAssetFurnitureOptions = asset.furniture || [];
+
     // ---------- Acquisition Costs ----------
     const acquisitionContainer = document.getElementById("acquisitionContainer");
     if (acquisitionContainer) {
@@ -141,6 +144,8 @@ async function loadFixedAsset(assetId) {
             amount_egp: c.amount_egp,
             usd_rate: c.usd_rate,
             amount_usd: c.amount_usd,
+            payment_method: c.payment_method,
+            bank_id: c.bank_id,
             notes: c.notes,
           });
         });
@@ -161,9 +166,12 @@ async function loadFixedAsset(assetId) {
             date: r.date,
             category: r.category,
             description: r.description,
+            furniture_id: r.furniture_id,
             amount_egp: r.amount_egp,
             usd_rate: r.usd_rate,
             amount_usd: r.amount_usd,
+            payment_method: r.payment_method,
+            bank_id: r.bank_id,
             notes: r.notes,
           });
         });

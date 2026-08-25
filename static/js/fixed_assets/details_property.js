@@ -313,6 +313,14 @@ function renderRentalTab() {
                               <label class="form-label" data-i18n="contract_end">Contract End</label>
                               <input type="date" class="form-control" id="fa_contract_end">
                             </div>
+                            <div class="field">
+                              <label class="form-label" data-i18n="receive_method">Receive Into</label>
+                              <select class="form-select rental-payment-method" id="fa_rental_receive_method" onchange="toggleMoneyMovementBankField(this, 'rental')">${renderPaymentMethodOptions("Cash")}</select>
+                            </div>
+                            <div class="field rental-bank-wrap" style="display:none;">
+                              <label class="form-label" data-i18n="bank_account">Bank Account<span class="text-danger"> *</span></label>
+                              <select class="form-select rental-bank" id="fa_rental_bank">${renderBankWithBalanceOptions("")}</select>
+                            </div>
                             <div class="field span-4">
                               <label class="form-label" data-i18n="rental_notes">Rental Notes</label>
                               <textarea class="form-control" id="fa_rental_notes" rows="3"></textarea>

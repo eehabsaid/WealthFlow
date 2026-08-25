@@ -189,6 +189,13 @@ def handle_asset_mortgage_delete(sender, instance, **kwargs):
 
 
 class AssetRental(models.Model):
+    PAYMENT_METHOD_CHOICES = [
+        ("Cash", "Cash"),
+        ("Card", "Card"),
+        ("Bank", "Bank"),
+        ("Bank Transfer", "Bank Transfer"),
+    ]
+
     asset = models.OneToOneField(
         FixedAsset,
         on_delete=models.CASCADE,
@@ -210,6 +217,21 @@ class AssetRental(models.Model):
     tenant_name = models.CharField(max_length=200, blank=True)
     contract_start = models.DateField(null=True, blank=True)
     contract_end = models.DateField(null=True, blank=True)
+
+    receive_method = models.CharField(
+        max_length=30,
+        choices=PAYMENT_METHOD_CHOICES,
+        default="Cash",
+    )
+
+    bank = models.ForeignKey(
+        "Bank",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="asset_rentals",
+    )
+
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -229,6 +251,9 @@ class AssetRental(models.Model):
             "tenant_name": self.tenant_name,
             "contract_start": _date_to_iso(self.contract_start),
             "contract_end": _date_to_iso(self.contract_end),
+            "receive_method": self.receive_method,
+            "bank_id": self.bank_id,
+            "bank_name": self.bank.name if self.bank else "",
             "notes": self.notes,
         }
 

@@ -262,3 +262,53 @@ function renderBankOptions(selectedBankId = "") {
   return rows.join("");
 }
 
+function renderBankWithBalanceOptions(selectedBankId = "") {
+  const rows = [`<option value="">${t("select_bank_account", "Select bank account")}</option>`];
+  fixedAssetBanksWithBalance.forEach((bank) => {
+    const selected = String(selectedBankId) === String(bank.id) ? "selected" : "";
+    rows.push(`<option value="${bank.id}" ${selected}>${bank.name}</option>`);
+  });
+  return rows.join("");
+}
+
+function renderMoneyMovementFields(prefix, method = "Cash", bankId = "", labels = {}) {
+  const required = shouldRequireBankForMethod(method);
+  const methodLabel = labels.methodLabel || "payment_method";
+  const methodLabelDefault = labels.methodLabelDefault || "Payment Method";
+  const bankLabel = labels.bankLabel || "bank_account";
+  const bankLabelDefault = labels.bankLabelDefault || "Bank Account";
+  return `
+    <div class="field">
+      <label class="form-label small" data-i18n="${methodLabel}">${t(methodLabel, methodLabelDefault)}</label>
+      <select class="form-select ${prefix}-payment-method" onchange="toggleMoneyMovementBankField(this, '${prefix}')">${renderPaymentMethodOptions(method)}</select>
+    </div>
+    <div class="field ${prefix}-bank-wrap" ${required ? "" : 'style="display:none;"'}>
+      <label class="form-label small" data-i18n="${bankLabel}">${t(bankLabel, bankLabelDefault)}<span class="text-danger"> *</span></label>
+      <select class="form-select ${prefix}-bank">${renderBankWithBalanceOptions(bankId)}</select>
+    </div>
+  `;
+}
+
+function toggleMoneyMovementBankField(selectEl, prefix) {
+  const row = selectEl.closest(`.${prefix}-row`) || selectEl.closest("form") || document;
+  const method = selectEl.value;
+  const required = shouldRequireBankForMethod(method);
+  const wrap = row.querySelector(`.${prefix}-bank-wrap`);
+  const bankSelect = row.querySelector(`.${prefix}-bank`);
+
+  if (wrap) wrap.style.display = required ? "" : "none";
+  if (bankSelect) {
+    bankSelect.required = required;
+    if (!required) bankSelect.value = "";
+  }
+}
+
+function renderFurnitureLinkOptions(selectedFurnitureId = "") {
+  const rows = [`<option value="">${t("none_option", "— None —")}</option>`];
+  (currentAssetFurnitureOptions || []).forEach((item) => {
+    const selected = String(selectedFurnitureId) === String(item.id) ? "selected" : "";
+    rows.push(`<option value="${item.id}" ${selected}>${item.name}</option>`);
+  });
+  return rows.join("");
+}
+

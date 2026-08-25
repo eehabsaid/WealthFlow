@@ -1269,6 +1269,20 @@ class FixedAssetAcquisitionCostsTest(TestCase):
             purchase_price=1000000,
             current_market_value=1200000,
         )
+        # Acquisition costs now debit a matching Cash balance entry (money-movement
+        # sync, same pattern as core/services/expenses/expense_service.py). A Cash
+        # entry must exist or the create/update endpoints return 400
+        # matching_balance_entry_not_found.
+        currency_egp, _ = Currency.objects.get_or_create(
+            code="EGP", defaults={"symbol": "£", "name": "Egyptian Pound"}
+        )
+        self.cash_entry = BalanceEntry.objects.create(
+            title="Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=currency_egp,
+            amount=1000000,
+        )
 
     def test_acquisition_cost_categories_endpoint(self):
         response = self.client.get("/api/asset-acquisition-costs/categories/")

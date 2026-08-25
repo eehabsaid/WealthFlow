@@ -341,6 +341,7 @@ async function showFixedAssetModal(assetId = null, options = {}) {
   }
 
   await loadFixedAssetSyncDropdownData();
+  currentAssetFurnitureOptions = [];
   resetPurchasePaymentsForm();
   addPurchasePaymentRow();
   propertyPhotos = [];

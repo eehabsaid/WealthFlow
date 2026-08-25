@@ -67,6 +67,9 @@ function addRenovationRow(data = {}, expand = false) {
   const normVal = category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
   const amountEgpVal = data.amount_egp || "";
   const descVal = data.description || "";
+  const paymentMethodVal = data.payment_method || "Cash";
+  const bankIdVal = data.bank_id || "";
+  const furnitureIdVal = data.furniture_id || "";
 
   const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const initialAmountPreview = amountEgpVal ? `EGP ${fmt(parseFloat(amountEgpVal) || 0)}` : "EGP 0.00";
@@ -117,8 +120,10 @@ function addRenovationRow(data = {}, expand = false) {
           <input type="number" step="0.01" class="form-control renovation-usd" value="${data.amount_usd || ""}" readonly>
         </div>
         <div class="field span-2">
-          <label class="form-label small">&nbsp;</label>
+          <label class="form-label small" data-i18n="related_furniture">Related Furniture / Appliance</label>
+          <select class="form-select renovation-furniture">${renderFurnitureLinkOptions(furnitureIdVal)}</select>
         </div>
+        ${renderMoneyMovementFields("renovation", paymentMethodVal, bankIdVal)}
         <div class="field span-4">
           <label class="form-label small" data-i18n="notes">Notes</label>
           <textarea class="form-control renovation-notes" rows="2">${data.notes || ""}</textarea>
@@ -161,6 +166,8 @@ function addRenovationRow(data = {}, expand = false) {
     updateRenovationSummary();
   });
 
+  toggleMoneyMovementBankField(row.querySelector(".renovation-payment-method"), "renovation");
+
   // Reusable card accordion init
   initCollapsibleCard(row, "#renovationContainer");
 
@@ -194,12 +201,18 @@ function collectRenovations() {
 
       description: row.querySelector(".renovation-description").value,
 
+      furniture_id: parseInt(row.querySelector(".renovation-furniture")?.value, 10) || null,
+
       amount_egp: parseFloat(row.querySelector(".renovation-egp").value) || 0,
 
       usd_rate:
         parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0,
 
       amount_usd: parseFloat(row.querySelector(".renovation-usd").value) || 0,
+
+      payment_method: row.querySelector(".renovation-payment-method")?.value || "Cash",
+
+      bank_id: parseInt(row.querySelector(".renovation-bank")?.value, 10) || null,
 
       notes: row.querySelector(".renovation-notes").value,
     });

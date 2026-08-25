@@ -9,9 +9,24 @@ from .bank import Bank
 from .balance import BalanceEntry
 
 class AssetRenovation(models.Model):
+    PAYMENT_METHOD_CHOICES = [
+        ("Cash", "Cash"),
+        ("Card", "Card"),
+        ("Bank", "Bank"),
+        ("Bank Transfer", "Bank Transfer"),
+    ]
+
     asset = models.ForeignKey(
         FixedAsset,
         on_delete=models.CASCADE,
+        related_name="renovations",
+    )
+
+    furniture = models.ForeignKey(
+        "AssetFurniture",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="renovations",
     )
 
@@ -43,6 +58,20 @@ class AssetRenovation(models.Model):
         default=0,
     )
 
+    payment_method = models.CharField(
+        max_length=30,
+        choices=PAYMENT_METHOD_CHOICES,
+        default="Cash",
+    )
+
+    bank = models.ForeignKey(
+        Bank,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="asset_renovations",
+    )
+
     notes = models.TextField(
         blank=True,
     )
@@ -62,12 +91,17 @@ class AssetRenovation(models.Model):
         return {
             "id": self.id,
             "asset_id": self.asset_id,
+            "furniture_id": self.furniture_id,
+            "furniture_name": self.furniture.name if self.furniture else "",
             "date": self.date.isoformat() if self.date else "",
             "category": self.category,
             "description": self.description,
             "amount_egp": float(self.amount_egp),
             "usd_rate": float(self.usd_rate),
             "amount_usd": float(self.amount_usd),
+            "payment_method": self.payment_method,
+            "bank_id": self.bank_id,
+            "bank_name": self.bank.name if self.bank else "",
             "notes": self.notes,
         }
     
@@ -76,6 +110,13 @@ class AssetRenovation(models.Model):
 
 
 class AssetFurniture(models.Model):
+    PAYMENT_METHOD_CHOICES = [
+        ("Cash", "Cash"),
+        ("Card", "Card"),
+        ("Bank", "Bank"),
+        ("Bank Transfer", "Bank Transfer"),
+    ]
+
     asset = models.ForeignKey(
         FixedAsset,
         on_delete=models.CASCADE,
@@ -113,6 +154,20 @@ class AssetFurniture(models.Model):
 
     quantity = models.PositiveIntegerField(default=1)
 
+    payment_method = models.CharField(
+        max_length=30,
+        choices=PAYMENT_METHOD_CHOICES,
+        default="Cash",
+    )
+
+    bank = models.ForeignKey(
+        Bank,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="asset_furniture",
+    )
+
     notes = models.TextField(blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -137,6 +192,9 @@ class AssetFurniture(models.Model):
             "usd_rate": float(self.usd_rate),
             "amount_usd": float(self.amount_usd),
             "quantity": self.quantity,
+            "payment_method": self.payment_method,
+            "bank_id": self.bank_id,
+            "bank_name": self.bank.name if self.bank else "",
             "notes": self.notes,
         }
 
@@ -378,6 +436,13 @@ def handle_asset_sale_delete(sender, instance, **kwargs):
 
 
 class AssetAcquisitionCost(models.Model):
+    PAYMENT_METHOD_CHOICES = [
+        ("Cash", "Cash"),
+        ("Card", "Card"),
+        ("Bank", "Bank"),
+        ("Bank Transfer", "Bank Transfer"),
+    ]
+
     asset = models.ForeignKey(
         FixedAsset,
         on_delete=models.CASCADE,
@@ -412,6 +477,20 @@ class AssetAcquisitionCost(models.Model):
         default=0,
     )
 
+    payment_method = models.CharField(
+        max_length=30,
+        choices=PAYMENT_METHOD_CHOICES,
+        default="Cash",
+    )
+
+    bank = models.ForeignKey(
+        Bank,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="asset_acquisition_costs",
+    )
+
     notes = models.TextField(
         blank=True,
     )
@@ -437,6 +516,9 @@ class AssetAcquisitionCost(models.Model):
             "amount_egp": float(self.amount_egp),
             "usd_rate": float(self.usd_rate),
             "amount_usd": float(self.amount_usd),
+            "payment_method": self.payment_method,
+            "bank_id": self.bank_id,
+            "bank_name": self.bank.name if self.bank else "",
             "notes": self.notes,
         }
 

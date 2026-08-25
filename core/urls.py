@@ -44,6 +44,7 @@ urlpatterns = [
     path("api/per-diems/<int:pk>/", views.PerDiemDetailView.as_view()),
     path("api/per-diems/currencies/", views.PerDiemCurrencyListView.as_view()),
     path("api/banks/", views.BankListView.as_view()),
+    path("api/banks/with-balance/", views.BankWithBalanceListView.as_view()),
     path("api/banks/<int:pk>/", views.BankDetailView.as_view()),
     path("api/bank-certificates/", views.BankCertificateListView.as_view()),
     path("api/bank-certificates/<int:pk>/", views.BankCertificateDetailView.as_view()),

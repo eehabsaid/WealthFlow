@@ -1,5 +1,7 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
+from decimal import Decimal
+from django.db import transaction
 from core.models import (
     OtherAssetDetails,
     AssetMortgage,
@@ -13,6 +15,7 @@ from core.constants import (
 from core.utils import (
     _parse_iso_date,
 )
+from core.services.expenses.expense_service import _apply_expense_balance_delta
 
 def _sync_other_asset_details(asset, details_data):
     if asset.asset_type not in OTHER_ASSET_TYPES or not details_data:
@@ -71,6 +74,7 @@ def _sync_asset_mortgage(asset, mortgage_data):
 def _sync_asset_rental(asset, rental_data):
     if asset.asset_type not in REAL_ESTATE_ASSET_TYPES or not rental_data:
         if hasattr(asset, "rental"):
+            _reverse_rental_balance(asset.rental)
             asset.rental.delete()
         return
 
@@ -88,18 +92,41 @@ def _sync_asset_rental(asset, rental_data):
 
     if not has_values:
         if hasattr(asset, "rental"):
+            _reverse_rental_balance(asset.rental)
             asset.rental.delete()
         return
 
-    AssetRental.objects.update_or_create(
-        asset=asset,
-        defaults={
-            "monthly_rent": rental_data.get("monthly_rent", 0),
-            "occupancy_rate": rental_data.get("occupancy_rate", 0),
-            "tenant_name": rental_data.get("tenant_name", ""),
-            "contract_start": _parse_iso_date(rental_data.get("contract_start")),
-            "contract_end": _parse_iso_date(rental_data.get("contract_end")),
-            "notes": rental_data.get("notes", ""),
-        },
-    )
+    previous_rental = getattr(asset, "rental", None)
+    previous_method = previous_rental.receive_method if previous_rental else None
+    previous_bank_id = previous_rental.bank_id if previous_rental else None
+    previous_amount = Decimal(str(previous_rental.monthly_rent or 0)) if previous_rental else Decimal("0")
+
+    with transaction.atomic():
+        rental, _ = AssetRental.objects.update_or_create(
+            asset=asset,
+            defaults={
+                "monthly_rent": rental_data.get("monthly_rent", 0),
+                "occupancy_rate": rental_data.get("occupancy_rate", 0),
+                "tenant_name": rental_data.get("tenant_name", ""),
+                "contract_start": _parse_iso_date(rental_data.get("contract_start")),
+                "contract_end": _parse_iso_date(rental_data.get("contract_end")),
+                "receive_method": rental_data.get("receive_method", "Cash"),
+                "bank_id": rental_data.get("bank_id"),
+                "notes": rental_data.get("notes", ""),
+            },
+        )
+
+        if previous_amount > 0 and previous_method:
+            _apply_expense_balance_delta(previous_method, previous_bank_id, -previous_amount)
+
+        new_amount = Decimal(str(rental.monthly_rent or 0))
+        if new_amount > 0:
+            _apply_expense_balance_delta(rental.receive_method, rental.bank_id, new_amount)
+
+def _reverse_rental_balance(rental):
+    if rental is None:
+        return
+    amount = Decimal(str(rental.monthly_rent or 0))
+    if amount > 0 and rental.receive_method:
+        _apply_expense_balance_delta(rental.receive_method, rental.bank_id, -amount)
 

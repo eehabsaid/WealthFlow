@@ -69,6 +69,8 @@ function addFurnitureRow(data = {}, expand = false) {
   const quantity = (parseInt(data.quantity) || 1);
   const amountEgpVal = data.amount_egp || 0; // Use raw amount
   const nameVal = data.name || "";
+  const paymentMethodVal = data.payment_method || "Cash";
+  const bankIdVal = data.bank_id || "";
 
   const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const initialAmountPreview = amountEgpVal ? `EGP ${fmt(parseFloat(amountEgpVal) || 0)}` : "EGP 0.00";
@@ -126,9 +128,7 @@ function addFurnitureRow(data = {}, expand = false) {
           <label class="form-label small" data-i18n="amount_usd">Amount USD</label>
           <input type="number" step="0.01" class="form-control furniture-usd" value="${data.amount_usd || ""}" readonly>
         </div>
-        <div class="field">
-          <label class="form-label small">&nbsp;</label>
-        </div>
+        ${renderMoneyMovementFields("furniture", paymentMethodVal, bankIdVal)}
         <div class="field span-4">
           <label class="form-label small" data-i18n="notes">Notes</label>
           <textarea class="form-control furniture-notes" rows="2">${data.notes || ""}</textarea>
@@ -176,6 +176,8 @@ function addFurnitureRow(data = {}, expand = false) {
     updateFurnitureUSD(rateInput);
     updateFurnitureSummary();
   });
+
+  toggleMoneyMovementBankField(row.querySelector(".furniture-payment-method"), "furniture");
 
   // Reusable card accordion init
   initCollapsibleCard(row, "#furnitureContainer");
@@ -253,6 +255,8 @@ function collectFurniture() {
       usd_rate: parseFloat(row.querySelector(".furniture-usd-rate").value) || 0,
       amount_usd: parseFloat(row.querySelector(".furniture-usd").value) || 0,
       quantity: parseInt(row.querySelector(".furniture-quantity").value, 10) || 1,
+      payment_method: row.querySelector(".furniture-payment-method")?.value || "Cash",
+      bank_id: parseInt(row.querySelector(".furniture-bank")?.value, 10) || null,
       notes: row.querySelector(".furniture-notes").value,
     });
   });
