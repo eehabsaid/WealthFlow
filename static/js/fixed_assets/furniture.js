@@ -63,6 +63,7 @@ function addFurnitureRow(data = {}, expand = false) {
 
   const row = document.createElement("div");
   row.className = "furniture-row item-card card";
+  row.dataset.furnitureId = data.id || "";
 
   const category = data.category || "Living Room";
   const normVal = category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
@@ -248,6 +249,7 @@ function collectFurniture() {
     const name = row.querySelector(".furniture-name").value;
     if (!name) return;
     furniture.push({
+      id: row.dataset.furnitureId ? parseInt(row.dataset.furnitureId, 10) : null,
       name,
       category: row.querySelector(".furniture-category").value,
       purchase_date: row.querySelector(".furniture-purchase-date").value || null,

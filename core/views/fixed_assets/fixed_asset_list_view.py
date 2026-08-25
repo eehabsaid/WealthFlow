@@ -138,12 +138,12 @@ class FixedAssetListView(View):
                 _sync_asset_mortgage(asset, data.get("mortgage_details"))
                 _sync_asset_rental(asset, data.get("rental_details"))
 
+                _sync_asset_furniture(asset, data.get("furniture", []))
                 _sync_asset_renovations(asset, data.get("renovations", []))
                 _sync_asset_acquisition_costs(asset, data.get("acquisition_costs", []))
 
                 _sync_asset_maintenance(asset, data.get("maintenance", []))
                 _sync_asset_insurance(asset, data.get("insurance", []))
-                _sync_asset_furniture(asset, data.get("furniture", []))
                 _sync_asset_valuation_history(asset, data.get("valuation_history", []))
                 _clear_non_selected_asset_details(asset)
 
