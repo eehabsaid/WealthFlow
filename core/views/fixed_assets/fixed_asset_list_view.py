@@ -9,17 +9,14 @@ from django.db import transaction
 from core.models import (
     FixedAsset,
     RealEstateDetails,
-    AssetRenovation,
-    AssetAcquisitionCost,
 )
 from core.services.balance.net_worth_service import NetWorthService
-from core.constants import REAL_ESTATE_ASSET_TYPES
-
 from core.services.fixed_assets.asset_purchase_service import _apply_asset_purchase_rows_delta, _normalize_purchase_payments_payload, _sync_asset_purchase_payments
 from core.services.fixed_assets.vehicle_service import _sync_vehicle_details
 from core.services.fixed_assets.gold_sync_service import _sync_gold_balance_from_assets, _sync_gold_details
 from core.services.fixed_assets.property_service import _sync_asset_mortgage, _sync_asset_rental, _sync_other_asset_details
 from core.services.fixed_assets.asset_maintenance_service import _sync_asset_furniture, _sync_asset_insurance, _sync_asset_maintenance, _sync_asset_valuation_history
+from core.services.fixed_assets.asset_cost_sync_service import _sync_asset_renovations, _sync_asset_acquisition_costs
 from core.views.fixed_assets.fixed_asset_helpers import (
     _resolve_asset_usd_rate_and_price,
     _clear_non_selected_asset_details,
@@ -141,35 +138,8 @@ class FixedAssetListView(View):
                 _sync_asset_mortgage(asset, data.get("mortgage_details"))
                 _sync_asset_rental(asset, data.get("rental_details"))
 
-                for item in data.get("renovations", []):
-                    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
-                        break
-
-                    AssetRenovation.objects.create(
-                        asset=asset,
-                        date=item.get("date") or None,
-                        category=item.get("category", ""),
-                        description=item.get("description", ""),
-                        amount_egp=item.get("amount_egp", 0),
-                        usd_rate=item.get("usd_rate", 0),
-                        amount_usd=item.get("amount_usd", 0),
-                        notes=item.get("notes", ""),
-                    )
-
-                for item in data.get("acquisition_costs", []):
-                    if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
-                        break
-
-                    AssetAcquisitionCost.objects.create(
-                        asset=asset,
-                        date=item.get("date") or None,
-                        category=item.get("category", ""),
-                        description=item.get("description", ""),
-                        amount_egp=item.get("amount_egp") or 0,
-                        usd_rate=item.get("usd_rate") or 0,
-                        amount_usd=item.get("amount_usd") or 0,
-                        notes=item.get("notes", ""),
-                    )
+                _sync_asset_renovations(asset, data.get("renovations", []))
+                _sync_asset_acquisition_costs(asset, data.get("acquisition_costs", []))
 
                 _sync_asset_maintenance(asset, data.get("maintenance", []))
                 _sync_asset_insurance(asset, data.get("insurance", []))

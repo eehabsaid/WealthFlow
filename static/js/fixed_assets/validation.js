@@ -336,7 +336,13 @@ async function saveFixedAsset(assetId = null) {
 
     const savedAsset = await response.json();
 
-  await syncAssetSale(savedAsset.id, assetStatus);
+  // Only touch the sale endpoint when there's actually something to do:
+  // status is "Sold" (create/update the sale record), or a sale record
+  // already exists and needs to be removed because status moved away
+  // from "Sold". Skips a redundant DELETE call on every ordinary save.
+  if (assetStatus === "Sold" || savedAsset.sale) {
+    await syncAssetSale(savedAsset.id, assetStatus);
+  }
 
     const files = document.getElementById("propertyPhotoInput").files;
 

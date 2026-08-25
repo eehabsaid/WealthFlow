@@ -1,5 +1,6 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
+from decimal import Decimal
 from core.models import (
     AssetMaintenance,
     AssetInsurance,
@@ -12,6 +13,7 @@ from core.constants import (
     VEHICLE_ASSET_TYPES,
     OTHER_ASSET_TYPES,
 )
+from core.services.expenses.expense_service import _apply_expense_balance_delta
 
 def _sync_asset_maintenance(asset, items):
     AssetMaintenance.objects.filter(asset=asset).delete()
@@ -47,24 +49,34 @@ def _sync_asset_insurance(asset, items):
 
 def _sync_asset_furniture(asset, items):
     if asset.asset_type not in REAL_ESTATE_ASSET_TYPES:
+        for old in AssetFurniture.objects.filter(asset=asset):
+            _apply_expense_balance_delta(old.payment_method, old.bank_id, Decimal(str(old.amount_egp or 0)))
         AssetFurniture.objects.filter(asset=asset).delete()
         return
 
+    for old in AssetFurniture.objects.filter(asset=asset):
+        _apply_expense_balance_delta(old.payment_method, old.bank_id, Decimal(str(old.amount_egp or 0)))
     AssetFurniture.objects.filter(asset=asset).delete()
     for item in items or []:
         if not item.get("name"):
             continue
+        payment_method = item.get("payment_method", "Cash")
+        bank_id = item.get("bank_id")
+        amount_egp = item.get("amount_egp", 0)
         AssetFurniture.objects.create(
             asset=asset,
             name=item.get("name", ""),
             category=item.get("category", ""),
             purchase_date=item.get("purchase_date") or None,
-            amount_egp=item.get("amount_egp", 0),
+            amount_egp=amount_egp,
             usd_rate=item.get("usd_rate", 0),
             amount_usd=item.get("amount_usd", 0),
             quantity=item.get("quantity", 1),
+            payment_method=payment_method,
+            bank_id=bank_id,
             notes=item.get("notes", ""),
         )
+        _apply_expense_balance_delta(payment_method, bank_id, -Decimal(str(amount_egp or 0)))
 
 def _sync_asset_valuation_history(asset, items):
     if asset.asset_type not in REAL_ESTATE_ASSET_TYPES and asset.asset_type not in VEHICLE_ASSET_TYPES and asset.asset_type not in OTHER_ASSET_TYPES:

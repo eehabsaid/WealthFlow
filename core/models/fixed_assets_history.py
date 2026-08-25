@@ -85,7 +85,7 @@ class AssetRenovation(models.Model):
     )
 
     class Meta:
-        ordering = ["date", "id"]
+        ordering = ["-date", "-id"]
 
     def to_dict(self):
         return {
