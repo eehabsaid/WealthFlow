@@ -17,7 +17,7 @@ class AssetMaintenanceListView(View):
     def get(self, request):
         asset_id = request.GET.get("asset")
 
-        qs = AssetMaintenance.objects.all().order_by("date", "id")
+        qs = AssetMaintenance.objects.all().order_by("-date", "-id")
 
         if asset_id:
             qs = qs.filter(asset_id=asset_id)

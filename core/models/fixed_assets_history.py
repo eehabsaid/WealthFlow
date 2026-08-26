@@ -187,7 +187,7 @@ class AssetFurniture(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["-purchase_date", "-id"]
     
     def to_dict(self):
         return {
@@ -528,7 +528,7 @@ class AssetAcquisitionCost(models.Model):
     )
 
     class Meta:
-        ordering = ["date", "id"]
+        ordering = ["-date", "-id"]
 
     def to_dict(self):
         return {

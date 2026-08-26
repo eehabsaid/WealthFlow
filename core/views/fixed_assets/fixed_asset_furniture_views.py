@@ -35,7 +35,7 @@ class AssetFurnitureListView(View):
     def get(self, request):
         asset_id = request.GET.get("asset")
 
-        qs = AssetFurniture.objects.all().order_by("name")
+        qs = AssetFurniture.objects.all().order_by("-purchase_date", "-id")
 
         if asset_id:
             qs = qs.filter(asset_id=asset_id)

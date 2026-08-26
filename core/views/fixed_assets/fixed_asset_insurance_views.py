@@ -17,7 +17,7 @@ class AssetInsuranceListView(View):
     def get(self, request):
         asset_id = request.GET.get("asset")
 
-        qs = AssetInsurance.objects.all().order_by("expiry_date", "id")
+        qs = AssetInsurance.objects.all().order_by("-expiry_date", "-id")
 
         if asset_id:
             qs = qs.filter(asset_id=asset_id)

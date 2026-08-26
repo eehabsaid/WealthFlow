@@ -30,7 +30,7 @@ def _balance_error_response(exc):
 class AssetAcquisitionCostListView(View):
     def get(self, request):
         asset_id = request.GET.get("asset")
-        qs = AssetAcquisitionCost.objects.all().order_by("date", "id")
+        qs = AssetAcquisitionCost.objects.all().order_by("-date", "-id")
         if asset_id:
             qs = qs.filter(asset_id=asset_id)
         return JsonResponse({

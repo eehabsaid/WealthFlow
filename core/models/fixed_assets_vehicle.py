@@ -54,13 +54,13 @@ class AssetMaintenance(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["date", "id"]
+        ordering = ["-date", "-id"]
 
     def to_dict(self):
         return {
             "id": self.id,
             "asset_id": self.asset_id,
-            "date": self.date.isoformat() if self.date else "",
+            "date": self.date.isoformat() if hasattr(self.date, "isoformat") else (self.date or ""),
             "type": self.maintenance_type,
             "cost": float(self.cost or 0),
             "notes": self.notes,
@@ -81,7 +81,7 @@ class AssetInsurance(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["expiry_date", "id"]
+        ordering = ["-expiry_date", "-id"]
 
     def to_dict(self):
         return {
@@ -89,6 +89,6 @@ class AssetInsurance(models.Model):
             "asset_id": self.asset_id,
             "company": self.company,
             "policy_number": self.policy_number,
-            "expiry_date": self.expiry_date.isoformat() if self.expiry_date else "",
+            "expiry_date": self.expiry_date.isoformat() if hasattr(self.expiry_date, "isoformat") else (self.expiry_date or ""),
             "premium": float(self.premium or 0),
         }
