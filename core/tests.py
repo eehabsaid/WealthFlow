@@ -1426,7 +1426,7 @@ class AssetExpenseMirrorTest(TestCase):
         )
         mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
         self.assertEqual(mirror.amount_egp, Decimal("5000"))
-        self.assertEqual(mirror.description, "Living room paint job")
+        self.assertEqual(mirror.description, "Renovation: Painting — Living room paint job")
         self.assertTrue(mirror.is_readonly_mirror)
         self.assertEqual(mirror.year, 2025)
         self.assertEqual(mirror.month, 3)
@@ -1436,7 +1436,7 @@ class AssetExpenseMirrorTest(TestCase):
         renovation.save()
         mirror.refresh_from_db()
         self.assertEqual(mirror.amount_egp, Decimal("7500"))
-        self.assertEqual(mirror.description, "Living room + hallway paint job")
+        self.assertEqual(mirror.description, "Renovation: Painting — Living room + hallway paint job")
         # still exactly one mirror row for this renovation
         self.assertEqual(
             Expense.objects.filter(source_type="asset_renovation", source_id=renovation.id).count(), 1
@@ -1461,6 +1461,44 @@ class AssetExpenseMirrorTest(TestCase):
         mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
         self.assertEqual(mirror.payment_method, "Bank Transfer")
         self.assertEqual(mirror.bank_id, bank.id)
+
+    def test_zero_amount_renovation_is_not_mirrored(self):
+        renovation = AssetRenovation.objects.create(
+            asset=self.asset,
+            date=date(2025, 3, 10),
+            category="Painting",
+            amount_egp=0,
+        )
+        self.assertFalse(
+            Expense.objects.filter(source_type="asset_renovation", source_id=renovation.id).exists()
+        )
+
+    def test_renovation_mirror_removed_when_amount_cleared_to_zero(self):
+        renovation = AssetRenovation.objects.create(
+            asset=self.asset,
+            date=date(2025, 3, 10),
+            category="Painting",
+            amount_egp=5000,
+        )
+        self.assertTrue(
+            Expense.objects.filter(source_type="asset_renovation", source_id=renovation.id).exists()
+        )
+
+        renovation.amount_egp = 0
+        renovation.save()
+        self.assertFalse(
+            Expense.objects.filter(source_type="asset_renovation", source_id=renovation.id).exists()
+        )
+
+    def test_renovation_description_falls_back_to_category_when_blank(self):
+        renovation = AssetRenovation.objects.create(
+            asset=self.asset,
+            date=date(2025, 3, 10),
+            category="Plumbing",
+            amount_egp=1000,
+        )
+        mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
+        self.assertEqual(mirror.description, "Renovation: Plumbing")
 
     # ── Acquisition cost mirroring ─────────────────────────────────────
     def test_acquisition_cost_mirrors_and_defaults_to_today_when_date_missing(self):
@@ -1497,6 +1535,28 @@ class AssetExpenseMirrorTest(TestCase):
         mirror.refresh_from_db()
         self.assertEqual(mirror.date, date(2025, 5, 20))
         self.assertEqual(mirror.month, 5)
+
+    def test_furniture_description_combines_category_and_name(self):
+        furniture = AssetFurniture.objects.create(
+            asset=self.asset,
+            name="Sofa",
+            category="Living Room",
+            purchase_date=date(2025, 4, 1),
+            amount_egp=8000,
+        )
+        mirror = Expense.objects.get(source_type="asset_furniture", source_id=furniture.id)
+        self.assertEqual(mirror.description, "Furniture: Living Room — Sofa")
+
+    def test_zero_amount_furniture_is_not_mirrored(self):
+        furniture = AssetFurniture.objects.create(
+            asset=self.asset,
+            name="Free sample chair",
+            purchase_date=date(2025, 4, 1),
+            amount_egp=0,
+        )
+        self.assertFalse(
+            Expense.objects.filter(source_type="asset_furniture", source_id=furniture.id).exists()
+        )
 
     def test_furniture_stable_id_updates_mirror_in_place(self):
         furniture = AssetFurniture.objects.create(

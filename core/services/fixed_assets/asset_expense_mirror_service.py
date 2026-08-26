@@ -1,5 +1,4 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
-# pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 """Keeps a read-only Expense mirror row in sync with a fixed-asset
 renovation, acquisition cost, or furniture record, so that spend
 accumulates in Expenses/dashboards like a manual entry — without ever
@@ -86,6 +85,14 @@ def _sync_mirror(source_type, source_id, *, date_value, description, amount_egp,
     if not source_id:
         return None
 
+    amount = Decimal(str(amount_egp or 0))
+    # A zero/blank amount has nothing to show in Expenses — drop any
+    # existing mirror instead of leaving a noise $0 row (e.g. a draft
+    # renovation row the user hasn't filled in yet).
+    if amount <= 0:
+        _delete_mirror(source_type, source_id)
+        return None
+
     # AssetAcquisitionCost.date / AssetFurniture.purchase_date can be left
     # blank — default to today rather than skipping the mirror, so the
     # spend is never silently missing from Expenses/dashboards. Once the
@@ -93,7 +100,6 @@ def _sync_mirror(source_type, source_id, *, date_value, description, amount_egp,
     date_value = _normalize_date(date_value) or _date.today()
 
     category, subcategory = _get_or_create_fixed_assets_subcategory(source_type)
-    amount = Decimal(str(amount_egp or 0))
     currency = _egp_currency()
 
     defaults = {
@@ -120,14 +126,23 @@ def _sync_mirror(source_type, source_id, *, date_value, description, amount_egp,
     return exp
 
 
+def _compose_description(type_label, detail, free_text):
+    """e.g. "Renovation: Painting — Living room paint job" — combines the
+    item's type/category with its free-text description instead of
+    showing only whichever one happens to be filled in."""
+    head = f"{type_label}: {detail}".strip(": ").strip() if detail else type_label
+    free_text = (free_text or "").strip()
+    if free_text:
+        return f"{head} — {free_text}"
+    return head
+
+
 def sync_renovation_mirror(renovation):
     if renovation is None or not renovation.id:
         return None
     asset_name = renovation.asset.name if renovation.asset_id else ""
-    description = renovation.description.strip() if renovation.description else ""
-    if not description:
-        description = renovation.category or "Renovation"
-    notes = f"Auto-generated from asset renovation on '{asset_name}'. Read-only — edit/delete on the asset instead."
+    description = _compose_description("Renovation", renovation.category, renovation.description)
+    notes = f"Auto-generated from asset renovation on '{asset_name}'. Read-only — edit/delete it from the Fixed Assets tab instead."
     return _sync_mirror(
         SOURCE_RENOVATION,
         renovation.id,
@@ -148,10 +163,8 @@ def sync_acquisition_cost_mirror(acquisition_cost):
     if acquisition_cost is None or not acquisition_cost.id:
         return None
     asset_name = acquisition_cost.asset.name if acquisition_cost.asset_id else ""
-    description = acquisition_cost.description.strip() if acquisition_cost.description else ""
-    if not description:
-        description = acquisition_cost.category or "Acquisition Cost"
-    notes = f"Auto-generated from asset acquisition cost on '{asset_name}'. Read-only — edit/delete on the asset instead."
+    description = _compose_description("Acquisition Cost", acquisition_cost.category, acquisition_cost.description)
+    notes = f"Auto-generated from asset acquisition cost on '{asset_name}'. Read-only — edit/delete it from the Fixed Assets tab instead."
     return _sync_mirror(
         SOURCE_ACQUISITION_COST,
         acquisition_cost.id,
@@ -172,15 +185,13 @@ def sync_furniture_mirror(furniture):
     if furniture is None or not furniture.id:
         return None
     asset_name = furniture.asset.name if furniture.asset_id else ""
-    description = furniture.name.strip() if furniture.name else ""
-    if furniture.category:
-        description = f"{description} ({furniture.category})" if description else furniture.category
-    notes = f"Auto-generated from asset furniture on '{asset_name}'. Read-only — edit/delete on the asset instead."
+    description = _compose_description("Furniture", furniture.category, furniture.name)
+    notes = f"Auto-generated from asset furniture on '{asset_name}'. Read-only — edit/delete it from the Fixed Assets tab instead."
     return _sync_mirror(
         SOURCE_FURNITURE,
         furniture.id,
         date_value=furniture.purchase_date,
-        description=description or "Furniture",
+        description=description,
         amount_egp=furniture.amount_egp,
         payment_method=furniture.payment_method,
         bank_id=furniture.bank_id,
