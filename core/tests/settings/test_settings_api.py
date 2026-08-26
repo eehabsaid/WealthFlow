@@ -141,4 +141,3 @@ class SettingsAPITestCase(TestCase):
         self.assertTrue(updated)
         self.assertEqual(provider, "configured_market_rate")
         self.assertEqual(float(asset.current_market_value), 2695000.0)
-
