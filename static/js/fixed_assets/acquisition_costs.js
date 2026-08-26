@@ -62,6 +62,7 @@ function addAcquisitionRow(data = {}, expand = false) {
 
   const row = document.createElement("div");
   row.className = "acquisition-row item-card card";
+  row.dataset.acquisitionId = data.id || "";
 
   const category = data.category || "Lawyer Fees";
   const normVal = category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
@@ -190,6 +191,7 @@ function collectAcquisitionCosts() {
 
   document.querySelectorAll(".acquisition-row").forEach((row) => {
     costs.push({
+      id: row.dataset.acquisitionId ? parseInt(row.dataset.acquisitionId, 10) : null,
       date: row.querySelector(".acquisition-date").value,
       category: row.querySelector(".acquisition-category").value,
       description: row.querySelector(".acquisition-description").value,

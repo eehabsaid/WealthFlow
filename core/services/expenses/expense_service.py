@@ -127,6 +127,9 @@ class ExpenseService(object):
             from django.shortcuts import get_object_or_404
             exp = get_object_or_404(Expense, pk=expense_id)
 
+            if exp.is_readonly_mirror:
+                raise ValueError("readonly_mirrored_expense")
+
             previous_amount = Decimal(exp.amount or 0)
             previous_method = exp.payment_method
             previous_bank_id = exp.bank_id
@@ -211,5 +214,7 @@ class ExpenseService(object):
         with transaction.atomic():
             from django.shortcuts import get_object_or_404
             exp = get_object_or_404(Expense, pk=expense_id)
+            if exp.is_readonly_mirror:
+                raise ValueError("readonly_mirrored_expense")
             _apply_expense_balance_delta(exp.payment_method, exp.bank_id, Decimal(exp.amount or 0), exp.currency_id)
             exp.delete()

@@ -21,6 +21,8 @@ from core.models import (
     AuthToken,
     AssetInsurance,
     AssetAcquisitionCost,
+    AssetFurniture,
+    AssetRenovation,
     AssetValuationHistory,
     BalanceEntry,
     Bank,
@@ -32,6 +34,7 @@ from core.models import (
     ExchangeRate,
     Expense,
     ExpenseCategory,
+    ExpenseSubcategory,
     FixedAsset,
     AssetMortgage,
     AssetRental,
@@ -1351,6 +1354,426 @@ class FixedAssetAcquisitionCostsTest(TestCase):
         self.assertEqual(self.asset.get_total_investment(), Decimal("1080000"))
         self.assertEqual(self.asset.get_gain_loss(), Decimal("120000")) # 1.2M market - 1.08M inv
         self.assertAlmostEqual(float(self.asset.get_roi()), 120000 / 1080000 * 100)
+
+
+class AssetExpenseMirrorTest(TestCase):
+    """Renovation / acquisition cost / furniture records on a fixed asset
+    should mirror into a read-only Expense row under a 'Fixed Assets'
+    category, so the spend shows up in the Expenses module and monthly
+    reports exactly like a manually entered expense — while the balance
+    stays single-sourced from the asset record (mirroring never touches
+    balance)."""
+
+    def setUp(self):
+        self.asset = FixedAsset.objects.create(
+            name="Nile View Apartment",
+            asset_type="Real Estate",
+            status="Owned",
+            purchase_date=date(2025, 1, 1),
+            purchase_price=1000000,
+            current_market_value=1200000,
+        )
+        self.currency_egp, _ = Currency.objects.get_or_create(
+            code="EGP", defaults={"symbol": "£", "name": "Egyptian Pound"}
+        )
+
+    def _fixed_assets_category(self):
+        return ExpenseCategory.objects.filter(name="Fixed Assets").first()
+
+    # ── Category / subcategory auto-creation ──────────────────────────
+    def test_category_and_subcategories_created_on_first_mirror(self):
+        self.assertIsNone(self._fixed_assets_category())
+
+        renovation = AssetRenovation.objects.create(
+            asset=self.asset,
+            date=date(2025, 3, 10),
+            category="Painting",
+            amount_egp=5000,
+        )
+
+        category = self._fixed_assets_category()
+        self.assertIsNotNone(category)
+        subcat = category.subcategories.get(name="Renovation")
+        mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
+        self.assertEqual(mirror.category_id, category.id)
+        self.assertEqual(mirror.subcategory_id, subcat.id)
+
+    def test_existing_manually_created_category_is_reused(self):
+        existing = ExpenseCategory.objects.create(name="Fixed Assets", icon="🧱", color_hex="#123456")
+        existing_sub = ExpenseSubcategory.objects.create(category=existing, name="Furniture")
+
+        furniture = AssetFurniture.objects.create(
+            asset=self.asset,
+            name="Sofa",
+            purchase_date=date(2025, 4, 1),
+            amount_egp=8000,
+        )
+
+        mirror = Expense.objects.get(source_type="asset_furniture", source_id=furniture.id)
+        self.assertEqual(mirror.category_id, existing.id)
+        self.assertEqual(mirror.subcategory_id, existing_sub.id)
+        self.assertEqual(ExpenseCategory.objects.filter(name="Fixed Assets").count(), 1)
+
+    # ── Renovation mirroring ───────────────────────────────────────────
+    def test_renovation_create_update_delete_mirrors(self):
+        renovation = AssetRenovation.objects.create(
+            asset=self.asset,
+            date=date(2025, 3, 10),
+            category="Painting",
+            description="Living room paint job",
+            amount_egp=5000,
+            payment_method="Cash",
+        )
+        mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
+        self.assertEqual(mirror.amount_egp, Decimal("5000"))
+        self.assertEqual(mirror.description, "Living room paint job")
+        self.assertTrue(mirror.is_readonly_mirror)
+        self.assertEqual(mirror.year, 2025)
+        self.assertEqual(mirror.month, 3)
+
+        renovation.amount_egp = 7500
+        renovation.description = "Living room + hallway paint job"
+        renovation.save()
+        mirror.refresh_from_db()
+        self.assertEqual(mirror.amount_egp, Decimal("7500"))
+        self.assertEqual(mirror.description, "Living room + hallway paint job")
+        # still exactly one mirror row for this renovation
+        self.assertEqual(
+            Expense.objects.filter(source_type="asset_renovation", source_id=renovation.id).count(), 1
+        )
+
+        renovation_id = renovation.id
+        renovation.delete()
+        self.assertFalse(
+            Expense.objects.filter(source_type="asset_renovation", source_id=renovation_id).exists()
+        )
+
+    def test_renovation_bank_payment_method_normalized(self):
+        bank = Bank.objects.create(name="Test Bank")
+        renovation = AssetRenovation.objects.create(
+            asset=self.asset,
+            date=date(2025, 3, 10),
+            category="Plumbing",
+            amount_egp=3000,
+            payment_method="Bank",
+            bank=bank,
+        )
+        mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
+        self.assertEqual(mirror.payment_method, "Bank Transfer")
+        self.assertEqual(mirror.bank_id, bank.id)
+
+    # ── Acquisition cost mirroring ─────────────────────────────────────
+    def test_acquisition_cost_mirrors_and_defaults_to_today_when_date_missing(self):
+        cost = AssetAcquisitionCost.objects.create(
+            asset=self.asset,
+            date=date(2025, 1, 5),
+            category="Lawyer Fees",
+            amount_egp=25000,
+        )
+        mirror = Expense.objects.get(source_type="asset_acquisition_cost", source_id=cost.id)
+        self.assertEqual(mirror.amount_egp, Decimal("25000"))
+
+        cost.date = None
+        cost.save()
+        mirror.refresh_from_db()
+        # Missing date defaults to today rather than dropping the mirror,
+        # so the spend is never silently missing from Expenses/dashboards.
+        self.assertEqual(mirror.date, date.today())
+        self.assertEqual(mirror.amount_egp, Decimal("25000"))
+
+    # ── Furniture mirroring ─────────────────────────────────────────────
+    def test_furniture_without_purchase_date_mirrors_with_todays_date(self):
+        furniture = AssetFurniture.objects.create(
+            asset=self.asset,
+            name="Dining Table",
+            amount_egp=12000,
+        )
+        mirror = Expense.objects.get(source_type="asset_furniture", source_id=furniture.id)
+        self.assertEqual(mirror.date, date.today())
+        self.assertEqual(mirror.amount_egp, Decimal("12000"))
+
+        furniture.purchase_date = date(2025, 5, 20)
+        furniture.save()
+        mirror.refresh_from_db()
+        self.assertEqual(mirror.date, date(2025, 5, 20))
+        self.assertEqual(mirror.month, 5)
+
+    def test_furniture_stable_id_updates_mirror_in_place(self):
+        furniture = AssetFurniture.objects.create(
+            asset=self.asset,
+            name="Chair",
+            purchase_date=date(2025, 6, 1),
+            amount_egp=1500,
+        )
+        mirror_id = Expense.objects.get(source_type="asset_furniture", source_id=furniture.id).id
+
+        furniture.amount_egp = 1800
+        furniture.save()
+
+        self.assertEqual(Expense.objects.filter(source_type="asset_furniture").count(), 1)
+        updated_mirror = Expense.objects.get(source_type="asset_furniture", source_id=furniture.id)
+        self.assertEqual(updated_mirror.id, mirror_id)
+        self.assertEqual(updated_mirror.amount_egp, Decimal("1800"))
+
+    # ── CRUD endpoints assign the raw request date string in-memory ─────
+    def test_mirror_via_acquisition_cost_endpoint_with_string_date(self):
+        BalanceEntry.objects.create(
+            title="Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=self.currency_egp,
+            amount=100000,
+        )
+        response = self.client.post(
+            "/api/asset-acquisition-costs/",
+            data=json.dumps({
+                "asset_id": self.asset.id,
+                "date": "2025-01-02",
+                "category": "Lawyer Fees",
+                "amount_egp": 25000,
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201)
+        cost_id = response.json()["id"]
+        mirror = Expense.objects.get(source_type="asset_acquisition_cost", source_id=cost_id)
+        self.assertEqual(mirror.date, date(2025, 1, 2))
+        self.assertEqual(mirror.amount_egp, Decimal("25000"))
+
+    def test_mirror_via_renovation_endpoint_with_string_date(self):
+        BalanceEntry.objects.create(
+            title="Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=self.currency_egp,
+            amount=100000,
+        )
+        response = self.client.post(
+            "/api/asset-renovations/",
+            data=json.dumps({
+                "asset_id": self.asset.id,
+                "date": "2025-02-15",
+                "category": "Painting",
+                "amount_egp": 4000,
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201)
+        renovation_id = response.json()["id"]
+        mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation_id)
+        self.assertEqual(mirror.date, date(2025, 2, 15))
+
+    # ── Accumulation across months (the actual user-facing behavior) ───
+    def test_mirrors_accumulate_across_months_like_manual_expenses(self):
+        AssetRenovation.objects.create(
+            asset=self.asset, date=date(2025, 1, 15), category="Painting", amount_egp=5000
+        )
+        AssetRenovation.objects.create(
+            asset=self.asset, date=date(2025, 2, 10), category="Flooring", amount_egp=9000
+        )
+        AssetFurniture.objects.create(
+            asset=self.asset, name="Sofa", purchase_date=date(2025, 2, 20), amount_egp=8000
+        )
+
+        category = self._fixed_assets_category()
+        jan_total = sum(
+            float(e.amount_egp)
+            for e in Expense.objects.filter(category=category, year=2025, month=1)
+        )
+        feb_total = sum(
+            float(e.amount_egp)
+            for e in Expense.objects.filter(category=category, year=2025, month=2)
+        )
+        self.assertEqual(jan_total, 5000)
+        self.assertEqual(feb_total, 17000)
+
+    # ── Read-only enforcement ────────────────────────────────────────────
+    def test_mirrored_expense_cannot_be_edited_or_deleted_via_expense_service(self):
+        from core.services import ExpenseService
+
+        renovation = AssetRenovation.objects.create(
+            asset=self.asset, date=date(2025, 3, 10), category="Painting", amount_egp=5000
+        )
+        mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
+
+        with self.assertRaises(ValueError) as ctx:
+            ExpenseService.update_expense(mirror.id, {"amount": 9999})
+        self.assertEqual(str(ctx.exception), "readonly_mirrored_expense")
+
+        with self.assertRaises(ValueError) as ctx:
+            ExpenseService.delete_expense(mirror.id)
+        self.assertEqual(str(ctx.exception), "readonly_mirrored_expense")
+
+        # Untouched
+        mirror.refresh_from_db()
+        self.assertEqual(mirror.amount_egp, Decimal("5000"))
+
+    def test_mirrored_expense_endpoints_reject_edit_and_delete(self):
+        renovation = AssetRenovation.objects.create(
+            asset=self.asset, date=date(2025, 3, 10), category="Painting", amount_egp=5000
+        )
+        mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
+
+        put_response = self.client.put(
+            f"/api/expenses/{mirror.id}/",
+            data=json.dumps({"amount": 9999}),
+            content_type="application/json",
+        )
+        self.assertEqual(put_response.status_code, 400)
+        self.assertEqual(put_response.json().get("error_key"), "readonly_mirrored_expense")
+
+        delete_response = self.client.delete(f"/api/expenses/{mirror.id}/")
+        self.assertEqual(delete_response.status_code, 400)
+        self.assertEqual(delete_response.json().get("error_key"), "readonly_mirrored_expense")
+
+    # ── Balance stays single-sourced from the asset record ──────────────
+    def test_mirroring_never_touches_balance(self):
+        cash_entry = BalanceEntry.objects.create(
+            title="Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=self.currency_egp,
+            amount=100000,
+        )
+        AssetRenovation.objects.create(
+            asset=self.asset,
+            date=date(2025, 3, 10),
+            category="Painting",
+            amount_egp=5000,
+            payment_method="Cash",
+        )
+        cash_entry.refresh_from_db()
+        # Direct ORM create bypasses the balance-affecting CRUD view/service,
+        # exactly like the mirror signal does - confirms mirroring itself
+        # carries no balance side effect of its own.
+        self.assertEqual(cash_entry.amount, Decimal("100000"))
+
+    # ── Regular (non-mirrored) expenses remain fully editable ───────────
+    def test_manual_expense_still_fully_editable(self):
+        from core.services import ExpenseService
+
+        BalanceEntry.objects.create(
+            title="Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=self.currency_egp,
+            amount=50000,
+        )
+        exp = ExpenseService.create_expense(
+            {
+                "date": "2025-03-01",
+                "amount": 1000,
+                "payment_method": "Cash",
+            }
+        )
+        self.assertFalse(exp.is_readonly_mirror)
+        updated = ExpenseService.update_expense(exp.id, {"amount": 1200})
+        self.assertEqual(updated.amount, Decimal("1200"))
+        ExpenseService.delete_expense(exp.id)
+        self.assertFalse(Expense.objects.filter(pk=exp.id).exists())
+
+    # ── Stable-id resync: adding one item doesn't churn every mirror ────
+    def test_adding_one_renovation_does_not_recreate_other_mirrors(self):
+        """The whole-asset save resubmits ALL renovations together, so
+        without id-matching every mirror would get a new id/created_at on
+        every save (looking like everything was "reinserted"). With
+        stable-id update-or-create, only genuinely new/changed rows churn."""
+        from core.services.fixed_assets.asset_cost_sync_service import _sync_asset_renovations
+
+        BalanceEntry.objects.create(
+            title="Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=self.currency_egp,
+            amount=1000000,
+        )
+        _sync_asset_renovations(self.asset, [
+            {"date": "2025-01-10", "category": "Painting", "amount_egp": 5000},
+        ])
+        existing_renovation = AssetRenovation.objects.get(asset=self.asset)
+        mirror_before = Expense.objects.get(source_type="asset_renovation", source_id=existing_renovation.id)
+
+        # Simulate the UI resubmitting the full list (existing item now
+        # carrying its id, as the fixed frontend does) plus one new item.
+        _sync_asset_renovations(self.asset, [
+            {
+                "id": existing_renovation.id,
+                "date": "2025-01-10",
+                "category": "Painting",
+                "amount_egp": 5000,
+            },
+            {"date": "2025-02-05", "category": "Flooring", "amount_egp": 9000},
+        ])
+
+        self.assertEqual(AssetRenovation.objects.filter(asset=self.asset).count(), 2)
+        self.assertEqual(Expense.objects.filter(source_type="asset_renovation").count(), 2)
+        mirror_after = Expense.objects.get(source_type="asset_renovation", source_id=existing_renovation.id)
+        self.assertEqual(mirror_after.id, mirror_before.id)
+        self.assertEqual(mirror_after.created_at, mirror_before.created_at)
+
+    def test_adding_one_acquisition_cost_does_not_recreate_other_mirrors(self):
+        from core.services.fixed_assets.asset_cost_sync_service import _sync_asset_acquisition_costs
+
+        BalanceEntry.objects.create(
+            title="Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=self.currency_egp,
+            amount=1000000,
+        )
+        _sync_asset_acquisition_costs(self.asset, [
+            {"date": "2025-01-05", "category": "Lawyer Fees", "amount_egp": 25000},
+        ])
+        existing_cost = AssetAcquisitionCost.objects.get(asset=self.asset)
+        mirror_before = Expense.objects.get(source_type="asset_acquisition_cost", source_id=existing_cost.id)
+
+        _sync_asset_acquisition_costs(self.asset, [
+            {
+                "id": existing_cost.id,
+                "date": "2025-01-05",
+                "category": "Lawyer Fees",
+                "amount_egp": 25000,
+            },
+            {"date": "2025-02-01", "category": "Registration Fees", "amount_egp": 3000},
+        ])
+
+        self.assertEqual(AssetAcquisitionCost.objects.filter(asset=self.asset).count(), 2)
+        self.assertEqual(Expense.objects.filter(source_type="asset_acquisition_cost").count(), 2)
+        mirror_after = Expense.objects.get(source_type="asset_acquisition_cost", source_id=existing_cost.id)
+        self.assertEqual(mirror_after.id, mirror_before.id)
+
+    def test_removing_a_renovation_deletes_only_its_mirror(self):
+        from core.services.fixed_assets.asset_cost_sync_service import _sync_asset_renovations
+
+        BalanceEntry.objects.create(
+            title="Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=self.currency_egp,
+            amount=1000000,
+        )
+        _sync_asset_renovations(self.asset, [
+            {"date": "2025-01-10", "category": "Painting", "amount_egp": 5000},
+            {"date": "2025-02-05", "category": "Flooring", "amount_egp": 9000},
+        ])
+        renovations = list(AssetRenovation.objects.filter(asset=self.asset).order_by("id"))
+        keep_id = renovations[1].id
+
+        # Resubmit with only the second item kept (first removed by the user)
+        _sync_asset_renovations(self.asset, [
+            {
+                "id": keep_id,
+                "date": "2025-02-05",
+                "category": "Flooring",
+                "amount_egp": 9000,
+            },
+        ])
+
+        self.assertEqual(AssetRenovation.objects.filter(asset=self.asset).count(), 1)
+        self.assertEqual(Expense.objects.filter(source_type="asset_renovation").count(), 1)
+        self.assertTrue(
+            Expense.objects.filter(source_type="asset_renovation", source_id=keep_id).exists()
+        )
 
 
 class DocumentManagementApiTest(TestCase):

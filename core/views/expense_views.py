@@ -96,6 +96,14 @@ class ExpenseDetailView(View):
         try:
             exp = ExpenseService.update_expense(pk, data)
         except ValueError as exc:
+            if str(exc) == "readonly_mirrored_expense":
+                return JsonResponse(
+                    {
+                        "error": "This expense is linked to a fixed asset record and can't be edited directly",
+                        "error_key": "readonly_mirrored_expense",
+                    },
+                    status=400,
+                )
             if str(exc) == "bank_account_required":
                 return JsonResponse(
                     {
@@ -137,6 +145,14 @@ class ExpenseDetailView(View):
         try:
             ExpenseService.delete_expense(pk)
         except ValueError as exc:
+            if str(exc) == "readonly_mirrored_expense":
+                return JsonResponse(
+                    {
+                        "error": "This expense is linked to a fixed asset record and can't be deleted directly",
+                        "error_key": "readonly_mirrored_expense",
+                    },
+                    status=400,
+                )
             if str(exc) == "matching_balance_entry_not_found":
                 return JsonResponse(
                     {

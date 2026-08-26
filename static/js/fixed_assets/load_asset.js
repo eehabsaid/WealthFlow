@@ -138,6 +138,7 @@ async function loadFixedAsset(assetId) {
       if (asset.acquisition_costs && asset.acquisition_costs.length) {
         asset.acquisition_costs.forEach((c) => {
           addAcquisitionRow({
+            id: c.id,
             date: c.date,
             category: c.category,
             description: c.description,
@@ -163,6 +164,7 @@ async function loadFixedAsset(assetId) {
       if (asset.renovations && asset.renovations.length) {
         asset.renovations.forEach((r) => {
           addRenovationRow({
+            id: r.id,
             date: r.date,
             category: r.category,
             description: r.description,

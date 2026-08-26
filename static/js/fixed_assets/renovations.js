@@ -62,6 +62,7 @@ function addRenovationRow(data = {}, expand = false) {
 
   const row = document.createElement("div");
   row.className = "renovation-row item-card card";
+  row.dataset.renovationId = data.id || "";
 
   const category = data.category || "Finishing";
   const normVal = category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
@@ -195,6 +196,8 @@ function collectRenovations() {
 
   document.querySelectorAll(".renovation-row").forEach((row) => {
     renovations.push({
+      id: row.dataset.renovationId ? parseInt(row.dataset.renovationId, 10) : null,
+
       date: row.querySelector(".renovation-date").value,
 
       category: row.querySelector(".renovation-category").value,

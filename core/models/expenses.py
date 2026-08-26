@@ -52,6 +52,13 @@ class ExpenseSubcategory(models.Model):
         return f"{self.category.name} / {self.name}"
 
 
+EXPENSE_SOURCE_TYPE_CHOICES = [
+    ("asset_renovation", "Asset Renovation"),
+    ("asset_acquisition_cost", "Asset Acquisition Cost"),
+    ("asset_furniture", "Asset Furniture"),
+]
+
+
 class Expense(models.Model):
     date = models.DateField()
     year = models.IntegerField()
@@ -98,8 +105,33 @@ class Expense(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Mirrored/system-generated rows: set when this Expense is an
+    # auto-generated, read-only reflection of a fixed-asset record
+    # (renovation / acquisition cost / furniture purchase). Such rows are
+    # driven entirely by the source record — they cannot be edited or
+    # deleted directly (see ExpenseService), and are kept in sync via
+    # signals in core/models/fixed_assets_history.py.
+    source_type = models.CharField(
+        max_length=30,
+        blank=True,
+        default="",
+        choices=EXPENSE_SOURCE_TYPE_CHOICES,
+    )
+    source_id = models.IntegerField(null=True, blank=True)
+
     class Meta:
         ordering = ["-date", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source_type", "source_id"],
+                condition=models.Q(source_type__gt=""),
+                name="unique_expense_mirror_source",
+            )
+        ]
+
+    @property
+    def is_readonly_mirror(self):
+        return bool(self.source_type)
 
     def to_dict(self):
         return {
@@ -122,6 +154,9 @@ class Expense(models.Model):
             "bank_name": self.bank.name if self.bank else "",
             "payment_method": self.payment_method,
             "notes": self.notes,
+            "source_type": self.source_type,
+            "source_id": self.source_id,
+            "is_readonly": self.is_readonly_mirror,
         }
 
     def __str__(self):

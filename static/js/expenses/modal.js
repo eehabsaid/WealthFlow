@@ -35,6 +35,11 @@ async function showExpenseModal(expId) {
     )
     .join("");
 
+  if (exp && exp.is_readonly) {
+    showReadonlyExpenseModal(exp);
+    return;
+  }
+
   showModal(`
     <div class="modal-header">
       <h5 class="modal-title" data-i18n="${exp ? "edit_expense" : "add_expense"}">${exp ? "Edit" : "Add"} Expense</h5>
@@ -93,6 +98,62 @@ async function showExpenseModal(expId) {
   // Populate subcategories
   updateSubcategories(exp ? exp.subcategory_id : null);
   toggleExpenseBankField();
+  applyTranslations();
+}
+
+/* ── Read-only view for asset-mirrored expenses ────────────────── */
+
+function showReadonlyExpenseModal(exp) {
+  const sourceLabels = {
+    asset_renovation: t("asset_renovation", "Asset Renovation"),
+    asset_acquisition_cost: t("asset_acquisition_cost", "Asset Acquisition Cost"),
+    asset_furniture: t("asset_furniture", "Asset Furniture"),
+  };
+  const sourceLabel = sourceLabels[exp.source_type] || t("linked_asset_record", "Linked to a fixed asset record");
+
+  showModal(`
+    <div class="modal-header">
+      <h5 class="modal-title"><i class="bi bi-lock"></i> <span data-i18n="linked_expense">Linked Expense</span></h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="closeModal()"></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info" style="font-size:13px" data-i18n="readonly_mirrored_expense_notice">
+        This expense is generated automatically from a fixed asset record and can't be edited or deleted here. Edit or delete the source record on the asset instead.
+      </div>
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="form-label" data-i18n="date">Date</label>
+          <div class="form-control-plaintext">${formatDate(exp.date)}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" data-i18n="amount">Amount</label>
+          <div class="form-control-plaintext">${fmt(exp.amount)} ${exp.currency_code || "EGP"}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" data-i18n="category">Category</label>
+          <div class="form-control-plaintext">${exp.category_icon || ""} ${exp.category_name || "—"}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" data-i18n="subcategory">Subcategory</label>
+          <div class="form-control-plaintext">${exp.subcategory_name || "—"}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label" data-i18n="description">Description</label>
+          <div class="form-control-plaintext">${exp.description || "—"}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" data-i18n="payment_method">Payment Method</label>
+          <div class="form-control-plaintext">${exp.payment_method || "—"}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" data-i18n="source">Source</label>
+          <div class="form-control-plaintext">${sourceLabel}</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary-custom" data-bs-dismiss="modal" onclick="closeModal()" data-i18n="btn_close">Close</button>
+    </div>`);
   applyTranslations();
 }
 

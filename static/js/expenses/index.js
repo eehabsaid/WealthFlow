@@ -182,14 +182,17 @@ function renderExpenseTableHTML(entries) {
         ${e.category_icon} ${e.category_name || "—"}
       </span></td>
       <td style="color:var(--text-muted);font-size:12px">${e.subcategory_name || "—"}</td>
-      <td>${e.description || "—"}</td>
+      <td>${e.description || "—"}${e.is_readonly ? ` <i class="bi bi-link-45deg" style="color:var(--text-muted)" title="${t("linked_asset_record", "Linked to a fixed asset record")}"></i>` : ""}</td>
       <td><span style="font-size:11px;color:var(--text-muted)">${e.payment_method || "—"}</span></td>
       <td class="text-end num-col amt-negative">${fmt(e.amount)} <span style="font-size:10px;color:var(--text-muted)">${e.currency_code}</span></td>
       <td style="white-space:nowrap">
-        <button class="btn-icon edit" onclick="showExpenseModal(${e.id})" title="Edit">
-          <i class="bi bi-pencil"></i></button>
-        <button class="btn-icon del" onclick="deleteExpense(${e.id})" title="Delete">
-          <i class="bi bi-trash"></i></button>
+        ${e.is_readonly
+          ? `<button class="btn-icon" onclick="showExpenseModal(${e.id})" title="${t("view_linked_expense", "View (linked to asset)")}">
+              <i class="bi bi-lock"></i></button>`
+          : `<button class="btn-icon edit" onclick="showExpenseModal(${e.id})" title="Edit">
+              <i class="bi bi-pencil"></i></button>
+            <button class="btn-icon del" onclick="deleteExpense(${e.id})" title="Delete">
+              <i class="bi bi-trash"></i></button>`}
       </td>
     </tr>`,
     )
@@ -240,6 +243,7 @@ async function applyExpenseFilters() {
 window.renderExpenses = renderExpenses;
 window.renderExpenseCategories = renderExpenseCategories;
 window.showExpenseModal = showExpenseModal;
+window.showReadonlyExpenseModal = showReadonlyExpenseModal;
 window.saveExpense = saveExpense;
 window.deleteExpense = deleteExpense;
 window.toggleExpenseBankField = toggleExpenseBankField;

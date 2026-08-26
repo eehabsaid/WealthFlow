@@ -93,7 +93,7 @@ class AssetRenovation(models.Model):
             "asset_id": self.asset_id,
             "furniture_id": self.furniture_id,
             "furniture_name": self.furniture.name if self.furniture else "",
-            "date": self.date.isoformat() if self.date else "",
+            "date": self.date.isoformat() if hasattr(self.date, "isoformat") else (self.date or ""),
             "category": self.category,
             "description": self.description,
             "amount_egp": float(self.amount_egp),
@@ -107,6 +107,18 @@ class AssetRenovation(models.Model):
     
     def __str__(self):
         return f"{self.asset.name} - {self.category}"
+
+
+@receiver(post_save, sender=AssetRenovation)
+def handle_asset_renovation_save(sender, instance, **kwargs):
+    from core.services.fixed_assets.asset_expense_mirror_service import sync_renovation_mirror
+    sync_renovation_mirror(instance)
+
+
+@receiver(post_delete, sender=AssetRenovation)
+def handle_asset_renovation_delete(sender, instance, **kwargs):
+    from core.services.fixed_assets.asset_expense_mirror_service import delete_renovation_mirror
+    delete_renovation_mirror(instance.id)
 
 
 class AssetFurniture(models.Model):
@@ -185,8 +197,8 @@ class AssetFurniture(models.Model):
             "category": self.category,
             "purchase_date": (
                 self.purchase_date.isoformat()
-                if self.purchase_date
-                else ""
+                if hasattr(self.purchase_date, "isoformat")
+                else (self.purchase_date or "")
             ),
             "amount_egp": float(self.amount_egp),
             "usd_rate": float(self.usd_rate),
@@ -200,6 +212,18 @@ class AssetFurniture(models.Model):
 
     def __str__(self):
         return f"{self.asset.name} - {self.name}"
+
+
+@receiver(post_save, sender=AssetFurniture)
+def handle_asset_furniture_save(sender, instance, **kwargs):
+    from core.services.fixed_assets.asset_expense_mirror_service import sync_furniture_mirror
+    sync_furniture_mirror(instance)
+
+
+@receiver(post_delete, sender=AssetFurniture)
+def handle_asset_furniture_delete(sender, instance, **kwargs):
+    from core.services.fixed_assets.asset_expense_mirror_service import delete_furniture_mirror
+    delete_furniture_mirror(instance.id)
 
 
 class AssetValuationHistory(models.Model):
@@ -525,3 +549,14 @@ class AssetAcquisitionCost(models.Model):
     def __str__(self):
         return f"{self.asset.name} - {self.category}"
 
+
+@receiver(post_save, sender=AssetAcquisitionCost)
+def handle_asset_acquisition_cost_save(sender, instance, **kwargs):
+    from core.services.fixed_assets.asset_expense_mirror_service import sync_acquisition_cost_mirror
+    sync_acquisition_cost_mirror(instance)
+
+
+@receiver(post_delete, sender=AssetAcquisitionCost)
+def handle_asset_acquisition_cost_delete(sender, instance, **kwargs):
+    from core.services.fixed_assets.asset_expense_mirror_service import delete_acquisition_cost_mirror
+    delete_acquisition_cost_mirror(instance.id)
