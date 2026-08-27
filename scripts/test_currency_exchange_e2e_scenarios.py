@@ -2,7 +2,8 @@ import sys
 import os
 import time
 
-sys.path.insert(0, r"d:\MyApps\WealthFlow")
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, _REPO_ROOT)
 os.environ['DJANGO_SETTINGS_MODULE'] = 'wealthflow.settings'
 
 import django
