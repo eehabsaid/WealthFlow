@@ -160,7 +160,10 @@ def main() -> int:
         log("Server is up.")
 
         log("Running the full human-QA E2E suite against the TEST database...")
-        suite_args = sys.argv[1:]
+        suite_args = list(sys.argv[1:])
+        if "--headed" not in suite_args and "--headless" not in suite_args:
+            suite_args.append("--headed")
+            log("No --headed/--headless flag given — defaulting to --headed so the browser is visible.")
         suite_result = subprocess.run(
             [sys.executable, os.path.join("scripts", "test_ui_human_full_e2e.py"), *suite_args],
             cwd=ROOT_DIR, env=env,
