@@ -1,7 +1,7 @@
 import os
 import sys
 import subprocess
-from core.views.documentation.documentation_constants import (
+from core.views.settings.documentation.documentation_constants import (
     BASE_DIR,
     DOCS_DIR,
     STATUS_FILE,

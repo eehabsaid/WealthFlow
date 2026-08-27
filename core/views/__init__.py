@@ -3,12 +3,12 @@ from .auth_views import LoginAPIView
 from .auth_views import SignupAPIView
 from .auth_views import LogoutAPIView
 from .auth_views import CurrentUserView
-from .user_management_views import UserListView
-from .user_management_views import UserDetailView
-from .user_management_views import UserPermissionListView
-from .user_management_views import UserBulkActionView
-from .user_management_views import UserPermissionDetailView
-from .user_management_views import PagePermissionChoicesView
+from .settings import UserListView
+from .settings import UserDetailView
+from .settings import UserPermissionListView
+from .settings import UserBulkActionView
+from .settings import UserPermissionDetailView
+from .settings import PagePermissionChoicesView
 from .auth_views import UpdateProfileView
 from .auth_views import login_view
 from .auth_views import signup_view
@@ -21,15 +21,15 @@ from .auth_views import account_disabled_view
 from .auth_views import admin_approve_account_view
 from .auth_views import admin_reject_account_view
 from .auth_views import logout_view
-from .user_management_views import user_management_page
+from .settings import user_management_page
 from .auth_views import create_user_profile
 from .auth_views import _build_user_dict
 from .auth_views import _get_user_allowed_pages
 from .auth_views import _request_lang
 from .auth_views import _render_auth
 from .auth_views import _render_auth_status
-from .company_views import CompanyListView
-from .company_views import CompanyDetailView
+from .settings import CompanyListView
+from .settings import CompanyDetailView
 from .salary_views import SalaryListView
 from .salary_views import SalaryDetailView
 from .salary_views import GenerateCurrentSalaryView
@@ -38,9 +38,9 @@ from .salary_views import SalarySummaryView
 from .salary_views import PerDiemListView
 from .salary_views import PerDiemDetailView
 from .salary_views import PerDiemCurrencyListView
-from .bank_views import BankListView
-from .bank_views import BankDetailView
-from .bank_views import BankWithBalanceListView
+from .settings import BankListView
+from .settings import BankDetailView
+from .settings import BankWithBalanceListView
 from .certificate_views import BankCertificateListView
 from .certificate_views import BankCertificateDetailView
 from .certificate_views import BankCertificateInterestHistoryView
@@ -67,7 +67,6 @@ from .report_views import BalanceReportView
 from .report_views import CertificateReportView
 from .report_views import FixedAssetPdfReportView
 from .report_views import FixedAssetExcelReportView
-from core.reports.report_generators import get_translations
 from core.reports.report_generators import format_arabic
 from core.reports.report_generators import get_text
 from core.reports.report_generators import _fixed_asset_report_queryset
@@ -101,26 +100,26 @@ from .balance_forecast_views import (
 from .dashboard_views import index
 from .dashboard_views import _api_auth_required
 from .dashboard_views import _parse_iso_date
-from .settings_views import SettingsView
-from .settings_views import EmailTemplateListView
-from .settings_views import EmailTemplateDetailView
-from .settings_views import EmailSettingsTestView
-from .settings_views import AISettingsView
-from .settings_views import AIConnectionTestView
-from .settings_views import AIProviderListView
-from .settings_views import ScrapePropertyRatesView
-from .settings_views import GoldTypeSettingsListView
-from .settings_views import GoldTypeSettingsDetailView
-from .settings_views import GoldPuritySettingsListView
-from .settings_views import GoldPuritySettingsDetailView
-from .settings_views import ExchangeRateListView
-from .settings_views import ExchangeRateRefreshView
-from .settings_views import GoldPriceListView
-from .settings_views import GoldPriceRefreshView
-from .settings_views import CurrencyListView
-from .settings_views import CurrencyDetailView
-from .settings_views import _seed_gold_settings_defaults
-from .settings_views import (
+from .settings import SettingsView
+from .settings import EmailTemplateListView
+from .settings import EmailTemplateDetailView
+from .settings import EmailSettingsTestView
+from .settings import AISettingsView
+from .settings import AIConnectionTestView
+from .settings import AIProviderListView
+from .settings import ScrapePropertyRatesView
+from .settings import GoldTypeSettingsListView
+from .settings import GoldTypeSettingsDetailView
+from .settings import GoldPuritySettingsListView
+from .settings import GoldPuritySettingsDetailView
+from .settings import ExchangeRateListView
+from .settings import ExchangeRateRefreshView
+from .settings import GoldPriceListView
+from .settings import GoldPriceRefreshView
+from .settings import CurrencyListView
+from .settings import CurrencyDetailView
+from .settings import _seed_gold_settings_defaults
+from .settings import (
     BackupCreateView,
     BackupListView,
     BackupDeleteView,
@@ -165,14 +164,17 @@ from .currency_exchange_views import (
     CurrencyExchangeCalculateView,
     CurrencyExchangeFormOptionsView,
 )
-from .reminder_views import ReminderRuleListView
-from .reminder_views import ReminderRuleDetailView
-from .reminder_views import ReminderCheckView
-from .reminder_views import ReminderLogListView
-from .reminder_views import CertificateStatusListView
-from .reminder_views import CertificateStatusDetailView
-from .reminder_views import FixedAssetValuationRefreshView
-from .reminder_views import _salary_trigger_day
+from .settings import ReminderRuleListView
+from .settings import ReminderRuleDetailView
+from .settings import ReminderCheckView
+from .settings import ReminderLogListView
+from .settings import CertificateStatusListView
+from .settings import CertificateStatusDetailView
+from .settings import get_translations
+from .settings import save_translations
+from .settings import scan_translations
+from .asset_valuation_views import FixedAssetValuationRefreshView
+from .asset_valuation_views import _salary_trigger_day
 
 
 __all__ = [
@@ -246,6 +248,8 @@ __all__ = [
     "FixedAssetPdfReportView",
     "FixedAssetExcelReportView",
     "get_translations",
+    "save_translations",
+    "scan_translations",
     "format_arabic",
     "get_text",
     "_fixed_asset_report_queryset",
@@ -390,7 +394,7 @@ from .ai_prompt_views import (
     AIPromptCategoryListView,
 )
 
-from .documentation_views import (
+from .settings import (
     DocumentationStatusView,
     DocumentationDevicesView,
     DocumentationHistoryView,

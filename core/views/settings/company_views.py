@@ -1,5 +1,11 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
+"""NOTE: single-resource file. If it grows past ~200 lines, split it and
+move the resulting files into a settings/<domain>/ subfolder (see
+settings/ai/ or settings/gold/ for the pattern: an empty __init__.py plus
+one file per concern), then update core/views/settings/__init__.py."""
+
+
 import json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse

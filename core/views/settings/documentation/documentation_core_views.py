@@ -6,8 +6,8 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from core.views.auth_views import AdminRequiredMixin
-from core.views.documentation.documentation_constants import STATUS_FILE, CANCEL_FILE, read_json_file, write_json_file
-from core.views.documentation.documentation_permutations_runner import run_documentation_permutations
+from core.views.settings.documentation.documentation_constants import STATUS_FILE, CANCEL_FILE, read_json_file, write_json_file
+from core.views.settings.documentation.documentation_permutations_runner import run_documentation_permutations
 
 from doc_engine.device_inventory import load_inventory, validate_inventory
 

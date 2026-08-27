@@ -1,14 +1,25 @@
+# pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
+
+"""NOTE: single-resource file. If it grows past ~200 lines, split it and
+move the resulting files into a settings/<domain>/ subfolder (see
+settings/ai/ or settings/gold/ for the pattern: an empty __init__.py plus
+one file per concern), then update core/views/settings/__init__.py.
+
+Migrated from the standalone i18n_manager/ Django app (which was never
+listed in INSTALLED_APPS and was wired directly via wealthflow/urls.py,
+bypassing core entirely). Function-based views, matching the original —
+no logic changes except dropping the leftover `django.setup()` bootstrap
+call, which was only ever needed when this file ran as a standalone
+script outside the Django app registry; it's a no-op (and unnecessary)
+now that these views live inside core, which is already initialized by
+the time any view runs."""
+
 import json
-import os
+import re
 from pathlib import Path
-import django
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import re
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wealthflow.settings")
-django.setup()
 
 I18N_DIR = Path(settings.BASE_DIR) / "static" / "i18n"
 
@@ -27,7 +38,7 @@ def get_translations(request):
 
 def scan_translations(request):
     project_root = Path(settings.BASE_DIR)
-    
+
     used_keys = set()
     prefixes = set()
 
@@ -35,11 +46,11 @@ def scan_translations(request):
     patterns = [
         # 1. Matches JavaScript invocation blocks: _t('key') or t("key")
         re.compile(r"\b_?t\(\s*['\"]([a-zA-Z0-9_\-]+)['\"]"),
-        
+
         # 2. Matches ANY attribute starting with data-i18n (e.g., data-i18n, data-i18n-title, data-i18n-postfix)
         re.compile(r'data-i18n(?:-[a-zA-Z0-9_\-]+)?=["\']([a-zA-Z0-9_\-]+)["\']'),
     ]
-    
+
     # Extract dynamic translation prefixes (Framework #3: e.g., data-i18n-prefix="type_")
     prefix_pattern = re.compile(r'data-i18n-prefix=["\']([a-zA-Z0-9_\-]+)["\']')
 
@@ -61,7 +72,7 @@ def scan_translations(request):
             # Accumulate explicit language keys
             for pattern in patterns:
                 used_keys.update(pattern.findall(content))
-            
+
             # Accumulate formatting string prefixes
             prefixes.update(prefix_pattern.findall(content))
 
@@ -78,18 +89,18 @@ def scan_translations(request):
                 lang_dict = json.load(f)
         except Exception:
             continue
-            
+
         lang_keys = {k for k in lang_dict.keys() if not k.startswith("__")}
-        
+
         # Detect missing dictionary entries
         missing = sorted(list(used_keys - lang_keys))
-        
+
         # Detect unused dictionary entries, excluding any managed via dynamic code prefixes
         unused = sorted([
-            k for k in (lang_keys - used_keys) 
+            k for k in (lang_keys - used_keys)
             if not any(k.startswith(p) for p in prefixes)
         ])
-        
+
         report[lang_code] = {
             "missing": missing,
             "unused": unused

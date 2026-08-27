@@ -1,4 +1,4 @@
-from django.urls import include, path
+from django.urls import path
 from . import views
 from .views import ExportExcelWorkbookView
 
@@ -112,6 +112,10 @@ urlpatterns = [
     # ── Certificate Statuses ─────────────────────────────────────────────────
     path("api/cert-statuses/", views.CertificateStatusListView.as_view()),
     path("api/cert-statuses/<int:pk>/", views.CertificateStatusDetailView.as_view()),
+    path("api/translations/", views.get_translations),
+    path("api/translations/save/", views.save_translations),
+    path("api/translations/scan/", views.scan_translations),
+    path("api/scan-translations/", views.scan_translations),
     # ── Advanced Reports ─────────────────────────────────────────────────────
     path("api/reports/salary/", views.SalaryReportView.as_view()),
     path("api/reports/balance/", views.BalanceReportView.as_view()),
@@ -358,5 +362,4 @@ urlpatterns = [
         "api/documents/<str:parent_type>/<int:parent_id>/",
         views.DocumentListUploadView.as_view(),
     ),
-    path('api/', include('i18n_manager.urls')),
 ]

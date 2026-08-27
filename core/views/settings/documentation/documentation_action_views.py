@@ -7,7 +7,7 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from core.views.auth_views import AdminRequiredMixin
-from core.views.documentation.documentation_constants import (
+from core.views.settings.documentation.documentation_constants import (
     BASE_DIR,
     DOCS_DIR,
     GENERATED_DIR,
@@ -18,8 +18,8 @@ from core.views.documentation.documentation_constants import (
     read_json_file,
     write_json_file,
 )
-from core.views.documentation.documentation_runner import run_documentation_generation_only
-from core.views.documentation.documentation_permutations_runner import run_documentation_permutations
+from core.views.settings.documentation.documentation_runner import run_documentation_generation_only
+from core.views.settings.documentation.documentation_permutations_runner import run_documentation_permutations
 from doc_engine.device_inventory import load_inventory, validate_inventory
 
 @method_decorator(csrf_exempt, name="dispatch")

@@ -3,7 +3,7 @@ import sys
 import time
 import subprocess
 from django.conf import settings
-from core.views.documentation.documentation_constants import (
+from core.views.settings.documentation.documentation_constants import (
     BASE_DIR,
     DOCS_DIR,
     RUNTIME_DIR,
