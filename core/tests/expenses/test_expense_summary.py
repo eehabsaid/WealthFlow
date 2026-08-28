@@ -4,6 +4,7 @@ from core.models import SalaryEntry
 from datetime import date
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from core.models import BalanceEntry
 from core.models import Currency
 
 User = get_user_model()
@@ -21,6 +22,15 @@ class ExpenseSummaryIncomeTest(TestCase):
             bonus=0,
         )
         currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
+        # Matching cash balance entry required for certificate saves to
+        # succeed (see certificate_balance_deduction_service.py).
+        BalanceEntry.objects.create(
+            title="Cash (EGP)",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=currency,
+            amount=100000,
+        )
 
         BankCertificate.objects.create(
             currency=currency,

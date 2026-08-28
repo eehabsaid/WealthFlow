@@ -2,6 +2,7 @@ from datetime import date
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from core.models import (
+    BalanceEntry,
     BankCertificate,
     Currency,
 )
@@ -12,6 +13,15 @@ User = get_user_model()
 class CertificateForecastBalanceTest(TestCase):
     def test_forecast_excludes_inactive_certificates_from_balance_metrics(self):
         currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
+        # Matching cash balance entry required for certificate saves to
+        # succeed (see certificate_balance_deduction_service.py).
+        BalanceEntry.objects.create(
+            title="Cash (EGP)",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=currency,
+            amount=100000,
+        )
         BankCertificate.objects.create(
             currency=currency,
             issue_date=date(2026, 6, 1),
@@ -40,6 +50,15 @@ class CertificateForecastBalanceTest(TestCase):
 class CertificateReportActiveOnlyTest(TestCase):
     def test_certificate_report_uses_active_certificates_only(self):
         currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
+        # Matching cash balance entry required for certificate saves to
+        # succeed (see certificate_balance_deduction_service.py).
+        BalanceEntry.objects.create(
+            title="Cash (EGP)",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=currency,
+            amount=100000,
+        )
         BankCertificate.objects.create(
             currency=currency,
             issue_date=date(2026, 1, 1),

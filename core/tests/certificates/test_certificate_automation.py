@@ -2,6 +2,7 @@ from datetime import date
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from core.models import (
+    BalanceEntry,
     Bank,
     BankCertificate,
     CertificateStatus,
@@ -16,6 +17,16 @@ class CertificateAutomationServiceTest(TestCase):
     def setUp(self):
         self.currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
         self.bank = Bank.objects.create(name="QNB")
+        # A matching cash balance entry is required for certificate saves to
+        # succeed now that principal deduction is enforced (see
+        # certificate_balance_deduction_service.py).
+        BalanceEntry.objects.create(
+            title="QNB Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=self.bank,
+            currency=self.currency,
+            amount=100000,
+        )
 
     def test_close_matured_certificates_uses_closed_lookup_and_skips_non_active(self):
         CertificateStatus.objects.create(name="cLoSeD", is_terminal=True, order=1)

@@ -5,6 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from core.models import (
     Bank,
+    BalanceEntry,
     Currency,
     FixedAsset,
 )
@@ -16,6 +17,15 @@ class DocumentManagementApiTest(TestCase):
     def setUp(self):
         self.currency = Currency.objects.create(code="EGP", symbol="L", name="Egyptian Pound")
         self.bank = Bank.objects.create(name="QNB")
+        # Matching cash balance entry required for certificate saves to
+        # succeed (see certificate_balance_deduction_service.py).
+        BalanceEntry.objects.create(
+            title="QNB Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=self.bank,
+            currency=self.currency,
+            amount=100000,
+        )
         self.asset = FixedAsset.objects.create(
             name="Doc Asset",
             asset_type="Other Assets",

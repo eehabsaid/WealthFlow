@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Case, Value, When
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save, pre_delete
 from django.dispatch import receiver
 from datetime import date, datetime
 
@@ -147,6 +147,33 @@ class CertificateStatus(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@receiver(pre_save, sender=BankCertificate, dispatch_uid="cbs_pre_save")
+def handle_certificate_balance_pre_save(sender, instance, **kwargs):
+    """Deducts the certificate principal from its matching cash balance
+    entry. See core/services/certificate/certificate_balance_deduction_service.py
+    for full behaviour notes. Does not affect the aggregate sync below."""
+    from core.services.certificate.certificate_balance_deduction_service import (
+        handle_certificate_pre_save,
+    )
+    handle_certificate_pre_save(sender, instance, **kwargs)
+
+
+@receiver(post_save, sender=BankCertificate, dispatch_uid="cbs_post_save")
+def handle_certificate_balance_post_save(sender, instance, created, **kwargs):
+    from core.services.certificate.certificate_balance_deduction_service import (
+        handle_certificate_post_save,
+    )
+    handle_certificate_post_save(sender, instance, created, **kwargs)
+
+
+@receiver(pre_delete, sender=BankCertificate, dispatch_uid="cbs_pre_delete")
+def handle_certificate_balance_pre_delete(sender, instance, **kwargs):
+    from core.services.certificate.certificate_balance_deduction_service import (
+        handle_certificate_pre_delete,
+    )
+    handle_certificate_pre_delete(sender, instance, **kwargs)
 
 
 @receiver(post_save, sender=BankCertificate)

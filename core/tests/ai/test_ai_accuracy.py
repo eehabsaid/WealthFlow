@@ -36,8 +36,9 @@ class AIAccuracyTestSuite(TestCase):
         # Bank
         self.bank = Bank.objects.create(name="CIB Bank")
 
-        # User Balances
-        BalanceEntry.objects.create(bank=self.bank, currency=self.egp, title="CIB EGP Current", amount=Decimal("100000.00"))
+        # User Balances (EGP balance sized to cover the 200,000 certificate
+        # principal deduction below; see certificate_balance_deduction_service.py)
+        BalanceEntry.objects.create(bank=self.bank, currency=self.egp, title="CIB EGP Current", amount=Decimal("300000.00"))
         BalanceEntry.objects.create(bank=self.bank, currency=self.usd, title="CIB USD Savings", amount=Decimal("10000.00"))
 
         # User Certificates (post-save signal auto-syncs 200,000 EGP certificate balance entry)
@@ -74,7 +75,8 @@ class AIAccuracyTestSuite(TestCase):
 
         summary = data["summary"]
 
-        # 100,000 EGP + (10,000 USD * 50) + 200,000 EGP (synced cert) = 800,000 EGP
+        # (300,000 EGP cash - 200,000 EGP certificate principal deduction =
+        # 100,000) + (10,000 USD * 50) + 200,000 EGP (synced cert) = 800,000 EGP
         self.assertAlmostEqual(summary["total_liquid_in_home_currency"], 800000.00, places=2)
         self.assertEqual(summary["total_accounts_count"], 3)
 

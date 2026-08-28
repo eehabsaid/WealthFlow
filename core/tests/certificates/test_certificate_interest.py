@@ -23,7 +23,7 @@ class CertificateInterestSynchronizationTest(TestCase):
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=self.bank,
             currency=self.currency,
-            amount=1000,
+            amount=1000000,
         )
 
     def test_service_recovers_missed_periods_and_prevents_duplicates(self):
@@ -47,7 +47,7 @@ class CertificateInterestSynchronizationTest(TestCase):
         self.assertEqual(float(result.total_interest_posted), 400.0)
 
         self.cash_balance.refresh_from_db()
-        self.assertEqual(float(self.cash_balance.amount), 1400.0)
+        self.assertEqual(float(self.cash_balance.amount), 990400.0)
 
         certificate.refresh_from_db()
         self.assertEqual(certificate.last_interest_posted_date, date(2026, 7, 15))
@@ -60,7 +60,7 @@ class CertificateInterestSynchronizationTest(TestCase):
         self.assertEqual(second.processed_certificates, 0)
         self.assertEqual(second.posted_periods, 0)
         self.cash_balance.refresh_from_db()
-        self.assertEqual(float(self.cash_balance.amount), 1400.0)
+        self.assertEqual(float(self.cash_balance.amount), 990400.0)
 
     def test_service_ignores_inactive_or_expired_certificates(self):
         inactive = BankCertificate.objects.create(
@@ -88,7 +88,7 @@ class CertificateInterestSynchronizationTest(TestCase):
         self.assertEqual(result.processed_certificates, 0)
         self.assertEqual(result.posted_periods, 0)
         self.cash_balance.refresh_from_db()
-        self.assertEqual(float(self.cash_balance.amount), 1000.0)
+        self.assertEqual(float(self.cash_balance.amount), 990000.0)
         self.assertFalse(BankCertificateInterestHistory.objects.filter(certificate__in=[inactive, expired]).exists())
 
     def test_balance_view_triggers_interest_sync(self):
@@ -109,7 +109,7 @@ class CertificateInterestSynchronizationTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.cash_balance.refresh_from_db()
-        self.assertEqual(float(self.cash_balance.amount), 1150.0)
+        self.assertEqual(float(self.cash_balance.amount), 993150.0)
 
     def test_monthly_posts_only_when_eligible_day_is_reached(self):
         certificate = BankCertificate.objects.create(
@@ -127,12 +127,12 @@ class CertificateInterestSynchronizationTest(TestCase):
         result_before = CertificateInterestService().synchronize(today=date(2026, 7, 1))
         self.assertEqual(result_before.posted_periods, 0)
         self.cash_balance.refresh_from_db()
-        self.assertEqual(float(self.cash_balance.amount), 1000.0)
+        self.assertEqual(float(self.cash_balance.amount), 993000.0)
 
         result_on_day = CertificateInterestService().synchronize(today=date(2026, 7, 2))
         self.assertEqual(result_on_day.posted_periods, 1)
         self.cash_balance.refresh_from_db()
-        self.assertEqual(float(self.cash_balance.amount), 1100.0)
+        self.assertEqual(float(self.cash_balance.amount), 993100.0)
         certificate.refresh_from_db()
         self.assertEqual(certificate.last_interest_posted_date, date(2026, 7, 2))
 
@@ -156,7 +156,7 @@ class CertificateInterestSynchronizationTest(TestCase):
         self.assertEqual(result_on_oct.posted_periods, 1)
 
         self.cash_balance.refresh_from_db()
-        self.assertEqual(float(self.cash_balance.amount), 1075.0)
+        self.assertEqual(float(self.cash_balance.amount), 993075.0)
         certificate.refresh_from_db()
         self.assertEqual(certificate.last_interest_posted_date, date(2026, 10, 2))
 

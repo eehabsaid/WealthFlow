@@ -10,7 +10,7 @@ class BackupRestoreTests(TestCase):
     def setUp(self):
         # Clean up database tables we're going to test with so we have a known state
         from django.contrib.auth.models import User
-        from core.models import Currency, Bank, BankCertificate, Document
+        from core.models import BalanceEntry, Currency, Bank, BankCertificate, Document
         
         # Keep track of existing users if any to avoid deleting admin/users created by migrations/fixtures
         self.username = "test_backup_user"
@@ -34,6 +34,16 @@ class BackupRestoreTests(TestCase):
             account_number="123456789",
             swift_code="CIBEGXXX",
             is_active=True
+        )
+
+        # Matching cash balance entry required for certificate saves to
+        # succeed (see certificate_balance_deduction_service.py).
+        BalanceEntry.objects.create(
+            title="CIB Cash",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=self.bank,
+            currency=self.currency,
+            amount=1000000,
         )
 
         # Create Bank Certificate
