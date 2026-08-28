@@ -12,6 +12,10 @@ from core.models import (
     BankCertificateInterestHistory,
 
 )
+from core.services.certificate.certificate_balance_deduction_service import (
+    CertificateBalanceMappingError,
+    CertificateInsufficientBalanceError,
+)
 
 User = get_user_model()
 
@@ -58,6 +62,13 @@ def _run_certificate_interest_sync(force=False):
     finally:
         _sync_lock.release()
 
+def _certificate_balance_error_response(exc):
+    return JsonResponse(
+        {"error_code": exc.error_code, "error": "; ".join(exc.messages)},
+        status=400,
+    )
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class BankCertificateListView(View):
     def get(self, request):
@@ -66,18 +77,21 @@ class BankCertificateListView(View):
 
     def post(self, request):
         data = json.loads(request.body)
-        certificate = BankCertificate.objects.create(
-            bank_id=data["bank_id"],
-            currency_id=data.get("currency_id"),
-            issue_date=data.get("issue_date") or None,
-            expiry_date=data.get("expiry_date") or None,
-            amount=data.get("amount", 0),
-            interest_rate=data.get("interest_rate", 0),
-            interest_value=data.get("interest_value", 0),
-            frequency=data.get("frequency", ""),
-            status=data.get("status", "Active"),
-            notes=data.get("notes", ""),
-        )
+        try:
+            certificate = BankCertificate.objects.create(
+                bank_id=data["bank_id"],
+                currency_id=data.get("currency_id"),
+                issue_date=data.get("issue_date") or None,
+                expiry_date=data.get("expiry_date") or None,
+                amount=data.get("amount", 0),
+                interest_rate=data.get("interest_rate", 0),
+                interest_value=data.get("interest_value", 0),
+                frequency=data.get("frequency", ""),
+                status=data.get("status", "Active"),
+                notes=data.get("notes", ""),
+            )
+        except (CertificateBalanceMappingError, CertificateInsufficientBalanceError) as exc:
+            return _certificate_balance_error_response(exc)
         return JsonResponse(certificate.to_dict(), status=201)
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -103,7 +117,10 @@ class BankCertificateDetailView(View):
         ]:
             if field in data:
                 setattr(certificate, field, data[field])
-        certificate.save()
+        try:
+            certificate.save()
+        except (CertificateBalanceMappingError, CertificateInsufficientBalanceError) as exc:
+            return _certificate_balance_error_response(exc)
         return JsonResponse(certificate.to_dict())
 
     def delete(self, request, pk):

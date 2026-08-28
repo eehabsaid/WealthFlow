@@ -44,9 +44,23 @@ async function saveBankCertificate(certificateId) {
             renderBalanceEntries(); 
         }
     } else {
-        const text = await res.text();
-        console.error('Bank certificate save failed', res.status, text);
-        const errorMsg = t('error_saving_certificate', 'Error saving certificate: ') + (text || res.status);
+        let payload = null;
+        try {
+            payload = await res.json();
+        } catch (e) {
+            payload = null;
+        }
+        console.error('Bank certificate save failed', res.status, payload);
+
+        let detail;
+        if (payload && payload.error_code) {
+            detail = t('error_' + payload.error_code, payload.error || res.status);
+        } else if (payload && payload.error) {
+            detail = payload.error;
+        } else {
+            detail = String(res.status);
+        }
+        const errorMsg = t('error_saving_certificate', 'Error saving certificate: ') + detail;
         showToast(errorMsg, 'error');
     }
 }

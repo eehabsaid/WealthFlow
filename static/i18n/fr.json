@@ -2145,5 +2145,7 @@
   "load_baseline_rates": "Charger les tarifs de base",
   "load_baseline_rates_hint": "Charger instantanément les tarifs de base (sans importation)",
   "districts": "quartiers",
-  "baseline": "base"
+  "baseline": "base",
+  "error_certificate_balance_mapping_missing": "Aucune entrée de solde en espèces correspondante n'a été trouvée pour la banque et la devise sélectionnées. Créez d'abord une entrée de solde en espèces avec cette banque et cette devise.",
+  "error_certificate_insufficient_balance": "Le solde en espèces correspondant est insuffisant pour couvrir le montant principal de ce certificat."
 }

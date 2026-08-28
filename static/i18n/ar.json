@@ -2145,5 +2145,7 @@
   "load_baseline_rates": "تحميل الأسعار الافتراضية",
   "load_baseline_rates_hint": "تحميل أسعار الأحياء الافتراضية فوراً بدون استيراد",
   "districts": "أحياء",
-  "baseline": "افتراضي"
+  "baseline": "افتراضي",
+  "error_certificate_balance_mapping_missing": "لا يوجد رصيد نقدي مطابق للبنك والعملة المحددين. أنشئ رصيدًا نقديًا بنفس البنك والعملة أولاً.",
+  "error_certificate_insufficient_balance": "الرصيد النقدي المطابق غير كافٍ لتغطية قيمة أصل الشهادة."
 }

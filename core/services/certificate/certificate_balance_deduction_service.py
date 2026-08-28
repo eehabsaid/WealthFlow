@@ -31,9 +31,17 @@ Behaviour (confirmed with product owner):
      the cash balance, while amount/bank/currency edits net out to the
      correct delta automatically. Deletion reverses the last-applied
      deduction.
-  5. This does NOT touch or replace the existing certificate-aggregate
+  6. This does NOT touch or replace the existing certificate-aggregate
      sync in core/models/certificate.py (BalanceEntry balance_type
      "certificate"). That behaviour is untouched.
+  7. The view layer (core/views/certificate_views.py) catches these two
+     exceptions and returns a clean JSON 400 response of the form
+     {"error_code": "...", "error": "<english fallback text>"} instead of
+     letting them propagate as a raw 500. The frontend
+     (static/js/bank_certificates/api.js) maps `error_code` to a
+     translated message via t('error_' + error_code, ...), with the
+     matching keys added to all four static/i18n/*.json files - fully
+     supported by the i18n system, not hardcoded.
 """
 
 from decimal import Decimal
@@ -52,12 +60,14 @@ class CertificateBalanceMappingError(ValidationError):
     """Raised when no matching cash BalanceEntry exists for a certificate's
     bank + currency. Subclasses ValidationError so it behaves like a normal
     Django validation failure if a caller chooses to catch it that way."""
+    error_code = "certificate_balance_mapping_missing"
 
 
 class CertificateInsufficientBalanceError(ValidationError):
     """Raised when the matching cash BalanceEntry does not have enough
     funds to cover the certificate's principal (net of any amount being
     freed up by reversing the certificate's previous deduction)."""
+    error_code = "certificate_insufficient_balance"
 
 
 def _cash_balance_queryset(bank_id, currency_id):
