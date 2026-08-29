@@ -2149,5 +2149,7 @@
   "load_baseline_rates_hint": "تحميل أسعار الأحياء الافتراضية فوراً بدون استيراد",
   "districts": "أحياء",
   "baseline": "افتراضي",
-  "error_saving_certificate": "خطأ في حفظ الشهادة: "
+  "error_saving_certificate": "خطأ في حفظ الشهادة: ",
+  "error_certificate_balance_mapping_missing": "لا يوجد رصيد نقدي لهذا البنك والعملة بعد. الرجاء إضافة رصيد نقدي أولاً ثم إعادة حفظ الشهادة.",
+  "error_certificate_insufficient_balance": "الرصيد النقدي المطابق لا يكفي لتغطية مبلغ هذه الشهادة. الرجاء تقليل المبلغ أو زيادة الرصيد ثم المحاولة مرة أخرى."
 }

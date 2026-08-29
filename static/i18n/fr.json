@@ -2149,5 +2149,7 @@
   "load_baseline_rates_hint": "Charger instantanément les tarifs de base (sans importation)",
   "districts": "quartiers",
   "baseline": "base",
-  "error_saving_certificate": "Erreur lors de l'enregistrement du certificat : "
+  "error_saving_certificate": "Erreur lors de l'enregistrement du certificat : ",
+  "error_certificate_balance_mapping_missing": "Aucun solde en espèces n'est encore configuré pour cette banque et cette devise. Veuillez en créer un, puis réessayez d'enregistrer le certificat.",
+  "error_certificate_insufficient_balance": "Le solde en espèces correspondant ne suffit pas pour couvrir le montant de ce certificat. Veuillez réduire le montant ou augmenter le solde, puis réessayez."
 }

@@ -106,9 +106,8 @@ def validate_balance_entry_exists(bank_id, currency_id):
     certificate write entirely."""
     if find_cash_balance_entry(bank_id, currency_id) is None:
         raise CertificateBalanceMappingError(
-            "No matching cash balance entry found for the selected bank and "
-            "currency. Create/select a cash balance entry with that bank and "
-            "currency before saving this certificate."
+            "There's no cash balance set up yet for this bank and currency. "
+            "Please add one first, then save the certificate again."
         )
 
 
@@ -131,8 +130,9 @@ def validate_sufficient_balance(bank_id, currency_id, new_amount, old_snapshot):
 
     if available < Decimal(new_amount or 0):
         raise CertificateInsufficientBalanceError(
-            "Insufficient balance in the matching cash balance entry to "
-            "cover this certificate's principal amount."
+            "The matching cash balance doesn't have enough funds to cover "
+            "this certificate's amount. Please lower the amount or top up "
+            "the balance, then try again."
         )
 
 

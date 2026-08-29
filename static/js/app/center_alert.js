@@ -35,6 +35,7 @@ function showCenterAlert(msg, type = 'error') {
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) dismiss();
     });
-
-    setTimeout(dismiss, 6000);
+    // No auto-dismiss: this alert blocks a required user action (fix the
+    // bank/currency mapping or the balance), so it stays until the user
+    // closes it themselves.
 }

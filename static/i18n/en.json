@@ -2149,5 +2149,7 @@
   "load_baseline_rates_hint": "Load hardcoded Cairo district rates instantly (no scraping)",
   "districts": "districts",
   "baseline": "baseline",
-  "error_saving_certificate": "Error saving certificate: "
+  "error_saving_certificate": "Error saving certificate: ",
+  "error_certificate_balance_mapping_missing": "There's no cash balance set up yet for this bank and currency. Please add one first, then save the certificate again.",
+  "error_certificate_insufficient_balance": "The matching cash balance doesn't have enough funds to cover this certificate's amount. Please lower the amount or top up the balance, then try again."
 }
