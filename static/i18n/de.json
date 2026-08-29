@@ -2148,5 +2148,6 @@
   "load_baseline_rates": "Standardpreise laden",
   "load_baseline_rates_hint": "Vordefinierte Bezirkspreise sofort laden (ohne Import)",
   "districts": "Bezirke",
-  "baseline": "Standard"
+  "baseline": "Standard",
+  "error_saving_certificate": "Fehler beim Speichern des Zertifikats: "
 }

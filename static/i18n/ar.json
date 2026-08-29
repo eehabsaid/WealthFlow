@@ -2148,5 +2148,6 @@
   "load_baseline_rates": "تحميل الأسعار الافتراضية",
   "load_baseline_rates_hint": "تحميل أسعار الأحياء الافتراضية فوراً بدون استيراد",
   "districts": "أحياء",
-  "baseline": "افتراضي"
+  "baseline": "افتراضي",
+  "error_saving_certificate": "خطأ في حفظ الشهادة: "
 }

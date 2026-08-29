@@ -61,7 +61,15 @@ async function saveBankCertificate(certificateId) {
             detail = String(res.status);
         }
         const errorMsg = t('error_saving_certificate', 'Error saving certificate: ') + detail;
-        showToast(errorMsg, 'error');
+
+        // Blocking validation errors (missing balance mapping / insufficient
+        // balance) get a centered, responsive alert since they need the
+        // user's full attention; other/unexpected errors keep the corner toast.
+        if (payload && payload.error_code) {
+            showCenterAlert(errorMsg, 'error');
+        } else {
+            showToast(errorMsg, 'error');
+        }
     }
 }
 

@@ -2148,5 +2148,6 @@
   "load_baseline_rates": "Load Baseline",
   "load_baseline_rates_hint": "Load hardcoded Cairo district rates instantly (no scraping)",
   "districts": "districts",
-  "baseline": "baseline"
+  "baseline": "baseline",
+  "error_saving_certificate": "Error saving certificate: "
 }

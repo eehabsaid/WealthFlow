@@ -2148,5 +2148,6 @@
   "load_baseline_rates": "Charger les tarifs de base",
   "load_baseline_rates_hint": "Charger instantanément les tarifs de base (sans importation)",
   "districts": "quartiers",
-  "baseline": "base"
+  "baseline": "base",
+  "error_saving_certificate": "Erreur lors de l'enregistrement du certificat : "
 }
