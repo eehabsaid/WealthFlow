@@ -2040,6 +2040,9 @@
   "ai_ws_thinking_status": "جاري المعالجة والتفكير بواسطة الذكاء الاصطناعي...",
   "dp_prev_month": "الشهر السابق",
   "dp_next_month": "الشهر التالي",
+  "dp_prev_year": "السنة السابقة",
+  "dp_next_year": "السنة التالية",
+  "dp_choose_month_year": "اختر الشهر والسنة",
   "dp_clear": "مسح",
   "dp_cancel": "إلغاء",
   "dp_set": "تعيين",
@@ -2145,7 +2148,5 @@
   "load_baseline_rates": "تحميل الأسعار الافتراضية",
   "load_baseline_rates_hint": "تحميل أسعار الأحياء الافتراضية فوراً بدون استيراد",
   "districts": "أحياء",
-  "baseline": "افتراضي",
-  "error_certificate_balance_mapping_missing": "لا يوجد رصيد نقدي مطابق للبنك والعملة المحددين. أنشئ رصيدًا نقديًا بنفس البنك والعملة أولاً.",
-  "error_certificate_insufficient_balance": "الرصيد النقدي المطابق غير كافٍ لتغطية قيمة أصل الشهادة."
+  "baseline": "افتراضي"
 }

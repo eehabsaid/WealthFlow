@@ -2040,6 +2040,9 @@
   "ai_ws_thinking_status": "WealthFlow AI denkt nach...",
   "dp_prev_month": "Vorheriger Monat",
   "dp_next_month": "Nächster Monat",
+  "dp_prev_year": "Vorheriges Jahr",
+  "dp_next_year": "Nächstes Jahr",
+  "dp_choose_month_year": "Monat und Jahr wählen",
   "dp_clear": "Löschen",
   "dp_cancel": "Abbrechen",
   "dp_set": "Setzen",
@@ -2145,7 +2148,5 @@
   "load_baseline_rates": "Standardpreise laden",
   "load_baseline_rates_hint": "Vordefinierte Bezirkspreise sofort laden (ohne Import)",
   "districts": "Bezirke",
-  "baseline": "Standard",
-  "error_certificate_balance_mapping_missing": "Kein passender Bargeldsaldo für die ausgewählte Bank und Währung gefunden. Legen Sie zuerst einen Bargeldsaldo mit dieser Bank und Währung an.",
-  "error_certificate_insufficient_balance": "Der passende Bargeldsaldo reicht nicht aus, um den Nennbetrag dieses Zertifikats zu decken."
+  "baseline": "Standard"
 }

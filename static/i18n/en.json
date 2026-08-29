@@ -2040,6 +2040,9 @@
   "ai_ws_thinking_status": "WealthFlow AI is thinking...",
   "dp_prev_month": "Previous month",
   "dp_next_month": "Next month",
+  "dp_prev_year": "Previous year",
+  "dp_next_year": "Next year",
+  "dp_choose_month_year": "Choose month and year",
   "dp_clear": "Clear",
   "dp_cancel": "Cancel",
   "dp_set": "Set",
@@ -2145,7 +2148,5 @@
   "load_baseline_rates": "Load Baseline",
   "load_baseline_rates_hint": "Load hardcoded Cairo district rates instantly (no scraping)",
   "districts": "districts",
-  "baseline": "baseline",
-  "error_certificate_balance_mapping_missing": "No matching cash balance entry found for the selected bank and currency. Create a cash balance entry with that bank and currency first.",
-  "error_certificate_insufficient_balance": "Insufficient balance in the matching cash balance entry to cover this certificate's principal amount."
+  "baseline": "baseline"
 }

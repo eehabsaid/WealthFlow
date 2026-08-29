@@ -41,6 +41,7 @@
       this._popup = null;
       this._viewYear = 0;
       this._viewMonth = 0;
+      this._view = "days"; // "days" (day grid) or "months" (year-jump grid)
       this._pendingIso = ""; // highlighted but not yet committed (modal mode)
       this._isFilter = false; // filter inputs: immediate commit, no Set/Cancel
       this._isReadonly = false;
@@ -138,6 +139,7 @@
       const date = iso ? new Date(iso + "T00:00:00") : _today();
       this._viewYear = date.getFullYear();
       this._viewMonth = date.getMonth();
+      this._view = "days";
       this._pendingIso = iso || "";
 
       this._popup = buildPopup(this);

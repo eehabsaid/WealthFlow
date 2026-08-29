@@ -18,6 +18,15 @@
     return typeof t === "function" ? t(key, fallback) : fallback;
   }
 
+  const MONTH_KEYS = ["month_january", "month_february", "month_march", "month_april", "month_may", "month_june", "month_july", "month_august", "month_september", "month_october", "month_november", "month_december"];
+  const MONTH_FALLBACKS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  /** @param {number} index  0-based month index (0=January)
+   *  @returns {string} translated full month name via the shared month_* i18n keys */
+  function _monthName(index) {
+    return _t(MONTH_KEYS[index], MONTH_FALLBACKS[index]);
+  }
+
   /** @param {string} iso  YYYY-MM-DD or empty string
    *  @returns {string}  "dd-mmm-yyyy" using existing formatDate(), or "" */
   function _displayDate(iso) {
@@ -73,5 +82,6 @@
     _isoFromDate,
     _today,
     _isRtl,
+    _monthName,
   };
 })();

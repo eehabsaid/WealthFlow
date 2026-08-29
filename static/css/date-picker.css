@@ -216,6 +216,85 @@
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: 0.01em;
+  border: none;
+  background: transparent;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm, 8px);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.wf-dp-month-year:hover:not(:disabled) {
+  background: var(--accent-light);
+  color: var(--accent-primary);
+}
+
+.wf-dp-month-year:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.wf-dp-month-year:disabled {
+  cursor: default;
+}
+
+/* ── Popup Body Container (day grid or month grid) ─────────── */
+.wf-dp-body {
+  display: block;
+}
+
+/* ── Month Grid ("months" view) ─────────────────────────────── */
+.wf-dp-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.wf-dp-month {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-family: var(--font-family-body);
+  border-radius: var(--radius-sm, 8px);
+  cursor: pointer;
+  padding: 10px 4px;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.wf-dp-month:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+[data-theme="light"] .wf-dp-month {
+  color: #0f172a;
+}
+
+.wf-dp-month:hover {
+  background: var(--accent-light);
+  color: var(--accent-primary);
+}
+
+.wf-dp-month-today {
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.wf-dp-month-selected {
+  background: var(--accent-primary) !important;
+  color: #fff !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px var(--accent-glow);
 }
 
 /* ── Day-of-Week Headers ────────────────────────────────────── */
@@ -447,6 +526,20 @@
 
 [data-theme="light"] .wf-dp-month-year {
   color: #0f172a;
+}
+
+[data-theme="light"] .wf-dp-month-year:hover:not(:disabled) {
+  background: rgb(79 70 229 / 8%);
+  color: #4f46e5;
+}
+
+[data-theme="light"] .wf-dp-month:hover {
+  background: rgb(79 70 229 / 8%);
+  color: #4f46e5;
+}
+
+[data-theme="light"] .wf-dp-month-today {
+  color: #4f46e5;
 }
 
 [data-theme="light"] .wf-dp-nav-btn {
