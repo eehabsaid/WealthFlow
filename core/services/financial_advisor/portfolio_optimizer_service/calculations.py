@@ -1,4 +1,11 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false, reportRedeclaration=false, reportAssignmentType=false
+"""Pure scoring/rating math for the portfolio optimizer.
+
+NOTE (200-line file convention): moved verbatim from the former standalone
+core/services/financial_advisor/portfolio_optimizer_calculations.py as part
+of splitting core/services/financial_advisor/portfolio_optimizer_service.py
+(659 lines) into this package. Content is unchanged from the original file.
+"""
 from typing import Dict, List
 
 def _to_float(value) -> float:
