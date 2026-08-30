@@ -13,7 +13,7 @@ from typing import Dict
 
 from core.models import BalanceEntry
 
-from .helpers import _normalize_gold_purity, _to_float
+from core.services.balance.net_worth_service.helpers import _normalize_gold_purity, _to_float
 
 
 class NetWorthPortfolioMixin:

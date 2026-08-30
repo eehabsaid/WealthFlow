@@ -11,8 +11,8 @@ from __future__ import annotations
 
 from core.models import AppSettings
 
-from .certificate_forecast_context import ForecastContext
-from ..helpers import _fmt_money, _fmt_pct
+from core.services.balance.net_worth_service.certificate.certificate_forecast_context import ForecastContext
+from core.services.balance.net_worth_service.helpers import _fmt_money, _fmt_pct
 
 
 def build_action_plan(ctx: ForecastContext) -> dict:

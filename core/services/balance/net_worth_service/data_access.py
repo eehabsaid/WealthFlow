@@ -26,13 +26,13 @@ from core.models import (
     _is_certificate_active,
 )
 
-from .helpers import (
+from core.services.balance.net_worth_service.helpers import (
     REAL_ESTATE_ASSET_TYPES,
     VEHICLE_ASSET_TYPES,
     OTHER_ASSET_TYPES,
     _to_float,
 )
-from .balance_entries import ProjectedBalanceEntriesMixin
+from core.services.balance.net_worth_service.balance_entries import ProjectedBalanceEntriesMixin
 
 
 class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):

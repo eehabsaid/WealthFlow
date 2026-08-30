@@ -16,7 +16,7 @@ from typing import List, Tuple
 
 from core.models import GoldPriceHistory
 
-from ..helpers import _to_float
+from core.services.balance.net_worth_service.helpers import _to_float
 
 
 def compute_gold_signal(

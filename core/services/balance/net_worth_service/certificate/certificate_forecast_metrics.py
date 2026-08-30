@@ -16,9 +16,9 @@ from django.db.models import Sum
 
 from core.models import Expense
 
-from .certificate_forecast_context import ForecastContext
-from ..gold.certificate_forecast_gold_signal import compute_gold_signal
-from ..helpers import _to_float
+from core.services.balance.net_worth_service.certificate.certificate_forecast_context import ForecastContext
+from core.services.balance.net_worth_service.gold.certificate_forecast_gold_signal import compute_gold_signal
+from core.services.balance.net_worth_service.helpers import _to_float
 
 
 def build_forecast_metrics(service, today: date | None = None) -> ForecastContext:

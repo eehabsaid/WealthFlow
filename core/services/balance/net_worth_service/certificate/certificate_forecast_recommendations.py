@@ -12,10 +12,10 @@ relative order as the original single method, produces identical output.
 """
 from __future__ import annotations
 
-from .certificate_forecast_context import ForecastContext
-from .certificate_forecast_recommendation_helpers import add_financial_recommendation, add_investment_recommendation
-from .certificate_forecast_recommendations_allocation import append_allocation_recommendations
-from ..helpers import _fmt_money, _fmt_pct
+from core.services.balance.net_worth_service.certificate.certificate_forecast_context import ForecastContext
+from core.services.balance.net_worth_service.certificate.certificate_forecast_recommendation_helpers import add_financial_recommendation, add_investment_recommendation
+from core.services.balance.net_worth_service.certificate.certificate_forecast_recommendations_allocation import append_allocation_recommendations
+from core.services.balance.net_worth_service.helpers import _fmt_money, _fmt_pct
 
 
 def append_forecast_recommendations(service, ctx: ForecastContext) -> None:

@@ -38,11 +38,11 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, Callable, Dict, TypeVar, cast
 
-from .certificate.certificate_forecast_action import assemble_forecast_payload, build_action_plan
-from .certificate.certificate_forecast_metrics import build_forecast_metrics
-from .certificate.certificate_forecast_recommendations import append_forecast_recommendations
-from .data_access import NetWorthDataAccessMixin
-from .portfolio import NetWorthPortfolioMixin
+from core.services.balance.net_worth_service.certificate.certificate_forecast_action import assemble_forecast_payload, build_action_plan
+from core.services.balance.net_worth_service.certificate.certificate_forecast_metrics import build_forecast_metrics
+from core.services.balance.net_worth_service.certificate.certificate_forecast_recommendations import append_forecast_recommendations
+from core.services.balance.net_worth_service.data_access import NetWorthDataAccessMixin
+from core.services.balance.net_worth_service.portfolio import NetWorthPortfolioMixin
 
 T = TypeVar("T")
 

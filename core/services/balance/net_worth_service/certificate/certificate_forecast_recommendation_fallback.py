@@ -8,9 +8,9 @@ sequence (see certificate_forecast_recommendations.py).
 """
 from __future__ import annotations
 
-from .certificate_forecast_context import ForecastContext
-from .certificate_forecast_recommendation_helpers import add_financial_recommendation
-from ..helpers import _fmt_pct
+from core.services.balance.net_worth_service.certificate.certificate_forecast_context import ForecastContext
+from core.services.balance.net_worth_service.certificate.certificate_forecast_recommendation_helpers import add_financial_recommendation
+from core.services.balance.net_worth_service.helpers import _fmt_pct
 
 
 def append_fallback_recommendation(service, ctx: ForecastContext) -> None:

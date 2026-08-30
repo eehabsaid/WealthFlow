@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Dict, cast
 
-from .certificate_forecast_context import ForecastContext
+from core.services.balance.net_worth_service.certificate.certificate_forecast_context import ForecastContext
 
 
 def add_investment_recommendation(

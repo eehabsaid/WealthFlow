@@ -13,7 +13,7 @@ from typing import List
 
 from core.models import AssetMortgage, AssetRental, BalanceEntry, Currency
 
-from .helpers import REAL_ESTATE_ASSET_TYPES, _to_float
+from core.services.balance.net_worth_service.helpers import REAL_ESTATE_ASSET_TYPES, _to_float
 
 
 class ProjectedBalanceEntriesMixin:

@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from typing import List
 
-from .certificate_forecast_context import ForecastContext
-from .certificate_forecast_recommendation_helpers import add_financial_recommendation
-from .certificate_forecast_recommendation_fallback import append_fallback_recommendation
-from ..helpers import _fmt_money, _fmt_pct
+from core.services.balance.net_worth_service.certificate.certificate_forecast_context import ForecastContext
+from core.services.balance.net_worth_service.certificate.certificate_forecast_recommendation_helpers import add_financial_recommendation
+from core.services.balance.net_worth_service.certificate.certificate_forecast_recommendation_fallback import append_fallback_recommendation
+from core.services.balance.net_worth_service.helpers import _fmt_money, _fmt_pct
 
 
 def append_allocation_recommendations(service, ctx: ForecastContext) -> None:
