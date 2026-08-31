@@ -43,45 +43,32 @@ function getSelectedPurchaseCurrencyCode() {
   return String(getSelectedPurchaseCurrency()?.code || "").toUpperCase();
 }
 
-function getRateToEgp(row) {
-  return parseFloat(row?.buy_rate) || 0;
+// Shared by every "Now" button across the Fixed Asset tabs (General,
+// Furniture, Acquisition Costs, Renovation). The rate math itself now
+// lives server-side in UsdRateService - this just calls it. Output is
+// unchanged from the previous in-browser calculation.
+async function fetchCurrentUsdRateForCurrency(currencyId) {
+  const response = await fetch(`/api/fixed-assets/usd-rate/?currency_id=${currencyId || ""}`);
+  if (!response.ok) {
+    let message = t("error_loading_rates", "Error loading exchange rates.");
+    try {
+      const payload = await response.json();
+      if (payload?.error) message = payload.error;
+    } catch (_) {
+      // Keep fallback message.
+    }
+    throw new Error(message);
+  }
+  const payload = await response.json();
+  return parseFloat(payload?.rate) || 0;
 }
 
-function applyPurchaseUsdRateByCurrency(rates) {
-  const purchaseCurrencyCode = getSelectedPurchaseCurrencyCode();
+async function applyPurchaseUsdRateByCurrency() {
   const usdRateField = document.getElementById("fa_purchase_usd_rate");
   if (!usdRateField) return;
 
-  if (purchaseCurrencyCode === "USD") {
-    usdRateField.value = "1.00000";
-    updatePurchasePriceUSD();
-    return;
-  }
-
-  const usd = rates.find((item) => String(item?.currency_code || "").toUpperCase() === "USD");
-  const usdBuyRate = getRateToEgp(usd);
-  if (!usdBuyRate) {
-    throw new Error(t("error_loading_rates", "Error loading exchange rates."));
-  }
-
-  if (purchaseCurrencyCode === "EGP") {
-    // Base currency is not stored in exchange-rate table; use implicit buy_rate = 1.00.
-    const rate = usdBuyRate;
-    usdRateField.value = rate.toFixed(5);
-    updatePurchasePriceUSD();
-    return;
-  }
-
-  let currencyBuyRate = 1;
-  if (purchaseCurrencyCode && purchaseCurrencyCode !== "EGP") {
-    const selectedCurrency = rates.find((item) => String(item?.currency_code || "").toUpperCase() === purchaseCurrencyCode);
-    currencyBuyRate = getRateToEgp(selectedCurrency);
-    if (!currencyBuyRate) {
-      throw new Error(t("error_loading_rates", "Error loading exchange rates."));
-    }
-  }
-
-  const rate = currencyBuyRate / usdBuyRate;
+  const currencyId = document.getElementById("fa_purchase_currency")?.value;
+  const rate = await fetchCurrentUsdRateForCurrency(currencyId);
   usdRateField.value = rate.toFixed(5);
   updatePurchasePriceUSD();
 }
@@ -104,13 +91,7 @@ async function handlePurchaseCurrencyChange() {
   }
 
   try {
-    const response = await fetch("/api/rates/");
-    if (!response.ok) {
-      throw new Error(t("error_loading_rates", "Error loading exchange rates."));
-    }
-    const payload = await response.json();
-    const rates = Array.isArray(payload?.rates) ? payload.rates : [];
-    applyPurchaseUsdRateByCurrency(rates);
+    await applyPurchaseUsdRateByCurrency();
   } catch (error) {
     showToast(error.message, "danger");
   }
@@ -186,6 +167,26 @@ async function refreshGoldCalculatedFields(forcePriceFetch = false) {
     }
   } catch (err) {
     showToast(err.message, "danger");
+  }
+}
+
+// Shared "Now" handler for per-row USD rate fields (Furniture,
+// Acquisition Costs, Renovation). Fetches the same backend rate used by
+// the General tab's "Now" button, fills the row's own rate field, then
+// re-runs that row's existing (unchanged) USD recalculation.
+async function fillRowUsdRateNow(buttonEl, rateSelector, recalcFn) {
+  const row = buttonEl.closest(".furniture-row, .acquisition-row, .renovation-row");
+  if (!row) return;
+  const rateInput = row.querySelector(rateSelector);
+  if (!rateInput) return;
+
+  const currencyId = document.getElementById("fa_purchase_currency")?.value;
+  try {
+    const rate = await fetchCurrentUsdRateForCurrency(currencyId);
+    rateInput.value = rate.toFixed(5);
+    recalcFn(rateInput);
+  } catch (error) {
+    showToast(error.message, "danger");
   }
 }
 

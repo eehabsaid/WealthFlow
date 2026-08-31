@@ -46,6 +46,9 @@ from core.views.fixed_assets.fixed_asset_valuation_views import (
     AssetValuationHistoryListView,
     AssetValuationHistoryDetailView,
 )
+from core.views.fixed_assets.fixed_asset_usd_rate_views import (
+    FixedAssetUsdRateView,
+)
 
 __all__ = [
     "AssetAcquisitionCostListView",
@@ -71,6 +74,7 @@ __all__ = [
     "FixedAssetDetailView",
     "FixedAssetListView",
     "FixedAssetPhotoView",
+    "FixedAssetUsdRateView",
     "_clear_non_selected_asset_details",
     "_document_database_error_response",
     "_document_validation_error_response",

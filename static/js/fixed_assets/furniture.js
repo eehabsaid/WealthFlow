@@ -123,7 +123,10 @@ function addFurnitureRow(data = {}, expand = false) {
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
-          <input type="number" step="0.0001" min="0" class="form-control furniture-usd-rate" value="${data.usd_rate || document.getElementById("fa_purchase_usd_rate")?.value || ""}" oninput="updateFurnitureUSD(this)">
+          <div class="input-group">
+            <input type="number" step="0.0001" min="0" class="form-control furniture-usd-rate" value="${data.usd_rate || document.getElementById("fa_purchase_usd_rate")?.value || ""}" oninput="updateFurnitureUSD(this)">
+            <button type="button" class="btn btn-outline-secondary" onclick="fillRowUsdRateNow(this, '.furniture-usd-rate', updateFurnitureUSD)" data-i18n="current_rate_btn">Now</button>
+          </div>
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="amount_usd">Amount USD</label>

@@ -58,13 +58,7 @@ async function fillCurrentUsdRate() {
   if (!usdRateField) return;
 
   try {
-    const response = await fetch("/api/rates/");
-    if (!response.ok) {
-      throw new Error(t("error_loading_rates", "Error loading exchange rates."));
-    }
-    const payload = await response.json();
-    const rates = Array.isArray(payload?.rates) ? payload.rates : [];
-    applyPurchaseUsdRateByCurrency(rates);
+    await applyPurchaseUsdRateByCurrency();
   } catch (error) {
     showToast(error.message, "danger");
   }

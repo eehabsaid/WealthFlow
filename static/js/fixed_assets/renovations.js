@@ -117,6 +117,13 @@ function addRenovationRow(data = {}, expand = false) {
           <input type="number" step="0.01" class="form-control renovation-egp" value="${amountEgpVal}" oninput="updateRenovationUSD(this)">
         </div>
         <div class="field">
+          <label class="form-label small" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
+          <div class="input-group">
+            <input type="number" step="0.00001" min="0" class="form-control renovation-usd-rate" value="${data.usd_rate || document.getElementById("fa_purchase_usd_rate")?.value || ""}" oninput="updateRenovationUSD(this)">
+            <button type="button" class="btn btn-outline-secondary" onclick="fillRowUsdRateNow(this, '.renovation-usd-rate', updateRenovationUSD)" data-i18n="current_rate_btn">Now</button>
+          </div>
+        </div>
+        <div class="field">
           <label class="form-label small" data-i18n="amount_usd">USD</label>
           <input type="number" step="0.01" class="form-control renovation-usd" value="${data.amount_usd || ""}" readonly>
         </div>
@@ -209,7 +216,7 @@ function collectRenovations() {
       amount_egp: parseFloat(row.querySelector(".renovation-egp").value) || 0,
 
       usd_rate:
-        parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0,
+        parseFloat(row.querySelector(".renovation-usd-rate")?.value) || 0,
 
       amount_usd: parseFloat(row.querySelector(".renovation-usd").value) || 0,
 
@@ -230,7 +237,7 @@ function updateRenovationUSD(input) {
   const egp = parseFloat(row.querySelector(".renovation-egp").value) || 0;
 
   const rate =
-    parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0;
+    parseFloat(row.querySelector(".renovation-usd-rate")?.value) || 0;
 
   const usdInput = row.querySelector(".renovation-usd");
 

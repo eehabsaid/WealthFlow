@@ -151,6 +151,7 @@ from .fixed_asset_views import AssetFurnitureCategoriesView
 from .fixed_asset_views import AssetValuationHistoryListView
 from .fixed_asset_views import AssetValuationHistoryDetailView
 from .fixed_asset_views import AssetSaleView
+from .fixed_asset_views import FixedAssetUsdRateView
 from .expense_views import (
     User
 )
@@ -340,6 +341,7 @@ __all__ = [
     "CertificateStatusListView",
     "CertificateStatusDetailView",
     "FixedAssetValuationRefreshView",
+    "FixedAssetUsdRateView",
     "_salary_trigger_day",
     "DocumentationStatusView",
     "DocumentationDevicesView",

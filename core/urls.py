@@ -215,6 +215,10 @@ urlpatterns = [
         views.FixedAssetValuationRefreshView.as_view(),
     ),
     path(
+        "api/fixed-assets/usd-rate/",
+        views.FixedAssetUsdRateView.as_view(),
+    ),
+    path(
         "api/certificate-forecast/",
         views.CertificateForecastView.as_view(),
     ),
