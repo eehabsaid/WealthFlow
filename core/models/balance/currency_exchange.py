@@ -2,8 +2,8 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.contrib.auth.models import User
 from decimal import Decimal
-from .currency import Currency
-from .balance import BalanceEntry
+from ..currency import Currency
+from .balance_entry import BalanceEntry
 
 class CurrencyExchange(models.Model):
     class Status(models.TextChoices):

@@ -1,6 +1,6 @@
 from django.db import models
-from .bank import Bank
-from .currency import Currency
+from ..bank import Bank
+from ..currency import Currency
 
 class BalanceEntry(models.Model):
     title = models.CharField(max_length=200)

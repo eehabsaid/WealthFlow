@@ -3,9 +3,7 @@ from .salary import SalaryEntry, PerDiem
 from .bank import Bank
 from .certificate import BankCertificate, BankCertificateInterestHistory, CertificateStatus, sync_certificate_balance_entries, _is_certificate_active
 from .currency import Currency
-from .balance import BalanceEntry
-from .balance_transfer import BalanceTransfer
-from .currency_exchange import CurrencyExchange
+from .balance import BalanceEntry, BalanceTransfer, BankInterest, CurrencyExchange
 from .exchange_rate import ExchangeRate
 from .exchange_rate_history import ExchangeRateHistory
 from .gold import GoldPrice, GoldPriceHistory, GoldTypeSetting, GoldPuritySetting
@@ -43,6 +41,7 @@ __all__ = [
     "Currency",
     "BalanceEntry",
     "BalanceTransfer",
+    "BankInterest",
     "CurrencyExchange",
     "ExchangeRate",
     "ExchangeRateHistory",

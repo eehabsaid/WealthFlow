@@ -45,8 +45,8 @@ from .certificate_views import BankCertificateListView
 from .certificate_views import BankCertificateDetailView
 from .certificate_views import BankCertificateInterestHistoryView
 from .certificate_views import _run_certificate_interest_sync
-from .balance_account_views import BalanceListView
-from .balance_account_views import BalanceDetailView
+from .balance import BalanceListView
+from .balance import BalanceDetailView
 from .expense_category_views import ExpenseCategoryListView
 from .expense_category_views import ExpenseCategoryDetailView
 from .expense_category_views import ExpenseSubcategoryListView
@@ -78,17 +78,17 @@ from core.reports.report_generators import _fixed_asset_pdf_table
 from core.reports.report_generators import _build_fixed_asset_pdf_story
 from core.reports.report_generators import month_sort_key
 from .dashboard_views import DashboardSummaryView
-from .balance_forecast_views import CertificateForecastView
-from .balance_forecast_views import CashFlowForecastView
-from .balance_forecast_views import WealthGrowthForecastView
-from .balance_forecast_views import PortfolioOptimizerView
-from .balance_forecast_views import RiskAnalysisView
-from .balance_forecast_views import SpendingIntelligenceView
-from .balance_forecast_views import OpportunityDetectionView
-from .balance_forecast_views import PerformanceView
-from .balance_forecast_views import WhatIfSimulatorView
-from .balance_forecast_views import OverviewView
-from .balance_forecast_views import (
+from .balance import CertificateForecastView
+from .balance import CashFlowForecastView
+from .balance import WealthGrowthForecastView
+from .balance import PortfolioOptimizerView
+from .balance import RiskAnalysisView
+from .balance import SpendingIntelligenceView
+from .balance import OpportunityDetectionView
+from .balance import PerformanceView
+from .balance import WhatIfSimulatorView
+from .balance import OverviewView
+from .balance import (
     ScenarioEventDefinitionsView,
     ScenarioListCreateView,
     ScenarioDetailView,
@@ -155,11 +155,15 @@ from .fixed_asset_views import FixedAssetUsdRateView
 from .expense_views import (
     User
 )
-from .balance_transfer_views import (
+from .balance import (
     BalanceTransferListView,
     BalanceTransferDetailView
 )
-from .currency_exchange_views import (
+from .balance import (
+    BankInterestListView,
+    BankInterestDetailView
+)
+from .balance import (
     CurrencyExchangeListView,
     CurrencyExchangeDetailView,
     CurrencyExchangeCalculateView,
@@ -330,6 +334,8 @@ __all__ = [
     "User",
     "BalanceTransferListView",
     "BalanceTransferDetailView",
+    "BankInterestListView",
+    "BankInterestDetailView",
     "CurrencyExchangeListView",
     "CurrencyExchangeDetailView",
     "CurrencyExchangeCalculateView",

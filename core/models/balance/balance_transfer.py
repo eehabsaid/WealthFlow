@@ -1,9 +1,9 @@
 from django.db import models
 from django.db import transaction
 from decimal import Decimal
-from .bank import Bank
-from .currency import Currency
-from .balance import BalanceEntry
+from ..bank import Bank
+from ..currency import Currency
+from .balance_entry import BalanceEntry
 
 class BalanceTransfer(models.Model):
     class TransferType(models.TextChoices):

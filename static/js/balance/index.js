@@ -12,13 +12,14 @@ async function renderBalance() {
     mc.innerHTML = '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
 
     // ── 1. Fetch all data once ───────────────────────────────────────────────
-    const [bRes, bankRes, currRes, forecastRes, transfersRes, exchangesRes] = await Promise.all([
+    const [bRes, bankRes, currRes, forecastRes, transfersRes, exchangesRes, bankInterestsRes] = await Promise.all([
         fetch('/api/balance/'),
         fetch('/api/banks/'),
         fetch('/api/currencies/'),
         fetch('/api/certificate-forecast/'),
         fetch('/api/balance-transfers/'),
         fetch('/api/currency-exchanges/'),
+        fetch('/api/bank-interests/'),
     ]);
     const bData        = await bRes.json();
     const bankData     = await bankRes.json();
@@ -26,6 +27,7 @@ async function renderBalance() {
     const forecastData = await forecastRes.json();
     const transfersData = await transfersRes.json();
     const exchangesData = await exchangesRes.json();
+    const bankInterestsData = await bankInterestsRes.json();
 
     // ── 2. Store module-level state ──────────────────────────────────────────
     _balanceEntries = bData.entries;
@@ -203,6 +205,7 @@ async function renderBalance() {
         forecastData, entries: _balanceEntries,
         transfers: transfersData.transfers || [],
         exchanges: exchangesData.exchanges || [],
+        bank_interests: bankInterestsData.bank_interests || [],
         // summary values
         totals, totalEGP, cashEGP, usdAmount, eurAmount, sarAmount,
         usdRate, eurRate, sarRate, goldValue, grandTotal, netWorth,
@@ -290,6 +293,9 @@ async function renderBalance() {
     }
     if (typeof renderBalanceCurrencyExchange === 'function') {
         renderBalanceCurrencyExchange(tabData);
+    }
+    if (typeof renderBalanceBankInterest === 'function') {
+        renderBalanceBankInterest(tabData);
     }
 
     applyTranslations();
