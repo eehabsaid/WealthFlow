@@ -296,6 +296,22 @@
     box-sizing: border-box;
 }
 
+.item-card .field-grid .field .input-group {
+    flex-wrap: nowrap;
+}
+
+.item-card .field-grid .field .input-group input {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+}
+
+.item-card .field-grid .field .input-group .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 8px 12px;
+}
+
 /* Summary strip style */
 .furniture-summary-strip {
     display: flex;
