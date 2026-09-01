@@ -111,6 +111,9 @@ def get_model_export_order():
         Document, AssetPhoto,
         AIConversation, AIMessage, AIKnowledgeEntry, AIModelVersion, AIBenchmarkReport,
         CreditCardPayment,
+        BankInterest, AssetAcquisitionCost, ExchangeRateHistory,
+        Scenario, ScenarioEvent,
+        AIPromptCategory, AIPrompt,
     )
 
     return [
@@ -166,6 +169,13 @@ def get_model_export_order():
         ("49", AIModelVersion,               "version_name"),
         ("50", AIBenchmarkReport,            None),
         ("51", CreditCardPayment,            None),
+        ("52", BankInterest,                 None),
+        ("53", AssetAcquisitionCost,         None),
+        ("54", ExchangeRateHistory,          None),
+        ("55", Scenario,                     None),
+        ("56", ScenarioEvent,                None),
+        ("57", AIPromptCategory,             "code"),
+        ("58", AIPrompt,                     None),
     ]
 
 
