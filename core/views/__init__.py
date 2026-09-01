@@ -57,7 +57,8 @@ from .exports_balance import (
     OpportunityDetectionView, PerformanceView, WhatIfSimulatorView, OverviewView,
     ScenarioEventDefinitionsView, ScenarioListCreateView, ScenarioDetailView, ScenarioEventListCreateView,
     ScenarioEventDetailView, ScenarioComparisonView, ScenarioDuplicateView, BalanceTransferListView,
-    BalanceTransferDetailView, BankInterestListView, BankInterestDetailView, CreditCardPaymentListView,
+    BalanceTransferDetailView, BankInterestListView, BankInterestDetailView, CardRenewalFeeListView,
+    CardRenewalFeeDetailView, CreditCardPaymentListView,
     CreditCardPaymentDetailView, CurrencyExchangeListView, CurrencyExchangeDetailView, CurrencyExchangeCalculateView,
     CurrencyExchangeFormOptionsView,
 )
@@ -119,7 +120,7 @@ __all__ = [
     "RiskAnalysisView", "SpendingIntelligenceView", "OpportunityDetectionView", "PerformanceView", "WhatIfSimulatorView",
     "OverviewView", "ScenarioEventDefinitionsView", "ScenarioListCreateView", "ScenarioDetailView", "ScenarioEventListCreateView",
     "ScenarioEventDetailView", "ScenarioComparisonView", "ScenarioDuplicateView", "BalanceTransferListView", "BalanceTransferDetailView",
-    "BankInterestListView", "BankInterestDetailView", "CreditCardPaymentListView", "CreditCardPaymentDetailView", "CurrencyExchangeListView",
+    "BankInterestListView", "BankInterestDetailView", "CardRenewalFeeListView", "CardRenewalFeeDetailView", "CreditCardPaymentListView", "CreditCardPaymentDetailView", "CurrencyExchangeListView",
     "CurrencyExchangeDetailView", "CurrencyExchangeCalculateView", "CurrencyExchangeFormOptionsView", "ExpenseCategoryListView", "ExpenseCategoryDetailView",
     "ExpenseSubcategoryListView", "ExpenseSubcategoryDetailView", "ExpenseListView", "ExpenseDetailView", "User",
     "ExpenseSummaryView", "ExportExcelWorkbookView", "export_excel", "GenerateReportView", "SalaryReportView",

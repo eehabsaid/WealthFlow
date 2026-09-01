@@ -12,7 +12,7 @@ async function renderBalance() {
     mc.innerHTML = '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
 
     // ── 1. Fetch all data once ───────────────────────────────────────────────
-    const [bRes, bankRes, currRes, forecastRes, transfersRes, exchangesRes, bankInterestsRes, creditCardPaymentsRes] = await Promise.all([
+    const [bRes, bankRes, currRes, forecastRes, transfersRes, exchangesRes, bankInterestsRes, creditCardPaymentsRes, cardRenewalFeesRes] = await Promise.all([
         fetch('/api/balance/'),
         fetch('/api/banks/'),
         fetch('/api/currencies/'),
@@ -21,6 +21,7 @@ async function renderBalance() {
         fetch('/api/currency-exchanges/'),
         fetch('/api/bank-interests/'),
         fetch('/api/credit-card-payments/'),
+        fetch('/api/card-renewal-fees/'),
     ]);
     const bData        = await bRes.json();
     const bankData     = await bankRes.json();
@@ -30,6 +31,7 @@ async function renderBalance() {
     const exchangesData = await exchangesRes.json();
     const bankInterestsData = await bankInterestsRes.json();
     const creditCardPaymentsData = await creditCardPaymentsRes.json();
+    const cardRenewalFeesData = await cardRenewalFeesRes.json();
 
     // ── 2. Store module-level state ──────────────────────────────────────────
     _balanceEntries = bData.entries;
@@ -209,6 +211,7 @@ async function renderBalance() {
         exchanges: exchangesData.exchanges || [],
         bank_interests: bankInterestsData.bank_interests || [],
         credit_card_payments: creditCardPaymentsData.credit_card_payments || [],
+        card_renewal_fees: cardRenewalFeesData.card_renewal_fees || [],
         // summary values
         totals, totalEGP, cashEGP, usdAmount, eurAmount, sarAmount,
         usdRate, eurRate, sarRate, goldValue, grandTotal, netWorth,
@@ -302,6 +305,9 @@ async function renderBalance() {
     }
     if (typeof renderBalanceCreditCardPayment === 'function') {
         renderBalanceCreditCardPayment(tabData);
+    }
+    if (typeof renderBalanceCardRenewalFee === 'function') {
+        renderBalanceCardRenewalFee(tabData);
     }
 
     applyTranslations();

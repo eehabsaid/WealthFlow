@@ -53,6 +53,10 @@
         { "name": "Add Credit Card Payment", "type": "modal", "trigger": "eval:showCreditCardPaymentModal(null)" },
         { "name": "Edit Credit Card Payment", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showCreditCardPaymentModal\"]'); if(btn) btn.click(); else if(typeof showCreditCardPaymentModal === \"function\") showCreditCardPaymentModal(1);" }
     ]}, 
+    { "name": "Card Renewal Fee", "id": "card_renewal_fee", "nested_navigation": [
+        { "name": "Add Card Renewal Fee", "type": "modal", "trigger": "eval:showCardRenewalFeeModal(null)" },
+        { "name": "Edit Card Renewal Fee", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showCardRenewalFeeModal\"]'); if(btn) btn.click(); else if(typeof showCardRenewalFeeModal === \"function\") showCardRenewalFeeModal(1);" }
+    ]}, 
     { "name": "Allocation", "id": "allocation" }, 
     { "name": "Forecasts", "id": "forecasts" }, 
     { "name": "Recommendations", "id": "recommendations" }

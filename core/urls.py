@@ -62,6 +62,8 @@ urlpatterns = [
     path("api/bank-interests/<int:pk>/", views.BankInterestDetailView.as_view()),
     path("api/credit-card-payments/", views.CreditCardPaymentListView.as_view()),
     path("api/credit-card-payments/<int:pk>/", views.CreditCardPaymentDetailView.as_view()),
+    path("api/card-renewal-fees/", views.CardRenewalFeeListView.as_view()),
+    path("api/card-renewal-fees/<int:pk>/", views.CardRenewalFeeDetailView.as_view()),
     path("api/currency-exchanges/", views.CurrencyExchangeListView.as_view()),
     path("api/currency-exchanges/<int:pk>/", views.CurrencyExchangeDetailView.as_view()),
     path("api/currency-exchanges/calculate/", views.CurrencyExchangeCalculateView.as_view()),

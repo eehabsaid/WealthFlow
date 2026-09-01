@@ -114,6 +114,8 @@ def get_model_export_order():
         BankInterest, AssetAcquisitionCost, ExchangeRateHistory,
         Scenario, ScenarioEvent,
         AIPromptCategory, AIPrompt,
+        CardRenewalFee,
+        DocumentationExecution,
     )
 
     return [
@@ -176,6 +178,8 @@ def get_model_export_order():
         ("56", ScenarioEvent,                None),
         ("57", AIPromptCategory,             "code"),
         ("58", AIPrompt,                     None),
+        ("59", CardRenewalFee,               None),
+        ("60", DocumentationExecution,       None),
     ]
 
 
