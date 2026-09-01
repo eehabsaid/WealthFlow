@@ -1,10 +1,13 @@
-'use strict';
+"use strict";
 
 async function saveExpense(expId) {
   const paymentMethod = document.getElementById("eMethod").value;
   const bankId = parseInt(document.getElementById("eBank")?.value) || null;
   if (isExpenseBankRequired(paymentMethod) && !bankId) {
-    showToast(t("bank_account_required", "Bank account is required for Bank/Card payments"), "error");
+    showToast(
+      t("bank_account_required", "Bank account is required for Bank/Card payments"),
+      "error"
+    );
     return;
   }
 
@@ -82,9 +85,7 @@ async function saveCategory(catId) {
     showToast("Name required", "error");
     return;
   }
-  const url = catId
-    ? `/api/expense-categories/${catId}/`
-    : "/api/expense-categories/";
+  const url = catId ? `/api/expense-categories/${catId}/` : "/api/expense-categories/";
   const method = catId ? "PUT" : "POST";
   const res = await fetch(url, {
     method,
@@ -121,12 +122,12 @@ async function saveSubcategory(subId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
-  showToast(t('saved', 'Saved ✓'), "success");
+  showToast(t("saved", "Saved ✓"), "success");
 }
 
 async function deleteSubcategory(subId, catId) {
-  if (!confirm(t('confirm_delete_subcategory', 'Delete this subcategory?'))) return;
+  if (!confirm(t("confirm_delete_subcategory", "Delete this subcategory?"))) return;
   await fetch(`/api/expense-subcategories/${subId}/`, { method: "DELETE" });
-  showToast(t('deleted', 'Deleted'), "success");
+  showToast(t("deleted", "Deleted"), "success");
   showSubcategoryModal(catId);
 }

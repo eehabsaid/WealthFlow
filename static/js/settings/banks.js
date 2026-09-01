@@ -3,27 +3,31 @@
 // This file is part of the settings module. Do not edit directly.
 
 async function renderBankSettings() {
-    const res   = await fetch('/api/banks/');
-    const data  = await res.json();
-    window._banks = data.banks;
+  const res = await fetch("/api/banks/");
+  const data = await res.json();
+  window._banks = data.banks;
 
-    const rows = data.banks.map(b => `
+  const rows = data.banks
+    .map(
+      (b) => `
         <tr>
             <td>${b.name}</td>
-            <td><code style="color:var(--text-muted);font-size:11px">${b.account_number || '—'}</code></td>
-            <td><code style="color:var(--text-muted);font-size:11px">${b.swift_code    || '—'}</code></td>
-            <td style="color:${b.is_active ? 'var(--accent-green)' : 'var(--accent-red)'}">
-                ${b.is_active ? 'Active' : 'Inactive'}
+            <td><code style="color:var(--text-muted);font-size:11px">${b.account_number || "—"}</code></td>
+            <td><code style="color:var(--text-muted);font-size:11px">${b.swift_code || "—"}</code></td>
+            <td style="color:${b.is_active ? "var(--accent-green)" : "var(--accent-red)"}">
+                ${b.is_active ? "Active" : "Inactive"}
             </td>
             <td>
                 <button class="btn-icon" onclick="showBankModal(${b.id})"><i class="bi bi-pencil"></i></button>
                 <button class="btn-icon del" onclick="deleteBank(${b.id})"><i class="bi bi-trash"></i></button>
             </td>
-        </tr>`).join('');
+        </tr>`
+    )
+    .join("");
 
-    const contentEl = document.getElementById('settingsContent');
-    if (!contentEl) return;
-    contentEl.innerHTML = `
+  const contentEl = document.getElementById("settingsContent");
+  if (!contentEl) return;
+  contentEl.innerHTML = `
         <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:14px">
             
             <button class="btn-primary-custom" onclick="showBankModal(null)" data-i18n="btn_add">
@@ -45,46 +49,46 @@ async function renderBankSettings() {
             </table>
             </div>
         </div>`;
-    applyTranslations();
+  applyTranslations();
 }
 
 async function showBankModal(bankId) {
-    let b = null;
-    if (bankId) {
-        const res  = await fetch('/api/banks/');
-        const data = await res.json();
-        b = data.banks.find(x => x.id === bankId);
-    }
-    showModal(`
+  let b = null;
+  if (bankId) {
+    const res = await fetch("/api/banks/");
+    const data = await res.json();
+    b = data.banks.find((x) => x.id === bankId);
+  }
+  showModal(`
         <div class="modal-header">
-            <h5 class="modal-title" data-i18n="${b ? 'edit_bank' : 'add_bank'}">${b ? 'Edit Bank' : 'Add Bank'}</h5>
+            <h5 class="modal-title" data-i18n="${b ? "edit_bank" : "add_bank"}">${b ? "Edit Bank" : "Add Bank"}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
             <div class="row g-3">
                 <div class="col-12">
                     <label data-i18n="bank_name">Bank Name</label>
-                    <input class="form-control" id="bnName" value="${b?.name || ''}">
+                    <input class="form-control" id="bnName" value="${b?.name || ""}">
                 </div>
                 <div class="col-6">
                     <label data-i18n="account_number">Account Number</label>
-                    <input class="form-control" id="bnAcct" value="${b?.account_number || ''}">
+                    <input class="form-control" id="bnAcct" value="${b?.account_number || ""}">
                 </div>
                 <div class="col-6">
                     <label data-i18n="card_id">Card ID</label>
-                    <input class="form-control" id="bnCard" value="${b?.card_id || ''}">
+                    <input class="form-control" id="bnCard" value="${b?.card_id || ""}">
                 </div>
                 <div class="col-4">
                     <label data-i18n="swift_code">Swift Code</label>
-                    <input class="form-control" id="bnSwift" value="${b?.swift_code || ''}">
+                    <input class="form-control" id="bnSwift" value="${b?.swift_code || ""}">
                 </div>
                 <div class="col-4">
                     <label data-i18n="customer_id">Customer ID</label>
-                    <input class="form-control" id="bnCustId" value="${b?.customer_id || ''}">
+                    <input class="form-control" id="bnCustId" value="${b?.customer_id || ""}">
                 </div>
                 <div class="col-4">
                     <label data-i18n="customer_name">Customer Name</label>
-                    <input class="form-control" id="bnCustName" value="${b?.customer_name || ''}">
+                    <input class="form-control" id="bnCustName" value="${b?.customer_name || ""}">
                 </div>
             </div>
             <div class="mt-3" id="bankDocumentManagerContainer"></div>
@@ -93,44 +97,46 @@ async function showBankModal(bankId) {
             <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="cancel_button">Cancel</button>
             <button class="btn-primary-custom" onclick="saveBank(${bankId})" data-i18n="save_button">Save</button>
         </div>`);
-    applyTranslations();
+  applyTranslations();
 
-    if (window.DocumentManager) {
-        window.DocumentManager.init({
-            containerId: 'bankDocumentManagerContainer',
-            parentType: 'bank',
-            parentId: bankId,
-            disabledMessage: t('documents_save_first', 'Save this record first to manage documents.'),
-        });
-    }
+  if (window.DocumentManager) {
+    window.DocumentManager.init({
+      containerId: "bankDocumentManagerContainer",
+      parentType: "bank",
+      parentId: bankId,
+      disabledMessage: t("documents_save_first", "Save this record first to manage documents."),
+    });
+  }
 }
 
 async function saveBank(bankId) {
-    const body = {
-        name:          document.getElementById('bnName').value,
-        account_number:document.getElementById('bnAcct').value,
-        card_id:       document.getElementById('bnCard').value,
-        swift_code:    document.getElementById('bnSwift').value,
-        customer_id:   document.getElementById('bnCustId').value,
-        customer_name: document.getElementById('bnCustName').value,
-    };
-    const res = await fetch(bankId ? `/api/banks/${bankId}/` : '/api/banks/', {
-        method:  bankId ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(body),
-    });
-    if (res.ok) { closeModal(); showToast('Bank saved ✓'); renderBankSettings(); }
-    else showToast('Error', 'error');
+  const body = {
+    name: document.getElementById("bnName").value,
+    account_number: document.getElementById("bnAcct").value,
+    card_id: document.getElementById("bnCard").value,
+    swift_code: document.getElementById("bnSwift").value,
+    customer_id: document.getElementById("bnCustId").value,
+    customer_name: document.getElementById("bnCustName").value,
+  };
+  const res = await fetch(bankId ? `/api/banks/${bankId}/` : "/api/banks/", {
+    method: bankId ? "PUT" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (res.ok) {
+    closeModal();
+    showToast("Bank saved ✓");
+    renderBankSettings();
+  } else showToast("Error", "error");
 }
 
 async function deleteBank(id) {
-    if (!confirm('Delete this bank?')) return;
-    await fetch(`/api/banks/${id}/`, { method: 'DELETE' });
-    showToast('Deleted');
-    renderBankSettings();
+  if (!confirm("Delete this bank?")) return;
+  await fetch(`/api/banks/${id}/`, { method: "DELETE" });
+  showToast("Deleted");
+  renderBankSettings();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
 // USER MANAGEMENT TAB
 // ════════════════════════════════════════════════════════════════════════════
-

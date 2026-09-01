@@ -56,9 +56,10 @@ function _renderWealthGrowthForecast(payload) {
 
   const scenarioCardKeys = ["conservative", "expected", "optimistic"];
 
-  const scenarioCardsHtml = scenarioCardKeys.map((key) => {
-    const card = scenarioCards[key] || {};
-    return `
+  const scenarioCardsHtml = scenarioCardKeys
+    .map((key) => {
+      const card = scenarioCards[key] || {};
+      return `
       <div class="col-12 col-md-4">
         <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.25); box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset;">
           <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="${_scenarioTitle(key)}"></div>
@@ -73,12 +74,14 @@ function _renderWealthGrowthForecast(payload) {
         </div>
       </div>
     `;
-  }).join("");
+    })
+    .join("");
 
   const breakdownKeys = ["liquid_cash", "fixed_assets", "gold", "certificates"];
-  const breakdownHtml = breakdownKeys.map((key) => {
-    const item = breakdown[key] || {};
-    return `
+  const breakdownHtml = breakdownKeys
+    .map((key) => {
+      const item = breakdown[key] || {};
+      return `
       <div class="col-12 col-md-6 col-xl-3">
         <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.18); box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset;">
           <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="${_wealthComponentTitle(key)}"></div>
@@ -91,11 +94,23 @@ function _renderWealthGrowthForecast(payload) {
               ${(() => {
                 const pct = item.growth_pct || 0;
                 if (pct > 0) {
-                  return "<span style=\"display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;background:rgba(32,201,151,0.15);color:#20c997;font-size:12px;font-weight:600;\"><i class=\"bi bi-arrow-up-short\" style=\"margin-inline-end:2px;font-size:14px;\"></i>+" + fmtpresent(pct) + "%</span>";
+                  return (
+                    '<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;background:rgba(32,201,151,0.15);color:#20c997;font-size:12px;font-weight:600;"><i class="bi bi-arrow-up-short" style="margin-inline-end:2px;font-size:14px;"></i>+' +
+                    fmtpresent(pct) +
+                    "%</span>"
+                  );
                 } else if (pct < 0) {
-                  return "<span style=\"display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;background:rgba(220,53,69,0.15);color:#dc3545;font-size:12px;font-weight:600;\"><i class=\"bi bi-arrow-down-short\" style=\"margin-inline-end:2px;font-size:14px;\"></i>" + fmtpresent(pct) + "%</span>";
+                  return (
+                    '<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;background:rgba(220,53,69,0.15);color:#dc3545;font-size:12px;font-weight:600;"><i class="bi bi-arrow-down-short" style="margin-inline-end:2px;font-size:14px;"></i>' +
+                    fmtpresent(pct) +
+                    "%</span>"
+                  );
                 } else {
-                  return "<span style=\"display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;background:rgba(108,117,125,0.15);color:#adb5bd;font-size:12px;font-weight:600;\"><i class=\"bi bi-dash\" style=\"margin-inline-end:2px;font-size:14px;\"></i>" + fmtpresent(pct) + "%</span>";
+                  return (
+                    '<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;background:rgba(108,117,125,0.15);color:#adb5bd;font-size:12px;font-weight:600;"><i class="bi bi-dash" style="margin-inline-end:2px;font-size:14px;"></i>' +
+                    fmtpresent(pct) +
+                    "%</span>"
+                  );
                 }
               })()}
             </div>
@@ -103,7 +118,8 @@ function _renderWealthGrowthForecast(payload) {
         </div>
       </div>
     `;
-  }).join("");
+    })
+    .join("");
 
   const insightKey = summary.insight_key || "wealth_growth_insight_balanced";
 
@@ -118,14 +134,18 @@ function _renderWealthGrowthForecast(payload) {
     </div>
 
     <div class="row g-3 mb-4">
-      ${periodCards.map((card) => `
+      ${periodCards
+        .map(
+          (card) => `
         <div class="col-12 col-sm-6 col-xl">
           <div class="asset-summary-card h-100" style="background:var(--bg-secondary);">
             <div class="asset-summary-label" data-i18n="${card.key}"></div>
             <div class="asset-summary-value">${_money(card.value)}</div>
           </div>
         </div>
-      `).join("")}
+      `
+        )
+        .join("")}
     </div>
 
     <div class="row g-3 mb-4">
@@ -161,13 +181,13 @@ function _renderWealthGrowthForecast(payload) {
           <div class="col-12 col-md-6 col-xl-6">
             <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.18);">
               <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="wealth_growth_largest_appreciating_asset"></div>
-              <div class="asset-summary-value" style="font-size:1.35rem; color:var(--text-primary);" data-i18n="${_wealthComponentTitle(summary.largest_appreciating_asset?.key || 'none')}"></div>
+              <div class="asset-summary-value" style="font-size:1.35rem; color:var(--text-primary);" data-i18n="${_wealthComponentTitle(summary.largest_appreciating_asset?.key || "none")}"></div>
             </div>
           </div>
           <div class="col-12 col-md-6 col-xl-6">
             <div class="asset-summary-card h-100" style="background:var(--bg-tertiary); border-color:rgba(26,110,245,0.18);">
               <div class="asset-summary-label" style="color:var(--text-primary); font-weight:700;" data-i18n="wealth_growth_fastest_growing_category"></div>
-              <div class="asset-summary-value" style="font-size:1.35rem; color:var(--text-primary);" data-i18n="${_wealthComponentTitle(summary.fastest_growing_asset_category?.key || 'none')}"></div>
+              <div class="asset-summary-value" style="font-size:1.35rem; color:var(--text-primary);" data-i18n="${_wealthComponentTitle(summary.fastest_growing_asset_category?.key || "none")}"></div>
             </div>
           </div>
         </div>
@@ -205,4 +225,3 @@ async function loadWealthGrowthForecast(force = false) {
     _renderWealthGrowthError();
   }
 }
-

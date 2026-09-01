@@ -3,7 +3,7 @@
  * Shared state, translation helpers, and all fetch() calls against /api/ai-platform/benchmarks/.
  */
 
-'use strict';
+"use strict";
 
 window.BR = window.BR || {};
 
@@ -19,12 +19,12 @@ window.BR.t = function (key, fallback) {
 };
 
 window.BR.escapeHtml = function (str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 };
 
 window.BR.load = function () {
@@ -32,8 +32,10 @@ window.BR.load = function () {
   window.BR.state.error = null;
   window.BR.renderBody();
 
-  fetch('/api/ai-platform/benchmarks/', { method: 'GET' })
-    .then(function (r) { return r.json(); })
+  fetch("/api/ai-platform/benchmarks/", { method: "GET" })
+    .then(function (r) {
+      return r.json();
+    })
     .then(function (data) {
       window.BR.state.reports = data.benchmark_reports || [];
       window.BR.state.loading = false;
@@ -41,7 +43,7 @@ window.BR.load = function () {
     })
     .catch(function () {
       window.BR.state.loading = false;
-      window.BR.state.error = window.BR.t('ai_br_error', 'Failed to load benchmarks.');
+      window.BR.state.error = window.BR.t("ai_br_error", "Failed to load benchmarks.");
       window.BR.renderBody();
     });
 };
@@ -50,16 +52,18 @@ window.BR.runBenchmark = function () {
   window.BR.state.running = true;
   window.BR.renderBody();
 
-  fetch('/api/ai-platform/benchmarks/', { method: 'POST' })
-    .then(function (r) { return r.json(); })
+  fetch("/api/ai-platform/benchmarks/", { method: "POST" })
+    .then(function (r) {
+      return r.json();
+    })
     .then(function () {
       window.BR.state.running = false;
-      showToast(window.BR.t('ai_br_run_ok', 'Benchmark complete.'), 'success');
+      showToast(window.BR.t("ai_br_run_ok", "Benchmark complete."), "success");
       window.BR.load();
     })
     .catch(function () {
       window.BR.state.running = false;
-      showToast(window.BR.t('ai_br_run_error', 'Failed to run benchmark.'), 'error');
+      showToast(window.BR.t("ai_br_run_error", "Failed to run benchmark."), "error");
       window.BR.renderBody();
     });
 };

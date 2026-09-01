@@ -41,4 +41,3 @@ function normalizeFixedAssetsData(assets) {
 
   return [];
 }
-

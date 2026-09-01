@@ -2,13 +2,13 @@
  * WealthFlow AI Workspace - Knowledge Search: State & API
  */
 
-'use strict';
+"use strict";
 
 window.KS = window.KS || {};
 
 window.KS.state = {
   results: [],
-  query: '',
+  query: "",
   loading: false,
   searched: false,
   expanded: null,
@@ -24,17 +24,20 @@ window.KS.t = function (key, fallback) {
 };
 
 window.KS.escapeHtml = function (str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 };
 
 window.KS.csrfToken = function () {
-  return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+  return document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
 };
 
 window.KS.search = function (query) {
-  var queryString = String(query || '');
+  var queryString = String(query || "");
   window.KS.state.query = queryString;
   clearTimeout(window.KS._debounceTimer);
 
@@ -45,41 +48,44 @@ window.KS.search = function (query) {
 
   var trimmed = queryString.trim();
 
-  window.KS._debounceTimer = setTimeout(async function () {
-    window.KS.state.loading = true;
-    window.KS.state.error = null;
-    window.KS.renderBody();
+  window.KS._debounceTimer = setTimeout(
+    async function () {
+      window.KS.state.loading = true;
+      window.KS.state.error = null;
+      window.KS.renderBody();
 
-    var controller = new AbortController();
-    window.KS._abortController = controller;
+      var controller = new AbortController();
+      window.KS._abortController = controller;
 
-    try {
-      var url = trimmed
-        ? '/api/ai-platform/knowledge/?search=' + encodeURIComponent(trimmed)
-        : '/api/ai-platform/knowledge/';
-      var res = await fetch(url, { signal: controller.signal });
-      if (res.ok) {
-        var data = await res.json();
-        window.KS.state.results = data.entries || [];
-        window.KS.state.searched = true;
-      } else {
+      try {
+        var url = trimmed
+          ? "/api/ai-platform/knowledge/?search=" + encodeURIComponent(trimmed)
+          : "/api/ai-platform/knowledge/";
+        var res = await fetch(url, { signal: controller.signal });
+        if (res.ok) {
+          var data = await res.json();
+          window.KS.state.results = data.entries || [];
+          window.KS.state.searched = true;
+        } else {
+          window.KS.state.results = [];
+          window.KS.state.searched = true;
+          window.KS.state.error = window.KS.t("ai_ks_error", "Search failed. Please try again.");
+        }
+      } catch (e) {
+        if (e.name === "AbortError") return;
         window.KS.state.results = [];
         window.KS.state.searched = true;
-        window.KS.state.error = window.KS.t('ai_ks_error', 'Search failed. Please try again.');
+        window.KS.state.error = window.KS.t("ai_ks_error", "Search failed. Please try again.");
+      } finally {
+        if (!controller.signal.aborted) {
+          window.KS.state.loading = false;
+          window.KS._abortController = null;
+          window.KS.renderBody();
+        }
       }
-    } catch (e) {
-      if (e.name === 'AbortError') return;
-      window.KS.state.results = [];
-      window.KS.state.searched = true;
-      window.KS.state.error = window.KS.t('ai_ks_error', 'Search failed. Please try again.');
-    } finally {
-      if (!controller.signal.aborted) {
-        window.KS.state.loading = false;
-        window.KS._abortController = null;
-        window.KS.renderBody();
-      }
-    }
-  }, trimmed ? 300 : 0);
+    },
+    trimmed ? 300 : 0
+  );
 };
 
 window.KS.toggleExpand = function (id) {
@@ -89,9 +95,16 @@ window.KS.toggleExpand = function (id) {
 };
 
 window.KS.startEdit = function (id) {
-  var entry = window.KS.state.results.find(function (e) { return e.id === id; });
+  var entry = window.KS.state.results.find(function (e) {
+    return e.id === id;
+  });
   if (!entry) return;
-  window.KS.state.editing = { id: entry.id, title: entry.title, content: entry.content, category: entry.category };
+  window.KS.state.editing = {
+    id: entry.id,
+    title: entry.title,
+    content: entry.content,
+    category: entry.category,
+  };
   window.KS.state.expanded = id;
   window.KS.renderBody();
 };
@@ -102,69 +115,88 @@ window.KS.cancelEdit = function () {
 };
 
 window.KS.saveEdit = async function (id) {
-  var titleEl = document.getElementById('ks-edit-title-' + id);
-  var contentEl = document.getElementById('ks-edit-content-' + id);
-  var categoryEl = document.getElementById('ks-edit-category-' + id);
+  var titleEl = document.getElementById("ks-edit-title-" + id);
+  var contentEl = document.getElementById("ks-edit-content-" + id);
+  var categoryEl = document.getElementById("ks-edit-category-" + id);
   if (!titleEl || !contentEl) return;
 
   try {
-    const res = await fetch('/api/ai-platform/knowledge/' + id + '/', {
-      method: 'PATCH',
+    const res = await fetch("/api/ai-platform/knowledge/" + id + "/", {
+      method: "PATCH",
       headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': window.KS.csrfToken(),
+        "Content-Type": "application/json",
+        "X-CSRFToken": window.KS.csrfToken(),
       },
-      body: JSON.stringify({ title: titleEl.value, content: contentEl.value, category: categoryEl ? categoryEl.value : undefined }),
+      body: JSON.stringify({
+        title: titleEl.value,
+        content: contentEl.value,
+        category: categoryEl ? categoryEl.value : undefined,
+      }),
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    var idx = window.KS.state.results.findIndex(function (e) { return e.id === id; });
+    var idx = window.KS.state.results.findIndex(function (e) {
+      return e.id === id;
+    });
     if (idx !== -1) window.KS.state.results[idx] = data.entry;
     window.KS.state.editing = null;
-    if (window.showToast) window.showToast(window.KS.t('ai_ks_edit_ok', 'Entry updated.'), 'success');
+    if (window.showToast)
+      window.showToast(window.KS.t("ai_ks_edit_ok", "Entry updated."), "success");
     window.KS.renderBody();
   } catch (e) {
-    if (window.showToast) window.showToast(window.KS.t('ai_ks_edit_error', 'Failed to update entry.'), 'error');
+    if (window.showToast)
+      window.showToast(window.KS.t("ai_ks_edit_error", "Failed to update entry."), "error");
   }
 };
 
 window.KS.deleteEntry = async function (id) {
-  if (!confirm(window.KS.t('ai_ks_delete_confirm', 'Delete this knowledge entry?'))) return;
+  if (!confirm(window.KS.t("ai_ks_delete_confirm", "Delete this knowledge entry?"))) return;
   try {
-    const res = await fetch('/api/ai-platform/knowledge/' + id + '/', {
-      method: 'DELETE',
+    const res = await fetch("/api/ai-platform/knowledge/" + id + "/", {
+      method: "DELETE",
       headers: {
-        'X-CSRFToken': window.KS.csrfToken(),
+        "X-CSRFToken": window.KS.csrfToken(),
       },
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    window.KS.state.results = window.KS.state.results.filter(function (e) { return e.id !== id; });
-    if (window.showToast) window.showToast(window.KS.t('ai_ks_delete_ok', 'Entry deleted.'), 'success');
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    window.KS.state.results = window.KS.state.results.filter(function (e) {
+      return e.id !== id;
+    });
+    if (window.showToast)
+      window.showToast(window.KS.t("ai_ks_delete_ok", "Entry deleted."), "success");
     window.KS.renderBody();
   } catch (e) {
-    if (window.showToast) window.showToast(window.KS.t('ai_ks_delete_error', 'Failed to delete entry.'), 'error');
+    if (window.showToast)
+      window.showToast(window.KS.t("ai_ks_delete_error", "Failed to delete entry."), "error");
   }
 };
 
 window.KS.copyEntry = function (id) {
-  var entry = window.KS.state.results.find(function (e) { return e.id === id; });
+  var entry = window.KS.state.results.find(function (e) {
+    return e.id === id;
+  });
   if (!entry) return;
   navigator.clipboard.writeText(entry.content).then(function () {
-    if (window.showToast) window.showToast(window.KS.t('ai_ks_copy_ok', 'Copied to clipboard.'), 'success');
+    if (window.showToast)
+      window.showToast(window.KS.t("ai_ks_copy_ok", "Copied to clipboard."), "success");
   });
 };
 
 window.KS.injectEntry = function (id) {
-  var entry = window.KS.state.results.find(function (e) { return e.id === id; });
+  var entry = window.KS.state.results.find(function (e) {
+    return e.id === id;
+  });
   if (!entry) return;
-  var inputEl = document.getElementById('ai-ws-input');
+  var inputEl = document.getElementById("ai-ws-input");
   if (!inputEl) {
-    if (window.showToast) window.showToast(window.KS.t('ai_ks_inject_no_input', 'Open the AI chat first.'), 'error');
+    if (window.showToast)
+      window.showToast(window.KS.t("ai_ks_inject_no_input", "Open the AI chat first."), "error");
     return;
   }
-  var prefix = '[Knowledge: ' + entry.title + ']\n' + entry.content + '\n\n';
+  var prefix = "[Knowledge: " + entry.title + "]\n" + entry.content + "\n\n";
   inputEl.value = prefix + inputEl.value;
   inputEl.focus();
   if (window.closeModal) window.closeModal();
-  if (window.showToast) window.showToast(window.KS.t('ai_ks_inject_ok', 'Knowledge injected into chat.'), 'success');
+  if (window.showToast)
+    window.showToast(window.KS.t("ai_ks_inject_ok", "Knowledge injected into chat."), "success");
 };

@@ -1,23 +1,28 @@
-'use strict';
+"use strict";
 
 function renderSalaryTable(allEntries, year, companyId) {
-    const area = document.getElementById('salaryTableArea');
-    if (!area) return;
+  const area = document.getElementById("salaryTableArea");
+  if (!area) return;
 
-    const entries = allEntries.filter(e => e.year === year);
+  const entries = allEntries.filter((e) => e.year === year);
 
-    let totExp = 0, totPaid = 0, totBonus = 0, totRemaining = 0;
-    entries.forEach(e => {
-        totExp       += e.expected;
-        totPaid      += e.paid;
-        totBonus     += e.bonus;
-        totRemaining += e.remaining;
-    });
+  let totExp = 0,
+    totPaid = 0,
+    totBonus = 0,
+    totRemaining = 0;
+  entries.forEach((e) => {
+    totExp += e.expected;
+    totPaid += e.paid;
+    totBonus += e.bonus;
+    totRemaining += e.remaining;
+  });
 
-    const rows = entries.map(e => `
+  const rows = entries
+    .map(
+      (e) => `
         <tr>
             <td>
-                <input type="checkbox" class="form-check-input" ${(parseFloat(String(e.expected).replace(/,/g, '')) > 0 && Math.abs(parseFloat(String(e.expected).replace(/,/g, '')) - parseFloat(String(e.paid).replace(/,/g, ''))) < 0.01) ? 'checked="checked" style="background-color: var(--bs-primary) !important; border-color: var(--bs-primary) !important;"' : ''} onchange="toggleSalaryPaid(${e.id}, this.checked, ${companyId})">
+                <input type="checkbox" class="form-check-input" ${parseFloat(String(e.expected).replace(/,/g, "")) > 0 && Math.abs(parseFloat(String(e.expected).replace(/,/g, "")) - parseFloat(String(e.paid).replace(/,/g, ""))) < 0.01 ? 'checked="checked" style="background-color: var(--bs-primary) !important; border-color: var(--bs-primary) !important;"' : ""} onchange="toggleSalaryPaid(${e.id}, this.checked, ${companyId})">
             </td>
             <td>${e.month}</td>
             <td class="text-end">${fmt(e.expected)}</td>
@@ -34,12 +39,14 @@ function renderSalaryTable(allEntries, year, companyId) {
                     <i class="bi bi-trash"></i>
                 </button>
             </td>
-        </tr>`).join('');
+        </tr>`
+    )
+    .join("");
 
-    const emptyRow = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px">
+  const emptyRow = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px">
         No entries for this year.</td></tr>`;
 
-    area.innerHTML = `
+  area.innerHTML = `
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);
                     border-radius:12px;overflow:visible">
             <div class="table-container">
@@ -77,5 +84,5 @@ function renderSalaryTable(allEntries, year, companyId) {
             </ul>
         </div>`;
 
-    applyTranslations();
+  applyTranslations();
 }

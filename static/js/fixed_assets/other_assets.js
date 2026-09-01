@@ -13,4 +13,3 @@ function collectOtherAssetDetailsPayload() {
     notes: document.getElementById("od_notes")?.value || "",
   };
 }
-

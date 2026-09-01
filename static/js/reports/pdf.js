@@ -1,14 +1,12 @@
-'use strict';
+"use strict";
 
 async function generatePDF(type) {
   let year = parseInt(
     document.getElementById("rYear")?.value ||
       document.getElementById("rYearOnly")?.value ||
-      new Date().getFullYear(),
+      new Date().getFullYear()
   );
-  let month = parseInt(
-    document.getElementById("rMonth")?.value || new Date().getMonth() + 1,
-  );
+  let month = parseInt(document.getElementById("rMonth")?.value || new Date().getMonth() + 1);
   const start = document.getElementById("rStart")?.value || "";
   const end = document.getElementById("rEnd")?.value || "";
 
@@ -29,13 +27,12 @@ async function generatePDF(type) {
   };
 
   const btn = event?.target;
-  const generatingText = t('generating', 'Generating…');
-  const generatePdfText = t('generate_pdf', 'Generate PDF');
-  
+  const generatingText = t("generating", "Generating…");
+  const generatePdfText = t("generate_pdf", "Generate PDF");
+
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML =
-      `<div class="spinner-border spinner-border-sm"></div> ${generatingText}`;
+    btn.innerHTML = `<div class="spinner-border spinner-border-sm"></div> ${generatingText}`;
   }
 
   try {
@@ -47,7 +44,10 @@ async function generatePDF(type) {
 
     if (!res.ok) {
       const err = await res.json();
-      showToast(t('error_prefix', 'Error: ') + (err.error || t('unknown_error', 'Unknown error')), "error");
+      showToast(
+        t("error_prefix", "Error: ") + (err.error || t("unknown_error", "Unknown error")),
+        "error"
+      );
       return;
     }
 
@@ -60,9 +60,9 @@ async function generatePDF(type) {
     a.href = url;
     a.click();
     URL.revokeObjectURL(url);
-    showToast(t('pdf_downloaded', 'PDF downloaded ✓'), "success");
+    showToast(t("pdf_downloaded", "PDF downloaded ✓"), "success");
   } catch (e) {
-    showToast(t('network_error_prefix', 'Network error: ') + e.message, "error");
+    showToast(t("network_error_prefix", "Network error: ") + e.message, "error");
   } finally {
     if (btn) {
       btn.disabled = false;

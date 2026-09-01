@@ -3,21 +3,29 @@
 // This file is part of the settings module. Do not edit directly.
 
 async function showPermissionsModal(userId) {
-    const res = await fetch(`/api/users/${userId}/permissions/`);
-    if (!res.ok) { showToast('Unable to load permissions', 'error'); return; }
-    const d = await res.json();
+  const res = await fetch(`/api/users/${userId}/permissions/`);
+  if (!res.ok) {
+    showToast("Unable to load permissions", "error");
+    return;
+  }
+  const d = await res.json();
 
-    const rows = (d.permissions || []).map(p => `
+  const rows = (d.permissions || [])
+    .map(
+      (p) => `
         <tr>
             <td>${p.username}</td>
             <td>${p.page}</td>
             <td><button class="btn-icon del" onclick="deletePermission(${p.id})"><i class="bi bi-trash"></i></button></td>
-        </tr>`).join('');
+        </tr>`
+    )
+    .join("");
 
-    const optHtml = (d.available_pages || []).map(p =>
-        `<option value="${p[0]}">${p[1]}</option>`).join('');
+  const optHtml = (d.available_pages || [])
+    .map((p) => `<option value="${p[0]}">${p[1]}</option>`)
+    .join("");
 
-    showModal(`
+  showModal(`
         <div class="modal-header">
             <h5 class="modal-title" data-i18n="manage_permissions">Manage Permissions</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -45,28 +53,31 @@ async function showPermissionsModal(userId) {
         <div class="modal-footer">
             <button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="close_button">Close</button>
         </div>`);
-    applyTranslations();
+  applyTranslations();
 }
 
 async function addPermission(userId) {
-    const page = document.getElementById('permPage').value;
-    const res  = await fetch(`/api/users/${userId}/permissions/`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ page }),
-    });
-    if (res.ok) { showToast('Permission added'); showPermissionsModal(userId); }
-    else showToast('Error adding permission', 'error');
+  const page = document.getElementById("permPage").value;
+  const res = await fetch(`/api/users/${userId}/permissions/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ page }),
+  });
+  if (res.ok) {
+    showToast("Permission added");
+    showPermissionsModal(userId);
+  } else showToast("Error adding permission", "error");
 }
 
 async function deletePermission(permId) {
-    if (!confirm('Remove this permission?')) return;
-    const res = await fetch(`/api/users/permissions/${permId}/`, { method: 'DELETE' });
-    if (res.ok) { showToast('Removed'); closeModal(); }
-    else showToast('Error removing permission', 'error');
+  if (!confirm("Remove this permission?")) return;
+  const res = await fetch(`/api/users/permissions/${permId}/`, { method: "DELETE" });
+  if (res.ok) {
+    showToast("Removed");
+    closeModal();
+  } else showToast("Error removing permission", "error");
 }
 
 // ════════════════════════════════════════════════════════════════════════════
 // TRANSLATION SETTINGS TAB
 // ════════════════════════════════════════════════════════════════════════════
-

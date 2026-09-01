@@ -4,13 +4,13 @@ let acquisitionCategories = [];
 
 // Fetch categories from backend API
 fetch("/api/asset-acquisition-costs/categories/")
-  .then(res => res.json())
-  .then(data => {
+  .then((res) => res.json())
+  .then((data) => {
     if (data && data.categories && data.categories.length) {
       acquisitionCategories = data.categories;
     }
   })
-  .catch(err => console.error("Error fetching acquisition categories:", err));
+  .catch((err) => console.error("Error fetching acquisition categories:", err));
 
 function updateAcquisitionSummary() {
   const summaryStrip = document.getElementById("acquisitionSummaryStrip");
@@ -26,14 +26,15 @@ function updateAcquisitionSummary() {
   let totalEGP = 0;
   let totalUSD = 0;
 
-  rows.forEach(row => {
+  rows.forEach((row) => {
     const egp = parseFloat(row.querySelector(".acquisition-egp").value) || 0;
     const usd = parseFloat(row.querySelector(".acquisition-usd").value) || 0;
     totalEGP += egp;
     totalUSD += usd;
   });
 
-  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) =>
+    Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   if (summaryStrip) {
     summaryStrip.innerHTML = `
@@ -65,14 +66,17 @@ function addAcquisitionRow(data = {}, expand = false) {
   row.dataset.acquisitionId = data.id || "";
 
   const category = data.category || "Lawyer Fees";
-  const normVal = category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+  const normVal = category.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
   const amountEgpVal = data.amount_egp || "";
   const descVal = data.description || "";
   const paymentMethodVal = data.payment_method || "Cash";
   const bankIdVal = data.bank_id || "";
 
-  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const initialAmountPreview = amountEgpVal ? `EGP ${fmt(parseFloat(amountEgpVal) || 0)}` : "EGP 0.00";
+  const fmt = (n) =>
+    Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const initialAmountPreview = amountEgpVal
+    ? `EGP ${fmt(parseFloat(amountEgpVal) || 0)}`
+    : "EGP 0.00";
 
   row.innerHTML = `
     <div class="item-header card-header">
@@ -97,14 +101,16 @@ function addAcquisitionRow(data = {}, expand = false) {
         <div class="field">
           <label class="form-label small" data-i18n="acquisition_type">Category</label>
           <select class="form-select acquisition-category">
-            ${acquisitionCategories.map(cat => {
-              const norm = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
-              return `
+            ${acquisitionCategories
+              .map((cat) => {
+                const norm = cat.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
+                return `
                 <option value="${cat}" data-i18n-prefix="acquisition_" data-i18n-value="${norm}" ${cat === category ? "selected" : ""}>
                   ${cat}
                 </option>
               `;
-            }).join("")}
+              })
+              .join("")}
           </select>
         </div>
         <div class="field span-2">
@@ -153,7 +159,7 @@ function addAcquisitionRow(data = {}, expand = false) {
   const categoryBadge = row.querySelector(".item-category-badge");
   categorySelect.addEventListener("change", () => {
     const cat = categorySelect.value;
-    const norm = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+    const norm = cat.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
     categoryBadge.setAttribute("data-i18n-value", norm);
     categoryBadge.textContent = cat;
     if (typeof applyTranslations === "function") {
@@ -203,8 +209,7 @@ function collectAcquisitionCosts() {
       category: row.querySelector(".acquisition-category").value,
       description: row.querySelector(".acquisition-description").value,
       amount_egp: parseFloat(row.querySelector(".acquisition-egp").value) || 0,
-      usd_rate:
-        parseFloat(row.querySelector(".acquisition-usd-rate")?.value) || 0,
+      usd_rate: parseFloat(row.querySelector(".acquisition-usd-rate")?.value) || 0,
       amount_usd: parseFloat(row.querySelector(".acquisition-usd").value) || 0,
       payment_method: row.querySelector(".acquisition-payment-method")?.value || "Cash",
       bank_id: parseInt(row.querySelector(".acquisition-bank")?.value, 10) || null,
@@ -218,8 +223,7 @@ function collectAcquisitionCosts() {
 function updateAcquisitionUSD(input) {
   const row = input.closest(".acquisition-row");
   const egp = parseFloat(row.querySelector(".acquisition-egp").value) || 0;
-  const rate =
-    parseFloat(row.querySelector(".acquisition-usd-rate")?.value) || 0;
+  const rate = parseFloat(row.querySelector(".acquisition-usd-rate")?.value) || 0;
   const usdInput = row.querySelector(".acquisition-usd");
 
   if (rate > 0) {

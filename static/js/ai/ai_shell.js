@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * AI Workspace — Shell & Input
@@ -8,7 +8,7 @@
  */
 
 async function renderAI() {
-  const mainContent = document.getElementById('main-content');
+  const mainContent = document.getElementById("main-content");
   if (!mainContent) return;
 
   mainContent.innerHTML = `
@@ -29,10 +29,10 @@ async function renderAI() {
           </div>
         </div>
         <div class="ai-ws-header-actions">
-          <button class="btn btn-sm btn-outline-secondary align-items-center gap-1 ai-ws-sidebar-toggle" onclick="_toggleAISidebar()" title="${_aiT('ai_ws_toggle_sidebar', 'Toggle Sidebar')}">
+          <button class="btn btn-sm btn-outline-secondary align-items-center gap-1 ai-ws-sidebar-toggle" onclick="_toggleAISidebar()" title="${_aiT("ai_ws_toggle_sidebar", "Toggle Sidebar")}">
             <i class="bi bi-list"></i>
           </button>
-          <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" onclick="_toggleAIContextPanel()" title="${_aiT('ai_ws_toggle_context', 'Toggle Context Panel')}">
+          <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" onclick="_toggleAIContextPanel()" title="${_aiT("ai_ws_toggle_context", "Toggle Context Panel")}">
             <i class="bi bi-layout-sidebar-reverse"></i>
           </button>
         </div>
@@ -101,13 +101,13 @@ async function renderAI() {
                 <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-cpu me-1"></i> WealthFlow AI Engine</small>
               </div>
 
-              <textarea id="ai-ws-input" class="ai-ws-textarea" rows="1" placeholder="${_aiT('ai_chat_input_placeholder_business', 'Ask WealthFlow AI a question about business metrics, financial planning, or architecture...')}" onkeydown="_handleInputKeydown(event)"></textarea>
+              <textarea id="ai-ws-input" class="ai-ws-textarea" rows="1" placeholder="${_aiT("ai_chat_input_placeholder_business", "Ask WealthFlow AI a question about business metrics, financial planning, or architecture...")}" onkeydown="_handleInputKeydown(event)"></textarea>
               <div class="ai-ws-input-bottombar">
                 <div class="ai-ws-input-hints">
                   <span><kbd>Enter</kbd> send</span>
                   <span><kbd>Shift+Enter</kbd> newline</span>
                 </div>
-                <button class="ai-ws-send-btn" onclick="_handleAIChatSubmit()" title="${_aiT('ai_chat_send_button', 'Send')}">
+                <button class="ai-ws-send-btn" onclick="_handleAIChatSubmit()" title="${_aiT("ai_chat_send_button", "Send")}">
                   <span data-i18n="ai_chat_send_button">Send</span>
                   <i class="bi bi-send"></i>
                 </button>
@@ -138,16 +138,16 @@ async function renderAI() {
 }
 
 function _initTextareaAutogrow() {
-  const textarea = document.getElementById('ai-ws-input');
+  const textarea = document.getElementById("ai-ws-input");
   if (!textarea) return;
-  textarea.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+  textarea.addEventListener("input", function () {
+    this.style.height = "auto";
+    this.style.height = Math.min(this.scrollHeight, 140) + "px";
   });
 }
 
 function _handleInputKeydown(event) {
-  if (event.key === 'Enter' && !event.shiftKey) {
+  if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     _handleAIChatSubmit();
   }
@@ -157,18 +157,17 @@ function loadAIChat() {
   renderAI();
 }
 
-
 function _toggleAISidebar() {
-  const left = document.querySelector('.ai-ws-left');
-  const overlay = document.getElementById('ai-ws-sidebar-overlay');
+  const left = document.querySelector(".ai-ws-left");
+  const overlay = document.getElementById("ai-ws-sidebar-overlay");
   if (!left || !overlay) return;
-  const isOpen = left.classList.contains('ai-ws-left--open');
+  const isOpen = left.classList.contains("ai-ws-left--open");
   if (isOpen) {
-    left.classList.remove('ai-ws-left--open');
-    overlay.classList.remove('ai-ws-overlay--visible');
+    left.classList.remove("ai-ws-left--open");
+    overlay.classList.remove("ai-ws-overlay--visible");
   } else {
-    left.classList.add('ai-ws-left--open');
-    overlay.classList.add('ai-ws-overlay--visible');
+    left.classList.add("ai-ws-left--open");
+    overlay.classList.add("ai-ws-overlay--visible");
   }
 }
 

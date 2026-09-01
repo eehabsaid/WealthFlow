@@ -13,7 +13,9 @@ function _renderGoalPlanning(payload) {
   const totalSaved = Number(summary.total_saved_egp || 0);
   const completedCount = goals.filter((goal) => goal.status === "achieved").length;
   const onTrackCount = goals.filter((goal) => goal.status === "on_track").length;
-  const atRiskCount = goals.filter((goal) => goal.status === "at_risk" || goal.status === "critical" || goal.status === "watch").length;
+  const atRiskCount = goals.filter(
+    (goal) => goal.status === "at_risk" || goal.status === "critical" || goal.status === "watch"
+  ).length;
   const completedPct = goals.length ? (completedCount / goals.length) * 100 : 0;
   const onTrackPct = goals.length ? (onTrackCount / goals.length) * 100 : 0;
   const atRiskPct = goals.length ? (atRiskCount / goals.length) * 100 : 0;
@@ -66,9 +68,14 @@ function _renderGoalPlanning(payload) {
     const sort = sortBy?.value || "priority";
 
     let filtered = goals.filter((goal) => {
-      const matchesText = !q
-        || String(goal.name || "").toLowerCase().includes(q)
-        || String(goal.goal_type || "").toLowerCase().includes(q);
+      const matchesText =
+        !q ||
+        String(goal.name || "")
+          .toLowerCase()
+          .includes(q) ||
+        String(goal.goal_type || "")
+          .toLowerCase()
+          .includes(q);
       const matchesPriority = p === "all" || goal.priority === p;
       const matchesType = goalType === "all" || String(goal.goal_type || "") === goalType;
       const matchesStatus = s === "all" || goal.status === s;
@@ -95,7 +102,9 @@ function _renderGoalPlanning(payload) {
     });
 
     cardsContainer.innerHTML = filtered.length
-      ? filtered.map((goal) => `
+      ? filtered
+          .map(
+            (goal) => `
         <div class="goal-card">
           <div class="goal-card-head">
             <div class="goal-card-heading">
@@ -145,7 +154,9 @@ function _renderGoalPlanning(payload) {
             </div>
           </div>
         </div>
-      `).join("")
+      `
+          )
+          .join("")
       : `<div class="portfolio-empty-state" data-i18n="goal_planning_empty"></div>`;
 
     applyTranslations();
@@ -160,16 +171,21 @@ function _renderGoalPlanning(payload) {
 
   const meta = _goalPlanningMeta || { currencies: [], assets: [] };
   const modalEl = document.getElementById("goalEditorModal");
-  const modal = modalEl && window.bootstrap
-    ? new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false, focus: true })
-    : null;
+  const modal =
+    modalEl && window.bootstrap
+      ? new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false, focus: true })
+      : null;
 
   const currencySelect = document.getElementById("goalCurrencyInput");
   const linkedAssetSelect = document.getElementById("goalLinkedAssetInput");
   if (currencySelect) {
-    currencySelect.innerHTML = (meta.currencies || []).map((item) => `
+    currencySelect.innerHTML = (meta.currencies || [])
+      .map(
+        (item) => `
       <option value="${item.id}">${_escapeHtml(item.code || "EGP")}${item.symbol ? ` (${_escapeHtml(item.symbol)})` : ""}</option>
-    `).join("");
+    `
+      )
+      .join("");
   }
   if (linkedAssetSelect) {
     linkedAssetSelect.innerHTML = `
@@ -189,7 +205,20 @@ function _renderGoalPlanning(payload) {
     const priorityInput = document.getElementById("goalPriorityInput");
     const notesInput = document.getElementById("goalNotesInput");
 
-    if (!title || !idInput || !nameInput || !typeInput || !targetInput || !savedInput || !dateInput || !priorityInput || !notesInput || !currencySelect || !linkedAssetSelect || !modal) {
+    if (
+      !title ||
+      !idInput ||
+      !nameInput ||
+      !typeInput ||
+      !targetInput ||
+      !savedInput ||
+      !dateInput ||
+      !priorityInput ||
+      !notesInput ||
+      !currencySelect ||
+      !linkedAssetSelect ||
+      !modal
+    ) {
       return;
     }
 
@@ -203,7 +232,9 @@ function _renderGoalPlanning(payload) {
       dateInput.value = goalItem.target_date || "";
       priorityInput.value = goalItem.priority || "Medium";
       notesInput.value = goalItem.notes || "";
-      currencySelect.value = goalItem.currency_id ? String(goalItem.currency_id) : (currencySelect.options[0]?.value || "");
+      currencySelect.value = goalItem.currency_id
+        ? String(goalItem.currency_id)
+        : currencySelect.options[0]?.value || "";
       linkedAssetSelect.value = goalItem.linked_asset_id ? String(goalItem.linked_asset_id) : "";
     } else {
       title.setAttribute("data-i18n", "goal_planning_create_title");
@@ -251,7 +282,9 @@ function _renderGoalPlanning(payload) {
       }
 
       if (action === "view") {
-        showToast(`${t("goal_planning_target_amount")}: ${fmt(Number((goals.find((goal) => Number(goal.id) === goalId)?.target_amount_egp) || 0))}`);
+        showToast(
+          `${t("goal_planning_target_amount")}: ${fmt(Number(goals.find((goal) => Number(goal.id) === goalId)?.target_amount_egp || 0))}`
+        );
         return;
       }
 
@@ -282,7 +315,18 @@ function _renderGoalPlanning(payload) {
       const priorityInput = document.getElementById("goalPriorityInput");
       const notesInput = document.getElementById("goalNotesInput");
 
-      if (!idInput || !nameInput || !typeInput || !targetInput || !savedInput || !dateInput || !priorityInput || !notesInput || !currencySelect || !linkedAssetSelect) {
+      if (
+        !idInput ||
+        !nameInput ||
+        !typeInput ||
+        !targetInput ||
+        !savedInput ||
+        !dateInput ||
+        !priorityInput ||
+        !notesInput ||
+        !currencySelect ||
+        !linkedAssetSelect
+      ) {
         return;
       }
 

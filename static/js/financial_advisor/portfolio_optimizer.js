@@ -41,7 +41,9 @@ function _renderPortfolioOptimizer(payload) {
   const scoreValue = Number(health.score || 0);
   const scoreRing = `conic-gradient(#34c759 ${Math.max(0, Math.min(100, scoreValue))}%, rgba(123,147,201,0.20) 0)`;
 
-  const allocationCardsHtml = cards.map((card) => `
+  const allocationCardsHtml = cards
+    .map(
+      (card) => `
     <div class="portfolio-allocation-card ${_portfolioStatusClass(card.status)}">
       <div class="portfolio-allocation-title" data-i18n="${card.label_key}"></div>
       <div class="portfolio-allocation-value">${fmt(Number(card.value || 0))}</div>
@@ -52,17 +54,25 @@ function _renderPortfolioOptimizer(payload) {
       </div>
       <div class="portfolio-allocation-status ${_portfolioStatusClass(card.status)}" data-i18n="${card.status_key}"></div>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 
-  const recommendationsHtml = recommendations.map((item) => `
+  const recommendationsHtml = recommendations
+    .map(
+      (item) => `
     <div class="portfolio-rec-item">
       <div class="portfolio-rec-text" data-i18n="${item.key}"></div>
       <span class="portfolio-severity-badge ${_portfolioSeverityClass(item.severity)}" data-i18n="${item.severity_key}"></span>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 
   const breakdownRows = breakdown.length
-    ? breakdown.map((item) => `
+    ? breakdown
+        .map(
+          (item) => `
       <tr>
         <td>${item.asset || t("portfolio_optimizer_no_data", "No data available")}</td>
         <td>${item.type || "-"}</td>
@@ -70,11 +80,15 @@ function _renderPortfolioOptimizer(payload) {
         <td>${fmtpresent(Number(item.portfolio_pct || 0))}%</td>
         <td class="${Number(item.gain || 0) >= 0 ? "portfolio-gain-up" : "portfolio-gain-down"}">${Number(item.gain || 0) >= 0 ? "+" : ""}${fmt(Number(item.gain || 0))}</td>
       </tr>
-    `).join("")
+    `
+        )
+        .join("")
     : `<tr><td colspan="5" class="text-center" data-i18n="portfolio_optimizer_empty_assets"></td></tr>`;
 
   const opportunitiesHtml = opportunities.length
-    ? opportunities.map((item) => `
+    ? opportunities
+        .map(
+          (item) => `
       <div class="portfolio-opp-item">
         <div>
           <div class="portfolio-opp-title" data-i18n="${item.key}"></div>
@@ -82,7 +96,9 @@ function _renderPortfolioOptimizer(payload) {
         </div>
         <span class="portfolio-severity-badge ${_portfolioSeverityClass(item.severity)}" data-i18n="${item.severity_key}"></span>
       </div>
-    `).join("")
+    `
+        )
+        .join("")
     : `<div class="portfolio-empty-state" data-i18n="portfolio_optimizer_no_opportunities"></div>`;
 
   pane.innerHTML = `
@@ -227,4 +243,3 @@ async function loadPortfolioOptimizer(force = false) {
     _renderPortfolioOptimizerError();
   }
 }
-

@@ -3,7 +3,9 @@
 // This file is part of the fixed_assets module. Do not edit directly.
 
 function getGoldUnitFactor(unitValue) {
-  const normalized = String(unitValue || "gram").trim().toLowerCase();
+  const normalized = String(unitValue || "gram")
+    .trim()
+    .toLowerCase();
   const map = {
     g: 1,
     gm: 1,
@@ -21,7 +23,9 @@ function getGoldUnitFactor(unitValue) {
 }
 
 function normalizeGoldPurity(purityValue) {
-  const text = String(purityValue || "").trim().toLowerCase();
+  const text = String(purityValue || "")
+    .trim()
+    .toLowerCase();
   if (text.includes("24") || text.includes("999")) return "24k";
   if (text.includes("22") || text.includes("916")) return "22k";
   if (text.includes("21") || text.includes("875")) return "21k";
@@ -70,9 +74,14 @@ function buildDashboardAnalyticsAssets(assets) {
     groupedGoldMap[purityKey].current_market_value += parseFloat(asset.current_market_value) || 0;
 
     if (asset.purchase_date) {
-      const currentDate = new Date(groupedGoldMap[purityKey].purchase_date || asset.purchase_date).getTime();
+      const currentDate = new Date(
+        groupedGoldMap[purityKey].purchase_date || asset.purchase_date
+      ).getTime();
       const candidateDate = new Date(asset.purchase_date).getTime();
-      if (!Number.isNaN(candidateDate) && (Number.isNaN(currentDate) || candidateDate < currentDate)) {
+      if (
+        !Number.isNaN(candidateDate) &&
+        (Number.isNaN(currentDate) || candidateDate < currentDate)
+      ) {
         groupedGoldMap[purityKey].purchase_date = asset.purchase_date;
       }
     }
@@ -172,7 +181,10 @@ async function populateGoldSettingsDropdowns(selectedGoldType = "", selectedPuri
     if (fallbackType) {
       const hasType = activeGoldTypes.some((item) => String(item.name) === fallbackType);
       if (!hasType) {
-        goldTypeSelect.insertAdjacentHTML("beforeend", `<option value="${fallbackType}">${fallbackType}</option>`);
+        goldTypeSelect.insertAdjacentHTML(
+          "beforeend",
+          `<option value="${fallbackType}">${fallbackType}</option>`
+        );
       }
       goldTypeSelect.value = fallbackType;
     } else if (goldTypeSelect.options.length) {
@@ -181,9 +193,14 @@ async function populateGoldSettingsDropdowns(selectedGoldType = "", selectedPuri
 
     if (fallbackPurity) {
       const normalizedFallbackPurity = normalizeGoldPurity(fallbackPurity);
-      const hasPurity = activePurities.some((item) => String(item.key || "").toLowerCase() === normalizedFallbackPurity);
+      const hasPurity = activePurities.some(
+        (item) => String(item.key || "").toLowerCase() === normalizedFallbackPurity
+      );
       if (!hasPurity) {
-        puritySelect.insertAdjacentHTML("beforeend", `<option value="${normalizedFallbackPurity}">${fallbackPurity}</option>`);
+        puritySelect.insertAdjacentHTML(
+          "beforeend",
+          `<option value="${normalizedFallbackPurity}">${fallbackPurity}</option>`
+        );
       }
       puritySelect.value = hasPurity ? normalizedFallbackPurity : normalizedFallbackPurity;
     } else if (puritySelect.options.length) {
@@ -207,4 +224,3 @@ async function populateGoldSettingsDropdowns(selectedGoldType = "", selectedPuri
     }
   }
 }
-

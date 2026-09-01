@@ -3,7 +3,7 @@
  * Shared state, translation helpers, and all fetch() calls against /api/ai-platform/datasets/.
  */
 
-'use strict';
+"use strict";
 
 window.DM = window.DM || {};
 
@@ -19,12 +19,12 @@ window.DM.t = function (key, fallback) {
 };
 
 window.DM.escapeHtml = function (str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 };
 
 window.DM.loadStats = function () {
@@ -32,8 +32,10 @@ window.DM.loadStats = function () {
   window.DM.state.error = null;
   window.DM.renderBody();
 
-  fetch('/api/ai-platform/datasets/', { method: 'GET' })
-    .then(function (r) { return r.json(); })
+  fetch("/api/ai-platform/datasets/", { method: "GET" })
+    .then(function (r) {
+      return r.json();
+    })
     .then(function (data) {
       window.DM.state.stats = data.dataset_stats || null;
       window.DM.state.loading = false;
@@ -41,7 +43,7 @@ window.DM.loadStats = function () {
     })
     .catch(function () {
       window.DM.state.loading = false;
-      window.DM.state.error = window.DM.t('ai_dm_error', 'Failed to load dataset stats.');
+      window.DM.state.error = window.DM.t("ai_dm_error", "Failed to load dataset stats.");
       window.DM.renderBody();
     });
 };
@@ -50,16 +52,18 @@ window.DM.generateDataset = function () {
   window.DM.state.generating = true;
   window.DM.renderBody();
 
-  fetch('/api/ai-platform/datasets/', { method: 'POST' })
-    .then(function (r) { return r.json(); })
+  fetch("/api/ai-platform/datasets/", { method: "POST" })
+    .then(function (r) {
+      return r.json();
+    })
     .then(function () {
       window.DM.state.generating = false;
-      showToast(window.DM.t('ai_dm_generated_ok', 'Dataset generated successfully.'), 'success');
+      showToast(window.DM.t("ai_dm_generated_ok", "Dataset generated successfully."), "success");
       window.DM.loadStats();
     })
     .catch(function () {
       window.DM.state.generating = false;
-      showToast(window.DM.t('ai_dm_generate_error', 'Failed to generate dataset.'), 'error');
+      showToast(window.DM.t("ai_dm_generate_error", "Failed to generate dataset."), "error");
       window.DM.renderBody();
     });
 };

@@ -3,7 +3,7 @@
  * Public modal-open function. Depends on br_state.js and br_render.js.
  */
 
-'use strict';
+"use strict";
 
 window.BR = window.BR || {};
 

@@ -4,8 +4,14 @@ function buildOverviewKpiCardsHtml(payload, kpis) {
   const nwTrendIsUp = Number(kpis.net_worth_growth_yoy || 0) >= 0;
   const nwTrendClass = nwTrendIsUp ? "up" : "down";
   const nwTrendText = nwTrendIsUp
-    ? t("overview_kpi_yoy_trend_up", `↑ {pct}% vs last year`).replace("{pct}", fmt(Math.abs(kpis.net_worth_growth_yoy)))
-    : t("overview_kpi_yoy_trend_down", `↓ {pct}% vs last year`).replace("{pct}", fmt(Math.abs(kpis.net_worth_growth_yoy)));
+    ? t("overview_kpi_yoy_trend_up", `↑ {pct}% vs last year`).replace(
+        "{pct}",
+        fmt(Math.abs(kpis.net_worth_growth_yoy))
+      )
+    : t("overview_kpi_yoy_trend_down", `↓ {pct}% vs last year`).replace(
+        "{pct}",
+        fmt(Math.abs(kpis.net_worth_growth_yoy))
+      );
 
   const healthScore = Number(payload.health_score || 0);
   let healthColor = "var(--accent-green)";
@@ -79,7 +85,24 @@ function buildOverviewKpiCardsHtml(payload, kpis) {
 }
 
 function buildOverviewSummaryRowsHtml(params) {
-  const { cashFlow, cfChangeClass, cfChangeSign, cfChangeVal, wealthGrowth, wgGrowthSign, wgGrowthVal, opportunitiesHtml, allocationRowsHtml, portfolio, risk, goals, goalRing, goalProgressPct, asOf, monthName } = params;
+  const {
+    cashFlow,
+    cfChangeClass,
+    cfChangeSign,
+    cfChangeVal,
+    wealthGrowth,
+    wgGrowthSign,
+    wgGrowthVal,
+    opportunitiesHtml,
+    allocationRowsHtml,
+    portfolio,
+    risk,
+    goals,
+    goalRing,
+    goalProgressPct,
+    asOf,
+    monthName,
+  } = params;
 
   return `
     <!-- ROW 3: Cash Flow, Wealth Growth, Top Opportunities -->
@@ -107,7 +130,7 @@ function buildOverviewSummaryRowsHtml(params) {
                 <div class="overview-stat-row">
                   <div class="overview-stat-label" style="color: var(--text-secondary);" data-i18n="overview_cash_flow_next_event">Next Financial Event</div>
                   <div class="overview-stat-value" style="color: var(--text-primary); font-size:12px; font-weight:700;">
-                    ${cashFlow.largest_event ? `${t('cash_flow_event_' + cashFlow.largest_event.type, cashFlow.largest_event.type)}: +${_money(cashFlow.largest_event.amount)}` : "-"}
+                    ${cashFlow.largest_event ? `${t("cash_flow_event_" + cashFlow.largest_event.type, cashFlow.largest_event.type)}: +${_money(cashFlow.largest_event.amount)}` : "-"}
                   </div>
                 </div>
               </div>
@@ -117,7 +140,7 @@ function buildOverviewSummaryRowsHtml(params) {
             </div>
           </div>
           <div class="overview-btn-footer">
-            <button onclick="switchFinancialAdvisorTab('${cashFlow.target_tab || 'cash-flow-forecast'}')">
+            <button onclick="switchFinancialAdvisorTab('${cashFlow.target_tab || "cash-flow-forecast"}')">
               <span data-i18n="overview_cash_flow_view">View Cash Flow Forecast</span>
               <i class="bi bi-arrow-right"></i>
             </button>
@@ -158,7 +181,7 @@ function buildOverviewSummaryRowsHtml(params) {
             </div>
           </div>
           <div class="overview-btn-footer">
-            <button onclick="switchFinancialAdvisorTab('${wealthGrowth.target_tab || 'wealth-growth-forecast'}')">
+            <button onclick="switchFinancialAdvisorTab('${wealthGrowth.target_tab || "wealth-growth-forecast"}')">
               <span data-i18n="overview_wealth_growth_view">View Wealth Growth Forecast</span>
               <i class="bi bi-arrow-right"></i>
             </button>
@@ -214,7 +237,7 @@ function buildOverviewSummaryRowsHtml(params) {
             </div>
           </div>
           <div class="overview-btn-footer" style="margin-top: 8px;">
-            <button onclick="switchFinancialAdvisorTab('${portfolio.target_tab || 'portfolio-optimizer'}')">
+            <button onclick="switchFinancialAdvisorTab('${portfolio.target_tab || "portfolio-optimizer"}')">
               <span data-i18n="overview_portfolio_view">View Portfolio Optimizer</span>
               <i class="bi bi-arrow-right"></i>
             </button>
@@ -254,7 +277,7 @@ function buildOverviewSummaryRowsHtml(params) {
             </div>
           </div>
           <div class="overview-btn-footer">
-            <button onclick="switchFinancialAdvisorTab('${risk.target_tab || 'risk-analysis'}')">
+            <button onclick="switchFinancialAdvisorTab('${risk.target_tab || "risk-analysis"}')">
               <span data-i18n="overview_risk_view">View Risk Analysis</span>
               <i class="bi bi-arrow-right"></i>
             </button>
@@ -300,7 +323,7 @@ function buildOverviewSummaryRowsHtml(params) {
             </div>
           </div>
           <div class="overview-btn-footer">
-            <button onclick="switchFinancialAdvisorTab('${goals.target_tab || 'goal-planning'}')">
+            <button onclick="switchFinancialAdvisorTab('${goals.target_tab || "goal-planning"}')">
               <span data-i18n="overview_goal_view">View Goal Planning</span>
               <i class="bi bi-arrow-right"></i>
             </button>
@@ -314,7 +337,7 @@ function buildOverviewSummaryRowsHtml(params) {
       <div style="margin-bottom: 6px;">All data is based on your transactions and accounts. Please keep your data updated for accurate insights.</div>
       <div style="font-size:10px; opacity:0.85;">
         <span data-i18n="overview_last_updated">Last Updated</span>
-        <div style="margin-top: 4px; font-weight: 700; color: var(--text-primary);">${asOf.day || ''} ${monthName} ${asOf.year || ''} &bull; ${asOf.time || ''}</div>
+        <div style="margin-top: 4px; font-weight: 700; color: var(--text-primary);">${asOf.day || ""} ${monthName} ${asOf.year || ""} &bull; ${asOf.time || ""}</div>
       </div>
     </div>
   `;

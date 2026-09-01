@@ -68,7 +68,7 @@
 }
 
 @media (max-width: 1500px) {
-  .fi-action-card .fi-card-grid > [class*='col-'] {
+  .fi-action-card .fi-card-grid > [class*="col-"] {
     flex: 0 0 100%;
     max-width: 100%;
   }
@@ -195,7 +195,6 @@
 
 /* The inline div wrapping all .settings-tab buttons gets scroll on mobile */
 @media (max-width: 991.98px) {
-
   /* ── 1. Tabs bar — horizontal scroll ── */
   #main-content > div[style*="border-bottom"][style*="display:flex"],
   #settingsContainer > div[style*="border-bottom"],
@@ -207,7 +206,9 @@
     /* hide scrollbar visually but keep scroll functional */
     scrollbar-width: none;
   }
-  div:has(> .settings-tab)::-webkit-scrollbar { display: none; }
+  div:has(> .settings-tab)::-webkit-scrollbar {
+    display: none;
+  }
 
   /* ── 2. Users header — wrap on mobile ── */
   #settingsContent > div[style*="justify-content:space-between"] {
@@ -316,7 +317,6 @@
    MOBILE (< 992px): offcanvas sidebar
    ══════════════════════════════════════ */
 @media (max-width: 991.98px) {
-
   #desktop-sidebar-mode-btn {
     display: none !important;
   }
@@ -333,16 +333,20 @@
     z-index: 1050;
     transform: translateX(-100%);
     transition: transform 0.28s ease;
-    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
   }
-  #sidebar.open { transform: translateX(0) !important; }
+  #sidebar.open {
+    transform: translateX(0) !important;
+  }
 
   [dir="rtl"] #sidebar {
     left: auto;
     right: 0;
     transform: translateX(100%);
   }
-  [dir="rtl"] #sidebar.open { transform: translateX(0) !important; }
+  [dir="rtl"] #sidebar.open {
+    transform: translateX(0) !important;
+  }
 
   /* Full-width content, padded below fixed topbar */
   #page-wrapper {
@@ -355,7 +359,9 @@
   /* Fixed topbar */
   #topbar {
     position: fixed;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 60px;
     z-index: 1030;
     display: flex !important;
@@ -373,14 +379,18 @@
     align-items: center;
   }
 
-  #sidebarClose { display: inline-flex !important; }
+  #sidebarClose {
+    display: inline-flex !important;
+  }
 
   /* Always show sidebar labels (full offcanvas) */
   #sidebar .brand-text,
   #sidebar .nav-section-label,
   #sidebar .nav-group-label,
   #sidebar .nav-item span,
-  #sidebar .nav-item .nav-text { display: block !important; }
+  #sidebar .nav-item .nav-text {
+    display: block !important;
+  }
 
   #sidebar .nav-item {
     justify-content: flex-start !important;
@@ -388,7 +398,9 @@
   }
 
   /* Main content padding */
-  #main-content { padding: 16px 12px 48px !important; }
+  #main-content {
+    padding: 16px 12px 48px !important;
+  }
 
   /* Page header stacks */
   .page-header {
@@ -419,10 +431,16 @@
    ══════════════════════════════════════ */
 
 @media (max-width: 575.98px) {
-  .year-pill { padding: 4px 11px; font-size: 11.5px; }
+  .year-pill {
+    padding: 4px 11px;
+    font-size: 11.5px;
+  }
 
   /* Modal full width */
-  .modal-dialog { margin: 8px; max-width: calc(100% - 16px) !important; }
+  .modal-dialog {
+    margin: 8px;
+    max-width: calc(100% - 16px) !important;
+  }
 
   /* Stack modal form columns */
   .modal-body .row > [class*="col-"] {
@@ -443,14 +461,20 @@
     flex-direction: column-reverse !important;
     gap: 8px !important;
   }
-  .modal-footer .btn { width: 100% !important; }
+  .modal-footer .btn {
+    width: 100% !important;
+  }
 
   /* Toast full width */
   #toast-container {
-    left: 12px !important; right: 12px !important;
-    bottom: 12px !important; width: auto !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    width: auto !important;
   }
-  .toast { width: 100% !important; }
+  .toast {
+    width: 100% !important;
+  }
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -479,6 +503,10 @@
 }
 
 @media (max-width: 768px) {
-  .chart-container { min-height: 260px; }
-  #salaryChart { min-height: 300px !important; }
+  .chart-container {
+    min-height: 260px;
+  }
+  #salaryChart {
+    min-height: 300px !important;
+  }
 }

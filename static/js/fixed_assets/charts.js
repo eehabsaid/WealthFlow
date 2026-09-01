@@ -30,29 +30,32 @@ function getFixedAssetsDashboardMetrics(assets) {
   const totalAssets = assets.length;
   const totalPurchaseValue = assets.reduce(
     (sum, asset) => sum + (parseFloat(asset.purchase_price) || 0),
-    0,
+    0
   );
   const currentMarketValue = assets.reduce(
     (sum, asset) => sum + (parseFloat(asset.current_market_value) || 0),
-    0,
+    0
   );
   const totalInvestment = assets.reduce(
-    (sum, asset) => sum + (parseFloat(asset.total_investment) || parseFloat(asset.purchase_price) || 0),
-    0,
+    (sum, asset) =>
+      sum + (parseFloat(asset.total_investment) || parseFloat(asset.purchase_price) || 0),
+    0
   );
   const totalGain = currentMarketValue - totalInvestment;
 
   const appreciationValues = assets
-    .filter((asset) => (parseFloat(asset.total_investment) || parseFloat(asset.purchase_price) || 0) > 0)
+    .filter(
+      (asset) => (parseFloat(asset.total_investment) || parseFloat(asset.purchase_price) || 0) > 0
+    )
     .map((asset) => {
-      const investment = parseFloat(asset.total_investment) || parseFloat(asset.purchase_price) || 0;
+      const investment =
+        parseFloat(asset.total_investment) || parseFloat(asset.purchase_price) || 0;
       const current = parseFloat(asset.current_market_value) || 0;
       return ((current - investment) / investment) * 100;
     });
 
   const averageAppreciation = appreciationValues.length
-    ? appreciationValues.reduce((sum, value) => sum + value, 0) /
-      appreciationValues.length
+    ? appreciationValues.reduce((sum, value) => sum + value, 0) / appreciationValues.length
     : 0;
 
   const allocation = assets
@@ -132,34 +135,30 @@ function drawFixedAssetsDashboardCharts(metrics) {
   drawFixedAssetsDoughnutChart(
     "fixedAssetsAllocationChart",
     metrics.allocation.map((item) => item.label),
-    metrics.allocation.map((item) => item.value),
+    metrics.allocation.map((item) => item.value)
   );
   drawFixedAssetsDoughnutChart(
     "fixedAssetsTypeChart",
     metrics.typeDistribution.map((item) => item.label),
-    metrics.typeDistribution.map((item) => item.value),
+    metrics.typeDistribution.map((item) => item.value)
   );
   drawFixedAssetsDoughnutChart(
     "fixedAssetsPortfolioChart",
     metrics.portfolioDistribution.map((item) => item.label),
-    metrics.portfolioDistribution.map((item) => item.value),
+    metrics.portfolioDistribution.map((item) => item.value)
   );
-  drawFixedAssetsLineChart(
-    "fixedAssetsGrowthChart",
-    metrics.growthSeries.labels,
-    [
-      {
-        label: t("total_purchase_value"),
-        data: metrics.growthSeries.purchaseValues,
-        color: "#1a6ef5",
-      },
-      {
-        label: t("current_market_value"),
-        data: metrics.growthSeries.currentValues,
-        color: "#10b981",
-      },
-    ],
-  );
+  drawFixedAssetsLineChart("fixedAssetsGrowthChart", metrics.growthSeries.labels, [
+    {
+      label: t("total_purchase_value"),
+      data: metrics.growthSeries.purchaseValues,
+      color: "#1a6ef5",
+    },
+    {
+      label: t("current_market_value"),
+      data: metrics.growthSeries.currentValues,
+      color: "#10b981",
+    },
+  ]);
 }
 
 function getFixedAssetsChartTheme() {
@@ -183,11 +182,21 @@ function drawFixedAssetsDoughnutChart(canvasId, labels, data) {
       type: "doughnut",
       data: {
         labels,
-        datasets: [{
-          data,
-          backgroundColor: ["#1a6ef5", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899"].slice(0, data.length),
-          borderWidth: 0,
-        }],
+        datasets: [
+          {
+            data,
+            backgroundColor: [
+              "#1a6ef5",
+              "#10b981",
+              "#f59e0b",
+              "#ef4444",
+              "#8b5cf6",
+              "#06b6d4",
+              "#ec4899",
+            ].slice(0, data.length),
+            borderWidth: 0,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -308,4 +317,3 @@ function drawFixedAssetsLineChart(canvasId, labels, datasets) {
 function _noDataFixedAssets(cols) {
   return `<tr><td colspan="${cols}" style="text-align:center;padding:28px;color:var(--text-secondary)" data-i18n="no_data">${t("no_data", "No data available")}</td></tr>`;
 }
-

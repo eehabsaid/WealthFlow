@@ -22,9 +22,14 @@ function renderFixedAssetsAnalytics(assets) {
 
   const metrics = getFixedAssetsAnalyticsMetrics(assetsArray);
 
-  const portfolioCards = renderFixedAssetsPortfolioCards(metrics, fixedAssetsState.portfolioSnapshot);
+  const portfolioCards = renderFixedAssetsPortfolioCards(
+    metrics,
+    fixedAssetsState.portfolioSnapshot
+  );
   const tableRows = metrics.assetRows.length
-    ? metrics.assetRows.map((row) => `
+    ? metrics.assetRows
+        .map(
+          (row) => `
       <tr>
         <td class="fixed-assets-card-title">${row.name}</td>
         <td data-i18n="${fixedAssetTypeToI18nKey(row.type)}">${row.type}</td>
@@ -35,7 +40,9 @@ function renderFixedAssetsAnalytics(assets) {
         <td class="text-end">${fmtpresent(row.renovationCostPercent)}%</td>
         <td class="text-end ${row.gainAmount >= 0 ? "text-success" : "text-danger"}">${fmt(row.gainAmount)}</td>
       </tr>
-    `).join("")
+    `
+        )
+        .join("")
     : _noDataFixedAssets(8);
 
   container.innerHTML = `
@@ -194,9 +201,7 @@ async function downloadFixedAssetsReport(format) {
     }
 
     const endpoint =
-      format === "pdf"
-        ? "/api/fixed-assets/reports/pdf/"
-        : "/api/fixed-assets/reports/excel/";
+      format === "pdf" ? "/api/fixed-assets/reports/pdf/" : "/api/fixed-assets/reports/excel/";
 
     const response = await fetch(`${endpoint}?${params.toString()}`);
 
@@ -230,7 +235,7 @@ function renderFixedAssetsPortfolioCards(metrics, snapshot) {
   const fixedValueCard = renderFixedAssetsKpi(
     "bi bi-bank2",
     "total_fixed_assets_value",
-    fmt(metrics.totalFixedAssetsValue),
+    fmt(metrics.totalFixedAssetsValue)
   );
 
   if (!snapshot) {
@@ -257,43 +262,48 @@ function getFixedAssetsAnalyticsMetrics(assets) {
   const assetRows = assets.map((asset) => {
     const purchasePrice = parseFloat(asset.purchase_price) || 0;
     const currentValue = parseFloat(asset.current_market_value) || 0;
-    const renovationCost = asset.total_renovation_costs !== undefined ? asset.total_renovation_costs : (asset.renovations || []).reduce(
-      (sum, item) => sum + (parseFloat(item.amount_egp) || 0),
-      0,
-    );
-    const acquisitionCost = asset.total_acquisition_costs !== undefined ? asset.total_acquisition_costs : 0;
+    const renovationCost =
+      asset.total_renovation_costs !== undefined
+        ? asset.total_renovation_costs
+        : (asset.renovations || []).reduce(
+            (sum, item) => sum + (parseFloat(item.amount_egp) || 0),
+            0
+          );
+    const acquisitionCost =
+      asset.total_acquisition_costs !== undefined ? asset.total_acquisition_costs : 0;
     const investmentBase =
       asset.total_investment !== undefined
         ? asset.total_investment
-        : (purchasePrice + renovationCost + acquisitionCost);
+        : purchasePrice + renovationCost + acquisitionCost;
 
     const gainAmount =
-      asset.gain_loss !== undefined
-        ? asset.gain_loss
-        : (currentValue - investmentBase);
+      asset.gain_loss !== undefined ? asset.gain_loss : currentValue - investmentBase;
 
     const roi =
-      asset.roi !== undefined
-        ? asset.roi
-        : (investmentBase > 0 ? (gainAmount / investmentBase) : 0);
+      asset.roi !== undefined ? asset.roi : investmentBase > 0 ? gainAmount / investmentBase : 0;
 
     const appreciation =
       asset.appreciation !== undefined
         ? asset.appreciation
-        : (purchasePrice > 0 ? ((currentValue - purchasePrice) / purchasePrice) : 0);
+        : purchasePrice > 0
+          ? (currentValue - purchasePrice) / purchasePrice
+          : 0;
 
     const purchaseDate = asset.purchase_date ? new Date(asset.purchase_date) : null;
-    const holdingYearsRaw = purchaseDate ? (now - purchaseDate) / (1000 * 60 * 60 * 24 * 365.25) : 0;
+    const holdingYearsRaw = purchaseDate
+      ? (now - purchaseDate) / (1000 * 60 * 60 * 24 * 365.25)
+      : 0;
     const holdingYears = holdingYearsRaw > 0 ? holdingYearsRaw : 0;
-    const annualReturn = asset.annual_return !== undefined ? asset.annual_return : (
-      investmentBase > 0 && holdingYears > 0
-        ? (Math.pow(currentValue / investmentBase, 1 / holdingYears) - 1)
-        : 0
-    );
+    const annualReturn =
+      asset.annual_return !== undefined
+        ? asset.annual_return
+        : investmentBase > 0 && holdingYears > 0
+          ? Math.pow(currentValue / investmentBase, 1 / holdingYears) - 1
+          : 0;
     const holdingMonths = purchaseDate
       ? Math.max(0, Math.round((now - purchaseDate) / (1000 * 60 * 60 * 24 * 30.4375)))
       : 0;
-    const renovationCostPercent = purchasePrice > 0 ? (renovationCost / purchasePrice) : 0;
+    const renovationCostPercent = purchasePrice > 0 ? renovationCost / purchasePrice : 0;
 
     return {
       name: asset.name || "—",
@@ -314,9 +324,12 @@ function getFixedAssetsAnalyticsMetrics(assets) {
     .map((row) => (totalFixedAssetsValue > 0 ? row.currentValue / totalFixedAssetsValue : 0))
     .filter((share) => share > 0);
   const concentration = shares.reduce((sum, share) => sum + share * share, 0);
-  const diversificationScore = shares.length > 1
-    ? Math.max(0, ((1 - concentration) / (1 - 1 / shares.length)) * 100)
-    : shares.length === 1 ? 0 : 100;
+  const diversificationScore =
+    shares.length > 1
+      ? Math.max(0, ((1 - concentration) / (1 - 1 / shares.length)) * 100)
+      : shares.length === 1
+        ? 0
+        : 100;
 
   return {
     totalFixedAssetsValue,
@@ -371,12 +384,10 @@ function drawFixedAssetsAnalyticsCharts(metrics, snapshot) {
   drawFixedAssetsDoughnutChart(
     "fixedAssetsLiquidVsFixedChart",
     [t("liquid_assets", "Liquid Assets"), t("fixed_assets", "Fixed Assets")],
-    [liquidValue, fixedValue],
+    [liquidValue, fixedValue]
   );
 
-  const performanceRows = [...metrics.assetRows]
-    .sort((a, b) => b.roi - a.roi)
-    .slice(0, 8);
+  const performanceRows = [...metrics.assetRows].sort((a, b) => b.roi - a.roi).slice(0, 8);
 
   drawFixedAssetsBarChart(
     "fixedAssetsPerformanceChart",
@@ -392,7 +403,6 @@ function drawFixedAssetsAnalyticsCharts(metrics, snapshot) {
         data: performanceRows.map((row) => row.annualReturn),
         color: "#10b981",
       },
-    ],
+    ]
   );
 }
-

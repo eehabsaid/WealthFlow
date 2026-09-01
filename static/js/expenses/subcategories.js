@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 function updateSubcategories(selectedSubId) {
   const catId = parseInt(document.getElementById("eCat")?.value);
@@ -34,7 +34,7 @@ async function showSubcategoryModal(catId) {
         <i class="bi bi-floppy"></i></button>
       <button class="btn-icon del" onclick="deleteSubcategory(${s.id},${catId})" title="Delete">
         <i class="bi bi-trash"></i></button>
-    </div>`,
+    </div>`
     )
     .join("");
 

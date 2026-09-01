@@ -34,7 +34,7 @@ function _renderSpendingIntelligence(payload) {
   const months = monthlyComparison.months || [];
   const aiInsights = payload?.ai_insights || [];
   const recommendedActions = payload?.recommended_actions || [];
-  
+
   // Header block
   let headerHtml = `
     <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
@@ -47,9 +47,9 @@ function _renderSpendingIntelligence(payload) {
   const totalTx = payload?.total_transactions || 0;
   const monthsHistory = payload?.months_history || 0;
   const avgTxMonth = payload?.avg_transactions_per_month || 0;
-  
+
   const periodStrObj = { months: monthsHistory };
-  
+
   let avgMonthlyHtml = `
     <div class="card border-0 mb-5 fade-in-up" si-modern-card>
       <div class="card-body" style="padding:32px;">
@@ -150,10 +150,10 @@ function _renderSpendingIntelligence(payload) {
     const isLast = index === categories.length - 1;
     const mbClass = isLast ? "" : "mb-4";
     const biIcon = _getIconClass(cat.icon);
-    
+
     // Calculate average
-    const catAvg = cat.count > 0 ? (cat.amount_egp / cat.count) : 0;
-    
+    const catAvg = cat.count > 0 ? cat.amount_egp / cat.count : 0;
+
     // Dynamic color for progress bar
     let barColor = "var(--bs-primary)";
     if (cat.percentage <= 10) barColor = "var(--bs-secondary)";
@@ -196,14 +196,25 @@ function _renderSpendingIntelligence(payload) {
         </div>
         <div class="row" style="margin-top:auto;">
   `;
-  
+
   // Custom legend (2 columns)
-  const colors = ["#0d6efd", "#198754", "#ffc107", "#dc3545", "#6f42c1", "#0dcaf0", "#fd7e14", "#20c997", "#6610f2", "#d63384"];
+  const colors = [
+    "#0d6efd",
+    "#198754",
+    "#ffc107",
+    "#dc3545",
+    "#6f42c1",
+    "#0dcaf0",
+    "#fd7e14",
+    "#20c997",
+    "#6610f2",
+    "#d63384",
+  ];
   catLabels.forEach((label, idx) => {
-      if(idx > 7) return; 
-      const color = colors[idx % colors.length];
-      const pct = catPercentages[idx];
-      donutHtml += `
+    if (idx > 7) return;
+    const color = colors[idx % colors.length];
+    const pct = catPercentages[idx];
+    donutHtml += `
         <div class="col-6 col-sm-6 mb-3">
           <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:500; color:var(--text-primary);" tabindex="0">
             <div style="display:flex; align-items:center; overflow:hidden;">
@@ -216,7 +227,7 @@ function _renderSpendingIntelligence(payload) {
       `;
   });
   if (catLabels.length > 8) {
-      donutHtml += `
+    donutHtml += `
         <div class="col-6 col-sm-6 mb-3">
           <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:500; color:var(--text-primary);" tabindex="0">
             <div style="display:flex; align-items:center; overflow:hidden;">
@@ -241,8 +252,8 @@ function _renderSpendingIntelligence(payload) {
           <div class="card-body d-flex flex-column justify-content-center" style="padding:32px; gap:20px;">
   `;
   if (aiInsights.length > 0) {
-    aiInsights.forEach(insight => {
-        aiHtml += `
+    aiInsights.forEach((insight) => {
+      aiHtml += `
           <div style="display:flex; gap:16px; align-items:flex-start; padding-bottom:16px; border-bottom:1px solid rgba(123,147,201,0.1);">
             <div style="background:rgba(111, 66, 193, 0.1); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                 <i class="bi bi-stars" style="color:var(--bs-purple, #6f42c1); font-size:14px;"></i>
@@ -265,12 +276,17 @@ function _renderSpendingIntelligence(payload) {
 
   // Priority Badges Helper
   const getPriorityBadgeHtml = (priority) => {
-      let colorClass = "bg-secondary";
-      let key = "spending_intelligence_priority_low";
-      if(priority === "High") { colorClass = "bg-danger"; key = "spending_intelligence_priority_high"; }
-      else if(priority === "Medium") { colorClass = "bg-warning text-dark"; key = "spending_intelligence_priority_medium"; }
-      
-      return `<span class="badge ${colorClass}" style="font-size:10px; font-weight:600; padding:4px 8px; border-radius:4px;" data-i18n="${key}"></span>`;
+    let colorClass = "bg-secondary";
+    let key = "spending_intelligence_priority_low";
+    if (priority === "High") {
+      colorClass = "bg-danger";
+      key = "spending_intelligence_priority_high";
+    } else if (priority === "Medium") {
+      colorClass = "bg-warning text-dark";
+      key = "spending_intelligence_priority_medium";
+    }
+
+    return `<span class="badge ${colorClass}" style="font-size:10px; font-weight:600; padding:4px 8px; border-radius:4px;" data-i18n="${key}"></span>`;
   };
 
   let recHtml = `
@@ -282,17 +298,17 @@ function _renderSpendingIntelligence(payload) {
   if (recommendedActions.length > 0) {
     // Sort recommendations by priority (High -> Medium -> Low)
     const sortedRecs = [...recommendedActions].sort((a, b) => {
-        const pMap = { "High": 3, "Medium": 2, "Low": 1 };
-        return (pMap[b.priority] || 1) - (pMap[a.priority] || 1);
+      const pMap = { High: 3, Medium: 2, Low: 1 };
+      return (pMap[b.priority] || 1) - (pMap[a.priority] || 1);
     });
 
-    sortedRecs.forEach(rec => {
-        const catNameHtml = rec.params.category ? `<b>${rec.params.category}</b>` : undefined;
-        let newParams = {...rec.params};
-        if(catNameHtml) newParams.category = catNameHtml;
-        const priorityBadge = getPriorityBadgeHtml(rec.priority || "Low");
+    sortedRecs.forEach((rec) => {
+      const catNameHtml = rec.params.category ? `<b>${rec.params.category}</b>` : undefined;
+      let newParams = { ...rec.params };
+      if (catNameHtml) newParams.category = catNameHtml;
+      const priorityBadge = getPriorityBadgeHtml(rec.priority || "Low");
 
-        recHtml += `
+      recHtml += `
           <div style="display:flex; flex-direction:column; gap:8px; padding-bottom:16px; border-bottom:1px solid rgba(123,147,201,0.1);">
             <div class="d-flex justify-content-between align-items-center">
                 <div style="display:flex; gap:12px; align-items:center;">
@@ -322,8 +338,8 @@ function _renderSpendingIntelligence(payload) {
   const hasUncategorized = payload?.has_uncategorized || false;
 
   let catSelectOptions = `<option value="all" data-i18n="all_categories">All Categories</option>`;
-  registeredCategories.forEach(cat => {
-    catSelectOptions += `<option value="${cat.id}">${cat.icon ? cat.icon + ' ' : ''}${cat.name}</option>`;
+  registeredCategories.forEach((cat) => {
+    catSelectOptions += `<option value="${cat.id}">${cat.icon ? cat.icon + " " : ""}${cat.name}</option>`;
   });
   if (hasUncategorized) {
     catSelectOptions += `<option value="uncategorized" data-i18n="spending_intelligence_uncategorized">Uncategorized</option>`;
@@ -374,7 +390,7 @@ function _renderSpendingIntelligence(payload) {
       </div>
     </div>
   `;
-  
+
   if (typeof applyTranslations === "function") applyTranslations();
 
   _renderMonthlyTrendBars(payload, "all");
@@ -388,56 +404,70 @@ function _renderSpendingIntelligence(payload) {
 
   // Trigger progress bar animations
   setTimeout(() => {
-      document.querySelectorAll('.cat-progress-bar').forEach(bar => {
-          bar.style.width = bar.getAttribute('data-target-width');
-      });
+    document.querySelectorAll(".cat-progress-bar").forEach((bar) => {
+      bar.style.width = bar.getAttribute("data-target-width");
+    });
   }, 100);
 
   // Render Donut chart using the global helper defined in charts.js
   if (typeof window.Chart !== "undefined" && catLabels.length > 0) {
-      const canvas = document.getElementById("spendingDonutChart");
-      if (canvas) {
-          // Disable default legend to use our custom HTML legend
-          new window.Chart(canvas, {
-              type: "doughnut",
-              data: {
-                  labels: catLabels,
-                  datasets: [{
-                      data: catValues,
-                      backgroundColor: ["#0d6efd", "#198754", "#ffc107", "#dc3545", "#6f42c1", "#0dcaf0", "#fd7e14", "#20c997", "#6610f2", "#d63384"],
-                      borderWidth: 0,
-                      hoverOffset: 6
-                  }]
+    const canvas = document.getElementById("spendingDonutChart");
+    if (canvas) {
+      // Disable default legend to use our custom HTML legend
+      new window.Chart(canvas, {
+        type: "doughnut",
+        data: {
+          labels: catLabels,
+          datasets: [
+            {
+              data: catValues,
+              backgroundColor: [
+                "#0d6efd",
+                "#198754",
+                "#ffc107",
+                "#dc3545",
+                "#6f42c1",
+                "#0dcaf0",
+                "#fd7e14",
+                "#20c997",
+                "#6610f2",
+                "#d63384",
+              ],
+              borderWidth: 0,
+              hoverOffset: 6,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "78%",
+          animation: {
+            animateScale: true,
+            animateRotate: true,
+            duration: 1000,
+            easing: "easeOutQuart",
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              padding: 12,
+              titleFont: { size: 14, family: "Inter, sans-serif" },
+              bodyFont: { size: 13, family: "Inter, sans-serif", weight: "bold" },
+              callbacks: {
+                label: function (context) {
+                  let label = context.label || "";
+                  if (label) label += ": ";
+                  if (context.parsed !== null)
+                    label += fmt(Number(context.parsed).toFixed(2)) + " EGP";
+                  return label;
+                },
               },
-              options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  cutout: '78%',
-                  animation: {
-                      animateScale: true,
-                      animateRotate: true,
-                      duration: 1000,
-                      easing: 'easeOutQuart'
-                  },
-                  plugins: {
-                      legend: { display: false },
-                      tooltip: {
-                          padding: 12,
-                          titleFont: { size: 14, family: 'Inter, sans-serif' },
-                          bodyFont: { size: 13, family: 'Inter, sans-serif', weight: 'bold' },
-                          callbacks: {
-                              label: function(context) {
-                                  let label = context.label || '';
-                                  if (label) label += ': ';
-                                  if (context.parsed !== null) label += fmt(Number(context.parsed).toFixed(2)) + ' EGP';
-                                  return label;
-                              }
-                          }
-                      }
-                  }
-              }
-          });
-      }
+            },
+          },
+        },
+      });
+    }
   }
 }
 

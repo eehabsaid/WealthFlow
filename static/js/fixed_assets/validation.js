@@ -4,10 +4,7 @@
 
 async function loadFixedAssetSyncDropdownData() {
   if (!fixedAssetSyncCurrencies.length || !fixedAssetSyncBanks.length) {
-    const [currRes, bankRes] = await Promise.all([
-      fetch("/api/currencies/"),
-      fetch("/api/banks/"),
-    ]);
+    const [currRes, bankRes] = await Promise.all([fetch("/api/currencies/"), fetch("/api/banks/")]);
 
     if (!currRes.ok) {
       throw new Error(t("error_loading_currencies", "Error loading currencies"));
@@ -20,14 +17,18 @@ async function loadFixedAssetSyncDropdownData() {
     const bankData = await bankRes.json();
 
     fixedAssetSyncCurrencies = Array.isArray(currData.currencies) ? currData.currencies : [];
-    fixedAssetSyncBanks = Array.isArray(bankData.banks) ? bankData.banks.filter((b) => b?.is_active !== false) : [];
+    fixedAssetSyncBanks = Array.isArray(bankData.banks)
+      ? bankData.banks.filter((b) => b?.is_active !== false)
+      : [];
   }
 
   if (!fixedAssetBanksWithBalance.length) {
     const withBalanceRes = await fetch("/api/banks/with-balance/");
     if (withBalanceRes.ok) {
       const withBalanceData = await withBalanceRes.json();
-      fixedAssetBanksWithBalance = Array.isArray(withBalanceData.banks) ? withBalanceData.banks : [];
+      fixedAssetBanksWithBalance = Array.isArray(withBalanceData.banks)
+        ? withBalanceData.banks
+        : [];
     }
   }
 
@@ -68,16 +69,11 @@ function collectSalePayload() {
   return {
     sale_date: document.getElementById("fa_sale_date").value,
     sale_price: parseFloat(document.getElementById("fa_sale_price").value) || 0,
-    selling_expenses:
-      parseFloat(document.getElementById("fa_selling_expenses").value) || 0,
-    net_sale_amount:
-      parseFloat(document.getElementById("fa_net_sale_amount").value) || 0,
-    deposit_currency_id:
-      parseInt(document.getElementById("fa_deposit_currency").value, 10) || null,
-    deposit_method:
-      document.getElementById("fa_deposit_method").value || "Cash",
-    deposit_bank_id:
-      parseInt(document.getElementById("fa_deposit_bank").value, 10) || null,
+    selling_expenses: parseFloat(document.getElementById("fa_selling_expenses").value) || 0,
+    net_sale_amount: parseFloat(document.getElementById("fa_net_sale_amount").value) || 0,
+    deposit_currency_id: parseInt(document.getElementById("fa_deposit_currency").value, 10) || null,
+    deposit_method: document.getElementById("fa_deposit_method").value || "Cash",
+    deposit_bank_id: parseInt(document.getElementById("fa_deposit_bank").value, 10) || null,
     notes: document.getElementById("fa_sale_notes").value,
   };
 }
@@ -94,7 +90,8 @@ function validateSaleForm() {
     throw new Error(t("sale_price_required", "Sale price must be greater than zero"));
   }
 
-  const depositCurrencyId = parseInt(document.getElementById("fa_deposit_currency")?.value, 10) || null;
+  const depositCurrencyId =
+    parseInt(document.getElementById("fa_deposit_currency")?.value, 10) || null;
   const depositMethod = document.getElementById("fa_deposit_method")?.value || "Cash";
   const depositBankId = parseInt(document.getElementById("fa_deposit_bank")?.value, 10) || null;
 
@@ -206,8 +203,12 @@ async function saveFixedAsset(assetId = null) {
     purchaseCurrencyCode === "USD"
       ? 1
       : purchaseCurrencyCode === "EGP"
-        ? (uiUsdRate > 0 ? uiUsdRate : 1)
-        : (uiUsdRate > 0 ? (1 / uiUsdRate) : 1);
+        ? uiUsdRate > 0
+          ? uiUsdRate
+          : 1
+        : uiUsdRate > 0
+          ? 1 / uiUsdRate
+          : 1;
 
   const payload = {
     name: document.getElementById("fa_name").value,
@@ -215,15 +216,12 @@ async function saveFixedAsset(assetId = null) {
     purchase_date: document.getElementById("fa_purchase_date").value,
     purchase_price: purchasePrice,
     purchase_usd_rate: backendUsdRate,
-    purchase_price_usd:
-      parseFloat(document.getElementById("fa_purchase_price_usd").value) || 0,
+    purchase_price_usd: parseFloat(document.getElementById("fa_purchase_price_usd").value) || 0,
     purchase_currency_id:
       parseInt(document.getElementById("fa_purchase_currency").value, 10) || null,
-    current_market_value:
-      parseFloat(document.getElementById("fa_current_value").value) || 0,
+    current_market_value: parseFloat(document.getElementById("fa_current_value").value) || 0,
     valuation_source: document.getElementById("fa_val_source").value,
-    last_valuation_date:
-      document.getElementById("fa_last_valuation_date").value || null,
+    last_valuation_date: document.getElementById("fa_last_valuation_date").value || null,
     notes: document.getElementById("fa_notes").value,
     status: assetStatus,
     purchase_payments: purchasePayments,
@@ -240,18 +238,14 @@ async function saveFixedAsset(assetId = null) {
       city: document.getElementById("re_city").value,
       district: document.getElementById("re_district").value,
       address: document.getElementById("re_address").value,
-      latitude:
-        parseFloat(document.getElementById("re_latitude").value) || null,
-      longitude:
-        parseFloat(document.getElementById("re_longitude").value) || null,
+      latitude: parseFloat(document.getElementById("re_latitude").value) || null,
+      longitude: parseFloat(document.getElementById("re_longitude").value) || null,
       apartment_area: parseFloat(document.getElementById("re_area").value) || 0,
-      land_share_sqm:
-        parseFloat(document.getElementById("re_land_area").value) || 0,
+      land_share_sqm: parseFloat(document.getElementById("re_land_area").value) || 0,
       rooms: parseInt(document.getElementById("re_rooms").value) || 0,
       bathrooms: parseInt(document.getElementById("re_bathrooms").value) || 0,
       floor: parseInt(document.getElementById("re_floor").value) || 0,
-      building_floors:
-        parseInt(document.getElementById("re_b_floors").value) || 0,
+      building_floors: parseInt(document.getElementById("re_b_floors").value) || 0,
       building_year: parseInt(document.getElementById("re_year").value) || 0,
       facades: document.getElementById("re_facades").value,
       finishing_level: document.getElementById("re_finishing").value,
@@ -285,19 +279,27 @@ async function saveFixedAsset(assetId = null) {
   payload.insurance = isVehicle ? collectInsurance() : [];
 
   payload.furniture = isRealEstate ? collectFurniture() : [];
-  payload.valuation_history = (isRealEstate || isVehicle || isOther) ? collectValuationHistory() : [];
+  payload.valuation_history = isRealEstate || isVehicle || isOther ? collectValuationHistory() : [];
 
   const moneyMovementGroups = [
     { label: t("acquisition_costs", "Acquisition Costs"), rows: payload.acquisition_costs || [] },
     { label: t("renovation", "Renovation"), rows: payload.renovations || [] },
     { label: t("furniture", "Furniture"), rows: payload.furniture || [] },
-    { label: t("rental", "Rental"), rows: payload.rental_details && (payload.rental_details.monthly_rent > 0) ? [payload.rental_details] : [] },
+    {
+      label: t("rental", "Rental"),
+      rows:
+        payload.rental_details && payload.rental_details.monthly_rent > 0
+          ? [payload.rental_details]
+          : [],
+    },
   ];
   for (const group of moneyMovementGroups) {
     for (const row of group.rows) {
       if (shouldRequireBankForMethod(row.payment_method || row.receive_method) && !row.bank_id) {
         hideLoading();
-        throw new Error(`${group.label}: ${t("bank_account_required", "Bank account is required for this payment method")}`);
+        throw new Error(
+          `${group.label}: ${t("bank_account_required", "Bank account is required for this payment method")}`
+        );
       }
     }
   }
@@ -330,52 +332,48 @@ async function saveFixedAsset(assetId = null) {
 
     const savedAsset = await response.json();
 
-  // Only touch the sale endpoint when there's actually something to do:
-  // status is "Sold" (create/update the sale record), or a sale record
-  // already exists and needs to be removed because status moved away
-  // from "Sold". Skips a redundant DELETE call on every ordinary save.
-  if (assetStatus === "Sold" || savedAsset.sale) {
-    await syncAssetSale(savedAsset.id, assetStatus);
-  }
+    // Only touch the sale endpoint when there's actually something to do:
+    // status is "Sold" (create/update the sale record), or a sale record
+    // already exists and needs to be removed because status moved away
+    // from "Sold". Skips a redundant DELETE call on every ordinary save.
+    if (assetStatus === "Sold" || savedAsset.sale) {
+      await syncAssetSale(savedAsset.id, assetStatus);
+    }
 
     const files = document.getElementById("propertyPhotoInput").files;
 
     if (files.length > 0) {
-        for (const file of files) {
-            const formData = new FormData();
-            formData.append("photos", file);
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("photos", file);
 
-            const uploadResponse = await fetch(
-                `/api/fixed-assets/${savedAsset.id}/photos/`,
-                {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": getCsrfToken(),
-                    },
-                    body: formData,
-                }
-            );
+        const uploadResponse = await fetch(`/api/fixed-assets/${savedAsset.id}/photos/`, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCsrfToken(),
+          },
+          body: formData,
+        });
 
-            if (!uploadResponse.ok)
-                throw new Error("Failed to upload property photo.");
+        if (!uploadResponse.ok) throw new Error("Failed to upload property photo.");
 
-            const uploadedPhoto = await uploadResponse.json();
-            if (Array.isArray(uploadedPhoto)) {
-              propertyPhotos.push(...uploadedPhoto);
-            } else if (uploadedPhoto) {
-              propertyPhotos.push(uploadedPhoto);
-            }
+        const uploadedPhoto = await uploadResponse.json();
+        if (Array.isArray(uploadedPhoto)) {
+          propertyPhotos.push(...uploadedPhoto);
+        } else if (uploadedPhoto) {
+          propertyPhotos.push(uploadedPhoto);
         }
+      }
 
-        renderPropertyPhotoGallery();
-        document.getElementById("propertyPhotoInput").value = "";
+      renderPropertyPhotoGallery();
+      document.getElementById("propertyPhotoInput").value = "";
     }
 
     showToast(
       isEdit
         ? t("fixed_asset_updated_success", "Asset updated successfully")
         : t("fixed_asset_added_success", "Asset added successfully"),
-      "success",
+      "success"
     );
 
     const returnPurity = goldPurityReturnContext;
@@ -531,10 +529,8 @@ function showSaleModal(assetId, assetName, currentMarketValue) {
 }
 
 async function submitAssetSale(assetId) {
-  const salePrice =
-    parseFloat(document.getElementById("sale_price").value) || 0;
-  const expenses =
-    parseFloat(document.getElementById("selling_expenses").value) || 0;
+  const salePrice = parseFloat(document.getElementById("sale_price").value) || 0;
+  const expenses = parseFloat(document.getElementById("selling_expenses").value) || 0;
   const netSaleAmount = salePrice - expenses;
 
   const payload = {
@@ -586,4 +582,3 @@ function getCsrfToken() {
       ?.split("=")[1] || ""
   );
 }
-

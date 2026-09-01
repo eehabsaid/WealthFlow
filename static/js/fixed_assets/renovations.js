@@ -4,13 +4,13 @@ let renovationCategories = [];
 
 // Fetch categories from backend API
 fetch("/api/asset-renovations/categories/")
-  .then(res => res.json())
-  .then(data => {
+  .then((res) => res.json())
+  .then((data) => {
     if (data && data.categories && data.categories.length) {
       renovationCategories = data.categories;
     }
   })
-  .catch(err => console.error("Error fetching renovation categories:", err));
+  .catch((err) => console.error("Error fetching renovation categories:", err));
 
 function updateRenovationSummary() {
   const summaryStrip = document.getElementById("renovationSummaryStrip");
@@ -26,14 +26,15 @@ function updateRenovationSummary() {
   let totalEGP = 0;
   let totalUSD = 0;
 
-  rows.forEach(row => {
+  rows.forEach((row) => {
     const egp = parseFloat(row.querySelector(".renovation-egp").value) || 0;
     const usd = parseFloat(row.querySelector(".renovation-usd").value) || 0;
     totalEGP += egp;
     totalUSD += usd;
   });
 
-  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) =>
+    Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   if (summaryStrip) {
     summaryStrip.innerHTML = `
@@ -65,15 +66,18 @@ function addRenovationRow(data = {}, expand = false) {
   row.dataset.renovationId = data.id || "";
 
   const category = data.category || "Finishing";
-  const normVal = category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+  const normVal = category.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
   const amountEgpVal = data.amount_egp || "";
   const descVal = data.description || "";
   const paymentMethodVal = data.payment_method || "Cash";
   const bankIdVal = data.bank_id || "";
   const furnitureIdVal = data.furniture_id || "";
 
-  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const initialAmountPreview = amountEgpVal ? `EGP ${fmt(parseFloat(amountEgpVal) || 0)}` : "EGP 0.00";
+  const fmt = (n) =>
+    Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const initialAmountPreview = amountEgpVal
+    ? `EGP ${fmt(parseFloat(amountEgpVal) || 0)}`
+    : "EGP 0.00";
 
   row.innerHTML = `
     <div class="item-header card-header">
@@ -98,14 +102,16 @@ function addRenovationRow(data = {}, expand = false) {
         <div class="field">
           <label class="form-label small" data-i18n="renovation_type">Renovation Type</label>
           <select class="form-select renovation-category">
-            ${renovationCategories.map(cat => {
-              const norm = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
-              return `
+            ${renovationCategories
+              .map((cat) => {
+                const norm = cat.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
+                return `
                 <option value="${cat}" data-i18n-prefix="renovation_" data-i18n-value="${norm}" ${cat === category ? "selected" : ""}>
                   ${cat}
                 </option>
               `;
-            }).join("")}
+              })
+              .join("")}
           </select>
         </div>
         <div class="field span-2">
@@ -158,7 +164,7 @@ function addRenovationRow(data = {}, expand = false) {
   const categoryBadge = row.querySelector(".item-category-badge");
   categorySelect.addEventListener("change", () => {
     const cat = categorySelect.value;
-    const norm = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+    const norm = cat.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
     categoryBadge.setAttribute("data-i18n-value", norm);
     categoryBadge.textContent = cat;
     if (typeof applyTranslations === "function") {
@@ -215,8 +221,7 @@ function collectRenovations() {
 
       amount_egp: parseFloat(row.querySelector(".renovation-egp").value) || 0,
 
-      usd_rate:
-        parseFloat(row.querySelector(".renovation-usd-rate")?.value) || 0,
+      usd_rate: parseFloat(row.querySelector(".renovation-usd-rate")?.value) || 0,
 
       amount_usd: parseFloat(row.querySelector(".renovation-usd").value) || 0,
 
@@ -236,8 +241,7 @@ function updateRenovationUSD(input) {
 
   const egp = parseFloat(row.querySelector(".renovation-egp").value) || 0;
 
-  const rate =
-    parseFloat(row.querySelector(".renovation-usd-rate")?.value) || 0;
+  const rate = parseFloat(row.querySelector(".renovation-usd-rate")?.value) || 0;
 
   const usdInput = row.querySelector(".renovation-usd");
 
@@ -247,4 +251,3 @@ function updateRenovationUSD(input) {
     usdInput.value = "";
   }
 }
-

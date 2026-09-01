@@ -67,7 +67,9 @@
       picker._rebuildGrid();
     });
 
-    const cancelBtn = _createBtn("wf-dp-btn-cancel", _t("dp_cancel", "Cancel"), null, () => picker._close());
+    const cancelBtn = _createBtn("wf-dp-btn-cancel", _t("dp_cancel", "Cancel"), null, () =>
+      picker._close()
+    );
 
     const setBtn = _createBtn("wf-dp-btn-set", _t("dp_set", "Set"), null, () => {
       if (picker._pendingIso) picker._commit(picker._pendingIso);

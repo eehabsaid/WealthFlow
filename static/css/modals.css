@@ -18,7 +18,9 @@
 }
 
 .modal.fade .modal-dialog {
-  transition: transform var(--transition-normal), opacity var(--transition-normal);
+  transition:
+    transform var(--transition-normal),
+    opacity var(--transition-normal);
   transform: scale(0.97);
 }
 
@@ -164,7 +166,9 @@
   min-height: 42px;
   border-radius: var(--radius-sm, 8px);
   padding: 10px 12px;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .goal-editor-modal textarea {

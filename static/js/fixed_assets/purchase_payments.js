@@ -82,7 +82,9 @@ function populatePurchasePaymentsForm(rows, fallbackAmount = 0, defaultIfEmpty =
 }
 
 function collectPurchasePaymentsPayload() {
-  const rows = Array.from(document.querySelectorAll("#purchasePaymentsContainer .purchase-payment-row"));
+  const rows = Array.from(
+    document.querySelectorAll("#purchasePaymentsContainer .purchase-payment-row")
+  );
   return rows.map((row) => ({
     payment_method: row.querySelector(".purchase-method")?.value || "Cash",
     bank_id: parseInt(row.querySelector(".purchase-bank")?.value, 10) || null,
@@ -91,7 +93,8 @@ function collectPurchasePaymentsPayload() {
 }
 
 function validatePurchasePayments(purchasePrice) {
-  const purchaseCurrencyId = parseInt(document.getElementById("fa_purchase_currency")?.value, 10) || null;
+  const purchaseCurrencyId =
+    parseInt(document.getElementById("fa_purchase_currency")?.value, 10) || null;
   if (!purchaseCurrencyId) {
     throw new Error(t("currency_required", "Currency is required."));
   }
@@ -106,7 +109,9 @@ function validatePurchasePayments(purchasePrice) {
 
   rows.forEach((row) => {
     if (shouldRequireBankForMethod(row.payment_method) && !row.bank_id) {
-      throw new Error(t("bank_account_required", "Bank account is required for this payment method"));
+      throw new Error(
+        t("bank_account_required", "Bank account is required for this payment method")
+      );
     }
     if (!row.amount || row.amount <= 0) {
       throw new Error(t("amount_required", "Amount is required."));
@@ -115,9 +120,10 @@ function validatePurchasePayments(purchasePrice) {
 
   const total = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
   if (Math.abs(total - purchasePrice) > 0.01) {
-    throw new Error(t("purchase_payment_total_mismatch", "Total payment sources must equal purchase price."));
+    throw new Error(
+      t("purchase_payment_total_mismatch", "Total payment sources must equal purchase price.")
+    );
   }
 
   return rows;
 }
-

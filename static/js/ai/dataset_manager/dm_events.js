@@ -3,7 +3,7 @@
  * Public modal-open function. Depends on dm_state.js and dm_render.js.
  */
 
-'use strict';
+"use strict";
 
 window.DM = window.DM || {};
 

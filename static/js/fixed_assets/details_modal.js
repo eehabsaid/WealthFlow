@@ -12,9 +12,7 @@ async function showFixedAssetModal(assetId = null, options = {}) {
   currentEditingAssetId = isEdit ? assetId : null;
   currentAssetHasPurchaseSync = false;
   const modalTitleKey = isEdit ? "edit_fixed_asset" : "add_fixed_asset";
-  const modalTitleDefault = isEdit
-    ? "Edit Asset Details"
-    : "Register New Fixed Asset";
+  const modalTitleDefault = isEdit ? "Edit Asset Details" : "Register New Fixed Asset";
 
   const html = `
         <div class="modal-header">
@@ -346,7 +344,14 @@ async function showFixedAssetModal(assetId = null, options = {}) {
   addPurchasePaymentRow();
   propertyPhotos = [];
   renderPropertyPhotoGallery();
-  ["acquisitionContainer", "renovationContainer", "furnitureContainer", "valuationContainer", "maintenanceContainer", "insuranceContainer"].forEach((id) => {
+  [
+    "acquisitionContainer",
+    "renovationContainer",
+    "furnitureContainer",
+    "valuationContainer",
+    "maintenanceContainer",
+    "insuranceContainer",
+  ].forEach((id) => {
     const container = document.getElementById(id);
     if (container) container.innerHTML = "";
   });
@@ -369,9 +374,7 @@ async function showFixedAssetModal(assetId = null, options = {}) {
     }
   });
 
-  document
-    .getElementById("btnLocateProperty")
-    .addEventListener("click", locatePropertyOnMap);
+  document.getElementById("btnLocateProperty").addEventListener("click", locatePropertyOnMap);
   const refreshValuationButton = document.getElementById("btnRefreshPropertyValuation");
   if (refreshValuationButton) {
     refreshValuationButton.addEventListener("click", refreshPropertyValuation);

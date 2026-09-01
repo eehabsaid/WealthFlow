@@ -16,7 +16,7 @@ function updateValuationSummary() {
   let latestEGP = 0;
   let latestDate = null;
 
-  rows.forEach(row => {
+  rows.forEach((row) => {
     const valDate = row.querySelector(".valuation-date").value;
     const valMarket = parseFloat(row.querySelector(".valuation-market-value").value) || 0;
     if (valDate) {
@@ -27,7 +27,8 @@ function updateValuationSummary() {
     }
   });
 
-  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) =>
+    Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   if (summaryStrip) {
     summaryStrip.innerHTML = `
@@ -37,7 +38,7 @@ function updateValuationSummary() {
       </div>
       <div class="stat">
         <span class="stat-label" data-i18n="latest_value">Latest Value</span>
-        <span class="stat-value">${latestDate ? 'EGP ' + fmt(latestEGP) : '-'}</span>
+        <span class="stat-value">${latestDate ? "EGP " + fmt(latestEGP) : "-"}</span>
       </div>
     `;
     if (typeof applyTranslations === "function") {
@@ -58,7 +59,8 @@ function addValuationRow(data = {}, expand = false) {
   const marketVal = data.market_value || "";
   const notesVal = data.notes || "";
 
-  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) =>
+    Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const initialAmountPreview = marketVal ? `EGP ${fmt(parseFloat(marketVal) || 0)}` : "EGP 0.00";
 
   row.innerHTML = `
@@ -187,11 +189,20 @@ async function syncValuationRow(buttonEl) {
     const payload = await response.json();
 
     if (!response.ok) {
-      throw new Error(payload.error || t("error_refreshing_property_valuation", "Failed to refresh property valuation."));
+      throw new Error(
+        payload.error ||
+          t("error_refreshing_property_valuation", "Failed to refresh property valuation.")
+      );
     }
 
     if (!payload.updated) {
-      showToast(t("property_valuation_unavailable", "No automatic valuation was available for this property."), "warning");
+      showToast(
+        t(
+          "property_valuation_unavailable",
+          "No automatic valuation was available for this property."
+        ),
+        "warning"
+      );
       return;
     }
 
@@ -203,9 +214,15 @@ async function syncValuationRow(buttonEl) {
       row.querySelector(".valuation-market-value").value = latestEntry.market_value || 0;
       row.querySelector(".valuation-notes").value = latestEntry.notes || "";
 
-      const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      row.querySelector(".item-amount-preview").textContent = `EGP ${fmt(parseFloat(latestEntry.market_value) || 0)}`;
-      row.querySelector(".item-name-preview").textContent = latestEntry.valuation_date || t("unnamed_item", "(Unnamed item)");
+      const fmt = (n) =>
+        Number(n || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      row.querySelector(".item-amount-preview").textContent =
+        `EGP ${fmt(parseFloat(latestEntry.market_value) || 0)}`;
+      row.querySelector(".item-name-preview").textContent =
+        latestEntry.valuation_date || t("unnamed_item", "(Unnamed item)");
     }
 
     // Keep the General tab's current-value fields consistent with the sync too.
@@ -217,7 +234,11 @@ async function syncValuationRow(buttonEl) {
     updateValuationSummary();
     showToast(t("property_valuation_refreshed", "Property valuation refreshed."), "success");
   } catch (error) {
-    showToast(error.message || t("error_refreshing_property_valuation", "Failed to refresh property valuation."), "error");
+    showToast(
+      error.message ||
+        t("error_refreshing_property_valuation", "Failed to refresh property valuation."),
+      "error"
+    );
   } finally {
     buttonEl.disabled = false;
     buttonEl.innerHTML = originalHTML;
@@ -238,5 +259,3 @@ function collectValuationHistory() {
   });
   return valuationHistory;
 }
-
-

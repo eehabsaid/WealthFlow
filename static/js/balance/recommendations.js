@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // balance/recommendations.js — Recommendations tab renderer
 // Renders: Investment Recommendations + Financial Recommendations + Recommended Action
@@ -6,29 +6,51 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 function renderBalanceRecommendations(data) {
-    const pane = document.getElementById('bal-pane-recommendations');
-    if (!pane) return;
+  const pane = document.getElementById("bal-pane-recommendations");
+  if (!pane) return;
 
-    const {
-        forecastData,
-        investmentDetails, financialDetails,
-        actionReasonText,
-        goldRecommendationText,
-        getRecommendationText, getReasonText, encodeI18nParams,
-        trendMeta, localizedTrendLabel,
-        netMonthlySurplus, diversificationLabel, financialHealth,
-        netWorth, suggestedAllocations,
-        labelGoldMarketAnalysis, labelTrend,
-        labelSevenDayChange, labelThirtyDayChange, labelNinetyDayChange,
-        labelMa7, labelMa30, labelMaGap,
-        labelCurrentAllocation, labelRecommendation, labelSuggestedAllocation,
-        labelFinancialHealth, labelFinancialHealthOverview,
-        labelNetWorth, labelLiquidityCoverage, labelMonthlySurplus,
-        labelDiversification, labelCash, labelCertificates, labelGold,
-        labelFixedAssets, labelMonths, labelEgp,
-    } = data;
+  const {
+    forecastData,
+    investmentDetails,
+    financialDetails,
+    actionReasonText,
+    goldRecommendationText,
+    getRecommendationText,
+    getReasonText,
+    encodeI18nParams,
+    trendMeta,
+    localizedTrendLabel,
+    netMonthlySurplus,
+    diversificationLabel,
+    financialHealth,
+    netWorth,
+    suggestedAllocations,
+    labelGoldMarketAnalysis,
+    labelTrend,
+    labelSevenDayChange,
+    labelThirtyDayChange,
+    labelNinetyDayChange,
+    labelMa7,
+    labelMa30,
+    labelMaGap,
+    labelCurrentAllocation,
+    labelRecommendation,
+    labelSuggestedAllocation,
+    labelFinancialHealth,
+    labelFinancialHealthOverview,
+    labelNetWorth,
+    labelLiquidityCoverage,
+    labelMonthlySurplus,
+    labelDiversification,
+    labelCash,
+    labelCertificates,
+    labelGold,
+    labelFixedAssets,
+    labelMonths,
+    labelEgp,
+  } = data;
 
-    pane.innerHTML = `
+  pane.innerHTML = `
         <div class="row g-3 mb-4 fi-top-grid">
 
             <!-- Investment Recommendations -->
@@ -48,13 +70,16 @@ function renderBalanceRecommendations(data) {
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelCurrentAllocation}</span><span class="fi-metric-value fi-accent num-fmt" data-value="${forecastData.gold_ratio || 0}">${fmt(forecastData.gold_ratio || 0)}%</span></div>
                     </div>
                     <div class="fi-section-title">${labelRecommendation}</div>
-                    <div class="fi-info-box">${goldRecommendationText || t('recommend_gold_neutral', 'Keep current gold allocation and rebalance gradually as trends evolve.')}</div>
+                    <div class="fi-info-box">${goldRecommendationText || t("recommend_gold_neutral", "Keep current gold allocation and rebalance gradually as trends evolve.")}</div>
                     <div style="margin-top:15px">
-                        ${investmentDetails.filter((item) => String(item.key || '') !== 'recommend_gold_dynamic').map((item) => {
+                        ${investmentDetails
+                          .filter((item) => String(item.key || "") !== "recommend_gold_dynamic")
+                          .map((item) => {
                             const resolvedText = getRecommendationText(item);
                             const itemParamsEncoded = encodeI18nParams(item.params || {});
-                            return `<div class="fi-note-card"><div ${item.key ? `data-i18n-key="${item.key}" data-i18n-params="${itemParamsEncoded}"` : ''}>${resolvedText}</div></div>`;
-                        }).join('')}
+                            return `<div class="fi-note-card"><div ${item.key ? `data-i18n-key="${item.key}" data-i18n-params="${itemParamsEncoded}"` : ""}>${resolvedText}</div></div>`;
+                          })
+                          .join("")}
                     </div>
                 </div>
             </div>
@@ -69,17 +94,20 @@ function renderBalanceRecommendations(data) {
                     <div class="fi-metric-grid">
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelNetWorth}</span><span class="fi-metric-value fi-accent fi-value-inline"><span class="num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)}</span><span class="fi-value-unit" data-i18n="EGP">${labelEgp}</span></span></div>
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelLiquidityCoverage}</span><span class="fi-metric-value fi-value-inline"><span class="num-fmt" data-value="${forecastData.cash_coverage_months || 0}">${fmt(forecastData.cash_coverage_months || 0)}</span><span class="fi-value-unit" data-i18n="months">${labelMonths}</span></span></div>
-                        <div class="fi-metric-row"><span class="fi-metric-label">${labelMonthlySurplus}</span><span class="fi-metric-value ${netMonthlySurplus >= 0 ? 'fi-positive' : 'fi-negative'} fi-value-inline"><span class="num-fmtpresent" data-value="${netMonthlySurplus}">${fmtpresent(netMonthlySurplus)}</span><span class="fi-value-unit" data-i18n="EGP">${labelEgp}</span></span></div>
+                        <div class="fi-metric-row"><span class="fi-metric-label">${labelMonthlySurplus}</span><span class="fi-metric-value ${netMonthlySurplus >= 0 ? "fi-positive" : "fi-negative"} fi-value-inline"><span class="num-fmtpresent" data-value="${netMonthlySurplus}">${fmtpresent(netMonthlySurplus)}</span><span class="fi-value-unit" data-i18n="EGP">${labelEgp}</span></span></div>
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelDiversification}</span><span class="fi-metric-value">${diversificationLabel}</span></div>
                     </div>
                     <div class="fi-section-title">${labelRecommendation}</div>
-                    <div class="fi-info-box">${data.financialParagraph || t('recommend_asset_allocation_balanced', 'Financial position is balanced with healthy liquidity and diversified assets.')}</div>
+                    <div class="fi-info-box">${data.financialParagraph || t("recommend_asset_allocation_balanced", "Financial position is balanced with healthy liquidity and diversified assets.")}</div>
                     <div class="fi-list-compact" style="margin-top:12px">
-                        ${financialDetails.slice(1, 4).map((item) => {
+                        ${financialDetails
+                          .slice(1, 4)
+                          .map((item) => {
                             const text = getRecommendationText(item);
                             const encoded = encodeI18nParams(item.params || {});
-                            return `<div ${item.key ? `data-i18n-key="${item.key}" data-i18n-params="${encoded}"` : ''} class="fi-note-card">${text}</div>`;
-                        }).join('')}
+                            return `<div ${item.key ? `data-i18n-key="${item.key}" data-i18n-params="${encoded}"` : ""} class="fi-note-card">${text}</div>`;
+                          })
+                          .join("")}
                     </div>
                 </div>
             </div>
@@ -106,31 +134,46 @@ function renderBalanceRecommendations(data) {
                                 <div class="fi-emphasis-band fi-emphasis-primary"><span class="fi-band-icon">🎯</span><span>${labelSuggestedAllocation}</span></div>
                                 <div class="fi-section-title">${labelSuggestedAllocation}</div>
                                 <div class="fi-highlight-stack">
-                                    ${suggestedAllocations.map((row) => `
+                                    ${suggestedAllocations
+                                      .map(
+                                        (row) => `
                                         <div class="fi-highlight-row">
                                             <div class="fi-metric-label fi-label-with-icon"><span>${row.icon}</span><span>${row.label}</span></div>
                                             <div class="fi-metric-value fi-accent fi-value-inline">
                                                 <span class="num-fmtpresent" data-value="${row.value}">${fmtpresent(row.value)}</span>
                                                 <span class="fi-value-unit" data-i18n="EGP">${labelEgp}</span>
                                             </div>
-                                        </div>`).join('')}
+                                        </div>`
+                                      )
+                                      .join("")}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    ${actionReasonText ? `<div ${forecastData.action_plan?.reason_key ? `data-i18n-key="${forecastData.action_plan.reason_key}" data-i18n-params="${encodeI18nParams(forecastData.action_plan.reason_params || {})}"` : ''} class="fi-paragraph" style="margin-top:16px;">${actionReasonText}</div>` : ''}
-                    <div data-i18n-key="${forecastData.action_plan?.key || ''}"
+                    ${actionReasonText ? `<div ${forecastData.action_plan?.reason_key ? `data-i18n-key="${forecastData.action_plan.reason_key}" data-i18n-params="${encodeI18nParams(forecastData.action_plan.reason_params || {})}"` : ""} class="fi-paragraph" style="margin-top:16px;">${actionReasonText}</div>` : ""}
+                    <div data-i18n-key="${forecastData.action_plan?.key || ""}"
                          data-gold-amount="${forecastData.action_plan?.gold_amount || 0}"
                          data-cash-amount="${forecastData.action_plan?.cash_amount || 0}"
                          data-certificate-amount="${forecastData.action_plan?.certificate_amount || 0}"
                          class="fi-allocation-sentence"
                          style="margin-top:10px;">
-                        ${forecastData.action_plan?.key
+                        ${
+                          forecastData.action_plan?.key
                             ? (_t[forecastData.action_plan.key] || forecastData.action_plan.key)
-                                .replace('{gold_amount}',        fmtpresent(forecastData.action_plan.gold_amount || 0))
-                                .replace('{cash_amount}',        fmtpresent(forecastData.action_plan.cash_amount || 0))
-                                .replace('{certificate_amount}', fmtpresent(forecastData.action_plan.certificate_amount || 0))
-                            : ''}
+                                .replace(
+                                  "{gold_amount}",
+                                  fmtpresent(forecastData.action_plan.gold_amount || 0)
+                                )
+                                .replace(
+                                  "{cash_amount}",
+                                  fmtpresent(forecastData.action_plan.cash_amount || 0)
+                                )
+                                .replace(
+                                  "{certificate_amount}",
+                                  fmtpresent(forecastData.action_plan.certificate_amount || 0)
+                                )
+                            : ""
+                        }
                     </div>
                 </div>
             </div>

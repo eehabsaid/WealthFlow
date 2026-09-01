@@ -3,7 +3,7 @@
  * Public modal-open function. Depends on mm_state.js and mm_render.js.
  */
 
-'use strict';
+"use strict";
 
 window.MM = window.MM || {};
 

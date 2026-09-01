@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * AI Workspace — Core State & Extension Registry
@@ -11,14 +11,24 @@ const _aiWorkspaceExtensions = {
   rightPanels: [],
   workspaceCards: [],
   widgets: [],
-  agents: []
+  agents: [],
 };
 
-function registerAIWorkspaceCard(config) { _aiWorkspaceExtensions.workspaceCards.push(config); }
-function registerAIRightPanel(config) { _aiWorkspaceExtensions.rightPanels.push(config); }
-function registerAILeftPanel(config) { _aiWorkspaceExtensions.leftPanels.push(config); }
-function registerAIWidget(config) { _aiWorkspaceExtensions.widgets.push(config); }
-function registerAIAgent(config) { _aiWorkspaceExtensions.agents.push(config); }
+function registerAIWorkspaceCard(config) {
+  _aiWorkspaceExtensions.workspaceCards.push(config);
+}
+function registerAIRightPanel(config) {
+  _aiWorkspaceExtensions.rightPanels.push(config);
+}
+function registerAILeftPanel(config) {
+  _aiWorkspaceExtensions.leftPanels.push(config);
+}
+function registerAIWidget(config) {
+  _aiWorkspaceExtensions.widgets.push(config);
+}
+function registerAIAgent(config) {
+  _aiWorkspaceExtensions.agents.push(config);
+}
 
 let _aiState = {
   conversationId: null,
@@ -27,33 +37,33 @@ let _aiState = {
   lastResponseMeta: null,
   aiSettings: null,
   knowledgeCount: 0,
-  modelInfo: null
+  modelInfo: null,
 };
 
 // Safe translation helper
 function _aiT(key, fallback) {
-  if (typeof window.t === 'function') {
+  if (typeof window.t === "function") {
     return window.t(key, fallback);
   }
   return fallback;
 }
 
 function _applyTranslations() {
-  if (typeof window.applyTranslations === 'function') {
+  if (typeof window.applyTranslations === "function") {
     window.applyTranslations();
   }
 }
 
 function _formatDate(dateStr) {
-  if (!dateStr) return '';
-  if (typeof window.formatDate === 'function') {
+  if (!dateStr) return "";
+  if (typeof window.formatDate === "function") {
     return window.formatDate(dateStr);
   }
   return new Date(dateStr).toLocaleString();
 }
 
 function _relativeTime(dateStr) {
-  if (!dateStr) return '';
+  if (!dateStr) return "";
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now - date;
@@ -61,11 +71,11 @@ function _relativeTime(dateStr) {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffMins < 1) return _aiT('ai_ws_time_just_now', 'Just now');
-  if (diffMins < 60) return _aiT('ai_ws_time_mins_ago', `${diffMins}m ago`);
-  if (diffHours < 24) return _aiT('ai_ws_time_hours_ago', `${diffHours}h ago`);
-  if (diffDays === 1) return _aiT('ai_ws_time_yesterday', 'Yesterday');
-  if (diffDays < 7) return _aiT('ai_ws_time_days_ago', `${diffDays}d ago`);
+  if (diffMins < 1) return _aiT("ai_ws_time_just_now", "Just now");
+  if (diffMins < 60) return _aiT("ai_ws_time_mins_ago", `${diffMins}m ago`);
+  if (diffHours < 24) return _aiT("ai_ws_time_hours_ago", `${diffHours}h ago`);
+  if (diffDays === 1) return _aiT("ai_ws_time_yesterday", "Yesterday");
+  if (diffDays < 7) return _aiT("ai_ws_time_days_ago", `${diffDays}d ago`);
   return _formatDate(dateStr);
 }
 

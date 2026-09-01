@@ -7,13 +7,20 @@ function renderFixedAssets(activeTab = "assets") {
   const target = document.getElementById("main-content");
   if (!target) return;
 
-    let activeKey = "fixed_assets_tab_assets";
-    let activeLabel = "Assets";
-    if (activeTab === "dashboard") { activeKey = "dashboard"; activeLabel = "Dashboard"; }
-    else if (activeTab === "analytics") { activeKey = "fixed_assets_tab_analytics"; activeLabel = "Analytics"; }
-    else if (activeTab === "reports") { activeKey = "nav_reports"; activeLabel = "Reports"; }
+  let activeKey = "fixed_assets_tab_assets";
+  let activeLabel = "Assets";
+  if (activeTab === "dashboard") {
+    activeKey = "dashboard";
+    activeLabel = "Dashboard";
+  } else if (activeTab === "analytics") {
+    activeKey = "fixed_assets_tab_analytics";
+    activeLabel = "Analytics";
+  } else if (activeTab === "reports") {
+    activeKey = "nav_reports";
+    activeLabel = "Reports";
+  }
 
-    target.innerHTML = `
+  target.innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-3 pb-2" style="border-bottom: 1px solid var(--border-color); gap: 1rem;">
             <h3 class="m-0 font-weight-bold fixed-assets-heading" data-i18n="${activeKey}">${t(activeKey, activeLabel)}</h3>
             <div id="fixedAssetsHeaderAction"></div>
@@ -41,12 +48,12 @@ function renderFixedAssets(activeTab = "assets") {
   renderActiveFixedAssetsTab();
   applyTranslations();
 
-  if (typeof window.initTabsWithMoreMenu === 'function') {
-      window.initTabsWithMoreMenu({
-          containerId: 'fixedAssetsTabsBar',
-          visibleCount: 4,
-          moreLabel: typeof t === 'function' ? t('financial_advisor_tab_more', 'More') : 'More',
-      });
+  if (typeof window.initTabsWithMoreMenu === "function") {
+    window.initTabsWithMoreMenu({
+      containerId: "fixedAssetsTabsBar",
+      visibleCount: 4,
+      moreLabel: typeof t === "function" ? t("financial_advisor_tab_more", "More") : "More",
+    });
   }
 
   setTimeout(() => {
@@ -56,13 +63,22 @@ function renderFixedAssets(activeTab = "assets") {
 
 function switchFixedAssetsTab(tab) {
   fixedAssetsState.activeTab = tab;
-  
-  const heading = document.querySelector('.fixed-assets-heading');
+
+  const heading = document.querySelector(".fixed-assets-heading");
   if (heading) {
-      if (tab === 'assets') { heading.setAttribute('data-i18n', 'fixed_assets_tab_assets'); heading.textContent = t('fixed_assets_tab_assets', 'Assets'); }
-      else if (tab === 'dashboard') { heading.setAttribute('data-i18n', 'dashboard'); heading.textContent = t('dashboard', 'Dashboard'); }
-      else if (tab === 'analytics') { heading.setAttribute('data-i18n', 'fixed_assets_tab_analytics'); heading.textContent = t('fixed_assets_tab_analytics', 'Analytics'); }
-      else if (tab === 'reports') { heading.setAttribute('data-i18n', 'nav_reports'); heading.textContent = t('nav_reports', 'Reports'); }
+    if (tab === "assets") {
+      heading.setAttribute("data-i18n", "fixed_assets_tab_assets");
+      heading.textContent = t("fixed_assets_tab_assets", "Assets");
+    } else if (tab === "dashboard") {
+      heading.setAttribute("data-i18n", "dashboard");
+      heading.textContent = t("dashboard", "Dashboard");
+    } else if (tab === "analytics") {
+      heading.setAttribute("data-i18n", "fixed_assets_tab_analytics");
+      heading.textContent = t("fixed_assets_tab_analytics", "Analytics");
+    } else if (tab === "reports") {
+      heading.setAttribute("data-i18n", "nav_reports");
+      heading.textContent = t("nav_reports", "Reports");
+    }
   }
 
   renderFixedAssetsHeaderAction();
@@ -75,7 +91,7 @@ function updateFixedAssetsTabButtons() {
   document.querySelectorAll("#fixedAssetsTabsBar button").forEach((button) => {
     button.classList.toggle(
       "active",
-      button.getAttribute("onclick") === `switchFixedAssetsTab('${fixedAssetsState.activeTab}')`,
+      button.getAttribute("onclick") === `switchFixedAssetsTab('${fixedAssetsState.activeTab}')`
     );
   });
 }
@@ -129,4 +145,3 @@ function renderActiveFixedAssetsTab() {
 // ════════════════════════════════════════════════════════════════════════════
 // LIST RENDERING (CARD VIEW)
 // ════════════════════════════════════════════════════════════════════════════
-

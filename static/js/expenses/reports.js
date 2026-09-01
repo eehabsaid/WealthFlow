@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 async function exportExpenses() {
   const year = document.getElementById("fYear")?.value || "";
@@ -9,7 +9,7 @@ async function exportExpenses() {
   const res = await fetch(url);
   const data = await res.json();
 
-  const isAr = (window.currentLang === "ar");
+  const isAr = window.currentLang === "ar";
   const headers = [
     typeof t === "function" ? t("date") : "Date",
     typeof t === "function" ? t("category") : "Category",
@@ -44,9 +44,7 @@ async function exportExpenses() {
   });
 
   const csv = rows
-    .map((r) =>
-      r.map((v) => `"${String(v || "").replace(/"/g, '""')}"`).join(","),
-    )
+    .map((r) => r.map((v) => `"${String(v || "").replace(/"/g, '""')}"`).join(","))
     .join("\r\n");
 
   // Prepend UTF-8 BOM (\ufeff) so MS Excel opens Arabic characters natively in UTF-8
@@ -55,7 +53,10 @@ async function exportExpenses() {
   a.href = URL.createObjectURL(blob);
   a.download = `expenses_${year || "all"}_${month || "all"}.csv`;
   a.click();
-  showToast(typeof t === "function" ? t("csv_exported", "CSV exported ✓") : "CSV exported ✓", "success");
+  showToast(
+    typeof t === "function" ? t("csv_exported", "CSV exported ✓") : "CSV exported ✓",
+    "success"
+  );
 }
 
 /* ╔══════════════════════════════════════════════════════════╗

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * AI Workspace — Context Panel & Extensions
@@ -8,48 +8,48 @@
  */
 
 function _toggleAIContextPanel() {
-  const rightPanel = document.getElementById('ai-ws-right-panel');
+  const rightPanel = document.getElementById("ai-ws-right-panel");
   if (!rightPanel) return;
 
   _aiState.contextPanelOpen = !_aiState.contextPanelOpen;
-  rightPanel.classList.toggle('collapsed', !_aiState.contextPanelOpen);
+  rightPanel.classList.toggle("collapsed", !_aiState.contextPanelOpen);
 }
 
 function _renderRightPanel() {
-  const container = document.getElementById('ai-ws-context-content');
+  const container = document.getElementById("ai-ws-context-content");
   if (!container) return;
 
   const sourcesMap = {
-    overview: 'ai_ws_source_overview',
-    cash_flow: 'ai_ws_source_cash_flow',
-    goal_planning: 'ai_ws_source_goal_planning',
-    risk_analysis: 'ai_ws_source_risk_analysis',
-    balance: 'ai_ws_source_balance',
-    bank_certificates: 'ai_ws_source_certificates',
-    expenses: 'ai_ws_source_expenses',
-    salary: 'ai_ws_source_employment',
-    gold: 'ai_ws_source_gold',
-    fixed_assets: 'ai_ws_source_fixed_assets'
+    overview: "ai_ws_source_overview",
+    cash_flow: "ai_ws_source_cash_flow",
+    goal_planning: "ai_ws_source_goal_planning",
+    risk_analysis: "ai_ws_source_risk_analysis",
+    balance: "ai_ws_source_balance",
+    bank_certificates: "ai_ws_source_certificates",
+    expenses: "ai_ws_source_expenses",
+    salary: "ai_ws_source_employment",
+    gold: "ai_ws_source_gold",
+    fixed_assets: "ai_ws_source_fixed_assets",
   };
 
   const toolsMap = {
-    query_application_data: 'ai_ws_tool_query_database',
-    read_live_app_structure: 'ai_ws_tool_app_discovery',
-    suggest_app_feature: 'ai_ws_tool_feature_draft',
-    read_application_codebase: 'ai_ws_tool_codebase_search'
+    query_application_data: "ai_ws_tool_query_database",
+    read_live_app_structure: "ai_ws_tool_app_discovery",
+    suggest_app_feature: "ai_ws_tool_feature_draft",
+    read_application_codebase: "ai_ws_tool_codebase_search",
   };
 
-  let sourcesHtml = '';
-  let toolsHtml = '';
-  let confidenceHtml = '';
+  let sourcesHtml = "";
+  let toolsHtml = "";
+  let confidenceHtml = "";
 
   if (_aiState.lastResponseMeta) {
     const sources = _aiState.lastResponseMeta.sources || [];
     const tools = _aiState.lastResponseMeta.tool_calls || [];
 
     if (sources.length > 0) {
-      sources.forEach(src => {
-        const name = typeof src === 'string' ? src : (src.name || 'Unknown');
+      sources.forEach((src) => {
+        const name = typeof src === "string" ? src : src.name || "Unknown";
         const i18nKey = sourcesMap[name] || name;
         sourcesHtml += `<div class="ai-ws-source-chip active"><i class="bi bi-check-circle-fill me-1"></i> <span data-i18n="${i18nKey}">${name}</span></div>`;
       });
@@ -80,8 +80,8 @@ function _renderRightPanel() {
     }
 
     if (tools.length > 0) {
-      tools.forEach(tool => {
-        const name = typeof tool === 'string' ? tool : (tool.tool || tool.name || 'Unknown');
+      tools.forEach((tool) => {
+        const name = typeof tool === "string" ? tool : tool.tool || tool.name || "Unknown";
         const i18nKey = toolsMap[name] || name;
         toolsHtml += `<div class="ai-ws-tool-item"><i class="bi bi-check-circle-fill success"></i> <span data-i18n="${i18nKey}">${name}</span></div>`;
       });
@@ -172,13 +172,13 @@ function _renderRightPanel() {
 }
 
 function _renderExtensions() {
-  const leftContainer = document.getElementById('ai-ws-ext-left');
-  const rightContainer = document.getElementById('ai-ws-ext-right');
+  const leftContainer = document.getElementById("ai-ws-ext-left");
+  const rightContainer = document.getElementById("ai-ws-ext-right");
 
   if (leftContainer) {
-    _aiWorkspaceExtensions.leftPanels.forEach(ext => {
-      const div = document.createElement('div');
-      if (typeof ext.render === 'function') {
+    _aiWorkspaceExtensions.leftPanels.forEach((ext) => {
+      const div = document.createElement("div");
+      if (typeof ext.render === "function") {
         div.innerHTML = ext.render();
       }
       leftContainer.appendChild(div);
@@ -186,9 +186,9 @@ function _renderExtensions() {
   }
 
   if (rightContainer) {
-    _aiWorkspaceExtensions.rightPanels.forEach(ext => {
-      const div = document.createElement('div');
-      if (typeof ext.render === 'function') {
+    _aiWorkspaceExtensions.rightPanels.forEach((ext) => {
+      const div = document.createElement("div");
+      if (typeof ext.render === "function") {
         div.innerHTML = ext.render();
       }
       rightContainer.appendChild(div);

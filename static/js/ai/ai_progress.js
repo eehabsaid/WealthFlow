@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * AI Workspace — Loading & Progress
@@ -10,7 +10,7 @@
 let _progressPollInterval = null;
 
 function _updateThinkingBubbleText(text) {
-  const statusEl = document.getElementById('ai-ws-thinking-status-text');
+  const statusEl = document.getElementById("ai-ws-thinking-status-text");
   if (statusEl) {
     statusEl.textContent = text;
   }
@@ -21,15 +21,15 @@ function _startProgressPolling(conversationId) {
   _progressPollInterval = setInterval(async () => {
     if (!conversationId) return;
     try {
-      const res = await fetch(`/api/financial-advisor/ai/progress/?conversation_id=${encodeURIComponent(conversationId)}`);
+      const res = await fetch(
+        `/api/financial-advisor/ai/progress/?conversation_id=${encodeURIComponent(conversationId)}`
+      );
       if (!res.ok) return;
       const data = await res.json();
-      if (data.status === 'running' && data.step && data.tool) {
-        const desc = data.label || data.tool.replace(/_/g, ' ');
-        _updateThinkingBubbleText(
-          `Step ${data.step}/${data.max_steps || 8}: ${desc}\u2026`
-        );
-      } else if (data.status === 'done') {
+      if (data.status === "running" && data.step && data.tool) {
+        const desc = data.label || data.tool.replace(/_/g, " ");
+        _updateThinkingBubbleText(`Step ${data.step}/${data.max_steps || 8}: ${desc}\u2026`);
+      } else if (data.status === "done") {
         _stopProgressPolling();
       }
     } catch (_e) {
@@ -48,9 +48,9 @@ function _stopProgressPolling() {
 function _setLoadingUI(loading, conversationId) {
   _aiState.loading = loading;
 
-  const inputEl = document.getElementById('ai-ws-input');
-  const sendBtn = document.querySelector('.ai-ws-send-btn');
-  const messagesContainer = document.getElementById('ai-ws-messages');
+  const inputEl = document.getElementById("ai-ws-input");
+  const sendBtn = document.querySelector(".ai-ws-send-btn");
+  const messagesContainer = document.getElementById("ai-ws-messages");
 
   if (inputEl) {
     inputEl.disabled = loading;
@@ -61,20 +61,22 @@ function _setLoadingUI(loading, conversationId) {
     if (loading) {
       sendBtn.innerHTML = `
         <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-        <span data-i18n="ai_ws_thinking">${_escapeHtml(_aiT('ai_ws_thinking', 'Thinking...'))}</span>
+        <span data-i18n="ai_ws_thinking">${_escapeHtml(_aiT("ai_ws_thinking", "Thinking..."))}</span>
       `;
     } else {
       sendBtn.innerHTML = `
-        <span data-i18n="ai_chat_send_button">${_escapeHtml(_aiT('ai_chat_send_button', 'Send'))}</span>
+        <span data-i18n="ai_chat_send_button">${_escapeHtml(_aiT("ai_chat_send_button", "Send"))}</span>
         <i class="bi bi-send"></i>
       `;
     }
   }
 
   if (messagesContainer) {
-    const existingBubble = document.getElementById('ai-ws-typing-bubble');
+    const existingBubble = document.getElementById("ai-ws-typing-bubble");
     if (loading && !existingBubble) {
-      const defaultStatus = _escapeHtml(_aiT('ai_ws_thinking_status', 'WealthFlow AI is thinking...'));
+      const defaultStatus = _escapeHtml(
+        _aiT("ai_ws_thinking_status", "WealthFlow AI is thinking...")
+      );
       const bubbleHtml = `
         <div class="ai-ws-msg" id="ai-ws-typing-bubble">
           <div class="ai-ws-msg-avatar assistant">

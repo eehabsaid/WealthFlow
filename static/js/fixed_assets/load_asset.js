@@ -3,8 +3,7 @@
 // This file is part of the fixed_assets module. Do not edit directly.
 
 async function loadFixedAsset(assetId) {
-
-    currentEditingAssetId = assetId;
+  currentEditingAssetId = assetId;
   showLoading();
   try {
     const response = await fetch(`/api/fixed-assets/${assetId}/`);
@@ -14,26 +13,20 @@ async function loadFixedAsset(assetId) {
     document.getElementById("fa_name").value = asset.name || "";
     document.getElementById("fa_type").value = asset.asset_type || FIXED_ASSET_TYPES.REAL_ESTATE;
     document.getElementById("fa_status").value = asset.status || "Owned";
-    document.getElementById("fa_purchase_date").value =
-      asset.purchase_date || "";
-    document.getElementById("fa_purchase_price").value =
-      asset.purchase_price || 0;
-    document.getElementById("fa_purchase_usd_rate").value =
-      asset.purchase_usd_rate || 1;
-    document.getElementById("fa_purchase_price_usd").value =
-      asset.purchase_price_usd || 0;
-    const existingPurchasePayments = Array.isArray(asset.purchase_payments) ? asset.purchase_payments : [];
+    document.getElementById("fa_purchase_date").value = asset.purchase_date || "";
+    document.getElementById("fa_purchase_price").value = asset.purchase_price || 0;
+    document.getElementById("fa_purchase_usd_rate").value = asset.purchase_usd_rate || 1;
+    document.getElementById("fa_purchase_price_usd").value = asset.purchase_price_usd || 0;
+    const existingPurchasePayments = Array.isArray(asset.purchase_payments)
+      ? asset.purchase_payments
+      : [];
     currentAssetHasPurchaseSync = existingPurchasePayments.length > 0;
     populatePurchasePaymentsForm(existingPurchasePayments, asset.purchase_price || 0, false);
     maybeRefreshPurchaseUsdRateOnLoad();
-    document.getElementById("fa_current_value").value =
-      asset.current_market_value || 0;
-    document.getElementById("fa_last_valuation_date").value =
-      asset.last_valuation_date || "";
-    document.getElementById("fa_val_source").value =
-      asset.valuation_source || "Manual";
-    document.getElementById("fa_last_valuation_date").value =
-      asset.last_valuation_date || "";
+    document.getElementById("fa_current_value").value = asset.current_market_value || 0;
+    document.getElementById("fa_last_valuation_date").value = asset.last_valuation_date || "";
+    document.getElementById("fa_val_source").value = asset.valuation_source || "Manual";
+    document.getElementById("fa_last_valuation_date").value = asset.last_valuation_date || "";
     document.getElementById("fa_notes").value = asset.notes || "";
     populateSaleForm(asset.sale || null);
     populateMortgageForm(asset.mortgage || null);
@@ -97,22 +90,15 @@ async function loadFixedAsset(assetId) {
       document.getElementById("re_b_floors").value = re.building_floors || 0;
       document.getElementById("re_year").value = re.building_year || 0;
       document.getElementById("re_facades").value = re.facades || "";
-      document.getElementById("re_furnished").value =
-        re.furnished_status || "Unfurnished";
+      document.getElementById("re_furnished").value = re.furnished_status || "Unfurnished";
       document.getElementById("re_finishing").value = re.finishing_level || "";
       document.getElementById("re_util_elec").checked = Boolean(re.electricity);
       document.getElementById("re_util_water").checked = Boolean(re.water);
       document.getElementById("re_util_gas").checked = Boolean(re.gas);
-      document.getElementById("re_feat_elevator").checked = Boolean(
-        re.elevator,
-      );
+      document.getElementById("re_feat_elevator").checked = Boolean(re.elevator);
       document.getElementById("re_feat_garage").checked = Boolean(re.garage);
-      document.getElementById("re_feat_licensed").checked = Boolean(
-        re.licensed,
-      );
-      document.getElementById("re_has_land_share").checked = Boolean(
-        re.has_land_share,
-      );
+      document.getElementById("re_feat_licensed").checked = Boolean(re.licensed);
+      document.getElementById("re_has_land_share").checked = Boolean(re.has_land_share);
       document.getElementById("re_land_share").value = re.land_share || "";
       document.getElementById("re_description").value = re.description || "";
       const lat = parseFloat(re.latitude);
@@ -209,4 +195,3 @@ async function loadFixedAsset(assetId) {
     hideLoading();
   }
 }
-

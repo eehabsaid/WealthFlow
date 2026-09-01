@@ -4,15 +4,15 @@
  * Depends on kb_state.js and kb_render.js being loaded first.
  */
 
-'use strict';
+"use strict";
 
 window.KB = window.KB || {};
 
 window.openKnowledgeBaseModal = function () {
-  let container = document.getElementById('modal-container');
+  let container = document.getElementById("modal-container");
   if (!container) {
-    container = document.createElement('div');
-    container.id = 'modal-container';
+    container = document.createElement("div");
+    container.id = "modal-container";
     document.body.appendChild(container);
   }
 

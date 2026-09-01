@@ -18,8 +18,34 @@
     return typeof t === "function" ? t(key, fallback) : fallback;
   }
 
-  const MONTH_KEYS = ["month_january", "month_february", "month_march", "month_april", "month_may", "month_june", "month_july", "month_august", "month_september", "month_october", "month_november", "month_december"];
-  const MONTH_FALLBACKS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const MONTH_KEYS = [
+    "month_january",
+    "month_february",
+    "month_march",
+    "month_april",
+    "month_may",
+    "month_june",
+    "month_july",
+    "month_august",
+    "month_september",
+    "month_october",
+    "month_november",
+    "month_december",
+  ];
+  const MONTH_FALLBACKS = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
 
   /** @param {number} index  0-based month index (0=January)
    *  @returns {string} translated full month name via the shared month_* i18n keys */

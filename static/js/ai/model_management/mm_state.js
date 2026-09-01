@@ -3,7 +3,7 @@
  * Shared state, translation helpers, and all fetch() calls against /api/ai-platform/models/.
  */
 
-'use strict';
+"use strict";
 
 window.MM = window.MM || {};
 
@@ -21,12 +21,12 @@ window.MM.t = function (key, fallback) {
 };
 
 window.MM.escapeHtml = function (str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 };
 
 window.MM.load = function () {
@@ -34,8 +34,10 @@ window.MM.load = function () {
   window.MM.state.error = null;
   window.MM.renderBody();
 
-  fetch('/api/ai-platform/models/', { method: 'GET' })
-    .then(function (r) { return r.json(); })
+  fetch("/api/ai-platform/models/", { method: "GET" })
+    .then(function (r) {
+      return r.json();
+    })
     .then(function (data) {
       window.MM.state.activeModel = data.active_model || null;
       window.MM.state.modelVersions = data.model_versions || [];
@@ -45,33 +47,35 @@ window.MM.load = function () {
     })
     .catch(function () {
       window.MM.state.loading = false;
-      window.MM.state.error = window.MM.t('ai_mm_error', 'Failed to load model versions.');
+      window.MM.state.error = window.MM.t("ai_mm_error", "Failed to load model versions.");
       window.MM.renderBody();
     });
 };
 
 window.MM.fineTune = function () {
-  const baseModel = document.getElementById('mm-base-model')?.value?.trim() || '';
-  const backend = document.getElementById('mm-backend')?.value?.trim() || '';
+  const baseModel = document.getElementById("mm-base-model")?.value?.trim() || "";
+  const backend = document.getElementById("mm-backend")?.value?.trim() || "";
   if (!baseModel || !backend) return;
 
   window.MM.state.busy = true;
   window.MM.renderBody();
 
-  fetch('/api/ai-platform/models/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'fine_tune', base_model: baseModel, backend_name: backend }),
+  fetch("/api/ai-platform/models/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "fine_tune", base_model: baseModel, backend_name: backend }),
   })
-    .then(function (r) { return r.json(); })
+    .then(function (r) {
+      return r.json();
+    })
     .then(function () {
       window.MM.state.busy = false;
-      showToast(window.MM.t('ai_mm_finetune_ok', 'Fine-tuning triggered successfully.'), 'success');
+      showToast(window.MM.t("ai_mm_finetune_ok", "Fine-tuning triggered successfully."), "success");
       window.MM.load();
     })
     .catch(function () {
       window.MM.state.busy = false;
-      showToast(window.MM.t('ai_mm_finetune_error', 'Failed to trigger fine-tuning.'), 'error');
+      showToast(window.MM.t("ai_mm_finetune_error", "Failed to trigger fine-tuning."), "error");
       window.MM.renderBody();
     });
 };
@@ -80,20 +84,22 @@ window.MM.promote = function (versionName) {
   window.MM.state.busy = true;
   window.MM.renderBody();
 
-  fetch('/api/ai-platform/models/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'promote', version_name: versionName }),
+  fetch("/api/ai-platform/models/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "promote", version_name: versionName }),
   })
-    .then(function (r) { return r.json(); })
+    .then(function (r) {
+      return r.json();
+    })
     .then(function () {
       window.MM.state.busy = false;
-      showToast(window.MM.t('ai_mm_promote_ok', 'Model promoted to production.'), 'success');
+      showToast(window.MM.t("ai_mm_promote_ok", "Model promoted to production."), "success");
       window.MM.load();
     })
     .catch(function () {
       window.MM.state.busy = false;
-      showToast(window.MM.t('ai_mm_promote_error', 'Failed to promote model.'), 'error');
+      showToast(window.MM.t("ai_mm_promote_error", "Failed to promote model."), "error");
       window.MM.renderBody();
     });
 };

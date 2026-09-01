@@ -1,71 +1,70 @@
 // i18n.js — Language engine (translation loading, applying, t() helper)
 
-'use strict';
+"use strict";
 
 // ── Module state ──────────────────────────────────────────────────────────
-let _t    = {};
-let _lang = localStorage.getItem('lang') || 'en';
+let _t = {};
+let _lang = localStorage.getItem("lang") || "en";
 
 // ════════════════════════════════════════════════════════════════════════════
 // LANGUAGE LOADING
 // ════════════════════════════════════════════════════════════════════════════
 
 async function loadLanguage(code) {
+  try {
+    // Added cache buster to force the browser to download the newly injected translations
+    const res = await fetch(`/static/i18n/${code}.json?v=${Date.now()}`);
+    if (!res.ok) throw new Error("Not found");
+
+    _t = await res.json();
+    _lang = code;
+    localStorage.setItem("lang", code);
+
+    // RTL detection — read from available_languages setting, fallback to _t.__rtl
+    let isRTL = false;
     try {
-        // Added cache buster to force the browser to download the newly injected translations
-        const res = await fetch(`/static/i18n/${code}.json?v=${Date.now()}`);
-        if (!res.ok) throw new Error('Not found');
-
-        _t    = await res.json();
-        _lang = code;
-        localStorage.setItem('lang', code);
-
-        // RTL detection — read from available_languages setting, fallback to _t.__rtl
-        let isRTL = false;
-        try {
-            const sRes = await fetch(`/api/settings/?v=${Date.now()}`);
-            if (sRes.ok) {
-                const sData = await sRes.json();
-                const langs = JSON.parse(sData.settings?.available_languages || '[]');
-                const found = langs.find(l => l.code === code);
-                if (found !== undefined && found.rtl !== undefined) {
-                    isRTL = found.rtl === true || found.rtl === 'true' || found.rtl === 1;
-                } else {
-                    const rtlVal = String(_t.__rtl || '').toLowerCase();
-                    isRTL = rtlVal === 'true' || rtlVal === '1';
-                }
-            } else {
-                const rtlVal = String(_t.__rtl || '').toLowerCase();
-                isRTL = rtlVal === 'true' || rtlVal === '1';
-            }
-        } catch (e) {
-            const rtlVal = String(_t.__rtl || '').toLowerCase();
-            isRTL = rtlVal === 'true' || rtlVal === '1';
+      const sRes = await fetch(`/api/settings/?v=${Date.now()}`);
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        const langs = JSON.parse(sData.settings?.available_languages || "[]");
+        const found = langs.find((l) => l.code === code);
+        if (found !== undefined && found.rtl !== undefined) {
+          isRTL = found.rtl === true || found.rtl === "true" || found.rtl === 1;
+        } else {
+          const rtlVal = String(_t.__rtl || "").toLowerCase();
+          isRTL = rtlVal === "true" || rtlVal === "1";
         }
-
-        document.documentElement.setAttribute('dir', isRTL ? 'rtl' : 'ltr');
-        document.documentElement.lang = code;
-
-        applyTranslations();
-
-        // Persist active language to server
-        await fetch('/api/settings/', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ key: 'active_language', value: code }),
-        });
-
-        // Re-render active route so runtime-computed labels update immediately.
-        if (window.__wfRouterReady && typeof window.route === 'function') {
-            window.route();
-        }
-
-        document.dispatchEvent(new CustomEvent('languageChanged', { detail: { code } }));
-
+      } else {
+        const rtlVal = String(_t.__rtl || "").toLowerCase();
+        isRTL = rtlVal === "true" || rtlVal === "1";
+      }
     } catch (e) {
-        console.warn('Language load failed:', e);
+      const rtlVal = String(_t.__rtl || "").toLowerCase();
+      isRTL = rtlVal === "true" || rtlVal === "1";
     }
+
+    document.documentElement.setAttribute("dir", isRTL ? "rtl" : "ltr");
+    document.documentElement.lang = code;
+
     applyTranslations();
+
+    // Persist active language to server
+    await fetch("/api/settings/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: "active_language", value: code }),
+    });
+
+    // Re-render active route so runtime-computed labels update immediately.
+    if (window.__wfRouterReady && typeof window.route === "function") {
+      window.route();
+    }
+
+    document.dispatchEvent(new CustomEvent("languageChanged", { detail: { code } }));
+  } catch (e) {
+    console.warn("Language load failed:", e);
+  }
+  applyTranslations();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -73,149 +72,155 @@ async function loadLanguage(code) {
 // ════════════════════════════════════════════════════════════════════════════
 
 function applyTranslations(container = document) {
-    if (!_t) return;
-    const root = container || document;
-    const lang = document.documentElement.lang || 'en';
+  if (!_t) return;
+  const root = container || document;
+  const lang = document.documentElement.lang || "en";
 
-    const formatTemplateValue = (name, value) => {
-        const num = Number(value);
-        if (!Number.isFinite(num)) return String(value ?? '');
-        if (/(days|count|month|year|week)/i.test(name)) return fmtInt(num);
-        if (/(ratio|trend|signal|gap|coverage|pct)/i.test(name)) return fmt(num);
-        return fmtpresent(num);
+  const formatTemplateValue = (name, value) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return String(value ?? "");
+    if (/(days|count|month|year|week)/i.test(name)) return fmtInt(num);
+    if (/(ratio|trend|signal|gap|coverage|pct)/i.test(name)) return fmt(num);
+    return fmtpresent(num);
+  };
+
+  const parseI18nParams = (raw) => {
+    if (!raw) return {};
+    const candidates = [raw];
+    try {
+      const decoded = decodeURIComponent(raw);
+      if (decoded !== raw) candidates.push(decoded);
+    } catch (_) {
+      // Keep raw as the only candidate.
+    }
+
+    for (const candidate of candidates) {
+      try {
+        const parsed = JSON.parse(candidate);
+        if (parsed && typeof parsed === "object") return parsed;
+      } catch (_) {
+        // Try next candidate.
+      }
+    }
+    return {};
+  };
+
+  const applyTemplateParams = (text, params) => {
+    let out = String(text ?? "");
+    Object.entries(params || {}).forEach(([name, value]) => {
+      const replacement = formatTemplateValue(name, value);
+      out = out.split(`{${name}}`).join(replacement);
+    });
+    return out;
+  };
+
+  // 1. Static text — [data-i18n]
+  root.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+
+    // Ignore missing or empty translations
+    if (!_t[key]) return;
+
+    // Do not overwrite with empty values
+    if (_t[key].trim() === "") return;
+
+    el.textContent = _t[key];
+  });
+
+  // 2. Dynamic keys with template placeholders — [data-i18n-key]
+  root.querySelectorAll("[data-i18n-key]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-key");
+    if (!key || !_t[key]) return;
+
+    let text = _t[key];
+
+    const templateParams = {
+      ...parseI18nParams(el.getAttribute("data-i18n-params")),
     };
 
-    const parseI18nParams = (raw) => {
-        if (!raw) return {};
-        const candidates = [raw];
-        try {
-            const decoded = decodeURIComponent(raw);
-            if (decoded !== raw) candidates.push(decoded);
-        } catch (_) {
-            // Keep raw as the only candidate.
-        }
+    const goldAmt = el.getAttribute("data-gold-amount");
+    const cashAmt = el.getAttribute("data-cash-amount");
+    const certAmt = el.getAttribute("data-certificate-amount");
+    const daysLeft = el.getAttribute("data-days-left");
 
-        for (const candidate of candidates) {
-            try {
-                const parsed = JSON.parse(candidate);
-                if (parsed && typeof parsed === 'object') return parsed;
-            } catch (_) {
-                // Try next candidate.
-            }
-        }
-        return {};
+    if (goldAmt !== null) templateParams.gold_amount = goldAmt;
+    if (cashAmt !== null) templateParams.cash_amount = cashAmt;
+    if (certAmt !== null) templateParams.certificate_amount = certAmt;
+    if (daysLeft !== null) templateParams.days_left = daysLeft;
+
+    text = applyTemplateParams(text, templateParams);
+
+    el.textContent = text;
+  });
+
+  // 2.5 Dynamic keys with template placeholders (HTML allowed) — [data-i18n-html-key]
+  root.querySelectorAll("[data-i18n-html-key]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-html-key");
+    if (!key || !_t[key]) return;
+
+    let text = _t[key];
+    const templateParams = {
+      ...parseI18nParams(el.getAttribute("data-i18n-params")),
     };
 
-    const applyTemplateParams = (text, params) => {
-        let out = String(text ?? '');
-        Object.entries(params || {}).forEach(([name, value]) => {
-            const replacement = formatTemplateValue(name, value);
-            out = out.split(`{${name}}`).join(replacement);
-        });
-        return out;
-    };
+    text = applyTemplateParams(text, templateParams);
+    el.innerHTML = text;
+  });
 
-    // 1. Static text — [data-i18n]
-    root.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
+  // 3. Prefix-based keys — [data-i18n-prefix] + [data-i18n-value]
+  root.querySelectorAll("[data-i18n-prefix]").forEach((el) => {
+    const prefix = el.getAttribute("data-i18n-prefix");
+    const raw = el.getAttribute("data-i18n-value");
+    if (!raw) {
+      el.textContent = "—";
+      return;
+    }
+    const combined = `${prefix}${raw}`;
+    el.textContent =
+      _t[combined] || raw.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  });
 
-        // Ignore missing or empty translations
-        if (!_t[key]) return;
+  // 4. Attribute translators — placeholder and title
+  root.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (_t[key]) el.setAttribute("placeholder", _t[key]);
+  });
 
-        // Do not overwrite with empty values
-        if (_t[key].trim() === "") return;
+  root.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-title");
+    if (_t[key]) el.setAttribute("title", _t[key]);
+  });
 
-        el.textContent = _t[key];
-    });
+  // 5. Date formatting — .local-date-field
+  root.querySelectorAll(".local-date-field").forEach((td) => {
+    const raw =
+      td.getAttribute("data-expiry") ||
+      td.getAttribute("data-date") ||
+      td.getAttribute("data-value");
+    if (!raw) return;
+    td.textContent = formatDate(raw);
+  });
 
-    // 2. Dynamic keys with template placeholders — [data-i18n-key]
-    root.querySelectorAll('[data-i18n-key]').forEach(el => {
-        const key = el.getAttribute('data-i18n-key');
-        if (!key || !_t[key]) return;
+  // 6. Number formatter classes
+  root.querySelectorAll(".num-fmt").forEach((el) => {
+    const v = el.getAttribute("data-value");
+    if (v !== null) el.innerText = fmt(v);
+  });
+  root.querySelectorAll(".num-fmtpresent").forEach((el) => {
+    const v = el.getAttribute("data-value");
+    if (v !== null) el.innerText = fmtpresent(v);
+  });
+  root.querySelectorAll(".num-fmtint").forEach((el) => {
+    const v = el.getAttribute("data-value");
+    if (v !== null) el.innerText = fmtInt(v);
+  });
+  root.querySelectorAll(".num-fmtRate").forEach((el) => {
+    const v = el.getAttribute("data-value");
+    if (v !== null) el.innerText = fmtRate(v);
+  });
 
-        let text = _t[key];
-
-        const templateParams = {
-            ...parseI18nParams(el.getAttribute('data-i18n-params')),
-        };
-
-        const goldAmt  = el.getAttribute('data-gold-amount');
-        const cashAmt  = el.getAttribute('data-cash-amount');
-        const certAmt  = el.getAttribute('data-certificate-amount');
-        const daysLeft = el.getAttribute('data-days-left');
-
-        if (goldAmt  !== null) templateParams.gold_amount = goldAmt;
-        if (cashAmt  !== null) templateParams.cash_amount = cashAmt;
-        if (certAmt  !== null) templateParams.certificate_amount = certAmt;
-        if (daysLeft !== null) templateParams.days_left = daysLeft;
-
-        text = applyTemplateParams(text, templateParams);
-
-        el.textContent = text;
-    });
-
-    // 2.5 Dynamic keys with template placeholders (HTML allowed) — [data-i18n-html-key]
-    root.querySelectorAll('[data-i18n-html-key]').forEach(el => {
-        const key = el.getAttribute('data-i18n-html-key');
-        if (!key || !_t[key]) return;
-
-        let text = _t[key];
-        const templateParams = {
-            ...parseI18nParams(el.getAttribute('data-i18n-params')),
-        };
-
-        text = applyTemplateParams(text, templateParams);
-        el.innerHTML = text;
-    });
-
-    // 3. Prefix-based keys — [data-i18n-prefix] + [data-i18n-value]
-    root.querySelectorAll('[data-i18n-prefix]').forEach(el => {
-        const prefix = el.getAttribute('data-i18n-prefix');
-        const raw    = el.getAttribute('data-i18n-value');
-        if (!raw) { el.textContent = '—'; return; }
-        const combined = `${prefix}${raw}`;
-        el.textContent = _t[combined]
-            || raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    });
-
-    // 4. Attribute translators — placeholder and title
-    root.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
-        if (_t[key]) el.setAttribute('placeholder', _t[key]);
-    });
-
-    root.querySelectorAll('[data-i18n-title]').forEach(el => {
-        const key = el.getAttribute('data-i18n-title');
-        if (_t[key]) el.setAttribute('title', _t[key]);
-    });
-
-    // 5. Date formatting — .local-date-field
-    root.querySelectorAll('.local-date-field').forEach(td => {
-        const raw = td.getAttribute('data-expiry') || td.getAttribute('data-date') || td.getAttribute('data-value');
-        if (!raw) return;
-        td.textContent = formatDate(raw);
-    });
-
-    // 6. Number formatter classes
-    root.querySelectorAll('.num-fmt').forEach(el => {
-        const v = el.getAttribute('data-value');
-        if (v !== null) el.innerText = fmt(v);
-    });
-    root.querySelectorAll('.num-fmtpresent').forEach(el => {
-        const v = el.getAttribute('data-value');
-        if (v !== null) el.innerText = fmtpresent(v);
-    });
-    root.querySelectorAll('.num-fmtint').forEach(el => {
-        const v = el.getAttribute('data-value');
-        if (v !== null) el.innerText = fmtInt(v); 
-    });
-    root.querySelectorAll('.num-fmtRate').forEach(el => {
-        const v = el.getAttribute('data-value');
-        if (v !== null) el.innerText = fmtRate(v); 
-    });
-
-    // Auto-apply collapsible behaviour to any new tables rendered since last call
-    if (typeof initCollapsibleTables === 'function') initCollapsibleTables();
+  // Auto-apply collapsible behaviour to any new tables rendered since last call
+  if (typeof initCollapsibleTables === "function") initCollapsibleTables();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -223,17 +228,17 @@ function applyTranslations(container = document) {
 // ════════════════════════════════════════════════════════════════════════════
 
 function t(key, fallback) {
-    if (typeof _t === 'undefined' || !_t) return fallback ?? key;
+  if (typeof _t === "undefined" || !_t) return fallback ?? key;
 
-    const lang = localStorage.getItem('lang') || 'en';
+  const lang = localStorage.getItem("lang") || "en";
 
-    // Nested: _t[lang][key]
-    if (_t[lang]?.[key]) return _t[lang][key];
+  // Nested: _t[lang][key]
+  if (_t[lang]?.[key]) return _t[lang][key];
 
-    // Flat: _t[key]
-    if (_t[key]) return _t[key];
+  // Flat: _t[key]
+  if (_t[key]) return _t[key];
 
-    return fallback !== undefined ? fallback : key;
+  return fallback !== undefined ? fallback : key;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -241,5 +246,5 @@ function t(key, fallback) {
 // ════════════════════════════════════════════════════════════════════════════
 
 function currentLang() {
-    return _lang;
+  return _lang;
 }

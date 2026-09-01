@@ -1,19 +1,19 @@
-'use strict';
+"use strict";
 
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        const emailInput = document.querySelector('input[name="email"]');
-        if (emailInput && document.activeElement !== emailInput && !emailInput.value) {
-            emailInput.focus();
-        }
-    }, 100);
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    const emailInput = document.querySelector('input[name="email"]');
+    if (emailInput && document.activeElement !== emailInput && !emailInput.value) {
+      emailInput.focus();
+    }
+  }, 100);
 
-    const forgotContent = document.getElementById('forgotContent');
-    const successAlert = document.querySelector('.alert-dark-success');
+  const forgotContent = document.getElementById("forgotContent");
+  const successAlert = document.querySelector(".alert-dark-success");
 
-    function renderSuccessCard() {
-        if (!forgotContent) return;
-        forgotContent.innerHTML = `
+  function renderSuccessCard() {
+    if (!forgotContent) return;
+    forgotContent.innerHTML = `
             <div class="auth-success-card text-center py-3">
                 <div class="success-icon mb-3" style="font-size: 3rem; color: var(--wf-auth-green);">
                     <i class="bi bi-check-circle-fill"></i>
@@ -25,13 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <a href="/accounts/login/" class="btn-submit" style="text-decoration:none;" data-i18n="auth_back_to_login">Back to Login</a>
             </div>
         `;
-        if (window.WFAuth && window.WFAuth.loadLanguage) {
-            const currentLang = localStorage.getItem('lang') || 'en';
-            window.WFAuth.loadLanguage(currentLang);
-        }
+    if (window.WFAuth && window.WFAuth.loadLanguage) {
+      const currentLang = localStorage.getItem("lang") || "en";
+      window.WFAuth.loadLanguage(currentLang);
     }
+  }
 
-    if (successAlert) {
-        renderSuccessCard();
-    }
+  if (successAlert) {
+    renderSuccessCard();
+  }
 });

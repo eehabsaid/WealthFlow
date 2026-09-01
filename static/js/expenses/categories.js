@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 async function renderExpenseCategories() {
   const mc = document.getElementById("main-content");
@@ -27,7 +27,7 @@ async function renderExpenseCategories() {
         <button class="btn-icon edit" onclick="showSubcategoryModal(${c.id})" title="Manage subcategories"><i class="bi bi-diagram-3"></i></button>
         <button class="btn-icon del"  onclick="deleteCategory(${c.id})" title="Delete"><i class="bi bi-trash"></i></button>
       </td>
-    </tr>`,
+    </tr>`
     )
     .join("");
 

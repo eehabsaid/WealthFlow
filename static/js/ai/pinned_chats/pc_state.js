@@ -2,7 +2,7 @@
  * WealthFlow AI Workspace - Pinned Chats: State & API
  */
 
-'use strict';
+"use strict";
 
 window.PC = window.PC || {};
 
@@ -17,9 +17,12 @@ window.PC.t = function (key, fallback) {
 };
 
 window.PC.escapeHtml = function (str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 };
 
 window.PC.load = function () {
@@ -27,8 +30,10 @@ window.PC.load = function () {
   window.PC.state.error = null;
   window.PC.renderBody();
 
-  fetch('/api/financial-advisor/ai/conversations/?pinned=true')
-    .then(function (r) { return r.json(); })
+  fetch("/api/financial-advisor/ai/conversations/?pinned=true")
+    .then(function (r) {
+      return r.json();
+    })
     .then(function (data) {
       window.PC.state.conversations = data.conversations || [];
       window.PC.state.loading = false;
@@ -36,17 +41,17 @@ window.PC.load = function () {
     })
     .catch(function () {
       window.PC.state.loading = false;
-      window.PC.state.error = window.PC.t('ai_pc_error', 'Failed to load pinned chats.');
+      window.PC.state.error = window.PC.t("ai_pc_error", "Failed to load pinned chats.");
       window.PC.renderBody();
     });
 };
 
 window.PC.unpin = function (convId) {
-  fetch('/api/financial-advisor/ai/conversations/' + convId + '/', {
-    method: 'PATCH',
+  fetch("/api/financial-advisor/ai/conversations/" + convId + "/", {
+    method: "PATCH",
     headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+      "Content-Type": "application/json",
+      "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")?.value || "",
     },
     body: JSON.stringify({ is_pinned: false }),
   })
@@ -58,6 +63,6 @@ window.PC.unpin = function (convId) {
       if (window._fetchAIChatConversations) window._fetchAIChatConversations();
     })
     .catch(function () {
-      showToast(window.PC.t('ai_pc_unpin_error', 'Failed to unpin conversation.'), 'error');
+      showToast(window.PC.t("ai_pc_unpin_error", "Failed to unpin conversation."), "error");
     });
 };

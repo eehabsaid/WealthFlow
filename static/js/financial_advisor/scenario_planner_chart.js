@@ -4,11 +4,11 @@
 
 (function () {
   const COLOR_PALETTE = [
-    { border: "rgba(26, 110, 245, 1)", bg: "rgba(26, 110, 245, 0.12)" },   // Blue / Primary
+    { border: "rgba(26, 110, 245, 1)", bg: "rgba(26, 110, 245, 0.12)" }, // Blue / Primary
     { border: "rgba(255, 209, 102, 1)", bg: "rgba(255, 209, 102, 0.12)" }, // Yellow
-    { border: "rgba(255, 77, 109, 1)", bg: "rgba(255, 77, 109, 0.12)" },   // Red
-    { border: "rgba(0, 214, 143, 1)", bg: "rgba(0, 214, 143, 0.12)" },     // Green
-    { border: "rgba(168, 85, 247, 1)", bg: "rgba(168, 85, 247, 0.12)" },   // Purple
+    { border: "rgba(255, 77, 109, 1)", bg: "rgba(255, 77, 109, 0.12)" }, // Red
+    { border: "rgba(0, 214, 143, 1)", bg: "rgba(0, 214, 143, 0.12)" }, // Green
+    { border: "rgba(168, 85, 247, 1)", bg: "rgba(168, 85, 247, 0.12)" }, // Purple
   ];
 
   function _renderScenarioPlannerChart(payload) {
@@ -24,8 +24,10 @@
 
     const direction = typeof _pageDirection === "function" ? _pageDirection() : "ltr";
     const isRTL = direction === "rtl";
-    const primaryText = typeof _themeColor === "function" ? _themeColor("--text-primary", "#e8f0fe") : "#e8f0fe";
-    const secondaryText = typeof _themeColor === "function" ? _themeColor("--text-secondary", "#7b93c9") : "#7b93c9";
+    const primaryText =
+      typeof _themeColor === "function" ? _themeColor("--text-primary", "#e8f0fe") : "#e8f0fe";
+    const secondaryText =
+      typeof _themeColor === "function" ? _themeColor("--text-secondary", "#7b93c9") : "#7b93c9";
     const gridColor = "rgba(123, 147, 201, 0.16)";
 
     canvas.setAttribute("dir", direction);
@@ -44,7 +46,8 @@
     // Baseline dataset (dashed line)
     const baseObj = payload.baseline || {};
     const basePoints = (baseObj.series || []).map((pt) => Number(pt.net_worth || 0));
-    const baselineLabel = typeof t === "function" ? t("scenario_planner_baseline_label", "Baseline") : "Baseline";
+    const baselineLabel =
+      typeof t === "function" ? t("scenario_planner_baseline_label", "Baseline") : "Baseline";
 
     datasets.push({
       label: baselineLabel,
@@ -117,14 +120,22 @@
               title: function (items) {
                 if (!items || !items.length) return "";
                 const raw = items[0].label || "";
-                if (raw === "Current" || raw === "current" || raw === (typeof t === "function" ? t("wealth_growth_current", "Current") : "Current")) {
-                  return typeof t === "function" ? t("wealth_growth_current", "Current") : "Current";
+                if (
+                  raw === "Current" ||
+                  raw === "current" ||
+                  raw ===
+                    (typeof t === "function" ? t("wealth_growth_current", "Current") : "Current")
+                ) {
+                  return typeof t === "function"
+                    ? t("wealth_growth_current", "Current")
+                    : "Current";
                 }
                 return typeof formatDate === "function" ? formatDate(raw) : raw;
               },
               label: function (ctx) {
                 const val = Number(ctx.raw || 0);
-                const moneyStr = typeof fmtpresent === "function" ? fmtpresent(val) : val.toLocaleString();
+                const moneyStr =
+                  typeof fmtpresent === "function" ? fmtpresent(val) : val.toLocaleString();
                 return `${ctx.dataset.label}: ${moneyStr}`;
               },
             },

@@ -43,55 +43,70 @@ function _renderCashFlowForecast(payload) {
     { key: "cash_flow_card_month_12", value: cp.month_12 || 0 },
   ];
 
-  const cardsHtml = cards.map((card) => `
+  const cardsHtml = cards
+    .map(
+      (card) => `
     <div class="col-12 col-sm-6 col-xl">
       <div class="asset-summary-card h-100" style="background:var(--bg-secondary);">
         <div class="asset-summary-label" data-i18n="${card.key}"></div>
         <div class="asset-summary-value">${_money(card.value)}</div>
       </div>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 
-  const warningHtml = warnings.map((warning) => `
+  const warningHtml = warnings
+    .map(
+      (warning) => `
     <div class="alert alert-${warning.level || "secondary"}" style="background:var(--bg-secondary); border-color:var(--border-color); color:var(--text-primary); margin-bottom:10px;">
       <span data-i18n="${warning.key}"></span>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 
-  const langCode = currentLang ? currentLang() : (document.documentElement.lang || "en");
+  const langCode = currentLang ? currentLang() : document.documentElement.lang || "en";
   const monthFmt = new Intl.DateTimeFormat(langCode, { month: "long", year: "numeric" });
 
   const timelineHtml = `
     <div class="card border-0 mb-3" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; overflow:hidden;">
-      ${timeline.map((month, index) => {
-        const monthDate = `${month.month || ""}-01`;
-        const monthLabel = month.month ? monthFmt.format(new Date(monthDate)) : "";
-        
-        const hasCertificateMaturity = (month.events || []).some(e => e.type === 'certificate_maturity');
-        const maturityBadgeHtml = hasCertificateMaturity ? `
-          <span style="background:rgba(0, 168, 107, 0.15); color:#00e676; padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:600;" data-i18n="cash_flow_event_certificate_maturity"></span>
-        ` : '';
+      ${timeline
+        .map((month, index) => {
+          const monthDate = `${month.month || ""}-01`;
+          const monthLabel = month.month ? monthFmt.format(new Date(monthDate)) : "";
 
-        const eventsHtml = (month.events || []).map((event) => {
-          const isPositive = Number(event.amount || 0) >= 0;
-          const sign = isPositive ? "+" : "-";
-          const amountText = _money(Math.abs(Number(event.amount || 0)));
-          return `
+          const hasCertificateMaturity = (month.events || []).some(
+            (e) => e.type === "certificate_maturity"
+          );
+          const maturityBadgeHtml = hasCertificateMaturity
+            ? `
+          <span style="background:rgba(0, 168, 107, 0.15); color:#00e676; padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px; font-weight:600;" data-i18n="cash_flow_event_certificate_maturity"></span>
+        `
+            : "";
+
+          const eventsHtml = (month.events || [])
+            .map((event) => {
+              const isPositive = Number(event.amount || 0) >= 0;
+              const sign = isPositive ? "+" : "-";
+              const amountText = _money(Math.abs(Number(event.amount || 0)));
+              return `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border-color);">
               <span style="color:var(--text-primary);" data-i18n="${_eventTranslationKey(event.type)}"></span>
               <span style="color:var(--text-secondary); font-weight:600;">${sign}${amountText}</span>
             </div>
           `;
-        }).join("");
+            })
+            .join("");
 
-        const displayStyle = index < 3 ? 'block' : 'none';
-        const isHiddenClass = index >= 3 ? 'hidden-month-card' : '';
-        let borderBottom = '1px solid var(--border-color)';
-        if (index === timeline.length - 1 || (index === 2 && timeline.length > 3)) {
-            borderBottom = 'none';
-        }
+          const displayStyle = index < 3 ? "block" : "none";
+          const isHiddenClass = index >= 3 ? "hidden-month-card" : "";
+          let borderBottom = "1px solid var(--border-color)";
+          if (index === timeline.length - 1 || (index === 2 && timeline.length > 3)) {
+            borderBottom = "none";
+          }
 
-        return `
+          return `
           <div class="${isHiddenClass} month-card-row" style="display: ${displayStyle}; border-bottom: ${borderBottom};">
             <div style="padding:16px; background:transparent; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="
               const body = this.nextElementSibling;
@@ -117,11 +132,14 @@ function _renderCashFlowForecast(payload) {
             </div>
           </div>
         `;
-      }).join("")}
+        })
+        .join("")}
     </div>
   `;
 
-  const showAllBtnHtml = timeline.length > 3 ? `
+  const showAllBtnHtml =
+    timeline.length > 3
+      ? `
     <div class="card border-0 mb-4" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; cursor:pointer;" onclick="
       const container = this.closest('#cash_flow_timeline_container');
       const hiddenCards = container.querySelectorAll('.hidden-month-card');
@@ -148,7 +166,8 @@ function _renderCashFlowForecast(payload) {
         <span style="color:var(--bs-primary, #0d6efd); font-weight:600; font-size:14px;" data-i18n-key="cash_flow_show_all_months" data-i18n-params='{"count": ${timeline.length}}'></span>
       </div>
     </div>
-  ` : '';
+  `
+      : "";
 
   const largestEvent = summary.largest_cash_event || {};
   const largestExpense = summary.largest_planned_expense || {};
@@ -241,4 +260,3 @@ async function loadCashFlowForecast(force = false) {
     _renderCashFlowError();
   }
 }
-

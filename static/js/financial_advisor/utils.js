@@ -1,17 +1,41 @@
 "use strict";
 
 const FINANCIAL_ADVISOR_TABS = [
-  { id: "overview", key: "financial_advisor_tab_overview", shortKey: "financial_advisor_tab_overview" },
-  { id: "cash-flow-forecast", key: "financial_advisor_tab_cash_flow_forecast", shortKey: "financial_advisor_tab_cash_flow" },
-  { id: "wealth-growth-forecast", key: "financial_advisor_tab_wealth_growth_forecast", shortKey: "financial_advisor_tab_wealth_growth" },
-  { id: "portfolio-optimizer", key: "financial_advisor_tab_portfolio_optimizer", shortKey: "financial_advisor_tab_portfolio" },
+  {
+    id: "overview",
+    key: "financial_advisor_tab_overview",
+    shortKey: "financial_advisor_tab_overview",
+  },
+  {
+    id: "cash-flow-forecast",
+    key: "financial_advisor_tab_cash_flow_forecast",
+    shortKey: "financial_advisor_tab_cash_flow",
+  },
+  {
+    id: "wealth-growth-forecast",
+    key: "financial_advisor_tab_wealth_growth_forecast",
+    shortKey: "financial_advisor_tab_wealth_growth",
+  },
+  {
+    id: "portfolio-optimizer",
+    key: "financial_advisor_tab_portfolio_optimizer",
+    shortKey: "financial_advisor_tab_portfolio",
+  },
   { id: "goal-planning", key: "financial_advisor_tab_goal_planning" },
   { id: "risk-analysis", key: "financial_advisor_tab_risk_analysis" },
   { id: "spending-intelligence", key: "financial_advisor_tab_spending_intelligence" },
-  { id: "opportunity-detection", key: "financial_advisor_tab_opportunity_detection", shortKey: "financial_advisor_tab_opportunities" },
-  { id: "performance", key: "financial_advisor_tab_performance", shortKey: "financial_advisor_tab_performance" },
+  {
+    id: "opportunity-detection",
+    key: "financial_advisor_tab_opportunity_detection",
+    shortKey: "financial_advisor_tab_opportunities",
+  },
+  {
+    id: "performance",
+    key: "financial_advisor_tab_performance",
+    shortKey: "financial_advisor_tab_performance",
+  },
   { id: "what-if-simulator", key: "financial_advisor_tab_what_if_simulator" },
-  { id: "scenario-planner", key: "financial_advisor_tab_scenario_planner" }
+  { id: "scenario-planner", key: "financial_advisor_tab_scenario_planner" },
 ];
 
 const FINANCIAL_ADVISOR_ACTIVE_TAB_KEY = "wf_financial_advisor_active_tab";
@@ -47,21 +71,25 @@ function _eventTranslationKey(eventType) {
 }
 
 function _wealthComponentTitle(key) {
-  return {
-    none: "wealth_growth_component_none",
-    liquid_cash: "wealth_growth_component_liquid_cash",
-    fixed_assets: "wealth_growth_component_fixed_assets",
-    gold: "wealth_growth_component_gold",
-    certificates: "wealth_growth_component_certificates",
-  }[key] || key;
+  return (
+    {
+      none: "wealth_growth_component_none",
+      liquid_cash: "wealth_growth_component_liquid_cash",
+      fixed_assets: "wealth_growth_component_fixed_assets",
+      gold: "wealth_growth_component_gold",
+      certificates: "wealth_growth_component_certificates",
+    }[key] || key
+  );
 }
 
 function _scenarioTitle(key) {
-  return {
-    conservative: "wealth_growth_scenario_conservative",
-    expected: "wealth_growth_scenario_expected",
-    optimistic: "wealth_growth_scenario_optimistic",
-  }[key] || key;
+  return (
+    {
+      conservative: "wealth_growth_scenario_conservative",
+      expected: "wealth_growth_scenario_expected",
+      optimistic: "wealth_growth_scenario_optimistic",
+    }[key] || key
+  );
 }
 
 function _goalPriorityRank(priority) {
@@ -135,4 +163,3 @@ function _portfolioStatusClass(status) {
   if (status === "warning") return "portfolio-status-warning";
   return "portfolio-status-danger";
 }
-

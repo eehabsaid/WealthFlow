@@ -68,4 +68,3 @@ window.deleteRentalDetails = deleteRentalDetails;
 if (window.location.hash === "#fixed-assets") {
   renderFixedAssets();
 }
-

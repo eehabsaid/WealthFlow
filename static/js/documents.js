@@ -188,7 +188,9 @@
   }
 
   async function init(options) {
-    state.parentType = String(options?.parentType || "").trim().toLowerCase();
+    state.parentType = String(options?.parentType || "")
+      .trim()
+      .toLowerCase();
     state.parentId = Number(options?.parentId || 0) || null;
     state.containerId = String(options?.containerId || "").trim();
     state.onChanged = typeof options?.onChanged === "function" ? options.onChanged : null;
@@ -196,7 +198,10 @@
     if (!state.containerId) return;
 
     if (!state.parentId) {
-      _renderDisabled(options?.disabledMessage || t("documents_save_first", "Save this record first to manage documents."));
+      _renderDisabled(
+        options?.disabledMessage ||
+          t("documents_save_first", "Save this record first to manage documents.")
+      );
       return;
     }
 
@@ -226,10 +231,13 @@
     formData.append("notes", notesInput?.value || "");
 
     try {
-      await _fetchJson(`/api/documents/${encodeURIComponent(state.parentType)}/${state.parentId}/`, {
-        method: "POST",
-        body: formData,
-      });
+      await _fetchJson(
+        `/api/documents/${encodeURIComponent(state.parentType)}/${state.parentId}/`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
       showToast(t("document_uploaded", "Document uploaded"), "success");
       if (fileInput) fileInput.value = "";
       if (notesInput) notesInput.value = "";
@@ -241,11 +249,19 @@
   }
 
   function openInline(documentId) {
-    window.open(`/api/documents/file/${Number(documentId)}/?disposition=inline`, "_blank", "noopener");
+    window.open(
+      `/api/documents/file/${Number(documentId)}/?disposition=inline`,
+      "_blank",
+      "noopener"
+    );
   }
 
   function download(documentId) {
-    window.open(`/api/documents/file/${Number(documentId)}/?disposition=attachment`, "_blank", "noopener");
+    window.open(
+      `/api/documents/file/${Number(documentId)}/?disposition=attachment`,
+      "_blank",
+      "noopener"
+    );
   }
 
   function pickReplace(documentId) {

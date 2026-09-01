@@ -69,4 +69,3 @@ function collectInsurance() {
   });
   return items;
 }
-

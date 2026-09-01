@@ -13,8 +13,18 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6,
-.h1, .h2, .h3, .h4, .h5, .h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
   font-family: var(--font-family-display);
   color: var(--text-primary);
   letter-spacing: -0.025em;
@@ -22,12 +32,30 @@ h1, h2, h3, h4, h5, h6,
   line-height: 1.25;
 }
 
-h1, .h1 { font-size: clamp(1.4rem, 1.2rem + 1vw, 1.85rem); }
-h2, .h2 { font-size: clamp(1.2rem, 1.05rem + 0.75vw, 1.5rem); }
-h3, .h3 { font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.25rem); }
-h4, .h4 { font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem); }
-h5, .h5 { font-size: 0.95rem; }
-h6, .h6 { font-size: 0.85rem; }
+h1,
+.h1 {
+  font-size: clamp(1.4rem, 1.2rem + 1vw, 1.85rem);
+}
+h2,
+.h2 {
+  font-size: clamp(1.2rem, 1.05rem + 0.75vw, 1.5rem);
+}
+h3,
+.h3 {
+  font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.25rem);
+}
+h4,
+.h4 {
+  font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem);
+}
+h5,
+.h5 {
+  font-size: 0.95rem;
+}
+h6,
+.h6 {
+  font-size: 0.85rem;
+}
 
 .section-label,
 .nav-section-label,

@@ -125,7 +125,9 @@
     }
 
     try {
-      const resp = await fetch(`/api/financial-advisor/scenario-planner/compare/?${query.toString()}`);
+      const resp = await fetch(
+        `/api/financial-advisor/scenario-planner/compare/?${query.toString()}`
+      );
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const payload = await resp.json();
       _scenarioPlannerData = payload;
@@ -260,7 +262,12 @@
 
     const todayFormatted = typeof formatDate === "function" ? formatDate(new Date()) : "";
     const timelineNodes = [
-      { label: typeof t === "function" ? t("balance_tab_overview", "Today") : "Today", dateStr: todayFormatted, type: "now", chip: "Baseline" },
+      {
+        label: typeof t === "function" ? t("balance_tab_overview", "Today") : "Today",
+        dateStr: todayFormatted,
+        type: "now",
+        chip: "Baseline",
+      },
     ];
 
     let hasRetirementEvent = false;
@@ -268,10 +275,11 @@
     allEvents.forEach((ev) => {
       if (ev.event_type === "retirement") hasRetirementEvent = true;
       const evLabelKey = `scenario_planner_event_${ev.event_type}`;
-      const translatedLabel = typeof t === "function" ? t(evLabelKey, ev.event_type) : ev.event_type;
+      const translatedLabel =
+        typeof t === "function" ? t(evLabelKey, ev.event_type) : ev.event_type;
       timelineNodes.push({
         label: translatedLabel,
-        dateStr: typeof formatDate === "function" ? formatDate(ev.event_date) : (ev.event_date || ""),
+        dateStr: typeof formatDate === "function" ? formatDate(ev.event_date) : ev.event_date || "",
         type: ev.event_type || "event",
         chip: ev.scenarioName,
       });
@@ -280,10 +288,13 @@
     if (!hasRetirementEvent) {
       const birthYear = _scenarioPlannerData?.user_birth_year;
       const targetAge = _scenarioPlannerData?.config?.DEFAULT_RETIREMENT_AGE || 60;
-      const targetYear = birthYear ? (birthYear + targetAge) : (new Date().getFullYear() + 20);
+      const targetYear = birthYear ? birthYear + targetAge : new Date().getFullYear() + 20;
 
       timelineNodes.push({
-        label: typeof t === "function" ? t("scenario_planner_event_retirement", "Retirement Target") : "Retirement Target",
+        label:
+          typeof t === "function"
+            ? t("scenario_planner_event_retirement", "Retirement Target")
+            : "Retirement Target",
         dateStr: `${targetYear}`,
         type: "retirement",
         chip: "Target",
@@ -498,7 +509,10 @@
                 </div>
                 <div class="mt-2 d-flex flex-wrap gap-2">
                   ${Object.entries(ev.params || {})
-                    .map(([k, v]) => `<span class="badge bg-secondary bg-opacity-50 text-light extra-small">${k.replace("_", " ")}: ${v}</span>`)
+                    .map(
+                      ([k, v]) =>
+                        `<span class="badge bg-secondary bg-opacity-50 text-light extra-small">${k.replace("_", " ")}: ${v}</span>`
+                    )
                     .join("")}
                 </div>
               </div>
@@ -749,7 +763,12 @@
     // Scenario rail click (select active scenario)
     pane.querySelectorAll("[data-scenario-id]").forEach((el) => {
       el.addEventListener("click", (e) => {
-        if (e.target.closest(".sp-cmp-check") || e.target.closest(".sp-btn-delete-sc") || e.target.closest(".sp-btn-dup-sc")) return;
+        if (
+          e.target.closest(".sp-cmp-check") ||
+          e.target.closest(".sp-btn-delete-sc") ||
+          e.target.closest(".sp-btn-dup-sc")
+        )
+          return;
         const scId = Number(el.getAttribute("data-scenario-id"));
         if (scId) {
           _activeScenarioId = scId;
@@ -893,7 +912,9 @@
     const inputDesc = modalEl.querySelector("#sp-new-scenario-desc");
     const form = modalEl.querySelector("#form-create-scenario");
 
-    const defaultName = (typeof getTranslation === "function" && getTranslation("scenario_planner_default_name")) || "New Scenario";
+    const defaultName =
+      (typeof getTranslation === "function" && getTranslation("scenario_planner_default_name")) ||
+      "New Scenario";
     inputName.value = defaultName;
     inputDesc.value = "";
 

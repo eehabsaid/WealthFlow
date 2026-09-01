@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 async function showExpenseModal(expId) {
   let exp = null;
@@ -16,22 +16,23 @@ async function showExpenseModal(expId) {
   const catOpts = cats
     .map(
       (c) =>
-        `<option value="${c.id}" ${exp && exp.category_id === c.id ? "selected" : ""}>${c.icon} ${c.name}</option>`,
+        `<option value="${c.id}" ${exp && exp.category_id === c.id ? "selected" : ""}>${c.icon} ${c.name}</option>`
     )
     .join("");
   const curOpts = curs
     .map(
       (c) =>
-        `<option value="${c.id}" ${exp && exp.currency_code === c.code ? "selected" : c.code === "EGP" ? "selected" : ""}>${c.flag} ${c.code}</option>`,
+        `<option value="${c.id}" ${exp && exp.currency_code === c.code ? "selected" : c.code === "EGP" ? "selected" : ""}>${c.flag} ${c.code}</option>`
     )
     .join("");
   const methOpts = PAYMENT_METHODS.map(
     (m) =>
-      `<option value="${m.value}" ${exp && exp.payment_method === m.value ? "selected" : ""} data-i18n="${m.key}">${m.value}</option>`,
+      `<option value="${m.value}" ${exp && exp.payment_method === m.value ? "selected" : ""} data-i18n="${m.key}">${m.value}</option>`
   ).join("");
   const bankOpts = banks
     .map(
-      (b) => `<option value="${b.id}" ${exp && exp.bank_id === b.id ? "selected" : ""}>${b.name}</option>`,
+      (b) =>
+        `<option value="${b.id}" ${exp && exp.bank_id === b.id ? "selected" : ""}>${b.name}</option>`
     )
     .join("");
 
@@ -109,7 +110,8 @@ function showReadonlyExpenseModal(exp) {
     asset_acquisition_cost: t("asset_acquisition_cost", "Asset Acquisition Cost"),
     asset_furniture: t("asset_furniture", "Asset Furniture"),
   };
-  const sourceLabel = sourceLabels[exp.source_type] || t("linked_asset_record", "Linked to a fixed asset record");
+  const sourceLabel =
+    sourceLabels[exp.source_type] || t("linked_asset_record", "Linked to a fixed asset record");
 
   showModal(`
     <div class="modal-header">
@@ -158,7 +160,9 @@ function showReadonlyExpenseModal(exp) {
 }
 
 function isExpenseBankRequired(methodValue) {
-  const normalized = String(methodValue || "").trim().toLowerCase();
+  const normalized = String(methodValue || "")
+    .trim()
+    .toLowerCase();
   return normalized === "bank" || normalized === "bank transfer" || normalized === "card";
 }
 

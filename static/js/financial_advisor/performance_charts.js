@@ -21,7 +21,9 @@ function buildPerformanceChart({ canvasId, label, timeseries, valueKey, labelKey
   const maShortSeries = timeseries.map((item) => item.ma_short || 0);
   const maLongSeries = timeseries.map((item) => item.ma_long || 0);
 
-  const textColor = getComputedStyle(document.documentElement).getPropertyValue("--text-secondary").trim() || "#a1a1aa";
+  const textColor =
+    getComputedStyle(document.documentElement).getPropertyValue("--text-secondary").trim() ||
+    "#a1a1aa";
 
   const ctx = canvas.getContext("2d");
   const gradient = ctx.createLinearGradient(0, 0, 0, 260);
@@ -85,7 +87,7 @@ function buildPerformanceChart({ canvasId, label, timeseries, valueKey, labelKey
           callbacks: {
             label: function (context) {
               let val = context.parsed.y;
-              return `${context.dataset.label}: ${typeof fmtpresent === 'function' ? fmtpresent(val) : val.toLocaleString()}`;
+              return `${context.dataset.label}: ${typeof fmtpresent === "function" ? fmtpresent(val) : val.toLocaleString()}`;
             },
           },
         },
@@ -109,7 +111,7 @@ function buildPerformanceChart({ canvasId, label, timeseries, valueKey, labelKey
             color: textColor,
             font: { size: 10 },
             callback: function (val) {
-              return typeof fmtpresent === 'function' ? fmtpresent(val) : val.toLocaleString();
+              return typeof fmtpresent === "function" ? fmtpresent(val) : val.toLocaleString();
             },
           },
         },

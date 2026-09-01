@@ -300,7 +300,10 @@
   background: rgba(10, 24, 58, 0.72);
   padding: 12px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
 
 .goal-insight-item:hover,
@@ -448,7 +451,12 @@
   border: 1px solid rgba(56, 109, 220, 0.45);
   border-radius: 16px;
   padding: 12px 14px 14px;
-  background: radial-gradient(120% 120% at 20% 0%, rgba(26, 110, 245, 0.22) 0%, rgba(8, 17, 42, 0.92) 45%, rgba(5, 12, 30, 0.95) 100%);
+  background: radial-gradient(
+    120% 120% at 20% 0%,
+    rgba(26, 110, 245, 0.22) 0%,
+    rgba(8, 17, 42, 0.92) 45%,
+    rgba(5, 12, 30, 0.95) 100%
+  );
 }
 
 .goal-planning-header {
@@ -596,7 +604,10 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .goal-milestone-item:hover {
@@ -668,8 +679,7 @@
   border: 1px solid rgba(123, 147, 201, 0.26);
   border-radius: 14px;
   background:
-    linear-gradient(160deg, rgba(26, 110, 245, 0.12), rgba(17, 29, 61, 0.96)),
-    var(--bg-tertiary);
+    linear-gradient(160deg, rgba(26, 110, 245, 0.12), rgba(17, 29, 61, 0.96)), var(--bg-tertiary);
   color: var(--text-primary);
   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.26);
   animation: toastSlideUp 0.22s ease-out;
@@ -714,7 +724,7 @@
   border-radius: 10px;
   font-size: 11px;
   font-weight: 600;
-  background: rgba(26, 110, 245, .15);
+  background: rgba(26, 110, 245, 0.15);
   color: var(--accent-primary);
   margin-left: 6px;
 }
@@ -741,7 +751,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 1049;
   opacity: 0;
   transition: opacity 0.3s;
@@ -789,4 +799,6 @@
    GLOBAL OVERFLOW GUARD
    ══════════════════════════════════════ */
 
-html { overflow-x: hidden; }
+html {
+  overflow-x: hidden;
+}

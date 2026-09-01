@@ -154,7 +154,11 @@
     height: 100%;
     z-index: 25;
     box-shadow: -8px 0 24px rgba(0, 0, 0, 0.28);
-    transition: width 0.22s ease, min-width 0.22s ease, max-width 0.22s ease, opacity 0.18s ease;
+    transition:
+      width 0.22s ease,
+      min-width 0.22s ease,
+      max-width 0.22s ease,
+      opacity 0.18s ease;
   }
 
   .ai-ws-right.collapsed {

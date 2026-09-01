@@ -11,7 +11,9 @@
   top: 0;
   inset-inline-start: 0;
   z-index: 100;
-  transition: width var(--transition-normal), transform var(--transition-normal);
+  transition:
+    width var(--transition-normal),
+    transform var(--transition-normal);
   height: 100vh;
   box-shadow: var(--shadow-lg);
 }
@@ -86,7 +88,11 @@
   margin: 3px 0;
   font-size: 13.5px;
   font-weight: 500;
-  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
   text-decoration: none;
   border: 1px solid transparent;
   background: none;
@@ -159,7 +165,8 @@
   transform: translateX(-2px);
 }
 
-#sidebar, #sidebarOverlay {
+#sidebar,
+#sidebarOverlay {
   backface-visibility: hidden;
   will-change: transform, opacity;
 }

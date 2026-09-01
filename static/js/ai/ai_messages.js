@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * AI Workspace — Messages
@@ -8,13 +8,13 @@
  */
 
 function _renderEmptyState() {
-  const messagesContainer = document.getElementById('ai-ws-messages');
+  const messagesContainer = document.getElementById("ai-ws-messages");
   if (!messagesContainer) return;
 
   if (_aiState.conversationId) return;
 
-  const provider = _aiState.aiSettings?.ai_provider || 'Ollama';
-  const model = _aiState.aiSettings?.ai_model || 'llama3.2:latest';
+  const provider = _aiState.aiSettings?.ai_provider || "Ollama";
+  const model = _aiState.aiSettings?.ai_model || "llama3.2:latest";
   const kCount = _aiState.knowledgeCount || 31;
 
   messagesContainer.innerHTML = `
@@ -84,7 +84,7 @@ function _renderEmptyState() {
 }
 
 function _aiSuggestionClick(i18nKey, defaultText) {
-  const input = document.getElementById('ai-ws-input');
+  const input = document.getElementById("ai-ws-input");
   if (input) {
     input.value = _aiT(i18nKey, defaultText);
     _handleAIChatSubmit();
@@ -92,28 +92,29 @@ function _aiSuggestionClick(i18nKey, defaultText) {
 }
 
 function _renderMessageHTML(role, content, toolCalls, sources, timestamp) {
-  const isUser = role === 'user';
-  const roleI18n = isUser ? 'ai_ws_role_you' : 'ai_ws_role_assistant';
-  const roleName = isUser ? 'You' : 'WealthFlow AI';
-  const icon = isUser ? 'bi-person' : 'bi-cpu';
+  const isUser = role === "user";
+  const roleI18n = isUser ? "ai_ws_role_you" : "ai_ws_role_assistant";
+  const roleName = isUser ? "You" : "WealthFlow AI";
+  const icon = isUser ? "bi-person" : "bi-cpu";
   const timeStr = _formatDate(timestamp || new Date().toISOString());
 
-  let toolBadges = '';
+  let toolBadges = "";
   if (toolCalls && toolCalls.length > 0) {
     toolBadges = '<div class="ai-ws-tool-badges">';
-    toolCalls.forEach(tc => {
-      const toolName = tc.tool || tc.name || 'tool';
-      const statusIcon = (tc.status === 'success' || !tc.status) ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+    toolCalls.forEach((tc) => {
+      const toolName = tc.tool || tc.name || "tool";
+      const statusIcon =
+        tc.status === "success" || !tc.status ? "bi-check-circle-fill" : "bi-x-circle-fill";
       toolBadges += `<span class="ai-ws-tool-badge"><i class="bi ${statusIcon}"></i> ${toolName}</span>`;
     });
-    toolBadges += '</div>';
+    toolBadges += "</div>";
   }
 
   const processedContent = _renderMarkdown(content);
 
   return `
     <div class="ai-ws-msg">
-      <div class="ai-ws-msg-avatar ${isUser ? 'user' : 'assistant'}">
+      <div class="ai-ws-msg-avatar ${isUser ? "user" : "assistant"}">
         <i class="bi ${icon}"></i>
       </div>
       <div class="ai-ws-msg-body">
@@ -129,11 +130,11 @@ function _renderMessageHTML(role, content, toolCalls, sources, timestamp) {
 }
 
 function _appendMessage(role, content, toolCalls, sources, timestamp) {
-  const container = document.getElementById('ai-ws-messages');
+  const container = document.getElementById("ai-ws-messages");
   if (!container) return;
 
-  if (!_aiState.conversationId && container.querySelector('.ai-ws-empty-state')) {
-    container.innerHTML = '';
+  if (!_aiState.conversationId && container.querySelector(".ai-ws-empty-state")) {
+    container.innerHTML = "";
   }
 
   container.innerHTML += _renderMessageHTML(role, content, toolCalls, sources, timestamp);

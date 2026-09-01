@@ -1,12 +1,12 @@
 :root {
   /* Typography Tokens */
-  --font-family-display: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-family-body: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  
+  --font-family-display: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --font-family-body: "Inter", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
   /* Color Palette (Dark Blue Theme Base Tokens) */
-  --bg-primary: #0a0f1e;        /* Deep Midnight Dark Blue */
-  --bg-secondary: #0d1530;      /* Rich Dark Royal Blue Surface */
-  --bg-tertiary: #111d3d;       /* Medium Dark Blue Container */
+  --bg-primary: #0a0f1e; /* Deep Midnight Dark Blue */
+  --bg-secondary: #0d1530; /* Rich Dark Royal Blue Surface */
+  --bg-tertiary: #111d3d; /* Medium Dark Blue Container */
   --bg-glass: rgba(13, 21, 48, 0.85);
   --bg-card: rgba(13, 21, 48, 0.78);
   --bg-card-hover: #16264f;
@@ -15,15 +15,15 @@
   --border-strong: #2d56a3;
   --border-glow: rgba(26, 110, 245, 0.4);
 
-  --accent-primary: #1a6ef5;    /* Vibrant WealthFlow Blue */
+  --accent-primary: #1a6ef5; /* Vibrant WealthFlow Blue */
   --accent-hover: #2d7fff;
   --accent-light: rgba(26, 110, 245, 0.16);
   --accent-glow: rgba(26, 110, 245, 0.3);
-  
+
   --accent-emerald: #00d68f;
   --accent-green: #00d68f;
   --accent-emerald-light: rgba(0, 214, 143, 0.14);
-  
+
   --accent-amber: #ffd166;
   --accent-yellow: #ffd166;
   --accent-amber-light: rgba(255, 209, 102, 0.14);
@@ -35,13 +35,13 @@
   --accent-cyan: #00b4d8;
   --accent-purple: #7209b7;
 
-  --text-primary: #e8f0fe;      /* Ice Blue Tinted White */
-  --text-secondary: #7b93c9;    /* Periwinkle Muted Blue */
-  --text-muted: #4a6399;        /* Slate Blue Muted */
+  --text-primary: #e8f0fe; /* Ice Blue Tinted White */
+  --text-secondary: #7b93c9; /* Periwinkle Muted Blue */
+  --text-muted: #4a6399; /* Slate Blue Muted */
   --text-inverse: #ffffff;
 
   --sidebar-width: 250px;
-  
+
   /* Layout & Geometry */
   --radius-xs: 4px;
   --radius-sm: 8px;

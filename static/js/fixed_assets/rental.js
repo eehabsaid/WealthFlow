@@ -81,4 +81,3 @@ function collectRentalPayload() {
     notes: document.getElementById("fa_rental_notes")?.value || "",
   };
 }
-

@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
 // reminders.js — Reminder Engine management
 
-'use strict';
+"use strict";
 
 // ════════════════════════════════════════════════════════════════════════════
 // REMINDER BANNER
@@ -11,30 +11,30 @@
 // ── Check reminders on app load, show banner if any due ──────
 
 async function renderReminderSettings() {
-    const [rulesRes, settingsRes] = await Promise.all([
-        fetch('/api/reminders/'),
-        fetch('/api/settings/'),
-    ]);
-    const rulesData = await rulesRes.json();
-    const settingsData = await settingsRes.json();
-    const rules = rulesData.rules || [];
-    const ruleTypes = rulesData.rule_types || [];
-    const triggers = rulesData.salary_triggers || [];
-    const s = settingsData.settings || {};
+  const [rulesRes, settingsRes] = await Promise.all([
+    fetch("/api/reminders/"),
+    fetch("/api/settings/"),
+  ]);
+  const rulesData = await rulesRes.json();
+  const settingsData = await settingsRes.json();
+  const rules = rulesData.rules || [];
+  const ruleTypes = rulesData.rule_types || [];
+  const triggers = rulesData.salary_triggers || [];
+  const s = settingsData.settings || {};
 
-    const enabledText = t('enabled', 'Enabled');
-    const editText = t('edit', 'Edit');
-    const deleteText = t('delete', 'Delete');
-    const activeText = t('active', 'Active');
-    const inactiveText = t('inactive', 'Inactive');
-    const noRulesText = t('no_reminder_rules', 'No reminder rules. Add one to get started.');
+  const enabledText = t("enabled", "Enabled");
+  const editText = t("edit", "Edit");
+  const deleteText = t("delete", "Delete");
+  const activeText = t("active", "Active");
+  const inactiveText = t("inactive", "Inactive");
+  const noRulesText = t("no_reminder_rules", "No reminder rules. Add one to get started.");
 
-    const rows =
-        rules.length === 0
-            ? `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-muted)" data-i18n="no_reminder_rules">${noRulesText}</td></tr>`
-            : rules
-                  .map(
-                      (r) => `
+  const rows =
+    rules.length === 0
+      ? `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-muted)" data-i18n="no_reminder_rules">${noRulesText}</td></tr>`
+      : rules
+          .map(
+            (r) => `
                 <tr>
                     <td>
                         <span style="font-weight:600;color:var(--text-primary)">${esc(r.name)}</span>
@@ -49,10 +49,10 @@ async function renderReminderSettings() {
                     </td>
                     <td>
                         <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-                            <input type="checkbox" ${r.is_active ? 'checked' : ''}
+                            <input type="checkbox" ${r.is_active ? "checked" : ""}
                                 onchange="toggleReminderRule(${r.id}, this.checked)">
-                            <span style="font-size:12px;color:${r.is_active ? 'var(--accent-green)' : 'var(--text-muted)'}"
-                                data-i18n="${r.is_active ? 'active' : 'inactive'}">${r.is_active ? activeText : inactiveText}</span>
+                            <span style="font-size:12px;color:${r.is_active ? "var(--accent-green)" : "var(--text-muted)"}"
+                                data-i18n="${r.is_active ? "active" : "inactive"}">${r.is_active ? activeText : inactiveText}</span>
                         </label>
                     </td>
                     <td style="white-space:nowrap">
@@ -64,24 +64,30 @@ async function renderReminderSettings() {
                             <i class="bi bi-trash"></i>
                         </button>
                     </td>
-                </tr>`,
-                  )
-                  .join('');
+                </tr>`
+          )
+          .join("");
 
-    const remindersEnabledTitle = t('reminders_enabled', 'Enable Reminder Engine');
-    const remindersEnabledDesc = t('reminders_enabled_desc', 'Show reminder banners on page load when rules are due');
-    const certExpiryTitle = t('cert_expiry_window', 'Certificate Expiry Warning Window');
-    const certExpiryDesc = t('cert_expiry_window_desc', 'Show expiring certificates on dashboard within this many days');
-    const saveText = t('save', 'Save');
-    const reminderRulesTitle = t('reminder_rules', 'Reminder Rules');
-    const addRuleText = t('add_rule', 'Add Rule');
-    const ruleNameHeader = t('rule_name', 'Rule Name');
-    const ruleTypeHeader = t('rule_type', 'Type');
-    const triggerHeader = t('trigger', 'Trigger');
-    const statusHeader = t('status', 'Status');
-    const actionsHeader = t('actions', 'Actions');
+  const remindersEnabledTitle = t("reminders_enabled", "Enable Reminder Engine");
+  const remindersEnabledDesc = t(
+    "reminders_enabled_desc",
+    "Show reminder banners on page load when rules are due"
+  );
+  const certExpiryTitle = t("cert_expiry_window", "Certificate Expiry Warning Window");
+  const certExpiryDesc = t(
+    "cert_expiry_window_desc",
+    "Show expiring certificates on dashboard within this many days"
+  );
+  const saveText = t("save", "Save");
+  const reminderRulesTitle = t("reminder_rules", "Reminder Rules");
+  const addRuleText = t("add_rule", "Add Rule");
+  const ruleNameHeader = t("rule_name", "Rule Name");
+  const ruleTypeHeader = t("rule_type", "Type");
+  const triggerHeader = t("trigger", "Trigger");
+  const statusHeader = t("status", "Status");
+  const actionsHeader = t("actions", "Actions");
 
-    document.getElementById('settingsContent').innerHTML = `
+  document.getElementById("settingsContent").innerHTML = `
         <!-- Global toggle -->
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
             <div>
@@ -90,7 +96,7 @@ async function renderReminderSettings() {
             </div>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                 <input type="checkbox" id="reminderEnabled"
-                    ${s.reminder_check_enabled !== 'false' ? 'checked' : ''}
+                    ${s.reminder_check_enabled !== "false" ? "checked" : ""}
                     onchange="saveAppSetting('reminder_check_enabled', this.checked ? 'true' : 'false')">
                 <span data-i18n="enabled">${enabledText}</span>
             </label>
@@ -132,7 +138,7 @@ async function renderReminderSettings() {
                 </table>
             </div>
         </div>`;
-    applyTranslations();
+  applyTranslations();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -140,24 +146,24 @@ async function renderReminderSettings() {
 // ════════════════════════════════════════════════════════════════════════════
 
 function _reminderIcon(type) {
-    return (
-        {
-            cert_maturity: '🏦',
-            salary_unpaid: '💰',
-            salary_day: '📅',
-            custom: '📌',
-        }[type] || '🔔'
-    );
+  return (
+    {
+      cert_maturity: "🏦",
+      salary_unpaid: "💰",
+      salary_day: "📅",
+      custom: "📌",
+    }[type] || "🔔"
+  );
 }
 
 async function _getReminderSetting() {
-    try {
-        const res = await fetch('/api/settings/');
-        const d = await res.json();
-        return (d.settings || {}).reminder_check_enabled !== 'false';
-    } catch (e) {
-        return true;
-    }
+  try {
+    const res = await fetch("/api/settings/");
+    const d = await res.json();
+    return (d.settings || {}).reminder_check_enabled !== "false";
+  } catch (e) {
+    return true;
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -165,10 +171,10 @@ async function _getReminderSetting() {
 // ════════════════════════════════════════════════════════════════════════════
 
 function esc(s) {
-    if (!s) return '';
-    return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+  if (!s) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

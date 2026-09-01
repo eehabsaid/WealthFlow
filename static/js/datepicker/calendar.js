@@ -70,7 +70,10 @@
     const prevBtn = document.createElement("button");
     prevBtn.type = "button";
     prevBtn.className = "wf-dp-nav-btn";
-    prevBtn.setAttribute("aria-label", isMonthsView ? _t("dp_prev_year", "Previous year") : _t("dp_prev_month", "Previous month"));
+    prevBtn.setAttribute(
+      "aria-label",
+      isMonthsView ? _t("dp_prev_year", "Previous year") : _t("dp_prev_month", "Previous month")
+    );
     prevBtn.innerHTML = rtl
       ? '<i class="bi bi-chevron-right" aria-hidden="true"></i>'
       : '<i class="bi bi-chevron-left" aria-hidden="true"></i>';
@@ -79,7 +82,10 @@
     const nextBtn = document.createElement("button");
     nextBtn.type = "button";
     nextBtn.className = "wf-dp-nav-btn";
-    nextBtn.setAttribute("aria-label", isMonthsView ? _t("dp_next_year", "Next year") : _t("dp_next_month", "Next month"));
+    nextBtn.setAttribute(
+      "aria-label",
+      isMonthsView ? _t("dp_next_year", "Next year") : _t("dp_next_month", "Next month")
+    );
     nextBtn.innerHTML = rtl
       ? '<i class="bi bi-chevron-left" aria-hidden="true"></i>'
       : '<i class="bi bi-chevron-right" aria-hidden="true"></i>';

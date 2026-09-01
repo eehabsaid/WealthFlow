@@ -4,13 +4,13 @@ let furnitureCategories = [];
 
 // Fetch categories from backend API
 fetch("/api/asset-furniture/categories/")
-  .then(res => res.json())
-  .then(data => {
+  .then((res) => res.json())
+  .then((data) => {
     if (data && data.categories && data.categories.length) {
       furnitureCategories = data.categories;
     }
   })
-  .catch(err => console.error("Error fetching furniture categories:", err));
+  .catch((err) => console.error("Error fetching furniture categories:", err));
 
 function updateFurnitureSummary() {
   const summaryStrip = document.getElementById("furnitureSummaryStrip");
@@ -26,15 +26,16 @@ function updateFurnitureSummary() {
   let totalEGP = 0;
   let totalUSD = 0;
 
-  rows.forEach(row => {
+  rows.forEach((row) => {
     const egp = parseFloat(row.querySelector(".furniture-egp").value) || 0;
     const qty = parseInt(row.querySelector(".furniture-quantity").value) || 1;
     const usd = parseFloat(row.querySelector(".furniture-usd").value) || 0;
-    totalEGP += (egp * qty);
+    totalEGP += egp * qty;
     totalUSD += usd;
   });
 
-  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) =>
+    Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   if (summaryStrip) {
     summaryStrip.innerHTML = `
@@ -66,15 +67,18 @@ function addFurnitureRow(data = {}, expand = false) {
   row.dataset.furnitureId = data.id || "";
 
   const category = data.category || "Living Room";
-  const normVal = category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
-  const quantity = (parseInt(data.quantity) || 1);
+  const normVal = category.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
+  const quantity = parseInt(data.quantity) || 1;
   const amountEgpVal = data.amount_egp || 0; // Use raw amount
   const nameVal = data.name || "";
   const paymentMethodVal = data.payment_method || "Cash";
   const bankIdVal = data.bank_id || "";
 
-  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const initialAmountPreview = amountEgpVal ? `EGP ${fmt(parseFloat(amountEgpVal) || 0)}` : "EGP 0.00";
+  const fmt = (n) =>
+    Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const initialAmountPreview = amountEgpVal
+    ? `EGP ${fmt(parseFloat(amountEgpVal) || 0)}`
+    : "EGP 0.00";
 
   row.innerHTML = `
     <div class="item-header card-header">
@@ -99,14 +103,16 @@ function addFurnitureRow(data = {}, expand = false) {
         <div class="field">
           <label class="form-label small" data-i18n="category">Category</label>
           <select class="form-select furniture-category">
-            ${furnitureCategories.map(cat => {
-              const norm = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
-              return `
+            ${furnitureCategories
+              .map((cat) => {
+                const norm = cat.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
+                return `
                 <option value="${cat}" data-i18n-prefix="furniture_" data-i18n-value="${norm}" ${cat === category ? "selected" : ""}>
                   ${cat}
                 </option>
               `;
-            }).join("")}
+              })
+              .join("")}
           </select>
         </div>
         <div class="field">
@@ -159,7 +165,7 @@ function addFurnitureRow(data = {}, expand = false) {
   const categoryBadge = row.querySelector(".item-category-badge");
   categorySelect.addEventListener("change", () => {
     const cat = categorySelect.value;
-    const norm = cat.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+    const norm = cat.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
     categoryBadge.setAttribute("data-i18n-value", norm);
     categoryBadge.textContent = cat;
     if (typeof applyTranslations === "function") {
@@ -222,7 +228,8 @@ function updateFurnitureUSD(input) {
   if (parseInt(qtyInput.value) < 0) qtyInput.value = 1;
   // ------------------------------------
 
-  const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) =>
+    Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // 1. Get live values
   const egp = parseFloat(egpInput.value) || 0;
@@ -231,16 +238,16 @@ function updateFurnitureUSD(input) {
 
   // 2. Perform the math
   const totalEgp = egp * quantity;
-  const totalUsd = rate > 0 ? (totalEgp / rate) : 0;
+  const totalUsd = rate > 0 ? totalEgp / rate : 0;
 
   // 3. Update UI
   usdInput.value = totalUsd.toFixed(2);
   amountPreview.textContent = `EGP ${fmt(totalEgp)}`;
-  
+
   // 4. Update Header Badge
   const headerPreview = row.querySelector(".item-header-right .item-amount-preview");
   if (headerPreview) {
-      headerPreview.textContent = `EGP ${fmt(totalEgp)}`;
+    headerPreview.textContent = `EGP ${fmt(totalEgp)}`;
   }
 
   updateFurnitureSummary();
@@ -267,4 +274,3 @@ function collectFurniture() {
   });
   return furniture;
 }
-

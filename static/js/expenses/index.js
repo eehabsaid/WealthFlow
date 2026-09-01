@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /* ════════════════════════════════════════════════════════════════════════════
    expenses.js — Expense Entries + Categories + Dashboard KPIs
@@ -57,9 +57,7 @@ async function renderExpenses() {
 
   const today = new Date();
   const [entRes, catRes, curRes, bankRes] = await Promise.all([
-    fetch(
-      `/api/expenses/?year=${today.getFullYear()}&month=${today.getMonth() + 1}`,
-    ),
+    fetch(`/api/expenses/?year=${today.getFullYear()}&month=${today.getMonth() + 1}`),
     fetch("/api/expense-categories/"),
     fetch("/api/currencies/"),
     fetch("/api/banks/"),
@@ -186,15 +184,17 @@ function renderExpenseTableHTML(entries) {
       <td><span style="font-size:11px;color:var(--text-muted)">${e.payment_method || "—"}</span></td>
       <td class="text-end num-col amt-negative">${fmt(e.amount)} <span style="font-size:10px;color:var(--text-muted)">${e.currency_code}</span></td>
       <td style="white-space:nowrap">
-        ${e.is_readonly
-          ? `<button class="btn-icon" onclick="showExpenseModal(${e.id})" title="${t("view_linked_expense", "View (linked to asset)")}">
+        ${
+          e.is_readonly
+            ? `<button class="btn-icon" onclick="showExpenseModal(${e.id})" title="${t("view_linked_expense", "View (linked to asset)")}">
               <i class="bi bi-lock"></i></button>`
-          : `<button class="btn-icon edit" onclick="showExpenseModal(${e.id})" title="Edit">
+            : `<button class="btn-icon edit" onclick="showExpenseModal(${e.id})" title="Edit">
               <i class="bi bi-pencil"></i></button>
             <button class="btn-icon del" onclick="deleteExpense(${e.id})" title="Delete">
-              <i class="bi bi-trash"></i></button>`}
+              <i class="bi bi-trash"></i></button>`
+        }
       </td>
-    </tr>`,
+    </tr>`
     )
     .join("");
 
@@ -234,7 +234,6 @@ async function applyExpenseFilters() {
     applyTranslations();
   }
 }
-
 
 // ════════════════════════════════════════════════════════════════════════════
 // EXPORTS

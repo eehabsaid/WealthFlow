@@ -44,14 +44,23 @@ function _renderRiskAnalysis(payload) {
   const healthRing = `conic-gradient(#34c759 ${Math.max(0, Math.min(100, healthScore))}%, rgba(123,147,201,0.20) 0)`;
 
   const riskScore = Number(score.score || 0);
-  const riskColor = riskScore > 66 ? "#ff3b30" : (riskScore > 33 ? "#ff9500" : "#34c759");
+  const riskColor = riskScore > 66 ? "#ff3b30" : riskScore > 33 ? "#ff9500" : "#34c759";
   const riskRing = `conic-gradient(${riskColor} ${Math.max(0, Math.min(100, riskScore))}%, rgba(123,147,201,0.20) 0)`;
 
-  const breakdownHtml = breakdown.map(item => {
-    const levelColorClass = item.level === "high" ? "portfolio-badge-high" : (item.level === "moderate" ? "portfolio-badge-medium" : "portfolio-badge-low");
-    const barColor = item.level === "high" ? "#ff3b30" : (item.level === "moderate" ? "#ff9500" : "#34c759");
-    const paramsStr = JSON.stringify(item.reason_params || {}).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-    return `
+  const breakdownHtml = breakdown
+    .map((item) => {
+      const levelColorClass =
+        item.level === "high"
+          ? "portfolio-badge-high"
+          : item.level === "moderate"
+            ? "portfolio-badge-medium"
+            : "portfolio-badge-low";
+      const barColor =
+        item.level === "high" ? "#ff3b30" : item.level === "moderate" ? "#ff9500" : "#34c759";
+      const paramsStr = JSON.stringify(item.reason_params || {})
+        .replace(/'/g, "&apos;")
+        .replace(/"/g, "&quot;");
+      return `
       <div class="mb-3">
         <div class="d-flex align-items-center mb-1">
           <div style="flex:1; color: var(--text-primary);">
@@ -82,14 +91,18 @@ function _renderRiskAnalysis(payload) {
         </div>
       </div>
     `;
-  }).join("");
+    })
+    .join("");
 
-  const findingsHtml = findings.map(item => {
-    const paramsStr = JSON.stringify(item.title_params || {}).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-    return `
+  const findingsHtml = findings
+    .map((item) => {
+      const paramsStr = JSON.stringify(item.title_params || {})
+        .replace(/'/g, "&apos;")
+        .replace(/"/g, "&quot;");
+      return `
     <div class="d-flex mb-3 align-items-start">
       <div class="me-3 mt-1">
-        <i class="bi ${item.severity === 'high' ? 'bi-exclamation-triangle-fill' : (item.severity === 'medium' ? 'bi-exclamation-circle-fill' : (item.severity === 'low' ? 'bi-check-circle-fill' : 'bi-info-circle-fill'))}" style="font-size:1.5rem;color:${item.severity === 'high' ? '#ff3b30' : (item.severity === 'medium' ? '#ff9500' : (item.severity === 'low' ? '#34c759' : '#007aff'))};"></i>
+        <i class="bi ${item.severity === "high" ? "bi-exclamation-triangle-fill" : item.severity === "medium" ? "bi-exclamation-circle-fill" : item.severity === "low" ? "bi-check-circle-fill" : "bi-info-circle-fill"}" style="font-size:1.5rem;color:${item.severity === "high" ? "#ff3b30" : item.severity === "medium" ? "#ff9500" : item.severity === "low" ? "#34c759" : "#007aff"};"></i>
       </div>
       <div>
         <div style="font-weight:bold; color:var(--text-primary); font-size: 1.15em;" data-i18n-key="${item.title_key}" data-i18n-params="${paramsStr}"></div>
@@ -97,13 +110,16 @@ function _renderRiskAnalysis(payload) {
       </div>
     </div>
     `;
-  }).join("");
+    })
+    .join("");
 
-  const stressHtml = stressTests.map(item => `
+  const stressHtml = stressTests
+    .map(
+      (item) => `
     <div class="d-flex align-items-center mb-3 p-3 rounded" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
       <div class="me-3" style="min-width: 90px; text-align: end;" dir="ltr">
-        <span class="fs-5" style="font-weight:bold; color:${item.impact_pct >= 0 ? '#34c759' : '#ff6b6b'};">${item.impact_pct >= 0 ? '+' : ''}${item.impact_pct}%</span>
-        <div style="font-size:0.75em; color:${item.impact_amount >= 0 ? '#34c759' : '#ff6b6b'};">${item.impact_amount >= 0 ? '+' : ''}${fmt(item.impact_amount)}</div>
+        <span class="fs-5" style="font-weight:bold; color:${item.impact_pct >= 0 ? "#34c759" : "#ff6b6b"};">${item.impact_pct >= 0 ? "+" : ""}${item.impact_pct}%</span>
+        <div style="font-size:0.75em; color:${item.impact_amount >= 0 ? "#34c759" : "#ff6b6b"};">${item.impact_amount >= 0 ? "+" : ""}${fmt(item.impact_amount)}</div>
       </div>
       <div style="flex:3; padding:0 15px; border-inline-start: 1px solid var(--border-color);">
         <div style="font-weight:bold; color:var(--text-primary); font-size: 1.15em; margin-bottom: 4px;" data-i18n="${item.title_key}"></div>
@@ -115,9 +131,13 @@ function _renderRiskAnalysis(payload) {
         </div>
       </div>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 
-  const sensitivitiesHtml = sensitivities.map(item => `
+  const sensitivitiesHtml = sensitivities
+    .map(
+      (item) => `
     <div class="col-12 col-md-6 col-xl-3 mb-3">
       <div class="p-3 rounded h-100 d-flex flex-column" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
         <div class="d-flex align-items-center mb-2">
@@ -128,32 +148,36 @@ function _renderRiskAnalysis(payload) {
         <div class="p-2 rounded" style="background:var(--bg-primary);">
           <div class="mb-1" style="color:var(--text-primary); font-size:0.85em;" data-i18n="risk_analysis_score_label"></div>
           <div class="d-flex align-items-end mb-1" dir="ltr">
-            <span class="fs-3 fw-bold me-2" style="color:${item.oldColor || 'var(--text-primary)'};">${Math.round(item.current_score)}</span>
+            <span class="fs-3 fw-bold me-2" style="color:${item.oldColor || "var(--text-primary)"};">${Math.round(item.current_score)}</span>
             <i class="bi bi-arrow-right me-2 mb-1" style="color:var(--text-primary);"></i>
-            <span class="fs-3 fw-bold" style="color:${item.change > 0 ? '#ff6b6b' : '#34c759'};">${Math.round(item.projected_score)}</span>
+            <span class="fs-3 fw-bold" style="color:${item.change > 0 ? "#ff6b6b" : "#34c759"};">${Math.round(item.projected_score)}</span>
           </div>
           <div class="d-flex justify-content-between" style="font-size:0.85em;" dir="ltr">
             <span style="color:var(--text-primary);" data-i18n="risk_analysis_change_label"></span>
-            <span style="font-weight:bold; color:${item.change > 0 ? '#ff6b6b' : '#34c759'};">${item.change > 0 ? '+' : ''}${item.change} pts</span>
+            <span style="font-weight:bold; color:${item.change > 0 ? "#ff6b6b" : "#34c759"};">${item.change > 0 ? "+" : ""}${item.change} pts</span>
           </div>
         </div>
       </div>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 
-  const actionsHtml = priorityActions.map(item => `
+  const actionsHtml = priorityActions
+    .map(
+      (item) => `
     <div class="d-flex mb-3 p-3 rounded align-items-start" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
       <div class="me-3 mt-1">
-        <div style="width:32px;height:32px;border-radius:50%;background:${item.priority_num === 1 ? '#ff3b30' : (item.priority_num === 2 ? '#ff9500' : '#007aff')};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:0.9rem;">${item.priority_num}</div>
+        <div style="width:32px;height:32px;border-radius:50%;background:${item.priority_num === 1 ? "#ff3b30" : item.priority_num === 2 ? "#ff9500" : "#007aff"};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:0.9rem;">${item.priority_num}</div>
       </div>
       <div style="flex:1;">
         <h6 style="color:var(--text-primary); font-weight:bold; margin-bottom: 5px;" data-i18n="${item.title_key}"></h6>
         <p style="color:var(--text-secondary); font-size: 0.9em; margin-bottom: 12px;" data-i18n="${item.desc_key}"></p>
         <div class="d-flex flex-wrap gap-2 align-items-center">
-          <span class="portfolio-severity-badge ${item.impact === 'High' ? 'portfolio-badge-low' : (item.impact === 'Medium' ? 'portfolio-badge-medium' : 'portfolio-badge-high')}">
+          <span class="portfolio-severity-badge ${item.impact === "High" ? "portfolio-badge-low" : item.impact === "Medium" ? "portfolio-badge-medium" : "portfolio-badge-high"}">
             <i class="bi bi-lightning-charge me-1"></i> <span data-i18n="risk_analysis_actions_col_impact"></span>: <span data-i18n="${item.impact_key}"></span>
           </span>
-          <span class="portfolio-severity-badge ${item.difficulty === 'Easy' ? 'portfolio-badge-low' : (item.difficulty === 'Medium' ? 'portfolio-badge-medium' : 'portfolio-badge-high')}">
+          <span class="portfolio-severity-badge ${item.difficulty === "Easy" ? "portfolio-badge-low" : item.difficulty === "Medium" ? "portfolio-badge-medium" : "portfolio-badge-high"}">
             <i class="bi bi-tools me-1"></i> <span data-i18n="risk_analysis_actions_col_diff"></span>: <span data-i18n="${item.difficulty_key}"></span>
           </span>
           <div class="ms-auto" style="font-weight:bold; color:#34c759; font-size:0.9em;">
@@ -162,15 +186,21 @@ function _renderRiskAnalysis(payload) {
         </div>
       </div>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 
   const incomeSources = incomeStability.sources || [];
-  const incomeHtml = incomeSources.map(s => `
+  const incomeHtml = incomeSources
+    .map(
+      (s) => `
     <div class="d-flex justify-content-between mb-2">
-      <div style="color:var(--text-primary);"><i class="bi bi-circle-fill me-2" style="font-size:0.5em;color:${s.id === 'salary' ? '#34c759' : '#007aff'};"></i><span data-i18n="${s.label_key}"></span></div>
+      <div style="color:var(--text-primary);"><i class="bi bi-circle-fill me-2" style="font-size:0.5em;color:${s.id === "salary" ? "#34c759" : "#007aff"};"></i><span data-i18n="${s.label_key}"></span></div>
       <div style="font-weight:bold; color:var(--text-primary);">${s.percentage}%</div>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 
   pane.innerHTML = `
     <div class="portfolio-optimizer-wrap">
@@ -276,7 +306,7 @@ function _renderRiskAnalysis(payload) {
               <span style="color:var(--text-secondary);" data-i18n="risk_analysis_income_score_label"></span>
               <div class="d-flex align-items-center">
                 <span class="fs-4 fw-bold me-3" style="color:#34c759;">${Math.round(incomeStability.score)} <span style="font-size:0.5em;color:var(--text-secondary);">/100</span></span>
-                <span class="portfolio-severity-badge ${incomeStability.score >= 60 ? 'portfolio-badge-low' : (incomeStability.score >= 40 ? 'portfolio-badge-medium' : 'portfolio-badge-high')}" data-i18n="${incomeStability.level_key}"></span>
+                <span class="portfolio-severity-badge ${incomeStability.score >= 60 ? "portfolio-badge-low" : incomeStability.score >= 40 ? "portfolio-badge-medium" : "portfolio-badge-high"}" data-i18n="${incomeStability.level_key}"></span>
               </div>
             </div>
             <div class="text-center mt-2" style="font-size:0.85em;color:var(--text-secondary);" data-i18n="risk_analysis_income_footer"></div>
@@ -305,15 +335,15 @@ function _renderRiskAnalysis(payload) {
 
   if (typeof applyTranslations === "function") {
     // Inject dynamic translation parameters
-    pane.querySelectorAll('[data-param]').forEach(el => {
-      const parent = el.closest('[data-i18n]');
+    pane.querySelectorAll("[data-param]").forEach((el) => {
+      const parent = el.closest("[data-i18n]");
       if (parent) {
-        parent.setAttribute(`data-i18n-param-${el.getAttribute('data-param')}`, el.textContent);
+        parent.setAttribute(`data-i18n-param-${el.getAttribute("data-param")}`, el.textContent);
       }
     });
     applyTranslations();
   }
-  
+
   _drawRiskRadarChart(payload);
   _drawIncomeStabilityChart(payload);
 }
@@ -325,25 +355,29 @@ function _drawRiskRadarChart(payload) {
 
   const canvas = document.getElementById("riskRadarChart");
   if (!canvas || !window.Chart) return;
-  const labels = radarData.labels.map(k => typeof t === "function" ? t(k, k) : k);
-  
+  const labels = radarData.labels.map((k) => (typeof t === "function" ? t(k, k) : k));
+
   document.addEventListener("languageChanged", () => {
     if (window._riskRadarChart) {
-      window._riskRadarChart.data.labels = radarData.labels.map(k => typeof t === "function" ? t(k, k) : k);
+      window._riskRadarChart.data.labels = radarData.labels.map((k) =>
+        typeof t === "function" ? t(k, k) : k
+      );
       window._riskRadarChart.update();
     }
   });
-  const textPrimary = (typeof _themeColor === "function") ? _themeColor("--text-primary", "#333") : "#333";
-  const gridColor = (typeof _themeColor === "function") ? _themeColor("--border-color", "#e2e8f0") : "#e2e8f0";
-  const isRtl = (typeof _pageDirection === "function") ? _pageDirection() === "rtl" : false;
-
+  const textPrimary =
+    typeof _themeColor === "function" ? _themeColor("--text-primary", "#333") : "#333";
+  const gridColor =
+    typeof _themeColor === "function" ? _themeColor("--border-color", "#e2e8f0") : "#e2e8f0";
+  const isRtl = typeof _pageDirection === "function" ? _pageDirection() === "rtl" : false;
 
   // Ensure chart updates on language change
   const updateChartLabels = () => {
     if (!window._riskRadarChart) return;
-    const translatedLabels = radarData.labels.map(k => typeof t === "function" ? t(k, k) : k);
+    const translatedLabels = radarData.labels.map((k) => (typeof t === "function" ? t(k, k) : k));
     window._riskRadarChart.data.labels = translatedLabels;
-    window._riskRadarChart.data.datasets[0].label = typeof t === "function" ? t("risk_analysis_risk_score", "Risk Score") : "Risk Score";
+    window._riskRadarChart.data.datasets[0].label =
+      typeof t === "function" ? t("risk_analysis_risk_score", "Risk Score") : "Risk Score";
     window._riskRadarChart.update();
   };
 
@@ -355,17 +389,20 @@ function _drawRiskRadarChart(payload) {
     type: "radar",
     data: {
       labels: labels,
-      datasets: [{
-        label: typeof t === "function" ? t("risk_analysis_risk_score", "Risk Score") : "Risk Score",
-        data: radarData.values,
-        backgroundColor: "rgba(255, 149, 0, 0.2)",
-        borderColor: "rgba(255, 149, 0, 1)",
-        pointBackgroundColor: "rgba(255, 149, 0, 1)",
-        pointBorderColor: "#fff",
-        pointHoverBackgroundColor: "#fff",
-        pointHoverBorderColor: "rgba(255, 149, 0, 1)",
-        borderWidth: 2,
-      }]
+      datasets: [
+        {
+          label:
+            typeof t === "function" ? t("risk_analysis_risk_score", "Risk Score") : "Risk Score",
+          data: radarData.values,
+          backgroundColor: "rgba(255, 149, 0, 0.2)",
+          borderColor: "rgba(255, 149, 0, 1)",
+          pointBackgroundColor: "rgba(255, 149, 0, 1)",
+          pointBorderColor: "#fff",
+          pointHoverBackgroundColor: "#fff",
+          pointHoverBorderColor: "rgba(255, 149, 0, 1)",
+          borderWidth: 2,
+        },
+      ],
     },
     options: {
       responsive: true,
@@ -377,35 +414,37 @@ function _drawRiskRadarChart(payload) {
           grid: { color: gridColor },
           pointLabels: {
             color: "#888",
-            font: { size: 11, family: "system-ui, -apple-system, sans-serif" }
+            font: { size: 11, family: "system-ui, -apple-system, sans-serif" },
           },
           ticks: {
             backdropColor: "transparent",
-            color: (typeof _themeColor === "function") ? _themeColor("--text-secondary", "#666") : "#666",
+            color:
+              typeof _themeColor === "function" ? _themeColor("--text-secondary", "#666") : "#666",
             stepSize: 20,
             min: 0,
             max: 100,
-            display: true
-          }
-        }
+            display: true,
+          },
+        },
       },
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: (typeof _themeColor === "function") ? _themeColor("--bg-secondary", "#fff") : "#fff",
+          backgroundColor:
+            typeof _themeColor === "function" ? _themeColor("--bg-secondary", "#fff") : "#fff",
           titleColor: textPrimary,
           bodyColor: textPrimary,
           borderColor: gridColor,
           borderWidth: 1,
           displayColors: false,
           callbacks: {
-            label: function(context) {
+            label: function (context) {
               return context.formattedValue + " / 100";
-            }
-          }
-        }
-      }
-    }
+            },
+          },
+        },
+      },
+    },
   });
 }
 
@@ -417,23 +456,29 @@ function _drawIncomeStabilityChart(payload) {
   const canvas = document.getElementById("incomeStabilityChart");
   if (!canvas || !window.Chart) return;
 
-  const labels = sources.map(s => typeof t === "function" ? t(s.label_key, s.id) : s.id);
-  const data = sources.map(s => s.percentage);
-  const bgColors = sources.map(s => s.id === "salary" ? "rgba(52, 199, 89, 0.8)" : "rgba(0, 122, 255, 0.8)");
-  const borderColors = sources.map(s => s.id === "salary" ? "rgb(52, 199, 89)" : "rgb(0, 122, 255)");
-  const isRtl = (typeof _pageDirection === "function") ? _pageDirection() === "rtl" : false;
+  const labels = sources.map((s) => (typeof t === "function" ? t(s.label_key, s.id) : s.id));
+  const data = sources.map((s) => s.percentage);
+  const bgColors = sources.map((s) =>
+    s.id === "salary" ? "rgba(52, 199, 89, 0.8)" : "rgba(0, 122, 255, 0.8)"
+  );
+  const borderColors = sources.map((s) =>
+    s.id === "salary" ? "rgb(52, 199, 89)" : "rgb(0, 122, 255)"
+  );
+  const isRtl = typeof _pageDirection === "function" ? _pageDirection() === "rtl" : false;
 
   new Chart(canvas, {
     type: "doughnut",
     data: {
       labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: bgColors,
-        borderColor: borderColors,
-        borderWidth: 1,
-        hoverOffset: 4
-      }]
+      datasets: [
+        {
+          data: data,
+          backgroundColor: bgColors,
+          borderColor: borderColors,
+          borderWidth: 1,
+          hoverOffset: 4,
+        },
+      ],
     },
     options: {
       responsive: true,
@@ -443,19 +488,25 @@ function _drawIncomeStabilityChart(payload) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: (typeof _themeColor === "function") ? _themeColor("--bg-secondary", "#fff") : "#fff",
-          titleColor: (typeof _themeColor === "function") ? _themeColor("--text-primary", "#333") : "#333",
-          bodyColor: (typeof _themeColor === "function") ? _themeColor("--text-primary", "#333") : "#333",
-          borderColor: (typeof _themeColor === "function") ? _themeColor("--border-color", "#e2e8f0") : "#e2e8f0",
+          backgroundColor:
+            typeof _themeColor === "function" ? _themeColor("--bg-secondary", "#fff") : "#fff",
+          titleColor:
+            typeof _themeColor === "function" ? _themeColor("--text-primary", "#333") : "#333",
+          bodyColor:
+            typeof _themeColor === "function" ? _themeColor("--text-primary", "#333") : "#333",
+          borderColor:
+            typeof _themeColor === "function"
+              ? _themeColor("--border-color", "#e2e8f0")
+              : "#e2e8f0",
           borderWidth: 1,
           callbacks: {
-            label: function(context) {
+            label: function (context) {
               return context.formattedValue + "%";
-            }
-          }
-        }
-      }
-    }
+            },
+          },
+        },
+      },
+    },
   });
 }
 

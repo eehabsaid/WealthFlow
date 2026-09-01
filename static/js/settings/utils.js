@@ -4,7 +4,7 @@
 
 // settings.js — Settings page (languages, companies, banks, currencies, users, translations)
 
-'use strict';
+"use strict";
 
 // ── Module state ──────────────────────────────────────────────────────────
 let globalLangs = [];
@@ -13,4 +13,3 @@ let usersLoadRequestId = 0;
 // ════════════════════════════════════════════════════════════════════════════
 // MAIN ROUTER
 // ════════════════════════════════════════════════════════════════════════════
-

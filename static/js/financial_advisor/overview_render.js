@@ -29,12 +29,12 @@ function _renderOverviewError() {
 
 function _categoryColor(key) {
   const colors = {
-    "cash": "var(--accent-green)",
-    "certificates": "#8c7cf0",
-    "gold": "var(--accent-yellow)",
-    "real_estate": "#3ddc84",
-    "vehicles": "#5da9ff",
-    "other_assets": "#b178ff"
+    cash: "var(--accent-green)",
+    certificates: "#8c7cf0",
+    gold: "var(--accent-yellow)",
+    real_estate: "#3ddc84",
+    vehicles: "#5da9ff",
+    other_assets: "#b178ff",
   };
   return colors[key] || "var(--accent-primary)";
 }
@@ -43,21 +43,23 @@ function _formatOverviewAiSummary(execSummary) {
   if (!execSummary || !execSummary.recommendation_paragraphs) return "";
 
   // Render list of paragraphs with spacing
-  return execSummary.recommendation_paragraphs.map(p => {
-    let text = t(p.key, p.fallback);
-    if (p.params) {
-      for (const [k, v] of Object.entries(p.params)) {
-        if (k === "asset_class_key") {
-          text = text.replace("{asset_class}", t(v, v));
-        } else if (k === "amount") {
-          text = text.replace(`{${k}}`, _money(v));
-        } else {
-          text = text.replace(`{${k}}`, fmt(v));
+  return execSummary.recommendation_paragraphs
+    .map((p) => {
+      let text = t(p.key, p.fallback);
+      if (p.params) {
+        for (const [k, v] of Object.entries(p.params)) {
+          if (k === "asset_class_key") {
+            text = text.replace("{asset_class}", t(v, v));
+          } else if (k === "amount") {
+            text = text.replace(`{${k}}`, _money(v));
+          } else {
+            text = text.replace(`{${k}}`, fmt(v));
+          }
         }
       }
-    }
-    return `<p class="mb-2" style="margin-bottom:8px !important; line-height: 1.6; color: var(--text-secondary);">${_escapeHtml(text)}</p>`;
-  }).join("");
+      return `<p class="mb-2" style="margin-bottom:8px !important; line-height: 1.6; color: var(--text-secondary);">${_escapeHtml(text)}</p>`;
+    })
+    .join("");
 }
 
 function _formatGoalDate(dateStr) {
@@ -67,14 +69,14 @@ function _formatGoalDate(dateStr) {
 
 function _alertBadge(severity) {
   const badgeClasses = {
-    "danger": "bg-danger text-white",
-    "warning": "bg-warning text-dark",
-    "info": "bg-info text-dark",
-    "success": "bg-success text-white"
+    danger: "bg-danger text-white",
+    warning: "bg-warning text-dark",
+    info: "bg-info text-dark",
+    success: "bg-success text-white",
   };
   const labelKey = `portfolio_optimizer_severity_${severity}`;
   const fallback = severity.toUpperCase();
-  return `<span class="badge ${badgeClasses[severity] || 'bg-secondary'} ms-2" style="font-size:8px; padding: 4px 6px; letter-spacing: 0.5px; vertical-align: middle; flex-shrink: 0;">${t(labelKey, fallback)}</span>`;
+  return `<span class="badge ${badgeClasses[severity] || "bg-secondary"} ms-2" style="font-size:8px; padding: 4px 6px; letter-spacing: 0.5px; vertical-align: middle; flex-shrink: 0;">${t(labelKey, fallback)}</span>`;
 }
 
 function _renderOverview(payload) {
@@ -125,24 +127,26 @@ function _renderOverview(payload) {
 
   // Legend highlight calculation
   const rangeExcellentActive = healthScore >= 90;
-  const rangeGoodActive = (healthScore >= 75 && healthScore < 90);
-  const rangeAverageActive = (healthScore >= 60 && healthScore < 75);
+  const rangeGoodActive = healthScore >= 75 && healthScore < 90;
+  const rangeAverageActive = healthScore >= 60 && healthScore < 75;
   const rangeNeedsActive = healthScore < 60;
 
   // Recommendation Paragraphs (Limited to 3 items)
   const recParagraphsHtml = _formatOverviewAiSummary(payload.executive_summary);
 
   // Alerts list with severity badge and empty state fallback
-  const alertsHtml = (payload.alerts || []).length > 0
-    ? (payload.alerts || []).map(alert => {
-        let desc = t(alert.desc_key, alert.desc_fallback);
-        if (alert.params) {
-          for (const [k, v] of Object.entries(alert.params)) {
-            if (k === "amount") desc = desc.replace(`{${k}}`, _money(v));
-            else desc = desc.replace(`{${k}}`, fmt(v));
-          }
-        }
-        return `
+  const alertsHtml =
+    (payload.alerts || []).length > 0
+      ? (payload.alerts || [])
+          .map((alert) => {
+            let desc = t(alert.desc_key, alert.desc_fallback);
+            if (alert.params) {
+              for (const [k, v] of Object.entries(alert.params)) {
+                if (k === "amount") desc = desc.replace(`{${k}}`, _money(v));
+                else desc = desc.replace(`{${k}}`, fmt(v));
+              }
+            }
+            return `
           <div class="overview-alert-item animate__animated animate__fadeIn" style="cursor:pointer;" onclick="switchFinancialAdvisorTab('${alert.target_tab}')">
             <div class="overview-alert-icon-wrap ${alert.class}">
               <i class="bi ${alert.icon}"></i>
@@ -156,15 +160,22 @@ function _renderOverview(payload) {
             </div>
           </div>
         `;
-      }).join("")
-    : `<div style="text-align:center; padding:32px 16px; color:var(--text-secondary); font-size:13px;" data-i18n="overview_no_alerts">No alerts</div>`;
+          })
+          .join("")
+      : `<div style="text-align:center; padding:32px 16px; color:var(--text-secondary); font-size:13px;" data-i18n="overview_no_alerts">No alerts</div>`;
 
   // Net Worth trend calculations
   const nwTrendIsUp = Number(kpis.net_worth_growth_yoy || 0) >= 0;
   const nwTrendClass = nwTrendIsUp ? "up" : "down";
   const nwTrendText = nwTrendIsUp
-    ? t("overview_kpi_yoy_trend_up", `↑ {pct}% vs last year`).replace("{pct}", fmt(Math.abs(kpis.net_worth_growth_yoy)))
-    : t("overview_kpi_yoy_trend_down", `↓ {pct}% vs last year`).replace("{pct}", fmt(Math.abs(kpis.net_worth_growth_yoy)));
+    ? t("overview_kpi_yoy_trend_up", `↑ {pct}% vs last year`).replace(
+        "{pct}",
+        fmt(Math.abs(kpis.net_worth_growth_yoy))
+      )
+    : t("overview_kpi_yoy_trend_down", `↓ {pct}% vs last year`).replace(
+        "{pct}",
+        fmt(Math.abs(kpis.net_worth_growth_yoy))
+      );
 
   // Cash Flow expected change
   const cfChangeVal = Number(cashFlow.expected_change_30d || 0);
@@ -176,48 +187,55 @@ function _renderOverview(payload) {
   const wgGrowthSign = wgGrowthVal >= 0 ? "+" : "";
 
   // Dynamic Opportunities list with colored severity badge and empty state fallback
-  const opportunitiesHtml = (payload.opportunities || []).length > 0
-    ? (payload.opportunities || []).map(opp => {
-        let oppIcon = "bi-lightbulb-fill";
-        let oppClass = "alert-info-badge";
-        if (opp.key.includes("cash") || opp.key.includes("liquidity")) {
-          oppIcon = "bi-graph-up-arrow";
-          oppClass = "alert-info-badge";
-        } else if (opp.key.includes("gold")) {
-          oppIcon = "bi-safe2-fill";
-          oppClass = "alert-warning-badge";
-        } else if (opp.key.includes("certificates")) {
-          oppIcon = "bi-bank2";
-          oppClass = "alert-success-badge";
-        } else if (opp.key.includes("mortgage")) {
-          oppIcon = "bi-house-door-fill";
-          oppClass = "alert-success-badge";
-        }
+  const opportunitiesHtml =
+    (payload.opportunities || []).length > 0
+      ? (payload.opportunities || [])
+          .map((opp) => {
+            let oppIcon = "bi-lightbulb-fill";
+            let oppClass = "alert-info-badge";
+            if (opp.key.includes("cash") || opp.key.includes("liquidity")) {
+              oppIcon = "bi-graph-up-arrow";
+              oppClass = "alert-info-badge";
+            } else if (opp.key.includes("gold")) {
+              oppIcon = "bi-safe2-fill";
+              oppClass = "alert-warning-badge";
+            } else if (opp.key.includes("certificates")) {
+              oppIcon = "bi-bank2";
+              oppClass = "alert-success-badge";
+            } else if (opp.key.includes("mortgage")) {
+              oppIcon = "bi-house-door-fill";
+              oppClass = "alert-success-badge";
+            }
 
-        let badgeClass = "bg-info text-dark";
-        if (opp.priority === "high") badgeClass = "bg-danger";
-        else if (opp.priority === "medium") badgeClass = "bg-warning text-dark";
+            let badgeClass = "bg-info text-dark";
+            if (opp.priority === "high") badgeClass = "bg-danger";
+            else if (opp.priority === "medium") badgeClass = "bg-warning text-dark";
 
-        // Remove duplication on impact description wording
-        let impactDesc = t(opp.impact_key, opp.impact_key);
-        const prefixes = [
-          "Potential impact: ", "Potential impact:",
-          "الأثر المحتمل: ", "الأثر المحتمل:",
-          "Möglicher Effekt: ", "Möglicher Effekt:",
-          "Impact potentiel : ", "Impact potentiel :", "Impact potentiel:",
-          "Potential impact "
-        ];
-        for (const prefix of prefixes) {
-          if (impactDesc.startsWith(prefix)) {
-            impactDesc = impactDesc.substring(prefix.length);
-            break;
-          }
-        }
-        if (impactDesc) {
-          impactDesc = impactDesc.charAt(0).toUpperCase() + impactDesc.slice(1);
-        }
+            // Remove duplication on impact description wording
+            let impactDesc = t(opp.impact_key, opp.impact_key);
+            const prefixes = [
+              "Potential impact: ",
+              "Potential impact:",
+              "الأثر المحتمل: ",
+              "الأثر المحتمل:",
+              "Möglicher Effekt: ",
+              "Möglicher Effekt:",
+              "Impact potentiel : ",
+              "Impact potentiel :",
+              "Impact potentiel:",
+              "Potential impact ",
+            ];
+            for (const prefix of prefixes) {
+              if (impactDesc.startsWith(prefix)) {
+                impactDesc = impactDesc.substring(prefix.length);
+                break;
+              }
+            }
+            if (impactDesc) {
+              impactDesc = impactDesc.charAt(0).toUpperCase() + impactDesc.slice(1);
+            }
 
-        return `
+            return `
           <div class="overview-opp-item animate__animated animate__fadeIn" onclick="switchFinancialAdvisorTab('${opp.target_tab}')">
             <div class="overview-opp-icon-wrap ${oppClass}">
               <i class="bi ${oppIcon}"></i>
@@ -232,12 +250,14 @@ function _renderOverview(payload) {
             <i class="bi bi-chevron-right overview-opp-arrow ms-2" style="color: var(--text-secondary);"></i>
           </div>
         `;
-      }).join("")
-    : `<div style="text-align:center; padding:32px 16px; color:var(--text-secondary); font-size:13px;" data-i18n="overview_no_optimization_opportunities">No optimization opportunities</div>`;
+          })
+          .join("")
+      : `<div style="text-align:center; padding:32px 16px; color:var(--text-secondary); font-size:13px;" data-i18n="overview_no_optimization_opportunities">No optimization opportunities</div>`;
 
   // Portfolio allocation list rows (vertical alignment right)
-  const allocationRowsHtml = (portfolio.allocation_cards || []).map(card => {
-    return `
+  const allocationRowsHtml = (portfolio.allocation_cards || [])
+    .map((card) => {
+      return `
       <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color:var(--border-color) !important; font-size:11px; line-height: 1.2;">
         <span style="color:var(--text-secondary); display:inline-flex; align-items:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex: 1;">
           <i class="bi bi-circle-fill me-2" style="font-size:6px; color:${_categoryColor(card.key)}; margin-right:6px;"></i>
@@ -251,7 +271,8 @@ function _renderOverview(payload) {
         </span>
       </div>
     `;
-  }).join("");
+    })
+    .join("");
 
   const goalProgressPct = Math.round(goals.progress_pct || 0);
   const goalRing = `conic-gradient(var(--accent-primary) ${goalProgressPct}%, rgba(123,147,201,0.12) 0)`;
@@ -279,21 +300,21 @@ function _renderOverview(payload) {
             </div>
             <!-- Score Range Legends with Dynamic Highlight Range -->
             <div style="font-size: 11px; margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 10px;">
-              <div class="d-flex align-items-center mb-1" style="opacity: ${rangeExcellentActive ? '1' : '0.45'}; font-weight: ${rangeExcellentActive ? '700' : 'normal'};">
+              <div class="d-flex align-items-center mb-1" style="opacity: ${rangeExcellentActive ? "1" : "0.45"}; font-weight: ${rangeExcellentActive ? "700" : "normal"};">
                 <span class="d-inline-block rounded-circle me-2" style="width:8px; height:8px; background:var(--accent-green); flex-shrink:0;"></span>
-                <span style="color:var(--text-primary);">${rangeExcellentActive ? '✔ ' : ''}<span data-i18n="overview_legend_excellent">Excellent (90-100)</span></span>
+                <span style="color:var(--text-primary);">${rangeExcellentActive ? "✔ " : ""}<span data-i18n="overview_legend_excellent">Excellent (90-100)</span></span>
               </div>
-              <div class="d-flex align-items-center mb-1" style="opacity: ${rangeGoodActive ? '1' : '0.45'}; font-weight: ${rangeGoodActive ? '700' : 'normal'};">
+              <div class="d-flex align-items-center mb-1" style="opacity: ${rangeGoodActive ? "1" : "0.45"}; font-weight: ${rangeGoodActive ? "700" : "normal"};">
                 <span class="d-inline-block rounded-circle me-2" style="width:8px; height:8px; background:#2d7fff; flex-shrink:0;"></span>
-                <span style="color:var(--text-primary);">${rangeGoodActive ? '✔ ' : ''}<span data-i18n="overview_legend_good">Good (75-89)</span></span>
+                <span style="color:var(--text-primary);">${rangeGoodActive ? "✔ " : ""}<span data-i18n="overview_legend_good">Good (75-89)</span></span>
               </div>
-              <div class="d-flex align-items-center mb-1" style="opacity: ${rangeAverageActive ? '1' : '0.45'}; font-weight: ${rangeAverageActive ? '700' : 'normal'};">
+              <div class="d-flex align-items-center mb-1" style="opacity: ${rangeAverageActive ? "1" : "0.45"}; font-weight: ${rangeAverageActive ? "700" : "normal"};">
                 <span class="d-inline-block rounded-circle me-2" style="width:8px; height:8px; background:var(--accent-yellow); flex-shrink:0;"></span>
-                <span style="color:var(--text-primary);">${rangeAverageActive ? '✔ ' : ''}<span data-i18n="overview_legend_average">Average (60-74)</span></span>
+                <span style="color:var(--text-primary);">${rangeAverageActive ? "✔ " : ""}<span data-i18n="overview_legend_average">Average (60-74)</span></span>
               </div>
-              <div class="d-flex align-items-center" style="opacity: ${rangeNeedsActive ? '1' : '0.45'}; font-weight: ${rangeNeedsActive ? '700' : 'normal'};">
+              <div class="d-flex align-items-center" style="opacity: ${rangeNeedsActive ? "1" : "0.45"}; font-weight: ${rangeNeedsActive ? "700" : "normal"};">
                 <span class="d-inline-block rounded-circle me-2" style="width:8px; height:8px; background:var(--accent-red); flex-shrink:0;"></span>
-                <span style="color:var(--text-primary);">${rangeNeedsActive ? '✔ ' : ''}<span data-i18n="overview_legend_needs_attention">Needs Attention (&lt;60)</span></span>
+                <span style="color:var(--text-primary);">${rangeNeedsActive ? "✔ " : ""}<span data-i18n="overview_legend_needs_attention">Needs Attention (&lt;60)</span></span>
               </div>
             </div>
           </div>
@@ -331,7 +352,7 @@ function _renderOverview(payload) {
                   <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4;"></span>
                   <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0; display:inline-flex; align-items:center;">
                     ${_money(kpis.total_net_worth)} 
-                    <span class="ms-2" style="font-size:11px; font-weight:600; color:${nwTrendIsUp ? 'var(--accent-green)' : 'var(--accent-red)'}; margin-left:6px;">${nwTrendText}</span>
+                    <span class="ms-2" style="font-size:11px; font-weight:600; color:${nwTrendIsUp ? "var(--accent-green)" : "var(--accent-red)"}; margin-left:6px;">${nwTrendText}</span>
                   </span>
                 </div>
 
@@ -403,16 +424,18 @@ function _renderOverview(payload) {
     </div>
 
     <!-- ROW 2: Four KPI Cards (Lift-on-Hover Effect) -->
-    ${typeof buildOverviewKpiCardsHtml === 'function' ? buildOverviewKpiCardsHtml(payload, kpis) : ''}
+    ${typeof buildOverviewKpiCardsHtml === "function" ? buildOverviewKpiCardsHtml(payload, kpis) : ""}
 
     <!-- ROW 3 & ROW 4: Summary cards and footer -->
-    ${typeof buildOverviewSummaryRowsHtml === 'function' ? buildOverviewSummaryRowsHtml({ cashFlow, cfChangeClass, cfChangeSign, cfChangeVal, wealthGrowth, wgGrowthSign, wgGrowthVal, opportunitiesHtml, allocationRowsHtml, portfolio, risk, goals, goalRing, goalProgressPct, asOf, monthName }) : ''}
+    ${typeof buildOverviewSummaryRowsHtml === "function" ? buildOverviewSummaryRowsHtml({ cashFlow, cfChangeClass, cfChangeSign, cfChangeVal, wealthGrowth, wgGrowthSign, wgGrowthVal, opportunitiesHtml, allocationRowsHtml, portfolio, risk, goals, goalRing, goalProgressPct, asOf, monthName }) : ""}
   `;
 
   applyTranslations();
 
   // Initialize tooltips
-  const tooltipTriggerList = [].slice.call(container.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  const tooltipTriggerList = [].slice.call(
+    container.querySelectorAll('[data-bs-toggle="tooltip"]')
+  );
   tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl);
   });

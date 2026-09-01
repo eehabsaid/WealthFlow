@@ -17,4 +17,3 @@ function collectVehicleDetailsPayload() {
     color: document.getElementById("vd_color")?.value || "",
   };
 }
-

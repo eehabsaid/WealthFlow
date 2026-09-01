@@ -8,7 +8,9 @@ function renderFixedAssetsList(assets) {
 
   const assetsArray = normalizeFixedAssetsData(assets);
   const goldAssets = assetsArray.filter((asset) => isGoldAssetType(asset.asset_type || asset.type));
-  const nonGoldAssets = assetsArray.filter((asset) => !isGoldAssetType(asset.asset_type || asset.type));
+  const nonGoldAssets = assetsArray.filter(
+    (asset) => !isGoldAssetType(asset.asset_type || asset.type)
+  );
 
   if (!assetsArray || assetsArray.length === 0) {
     container.innerHTML = `
@@ -45,7 +47,8 @@ function renderFixedAssetsList(assets) {
 
     groupedGoldMap[purityKey].total_weight_grams += weightInGrams;
     groupedGoldMap[purityKey].total_purchase_value += parseFloat(asset.purchase_price) || 0;
-    groupedGoldMap[purityKey].total_current_market_value += parseFloat(asset.current_market_value) || 0;
+    groupedGoldMap[purityKey].total_current_market_value +=
+      parseFloat(asset.current_market_value) || 0;
     groupedGoldMap[purityKey].purchases_count += 1;
   });
 
@@ -141,12 +144,15 @@ function showGoldPurityGroupDetails(purityKey) {
   });
 
   if (!purchases.length) {
-    showToast(t("no_gold_purchases_for_purity", "No gold purchases found for this purity."), "warning");
+    showToast(
+      t("no_gold_purchases_for_purity", "No gold purchases found for this purity."),
+      "warning"
+    );
     return;
   }
 
   const rows = purchases
-    .sort((a, b) => (String(b.purchase_date || "")).localeCompare(String(a.purchase_date || "")))
+    .sort((a, b) => String(b.purchase_date || "").localeCompare(String(a.purchase_date || "")))
     .map((asset) => {
       const weight = parseFloat(asset?.gold_details?.weight) || 0;
       const unit = asset?.gold_details?.unit || "gram";
@@ -199,4 +205,3 @@ function showGoldPurityGroupDetails(purityKey) {
   showModal(html);
   applyTranslations();
 }
-

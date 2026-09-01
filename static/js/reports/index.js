@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /* ════════════════════════════════════════════════════════════════════════════
    reports.js — Reports Page (Monthly / Yearly / Custom)
@@ -39,11 +39,14 @@ async function renderReports() {
   const month = today.getMonth() + 1;
   _currentTab = "monthly";
 
-  const reportsTitle = t('reports_title', '📊 Reports');
-  const reportsDesc = t('reports_income_expenses_analysis', 'Income vs Expenses analysis and PDF export');
-  const monthlyText = t('tab_monthly', 'Monthly');
-  const yearlyText = t('tab_yearly', 'Yearly');
-  const customText = t('tab_custom_range', 'Custom Range');
+  const reportsTitle = t("reports_title", "📊 Reports");
+  const reportsDesc = t(
+    "reports_income_expenses_analysis",
+    "Income vs Expenses analysis and PDF export"
+  );
+  const monthlyText = t("tab_monthly", "Monthly");
+  const yearlyText = t("tab_yearly", "Yearly");
+  const customText = t("tab_custom_range", "Custom Range");
 
   mc.innerHTML = `
     <div class="page-header">
@@ -117,13 +120,13 @@ async function renderReports() {
     </div>`;
 
   applyTranslations();
-  if (typeof window.initTabsWithMoreMenu === 'function') {
+  if (typeof window.initTabsWithMoreMenu === "function") {
     window.initTabsWithMoreMenu({
-      containerId: 'reportsTabsBar',
+      containerId: "reportsTabsBar",
       visibleCount: 4,
-      moreLabel: t('financial_advisor_tab_more', 'More'),
-      tabSelector: '.wf-tab',
-      activeClass: 'active',
+      moreLabel: t("financial_advisor_tab_more", "More"),
+      tabSelector: ".wf-tab",
+      activeClass: "active",
     });
   }
   await loadReportData();
@@ -132,23 +135,26 @@ async function renderReports() {
 function switchReportTab(tab) {
   _currentTab = tab;
   ["monthly", "yearly", "custom"].forEach((t) => {
-    const ctrlEl = document.getElementById(
-      `ctrl${t.charAt(0).toUpperCase() + t.slice(1)}`,
-    );
-    const tabEl = document.getElementById(
-      `tab${t.charAt(0).toUpperCase() + t.slice(1)}`,
-    );
+    const ctrlEl = document.getElementById(`ctrl${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    const tabEl = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
     if (ctrlEl) ctrlEl.style.display = t === tab ? "flex" : "none";
     if (tabEl) tabEl.classList.toggle("active", t === tab);
   });
-  
-  const title = document.querySelector('.reports-page-title');
+
+  const title = document.querySelector(".reports-page-title");
   if (title) {
-    if (tab === 'monthly') { title.setAttribute('data-i18n', 'tab_monthly'); title.textContent = t('tab_monthly', 'Monthly'); }
-    else if (tab === 'yearly') { title.setAttribute('data-i18n', 'tab_yearly'); title.textContent = t('tab_yearly', 'Yearly'); }
-    else if (tab === 'custom') { title.setAttribute('data-i18n', 'tab_custom_range'); title.textContent = t('tab_custom_range', 'Custom Range'); }
+    if (tab === "monthly") {
+      title.setAttribute("data-i18n", "tab_monthly");
+      title.textContent = t("tab_monthly", "Monthly");
+    } else if (tab === "yearly") {
+      title.setAttribute("data-i18n", "tab_yearly");
+      title.textContent = t("tab_yearly", "Yearly");
+    } else if (tab === "custom") {
+      title.setAttribute("data-i18n", "tab_custom_range");
+      title.textContent = t("tab_custom_range", "Custom Range");
+    }
   }
-  
+
   loadReportData();
 }
 
@@ -203,10 +209,7 @@ async function loadReportData() {
     sumUrl = `/api/expenses/summary/?year=${year}`;
   }
 
-  const [expRes, sumRes] = await Promise.all([
-    fetch(expUrl),
-    fetch(sumUrl),
-  ]);
+  const [expRes, sumRes] = await Promise.all([fetch(expUrl), fetch(sumUrl)]);
 
   const expData = await expRes.json();
   const sumData = await sumRes.json();
@@ -220,10 +223,7 @@ async function loadReportData() {
     // 1. Calculate explicit expense values strictly from filtered date rows
     const rawExpenses = expData.entries || [];
     if (Array.isArray(rawExpenses)) {
-      totalExp = rawExpenses.reduce(
-        (sum, item) => sum + (parseFloat(item.amount) || 0),
-        0,
-      );
+      totalExp = rawExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
       //console.log('TOTAL EXPENSES CALCULATED', totalExp);
       // 2. Compute category groupings dynamically on frontend
       const catMap = {};
@@ -301,7 +301,6 @@ function editIncome() {
     loadReportData();
   }
 }
-
 
 // ════════════════════════════════════════════════════════════════════════════
 // EXPORTS

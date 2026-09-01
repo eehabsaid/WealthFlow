@@ -187,7 +187,14 @@ function _renderOpportunityDetection(payload) {
     opportunities.forEach((item) => {
       const iconClass = _getOpportunityIconClass(item.key);
       const sev = String(item.severity || "medium").toLowerCase();
-      const badgeClass = sev === "high" ? "opp-badge-high" : (sev === "low" ? "opp-badge-low" : (sev === "info" ? "opp-badge-info" : "opp-badge-medium"));
+      const badgeClass =
+        sev === "high"
+          ? "opp-badge-high"
+          : sev === "low"
+            ? "opp-badge-low"
+            : sev === "info"
+              ? "opp-badge-info"
+              : "opp-badge-medium";
 
       let signalsHtml = "";
       if (item.signals) {
@@ -261,7 +268,9 @@ function _renderOpportunityDetection(payload) {
         if ("amount" in paramsCopy) {
           paramsCopy.amount = _fmtIntValue(paramsCopy.amount);
         }
-        const paramsStr = JSON.stringify(paramsCopy).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+        const paramsStr = JSON.stringify(paramsCopy)
+          .replace(/'/g, "&apos;")
+          .replace(/"/g, "&quot;");
         actionBoxHtml = `
           <div class="opp-action-box">
             <span data-i18n-key="${item.action_template_key}" data-i18n-params="${paramsStr}"></span>

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 function drawIncomeExpenseChart(income, expense) {
   const canvas = document.getElementById("chartIncomeExpense");
@@ -34,9 +34,16 @@ function drawIncomeExpenseChart(income, expense) {
         },
       },
       scales: {
-        x: { ticks: { color: "#94a3b8", font: { family: "Inter, sans-serif" } }, grid: { display: false } },
+        x: {
+          ticks: { color: "#94a3b8", font: { family: "Inter, sans-serif" } },
+          grid: { display: false },
+        },
         y: {
-          ticks: { color: "#94a3b8", font: { family: "Inter, sans-serif" }, callback: (v) => fmt(v) },
+          ticks: {
+            color: "#94a3b8",
+            font: { family: "Inter, sans-serif" },
+            callback: (v) => fmt(v),
+          },
           grid: { color: "rgba(148, 163, 184, 0.12)" },
         },
       },
@@ -112,9 +119,16 @@ function drawTrendChart(monthly) {
         },
       },
       scales: {
-        x: { ticks: { color: "#94a3b8", font: { family: "Inter, sans-serif" } }, grid: { display: false } },
+        x: {
+          ticks: { color: "#94a3b8", font: { family: "Inter, sans-serif" } },
+          grid: { display: false },
+        },
         y: {
-          ticks: { color: "#94a3b8", font: { family: "Inter, sans-serif" }, callback: (v) => fmt(v) },
+          ticks: {
+            color: "#94a3b8",
+            font: { family: "Inter, sans-serif" },
+            callback: (v) => fmt(v),
+          },
           grid: { color: "rgba(148, 163, 184, 0.12)" },
         },
       },
@@ -128,7 +142,10 @@ function drawTrendChart(monthly) {
 // ════════════════════════════════════════════════════════════════════════════
 
 function repKPI(label, value, icon, accent, bg) {
-  const translatedLabel = t(label, label.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()));
+  const translatedLabel = t(
+    label,
+    label.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  );
   return `<div class="col-6 col-lg-3">
     <div class="kpi-card h-100" style="--kpi-accent:${accent};--kpi-bg:${bg}">
       <div class="kpi-icon"><i class="bi ${icon}"></i></div>

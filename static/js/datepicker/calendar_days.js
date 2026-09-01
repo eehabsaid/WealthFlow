@@ -29,7 +29,15 @@
   function _buildWeekdays() {
     const row = document.createElement("div");
     row.className = "wf-dp-weekdays";
-    const keys = ["dp_day_sun", "dp_day_mon", "dp_day_tue", "dp_day_wed", "dp_day_thu", "dp_day_fri", "dp_day_sat"];
+    const keys = [
+      "dp_day_sun",
+      "dp_day_mon",
+      "dp_day_tue",
+      "dp_day_wed",
+      "dp_day_thu",
+      "dp_day_fri",
+      "dp_day_sat",
+    ];
     const fallbacks = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
     keys.forEach((k, i) => {
       const cell = document.createElement("div");

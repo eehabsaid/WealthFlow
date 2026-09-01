@@ -18,4 +18,3 @@ function updateGoldValuation() {
   }
   refreshGoldCalculatedFields();
 }
-

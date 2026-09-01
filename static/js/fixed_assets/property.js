@@ -21,7 +21,10 @@ function populatePropertyValuationFields(realEstate = {}) {
 
 async function refreshPropertyValuation() {
   if (!currentEditingAssetId) {
-    showToast(t("save_asset_before_valuation", "Save this asset first before refreshing valuation."), "warning");
+    showToast(
+      t("save_asset_before_valuation", "Save this asset first before refreshing valuation."),
+      "warning"
+    );
     return;
   }
 
@@ -32,7 +35,10 @@ async function refreshPropertyValuation() {
     const payload = await response.json();
 
     if (!response.ok) {
-      throw new Error(payload.error || t("error_refreshing_property_valuation", "Failed to refresh property valuation."));
+      throw new Error(
+        payload.error ||
+          t("error_refreshing_property_valuation", "Failed to refresh property valuation.")
+      );
     }
 
     const asset = payload.asset || {};
@@ -45,10 +51,19 @@ async function refreshPropertyValuation() {
     if (payload.updated) {
       showToast(t("property_valuation_refreshed", "Property valuation refreshed."), "success");
     } else {
-      showToast(t("property_valuation_unavailable", "No automatic valuation was available for this property."), "warning");
+      showToast(
+        t(
+          "property_valuation_unavailable",
+          "No automatic valuation was available for this property."
+        ),
+        "warning"
+      );
     }
   } catch (error) {
-    showToast(error.message || t("error_refreshing_property_valuation", "Failed to refresh property valuation."), "error");
+    showToast(
+      error.message ||
+        t("error_refreshing_property_valuation", "Failed to refresh property valuation."),
+      "error"
+    );
   }
 }
-

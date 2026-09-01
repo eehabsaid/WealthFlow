@@ -1,20 +1,20 @@
-'use strict';
+"use strict";
 
 async function showSalaryModal(entryId, companyId) {
-    let entry = null;
-    if (entryId) {
-        const res  = await fetch(`/api/salary/?company=${companyId}`);
-        const data = await res.json();
-        entry = data.entries.find(e => e.id === entryId);
-    }
+  let entry = null;
+  if (entryId) {
+    const res = await fetch(`/api/salary/?company=${companyId}`);
+    const data = await res.json();
+    entry = data.entries.find((e) => e.id === entryId);
+  }
 
-    const opts = MONTHS.map(m =>
-        `<option value="${m}" ${entry?.month === m ? 'selected' : ''}>${m}</option>`
-    ).join('');
+  const opts = MONTHS.map(
+    (m) => `<option value="${m}" ${entry?.month === m ? "selected" : ""}>${m}</option>`
+  ).join("");
 
-    showModal(`
+  showModal(`
         <div class="modal-header">
-            <h5 class="modal-title">${entry ? t('btn_edit', 'Edit') : t('btn_add', 'Add')} Entry</h5>
+            <h5 class="modal-title">${entry ? t("btn_edit", "Edit") : t("btn_add", "Add")} Entry</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -31,22 +31,22 @@ async function showSalaryModal(entryId, companyId) {
                 <div class="col-4">
                     <label data-i18n="salary_expected">Expected</label>
                     <input type="number" step="0.01" class="form-control" id="mExpected"
-                        value="${entry ? entry.expected : ''}">
+                        value="${entry ? entry.expected : ""}">
                 </div>
                 <div class="col-4">
                     <label data-i18n="salary_paid">Paid</label>
                     <input type="number" step="0.01" class="form-control" id="mPaid"
-                        value="${entry ? entry.paid : ''}">
+                        value="${entry ? entry.paid : ""}">
                 </div>
                 <div class="col-4">
                     <label data-i18n="salary_bonus">Bonus</label>
                     <input type="number" step="0.01" class="form-control" id="mBonus"
-                        value="${entry ? entry.bonus : '0'}">
+                        value="${entry ? entry.bonus : "0"}">
                 </div>
                 <div class="col-12">
                     <label data-i18n="notes">Notes</label>
                     <input type="text" class="form-control" id="mNotes"
-                        value="${entry ? entry.notes : ''}">
+                        value="${entry ? entry.notes : ""}">
                 </div>
             </div>
         </div>
@@ -56,7 +56,7 @@ async function showSalaryModal(entryId, companyId) {
                 data-i18n="btn_save">Save</button>
         </div>`);
 
-    applyTranslations();
+  applyTranslations();
 }
 
 // ════════════════════════════════════════════════════════════════════════════

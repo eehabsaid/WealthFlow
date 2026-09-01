@@ -5,7 +5,7 @@
  * Depended on by pl_render.js and pl_events.js.
  */
 
-'use strict';
+"use strict";
 
 window.PromptLib = window.PromptLib || {};
 
@@ -13,10 +13,10 @@ window.PromptLib.state = {
   categories: [],
   items: [],
   selectedPrompt: null,
-  activeCategory: 'all',
-  searchQuery: '',
+  activeCategory: "all",
+  searchQuery: "",
   favoritesOnly: false,
-  sortBy: 'favorites',
+  sortBy: "favorites",
   page: 1,
   pageSize: 10,
   total: 0,
@@ -35,17 +35,17 @@ window.PromptLib.t = function (key, fallback) {
 };
 
 window.PromptLib.escapeHtml = function (str) {
-  if (str === null || str === undefined) return '';
+  if (str === null || str === undefined) return "";
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 };
 
 window.PromptLib.getLocalizedCategory = function (c) {
-  if (!c) return { name: '', description: '', code: '' };
+  if (!c) return { name: "", description: "", code: "" };
   const t = window.PromptLib.t;
   const nameKey = `ai_prompt_cat_${c.code}_name`;
   const descKey = `ai_prompt_cat_${c.code}_desc`;
@@ -76,7 +76,7 @@ window.PromptLib.getLocalizedPrompt = function (p) {
   }
 
   const catObj = p.category ? window.PromptLib.getLocalizedCategory(p.category) : null;
-  const catName = catObj ? catObj.localizedName : (p.category_name || p.category_code || '');
+  const catName = catObj ? catObj.localizedName : p.category_name || p.category_code || "";
 
   return {
     ...p,
@@ -90,13 +90,13 @@ window.PromptLib.getLocalizedPrompt = function (p) {
 window.PromptLib.loadCategoriesAndPrompts = async function () {
   const state = window.PromptLib.state;
   try {
-    const catRes = await fetch('/api/ai-platform/prompts/categories/');
+    const catRes = await fetch("/api/ai-platform/prompts/categories/");
     if (catRes.ok) {
       const catData = await catRes.json();
       state.categories = catData.categories || [];
     }
   } catch (e) {
-    console.warn('Failed to load prompt categories', e);
+    console.warn("Failed to load prompt categories", e);
   }
   await window.PromptLib.fetchPrompts();
 };
@@ -104,18 +104,18 @@ window.PromptLib.loadCategoriesAndPrompts = async function () {
 window.PromptLib.fetchPrompts = async function () {
   const state = window.PromptLib.state;
   const params = new URLSearchParams();
-  if (state.activeCategory && state.activeCategory !== 'all') {
-    params.append('category_code', state.activeCategory);
+  if (state.activeCategory && state.activeCategory !== "all") {
+    params.append("category_code", state.activeCategory);
   }
   if (state.searchQuery) {
-    params.append('search', state.searchQuery);
+    params.append("search", state.searchQuery);
   }
   if (state.favoritesOnly) {
-    params.append('favorites_only', 'true');
+    params.append("favorites_only", "true");
   }
-  params.append('sort_by', state.sortBy);
-  params.append('page', state.page);
-  params.append('page_size', state.pageSize);
+  params.append("sort_by", state.sortBy);
+  params.append("page", state.page);
+  params.append("page_size", state.pageSize);
 
   try {
     const res = await fetch(`/api/ai-platform/prompts/?${params.toString()}`);
@@ -127,7 +127,7 @@ window.PromptLib.fetchPrompts = async function () {
       state.totalPages = data.total_pages || 1;
 
       if (state.selectedPrompt) {
-        const updated = state.items.find(p => p.id === state.selectedPrompt.id);
+        const updated = state.items.find((p) => p.id === state.selectedPrompt.id);
         if (updated) {
           state.selectedPrompt = updated;
         } else if (state.items.length > 0) {
@@ -142,7 +142,7 @@ window.PromptLib.fetchPrompts = async function () {
       }
     }
   } catch (err) {
-    console.error('Error fetching prompts', err);
+    console.error("Error fetching prompts", err);
   }
 
   window.PromptLib.renderModalContent();

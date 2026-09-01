@@ -36,30 +36,26 @@ function initializePropertyMap(lat = 30.0444, lng = 31.2357) {
     reverseGeocode(e.latlng.lat, e.latlng.lng);
   });
 
-    setTimeout(() => propertyMap.invalidateSize(), 200);
+  setTimeout(() => propertyMap.invalidateSize(), 200);
 
-    const uploadBtn = document.getElementById("btnUploadPropertyPhoto");
-    const uploadInput = document.getElementById("propertyPhotoInput");
+  const uploadBtn = document.getElementById("btnUploadPropertyPhoto");
+  const uploadInput = document.getElementById("propertyPhotoInput");
 
-    if (uploadBtn && uploadInput) {
+  if (uploadBtn && uploadInput) {
+    uploadBtn.onclick = () => uploadInput.click();
 
-        uploadBtn.onclick = () => uploadInput.click();
+    uploadInput.onchange = function () {
+      const gallery = document.getElementById("propertyPhotoGallery");
 
-        uploadInput.onchange = function () {
+      gallery.innerHTML = "";
 
-        const gallery = document.getElementById("propertyPhotoGallery");
+      Array.from(this.files).forEach((file) => {
+        const reader = new FileReader();
 
-        gallery.innerHTML = "";
-
-        Array.from(this.files).forEach(file => {
-
-            const reader = new FileReader();
-
-            reader.onload = function (e) {
-
-                gallery.insertAdjacentHTML(
-                    "beforeend",
-                    `
+        reader.onload = function (e) {
+          gallery.insertAdjacentHTML(
+            "beforeend",
+            `
                     <div class="col-md-4">
 
                         <div class="card border-0 shadow-sm">
@@ -89,31 +85,24 @@ function initializePropertyMap(lat = 30.0444, lng = 31.2357) {
 
                     </div>
                     `
-                );
+          );
+        };
 
-            };
-
-            reader.readAsDataURL(file);
-
-        });
-
+        reader.readAsDataURL(file);
+      });
     };
-
-    }
-    
+  }
 }
 
 function renderPropertyPhotoGallery() {
+  const gallery = document.getElementById("propertyPhotoGallery");
 
-    const gallery = document.getElementById("propertyPhotoGallery");
+  if (!gallery) return;
 
-    if (!gallery) return;
+  gallery.innerHTML = "";
 
-    gallery.innerHTML = "";
-
-    if (!propertyPhotos || propertyPhotos.length === 0) {
-
-        gallery.innerHTML = `
+  if (!propertyPhotos || propertyPhotos.length === 0) {
+    gallery.innerHTML = `
             <div class="col-12 text-center py-4">
                 <i class="bi bi-images"
                    style="font-size:40px;color:var(--text-secondary);opacity:.45;"></i>
@@ -126,13 +115,12 @@ function renderPropertyPhotoGallery() {
             </div>
         `;
 
-        applyTranslations();
-        return;
-    }
+    applyTranslations();
+    return;
+  }
 
-    propertyPhotos.forEach((photo, index) => {
-
-        gallery.innerHTML += `
+  propertyPhotos.forEach((photo, index) => {
+    gallery.innerHTML += `
             <div class="col-md-4 col-lg-3">
 
                 <div class="card border-0 shadow-sm h-100">
@@ -152,46 +140,34 @@ function renderPropertyPhotoGallery() {
                 </div>
             </div>
         `;
-
-    });
-
+  });
 }
 
 async function removePropertyPhoto(index) {
+  const photo = propertyPhotos[index];
 
-    const photo = propertyPhotos[index];
+  if (!photo) return;
 
-    if (!photo) return;
+  if (!confirm("Delete this photo?")) return;
 
-    if (!confirm("Delete this photo?")) return;
+  try {
+    const response = await fetch(`/api/fixed-assets/${currentEditingAssetId}/photos/${photo.id}/`, {
+      method: "DELETE",
+      headers: {
+        "X-CSRFToken": getCsrfToken(),
+      },
+    });
 
-    try {
+    if (!response.ok) throw new Error("Failed to delete photo.");
 
-        const response = await fetch(
-            `/api/fixed-assets/${currentEditingAssetId}/photos/${photo.id}/`,
-            {
-                method: "DELETE",
-                headers: {
-                    "X-CSRFToken": getCsrfToken(),
-                },
-            }
-        );
+    propertyPhotos.splice(index, 1);
 
-        if (!response.ok)
-            throw new Error("Failed to delete photo.");
+    renderPropertyPhotoGallery();
 
-        propertyPhotos.splice(index, 1);
-
-        renderPropertyPhotoGallery();
-
-        showToast("Photo deleted successfully.", "success");
-
-    } catch (err) {
-
-        showToast(err.message, "danger");
-
-    }
-
+    showToast("Photo deleted successfully.", "success");
+  } catch (err) {
+    showToast(err.message, "danger");
+  }
 }
 
 async function locatePropertyOnMap() {
@@ -201,9 +177,7 @@ async function locatePropertyOnMap() {
   const district = document.getElementById("re_district").value.trim();
   const address = document.getElementById("re_address").value.trim();
 
-  const query = [address, district, city, governorate, country]
-    .filter(Boolean)
-    .join(", ");
+  const query = [address, district, city, governorate, country].filter(Boolean).join(", ");
 
   if (!query) {
     showToast("Please enter an address first.", "warning");
@@ -214,7 +188,7 @@ async function locatePropertyOnMap() {
 
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`,
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
     );
 
     const results = await response.json();
@@ -246,7 +220,7 @@ async function reverseGeocode(lat, lng) {
     const currentLang = localStorage.getItem("lang") || "en";
 
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=${currentLang},en`,
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=${currentLang},en`
     );
 
     const result = await response.json();
@@ -258,8 +232,7 @@ async function reverseGeocode(lat, lng) {
 
     document.getElementById("re_governorate").value = a.state || a.county || "";
 
-    document.getElementById("re_city").value =
-      a.city || a.town || a.village || "";
+    document.getElementById("re_city").value = a.city || a.town || a.village || "";
 
     document.getElementById("re_district").value =
       a.suburb ||
@@ -280,4 +253,3 @@ async function reverseGeocode(lat, lng) {
     console.error(err);
   }
 }
-

@@ -82,9 +82,7 @@
    */
   function _onDayKey(picker, e, btn) {
     const allDays = Array.from(
-      picker._popup
-        ? picker._popup.querySelectorAll(".wf-dp-day:not(.wf-dp-day-empty)")
-        : []
+      picker._popup ? picker._popup.querySelectorAll(".wf-dp-day:not(.wf-dp-day-empty)") : []
     );
     const idx = allDays.indexOf(btn);
     if (idx === -1) return;

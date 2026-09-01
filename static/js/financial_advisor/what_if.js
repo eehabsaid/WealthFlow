@@ -79,7 +79,10 @@
       const curr = payload.current_values || {};
       _salaryChangePct = Number(params.salary_change_pct || 0);
       _expensesChangePct = Number(params.expenses_change_pct || 0);
-      _goldTargetPct = params.gold_allocation_target_pct !== undefined ? Number(params.gold_allocation_target_pct) : Number(curr.gold_allocation_pct || 0);
+      _goldTargetPct =
+        params.gold_allocation_target_pct !== undefined
+          ? Number(params.gold_allocation_target_pct)
+          : Number(curr.gold_allocation_pct || 0);
       _reinvestmentChoice = params.certificate_reinvestment_choice || "reinvest";
 
       _renderWhatIfView(pane);
@@ -147,8 +150,10 @@
     const goldPctStr = Number(curr.gold_allocation_pct || 0).toFixed(1);
     const goldMaxSlider = Number(curr.gold_allocation_max_slider || 40);
 
-    const salaryPctFormatted = _salaryChangePct >= 0 ? `+${_salaryChangePct}%` : `${_salaryChangePct}%`;
-    const expPctFormatted = _expensesChangePct >= 0 ? `+${_expensesChangePct}%` : `${_expensesChangePct}%`;
+    const salaryPctFormatted =
+      _salaryChangePct >= 0 ? `+${_salaryChangePct}%` : `${_salaryChangePct}%`;
+    const expPctFormatted =
+      _expensesChangePct >= 0 ? `+${_expensesChangePct}%` : `${_expensesChangePct}%`;
 
     pane.innerHTML = `
       <style>
@@ -311,9 +316,10 @@
       const actualSalary = Math.max(0, baseSalary * (1 + _salaryChangePct / 100));
       const pctStr = _salaryChangePct >= 0 ? `+${_salaryChangePct}%` : `${_salaryChangePct}%`;
       const resignNote = _salaryChangePct === -100 ? " (Resigned)" : "";
-      const tooltipText = baseSalary > 0
-        ? `${pctStr}${resignNote} (EGP ${_money(actualSalary)}${perMonthText})`
-        : `${pctStr}${resignNote}`;
+      const tooltipText =
+        baseSalary > 0
+          ? `${pctStr}${resignNote} (EGP ${_money(actualSalary)}${perMonthText})`
+          : `${pctStr}${resignNote}`;
       _showSliderTooltip(salarySlider, tooltipText);
     }
 
@@ -322,9 +328,8 @@
       const baseExpenses = Number(curr.monthly_expenses || 0);
       const actualExpenses = baseExpenses * (1 + _expensesChangePct / 100);
       const pctStr = _expensesChangePct >= 0 ? `+${_expensesChangePct}%` : `${_expensesChangePct}%`;
-      const tooltipText = baseExpenses > 0
-        ? `${pctStr} (EGP ${_money(actualExpenses)}${perMonthText})`
-        : `${pctStr}`;
+      const tooltipText =
+        baseExpenses > 0 ? `${pctStr} (EGP ${_money(actualExpenses)}${perMonthText})` : `${pctStr}`;
       _showSliderTooltip(expSlider, tooltipText);
     }
 
@@ -337,7 +342,9 @@
       salarySlider.addEventListener("input", (e) => {
         _salaryChangePct = Number(e.target.value);
         const badge = pane.querySelector("#whatif-salary-val-badge");
-        if (badge) badge.textContent = _salaryChangePct >= 0 ? `+${_salaryChangePct}%` : `${_salaryChangePct}%`;
+        if (badge)
+          badge.textContent =
+            _salaryChangePct >= 0 ? `+${_salaryChangePct}%` : `${_salaryChangePct}%`;
         updateSalaryTooltip();
         _debouncedRecalculate();
       });
@@ -352,7 +359,9 @@
       expSlider.addEventListener("input", (e) => {
         _expensesChangePct = Number(e.target.value);
         const badge = pane.querySelector("#whatif-expenses-val-badge");
-        if (badge) badge.textContent = _expensesChangePct >= 0 ? `+${_expensesChangePct}%` : `${_expensesChangePct}%`;
+        if (badge)
+          badge.textContent =
+            _expensesChangePct >= 0 ? `+${_expensesChangePct}%` : `${_expensesChangePct}%`;
         updateExpensesTooltip();
         _debouncedRecalculate();
       });

@@ -3,10 +3,8 @@
 // This file is part of the fixed_assets module. Do not edit directly.
 
 function updatePurchasePriceUSD() {
-  const purchasePrice =
-    parseFloat(document.getElementById("fa_purchase_price").value) || 0;
-  const rate =
-    parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0;
+  const purchasePrice = parseFloat(document.getElementById("fa_purchase_price").value) || 0;
+  const rate = parseFloat(document.getElementById("fa_purchase_usd_rate").value) || 0;
   const purchaseCurrencyCode = getSelectedPurchaseCurrencyCode();
   const usdField = document.getElementById("fa_purchase_price_usd");
 
@@ -137,7 +135,9 @@ async function refreshGoldCalculatedFields(forcePriceFetch = false) {
 
     const puritySettings = await getGoldPuritySettings(forcePriceFetch);
     const purityKey = normalizeGoldPurity(purity);
-    const purityConfig = (puritySettings || []).find((item) => String(item.key || "").toLowerCase() === purityKey);
+    const purityConfig = (puritySettings || []).find(
+      (item) => String(item.key || "").toLowerCase() === purityKey
+    );
     const cashbackPerGram = parseFloat(purityConfig?.cashback_per_gram) || 0;
 
     const sellPerGram = getGoldSellPerGram(gold, purityKey);
@@ -191,10 +191,8 @@ async function fillRowUsdRateNow(buttonEl, rateSelector, recalcFn) {
 }
 
 function updateNetSaleAmount() {
-  const salePrice =
-    parseFloat(document.getElementById("fa_sale_price")?.value) || 0;
-  const sellingExpenses =
-    parseFloat(document.getElementById("fa_selling_expenses")?.value) || 0;
+  const salePrice = parseFloat(document.getElementById("fa_sale_price")?.value) || 0;
+  const sellingExpenses = parseFloat(document.getElementById("fa_selling_expenses")?.value) || 0;
   const netSaleField = document.getElementById("fa_net_sale_amount");
 
   if (!netSaleField) return;
@@ -203,22 +201,26 @@ function updateNetSaleAmount() {
 }
 
 function shouldRequireBankForMethod(methodValue) {
-  const normalized = String(methodValue || "").trim().toLowerCase();
+  const normalized = String(methodValue || "")
+    .trim()
+    .toLowerCase();
   return normalized !== "cash";
 }
 
 function renderPaymentMethodOptions(selected = "Cash") {
-  return FIXED_ASSET_PAYMENT_METHODS
-    .map((method) => {
-      const key = `payment_${method.toLowerCase().replace(/\s+/g, "_")}`;
-      return `<option value="${method}" ${String(selected) === method ? "selected" : ""} data-i18n="${key}">${t(key, method)}</option>`;
-    })
-    .join("");
+  return FIXED_ASSET_PAYMENT_METHODS.map((method) => {
+    const key = `payment_${method.toLowerCase().replace(/\s+/g, "_")}`;
+    return `<option value="${method}" ${String(selected) === method ? "selected" : ""} data-i18n="${key}">${t(key, method)}</option>`;
+  }).join("");
 }
 
 function isMonetaryCurrency(currency) {
-  const code = String(currency?.code || "").trim().toUpperCase();
-  const name = String(currency?.name || "").trim().toLowerCase();
+  const code = String(currency?.code || "")
+    .trim()
+    .toUpperCase();
+  const name = String(currency?.name || "")
+    .trim()
+    .toLowerCase();
   return !["GOLD", "XAU", "CASH"].includes(code) && !name.includes("gold");
 }
 
@@ -312,4 +314,3 @@ function renderFurnitureLinkOptions(selectedFurnitureId = "") {
   });
   return rows.join("");
 }
-

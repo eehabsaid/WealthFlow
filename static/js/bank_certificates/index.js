@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
 // bank_certificates.js — Bank Certificates management page
 
-'use strict';
+"use strict";
 
 // ════════════════════════════════════════════════════════════════════════════
 // MODULE STATE
@@ -15,49 +15,51 @@ let _currencies = [];
 // ════════════════════════════════════════════════════════════════════════════
 
 async function renderBankCertificates() {
-    const mc = document.getElementById('main-content');
-    mc.innerHTML =
-        '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
+  const mc = document.getElementById("main-content");
+  mc.innerHTML =
+    '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
 
-    await refreshBanks();
-    const [cRes, certRes] = await Promise.all([
-        fetch('/api/currencies/'),
-        fetch('/api/bank-certificates/'),
-    ]);
+  await refreshBanks();
+  const [cRes, certRes] = await Promise.all([
+    fetch("/api/currencies/"),
+    fetch("/api/bank-certificates/"),
+  ]);
 
-    const currData = await cRes.json();
-    const certData = await certRes.json();
-    const certificates = certData.certificates || [];
-    _currencies = currData.currencies || [];
+  const currData = await cRes.json();
+  const certData = await certRes.json();
+  const certificates = certData.certificates || [];
+  _currencies = currData.currencies || [];
 
-    const editTitle = t('edit', 'Edit');
-    const deleteTitle = t('delete', 'Delete');
-    const historyTitle = t('interest_history', 'Interest History');
+  const editTitle = t("edit", "Edit");
+  const deleteTitle = t("delete", "Delete");
+  const historyTitle = t("interest_history", "Interest History");
 
-    const rows = certificates
-        .map(
-            (c) => {
-                const isClosed = String(c.status || '').trim().toLowerCase() === 'closed';
-                
-                // Apply the background tint, explicit red text color, and semi-bold font to every cell if closed
-                const tdStyle = isClosed 
-                    ? 'style="background-color: rgba(255, 77, 109, 0.05) !important; color: var(--accent-red) !important; font-weight: 700 !important;"' 
-                    : '';
+  const rows = certificates
+    .map((c) => {
+      const isClosed =
+        String(c.status || "")
+          .trim()
+          .toLowerCase() === "closed";
 
-                return `
+      // Apply the background tint, explicit red text color, and semi-bold font to every cell if closed
+      const tdStyle = isClosed
+        ? 'style="background-color: rgba(255, 77, 109, 0.05) !important; color: var(--accent-red) !important; font-weight: 700 !important;"'
+        : "";
+
+      return `
                 <tr>
-                    <td ${tdStyle}>${c.bank_name || '—'}</td>
-                    <td ${tdStyle}><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${c.currency_flag} ${c.currency_code || '—'}</span></td>
-                    <td ${tdStyle}>${formatDate(c.issue_date) || '—'}</td>
-                    <td ${tdStyle}>${formatDate(c.expiry_date) || '—'}</td>
+                    <td ${tdStyle}>${c.bank_name || "—"}</td>
+                    <td ${tdStyle}><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${c.currency_flag} ${c.currency_code || "—"}</span></td>
+                    <td ${tdStyle}>${formatDate(c.issue_date) || "—"}</td>
+                    <td ${tdStyle}>${formatDate(c.expiry_date) || "—"}</td>
                     <td ${tdStyle} class="text-end">${fmt(c.amount)}</td>
-                    <td ${tdStyle}>${c.interest_rate ? c.interest_rate : '—'}</td>
-                    <td ${tdStyle}>${c.interest_value ? fmt(c.interest_value) : '—'}</td>
-                    <td ${tdStyle} class="local-freq-field" data-freq="${c.frequency || ''}">
-                    ${c.frequency ? c.frequency.replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()) : '—'}
+                    <td ${tdStyle}>${c.interest_rate ? c.interest_rate : "—"}</td>
+                    <td ${tdStyle}>${c.interest_value ? fmt(c.interest_value) : "—"}</td>
+                    <td ${tdStyle} class="local-freq-field" data-freq="${c.frequency || ""}">
+                    ${c.frequency ? c.frequency.replace(/_/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase()) : "—"}
                     </td>
                     <td ${tdStyle}>
-                        ${c.status || '—'}
+                        ${c.status || "—"}
                     </td>
                     <td ${tdStyle}>
                         <button class="btn-icon" onclick="showBankCertificateModal(${c.id})" title="${editTitle}"><i class="bi bi-pencil"></i></button>
@@ -65,23 +67,22 @@ async function renderBankCertificates() {
                         <button class="btn-icon del" onclick="deleteBankCertificate(${c.id})" title="${deleteTitle}"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>`;
-            }
-        )
-        .join('');
+    })
+    .join("");
 
-    const bankCertificatesTitle = t('bank_certificates', 'Bank Certificates');
-    const bankHeader = t('bank', 'Bank');
-    const currencyHeader = t('currency', 'Currency');
-    const issueDateHeader = t('issue_date', 'Issue Date');
-    const expiryDateHeader = t('expiry_date', 'Expiry Date');
-    const amountHeader = t('balance_amount', 'Amount');
-    const rateHeader = t('interest_rate', 'Interest Rate');
-    const valueHeader = t('interest_value', 'Interest Value');
-    const frequencyHeader = t('frequency', 'Frequency');
-    const statusHeader = t('status', 'Status');
-    const actionsHeader = t('actions', 'Actions');
+  const bankCertificatesTitle = t("bank_certificates", "Bank Certificates");
+  const bankHeader = t("bank", "Bank");
+  const currencyHeader = t("currency", "Currency");
+  const issueDateHeader = t("issue_date", "Issue Date");
+  const expiryDateHeader = t("expiry_date", "Expiry Date");
+  const amountHeader = t("balance_amount", "Amount");
+  const rateHeader = t("interest_rate", "Interest Rate");
+  const valueHeader = t("interest_value", "Interest Value");
+  const frequencyHeader = t("frequency", "Frequency");
+  const statusHeader = t("status", "Status");
+  const actionsHeader = t("actions", "Actions");
 
-    mc.innerHTML = `
+  mc.innerHTML = `
         <div class="page-header">
             <div><div class="page-title" data-i18n="bank_certificates">${bankCertificatesTitle}</div></div>
         </div>
@@ -106,7 +107,7 @@ async function renderBankCertificates() {
                 </table>
             </div>
         </div>`;
-    applyTranslations();
+  applyTranslations();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -114,45 +115,54 @@ async function renderBankCertificates() {
 // ════════════════════════════════════════════════════════════════════════════
 
 async function showBankCertificateInterestHistory(certificateId) {
-    const res = await fetch(`/api/bank-certificates/${certificateId}/interest-history/`);
-    if (!res.ok) {
-        showToast(t('error_loading_interest_history', 'Error loading interest history'), 'error');
-        return;
-    }
+  const res = await fetch(`/api/bank-certificates/${certificateId}/interest-history/`);
+  if (!res.ok) {
+    showToast(t("error_loading_interest_history", "Error loading interest history"), "error");
+    return;
+  }
 
-    const data = await res.json();
-    const certificate = data.certificate || {};
-    const items = data.items || [];
-    const totalRecords = items.length;
-    const totalInterestPaid = items.reduce((sum, item) => sum + (parseFloat(item.interest_amount) || 0), 0);
+  const data = await res.json();
+  const certificate = data.certificate || {};
+  const items = data.items || [];
+  const totalRecords = items.length;
+  const totalInterestPaid = items.reduce(
+    (sum, item) => sum + (parseFloat(item.interest_amount) || 0),
+    0
+  );
 
-    const prettyIssueDate = formatCertificateHistoryDate(certificate.issue_date);
-    const prettyNextPosting = getCertificateNextPostingDate(certificate, items);
-    const prettyFrequency = formatCertificateFrequencyLabel(certificate.frequency || '');
+  const prettyIssueDate = formatCertificateHistoryDate(certificate.issue_date);
+  const prettyNextPosting = getCertificateNextPostingDate(certificate, items);
+  const prettyFrequency = formatCertificateFrequencyLabel(certificate.frequency || "");
 
-    const rows = items.length
-        ? items.map((item) => `
-            <tr data-posting-date="${item.posting_date || ''}">
-                <td>${formatDate(item.posting_date) || '—'}</td>
-                <td>${item.posting_period || '—'}</td>
+  const rows = items.length
+    ? items
+        .map(
+          (item) => `
+            <tr data-posting-date="${item.posting_date || ""}">
+                <td>${formatDate(item.posting_date) || "—"}</td>
+                <td>${item.posting_period || "—"}</td>
                 <td class="text-end">${fmt(item.interest_amount || 0)}</td>
-                <td>${item.bank_name || '—'}</td>
-                <td>${item.currency_code || '—'}</td>
-                <td>${item.created_at ? formatDate(item.created_at) : '—'}</td>
+                <td>${item.bank_name || "—"}</td>
+                <td>${item.currency_code || "—"}</td>
+                <td>${item.created_at ? formatDate(item.created_at) : "—"}</td>
             </tr>
-        `).join('')
-        : `<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--text-muted)" data-i18n="no_interest_history">No interest history yet.</td></tr>`;
+        `
+        )
+        .join("")
+    : `<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--text-muted)" data-i18n="no_interest_history">No interest history yet.</td></tr>`;
 
-    const certTitle = certificate.bank_name
-        ? `${certificate.bank_name} - ${certificate.currency_code || ''}`
-        : (certificate.id ? `#${certificate.id}` : '');
+  const certTitle = certificate.bank_name
+    ? `${certificate.bank_name} - ${certificate.currency_code || ""}`
+    : certificate.id
+      ? `#${certificate.id}`
+      : "";
 
-    const summaryRows = `
+  const summaryRows = `
         <div class="row g-2" style="margin-bottom:12px;">
             <div class="col-md-4">
                 <div style="padding:10px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-secondary);">
                     <div style="font-size:11px;color:var(--text-secondary);" data-i18n="certificate">Certificate</div>
-                    <div style="font-weight:700;color:var(--text-primary);">${certificate.bank_name || certTitle || '—'}</div>
+                    <div style="font-weight:700;color:var(--text-primary);">${certificate.bank_name || certTitle || "—"}</div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -188,14 +198,14 @@ async function showBankCertificateInterestHistory(certificateId) {
         </div>
     `;
 
-    showModal(`
+  showModal(`
         <div class="modal-header">
             <h5 class="modal-title" data-i18n="interest_history">Interest History</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="closeModal()"></button>
         </div>
         <div class="modal-body">
             <div style="margin-bottom:10px;color:var(--text-secondary);font-size:13px;">
-                <span data-i18n="certificate">Certificate</span>: ${certTitle || '—'}
+                <span data-i18n="certificate">Certificate</span>: ${certTitle || "—"}
             </div>
             ${summaryRows}
             <div class="row g-2" style="margin-bottom:10px;">
@@ -232,22 +242,21 @@ async function showBankCertificateInterestHistory(certificateId) {
             <button class="btn-secondary-custom" data-bs-dismiss="modal" onclick="closeModal()" data-i18n="btn_close">Close</button>
         </div>
     `);
-    applyTranslations();
+  applyTranslations();
 }
 
 function filterBankCertificateInterestHistoryRows() {
-    const start = document.getElementById('interestHistoryStart')?.value || '';
-    const end = document.getElementById('interestHistoryEnd')?.value || '';
-    const rows = document.querySelectorAll('#interestHistoryRows tr[data-posting-date]');
+  const start = document.getElementById("interestHistoryStart")?.value || "";
+  const end = document.getElementById("interestHistoryEnd")?.value || "";
+  const rows = document.querySelectorAll("#interestHistoryRows tr[data-posting-date]");
 
-    rows.forEach((row) => {
-        const postingDate = row.getAttribute('data-posting-date') || '';
-        const inStart = !start || postingDate >= start;
-        const inEnd = !end || postingDate <= end;
-        row.style.display = inStart && inEnd ? '' : 'none';
-    });
+  rows.forEach((row) => {
+    const postingDate = row.getAttribute("data-posting-date") || "";
+    const inStart = !start || postingDate >= start;
+    const inEnd = !end || postingDate <= end;
+    row.style.display = inStart && inEnd ? "" : "none";
+  });
 }
-
 
 window.showBankCertificateInterestHistory = showBankCertificateInterestHistory;
 window.filterBankCertificateInterestHistoryRows = filterBankCertificateInterestHistoryRows;

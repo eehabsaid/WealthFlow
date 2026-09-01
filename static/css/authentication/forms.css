@@ -31,7 +31,9 @@
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 13px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   width: 100%;
   min-height: 38px;
 }
@@ -81,7 +83,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s ease, border-color 0.2s ease;
+  transition:
+    color 0.15s ease,
+    border-color 0.2s ease;
   min-height: 38px;
 }
 
@@ -160,7 +164,9 @@
 .strength-fill {
   height: 100%;
   width: 0;
-  transition: width 0.3s ease, background-color 0.3s ease;
+  transition:
+    width 0.3s ease,
+    background-color 0.3s ease;
   border-radius: 2px;
 }
 

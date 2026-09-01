@@ -5,18 +5,18 @@
  * Depends on: pl_state.js, pl_render_list.js
  */
 
-'use strict';
+"use strict";
 
 window.PromptLib = window.PromptLib || {};
 
 function _csrfToken() {
-  return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+  return document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
 }
 
 // Optimistic UI for Favorite Toggle
 window.PromptLib.toggleFavorite = async function (promptId) {
   const state = window.PromptLib.state;
-  const target = state.items.find(p => p.id === promptId);
+  const target = state.items.find((p) => p.id === promptId);
   if (target) {
     target.is_favorite = !target.is_favorite;
     if (state.selectedPrompt && state.selectedPrompt.id === promptId) {
@@ -27,16 +27,16 @@ window.PromptLib.toggleFavorite = async function (promptId) {
 
   try {
     const res = await fetch(`/api/ai-platform/prompts/${promptId}/favorite/`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'X-CSRFToken': _csrfToken(),
-        'Content-Type': 'application/json',
+        "X-CSRFToken": _csrfToken(),
+        "Content-Type": "application/json",
       },
     });
     if (res.ok) {
       const data = await res.json();
       if (data.prompt) {
-        const index = state.items.findIndex(p => p.id === promptId);
+        const index = state.items.findIndex((p) => p.id === promptId);
         if (index !== -1) {
           state.items[index] = data.prompt;
         }
@@ -47,18 +47,21 @@ window.PromptLib.toggleFavorite = async function (promptId) {
       }
     }
   } catch (e) {
-    console.error('Failed to toggle favorite', e);
+    console.error("Failed to toggle favorite", e);
   }
 };
 
 // Optimistic UI for Soft Delete
 window.PromptLib.deletePrompt = async function (promptId) {
   const state = window.PromptLib.state;
-  const confirmMsg = window.PromptLib.t('ai_prompt_confirm_delete', 'Are you sure you want to delete this prompt?');
+  const confirmMsg = window.PromptLib.t(
+    "ai_prompt_confirm_delete",
+    "Are you sure you want to delete this prompt?"
+  );
   if (!confirm(confirmMsg)) return;
 
   // Optimistic removal from state
-  state.items = state.items.filter(p => p.id !== promptId);
+  state.items = state.items.filter((p) => p.id !== promptId);
   state.total = Math.max(0, state.total - 1);
 
   if (state.selectedPrompt && state.selectedPrompt.id === promptId) {
@@ -68,9 +71,9 @@ window.PromptLib.deletePrompt = async function (promptId) {
 
   try {
     const res = await fetch(`/api/ai-platform/prompts/${promptId}/`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'X-CSRFToken': _csrfToken(),
+        "X-CSRFToken": _csrfToken(),
       },
     });
     if (!res.ok) {
@@ -78,7 +81,7 @@ window.PromptLib.deletePrompt = async function (promptId) {
       await window.PromptLib.fetchPrompts();
     }
   } catch (e) {
-    console.error('Failed to delete prompt', e);
+    console.error("Failed to delete prompt", e);
     await window.PromptLib.fetchPrompts();
   }
 };
@@ -88,9 +91,9 @@ window.PromptLib.duplicatePrompt = async function (promptId) {
   const state = window.PromptLib.state;
   try {
     const res = await fetch(`/api/ai-platform/prompts/${promptId}/duplicate/`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'X-CSRFToken': _csrfToken(),
+        "X-CSRFToken": _csrfToken(),
       },
     });
     if (res.ok) {
@@ -103,6 +106,6 @@ window.PromptLib.duplicatePrompt = async function (promptId) {
       }
     }
   } catch (e) {
-    console.error('Failed to duplicate prompt', e);
+    console.error("Failed to duplicate prompt", e);
   }
 };

@@ -32,8 +32,7 @@ function populateSaleForm(sale) {
 
   document.getElementById("fa_sale_date").value = sale.sale_date || "";
   document.getElementById("fa_sale_price").value = sale.sale_price || 0;
-  document.getElementById("fa_selling_expenses").value =
-    sale.selling_expenses || 0;
+  document.getElementById("fa_selling_expenses").value = sale.selling_expenses || 0;
   document.getElementById("fa_sale_notes").value = sale.notes || "";
 
   if (sale.deposit_currency_id !== null && sale.deposit_currency_id !== undefined) {
@@ -158,13 +157,33 @@ function toggleRealEstateDependentTabs() {
     }
   });
 
-  [propertyTab, propertyPane, renovationTab, renovationPane, furnitureTab, furniturePane, valuationTab, valuationPane, mortgageTabItem, mortgagePane, rentalTabItem, rentalPane].forEach((element) => {
+  [
+    propertyTab,
+    propertyPane,
+    renovationTab,
+    renovationPane,
+    furnitureTab,
+    furniturePane,
+    valuationTab,
+    valuationPane,
+    mortgageTabItem,
+    mortgagePane,
+    rentalTabItem,
+    rentalPane,
+  ].forEach((element) => {
     if (element) {
       element.classList.toggle("d-none", !isRealEstate);
     }
   });
 
-  [vehicleTabItem, vehiclePane, maintenanceTabItem, maintenancePane, insuranceTabItem, insurancePane].forEach((element) => {
+  [
+    vehicleTabItem,
+    vehiclePane,
+    maintenanceTabItem,
+    maintenancePane,
+    insuranceTabItem,
+    insurancePane,
+  ].forEach((element) => {
     if (element) {
       element.classList.toggle("d-none", !isVehicle);
     }
@@ -216,4 +235,3 @@ function toggleRealEstateDependentTabs() {
 
   toggleRealEstateFields();
 }
-

@@ -5,15 +5,15 @@
  * Depends on: pl_state.js, pl_render_list.js, pl_render_detail.js, pl_actions.js
  */
 
-'use strict';
+"use strict";
 
 window.PromptLib = window.PromptLib || {};
 
 window.openPromptLibraryModal = function () {
-  let container = document.getElementById('modal-container');
+  let container = document.getElementById("modal-container");
   if (!container) {
-    container = document.createElement('div');
-    container.id = 'modal-container';
+    container = document.createElement("div");
+    container.id = "modal-container";
     document.body.appendChild(container);
   }
 
@@ -39,7 +39,7 @@ function _promptLibSearchInput(query) {
 
 function _promptLibClearSearch() {
   const state = window.PromptLib.state;
-  state.searchQuery = '';
+  state.searchQuery = "";
   state.page = 1;
   window.PromptLib.fetchPrompts();
 }
@@ -67,7 +67,7 @@ function _promptLibToggleFavoritesFilter() {
 
 function _promptLibSelectPrompt(promptId) {
   const state = window.PromptLib.state;
-  const found = state.items.find(p => p.id === promptId);
+  const found = state.items.find((p) => p.id === promptId);
   if (found) {
     state.selectedPrompt = found;
     window.PromptLib.renderModalContent();

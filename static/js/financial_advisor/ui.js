@@ -18,7 +18,18 @@ function _renderGoalPlanningHeader(payload) {
   `;
 }
 
-function _renderGoalPlanningKPIs(summary, completedCount, onTrackCount, atRiskCount, totalTarget, totalSaved, completedPct, onTrackPct, atRiskPct, savedTargetPct) {
+function _renderGoalPlanningKPIs(
+  summary,
+  completedCount,
+  onTrackCount,
+  atRiskCount,
+  totalTarget,
+  totalSaved,
+  completedPct,
+  onTrackPct,
+  atRiskPct,
+  savedTargetPct
+) {
   return `
       <div class="goal-kpi-grid mb-3">
         <div class="goal-kpi-card">
@@ -63,7 +74,17 @@ function _renderGoalPlanningCardsSection(goals) {
                 <input id="goalSearchInput" class="form-control form-control-sm" type="text" placeholder="${_escapeHtml(t("goal_planning_search_placeholder"))}">
                 <select id="goalTypeFilter" class="form-select form-select-sm">
                   <option value="all">${_escapeHtml(t("goal_planning_filter_all_categories"))}</option>
-                  ${Array.from(new Set(goals.map((goal) => String(goal.goal_type || "").trim()).filter(Boolean))).sort().map((goalType) => `<option value="${_escapeHtml(goalType)}">${_escapeHtml(goalType)}</option>`).join("")}
+                  ${Array.from(
+                    new Set(
+                      goals.map((goal) => String(goal.goal_type || "").trim()).filter(Boolean)
+                    )
+                  )
+                    .sort()
+                    .map(
+                      (goalType) =>
+                        `<option value="${_escapeHtml(goalType)}">${_escapeHtml(goalType)}</option>`
+                    )
+                    .join("")}
                 </select>
                 <select id="goalStatusFilter" class="form-select form-select-sm">
                   <option value="all">${_escapeHtml(t("goal_planning_filter_all_statuses"))}</option>
@@ -122,7 +143,11 @@ function _renderGoalPlanningMilestonesSection(milestones) {
               <button class="btn btn-sm btn-outline-light goal-calendar-btn" type="button" data-i18n="goal_planning_view_calendar"></button>
             </div>
             <div class="goal-milestone-list">
-              ${milestones.length ? milestones.map((item) => `
+              ${
+                milestones.length
+                  ? milestones
+                      .map(
+                        (item) => `
                 <div class="goal-milestone-item">
                   <div>
                     <div class="goal-milestone-title">${_escapeHtml(item.goal_name || t("goal_planning_not_available"))}</div>
@@ -135,7 +160,11 @@ function _renderGoalPlanningMilestonesSection(milestones) {
                     <small><span data-i18n="goal_planning_monthly_required"></span>: ${fmt(Number(item.monthly_required_egp || 0))} / <span data-i18n="goal_planning_months_short"></span></small>
                   </div>
                 </div>
-              `).join("") : `<div class="portfolio-empty-state" data-i18n="goal_planning_no_milestones"></div>`}
+              `
+                      )
+                      .join("")
+                  : `<div class="portfolio-empty-state" data-i18n="goal_planning_no_milestones"></div>`
+              }
             </div>
           </div>
   `;
@@ -146,13 +175,17 @@ function _renderGoalPlanningInsightsSection(insights) {
           <div class="portfolio-card goal-insights-card h-100">
             <div class="portfolio-card-title" data-i18n="goal_planning_insights_title"></div>
             <div class="portfolio-rec-list">
-              ${insights.map((item) => `
+              ${insights
+                .map(
+                  (item) => `
                 <div class="portfolio-rec-item goal-insight-item">
                   <span class="goal-insight-icon" aria-hidden="true"><i class="bi bi-stars"></i></span>
                   <div class="portfolio-rec-text" data-i18n="${item.key}"></div>
                   <span class="portfolio-severity-badge ${_goalSeverityClass(item.severity)}" data-i18n="${item.severity_key}"></span>
                 </div>
-              `).join("")}
+              `
+                )
+                .join("")}
             </div>
           </div>
   `;
@@ -163,13 +196,17 @@ function _renderGoalPlanningRecommendationsSection(recommendations) {
           <div class="portfolio-card goal-recommendations-card h-100">
             <div class="portfolio-card-title" data-i18n="goal_planning_recommendations_title"></div>
             <div class="portfolio-rec-list">
-              ${recommendations.map((item) => `
+              ${recommendations
+                .map(
+                  (item) => `
                 <div class="portfolio-rec-item goal-recommendation-item">
                   <span class="goal-rec-icon" aria-hidden="true"><i class="bi bi-lightning-charge"></i></span>
                   <div class="portfolio-rec-text" data-i18n="${item.key}"></div>
                   <span class="portfolio-severity-badge ${_goalSeverityClass(item.severity)}" data-i18n="${item.severity_key}"></span>
                 </div>
-              `).join("")}
+              `
+                )
+                .join("")}
             </div>
           </div>
   `;

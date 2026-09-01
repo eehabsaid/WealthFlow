@@ -4,21 +4,23 @@
 // and server-side backup management (list, restore, delete).
 
 async function renderBackupRestoreSettings() {
-    const contentDiv = document.getElementById('settingsContent');
-    if (!contentDiv) return;
+  const contentDiv = document.getElementById("settingsContent");
+  if (!contentDiv) return;
 
-    // Fetch server-side backup list
-    let backups = [];
-    try {
-        const res = await fetch('/api/settings/backup/list/?t=' + Date.now());
-        const data = await res.json();
-        backups = data.backups || [];
-    } catch (e) {
-        console.error("Failed to load server backups list", e);
-    }
+  // Fetch server-side backup list
+  let backups = [];
+  try {
+    const res = await fetch("/api/settings/backup/list/?t=" + Date.now());
+    const data = await res.json();
+    backups = data.backups || [];
+  } catch (e) {
+    console.error("Failed to load server backups list", e);
+  }
 
-    const rows = backups.length > 0 
-        ? backups.map(b => {
+  const rows =
+    backups.length > 0
+      ? backups
+          .map((b) => {
             const formattedSize = (b.size / 1024).toFixed(1) + " KB";
             // Simple date formatting
             const formattedDate = formatDate(b.created_at);
@@ -37,10 +39,11 @@ async function renderBackupRestoreSettings() {
                     </button>
                 </td>
             </tr>`;
-        }).join('')
-        : `<tr><td colspan="4" class="text-center" data-i18n="no_backups_found" style="padding: 20px; color: var(--text-secondary) !important;">No backups found on server.</td></tr>`;
+          })
+          .join("")
+      : `<tr><td colspan="4" class="text-center" data-i18n="no_backups_found" style="padding: 20px; color: var(--text-secondary) !important;">No backups found on server.</td></tr>`;
 
-    contentDiv.innerHTML = `
+  contentDiv.innerHTML = `
         <div class="row g-4">
             <!-- Left Panel: Client-side actions -->
             <div class="col-md-5">
@@ -107,169 +110,176 @@ async function renderBackupRestoreSettings() {
         </div>
     `;
 
-    applyTranslations();
+  applyTranslations();
 }
 
 // Trigger Client-side download
 function triggerDownloadBackup() {
-    // Standard direct browser download by navigating or opening the endpoint
-    // This prompts the native Save File Dialog Window.
-    const url = '/api/settings/backup/create/?download=true';
-    window.location.href = url;
+  // Standard direct browser download by navigating or opening the endpoint
+  // This prompts the native Save File Dialog Window.
+  const url = "/api/settings/backup/create/?download=true";
+  window.location.href = url;
 }
 
 // Trigger Client-side restore (upload)
 async function triggerUploadRestore(input) {
-    if (!input.files || input.files.length === 0) return;
+  if (!input.files || input.files.length === 0) return;
 
-    const file = input.files[0];
-    const overwrite = document.getElementById('restoreOverwriteOpt')?.checked || false;
+  const file = input.files[0];
+  const overwrite = document.getElementById("restoreOverwriteOpt")?.checked || false;
 
-    const confirmMsg = t('restore_confirm', 'Are you sure you want to restore this backup? This will modify database records.');
-    if (!confirm(confirmMsg)) {
-        input.value = ''; // Reset file input
-        return;
+  const confirmMsg = t(
+    "restore_confirm",
+    "Are you sure you want to restore this backup? This will modify database records."
+  );
+  if (!confirm(confirmMsg)) {
+    input.value = ""; // Reset file input
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  showLoader();
+  try {
+    const res = await fetch(`/api/settings/backup/restore/?overwrite=${overwrite}`, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showAlert(t("restore_success", "Restore completed successfully!"), "success");
+      // Re-render settings page to reflect potential schema changes / updates
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } else {
+      showAlert(data.error || "Restore failed", "danger");
     }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    showLoader();
-    try {
-        const res = await fetch(`/api/settings/backup/restore/?overwrite=${overwrite}`, {
-            method: 'POST',
-            body: formData
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            showAlert(t('restore_success', 'Restore completed successfully!'), 'success');
-            // Re-render settings page to reflect potential schema changes / updates
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            showAlert(data.error || 'Restore failed', 'danger');
-        }
-    } catch (e) {
-        showAlert('Network error: ' + e.message, 'danger');
-    } finally {
-        hideLoader();
-        input.value = ''; // Reset file input
-    }
+  } catch (e) {
+    showAlert("Network error: " + e.message, "danger");
+  } finally {
+    hideLoader();
+    input.value = ""; // Reset file input
+  }
 }
 
 // Trigger Server-side backup creation
 async function createServerBackup() {
-    showLoader();
-    try {
-        const res = await fetch('/api/settings/backup/create/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        const data = await res.json();
+  showLoader();
+  try {
+    const res = await fetch("/api/settings/backup/create/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await res.json();
 
-        if (data.success) {
-            showAlert(t('backup_success', 'Backup created successfully!'), 'success');
-            await renderBackupRestoreSettings(); // Refresh list
-        } else {
-            showAlert(data.error || 'Backup creation failed', 'danger');
-        }
-    } catch (e) {
-        showAlert('Network error: ' + e.message, 'danger');
-    } finally {
-        hideLoader();
+    if (data.success) {
+      showAlert(t("backup_success", "Backup created successfully!"), "success");
+      await renderBackupRestoreSettings(); // Refresh list
+    } else {
+      showAlert(data.error || "Backup creation failed", "danger");
     }
+  } catch (e) {
+    showAlert("Network error: " + e.message, "danger");
+  } finally {
+    hideLoader();
+  }
 }
 
 // Trigger Server-side restore
 async function restoreServerBackup(filename) {
-    const overwrite = document.getElementById('restoreOverwriteOpt')?.checked || false;
+  const overwrite = document.getElementById("restoreOverwriteOpt")?.checked || false;
 
-    const confirmMsg = t('restore_confirm', 'Are you sure you want to restore this backup? This will modify database records.');
-    if (!confirm(confirmMsg)) return;
+  const confirmMsg = t(
+    "restore_confirm",
+    "Are you sure you want to restore this backup? This will modify database records."
+  );
+  if (!confirm(confirmMsg)) return;
 
-    showLoader();
-    try {
-        const res = await fetch(`/api/settings/backup/restore/?overwrite=${overwrite}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename })
-        });
-        const data = await res.json();
+  showLoader();
+  try {
+    const res = await fetch(`/api/settings/backup/restore/?overwrite=${overwrite}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename }),
+    });
+    const data = await res.json();
 
-        if (data.success) {
-            showAlert(t('restore_success', 'Restore completed successfully!'), 'success');
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            showAlert(data.error || 'Restore failed', 'danger');
-        }
-    } catch (e) {
-        showAlert('Network error: ' + e.message, 'danger');
-    } finally {
-        hideLoader();
+    if (data.success) {
+      showAlert(t("restore_success", "Restore completed successfully!"), "success");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } else {
+      showAlert(data.error || "Restore failed", "danger");
     }
+  } catch (e) {
+    showAlert("Network error: " + e.message, "danger");
+  } finally {
+    hideLoader();
+  }
 }
 
 // Trigger Server-side delete
 async function deleteServerBackup(filename) {
-    const confirmMsg = t('delete_confirm', 'Are you sure you want to delete this backup file?');
-    if (!confirm(confirmMsg)) return;
+  const confirmMsg = t("delete_confirm", "Are you sure you want to delete this backup file?");
+  if (!confirm(confirmMsg)) return;
 
-    showLoader();
-    try {
-        const res = await fetch('/api/settings/backup/delete/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename })
-        });
-        const data = await res.json();
+  showLoader();
+  try {
+    const res = await fetch("/api/settings/backup/delete/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename }),
+    });
+    const data = await res.json();
 
-        if (data.success) {
-            showAlert('Backup deleted successfully', 'success');
-            await renderBackupRestoreSettings(); // Refresh list
-        } else {
-            showAlert(data.error || 'Deletion failed', 'danger');
-        }
-    } catch (e) {
-        showAlert('Network error: ' + e.message, 'danger');
-    } finally {
-        hideLoader();
+    if (data.success) {
+      showAlert("Backup deleted successfully", "success");
+      await renderBackupRestoreSettings(); // Refresh list
+    } else {
+      showAlert(data.error || "Deletion failed", "danger");
     }
+  } catch (e) {
+    showAlert("Network error: " + e.message, "danger");
+  } finally {
+    hideLoader();
+  }
 }
 
 // Utility Loader helpers (checks if global showLoader/hideLoader exists, or falls back to console/minimal UI)
 function showLoader() {
-    const globalLoader = document.getElementById('global-loader');
-    if (globalLoader) {
-        globalLoader.style.display = 'flex';
-    } else {
-        // Fallback loader if not present
-        const loader = document.createElement('div');
-        loader.id = 'backup-temp-loader';
-        loader.style = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:9999;color:white;font-size:20px;';
-        loader.innerHTML = '<div>Processing ...</div>';
-        document.body.appendChild(loader);
-    }
+  const globalLoader = document.getElementById("global-loader");
+  if (globalLoader) {
+    globalLoader.style.display = "flex";
+  } else {
+    // Fallback loader if not present
+    const loader = document.createElement("div");
+    loader.id = "backup-temp-loader";
+    loader.style =
+      "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:9999;color:white;font-size:20px;";
+    loader.innerHTML = "<div>Processing ...</div>";
+    document.body.appendChild(loader);
+  }
 }
 
 function hideLoader() {
-    const globalLoader = document.getElementById('global-loader');
-    if (globalLoader) {
-        globalLoader.style.display = 'none';
-    }
-    const tempLoader = document.getElementById('backup-temp-loader');
-    if (tempLoader) {
-        tempLoader.remove();
-    }
+  const globalLoader = document.getElementById("global-loader");
+  if (globalLoader) {
+    globalLoader.style.display = "none";
+  }
+  const tempLoader = document.getElementById("backup-temp-loader");
+  if (tempLoader) {
+    tempLoader.remove();
+  }
 }
 
 function showAlert(message, type) {
-    if (typeof window.showToast === 'function') {
-        window.showToast(message, type);
-    } else {
-        alert(message);
-    }
+  if (typeof window.showToast === "function") {
+    window.showToast(message, type);
+  } else {
+    alert(message);
+  }
 }

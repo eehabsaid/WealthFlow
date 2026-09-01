@@ -9,8 +9,12 @@ function renderFinancialAdvisor() {
   const savedTab = sessionStorage.getItem(FINANCIAL_ADVISOR_ACTIVE_TAB_KEY) || "overview";
   const hasSavedTab = FINANCIAL_ADVISOR_TABS.some((tab) => tab.id === savedTab);
   const activeTabId = hasSavedTab ? savedTab : "overview";
-  const primaryTabs = FINANCIAL_ADVISOR_TABS.filter((tab) => FINANCIAL_ADVISOR_PRIMARY_TAB_IDS.includes(tab.id));
-  const overflowTabs = FINANCIAL_ADVISOR_TABS.filter((tab) => !FINANCIAL_ADVISOR_PRIMARY_TAB_IDS.includes(tab.id));
+  const primaryTabs = FINANCIAL_ADVISOR_TABS.filter((tab) =>
+    FINANCIAL_ADVISOR_PRIMARY_TAB_IDS.includes(tab.id)
+  );
+  const overflowTabs = FINANCIAL_ADVISOR_TABS.filter(
+    (tab) => !FINANCIAL_ADVISOR_PRIMARY_TAB_IDS.includes(tab.id)
+  );
   const overflowHasActive = overflowTabs.some((tab) => tab.id === activeTabId);
 
   const renderTabButton = (tab) => `
@@ -119,7 +123,8 @@ function renderFinancialAdvisor() {
 
   const tabsContent = FINANCIAL_ADVISOR_TABS.map((tab) => renderTabPane(tab)).join("");
 
-  const activeTabObj = FINANCIAL_ADVISOR_TABS.find(tab => tab.id === activeTabId) || FINANCIAL_ADVISOR_TABS[0];
+  const activeTabObj =
+    FINANCIAL_ADVISOR_TABS.find((tab) => tab.id === activeTabId) || FINANCIAL_ADVISOR_TABS[0];
   const activeKey = activeTabObj.shortKey || activeTabObj.key;
 
   main.innerHTML = `
@@ -148,11 +153,11 @@ function renderFinancialAdvisor() {
 
   applyTranslations();
 
-  if (typeof window.initTabsWithMoreMenu === 'function') {
+  if (typeof window.initTabsWithMoreMenu === "function") {
     window.initTabsWithMoreMenu({
-      containerId: 'financialAdvisorTabs',
+      containerId: "financialAdvisorTabs",
       visibleCount: 4,
-      moreLabel: typeof t === 'function' ? t('financial_advisor_tab_more', 'More') : 'More',
+      moreLabel: typeof t === "function" ? t("financial_advisor_tab_more", "More") : "More",
     });
   }
 
@@ -166,11 +171,12 @@ function renderFinancialAdvisor() {
         const tabId = target.id.replace("fa-tab-", "");
         if (tabId) {
           sessionStorage.setItem(FINANCIAL_ADVISOR_ACTIVE_TAB_KEY, tabId);
-          const activeTabObj = FINANCIAL_ADVISOR_TABS.find(t => t.id === tabId) || FINANCIAL_ADVISOR_TABS[0];
+          const activeTabObj =
+            FINANCIAL_ADVISOR_TABS.find((t) => t.id === tabId) || FINANCIAL_ADVISOR_TABS[0];
           const activeKey = activeTabObj.shortKey || activeTabObj.key;
-          const titleEl = document.querySelector('.page-header .page-title span');
+          const titleEl = document.querySelector(".page-header .page-title span");
           if (titleEl) {
-            titleEl.setAttribute('data-i18n', activeKey);
+            titleEl.setAttribute("data-i18n", activeKey);
             titleEl.textContent = t(activeKey);
           }
         }
@@ -226,8 +232,6 @@ function renderFinancialAdvisor() {
 
 window.renderFinancialAdvisor = renderFinancialAdvisor;
 
-
-
 // ════════════════════════════════════════════════════════════════════════════
 // GLOBAL WINDOW EXPORTS FOR HTML BACKWARD COMPATIBILITY
 // ════════════════════════════════════════════════════════════════════════════
@@ -238,9 +242,25 @@ window.loadCashFlowForecast = loadCashFlowForecast;
 window.loadWealthGrowthForecast = loadWealthGrowthForecast;
 window.loadPortfolioOptimizer = loadPortfolioOptimizer;
 window.loadGoalPlanning = loadGoalPlanning;
-window.loadRiskAnalysis = (typeof loadRiskAnalysis !== 'undefined') ? loadRiskAnalysis : (window.loadRiskAnalysis || (() => {}));
-window.loadSpendingIntelligence = (typeof loadSpendingIntelligence !== 'undefined') ? loadSpendingIntelligence : (window.loadSpendingIntelligence || (() => {}));
-window.loadOpportunityDetection = (typeof loadOpportunityDetection !== 'undefined') ? loadOpportunityDetection : (window.loadOpportunityDetection || (() => {}));
-window.loadPerformance = (typeof loadPerformance !== 'undefined') ? loadPerformance : (window.loadPerformance || (() => {}));
-window.loadWhatIfSimulator = (typeof loadWhatIfSimulator !== 'undefined') ? loadWhatIfSimulator : (window.loadWhatIfSimulator || (() => {}));
-window.loadScenarioPlanner = (typeof loadScenarioPlanner !== 'undefined') ? loadScenarioPlanner : (window.loadScenarioPlanner || (() => {}));
+window.loadRiskAnalysis =
+  typeof loadRiskAnalysis !== "undefined"
+    ? loadRiskAnalysis
+    : window.loadRiskAnalysis || (() => {});
+window.loadSpendingIntelligence =
+  typeof loadSpendingIntelligence !== "undefined"
+    ? loadSpendingIntelligence
+    : window.loadSpendingIntelligence || (() => {});
+window.loadOpportunityDetection =
+  typeof loadOpportunityDetection !== "undefined"
+    ? loadOpportunityDetection
+    : window.loadOpportunityDetection || (() => {});
+window.loadPerformance =
+  typeof loadPerformance !== "undefined" ? loadPerformance : window.loadPerformance || (() => {});
+window.loadWhatIfSimulator =
+  typeof loadWhatIfSimulator !== "undefined"
+    ? loadWhatIfSimulator
+    : window.loadWhatIfSimulator || (() => {});
+window.loadScenarioPlanner =
+  typeof loadScenarioPlanner !== "undefined"
+    ? loadScenarioPlanner
+    : window.loadScenarioPlanner || (() => {});

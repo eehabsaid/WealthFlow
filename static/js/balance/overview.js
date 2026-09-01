@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // balance/overview.js — Overview tab renderer
 // Renders: Currency Summary Cards + Total All Balances + Financial Intelligence
@@ -6,28 +6,48 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 function renderBalanceOverview(data) {
-    const pane = document.getElementById('bal-pane-overview');
-    if (!pane) return;
+  const pane = document.getElementById("bal-pane-overview");
+  if (!pane) return;
 
-    const { totals, totalEGP, usdAmount, eurAmount, sarAmount, usdRate, eurRate, sarRate,
-            goldValue, grandTotal, netWorth, cashEGP, forecastData, formulaDesc, grandTotalLabel } = data;
+  const {
+    totals,
+    totalEGP,
+    usdAmount,
+    eurAmount,
+    sarAmount,
+    usdRate,
+    eurRate,
+    sarRate,
+    goldValue,
+    grandTotal,
+    netWorth,
+    cashEGP,
+    forecastData,
+    formulaDesc,
+    grandTotalLabel,
+  } = data;
 
-    const currencyCards = _currencies.map((cur) => {
-        const lookupKey = (cur.code === 'GOLD' || cur.code === 'Gold')
-            ? (totals.GOLD !== undefined ? 'GOLD' : 'Gold')
-            : cur.code;
-        const cardValue = totals[lookupKey] || 0;
-        return `
+  const currencyCards = _currencies
+    .map((cur) => {
+      const lookupKey =
+        cur.code === "GOLD" || cur.code === "Gold"
+          ? totals.GOLD !== undefined
+            ? "GOLD"
+            : "Gold"
+          : cur.code;
+      const cardValue = totals[lookupKey] || 0;
+      return `
             <div class="col-6 col-md-4 col-lg-2">
                 <div class="currency-card">
-                    <div class="cur-flag">${cur.flag || '💱'}</div>
+                    <div class="cur-flag">${cur.flag || "💱"}</div>
                     <div class="cur-code" data-i18n="${cur.code}">${cur.code}</div>
                     <div class="cur-amount num-fmt" data-value="${cardValue}">${fmt(cardValue)}</div>
                 </div>
             </div>`;
-    }).join('');
+    })
+    .join("");
 
-    pane.innerHTML = `
+  pane.innerHTML = `
         <div class="row g-3 mb-4">${currencyCards}</div>
 
         <div class="kpi-card mb-4" style="text-align:center">

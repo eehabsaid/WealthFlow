@@ -103,8 +103,8 @@
   align-items: stretch;
 }
 
-.fi-top-grid > [class*='col-'],
-.fi-cash-grid > [class*='col-'] {
+.fi-top-grid > [class*="col-"],
+.fi-cash-grid > [class*="col-"] {
   display: flex;
 }
 
@@ -386,7 +386,7 @@
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   border: 1px solid var(--border-color);
-  transition: all .15s;
+  transition: all 0.15s;
 }
 
 .year-pill:hover {

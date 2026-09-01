@@ -43,4 +43,3 @@ async function deleteFixedAssetFromGoldGroup(assetId, purityKey) {
     }, 200);
   }
 }
-

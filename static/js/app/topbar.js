@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
 function renderTopbar() {
-    const topbar = document.getElementById('topbar');
-    topbar.innerHTML = `
+  const topbar = document.getElementById("topbar");
+  topbar.innerHTML = `
         <button id="mobile-nav-trigger" class="btn d-lg-none p-2 me-2" style="color:var(--text-primary)"
                 onclick="toggleMobileSidebar()"
                 style="font-size:20px;border:none;background:transparent">
@@ -34,30 +34,34 @@ function renderTopbar() {
                 <i class="bi bi-plus-lg"></i> <span data-i18n="btn_add">Add</span>
             </button>
         </div>`;
-    loadLangMenu();
-    updateSidebarModeButton();
+  loadLangMenu();
+  updateSidebarModeButton();
 }
 
 async function loadLangMenu() {
-    try {
-        const res  = await fetch('/api/settings/');
-        const data = await res.json();
-        const langs = JSON.parse(data.settings.available_languages || '[]');
-        const menu  = document.getElementById('langMenu');
-        if (!menu) return;
-        menu.innerHTML = langs.map(l => `
+  try {
+    const res = await fetch("/api/settings/");
+    const data = await res.json();
+    const langs = JSON.parse(data.settings.available_languages || "[]");
+    const menu = document.getElementById("langMenu");
+    if (!menu) return;
+    menu.innerHTML = langs
+      .map(
+        (l) => `
             <li><a class="dropdown-item" href="#"
                    style="color:var(--text-primary)"
                    onclick="loadLanguage('${l.code}');
                             document.getElementById('langLabel').textContent='${l.code.toUpperCase()}';
                             return false">
                 ${l.label}
-            </a></li>`).join('');
-        const active = data.settings.active_language || 'en';
-        const el = document.getElementById('langLabel');
-        if (el) el.textContent = active.toUpperCase();
-    } catch (e) {}
-    applyTranslations();
+            </a></li>`
+      )
+      .join("");
+    const active = data.settings.active_language || "en";
+    const el = document.getElementById("langLabel");
+    if (el) el.textContent = active.toUpperCase();
+  } catch (e) {}
+  applyTranslations();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -66,20 +70,35 @@ async function loadLangMenu() {
 
 // Route definitions: hash → { i18nKey, addBtn, render }
 const ROUTES = {
-    'dashboard':          { key: 'nav_dashboard',         add: false, fn: () => renderDashboard()     },
-    'ai':                 { key: 'nav_wealthflow_ai',     add: false, fn: () => renderAI()            },
-    'wealthflow-ai':      { key: 'nav_wealthflow_ai',     add: false, fn: () => renderAI()            },
-    'financial-advisor':  { key: 'nav_financial_advisor', add: false, fn: () => renderFinancialAdvisor() },
-    'balance':            { key: 'nav_balance',           add: false, fn: () => renderBalance()       },
-    'bank-certificates':  { key: 'nav_bank_certificates', add: true,  fn: () => renderBankCertificates() },
-    'employment':         { key: 'nav_employment',        add: true,  fn: () => renderEmploymentPage() },
-    'salary':             { key: 'nav_employment',        add: true,  fn: () => renderEmploymentPage() },
-    'exchange-rates':     { key: 'nav_exchange_rates',    add: false, fn: () => renderExchangeRates() },
-    'gold-price':         { key: 'nav_gold_price',        add: false, fn: () => renderGoldPrice()     },
-    'expenses':           { key: 'nav_expenses',          add: false, fn: () => renderExpenses()      },
-    'expense-categories': { key: 'nav_expense_categories', add: false, fn: () => renderExpenseCategories() },
-    'reports':            { key: 'nav_expenses_report',   add: false, fn: () => renderReports()       },
-    'advanced-reports':   { key: 'nav_advanced_reports',  add: false, fn: () => renderAdvancedReports() },
-    'fixed-assets':       { key: 'nav_fixed_assets',      add: false,  fn: () => renderFixedAssets() },
+  dashboard: { key: "nav_dashboard", add: false, fn: () => renderDashboard() },
+  ai: { key: "nav_wealthflow_ai", add: false, fn: () => renderAI() },
+  "wealthflow-ai": { key: "nav_wealthflow_ai", add: false, fn: () => renderAI() },
+  "financial-advisor": {
+    key: "nav_financial_advisor",
+    add: false,
+    fn: () => renderFinancialAdvisor(),
+  },
+  balance: { key: "nav_balance", add: false, fn: () => renderBalance() },
+  "bank-certificates": {
+    key: "nav_bank_certificates",
+    add: true,
+    fn: () => renderBankCertificates(),
+  },
+  employment: { key: "nav_employment", add: true, fn: () => renderEmploymentPage() },
+  salary: { key: "nav_employment", add: true, fn: () => renderEmploymentPage() },
+  "exchange-rates": { key: "nav_exchange_rates", add: false, fn: () => renderExchangeRates() },
+  "gold-price": { key: "nav_gold_price", add: false, fn: () => renderGoldPrice() },
+  expenses: { key: "nav_expenses", add: false, fn: () => renderExpenses() },
+  "expense-categories": {
+    key: "nav_expense_categories",
+    add: false,
+    fn: () => renderExpenseCategories(),
+  },
+  reports: { key: "nav_expenses_report", add: false, fn: () => renderReports() },
+  "advanced-reports": {
+    key: "nav_advanced_reports",
+    add: false,
+    fn: () => renderAdvancedReports(),
+  },
+  "fixed-assets": { key: "nav_fixed_assets", add: false, fn: () => renderFixedAssets() },
 };
-

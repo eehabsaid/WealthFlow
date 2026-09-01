@@ -59,4 +59,3 @@ function isGoldAssetType(value) {
 function isOtherAssetType(value) {
   return value === FIXED_ASSET_TYPES.OTHER;
 }
-

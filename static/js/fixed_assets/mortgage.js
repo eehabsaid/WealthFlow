@@ -59,4 +59,3 @@ function collectMortgagePayload() {
     end_date: document.getElementById("fa_mortgage_end_date")?.value || null,
   };
 }
-

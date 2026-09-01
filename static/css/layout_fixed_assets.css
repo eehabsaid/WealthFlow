@@ -13,7 +13,9 @@
   border-radius: 10px;
   border: 1px solid var(--border-color) !important;
   background: var(--bg-tertiary) !important;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 #realEstateSection .fa-chip-check:hover {
@@ -35,10 +37,10 @@
 }
 
 .fixed-assets-muted,
-.fixed-assets-section-note{
+.fixed-assets-section-note {
   color: var(--text-secondary) !important;
 }
 
-.tab-pane{
-    padding-top:10px;
+.tab-pane {
+  padding-top: 10px;
 }
