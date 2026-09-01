@@ -56,6 +56,7 @@ EXPENSE_SOURCE_TYPE_CHOICES = [
     ("asset_renovation", "Asset Renovation"),
     ("asset_acquisition_cost", "Asset Acquisition Cost"),
     ("asset_furniture", "Asset Furniture"),
+    ("credit_card_payment", "Credit Card Payment"),
 ]
 
 

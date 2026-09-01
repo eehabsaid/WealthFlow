@@ -53,11 +53,6 @@ from .expense_category_views import ExpenseSubcategoryListView
 from .expense_category_views import ExpenseSubcategoryDetailView
 from .expense_views import ExpenseListView
 from .expense_views import ExpenseDetailView
-from .expense_balance_helpers import _normalize_expense_payment_method
-from .expense_balance_helpers import _expense_requires_bank
-from .expense_balance_helpers import _expense_affects_balance
-from .expense_balance_helpers import _get_target_cash_balance_entry
-from .expense_balance_helpers import _apply_expense_balance_delta
 from .expense_summary_views import ExpenseSummaryView
 from .report_views import ExportExcelWorkbookView
 from .report_views import export_excel
@@ -164,6 +159,10 @@ from .balance import (
     BankInterestDetailView
 )
 from .balance import (
+    CreditCardPaymentListView,
+    CreditCardPaymentDetailView
+)
+from .balance import (
     CurrencyExchangeListView,
     CurrencyExchangeDetailView,
     CurrencyExchangeCalculateView,
@@ -239,11 +238,6 @@ __all__ = [
     "ExpenseListView",
     "ExpenseDetailView",
     "ExpenseSummaryView",
-    "_normalize_expense_payment_method",
-    "_expense_requires_bank",
-    "_expense_affects_balance",
-    "_get_target_cash_balance_entry",
-    "_apply_expense_balance_delta",
     "ExportExcelWorkbookView",
     "export_excel",
     "GenerateReportView",
@@ -336,6 +330,8 @@ __all__ = [
     "BalanceTransferDetailView",
     "BankInterestListView",
     "BankInterestDetailView",
+    "CreditCardPaymentListView",
+    "CreditCardPaymentDetailView",
     "CurrencyExchangeListView",
     "CurrencyExchangeDetailView",
     "CurrencyExchangeCalculateView",

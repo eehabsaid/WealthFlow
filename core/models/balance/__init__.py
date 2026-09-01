@@ -26,11 +26,13 @@ STRUCTURE / CONVENTION:
 from core.models.balance.balance_entry import BalanceEntry
 from core.models.balance.balance_transfer import BalanceTransfer
 from core.models.balance.bank_interest import BankInterest
+from core.models.balance.credit_card_payment import CreditCardPayment
 from core.models.balance.currency_exchange import CurrencyExchange
 
 __all__ = [
     "BalanceEntry",
     "BalanceTransfer",
     "BankInterest",
+    "CreditCardPayment",
     "CurrencyExchange",
 ]

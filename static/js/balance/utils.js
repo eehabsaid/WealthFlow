@@ -11,6 +11,7 @@ const BALANCE_TABS = [
     { id: 'transfers',       key: 'balance_tab_transfers' },
     { id: 'currency_exchange', key: 'balance_tab_currency_exchange' },
     { id: 'bank_interest',   key: 'balance_tab_bank_interest' },
+    { id: 'credit_card_payment', key: 'balance_tab_credit_card_payment' },
     { id: 'allocation',      key: 'balance_tab_allocation' },
     { id: 'forecasts',       key: 'balance_tab_forecasts' },
     { id: 'recommendations', key: 'balance_tab_recommendations' },

@@ -45,6 +45,10 @@ from core.views.balance.bank_interest_views import (
     BankInterestListView,
     BankInterestDetailView,
 )
+from core.views.balance.credit_card_payment_views import (
+    CreditCardPaymentListView,
+    CreditCardPaymentDetailView,
+)
 from core.views.balance.currency_exchange_form_views import (
     CurrencyExchangeFormOptionsView,
     CurrencyExchangeCalculateView,
@@ -88,6 +92,8 @@ __all__ = [
     "BalanceTransferDetailView",
     "BankInterestListView",
     "BankInterestDetailView",
+    "CreditCardPaymentListView",
+    "CreditCardPaymentDetailView",
     "CurrencyExchangeListView",
     "CurrencyExchangeDetailView",
     "CurrencyExchangeCalculateView",
