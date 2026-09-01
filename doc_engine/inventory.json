@@ -45,6 +45,14 @@
         { "name": "New Exchange", "type": "modal", "trigger": "eval:showExchangeModal()" },
         { "name": "Edit Exchange", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showExchangeModal\"]'); if(btn) btn.click(); else if(typeof showExchangeModal === \"function\") showExchangeModal(1);" }
     ]}, 
+    { "name": "Bank Interest", "id": "bank_interest", "nested_navigation": [
+        { "name": "Add Bank Interest", "type": "modal", "trigger": "eval:showBankInterestModal(null)" },
+        { "name": "Edit Bank Interest", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showBankInterestModal\"]'); if(btn) btn.click(); else if(typeof showBankInterestModal === \"function\") showBankInterestModal(1);" }
+    ]}, 
+    { "name": "Credit Card Payment", "id": "credit_card_payment", "nested_navigation": [
+        { "name": "Add Credit Card Payment", "type": "modal", "trigger": "eval:showCreditCardPaymentModal(null)" },
+        { "name": "Edit Credit Card Payment", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showCreditCardPaymentModal\"]'); if(btn) btn.click(); else if(typeof showCreditCardPaymentModal === \"function\") showCreditCardPaymentModal(1);" }
+    ]}, 
     { "name": "Allocation", "id": "allocation" }, 
     { "name": "Forecasts", "id": "forecasts" }, 
     { "name": "Recommendations", "id": "recommendations" }
