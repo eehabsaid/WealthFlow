@@ -110,6 +110,7 @@ def get_model_export_order():
         AssetValuationHistory, AssetPurchasePayment, AssetSale,
         Document, AssetPhoto,
         AIConversation, AIMessage, AIKnowledgeEntry, AIModelVersion, AIBenchmarkReport,
+        CreditCardPayment,
     )
 
     return [
@@ -164,6 +165,7 @@ def get_model_export_order():
         ("48", AIKnowledgeEntry,             "key"),
         ("49", AIModelVersion,               "version_name"),
         ("50", AIBenchmarkReport,            None),
+        ("51", CreditCardPayment,            None),
     ]
 
 
