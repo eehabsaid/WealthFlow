@@ -1,4 +1,4 @@
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .fi-boardroom-card {
     padding: 18px;
   }
@@ -67,7 +67,7 @@
   }
 }
 
-@media (max-width: 1500px) {
+@media (width <= 1500px) {
   .fi-action-card .fi-card-grid > [class*="col-"] {
     flex: 0 0 100%;
     max-width: 100%;
@@ -78,7 +78,7 @@
   }
 }
 
-@media (max-width: 540px) {
+@media (width <= 540px) {
   .fi-metric-card-grid,
   .fi-amount-grid-3,
   .fi-amount-grid-4 {
@@ -86,7 +86,7 @@
   }
 }
 
-@media (max-width: 991.98px) {
+@media (width <= 991.98px) {
   .wf-tabs-row {
     flex-direction: column;
     align-items: stretch;
@@ -109,13 +109,13 @@
   }
 }
 
-@media (max-width: 1399.98px) {
+@media (width <= 1399.98px) {
   .portfolio-allocation-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 991.98px) {
+@media (width <= 991.98px) {
   .portfolio-allocation-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -129,7 +129,7 @@
   }
 }
 
-@media (max-width: 575.98px) {
+@media (width <= 575.98px) {
   .portfolio-allocation-grid {
     grid-template-columns: 1fr;
   }
@@ -149,7 +149,7 @@
   }
 }
 
-@media (max-width: 1399.98px) {
+@media (width <= 1399.98px) {
   .goal-kpi-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -159,7 +159,7 @@
   }
 }
 
-@media (max-width: 991.98px) {
+@media (width <= 991.98px) {
   .goal-planning-header {
     flex-direction: column;
   }
@@ -194,7 +194,7 @@
 }
 
 /* The inline div wrapping all .settings-tab buttons gets scroll on mobile */
-@media (max-width: 991.98px) {
+@media (width <= 991.98px) {
   /* ── 1. Tabs bar — horizontal scroll ── */
   #main-content > div[style*="border-bottom"][style*="display:flex"],
   #settingsContainer > div[style*="border-bottom"],
@@ -206,6 +206,7 @@
     /* hide scrollbar visually but keep scroll functional */
     scrollbar-width: none;
   }
+
   div:has(> .settings-tab)::-webkit-scrollbar {
     display: none;
   }
@@ -215,6 +216,7 @@
     flex-wrap: wrap !important;
     gap: 8px !important;
   }
+
   #settingsContent > div[style*="justify-content:space-between"] > div[style*="display:flex"] {
     flex-wrap: wrap !important;
     width: 100% !important;
@@ -233,6 +235,7 @@
   #settingsContent > div[style*="display:flex"][style*="gap:8px"] {
     flex-wrap: wrap !important;
   }
+
   #settingsContent #bulkActionSelect {
     width: auto !important;
     flex: 1 !important;
@@ -244,6 +247,7 @@
     flex-wrap: wrap !important;
     gap: 8px !important;
   }
+
   #settingsContent > div[style*="width:100%"] > div[style*="display:flex"] {
     flex-wrap: wrap !important;
     width: 100% !important;
@@ -254,7 +258,7 @@
 /* ══════════════════════════════════════
    DESKTOP (>= 992px)
    ══════════════════════════════════════ */
-@media (min-width: 992px) {
+@media (width >= 992px) {
   #sidebar {
     position: fixed;
     inset-inline-start: 0;
@@ -316,7 +320,7 @@
 /* ══════════════════════════════════════
    MOBILE (< 992px): offcanvas sidebar
    ══════════════════════════════════════ */
-@media (max-width: 991.98px) {
+@media (width <= 991.98px) {
   #desktop-sidebar-mode-btn {
     display: none !important;
   }
@@ -333,8 +337,9 @@
     z-index: 1050;
     transform: translateX(-100%);
     transition: transform 0.28s ease;
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 4px 0 20px rgb(0 0 0 / 50%);
   }
+
   #sidebar.open {
     transform: translateX(0) !important;
   }
@@ -344,6 +349,7 @@
     right: 0;
     transform: translateX(100%);
   }
+
   [dir="rtl"] #sidebar.open {
     transform: translateX(0) !important;
   }
@@ -415,7 +421,7 @@
    ══════════════════════════════════════ */
 
 /* Keep 2-col grid until 480px, then stack */
-@media (max-width: 480px) {
+@media (width <= 480px) {
   #main-content .row > .col-6,
   #main-content .row > .col-md-3,
   #main-content .row > .col-md-4,
@@ -430,7 +436,7 @@
    FORMS inside modals
    ══════════════════════════════════════ */
 
-@media (max-width: 575.98px) {
+@media (width <= 575.98px) {
   .year-pill {
     padding: 4px 11px;
     font-size: 11.5px;
@@ -461,6 +467,7 @@
     flex-direction: column-reverse !important;
     gap: 8px !important;
   }
+
   .modal-footer .btn {
     width: 100% !important;
   }
@@ -472,6 +479,7 @@
     bottom: 12px !important;
     width: auto !important;
   }
+
   .toast {
     width: 100% !important;
   }
@@ -480,12 +488,13 @@
 /* ════════════════════════════════════════════════════════════
 
 /* Mobile only: stack vertically */
-@media (max-width: 576px) {
+@media (width <= 576px) {
   .expense-filters,
   .report-controls {
     flex-direction: column;
     align-items: stretch;
   }
+
   .expense-filters .form-select,
   .expense-filters .form-control,
   .expense-filters input,
@@ -496,16 +505,18 @@
     font-size: 16px !important;
     min-height: 44px !important;
   }
+
   .expense-filters button,
   .report-controls button {
     width: 100% !important;
   }
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .chart-container {
     min-height: 260px;
   }
+
   #salaryChart {
     min-height: 300px !important;
   }

@@ -1,30 +1,32 @@
 /* WealthFlow Authentication Design System - Animations & Micro-interactions */
 
-@keyframes authCardEntrance {
+@keyframes auth-card-entrance {
   from {
     opacity: 0;
     transform: translateY(20px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
 
-@keyframes pulseGlow {
+@keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(26, 110, 245, 0.25);
+    box-shadow: 0 0 20px rgb(26 110 245 / 25%);
   }
+
   50% {
-    box-shadow: 0 0 35px rgba(26, 110, 245, 0.45);
+    box-shadow: 0 0 35px rgb(26 110 245 / 45%);
   }
 }
 
 .auth-card {
-  animation: authCardEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: auth-card-entrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .auth-logo .logo-icon {
-  animation: pulseGlow 4s infinite ease-in-out;
+  animation: pulse-glow 4s infinite ease-in-out;
 }

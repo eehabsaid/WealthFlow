@@ -63,7 +63,7 @@
 
 .data-table *::selection {
   background-color: var(--accent-primary) !important;
-  color: #ffffff !important;
+  color: #fff !important;
 }
 
 /* ── Portfolio Table ── */

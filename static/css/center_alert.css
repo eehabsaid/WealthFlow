@@ -10,9 +10,9 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(6, 10, 22, 0.55);
+  background: rgb(6 10 22 / 55%);
   z-index: 10050;
-  animation: centerAlertFadeIn 0.15s ease-out;
+  animation: center-alert-fade-in 0.15s ease-out;
 }
 
 .center-alert-card {
@@ -20,17 +20,17 @@
   max-width: 460px;
   max-height: calc(100vh - 32px);
   overflow-y: auto;
-  border: 1px solid rgba(123, 147, 201, 0.26);
+  border: 1px solid rgb(123 147 201 / 26%);
   border-radius: 14px;
   background:
-    linear-gradient(160deg, rgba(26, 110, 245, 0.12), rgba(17, 29, 61, 0.96)), var(--bg-tertiary);
+    linear-gradient(160deg, rgb(26 110 245 / 12%), rgb(17 29 61 / 96%)), var(--bg-tertiary);
   color: var(--text-primary);
-  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 18px 46px rgb(0 0 0 / 32%);
   display: flex;
   align-items: flex-start;
   gap: 12px;
   padding: 18px 16px;
-  animation: centerAlertPop 0.2s ease-out;
+  animation: center-alert-pop 0.2s ease-out;
 }
 
 .center-alert-body {
@@ -45,27 +45,29 @@
   margin-top: 2px;
 }
 
-@keyframes centerAlertFadeIn {
+@keyframes center-alert-fade-in {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
-@keyframes centerAlertPop {
+@keyframes center-alert-pop {
   from {
     opacity: 0;
     transform: scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
   }
 }
 
-@media (max-width: 480px) {
+@media (width <= 480px) {
   .center-alert-card {
     max-width: 100%;
     padding: 16px 14px;

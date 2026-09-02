@@ -226,6 +226,5 @@
 
 .asset-modal-body {
   height: 70vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
 }

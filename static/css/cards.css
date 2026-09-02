@@ -30,7 +30,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 15%), transparent);
   pointer-events: none;
 }
 
@@ -128,10 +128,6 @@
 .fi-top-grid .kpi-card,
 .fi-cash-grid .kpi-card {
   margin-bottom: 0 !important;
-}
-
-.fi-top-grid .kpi-card,
-.fi-cash-grid .kpi-card {
   min-height: 100%;
   width: 100%;
 }
@@ -153,9 +149,11 @@
 .fi-financial-card > .kpi-label::before {
   content: "📊";
 }
+
 .fi-action-card > .kpi-label::before {
   content: "🎯";
 }
+
 .fi-investment-card > .kpi-label::before {
   content: "📈";
 }
@@ -174,7 +172,6 @@
   padding: 12px 14px;
   line-height: 1.6;
   overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 /* ── Currency cards (Balance) ── */

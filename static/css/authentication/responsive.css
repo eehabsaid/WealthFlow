@@ -1,6 +1,6 @@
 /* WealthFlow Authentication Design System - Responsive Layouts */
 
-@media (max-width: 576px) {
+@media (width <= 576px) {
   body.auth-page {
     padding: 8px !important;
   }
@@ -55,7 +55,7 @@
   }
 }
 
-@media (max-height: 650px) {
+@media (height <= 650px) {
   .auth-logo {
     margin-bottom: 8px !important;
   }

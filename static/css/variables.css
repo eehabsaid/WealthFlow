@@ -7,30 +7,30 @@
   --bg-primary: #0a0f1e; /* Deep Midnight Dark Blue */
   --bg-secondary: #0d1530; /* Rich Dark Royal Blue Surface */
   --bg-tertiary: #111d3d; /* Medium Dark Blue Container */
-  --bg-glass: rgba(13, 21, 48, 0.85);
-  --bg-card: rgba(13, 21, 48, 0.78);
+  --bg-glass: rgb(13 21 48 / 85%);
+  --bg-card: rgb(13 21 48 / 78%);
   --bg-card-hover: #16264f;
 
   --border-color: #1e3a6e;
   --border-strong: #2d56a3;
-  --border-glow: rgba(26, 110, 245, 0.4);
+  --border-glow: rgb(26 110 245 / 40%);
 
   --accent-primary: #1a6ef5; /* Vibrant WealthFlow Blue */
   --accent-hover: #2d7fff;
-  --accent-light: rgba(26, 110, 245, 0.16);
-  --accent-glow: rgba(26, 110, 245, 0.3);
+  --accent-light: rgb(26 110 245 / 16%);
+  --accent-glow: rgb(26 110 245 / 30%);
 
   --accent-emerald: #00d68f;
   --accent-green: #00d68f;
-  --accent-emerald-light: rgba(0, 214, 143, 0.14);
+  --accent-emerald-light: rgb(0 214 143 / 14%);
 
   --accent-amber: #ffd166;
   --accent-yellow: #ffd166;
-  --accent-amber-light: rgba(255, 209, 102, 0.14);
+  --accent-amber-light: rgb(255 209 102 / 14%);
 
   --accent-rose: #ff4d6d;
   --accent-red: #ff4d6d;
-  --accent-rose-light: rgba(255, 77, 109, 0.14);
+  --accent-rose-light: rgb(255 77 109 / 14%);
 
   --accent-cyan: #00b4d8;
   --accent-purple: #7209b7;
@@ -38,7 +38,7 @@
   --text-primary: #e8f0fe; /* Ice Blue Tinted White */
   --text-secondary: #7b93c9; /* Periwinkle Muted Blue */
   --text-muted: #4a6399; /* Slate Blue Muted */
-  --text-inverse: #ffffff;
+  --text-inverse: #fff;
 
   --sidebar-width: 250px;
 
@@ -51,10 +51,10 @@
   --radius-full: 9999px;
 
   /* Elevation Shadows */
-  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 12px 36px -4px rgba(0, 0, 0, 0.45);
-  --shadow-card: 0 10px 30px -8px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 4px 0 rgb(0 0 0 / 25%);
+  --shadow-md: 0 4px 14px -2px rgb(0 0 0 / 35%);
+  --shadow-lg: 0 12px 36px -4px rgb(0 0 0 / 45%);
+  --shadow-card: 0 10px 30px -8px rgb(0 0 0 / 40%);
 
   /* Animation Easings */
   --ease-out-smooth: cubic-bezier(0.16, 1, 0.3, 1);

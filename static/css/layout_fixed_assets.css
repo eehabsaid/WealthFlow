@@ -19,12 +19,12 @@
 }
 
 #realEstateSection .fa-chip-check:hover {
-  border-color: rgba(26, 110, 245, 0.55);
+  border-color: rgb(26 110 245 / 55%);
 }
 
 #realEstateSection .fa-chip-check:focus-within {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(26, 110, 245, 0.2);
+  box-shadow: 0 0 0 2px rgb(26 110 245 / 20%);
 }
 
 #realEstateSection .fa-chip-check .form-check-label {

@@ -115,7 +115,7 @@
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid var(--border-color);
-  background: rgba(26, 110, 245, 0.1);
+  background: rgb(26 110 245 / 10%);
   color: var(--text-primary);
   font-size: 12px;
   font-weight: 700;
@@ -127,18 +127,18 @@
 }
 
 .fi-emphasis-neutral {
-  border-color: rgba(123, 147, 201, 0.45);
-  background: rgba(123, 147, 201, 0.1);
+  border-color: rgb(123 147 201 / 45%);
+  background: rgb(123 147 201 / 10%);
 }
 
 .fi-emphasis-primary {
-  border-color: rgba(26, 110, 245, 0.45);
-  background: rgba(26, 110, 245, 0.14);
+  border-color: rgb(26 110 245 / 45%);
+  background: rgb(26 110 245 / 14%);
 }
 
 .fi-emphasis-health {
-  border-color: rgba(0, 214, 143, 0.35);
-  background: rgba(0, 214, 143, 0.12);
+  border-color: rgb(0 214 143 / 35%);
+  background: rgb(0 214 143 / 12%);
 }
 
 .fi-metric-grid {
@@ -153,7 +153,7 @@
   justify-content: space-between;
   gap: 14px;
   padding: 2px 0 10px;
-  border-bottom: 1px dashed rgba(123, 147, 201, 0.22);
+  border-bottom: 1px dashed rgb(123 147 201 / 22%);
 }
 
 .fi-metric-row:last-child {
@@ -188,7 +188,7 @@
   align-items: center;
   gap: 7px;
   border-radius: 999px;
-  border: 1px solid currentColor;
+  border: 1px solid currentcolor;
   padding: 3px 10px;
   font-size: 12.5px;
   font-weight: 700;
@@ -220,7 +220,6 @@
   line-height: 1.85;
   font-size: 14px;
   overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .fi-sub-paragraph {
@@ -229,7 +228,6 @@
   line-height: 1.75;
   font-size: 13px;
   overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .fi-info-box {
@@ -249,7 +247,6 @@
   font-weight: 700;
   color: var(--text-primary);
   overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .fi-highlight-stack {
@@ -262,8 +259,8 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  border: 1px solid rgba(26, 110, 245, 0.35);
-  background: rgba(26, 110, 245, 0.12);
+  border: 1px solid rgb(26 110 245 / 35%);
+  background: rgb(26 110 245 / 12%);
   border-inline-start: 3px solid var(--accent-primary);
   border-radius: 10px;
   padding: 11px 12px;
@@ -293,10 +290,9 @@
 
 .fi-highlight-row .fi-value-inline {
   display: flex;
-  flex-direction: column;
+  flex-flow: column nowrap;
   align-items: flex-end;
   gap: 2px;
-  flex-wrap: nowrap;
 }
 
 .fi-highlight-row .num-fmtpresent {
@@ -328,7 +324,7 @@
   align-items: center;
   gap: 6px;
   border-radius: 999px;
-  border: 1px solid currentColor;
+  border: 1px solid currentcolor;
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 700;
@@ -336,19 +332,19 @@
 }
 
 .fi-status-badge.fi-positive {
-  background: rgba(0, 214, 143, 0.12);
+  background: rgb(0 214 143 / 12%);
 }
 
 .fi-status-badge.fi-warning {
-  background: rgba(255, 209, 102, 0.14);
+  background: rgb(255 209 102 / 14%);
 }
 
 .fi-status-badge.fi-negative {
-  background: rgba(255, 77, 109, 0.12);
+  background: rgb(255 77 109 / 12%);
 }
 
 .fi-status-badge.fi-neutral {
-  background: rgba(123, 147, 201, 0.12);
+  background: rgb(123 147 201 / 12%);
 }
 
 .fi-list-compact {

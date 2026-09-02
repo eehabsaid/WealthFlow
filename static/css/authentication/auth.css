@@ -2,40 +2,40 @@
 
 :root {
   --wf-auth-bg-primary: #070d1f;
-  --wf-auth-bg-secondary: rgba(12, 20, 40, 0.85);
+  --wf-auth-bg-secondary: rgb(12 20 40 / 85%);
   --wf-auth-bg-tertiary: #101c38;
-  --wf-auth-border: rgba(26, 52, 96, 0.6);
-  --wf-auth-border-hover: rgba(26, 110, 245, 0.5);
+  --wf-auth-border: rgb(26 52 96 / 60%);
+  --wf-auth-border-hover: rgb(26 110 245 / 50%);
   --wf-auth-accent: #1a6ef5;
   --wf-auth-accent-hover: #3381ff;
-  --wf-auth-accent-glow: rgba(26, 110, 245, 0.35);
+  --wf-auth-accent-glow: rgb(26 110 245 / 35%);
   --wf-auth-text-primary: #dce8ff;
   --wf-auth-text-secondary: #7b97cc;
   --wf-auth-text-muted: #4e6a9c;
   --wf-auth-red: #ff4d6d;
-  --wf-auth-red-bg: rgba(255, 77, 109, 0.12);
-  --wf-auth-red-border: rgba(255, 77, 109, 0.35);
+  --wf-auth-red-bg: rgb(255 77 109 / 12%);
+  --wf-auth-red-border: rgb(255 77 109 / 35%);
   --wf-auth-green: #00d68f;
-  --wf-auth-green-bg: rgba(0, 214, 143, 0.12);
-  --wf-auth-green-border: rgba(0, 214, 143, 0.35);
+  --wf-auth-green-bg: rgb(0 214 143 / 12%);
+  --wf-auth-green-border: rgb(0 214 143 / 35%);
   --wf-auth-radius: 16px;
-  --wf-auth-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  --wf-auth-shadow: 0 20px 60px rgb(0 0 0 / 60%);
 }
 
 [data-bs-theme="light"],
 [data-theme="light"] {
   --wf-auth-bg-primary: #f0f4f9;
-  --wf-auth-bg-secondary: rgba(255, 255, 255, 0.92);
-  --wf-auth-bg-tertiary: #ffffff;
+  --wf-auth-bg-secondary: rgb(255 255 255 / 92%);
+  --wf-auth-bg-tertiary: #fff;
   --wf-auth-border: #dbe3f0;
   --wf-auth-border-hover: #1a6ef5;
   --wf-auth-accent: #1a6ef5;
   --wf-auth-accent-hover: #0f52ba;
-  --wf-auth-accent-glow: rgba(26, 110, 245, 0.2);
+  --wf-auth-accent-glow: rgb(26 110 245 / 20%);
   --wf-auth-text-primary: #111827;
   --wf-auth-text-secondary: #4b5563;
   --wf-auth-text-muted: #6b7280;
-  --wf-auth-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  --wf-auth-shadow: 0 10px 40px rgb(0 0 0 / 8%);
 }
 
 * {
@@ -94,7 +94,7 @@ body.auth-page::before {
   left: 20%;
   width: 450px;
   height: 450px;
-  background: radial-gradient(circle, rgba(26, 110, 245, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+  background: radial-gradient(circle, rgb(26 110 245 / 15%) 0%, rgb(0 0 0 / 0%) 70%);
   z-index: 0;
   pointer-events: none;
 }
@@ -106,7 +106,7 @@ body.auth-page::after {
   right: 20%;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(0, 214, 143, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+  background: radial-gradient(circle, rgb(0 214 143 / 10%) 0%, rgb(0 0 0 / 0%) 70%);
   z-index: 0;
   pointer-events: none;
 }
@@ -151,7 +151,7 @@ body.auth-page::after {
 .auth-logo .logo-icon {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.15));
+  background: linear-gradient(135deg, rgb(37 99 235 / 15%), rgb(124 58 237 / 15%));
   border: 1px solid var(--wf-auth-border);
   border-radius: 12px;
   display: inline-flex;

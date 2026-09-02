@@ -3,8 +3,8 @@
 .btn-primary-custom,
 .btn-primary {
   background: var(--accent-primary);
-  color: var(--text-inverse, #ffffff);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-inverse, #fff);
+  border: 1px solid rgb(255 255 255 / 15%);
   border-radius: var(--radius-sm, 8px);
   padding: 8px 18px;
   font-size: 13.5px;
@@ -13,7 +13,7 @@
   cursor: pointer;
   box-shadow:
     var(--shadow-sm),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgb(255 255 255 / 20%);
   transition:
     transform var(--transition-fast),
     background var(--transition-fast),
@@ -26,7 +26,7 @@
   background: var(--accent-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md), var(--shadow-glow);
-  color: #ffffff;
+  color: #fff;
 }
 
 .btn-primary-custom:active,
@@ -110,7 +110,7 @@
 .btn-icon-danger:hover {
   color: var(--accent-rose);
   background: var(--accent-rose-light);
-  border-color: rgba(244, 63, 94, 0.3);
+  border-color: rgb(244 63 94 / 30%);
 }
 
 .goal-header-actions .btn {

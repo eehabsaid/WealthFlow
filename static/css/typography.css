@@ -9,7 +9,7 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
   overflow-x: hidden;
 }
 
@@ -36,22 +36,27 @@ h1,
 .h1 {
   font-size: clamp(1.4rem, 1.2rem + 1vw, 1.85rem);
 }
+
 h2,
 .h2 {
   font-size: clamp(1.2rem, 1.05rem + 0.75vw, 1.5rem);
 }
+
 h3,
 .h3 {
   font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.25rem);
 }
+
 h4,
 .h4 {
   font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem);
 }
+
 h5,
 .h5 {
   font-size: 0.95rem;
 }
+
 h6,
 .h6 {
   font-size: 0.85rem;

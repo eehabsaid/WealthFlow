@@ -101,7 +101,7 @@
 .btn-submit {
   width: 100%;
   background: linear-gradient(135deg, var(--wf-auth-accent), #7c3aed);
-  color: #ffffff;
+  color: #fff;
   border: none;
   border-radius: 8px;
   padding: 10px;

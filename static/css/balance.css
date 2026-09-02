@@ -131,7 +131,7 @@
 #bal-pane-currency_exchange .form-select {
   background-color: var(--bg-tertiary, #1e293b) !important;
   color: var(--text-primary, #f8fafc) !important;
-  border: 1px solid var(--border-color, rgba(148, 163, 184, 0.25)) !important;
+  border: 1px solid var(--border-color, rgb(148 163 184 / 25%)) !important;
 }
 
 #bal-pane-currency_exchange .form-control::placeholder {
@@ -176,5 +176,5 @@ select option:disabled,
 
 #bal-pane-currency_exchange button[onclick="resetCurrencyExchangeFilters()"]:hover {
   background-color: var(--accent-primary) !important;
-  color: #ffffff !important;
+  color: #fff !important;
 }
