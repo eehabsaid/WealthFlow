@@ -703,11 +703,6 @@
   }
 }
 
-[dir="rtl"] #page-wrapper {
-  margin-left: 0;
-  margin-right: calc(var(--sidebar-width) + 14px);
-}
-
 /* ── Loading spinner ── */
 .spinner-overlay {
   display: none;
