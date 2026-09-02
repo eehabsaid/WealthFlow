@@ -3,7 +3,7 @@ WealthFlow Authentication Package
 """
 
 from core.authentication.services.auth_service import AuthWorkflowService, AuthFlowResult, EmailDeliveryError
-from core.authentication.views.views import (
+from core.authentication.views import (
     AdminRequiredMixin,
     LoginAPIView,
     SignupAPIView,
