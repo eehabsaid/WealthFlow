@@ -10,7 +10,7 @@ fetch("/api/asset-acquisition-costs/categories/")
       acquisitionCategories = data.categories;
     }
   })
-  .catch((err) => console.error("Error fetching acquisition categories:", err));
+  .catch(() => {});
 
 function updateAcquisitionSummary() {
   const summaryStrip = document.getElementById("acquisitionSummaryStrip");

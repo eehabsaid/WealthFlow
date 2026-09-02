@@ -88,7 +88,6 @@
       _renderWhatIfView(pane);
       _attachThemeListener();
     } catch (err) {
-      console.error("Failed to load What-If Simulator data:", err);
       pane.innerHTML = `
         <div class="alert alert-danger my-3" role="alert" data-i18n="whatif_error_recalc">
           Failed to load What-If Simulator. Please try again.
@@ -121,7 +120,6 @@
       _hideErrorBanner();
       _updateComparisonAndChart(payload);
     } catch (err) {
-      console.error("Recalculation error:", err);
       _showErrorBanner();
       if (_lastSuccessfulData) {
         _updateComparisonAndChart(_lastSuccessfulData);

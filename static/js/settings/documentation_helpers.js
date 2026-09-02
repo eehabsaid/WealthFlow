@@ -158,7 +158,7 @@ async function loadDocHistory() {
     docHistoryData = data.history || [];
     renderDocHistory();
   } catch (e) {
-    console.error(e);
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
 }
 

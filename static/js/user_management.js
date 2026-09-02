@@ -21,7 +21,6 @@ async function loadUsers(q = "", page = 1, size = 25) {
   const url = `/api/users/?q=${encodeURIComponent(q)}&page=${page}&page_size=${size}`;
   const res = await fetch(url);
   if (!res.ok) {
-    console.error("Failed to load users");
     return;
   }
   const data = await res.json();

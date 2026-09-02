@@ -14,7 +14,6 @@ async function renderBackupRestoreSettings() {
     const data = await res.json();
     backups = data.backups || [];
   } catch (e) {
-    console.error("Failed to load server backups list", e);
   }
 
   const rows =

@@ -20,7 +20,6 @@
   const dp = window._WF_DP;
 
   if (!dp || !dp.registry) {
-    console.error("WealthFlowDatePicker modules not loaded correctly.");
     return;
   }
 

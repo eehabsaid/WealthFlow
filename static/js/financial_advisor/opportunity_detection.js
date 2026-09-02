@@ -326,7 +326,6 @@ async function loadOpportunityDetection(force = false) {
     _renderOpportunityDetection(payload);
     _opportunityDetectionLoaded = true;
   } catch (error) {
-    console.error(error);
     _renderOpportunityDetectionError();
   }
 }

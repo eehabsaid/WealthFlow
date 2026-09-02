@@ -21,7 +21,6 @@ async function loadOverview(force = false) {
     _renderOverview(payload);
     _overviewLoaded = true;
   } catch (error) {
-    console.error("Overview error:", error);
     _renderOverviewError();
   }
 }

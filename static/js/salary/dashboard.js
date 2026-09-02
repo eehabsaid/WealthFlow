@@ -82,7 +82,6 @@ async function renderDashboard() {
     drawDashboardChart(data.companies);
     _renderDashboardEnhancements();
   } catch (err) {
-    console.error("Dashboard Render Error:", err);
     mc.innerHTML = '<div class="alert alert-danger">Error loading dashboard. Check console.</div>';
   }
 }

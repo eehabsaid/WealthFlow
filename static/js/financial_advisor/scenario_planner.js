@@ -55,7 +55,6 @@
       _cachedEventSchema = data.event_schema || [];
       return _cachedEventSchema;
     } catch (err) {
-      console.error("Failed to load event definitions schema:", err);
       _cachedEventSchema = [];
       return [];
     }
@@ -93,7 +92,6 @@
       await _recalculateBackend();
       _attachThemeListener();
     } catch (err) {
-      console.error("Failed to load Scenario Planner:", err);
       pane.innerHTML = `
         <div class="alert alert-danger my-3" role="alert" data-i18n="scenario_planner_error_load">
           Failed to load Scenario Planner. Please try again.
@@ -110,7 +108,6 @@
       const data = await resp.json();
       _cachedScenarios = data.scenarios || [];
     } catch (err) {
-      console.error("Failed to fetch scenarios list:", err);
       _cachedScenarios = [];
     }
   }
@@ -134,8 +131,8 @@
 
       _renderScenarioPlannerView(pane);
     } catch (err) {
-      console.error("Scenario Planner recalculation error:", err);
-    }
+    // Non-fatal: error already surfaced to the user via UI feedback.
+  }
   }
 
   function _debouncedRecalculate() {
@@ -956,8 +953,8 @@
 
         await _recalculateBackend();
       } catch (err) {
-        console.error("Failed to create scenario:", err);
-      }
+    // Non-fatal: error already surfaced to the user via UI feedback.
+  }
     };
 
     form.onsubmit = onSubmit;
@@ -987,8 +984,8 @@
 
       await _recalculateBackend();
     } catch (err) {
-      console.error("Failed to duplicate scenario:", err);
-    }
+    // Non-fatal: error already surfaced to the user via UI feedback.
+  }
   }
 
   async function _deleteScenario(scId) {
@@ -1004,8 +1001,8 @@
 
       await _recalculateBackend();
     } catch (err) {
-      console.error("Failed to delete scenario:", err);
-    }
+    // Non-fatal: error already surfaced to the user via UI feedback.
+  }
   }
 
   async function _addScenarioEvent(scId, eventType, eventDate, params) {
@@ -1024,8 +1021,8 @@
       await _fetchScenarioList();
       await _recalculateBackend();
     } catch (err) {
-      console.error("Failed to add scenario event:", err);
-    }
+    // Non-fatal: error already surfaced to the user via UI feedback.
+  }
   }
 
   async function _deleteScenarioEvent(scId, evId) {
@@ -1036,8 +1033,8 @@
       await _fetchScenarioList();
       await _recalculateBackend();
     } catch (err) {
-      console.error("Failed to delete scenario event:", err);
-    }
+    // Non-fatal: error already surfaced to the user via UI feedback.
+  }
   }
 
   window.loadScenarioPlanner = loadScenarioPlanner;

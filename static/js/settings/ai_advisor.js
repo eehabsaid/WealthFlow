@@ -597,7 +597,7 @@ async function loadAIPlatformOverviewData() {
       applyTranslations();
     }
   } catch (err) {
-    console.error("Failed to load AI Platform overview:", err);
+    // Silently ignore AI Platform overview load failures.
   }
 }
 

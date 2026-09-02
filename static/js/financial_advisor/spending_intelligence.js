@@ -492,7 +492,6 @@ async function loadSpendingIntelligence(force = false) {
     _renderSpendingIntelligence(payload);
     _spendingIntelligenceLoaded = true;
   } catch (error) {
-    console.error(error);
     _renderSpendingIntelligenceError();
   }
 }

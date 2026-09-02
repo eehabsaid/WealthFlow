@@ -49,7 +49,6 @@
       _performanceData = await response.json();
       renderPerformanceView(container);
     } catch (err) {
-      console.error("Failed to load performance data:", err);
       container.innerHTML = `
         <div class="alert alert-danger my-3" role="alert">
           Failed to load Performance data. Please try again.

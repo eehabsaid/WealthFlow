@@ -10,7 +10,7 @@ fetch("/api/asset-furniture/categories/")
       furnitureCategories = data.categories;
     }
   })
-  .catch((err) => console.error("Error fetching furniture categories:", err));
+  .catch(() => {});
 
 function updateFurnitureSummary() {
   const summaryStrip = document.getElementById("furnitureSummaryStrip");

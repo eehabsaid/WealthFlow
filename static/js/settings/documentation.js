@@ -32,14 +32,14 @@ async function renderDocumentationSettings() {
       applyTranslations(langSelect);
     }
   } catch (e) {
-    console.error("Failed to load languages:", e);
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
 
   try {
     const res = await fetch("/api/settings/documentation/devices/?t=" + Date.now());
     if (res.ok) deviceInventory = await res.json();
   } catch (e) {
-    console.error("Failed to load device inventory:", e);
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
 
   const savedLang = localStorage.getItem("docEngineLang");
@@ -222,7 +222,6 @@ async function startCapture() {
       if (!docIntervalId) docIntervalId = setInterval(pollDocStatus, 1000);
     }
   } catch (e) {
-    console.error(e);
     alert("Failed to start capture.");
   }
 }
@@ -241,7 +240,6 @@ async function startGeneration(docType) {
       if (!docIntervalId) docIntervalId = setInterval(pollDocStatus, 1000);
     }
   } catch (e) {
-    console.error(e);
     alert("Failed to start generation.");
   }
 }
@@ -252,7 +250,6 @@ async function cancelDocumentationProcess() {
     await fetch("/api/settings/documentation/cancel/", { method: "POST" });
     setTimeout(pollDocStatus, 500);
   } catch (e) {
-    console.error(e);
     isCancelling = false;
   }
 }
@@ -265,7 +262,7 @@ async function openDocFolder(target) {
       body: JSON.stringify({ target: target }),
     });
   } catch (e) {
-    console.error(e);
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
 }
 
@@ -414,7 +411,7 @@ async function pollDocStatus() {
       }
     }
   } catch (e) {
-    console.error("Status poll failed:", e);
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
 }
 

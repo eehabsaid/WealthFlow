@@ -368,7 +368,6 @@ async function loadFixedAssetsPortfolioSnapshot() {
     fixedAssetsState.portfolioSnapshot = data?.portfolio_snapshot || null;
   } catch (err) {
     fixedAssetsState.portfolioSnapshot = null;
-    console.error(err);
   } finally {
     fixedAssetsState.portfolioSnapshotLoading = false;
     if (fixedAssetsState.activeTab === "analytics") {

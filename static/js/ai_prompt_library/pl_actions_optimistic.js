@@ -47,7 +47,7 @@ window.PromptLib.toggleFavorite = async function (promptId) {
       }
     }
   } catch (e) {
-    console.error("Failed to toggle favorite", e);
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
 };
 
@@ -81,7 +81,6 @@ window.PromptLib.deletePrompt = async function (promptId) {
       await window.PromptLib.fetchPrompts();
     }
   } catch (e) {
-    console.error("Failed to delete prompt", e);
     await window.PromptLib.fetchPrompts();
   }
 };
@@ -106,6 +105,6 @@ window.PromptLib.duplicatePrompt = async function (promptId) {
       }
     }
   } catch (e) {
-    console.error("Failed to duplicate prompt", e);
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
 };

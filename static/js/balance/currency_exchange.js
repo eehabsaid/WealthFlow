@@ -355,7 +355,7 @@ async function calculateBackendExchange(isUserRateChange = false) {
       toAmtEl.value = fmt(calc.to_amount);
     }
   } catch (e) {
-    console.error("Backend calculation failed", e);
+    // Silently ignore backend calculation failures.
   }
 }
 

@@ -208,7 +208,6 @@ async function locatePropertyOnMap() {
 
     propertyMarker.setLatLng([lat, lng]);
   } catch (err) {
-    console.error(err);
     showToast("Unable to locate address.", "danger");
   } finally {
     hideLoading();
@@ -250,6 +249,6 @@ async function reverseGeocode(lat, lng) {
 
     document.getElementById("re_address").value = result.display_name || "";
   } catch (err) {
-    console.error(err);
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
 }

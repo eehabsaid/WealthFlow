@@ -62,7 +62,7 @@ async function loadLanguage(code) {
 
     document.dispatchEvent(new CustomEvent("languageChanged", { detail: { code } }));
   } catch (e) {
-    console.warn("Language load failed:", e);
+    // Silently ignore language load failures; UI falls back to existing translations.
   }
   applyTranslations();
 }

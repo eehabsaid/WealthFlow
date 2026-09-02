@@ -48,7 +48,6 @@ async function saveBankCertificate(certificateId) {
     } catch (e) {
       payload = null;
     }
-    console.error("Bank certificate save failed", res.status, payload);
 
     let detail;
     if (payload && payload.error_code) {

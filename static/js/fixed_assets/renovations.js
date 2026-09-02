@@ -10,7 +10,7 @@ fetch("/api/asset-renovations/categories/")
       renovationCategories = data.categories;
     }
   })
-  .catch((err) => console.error("Error fetching renovation categories:", err));
+  .catch(() => {});
 
 function updateRenovationSummary() {
   const summaryStrip = document.getElementById("renovationSummaryStrip");

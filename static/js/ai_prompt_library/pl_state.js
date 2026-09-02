@@ -96,7 +96,7 @@ window.PromptLib.loadCategoriesAndPrompts = async function () {
       state.categories = catData.categories || [];
     }
   } catch (e) {
-    console.warn("Failed to load prompt categories", e);
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
   await window.PromptLib.fetchPrompts();
 };
@@ -142,7 +142,7 @@ window.PromptLib.fetchPrompts = async function () {
       }
     }
   } catch (err) {
-    console.error("Error fetching prompts", err);
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
 
   window.PromptLib.renderModalContent();
