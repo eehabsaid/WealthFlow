@@ -1,0 +1,30 @@
+from django.urls import path
+from .. import views
+
+urlpatterns = [
+    path("accounts/login/", views.login_view, name="login"),
+    path("accounts/signup/", views.signup_view, name="signup"),
+    path("accounts/forgot-password/", views.forgot_password_view, name="forgot_password"),
+    path("accounts/reset-password/<str:token>/", views.reset_password_view, name="reset_password"),
+    path("accounts/verify-email/<str:token>/", views.verify_email_view, name="verify_email"),
+    path("accounts/pending-approval/", views.pending_approval_view, name="pending_approval"),
+    path("accounts/account-rejected/", views.account_rejected_view, name="account_rejected"),
+    path("accounts/account-disabled/", views.account_disabled_view, name="account_disabled"),
+    path("accounts/admin-approve/<str:token>/", views.admin_approve_account_view, name="admin_approve_account"),
+    path("accounts/admin-reject/<str:token>/", views.admin_reject_account_view, name="admin_reject_account"),
+    path("accounts/logout/", views.logout_view, name="logout"),
+    path("api/auth/login/", views.LoginAPIView.as_view()),
+    path("api/auth/signup/", views.SignupAPIView.as_view()),
+    path("api/auth/logout/", views.LogoutAPIView.as_view()),
+    path("api/auth/forgot-password/", views.forgot_password_view),
+    path("api/auth/me/", views.CurrentUserView.as_view()),
+    path("api/auth/profile/", views.UpdateProfileView.as_view()),
+    path("api/auth/profile/avatar/", views.UpdateProfileView.as_view()),
+    path("api/users/", views.UserListView.as_view()),
+    path("api/users/bulk/", views.UserBulkActionView.as_view()),
+    path("api/users/<int:pk>/", views.UserDetailView.as_view()),
+    path("api/users/<int:pk>/permissions/", views.UserPermissionListView.as_view()),
+    path("api/users/permissions/<int:pk>/", views.UserPermissionDetailView.as_view()),
+    path("api/users/permissions/pages/", views.PagePermissionChoicesView.as_view()),
+    path("user-management/", views.user_management_page, name="user_management"),
+]

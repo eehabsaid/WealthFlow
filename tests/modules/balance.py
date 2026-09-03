@@ -39,7 +39,7 @@ def test_balance_module(context, reporter, screenshot_logger):
         context.page.evaluate("if (typeof showBalanceModal === 'function') showBalanceModal();")
         context.page.wait_for_timeout(600)
         reporter.modals_opened.add("Add/Edit Balance Entry Modal")
-        shot1 = screenshot_logger.capture(context.page, "balance", "modal_open", "showBalanceModal", "open", "ok")
+        screenshot_logger.capture(context.page, "balance", "modal_open", "showBalanceModal", "open", "ok")
         checker.add_manual_step(context.page.query_selector("#bTitle") is not None)
 
         if context.page.query_selector("#bTitle"):
