@@ -2,7 +2,6 @@ import json
 import time
 
 from django.http import JsonResponse
-from django.utils import timezone as dj_tz
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -41,7 +40,7 @@ class AIProgressView(View):
 
         # Explicit ownership check: the conversation must belong to this user
         try:
-            conv = AIConversation.objects.get(id=conv_id, user=request.user, is_deleted=False)
+            AIConversation.objects.get(id=conv_id, user=request.user, is_deleted=False)
         except AIConversation.DoesNotExist:
             # Return idle rather than 403 to avoid leaking conversation existence
             return JsonResponse({"status": "idle"})
@@ -55,21 +54,6 @@ class AIProgressView(View):
             if res_state.get("status") == "running" and "started_at" in res_state:
                 res_state["elapsed_s"] = round(time.time() - float(res_state["started_at"]), 1)
             return JsonResponse(res_state)
-
-        # Resilient fallback: inspect conversation messages in case cache key was cleared
-        last_msg = conv.messages.filter(is_deleted=False).order_by("-created_at").first()
-        if last_msg and last_msg.role == "user":
-            now = dj_tz.now()
-            diff_s = (now - last_msg.created_at).total_seconds()
-            if diff_s < 1800:  # 30-minute active window
-                return JsonResponse({
-                    "status": "running",
-                    "step": 0,
-                    "max_steps": 8,
-                    "tool": "thinking",
-                    "label": "WealthFlow AI is thinking...",
-                    "elapsed_s": round(diff_s, 1),
-                })
 
         return JsonResponse({"status": "idle"})
 
@@ -90,20 +74,12 @@ class AIConversationListView(View):
             qs = qs.filter(is_pinned=True)
 
         cache_mgr = AICacheManager()
-        now = dj_tz.now()
         data = []
         for c in qs:
             c_dict = c.to_dict()
             prog_key = f"ai_loop_progress:{request.user.id}:{c.id}"
             st = cache_mgr.get(prog_key)
-            is_running = False
-            if st and isinstance(st, dict) and st.get("status") == "running":
-                is_running = True
-            else:
-                last_m = c.messages.filter(is_deleted=False).order_by("-created_at").first()
-                if last_m and last_m.role == "user":
-                    if (now - last_m.created_at).total_seconds() < 1800:
-                        is_running = True
+            is_running = bool(st and isinstance(st, dict) and st.get("status") == "running")
             c_dict["is_running"] = is_running
             data.append(c_dict)
 
@@ -146,18 +122,11 @@ class AIConversationDetailView(View):
         conv_dict = conversation.to_dict()
         conv_dict["messages"] = msg_list
 
-        # Check running state
+        # Check running state — cache key is the only reliable signal
         cache_mgr = AICacheManager()
         prog_key = f"ai_loop_progress:{request.user.id}:{conversation.id}"
         st = cache_mgr.get(prog_key)
-        is_running = False
-        if st and isinstance(st, dict) and st.get("status") == "running":
-            is_running = True
-        else:
-            last_m = conversation.messages.filter(is_deleted=False).order_by("-created_at").first()
-            if last_m and last_m.role == "user":
-                if (dj_tz.now() - last_m.created_at).total_seconds() < 1800:
-                    is_running = True
+        is_running = bool(st and isinstance(st, dict) and st.get("status") == "running")
         conv_dict["is_running"] = is_running
 
         return JsonResponse({"conversation": conv_dict})
