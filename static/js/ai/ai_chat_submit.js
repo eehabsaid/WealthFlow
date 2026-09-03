@@ -19,7 +19,39 @@ async function _handleAIChatSubmit() {
   inputEl.style.height = "auto";
 
   _appendMessage("user", message, null, null, new Date().toISOString());
-  // Pass conversationId so progress polling can start immediately if known
+
+  // Pre-create conversation if new so conversation ID is immediately known & persisted
+  if (!_aiState.conversationId) {
+    try {
+      const convRes = await fetch("/api/financial-advisor/ai/conversations/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")?.value || "",
+        },
+        body: JSON.stringify({
+          title: message.length > 30 ? message.slice(0, 30) + "..." : message,
+        }),
+      });
+      if (convRes.ok) {
+        const convData = await convRes.json();
+        const createdConv = convData.conversation || convData;
+        if (createdConv && createdConv.id) {
+          _aiState.conversationId = createdConv.id;
+          localStorage.setItem("wf_active_ai_conv", createdConv.id);
+          _fetchAIChatConversations();
+        }
+      }
+    } catch (_e) {
+      // Non-critical: chat endpoint will create conversation if still null
+    }
+  }
+
+  if (_aiState.conversationId) {
+    localStorage.setItem("wf_active_ai_conv", _aiState.conversationId);
+  }
+
+  // Pass conversationId so progress polling can start immediately
   _setLoadingUI(true, _aiState.conversationId);
 
   try {
@@ -42,6 +74,7 @@ async function _handleAIChatSubmit() {
 
     if (data.conversation_id) {
       _aiState.conversationId = data.conversation_id;
+      localStorage.setItem("wf_active_ai_conv", data.conversation_id);
     }
 
     const aiMsg = data.message || {};

@@ -44,6 +44,7 @@
   "ai_ws_status": "Statut",
   "ai_ws_online": "En ligne",
   "ai_ws_offline": "Hors ligne",
+  "ai_ws_generating": "Génération...",
   "ai_ws_toggle_context": "Basculer le panneau de contexte",
   "ai_ws_group_today": "Aujourd'hui",
   "ai_ws_group_yesterday": "Hier",

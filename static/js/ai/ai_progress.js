@@ -9,6 +9,14 @@
 
 let _progressPollInterval = null;
 
+function _formatElapsed(seconds) {
+  const s = Math.max(0, Math.round(Number(seconds) || 0));
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return `${m}m ${rem}s`;
+}
+
 function _updateThinkingBubbleText(text) {
   const statusEl = document.getElementById("ai-ws-thinking-status-text");
   if (statusEl) {
@@ -17,7 +25,10 @@ function _updateThinkingBubbleText(text) {
 }
 
 function _startProgressPolling(conversationId) {
-  if (_progressPollInterval) return;
+  if (_progressPollInterval) {
+    clearInterval(_progressPollInterval);
+    _progressPollInterval = null;
+  }
   _progressPollInterval = setInterval(async () => {
     if (!conversationId) return;
     try {
@@ -26,11 +37,39 @@ function _startProgressPolling(conversationId) {
       );
       if (!res.ok) return;
       const data = await res.json();
-      if (data.status === "running" && data.step && data.tool) {
-        const desc = data.label || data.tool.replace(/_/g, " ");
-        _updateThinkingBubbleText(`Step ${data.step}/${data.max_steps || 8}: ${desc}\u2026`);
+      if (data.status === "running") {
+        const desc =
+          data.label ||
+          (data.tool
+            ? data.tool.replace(/_/g, " ")
+            : _aiT("ai_ws_thinking_status", "WealthFlow AI is thinking..."));
+        const elapsedStr =
+          data.elapsed_s != null ? ` (${_formatElapsed(data.elapsed_s)})` : "";
+        let statusText = "";
+        if (data.step && data.step > 0) {
+          statusText = `Step ${data.step}/${data.max_steps || 8}: ${desc}${elapsedStr}`;
+        } else {
+          statusText = `${desc}${elapsedStr}`;
+        }
+        _updateThinkingBubbleText(statusText);
       } else if (data.status === "done") {
         _stopProgressPolling();
+        _setLoadingUI(false);
+        if (typeof window._refreshActiveConversation === "function") {
+          window._refreshActiveConversation(conversationId);
+        }
+        if (typeof window._fetchAIChatConversations === "function") {
+          window._fetchAIChatConversations();
+        }
+      } else if (data.status === "error") {
+        _stopProgressPolling();
+        _setLoadingUI(false);
+        if (typeof window._refreshActiveConversation === "function") {
+          window._refreshActiveConversation(conversationId);
+        }
+        if (typeof window._fetchAIChatConversations === "function") {
+          window._fetchAIChatConversations();
+        }
       }
     } catch (_e) {
       // Polling errors are silent — the user still gets the final answer
@@ -73,28 +112,30 @@ function _setLoadingUI(loading, conversationId) {
 
   if (messagesContainer) {
     const existingBubble = document.getElementById("ai-ws-typing-bubble");
-    if (loading && !existingBubble) {
-      const defaultStatus = _escapeHtml(
-        _aiT("ai_ws_thinking_status", "WealthFlow AI is thinking...")
-      );
-      const bubbleHtml = `
-        <div class="ai-ws-msg" id="ai-ws-typing-bubble">
-          <div class="ai-ws-msg-avatar assistant">
-            <i class="bi bi-robot"></i>
-          </div>
-          <div class="ai-ws-msg-body">
-            <div class="ai-ws-msg-role">
-              <span data-i18n="ai_role_assistant">WealthFlow AI</span>
+    if (loading) {
+      if (!existingBubble) {
+        const defaultStatus = _escapeHtml(
+          _aiT("ai_ws_thinking_status", "WealthFlow AI is thinking...")
+        );
+        const bubbleHtml = `
+          <div class="ai-ws-msg" id="ai-ws-typing-bubble">
+            <div class="ai-ws-msg-avatar assistant">
+              <i class="bi bi-robot"></i>
             </div>
-            <div class="ai-ws-msg-content text-muted d-flex align-items-center gap-2 pt-1">
-              <span class="spinner-grow spinner-grow-sm text-primary" role="status" aria-hidden="true"></span>
-              <span class="font-monospace small" id="ai-ws-thinking-status-text">${defaultStatus}</span>
+            <div class="ai-ws-msg-body">
+              <div class="ai-ws-msg-role">
+                <span data-i18n="ai_role_assistant">WealthFlow AI</span>
+              </div>
+              <div class="ai-ws-msg-content text-muted d-flex align-items-center gap-2 pt-1">
+                <span class="spinner-grow spinner-grow-sm text-primary" role="status" aria-hidden="true"></span>
+                <span class="font-monospace small" id="ai-ws-thinking-status-text">${defaultStatus}</span>
+              </div>
             </div>
           </div>
-        </div>
-      `;
-      messagesContainer.innerHTML += bubbleHtml;
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        `;
+        messagesContainer.innerHTML += bubbleHtml;
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
       if (conversationId) {
         _startProgressPolling(conversationId);
       }
@@ -108,3 +149,8 @@ function _setLoadingUI(loading, conversationId) {
     window._applyTranslations();
   }
 }
+
+window._startProgressPolling = _startProgressPolling;
+window._stopProgressPolling = _stopProgressPolling;
+window._setLoadingUI = _setLoadingUI;
+window._updateThinkingBubbleText = _updateThinkingBubbleText;

@@ -1,14 +1,13 @@
 import json
 import time
+
 from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.tools import validate_and_execute_tool
-from core.views.ai_chat.ai_chat_helpers import (
-    MAX_TOOL_ITERATIONS,
-    _tool_progress_label,
-    _get_loop_timeout,
-    _parse_tool_call,
-    _fingerprint,
-)
+from core.views.ai_chat.ai_chat_helpers import (MAX_TOOL_ITERATIONS,
+                                                _fingerprint,
+                                                _get_loop_timeout,
+                                                _parse_tool_call,
+                                                _tool_progress_label)
 
 
 def run_tool_investigation_loop(provider, messages_seq, tools_param, tool_calls_req, content_str, user_text, user, conversation_id):
@@ -93,7 +92,7 @@ def run_tool_investigation_loop(provider, messages_seq, tools_param, tool_calls_
                 "status": "running",
                 "elapsed_s": round(time.monotonic() - loop_start, 1),
             },
-            ttl_seconds=120.0,
+            ttl_seconds=1800.0,
         )
 
         # ── Execute tool via existing validated pipeline ──────────────────
@@ -114,6 +113,20 @@ def run_tool_investigation_loop(provider, messages_seq, tools_param, tool_calls_
                     "provide your final answer now. Otherwise, call the next most relevant tool."
                 ),
             }
+        )
+
+        # Publish synthesizing state while model processes tool results
+        cache_mgr.set(
+            progress_key,
+            {
+                "step": iteration,
+                "max_steps": MAX_TOOL_ITERATIONS,
+                "tool": "synthesizing",
+                "label": f"Analyzing results from {fn_name}...",
+                "status": "running",
+                "elapsed_s": round(time.monotonic() - loop_start, 1),
+            },
+            ttl_seconds=1800.0,
         )
 
         # ── Next model call — tools still offered ─────────────────────────
@@ -140,11 +153,18 @@ def run_tool_investigation_loop(provider, messages_seq, tools_param, tool_calls_
         if final_res.get("content"):
             content_str = final_res["content"]
 
-    # Clear progress state
+    # Mark finalizing state until assistant message is persisted
     cache_mgr.set(
-            progress_key,
-            {"status": "done"},
-            ttl_seconds=30.0,
-        )
+        progress_key,
+        {
+            "step": iteration,
+            "max_steps": MAX_TOOL_ITERATIONS,
+            "tool": "finalizing",
+            "label": "Finalizing response...",
+            "status": "running",
+            "elapsed_s": round(time.monotonic() - loop_start, 1),
+        },
+        ttl_seconds=1800.0,
+    )
 
     return content_str, executed_tool_calls

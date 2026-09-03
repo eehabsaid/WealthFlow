@@ -129,12 +129,18 @@ async function renderAI() {
 
   _applyTranslations();
   _initTextareaAutogrow();
-  _renderEmptyState();
-  _renderRightPanel();
   _renderExtensions();
 
   await _fetchAIWorkspaceStatus();
   await _fetchAIChatConversations();
+
+  const savedConvId = localStorage.getItem("wf_active_ai_conv");
+  if (savedConvId) {
+    await _switchAIChatConversation(savedConvId);
+  } else {
+    _renderEmptyState();
+    _renderRightPanel();
+  }
 }
 
 function _initTextareaAutogrow() {

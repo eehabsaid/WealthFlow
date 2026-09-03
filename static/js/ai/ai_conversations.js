@@ -53,10 +53,14 @@ async function _fetchAIChatConversations() {
         const isActive = String(_aiState.conversationId) === String(conv.id) ? "active" : "";
         const timeAgo = _relativeTime(conv.updated_at || conv.created_at);
         const isPinned = conv.is_pinned || false;
+        const isRunning = Boolean(conv.is_running);
+        const runningBadge = isRunning
+          ? `<span class="spinner-grow spinner-grow-sm text-primary me-1" style="width:0.65rem;height:0.65rem;" role="status" title="${_escapeHtml(_aiT("ai_ws_generating", "Generating..."))}"></span>`
+          : "";
         html += `
           <div class="ai-ws-conv-item ${isActive}" onclick="_switchAIChatConversation('${conv.id}')">
             <div class="ai-ws-conv-header-row">
-              <div class="ai-ws-conv-title">${conv.title || _aiT("ai_ws_untitled", "Untitled")}</div>
+              <div class="ai-ws-conv-title">${runningBadge}${_escapeHtml(conv.title || _aiT("ai_ws_untitled", "Untitled"))}</div>
               <button class="ai-ws-btn-delete" onclick="event.stopPropagation(); togglePinConversation('${conv.id}', ${isPinned})" title="${isPinned ? "Unpin" : "Pin"}" style="opacity:${isPinned ? 1 : 0.4};">
                 <i class="bi bi-pin-angle${isPinned ? "-fill" : ""}"></i>
               </button>
@@ -86,6 +90,7 @@ async function _fetchAIChatConversations() {
 function _startNewAIChatConversation() {
   _aiState.conversationId = null;
   _aiState.lastResponseMeta = null;
+  localStorage.removeItem("wf_active_ai_conv");
   const container = document.getElementById("ai-ws-messages");
   if (container) container.innerHTML = "";
   _renderEmptyState();
@@ -98,9 +103,45 @@ function _startNewAIChatConversation() {
   }
 }
 
+async function _refreshActiveConversation(convId) {
+  if (!convId || String(_aiState.conversationId) !== String(convId)) return;
+  try {
+    const res = await fetch(`/api/financial-advisor/ai/conversations/${convId}/`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const conv = data.conversation || data;
+    const messages = conv.messages || [];
+    const container = document.getElementById("ai-ws-messages");
+    if (!container) return;
+
+    const typingBubble = document.getElementById("ai-ws-typing-bubble");
+    if (typingBubble) typingBubble.remove();
+
+    container.innerHTML = "";
+    if (messages.length > 0) {
+      messages.forEach((msg) => {
+        _appendMessage(msg.role, msg.content, msg.tool_calls, msg.sources, msg.created_at);
+      });
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg.role === "assistant") {
+        _aiState.lastResponseMeta = {
+          sources: lastMsg.sources || [],
+          tool_calls: lastMsg.tool_calls || [],
+        };
+      }
+    } else {
+      _renderEmptyState();
+    }
+    _renderRightPanel();
+  } catch (_err) {
+    // Non-critical
+  }
+}
+
 async function _switchAIChatConversation(convId) {
   _aiState.conversationId = convId;
   _aiState.lastResponseMeta = null;
+  localStorage.setItem("wf_active_ai_conv", convId);
 
   const container = document.getElementById("ai-ws-messages");
   if (container) {
@@ -133,7 +174,7 @@ async function _switchAIChatConversation(convId) {
 
     _renderRightPanel();
 
-    // Resume thinking state if backend is still processing for this conversation
+    // Check progress endpoint or conv.is_running to resume live thinking bubble
     try {
       const progressRes = await fetch(
         `/api/financial-advisor/ai/progress/?conversation_id=${encodeURIComponent(convId)}`
@@ -142,10 +183,16 @@ async function _switchAIChatConversation(convId) {
         const progressData = await progressRes.json();
         if (progressData.status === "running") {
           _setLoadingUI(true, convId);
+        } else if (conv.is_running) {
+          _setLoadingUI(true, convId);
         }
+      } else if (conv.is_running) {
+        _setLoadingUI(true, convId);
       }
     } catch (_e) {
-      // Non-critical — ignore
+      if (conv.is_running) {
+        _setLoadingUI(true, convId);
+      }
     }
   } catch (err) {
     _renderEmptyState();
@@ -171,6 +218,7 @@ async function _deleteAIChatConversation(convId) {
       if (String(_aiState.conversationId) === String(convId)) {
         _aiState.conversationId = null;
         _aiState.lastResponseMeta = null;
+        localStorage.removeItem("wf_active_ai_conv");
         const container = document.getElementById("ai-ws-messages");
         if (container) container.innerHTML = "";
         _renderEmptyState();
@@ -186,3 +234,4 @@ async function _deleteAIChatConversation(convId) {
 window._startNewAIChatConversation = _startNewAIChatConversation;
 window._switchAIChatConversation = _switchAIChatConversation;
 window._deleteAIChatConversation = _deleteAIChatConversation;
+window._refreshActiveConversation = _refreshActiveConversation;

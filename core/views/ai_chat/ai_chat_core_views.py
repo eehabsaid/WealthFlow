@@ -1,16 +1,23 @@
 """AI Financial Advisor — core chat endpoint (AIChatView)."""
 
 import json
+import time
+
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+
 from core.integrations.ai_provider import get_active_ai_provider
-from core.models import AppSettings, AIConversation, AIMessage
+from core.models import AIConversation, AIMessage, AppSettings
+from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.context_builder_service import ContextBuilderService
 from core.services.ai.tools import get_registered_tool_schemas
-from core.views.ai_chat.ai_chat_helpers import _aiT_fallback_no_answer, _api_auth_required
+from core.views.ai_chat.ai_chat_helpers import (MAX_TOOL_ITERATIONS,
+                                                _aiT_fallback_no_answer,
+                                                _api_auth_required)
 from core.views.ai_chat.ai_chat_loop import run_tool_investigation_loop
+
 
 @method_decorator(csrf_exempt, name="dispatch")
 class AIChatView(View):
@@ -66,9 +73,31 @@ class AIChatView(View):
             sources=[],
         )
 
+        # Publish initial running state immediately so polling sees progress right away
+        cache_mgr = AICacheManager()
+        progress_key = f"ai_loop_progress:{request.user.id}:{conversation.id}"
+        cache_mgr.set(
+            progress_key,
+            {
+                "status": "running",
+                "step": 0,
+                "max_steps": MAX_TOOL_ITERATIONS,
+                "tool": "thinking",
+                "label": "WealthFlow AI is thinking...",
+                "started_at": time.time(),
+                "elapsed_s": 0.0,
+            },
+            ttl_seconds=1800.0,
+        )
+
         # Check if AI provider is active
         provider = get_active_ai_provider()
         if not provider:
+            cache_mgr.set(
+                progress_key,
+                {"status": "error", "error": "AI Provider is disabled or unconfigured."},
+                ttl_seconds=60.0,
+            )
             return JsonResponse(
                 {
                     "ok": False,
@@ -112,6 +141,11 @@ class AIChatView(View):
         tool_calls_req = res.get("tool_calls") or []
 
         if error_str:
+            cache_mgr.set(
+                progress_key,
+                {"status": "error", "error": error_str},
+                ttl_seconds=60.0,
+            )
             # Save error response in history to preserve execution record
             ai_msg = AIMessage.objects.create(
                 conversation=conversation,
@@ -167,6 +201,16 @@ class AIChatView(View):
             content=content_str,
             sources=sources,
             tool_calls=executed_tool_calls,
+        )
+
+        # Mark progress as done with message_id now that it is saved in history
+        cache_mgr.set(
+            progress_key,
+            {
+                "status": "done",
+                "message_id": ai_msg.id,
+            },
+            ttl_seconds=120.0,
         )
 
         # Extract and persist long-term knowledge from this conversation turn

@@ -44,6 +44,7 @@
   "ai_ws_status": "الحالة",
   "ai_ws_online": "متصل",
   "ai_ws_offline": "غير متصل",
+  "ai_ws_generating": "جارٍ التوليد...",
   "ai_ws_toggle_context": "تبديل لوحة السياق",
   "ai_ws_group_today": "اليوم",
   "ai_ws_group_yesterday": "أمس",
