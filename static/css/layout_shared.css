@@ -40,7 +40,7 @@ body {
 @media (width >= 992px) {
   [dir="rtl"] #page-wrapper {
     margin-left: 0;
-    margin-right: calc(var(--sidebar-width) + 14px);
+    margin-right: calc(var(--sidebar-width) + 14px) !important;
     padding-right: 0 !important;
   }
 }
