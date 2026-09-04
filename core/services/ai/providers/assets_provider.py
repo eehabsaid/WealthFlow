@@ -9,6 +9,12 @@ from typing import Any
 from core.models import FixedAsset, GoldPrice
 from core.services.ai.providers.base import BaseContextProvider
 
+# Caps how many assets are included in the AI-facing 'items' list when the caller
+# does not pass an explicit `limit`. Aggregates (summary, allocation_breakdown) are
+# always computed over ALL assets regardless of this cap — only the per-row list is
+# capped, to keep the JSON payload small enough to reliably fit in the model's
+# context window without truncation.
+MAX_FIXED_ASSETS_FOR_AI = 20
 
 class FixedAssetsDataProvider(BaseContextProvider):
     @property
@@ -39,8 +45,7 @@ class FixedAssetsDataProvider(BaseContextProvider):
         if user and user.is_authenticated and has_user_field:
             qs = qs.filter(user=user)
 
-        if limit is not None and limit > 0:
-            qs = qs[:limit]
+        qs = qs.order_by("-purchase_date", "-id")
 
         assets_raw = list(qs)
 
@@ -103,6 +108,8 @@ class FixedAssetsDataProvider(BaseContextProvider):
                 "allocation_pct_formatted": f"{pct:.1f}%",
             }
 
+        effective_limit = limit if (limit is not None and limit > 0) else MAX_FIXED_ASSETS_FOR_AI
+
         return {
             "summary": {
                 "total_fixed_assets_value": round(total_assets_val_home, 2),
@@ -111,5 +118,11 @@ class FixedAssetsDataProvider(BaseContextProvider):
                 "home_currency": home_currency,
                 "allocation_breakdown": allocation_breakdown,
             },
-            "items": items,
+            "items": items[:effective_limit],
+            "items_note": (
+                f"items is a flat list of assets ordered newest-first by purchase date "
+                f"(index 0 = the most recently purchased asset). It is capped to {effective_limit} "
+                f"entries out of {len(items)} assets total — summary and allocation_breakdown above "
+                f"are still computed over ALL assets, not just this list."
+            ),
         }
