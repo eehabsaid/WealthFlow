@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/settings/backup/list/", views.BackupListView.as_view()),
     path("api/settings/backup/delete/", views.BackupDeleteView.as_view()),
     path("api/settings/backup/restore/", views.BackupRestoreView.as_view()),
+    path("api/settings/vendor-assets/update/", views.VendorAssetsUpdateView.as_view()),
     # Documentation Engine
     path("api/settings/documentation/capture/", views.CaptureScreenshotsView.as_view()),
     path("api/settings/documentation/generate-docs/", views.GenerateDocumentsView.as_view()),

@@ -106,6 +106,7 @@ async function renderBackupRestoreSettings() {
                     </div>
                 </div>
             </div>
+            ${renderVendorAssetsUpdateCard()}
         </div>
     `;
 

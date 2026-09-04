@@ -47,6 +47,7 @@ from core.views.settings.backup_views import (
     BackupDeleteView,
     BackupRestoreView,
 )
+from core.views.settings.vendor_assets_views import VendorAssetsUpdateView
 from core.views.settings.property_rate_views import ScrapePropertyRatesView
 from core.views.settings.company_views import CompanyListView, CompanyDetailView
 from core.views.settings.bank_views import BankListView, BankDetailView, BankWithBalanceListView
@@ -121,6 +122,7 @@ __all__ = [
     "BackupListView",
     "BackupDeleteView",
     "BackupRestoreView",
+    "VendorAssetsUpdateView",
     "ScrapePropertyRatesView",
     "CompanyListView",
     "CompanyDetailView",
