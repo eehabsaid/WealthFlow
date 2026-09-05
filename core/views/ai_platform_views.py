@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from core.models import AIBenchmarkReport, AIKnowledgeEntry
+from core.models import AIBenchmarkReport, AIKnowledgeEntry, AppSettings
 from core.services.ai.autonomous_learning_engine import \
     AIAutonomousLearningEngine
 from core.services.ai.benchmark_engine import AIBenchmarkEngine
@@ -115,6 +115,11 @@ class AIPlatformModelView(View):
                 "active_model": AIModelManager.get_active_model_version().to_dict(),
                 "model_versions": [m.to_dict() for m in models],
                 "available_backends": backends,
+                # The Ollama tag actually used by live chat right now — a model
+                # the user has already confirmed is pulled and working, used as
+                # the frontend's default base-model suggestion instead of a
+                # hardcoded tag that may not exist on this machine.
+                "live_chat_model": AppSettings.get("ai_model", "qwen2.5:3b"),
             }
         )
 
@@ -137,7 +142,7 @@ class AIPlatformModelView(View):
                 return JsonResponse({"error": "Model version not found"}, status=404)
             return JsonResponse({"ok": True, "active_model": promoted.to_dict()})
 
-        base_model = str(body.get("base_model", "llama3:latest")).strip()
+        base_model = str(body.get("base_model", "")).strip() or None
         backend_name = str(body.get("backend_name", "ollama")).strip()
 
         res = AIModelManager.trigger_fine_tuning(base_model=base_model, backend_name=backend_name)

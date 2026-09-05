@@ -9,12 +9,27 @@ from __future__ import annotations
 
 import logging
 from typing import Any
-from core.models import AIModelVersion
+from core.models import AIModelVersion, AppSettings
 from core.services.ai.training_backends import get_training_backend
 from core.services.ai.dataset_engine import AIDatasetEngine
 from core.services.ai.benchmark_engine import AIBenchmarkEngine
 
 logger = logging.getLogger(__name__)
+
+# Fallback base model used when nothing else is configured. qwen2.5:3b is the
+# smallest commonly-pulled Ollama model, kept only as a last resort default —
+# in practice DEFAULT_BASE_MODEL() below always prefers whatever the user has
+# actually configured and confirmed working as their live chat model.
+_FALLBACK_BASE_MODEL = "qwen2.5:3b"
+
+
+def _default_base_model() -> str:
+    """Resolves to whatever Ollama model is currently configured for live
+    chat (core.integrations.ai_provider.ollama_provider reads this same
+    'ai_model' setting) — i.e. a model the user has already confirmed is
+    actually pulled and working, rather than a hardcoded tag like
+    'llama3:latest' that may not exist on this machine."""
+    return AppSettings.get("ai_model", _FALLBACK_BASE_MODEL)
 
 
 class AIModelManager:
@@ -28,7 +43,7 @@ class AIModelManager:
         if not active:
             active = AIModelVersion.objects.create(
                 version_name="wealthflow-v1",
-                base_model="llama3:latest",
+                base_model=_default_base_model(),
                 training_backend="ollama",
                 dataset_version="v1.0",
                 benchmark_score=92.5,
@@ -50,6 +65,13 @@ class AIModelManager:
         AIModelVersion.objects.filter(is_active=True).update(is_active=False)
         target.is_active = True
         target.save(update_fields=["is_active"])
+
+        # Make the promotion actually take effect: live chat (ollama_provider)
+        # reads its model name from this same 'ai_model' setting, so without
+        # this line, promoting a version here never changed what the AI
+        # assistant actually answers with.
+        AppSettings.set("ai_model", version_name)
+
         return target
 
     @classmethod
@@ -58,7 +80,7 @@ class AIModelManager:
 
     @classmethod
     def trigger_fine_tuning(
-        cls, base_model: str = "llama3:latest", backend_name: str = "ollama"
+        cls, base_model: str | None = None, backend_name: str = "ollama"
     ) -> dict[str, Any]:
         """
         Executes full Dataset-First Fine-Tuning Pipeline:
@@ -68,6 +90,7 @@ class AIModelManager:
         4. Runs Benchmark Pre-Promotion Suite
         5. Promotes ONLY if benchmark score > active production score
         """
+        base_model = (base_model or "").strip() or _default_base_model()
         active = cls.get_active_model_version()
 
         # 1. Dataset Generation & Health Check
