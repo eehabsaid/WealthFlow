@@ -7,6 +7,7 @@ import logging
 from typing import Any, Optional
 
 from core.integrations.provider_utils import make_json_http_request
+from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.credential_encryption import redact_secrets
 
 from .base import BaseAIProvider
@@ -41,7 +42,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
         from core.models import AppSettings
 
         base_url = AppSettings.get("ai_ollama_url", "http://localhost:11434").strip()
-        model = AppSettings.get("ai_model", "llama3.2:latest").strip()
+        model = AppSettings.get("ai_model", DEFAULT_OLLAMA_MODEL).strip()
         try:
             timeout = int(AppSettings.get("ai_timeout", "60"))
         except (ValueError, TypeError):
@@ -72,7 +73,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
                     "type": "text",
                     "is_secret": False,
                     "label_key": "ai_model",
-                    "placeholder": "e.g. llama3.2:latest",
+                    "placeholder": f"e.g. {DEFAULT_OLLAMA_MODEL}",
                     "required": False,
                 },
             ],

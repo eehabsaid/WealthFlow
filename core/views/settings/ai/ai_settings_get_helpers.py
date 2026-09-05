@@ -8,6 +8,7 @@ NOTE: part of the settings/ai/ domain package. If this file grows past
 core/views/settings/__init__.py accordingly."""
 
 from core.models import AppSettings
+from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.credential_encryption import decrypt_credential, mask_credential
 from core.integrations.ai_provider import AVAILABLE_AI_PROVIDERS
 
@@ -18,7 +19,7 @@ def build_ai_settings_get_payload():
 
     provider = AppSettings.get("ai_provider", "ollama").strip()
     ollama_url = AppSettings.get("ai_ollama_url", "http://localhost:11434").strip()
-    model = AppSettings.get("ai_model", "llama3.2:latest").strip()
+    model = AppSettings.get("ai_model", DEFAULT_OLLAMA_MODEL).strip()
 
     try:
         temperature = float(AppSettings.get("ai_temperature", "0.7"))

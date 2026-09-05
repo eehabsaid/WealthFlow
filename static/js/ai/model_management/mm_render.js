@@ -92,7 +92,7 @@ window.MM.renderBody = function () {
       <div class="d-flex gap-2 align-items-end mb-4">
         <div class="flex-grow-1">
           <label class="form-label small mb-1">${esc(t("ai_platform_th_base_model", "Base Model"))}</label>
-          <input id="mm-base-model" type="text" class="form-control form-control-sm" value="${esc(window.MM.state.liveChatModel)}" placeholder="e.g. llama3:latest">
+          <input id="mm-base-model" type="text" class="form-control form-control-sm" value="${esc(window.MM.state.liveChatModel)}" placeholder="${esc(t("ai_mm_base_model_placeholder", "Ollama model tag (see AI Settings)"))}">
         </div>
         <div style="min-width:160px;">
           <label class="form-label small mb-1">${esc(t("ai_platform_select_backend_adapter", "Backend"))}</label>

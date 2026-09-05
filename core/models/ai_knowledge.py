@@ -55,7 +55,7 @@ class AIModelVersion(models.Model):
     Stores local AI model versions, training metadata, and active status.
     """
     version_name = models.CharField(max_length=100, unique=True)
-    base_model = models.CharField(max_length=100, default="llama3:latest")
+    base_model = models.CharField(max_length=100, default="qwen2.5:3b")
     training_backend = models.CharField(max_length=50, default="ollama")
     dataset_version = models.CharField(max_length=50, default="v1.0")
     benchmark_score = models.FloatField(default=0.0)

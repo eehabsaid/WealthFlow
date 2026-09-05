@@ -11,7 +11,7 @@ window.MM.state = {
   activeModel: null,
   modelVersions: [],
   availableBackends: [],
-  liveChatModel: "qwen2.5:3b",
+  liveChatModel: "",
   loading: false,
   busy: false,
   error: null,
@@ -43,7 +43,7 @@ window.MM.load = function () {
       window.MM.state.activeModel = data.active_model || null;
       window.MM.state.modelVersions = data.model_versions || [];
       window.MM.state.availableBackends = data.available_backends || [];
-      window.MM.state.liveChatModel = data.live_chat_model || "qwen2.5:3b";
+      window.MM.state.liveChatModel = data.live_chat_model || "";
       window.MM.state.loading = false;
       window.MM.renderBody();
     })

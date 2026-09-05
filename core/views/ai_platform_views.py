@@ -13,6 +13,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from core.models import AIBenchmarkReport, AIKnowledgeEntry, AppSettings
+from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.autonomous_learning_engine import \
     AIAutonomousLearningEngine
 from core.services.ai.benchmark_engine import AIBenchmarkEngine
@@ -119,7 +120,7 @@ class AIPlatformModelView(View):
                 # the user has already confirmed is pulled and working, used as
                 # the frontend's default base-model suggestion instead of a
                 # hardcoded tag that may not exist on this machine.
-                "live_chat_model": AppSettings.get("ai_model", "qwen2.5:3b"),
+                "live_chat_model": AppSettings.get("ai_model", DEFAULT_OLLAMA_MODEL),
             }
         )
 

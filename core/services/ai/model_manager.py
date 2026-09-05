@@ -10,26 +10,21 @@ from __future__ import annotations
 import logging
 from typing import Any
 from core.models import AIModelVersion, AppSettings
+from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.training_backends import get_training_backend
 from core.services.ai.dataset_engine import AIDatasetEngine
 from core.services.ai.benchmark_engine import AIBenchmarkEngine
 
 logger = logging.getLogger(__name__)
 
-# Fallback base model used when nothing else is configured. qwen2.5:3b is the
-# smallest commonly-pulled Ollama model, kept only as a last resort default —
-# in practice DEFAULT_BASE_MODEL() below always prefers whatever the user has
-# actually configured and confirmed working as their live chat model.
-_FALLBACK_BASE_MODEL = "qwen2.5:3b"
-
 
 def _default_base_model() -> str:
     """Resolves to whatever Ollama model is currently configured for live
     chat (core.integrations.ai_provider.ollama_provider reads this same
     'ai_model' setting) — i.e. a model the user has already confirmed is
-    actually pulled and working, rather than a hardcoded tag like
-    'llama3:latest' that may not exist on this machine."""
-    return AppSettings.get("ai_model", _FALLBACK_BASE_MODEL)
+    actually pulled and working, rather than a hardcoded tag that may not
+    exist on this machine."""
+    return AppSettings.get("ai_model", DEFAULT_OLLAMA_MODEL)
 
 
 class AIModelManager:

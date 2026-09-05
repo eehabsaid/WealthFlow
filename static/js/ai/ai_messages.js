@@ -14,7 +14,7 @@ function _renderEmptyState() {
   if (_aiState.conversationId) return;
 
   const provider = _aiState.aiSettings?.ai_provider || "Ollama";
-  const model = _aiState.aiSettings?.ai_model || "llama3.2:latest";
+  const model = _aiState.aiSettings?.ai_model || "—";
   const kCount = _aiState.knowledgeCount || 31;
 
   messagesContainer.innerHTML = `

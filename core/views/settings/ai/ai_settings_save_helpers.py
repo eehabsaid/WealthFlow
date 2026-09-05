@@ -11,6 +11,7 @@ core/views/settings/__init__.py accordingly."""
 from django.http import JsonResponse
 
 from core.models import AppSettings
+from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.credential_encryption import encrypt_credential, is_masked
 from core.integrations.ai_provider import AVAILABLE_AI_PROVIDERS, get_active_ai_provider
 
@@ -92,7 +93,7 @@ def validate_ai_settings_post_data(data):
     enabled = bool(data.get("ai_enabled", False))
     read_only = bool(data.get("ai_read_only", True))
     ollama_url = str(data.get("ai_ollama_url", "http://localhost:11434")).strip()
-    model = str(data.get("ai_model", "llama3.2:latest")).strip()
+    model = str(data.get("ai_model", DEFAULT_OLLAMA_MODEL)).strip()
     system_prompt = str(data.get("ai_system_prompt", "You are a helpful financial advisor assistant.")).strip()
     seed = str(data.get("ai_seed", "")).strip()
     keep_alive = str(data.get("ai_keep_alive", "5m")).strip()
