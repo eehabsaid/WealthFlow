@@ -58,7 +58,8 @@ window.MM.renderBody = function () {
   const backendOpts = backends.length
     ? backends
         .map(function (b) {
-          return `<option value="${esc(b)}">${esc(b)}</option>`;
+          const disabled = b.is_available === false ? "disabled" : "";
+          return `<option value="${esc(b.name)}" ${disabled}>${esc(b.name)}</option>`;
         })
         .join("")
     : '<option value="ollama">ollama</option>';
