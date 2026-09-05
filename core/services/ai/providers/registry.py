@@ -131,10 +131,23 @@ def _score_provider_relevance(provider: BaseContextProvider, search_query: str) 
     return score
 
 
-def get_relevant_providers_data(user: Any, search_query: str = "", limit: int | None = None) -> dict[str, Any]:
+def get_relevant_providers_data(
+    user: Any,
+    search_query: str = "",
+    limit: int | None = None,
+    require_signal: bool = False,
+) -> dict[str, Any]:
     """
     Dynamically queries relevant data providers matching the user's intent or search query.
     Performs capability metadata matching across all registered providers without hardcoded enums.
+
+    require_signal: when True, returns an empty dict instead of falling back to
+    ALL registered providers when no query term scores a positive match. Used for
+    automatic/deterministic context injection (every chat turn) where silently
+    dumping the entire business dataset for an unrelated query would be wasteful
+    and noisy. The explicit query_application_data tool keeps the old "broad scan"
+    fallback behavior (require_signal=False) since a model-initiated tool call is
+    already an explicit signal that some data is wanted.
     """
     if not _DATA_PROVIDER_REGISTRY:
         autodiscover_providers()
@@ -158,6 +171,8 @@ def get_relevant_providers_data(user: Any, search_query: str = "", limit: int | 
         selected_keys = [k for k, s in scores.items() if scores[k] >= rel_threshold]
     elif positive_scores:
         selected_keys = [k for k, s in scores.items() if scores[k] > 0.0]
+    elif require_signal:
+        selected_keys = []
     else:
         selected_keys = list(_DATA_PROVIDER_REGISTRY.keys())
 

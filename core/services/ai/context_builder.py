@@ -68,9 +68,15 @@ class AIContextBuilder:
         return res_data
 
     @classmethod
-    def build_business_context(cls, user: Any, search_query: str = "", limit: int | None = None) -> dict[str, Any]:
+    def build_business_context(
+        cls,
+        user: Any,
+        search_query: str = "",
+        limit: int | None = None,
+        require_signal: bool = False,
+    ) -> dict[str, Any]:
         """Fetch read-only business data signals matching search query intent via Data Provider Registry."""
-        return get_relevant_providers_data(user, search_query=search_query, limit=limit)
+        return get_relevant_providers_data(user, search_query=search_query, limit=limit, require_signal=require_signal)
 
 
 

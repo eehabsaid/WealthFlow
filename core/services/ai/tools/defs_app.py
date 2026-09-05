@@ -74,7 +74,14 @@ APP_TOOL_DEFS: dict[str, dict[str, Any]] = {
     },
     "query_application_data": {
         "name": "query_application_data",
-        "description": "Fetch real read-only business data across relevant modules based on user intent and search query.",
+        "description": (
+            "Fetch real read-only business data across relevant modules based on user intent and "
+            "search query. Covers balance/bank accounts, bank certificates, expenses, salary/employment, "
+            "fixed assets (real estate, vehicles, physical gold holdings), and market data (live exchange "
+            "rates, live gold spot price). ALWAYS call this before answering any question that needs a "
+            "specific figure, quantity, or current value the user owns or holds — never estimate or recall "
+            "such a figure from general knowledge."
+        ),
         "is_read_only": True,
         "domain": "business_data_analysis",
         "handler": _handle_query_application_data,
@@ -82,7 +89,11 @@ APP_TOOL_DEFS: dict[str, dict[str, Any]] = {
             "type": "function",
             "function": {
                 "name": "query_application_data",
-                "description": "Fetch real read-only business data across relevant modules matching the search query.",
+                "description": (
+                    "Fetch real read-only business data across relevant modules matching the search "
+                    "query — e.g. 'how much gold do I own', 'my bank balances', 'recent expenses', "
+                    "'salary history', 'fixed assets value'."
+                ),
                 "parameters": {
                     "type": "object",
                     "properties": {
