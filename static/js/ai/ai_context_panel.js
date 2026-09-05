@@ -114,15 +114,12 @@ function _renderRightPanel() {
     <div class="ai-ws-right-section">
       <div class="ai-ws-right-title"><i class="bi bi-grid me-1"></i> <span data-i18n="ai_ws_app_modules">Application Modules</span></div>
       <div class="ai-ws-modules-grid">
-        <div class="ai-ws-module-chip" data-i18n="nav_dashboard">Dashboard</div>
-        <div class="ai-ws-module-chip" data-i18n="nav_financial_advisor">Financial Advisor</div>
-        <div class="ai-ws-module-chip" data-i18n="nav_employment">Employment</div>
-        <div class="ai-ws-module-chip" data-i18n="nav_balance">Balance</div>
-        <div class="ai-ws-module-chip" data-i18n="nav_certificates">Certificates</div>
-        <div class="ai-ws-module-chip" data-i18n="nav_fixed_assets">Fixed Assets</div>
-        <div class="ai-ws-module-chip" data-i18n="nav_gold">Gold</div>
-        <div class="ai-ws-module-chip" data-i18n="nav_expenses">Expenses</div>
-        <div class="ai-ws-module-chip" data-i18n="nav_reports">Reports</div>
+        ${_getApplicationModuleChips()
+          .map(
+            (m) =>
+              `<div class="ai-ws-module-chip" data-i18n="${m.i18nKey}">${m.text}</div>`
+          )
+          .join("")}
       </div>
     </div>
 
