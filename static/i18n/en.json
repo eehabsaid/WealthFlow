@@ -92,6 +92,7 @@
   "ai_ws_source_salary": "Employment",
   "ai_ws_source_gold": "Gold",
   "ai_ws_source_fixed_assets": "Fixed Assets",
+  "ai_ws_source_market_data": "Exchange & Gold Rates",
   "ai_ws_tool_query_database": "Query Database",
   "ai_ws_tool_app_discovery": "App Discovery",
   "ai_ws_tool_feature_draft": "Feature Draft",

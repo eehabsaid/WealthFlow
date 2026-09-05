@@ -92,6 +92,7 @@
   "ai_ws_source_salary": "Beschäftigung",
   "ai_ws_source_gold": "Gold",
   "ai_ws_source_fixed_assets": "Sachanlagen",
+  "ai_ws_source_market_data": "Wechsel- und Goldkurse",
   "ai_ws_tool_query_database": "Datenbankabfrage",
   "ai_ws_tool_app_discovery": "App-Erkennung",
   "ai_ws_tool_feature_draft": "Feature-Entwurf",

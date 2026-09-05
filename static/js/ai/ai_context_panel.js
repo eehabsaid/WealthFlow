@@ -19,18 +19,7 @@ function _renderRightPanel() {
   const container = document.getElementById("ai-ws-context-content");
   if (!container) return;
 
-  const sourcesMap = {
-    overview: "ai_ws_source_overview",
-    cash_flow: "ai_ws_source_cash_flow",
-    goal_planning: "ai_ws_source_goal_planning",
-    risk_analysis: "ai_ws_source_risk_analysis",
-    balance: "ai_ws_source_balance",
-    bank_certificates: "ai_ws_source_certificates",
-    expenses: "ai_ws_source_expenses",
-    salary: "ai_ws_source_employment",
-    gold: "ai_ws_source_gold",
-    fixed_assets: "ai_ws_source_fixed_assets",
-  };
+  const sourcesMap = _AI_WS_SOURCES_MAP;
 
   const toolsMap = {
     query_application_data: "ai_ws_tool_query_database",

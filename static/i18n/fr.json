@@ -92,6 +92,7 @@
   "ai_ws_source_salary": "Emploi",
   "ai_ws_source_gold": "Or",
   "ai_ws_source_fixed_assets": "Actifs immobilisés",
+  "ai_ws_source_market_data": "Taux de change et de l'or",
   "ai_ws_tool_query_database": "Requête base de données",
   "ai_ws_tool_app_discovery": "Découverte applicative",
   "ai_ws_tool_feature_draft": "Brouillon de fonctionnalité",
