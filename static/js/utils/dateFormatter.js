@@ -33,15 +33,38 @@ function formatDate(value, lang) {
       }
     } else if (typeof value === "string" || typeof value === "number") {
       // Check ISO YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS / YYYY-MM-DD HH:MM:SS
-      const isoMatch = strVal.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}:\d{2}(?::\d{2})?))?/);
-      if (isoMatch) {
+      // ISO strings with a time AND an explicit UTC/offset marker (Z or +HH:MM)
+      // must be parsed as real Date objects so JS converts UTC -> local time.
+      // ISO date-only strings (no time) stay parsed as local calendar dates
+      // to avoid off-by-one-day shifts near midnight.
+      const isoWithOffset = strVal.match(
+        /^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/
+      );
+      const isoDateOnly = strVal.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+      if (isoWithOffset) {
+        const parsed = new Date(strVal);
+        if (!isNaN(parsed.getTime())) {
+          dt = parsed;
+          const hrs = String(parsed.getHours()).padStart(2, "0");
+          const mins = String(parsed.getMinutes()).padStart(2, "0");
+          const secs = String(parsed.getSeconds()).padStart(2, "0");
+          timePart = secs !== "00" ? ` ${hrs}:${mins}:${secs}` : ` ${hrs}:${mins}`;
+        }
+      } else if (isoDateOnly) {
+        const y = parseInt(isoDateOnly[1], 10);
+        const m = parseInt(isoDateOnly[2], 10) - 1;
+        const d = parseInt(isoDateOnly[3], 10);
+        dt = new Date(y, m, d);
+      } else if (strVal.match(/^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}/)) {
+        // ISO date+time with NO offset marker: treat as already-local
+        // (matches previous behavior for naive datetime strings).
+        const isoMatch = strVal.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}:\d{2}(?::\d{2})?)/);
         const y = parseInt(isoMatch[1], 10);
         const m = parseInt(isoMatch[2], 10) - 1;
         const d = parseInt(isoMatch[3], 10);
         dt = new Date(y, m, d);
-        if (isoMatch[4]) {
-          timePart = ` ${isoMatch[4]}`;
-        }
+        timePart = ` ${isoMatch[4]}`;
       } else {
         // Check DD-MM-YYYY or DD/MM/YYYY or DD-MM-YYYY HH:MM
         const dmyMatch = strVal.match(
