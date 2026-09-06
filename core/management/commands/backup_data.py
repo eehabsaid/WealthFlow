@@ -24,100 +24,34 @@ Special data handling
   • DecimalField           → String ("12345.67") – lossless
   • BinaryField            → Base64-encoded ASCII string
   • content_type FK        → "app_label.model_name" label string
+
+Note on file layout: field-mapping, instance-serialization, checksum, and
+migration-lookup helpers live in core.services.backup_serializer (not in
+this file) to keep this module under 200 lines. They can't be split into a
+sibling package under management/commands/ instead, because Django's
+management-command auto-discovery (pkgutil.iter_modules with
+`not is_pkg`) only recognizes flat modules there, not packages.
 """
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import platform
 import zipfile
 from datetime import datetime, timezone
-from typing import Any
 
 import django
 from django.core.management.base import BaseCommand
-from django.db import models as django_models
-from django.contrib.contenttypes.models import ContentType
 
 from core.services.backup_serializer import (
     get_model_export_order,
-    serialize_value,
-    content_type_label,
+    get_field_map,
+    serialize_instance,
+    sha256_of_bytes,
+    get_last_migration,
 )
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _get_field_map(model_class) -> dict[str, django_models.Field]:
-    """Return {field.attname: field} for all concrete fields on a model."""
-    return {f.attname: f for f in model_class._meta.get_fields()
-            if isinstance(f, django_models.Field) and not f.many_to_many and getattr(f, "concrete", True)}
-
-
-def _serialize_instance(instance, field_map: dict) -> dict[str, Any]:
-    """
-    Serialise one model instance to a plain dict.
-    All values are JSON-safe primitives.
-    """
-    row: dict[str, Any] = {}
-    for attname, field in field_map.items():
-        raw = getattr(instance, attname, None)
-        row[attname] = serialize_value(raw)
-
-    # Special handling: Document uses GenericForeignKey via ContentType.
-    # Store "app_label.model_name" instead of the raw integer content_type_id.
-    if hasattr(instance, "content_type_id") and hasattr(instance, "object_id"):
-        try:
-            ct = ContentType.objects.get(pk=instance.content_type_id)
-            row["_content_type_label"] = content_type_label(ct)
-        except ContentType.DoesNotExist:
-            row["_content_type_label"] = None
-
-    # Store username for any field that is a FK to auth.User so that restore
-    # can match by username rather than raw integer PK.
-    from django.contrib.auth.models import User
-    for attname, field in field_map.items():
-        if (isinstance(field, (django_models.ForeignKey, django_models.OneToOneField))
-                and field.related_model is User
-                and attname.endswith("_id")):
-            user_id = row.get(attname)
-            if user_id is not None:
-                try:
-                    row[f"__{attname[:-3]}__username"] = (
-                        User.objects.get(pk=user_id).username
-                    )
-                except User.DoesNotExist:
-                    row[f"__{attname[:-3]}__username"] = None
-
-    return row
-
-
-def _sha256_of_bytes(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def _get_last_migration() -> str:
-    """Return the name of the last applied migration."""
-    try:
-        from django.db.migrations.recorder import MigrationRecorder
-        last = (
-            MigrationRecorder.Migration.objects
-            .order_by("-applied")
-            .values_list("app", "name")
-            .first()
-        )
-        return f"{last[0]}.{last[1]}" if last else "none"
-    except Exception:
-        return "unknown"
-
-
-# ---------------------------------------------------------------------------
-# Management command
-# ---------------------------------------------------------------------------
 
 class Command(BaseCommand):
     help = (
@@ -195,9 +129,9 @@ class Command(BaseCommand):
                     self.stdout.write(f"  SKIP  {model_class.__name__}")
                     continue
 
-                field_map = _get_field_map(model_class)
+                field_map = get_field_map(model_class)
                 queryset = model_class.objects.all()
-                rows = [_serialize_instance(obj, field_map) for obj in queryset]
+                rows = [serialize_instance(obj, field_map) for obj in queryset]
 
                 entry_name = f"{prefix}_{model_name}.json"
                 json_bytes = json.dumps(
@@ -211,14 +145,14 @@ class Command(BaseCommand):
                 ).encode("utf-8")
 
                 zf.writestr(entry_name, json_bytes)
-                checksum_map[entry_name] = _sha256_of_bytes(json_bytes)
+                checksum_map[entry_name] = sha256_of_bytes(json_bytes)
                 manifest_rows[model_class.__name__] = len(rows)
 
                 label = model_class.__name__.ljust(35)
                 self.stdout.write(f"  OK    {label} {len(rows):>7,} rows")
 
             # ── schema_version.txt ──────────────────────────────────────
-            last_migration = _get_last_migration()
+            last_migration = get_last_migration()
             zf.writestr("schema_version.txt", last_migration.encode("utf-8"))
 
             # ── manifest.json ───────────────────────────────────────────
