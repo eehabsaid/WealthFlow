@@ -188,6 +188,8 @@ function _renderCashFlowForecast(payload) {
       ${showAllBtnHtml}
     </div>
 
+    <div class="mb-4" id="cash_flow_custom_projection_container"></div>
+
     <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
       <div class="card-body" style="padding:20px;">
         <div style="color:var(--text-primary); font-weight:700; margin-bottom:12px;" data-i18n="cash_flow_summary_title"></div>
@@ -237,6 +239,10 @@ function _renderCashFlowForecast(payload) {
   `;
 
   applyTranslations();
+
+  if (typeof _renderCashFlowCustomProjectionCard === "function") {
+    _renderCashFlowCustomProjectionCard();
+  }
 }
 
 async function loadCashFlowForecast(force = false) {

@@ -64,6 +64,7 @@ from core.views.balance.currency_exchange_crud_views import (
 from core.views.balance.forecasts.forecast_core_views import (
     CertificateForecastView,
     CashFlowForecastView,
+    CashFlowCustomProjectionView,
     WealthGrowthForecastView,
     PortfolioOptimizerView,
     OverviewView,
@@ -106,6 +107,7 @@ __all__ = [
     "CurrencyExchangeFormOptionsView",
     "CertificateForecastView",
     "CashFlowForecastView",
+    "CashFlowCustomProjectionView",
     "WealthGrowthForecastView",
     "PortfolioOptimizerView",
     "RiskAnalysisView",
