@@ -8,6 +8,8 @@ from core.views.ai_chat.ai_chat_helpers import (MAX_TOOL_ITERATIONS,
                                                 _get_loop_timeout,
                                                 _parse_tool_call,
                                                 _tool_progress_label)
+from core.views.ai_chat.fake_tool_call_recovery import extract_fake_tool_call
+from core.services.ai.tools.defs import AI_TOOL_REGISTRY
 
 
 def run_tool_investigation_loop(provider, messages_seq, tools_param, tool_calls_req, content_str, user_text, user, conversation_id):
@@ -77,6 +79,11 @@ def run_tool_investigation_loop(provider, messages_seq, tools_param, tool_calls_
             next_res = provider.generate(messages_seq, tools=tools_param)
             content_str = next_res.get("content", content_str)
             tool_calls_req = next_res.get("tool_calls") or []
+            if not tool_calls_req:
+                fake_call = extract_fake_tool_call(content_str, set(AI_TOOL_REGISTRY.keys()))
+                if fake_call:
+                    tool_calls_req = [fake_call]
+                    content_str = ""
             continue
 
         seen_fingerprints.add(fp)
@@ -137,6 +144,11 @@ def run_tool_investigation_loop(provider, messages_seq, tools_param, tool_calls_
 
         content_str = next_res.get("content", content_str)
         tool_calls_req = next_res.get("tool_calls") or []
+        if not tool_calls_req:
+            fake_call = extract_fake_tool_call(content_str, set(AI_TOOL_REGISTRY.keys()))
+            if fake_call:
+                tool_calls_req = [fake_call]
+                content_str = ""
 
     # ── Cap exhaustion fallback ───────────────────────────────────────────
     # If the loop exhausted MAX_TOOL_ITERATIONS without a text-only final answer

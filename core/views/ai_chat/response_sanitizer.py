@@ -33,6 +33,37 @@ _LATEX_COMMAND_REPLACEMENTS = [
 ]
 
 
+_ROLE_LABELS = {"assistant", "user", "system", "tool"}
+
+
+def strip_leaked_control_tokens(text: str, valid_tool_names: set[str] | None = None) -> str:
+    """
+    Strips leaked raw tool-name / chat-role-label lines that some local-model
+    outputs prepend before the real answer, e.g.:
+        "query_application_data\\nassistant\\n\\nBased on the provided data..."
+    Only strips lines that are EXACTLY a registered tool name or a bare role
+    label (nothing else on the line) — never touches ordinary prose, so a
+    real answer that happens to mention a tool name mid-sentence is untouched.
+    """
+    if not text:
+        return text
+
+    valid_tool_names = valid_tool_names or set()
+    lines = text.split("\n")
+    idx = 0
+    while idx < len(lines):
+        stripped = lines[idx].strip()
+        if stripped and (stripped in valid_tool_names or stripped.lower() in _ROLE_LABELS):
+            idx += 1
+            continue
+        if stripped == "":
+            idx += 1
+            continue
+        break
+
+    return "\n".join(lines[idx:]).lstrip("\n")
+
+
 def strip_latex(text: str) -> str:
     """Removes LaTeX math delimiters and common commands, leaving plain text."""
     if not text:
