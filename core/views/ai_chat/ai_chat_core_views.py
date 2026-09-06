@@ -17,6 +17,7 @@ from core.views.ai_chat.ai_chat_helpers import (MAX_TOOL_ITERATIONS,
                                                 _aiT_fallback_no_answer,
                                                 _api_auth_required)
 from core.views.ai_chat.ai_chat_loop import run_tool_investigation_loop
+from core.views.ai_chat.response_sanitizer import strip_latex
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -195,6 +196,7 @@ class AIChatView(View):
         )
 
         # Save successful assistant response with full tool execution audit trail
+        content_str = strip_latex(content_str)
         ai_msg = AIMessage.objects.create(
             conversation=conversation,
             role="assistant",
