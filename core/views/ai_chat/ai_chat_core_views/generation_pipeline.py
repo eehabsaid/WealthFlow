@@ -9,7 +9,9 @@ from django.http import JsonResponse
 from core.models import AIMessage, AppSettings
 from core.services.ai.context_builder_service import ContextBuilderService
 from core.services.ai.tools import get_registered_tool_schemas
+from core.services.ai.tools.defs import AI_TOOL_REGISTRY
 from core.views.ai_chat.ai_chat_helpers import _aiT_fallback_no_answer
+from core.views.ai_chat.fake_tool_call_recovery import extract_fake_tool_call
 
 
 def build_context(request, conversation, user_msg, user_text):
@@ -43,6 +45,16 @@ def initial_generate(provider, messages_seq, question_domain):
     error_str = res.get("error")
     content_str = res.get("content", "")
     tool_calls_req = res.get("tool_calls") or []
+
+    # ── Recover from a local-model failure mode: writing a fake tool call
+    # as plain-text JSON instead of real structured function-calling (see
+    # fake_tool_call_recovery.py). Without this, the call is silently
+    # dropped and the fabricated narration is saved as the final answer.
+    if not tool_calls_req and not error_str:
+        fake_call = extract_fake_tool_call(content_str, set(AI_TOOL_REGISTRY.keys()))
+        if fake_call:
+            tool_calls_req = [fake_call]
+            content_str = ""
 
     if error_str:
         return tools_param, error_str, content_str, tool_calls_req

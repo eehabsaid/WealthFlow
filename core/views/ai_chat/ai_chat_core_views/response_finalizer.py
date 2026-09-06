@@ -7,12 +7,16 @@ order of operations, only relocated for file-size compliance.
 from django.http import JsonResponse
 
 from core.models import AIMessage
+from core.services.ai.tools.defs import AI_TOOL_REGISTRY
+from core.views.ai_chat.response_sanitizer import strip_latex, strip_leaked_control_tokens
 
 
 def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
                       content_str, executed_tool_calls, sources, request):
     """Persist the assistant reply, extract knowledge, and build the response."""
     # Save successful assistant response with full tool execution audit trail
+    content_str = strip_leaked_control_tokens(content_str, set(AI_TOOL_REGISTRY.keys()))
+    content_str = strip_latex(content_str)
     ai_msg = AIMessage.objects.create(
         conversation=conversation,
         role="assistant",

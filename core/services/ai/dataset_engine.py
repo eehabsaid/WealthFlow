@@ -18,6 +18,30 @@ from core.services.ai.knowledge_engine import AIKnowledgeEngine
 logger = logging.getLogger(__name__)
 
 
+# Instructions that only make sense with the specific prior turn they were
+# actually part of — e.g. "continue" pulled from one conversation, paired
+# with whatever unrelated answer happened to follow it there. Baked into a
+# future model's Modelfile as a fixed MESSAGE example, these turn into
+# dangerous universal triggers: a real user typing the same bare word in a
+# totally different, unrelated conversation causes the model to regurgitate
+# the memorized (and irrelevant) canned answer instead of reasoning about
+# what's actually being asked. Confirmed root cause of a real production bug.
+_GENERIC_CONTEXT_DEPENDENT_INSTRUCTIONS = {
+    "continue", "continue please", "go on", "keep going", "please continue",
+    "ok", "okay", "yes", "no", "sure", "next", "more", "and then", "why",
+    "what else", "tell me more", "please", "thanks", "thank you",
+}
+MIN_INSTRUCTION_WORDS = 4
+
+
+def _is_context_dependent_instruction(instruction: str) -> bool:
+    """True if instruction is too short/generic to stand alone as a training example."""
+    cleaned = instruction.strip().lower().rstrip(".!?")
+    if cleaned in _GENERIC_CONTEXT_DEPENDENT_INSTRUCTIONS:
+        return True
+    return len(cleaned.split()) < MIN_INSTRUCTION_WORDS
+
+
 class AIDatasetEngine:
     """
     Core dataset generator and validator for SFT instruction-context-reasoning pairs.
@@ -64,6 +88,8 @@ class AIDatasetEngine:
                 .first()
             )
             if prev_user_msg and prev_user_msg.content and msg.content:
+                if _is_context_dependent_instruction(prev_user_msg.content):
+                    continue
                 sample = {
                     "instruction": prev_user_msg.content,
                     "context": "Real user conversation history.",
