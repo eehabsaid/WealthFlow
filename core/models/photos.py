@@ -34,7 +34,7 @@ class AssetPhoto(models.Model):
     )
 
     class Meta:
-        ordering = ["-uploaded_at"]
+        ordering = ["-uploaded_at", "-id"]
 
     def to_dict(self):
         return {
