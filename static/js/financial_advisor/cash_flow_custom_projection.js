@@ -51,9 +51,17 @@ function _renderCashFlowCustomProjectionCard() {
 
   const presetSelect = document.getElementById("custom_projection_preset");
   const dateInput = document.getElementById("custom_projection_date");
+  // The global date-picker system (static/js/datepicker/) auto-upgrades every
+  // input[type="date"] on the page: it wraps the native input in a
+  // <div class="wf-dp-wrap">, moves any inline style from the native input
+  // onto that wrapper, and permanently hides the native input itself via a
+  // CSS class. So toggling display on `dateInput` directly is a no-op once
+  // upgraded — the wrapper is the element that actually needs to be shown.
+  const dateWrapper = () => dateInput.closest(".wf-dp-wrap") || dateInput;
+
   presetSelect.addEventListener("change", () => {
     const isCustom = presetSelect.value === "custom";
-    dateInput.style.display = isCustom ? "block" : "none";
+    dateWrapper().style.display = isCustom ? "block" : "none";
     document.getElementById("custom_projection_date_hint").style.display = isCustom ? "block" : "none";
     if (isCustom && !dateInput.value) {
       // Pre-fill with a sensible default (today + 30 days) so the field
