@@ -361,6 +361,8 @@
   "cash_flow_custom_load_btn": "Load events",
   "cash_flow_custom_events_label": "Uncheck any event to exclude it from the projection",
   "cash_flow_custom_no_events": "No upcoming events before this date.",
+  "cash_flow_custom_date_hint": "Pick the exact date to project to.",
+  "cash_flow_custom_missing_date": "Please pick a date first — nothing was calculated.",
   "cash_flow_custom_loading": "Calculating...",
   "cash_flow_custom_error": "Could not calculate the projection. Please try again.",
   "cash_flow_custom_projected_balance": "Projected balance",

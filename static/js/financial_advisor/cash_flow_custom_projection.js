@@ -30,6 +30,7 @@ function _renderCashFlowCustomProjectionCard() {
               <option value="custom" data-i18n="cash_flow_custom_preset_custom"></option>
             </select>
             <input type="date" id="custom_projection_date" class="form-control form-control-sm mt-2" style="display:none; background:var(--bg-primary); color:var(--text-primary); border-color:var(--border-color);">
+            <div id="custom_projection_date_hint" style="display:none; color:var(--text-secondary); font-size:11px; margin-top:4px;" data-i18n="cash_flow_custom_date_hint"></div>
           </div>
 
           <div class="col-12 col-md-6">
@@ -51,7 +52,19 @@ function _renderCashFlowCustomProjectionCard() {
   const presetSelect = document.getElementById("custom_projection_preset");
   const dateInput = document.getElementById("custom_projection_date");
   presetSelect.addEventListener("change", () => {
-    dateInput.style.display = presetSelect.value === "custom" ? "block" : "none";
+    const isCustom = presetSelect.value === "custom";
+    dateInput.style.display = isCustom ? "block" : "none";
+    document.getElementById("custom_projection_date_hint").style.display = isCustom ? "block" : "none";
+    if (isCustom && !dateInput.value) {
+      // Pre-fill with a sensible default (today + 30 days) so the field
+      // is never blank/ambiguous — the user can still change it freely.
+      const defaultDate = new Date();
+      defaultDate.setDate(defaultDate.getDate() + 30);
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() + 1);
+      dateInput.min = minDate.toISOString().split("T")[0];
+      dateInput.value = defaultDate.toISOString().split("T")[0];
+    }
   });
 
   document.getElementById("custom_projection_load_btn").addEventListener("click", _loadCustomProjectionEvents);
@@ -66,7 +79,14 @@ async function _loadCustomProjectionEvents() {
   const currencyScope = document.getElementById("custom_projection_currency_scope").value;
 
   const params = new URLSearchParams();
-  if (preset === "custom" && customDate) {
+  if (preset === "custom") {
+    if (!customDate) {
+      // Never silently fall back to a default — tell the user exactly
+      // what's missing instead of guessing.
+      resultEl.innerHTML = `<div class="alert alert-warning" style="background:var(--bg-secondary); border-color:var(--border-color); color:var(--text-primary);" data-i18n="cash_flow_custom_missing_date"></div>`;
+      applyTranslations();
+      return;
+    }
     params.set("target_date", customDate);
   } else {
     params.set("days", preset);

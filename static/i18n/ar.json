@@ -361,6 +361,8 @@
   "cash_flow_custom_load_btn": "تحميل الأحداث",
   "cash_flow_custom_events_label": "ألغِ تحديد أي حدث لاستبعاده من التوقع",
   "cash_flow_custom_no_events": "لا توجد أحداث قادمة قبل هذا التاريخ.",
+  "cash_flow_custom_date_hint": "اختر التاريخ المحدد الذي تريد التوقع حتى نهايته.",
+  "cash_flow_custom_missing_date": "الرجاء اختيار تاريخ أولاً — لم يتم حساب أي شيء.",
   "cash_flow_custom_loading": "جارٍ الحساب...",
   "cash_flow_custom_error": "تعذر حساب التوقع. حاول مرة أخرى.",
   "cash_flow_custom_projected_balance": "الرصيد المتوقع",

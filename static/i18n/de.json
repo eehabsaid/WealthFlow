@@ -361,6 +361,8 @@
   "cash_flow_custom_load_btn": "Ereignisse laden",
   "cash_flow_custom_events_label": "Deaktivieren Sie ein Ereignis, um es von der Prognose auszuschließen",
   "cash_flow_custom_no_events": "Keine bevorstehenden Ereignisse vor diesem Datum.",
+  "cash_flow_custom_date_hint": "Wählen Sie das genaue Datum, bis zu dem projiziert werden soll.",
+  "cash_flow_custom_missing_date": "Bitte wählen Sie zuerst ein Datum — es wurde nichts berechnet.",
   "cash_flow_custom_loading": "Wird berechnet...",
   "cash_flow_custom_error": "Die Prognose konnte nicht berechnet werden. Bitte erneut versuchen.",
   "cash_flow_custom_projected_balance": "Prognostizierter Saldo",

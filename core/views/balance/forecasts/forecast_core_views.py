@@ -58,9 +58,15 @@ class CashFlowCustomProjectionView(View):
             except ValueError:
                 return JsonResponse({"error": "invalid target_date, expected YYYY-MM-DD"}, status=400)
         else:
-            try:
-                days = int(request.GET.get("days", 30))
-            except ValueError:
+            days_param = request.GET.get("days")
+            if days_param is not None:
+                try:
+                    days = int(days_param)
+                except ValueError:
+                    return JsonResponse(
+                        {"error": f"invalid days value: {days_param!r}, expected an integer"}, status=400
+                    )
+            else:
                 days = 30
             target_date = today + datetime.timedelta(days=max(1, days))
 
