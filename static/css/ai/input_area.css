@@ -1,0 +1,127 @@
+/* ── Workspace Input Command Center (Cursor / VS Code AI Style) ── */
+.ai-ws-input-area {
+  padding: 14px 20px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.ai-ws-input-box {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.ai-ws-input-box:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.ai-ws-input-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  background: rgb(0 0 0 / 15%);
+}
+
+.ai-ws-domain-select {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 8px);
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  font-family: var(--font-family-body);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ai-ws-domain-select:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+}
+
+.ai-ws-textarea {
+  width: 100%;
+  background: transparent;
+  color: var(--text-primary);
+  border: none;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  font-family: var(--font-family-body);
+  resize: none;
+  overflow-y: auto;
+  max-height: 140px;
+  min-height: 48px;
+  line-height: 1.5;
+}
+
+.ai-ws-textarea:focus {
+  outline: none;
+}
+
+.ai-ws-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.ai-ws-input-bottombar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: rgb(0 0 0 / 15%);
+  border-top: 1px solid rgb(255 255 255 / 3%);
+}
+
+.ai-ws-input-hints {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-ws-input-hints kbd {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
+
+.ai-ws-send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-family-body);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast);
+  gap: 6px;
+}
+
+.ai-ws-send-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.ai-ws-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

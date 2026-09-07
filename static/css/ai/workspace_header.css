@@ -1,0 +1,123 @@
+/* ── Root Workspace Container ── */
+.ai-workspace {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80px);
+  min-height: 650px;
+  width: min(100%, 1600px);
+  margin: 0 auto;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Dashboard Header Bar ── */
+.ai-ws-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  gap: 20px;
+  min-height: 58px;
+}
+
+.ai-ws-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.ai-ws-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-family-display);
+  font-weight: 800;
+  font-size: clamp(1rem, 0.8vw + 0.8rem, 1.15rem);
+  color: var(--text-primary);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.ai-ws-header-brand i {
+  color: var(--accent-primary);
+  font-size: 1.35rem;
+}
+
+.ai-ws-header-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border-color);
+}
+
+.ai-ws-header-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ai-ws-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full, 9999px);
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-family: var(--font-family-body);
+  transition: border-color var(--transition-fast);
+}
+
+.ai-ws-stat-chip i {
+  font-size: 0.72rem;
+  color: var(--accent-primary);
+}
+
+.ai-ws-stat-chip .stat-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ai-ws-stat-chip.online {
+  border-color: rgb(0 214 143 / 30%);
+  background: rgb(0 214 143 / 8%);
+}
+
+.ai-ws-stat-chip.online i {
+  color: var(--accent-emerald);
+}
+
+.ai-ws-stat-chip.online .stat-value {
+  color: var(--accent-emerald);
+}
+
+.ai-ws-stat-chip.offline {
+  border-color: var(--border-color);
+}
+
+.ai-ws-stat-chip.offline i {
+  color: var(--text-muted);
+}
+
+.ai-ws-stat-chip.offline .stat-value {
+  color: var(--text-muted);
+}
+
+.ai-ws-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+

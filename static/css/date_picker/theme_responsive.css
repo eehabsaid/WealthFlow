@@ -1,0 +1,115 @@
+/* ── Light Theme Overrides ──────────────────────────────────── */
+[data-theme="light"] .wf-dp-trigger {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] .wf-dp-trigger:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+[data-theme="light"] .wf-dp-trigger:focus,
+[data-theme="light"] .wf-dp-trigger.wf-dp-open {
+  border-color: var(--accent-primary);
+  background: #fff;
+}
+
+[data-theme="light"] .wf-dp-trigger .wf-dp-placeholder {
+  color: #94a3b8;
+}
+
+[data-theme="light"] .wf-dp-trigger .wf-dp-value {
+  color: #0f172a;
+}
+
+[data-theme="light"] .wf-dp-popup {
+  background: #fff;
+  border-color: #e2e8f0;
+  box-shadow: 0 16px 48px -8px rgb(15 23 42 / 12%);
+}
+
+[data-theme="light"] .wf-dp-month-year {
+  color: #0f172a;
+}
+
+[data-theme="light"] .wf-dp-month-year:hover:not(:disabled) {
+  background: rgb(79 70 229 / 8%);
+  color: #4f46e5;
+}
+
+[data-theme="light"] .wf-dp-month:hover {
+  background: rgb(79 70 229 / 8%);
+  color: #4f46e5;
+}
+
+[data-theme="light"] .wf-dp-month-today {
+  color: #4f46e5;
+}
+
+[data-theme="light"] .wf-dp-nav-btn {
+  color: #475569;
+}
+
+[data-theme="light"] .wf-dp-nav-btn:hover {
+  background: rgb(79 70 229 / 8%);
+  color: #4f46e5;
+}
+
+[data-theme="light"] .wf-dp-weekday {
+  color: #64748b;
+}
+
+[data-theme="light"] .wf-dp-day:hover:not(:disabled, .wf-dp-day-empty) {
+  background: rgb(79 70 229 / 8%);
+  color: #4f46e5;
+}
+
+[data-theme="light"] .wf-dp-day-today {
+  color: #4f46e5;
+}
+
+[data-theme="light"] .wf-dp-day-today::after {
+  background: #4f46e5;
+}
+
+[data-theme="light"] .wf-dp-footer {
+  border-top-color: #e2e8f0;
+}
+
+[data-theme="light"] .wf-dp-btn-cancel,
+[data-theme="light"] .wf-dp-btn-clear {
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .wf-dp-btn-cancel:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+[data-theme="light"] .wf-dp-btn-clear:hover {
+  background: #fff1f2;
+  color: #e11d48;
+  border-color: #e11d48;
+}
+
+/* ── Responsive / Mobile ────────────────────────────────────── */
+@media (width <= 480px) {
+  .wf-dp-popup {
+    width: calc(100vw - 32px);
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .wf-dp-day {
+    font-size: 12px;
+    min-height: 30px;
+  }
+
+  .wf-dp-trigger {
+    font-size: 13px;
+  }
+}

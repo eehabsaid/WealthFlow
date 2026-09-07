@@ -1,0 +1,104 @@
+/* ── Page header ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.page-title {
+  font-size: clamp(18px, 1.5vw + 12px, 20px);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Shared Tabs (Option 2: Visible + More) ── */
+.wf-tabs-shell {
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.wf-tabs-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  position: relative;
+  flex-wrap: nowrap;
+}
+
+.wf-main-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.wf-more-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.wf-more-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.wf-more-icon {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.wf-more-wrap.open .wf-more-icon {
+  transform: rotate(180deg);
+}
+
+.wf-more-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 30;
+  min-width: 220px;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 20%);
+  border: 1px solid #334155;
+  background: #1a254a;
+  padding: 8px 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: all 0.3s;
+}
+
+.wf-more-wrap.open .wf-more-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.wf-more-menu.align-right {
+  right: 0;
+  left: auto;
+}
+
+.wf-more-menu.align-left {
+  left: 0;
+  right: auto;
+}
+
+[dir="rtl"] .wf-more-menu {
+  left: 0;
+  right: auto;
+}
+

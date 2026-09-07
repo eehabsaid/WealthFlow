@@ -1,0 +1,229 @@
+.goal-planning-wrap {
+  display: block;
+}
+
+.goal-planning-hero {
+  border: 1px solid rgb(56 109 220 / 45%);
+  border-radius: 16px;
+  padding: 12px 14px 14px;
+  background: radial-gradient(
+    120% 120% at 20% 0%,
+    rgb(26 110 245 / 22%) 0%,
+    rgb(8 17 42 / 92%) 45%,
+    rgb(5 12 30 / 95%) 100%
+  );
+}
+
+.goal-planning-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.goal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goal-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+
+.goal-toolbar-left {
+  display: grid;
+  grid-template-columns: 1.8fr repeat(5, minmax(110px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.goal-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.goal-section-caption {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  margin: 8px 0 10px;
+}
+
+.goal-type-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(82 129 227 / 45%);
+  background: rgb(26 110 245 / 18%);
+  color: #8fc0ff;
+  flex-shrink: 0;
+}
+
+.goal-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 8px;
+}
+
+.goal-progress-track {
+  flex: 1 1 auto;
+  height: 9px;
+  border-radius: 999px;
+  background: rgb(123 147 201 / 18%);
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgb(3 10 28 / 28%);
+}
+
+.goal-progress-fill {
+  height: 100%;
+  width: var(--goal-progress, 0%);
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4f8ff7 0%, #6bb7ff 48%, #50d890 100%);
+  box-shadow: 0 0 14px rgb(80 216 144 / 22%);
+}
+
+.goal-progress-label {
+  color: var(--text-primary);
+  font-weight: 800;
+  font-size: 11.5px;
+  line-height: 1;
+  min-width: 44px;
+  text-align: end;
+}
+
+.goal-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.goal-chart-wrap {
+  height: 238px;
+  position: relative;
+}
+
+.goal-chart-center {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  width: 112px;
+  min-height: 52px;
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--text-primary);
+  line-height: 1.15;
+  text-align: center;
+  pointer-events: none;
+}
+
+.goal-chart-center span {
+  max-width: 100%;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: normal;
+}
+
+.goal-chart-center strong {
+  max-width: 100%;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.goal-milestone-list {
+  display: grid;
+  gap: 10px;
+}
+
+.goal-milestone-item {
+  border: 1px solid rgb(82 129 227 / 32%);
+  background: linear-gradient(180deg, rgb(22 39 83 / 82%), rgb(13 28 66 / 94%));
+  border-radius: 10px;
+  padding: 10px 11px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.goal-milestone-item:hover {
+  transform: translateY(-1px);
+  border-color: rgb(96 165 250 / 46%);
+  box-shadow: 0 12px 24px rgb(3 10 28 / 16%);
+}
+
+.goal-milestone-title {
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.goal-milestone-meta {
+  color: var(--text-secondary);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.goal-milestone-side {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+}
+
+.goal-milestone-side small {
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  line-height: 1.35;
+  text-align: end;
+}
+
+.goal-milestone-side .portfolio-severity-badge {
+  font-size: 9.5px;
+  padding: 1px 7px;
+}
+
+.goal-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.goal-status-achieved {
+  color: #9bf0c5;
+  border-color: rgb(80 216 144 / 45%);
+  background: rgb(80 216 144 / 14%);
+}
+
+.goal-status-on-track {
+  color: #6bb7ff;
+  border-color: rgb(107 183 255 / 45%);
+  background: rgb(107 183 255 / 12%);
+}
+
+.goal-status-watch {
+  color: #f3c846;
+  border-color: rgb(243 200 70 / 50%);
+  background: rgb(243 200 70 / 12%);
+}
+

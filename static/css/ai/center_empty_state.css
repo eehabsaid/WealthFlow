@@ -1,0 +1,160 @@
+/* ── Center Workspace ── */
+.ai-ws-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+/* ── Message Thread ── */
+.ai-ws-messages {
+  flex: 1;
+  overflow: hidden auto;
+  padding: 24px 28px;
+  scroll-behavior: smooth;
+}
+
+/* ── Empty State Platform Overview Cards ── */
+.ai-ws-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 24px 16px;
+}
+
+.ai-ws-empty-hero {
+  text-align: center;
+  max-width: 620px;
+  margin-bottom: 24px;
+}
+
+.ai-ws-empty-icon {
+  font-size: 2.8rem;
+  color: var(--accent-primary);
+  opacity: 0.85;
+  margin-bottom: 12px;
+  display: inline-block;
+  filter: drop-shadow(0 0 12px rgb(26 110 245 / 40%));
+}
+
+.ai-ws-empty-title {
+  font-family: var(--font-family-display);
+  font-size: clamp(1.1rem, 1vw + 0.8rem, 1.3rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.ai-ws-empty-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* Compact Platform Status Cards Grid */
+.ai-ws-platform-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 720px;
+  margin-bottom: 24px;
+}
+
+.ai-ws-platform-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 12px);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition:
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.ai-ws-platform-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.ai-ws-platform-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  font-family: var(--font-family-display);
+}
+
+.ai-ws-platform-card-header i {
+  color: var(--accent-primary);
+  font-size: 0.85rem;
+}
+
+.ai-ws-platform-card-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ai-ws-platform-card-sub {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+/* Suggestion Chips */
+.ai-ws-suggestions-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  text-align: center;
+  font-family: var(--font-family-display);
+}
+
+.ai-ws-empty-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 640px;
+}
+
+.ai-ws-suggestion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full, 9999px);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-family-body);
+}
+
+.ai-ws-suggestion-chip:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+  background: var(--accent-light);
+  transform: translateY(-1px);
+}
+
+.ai-ws-suggestion-chip i {
+  color: var(--accent-primary);
+  font-size: 0.85rem;
+}
+

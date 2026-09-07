@@ -1,0 +1,200 @@
+/* ── Right Context Panel (Width Increased to 330px) ── */
+.ai-ws-right {
+  width: 330px;
+  min-width: 330px;
+  max-width: 330px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  flex-shrink: 0;
+  overflow: hidden auto;
+  transition:
+    width 0.3s var(--ease-out-smooth),
+    min-width 0.3s var(--ease-out-smooth),
+    max-width 0.3s var(--ease-out-smooth),
+    opacity 0.2s var(--ease-out-smooth);
+}
+
+[dir="rtl"] .ai-ws-right {
+  border-left: none;
+  border-right: 1px solid var(--border-color);
+}
+
+.ai-ws-right.collapsed {
+  width: 0;
+  min-width: 0;
+  max-width: 0;
+  opacity: 0;
+  border-left-width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+[dir="rtl"] .ai-ws-right.collapsed {
+  border-right-width: 0;
+}
+
+.ai-ws-right-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ai-ws-right-section:last-child {
+  border-bottom: none;
+}
+
+.ai-ws-right-title {
+  font-family: var(--font-family-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-ws-right-title i {
+  font-size: 0.78rem;
+  color: var(--accent-primary);
+}
+
+/* Dynamic Chips List */
+.ai-ws-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ai-ws-source-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full, 9999px);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.ai-ws-source-chip.active {
+  border-color: rgb(0 214 143 / 40%);
+  color: var(--text-primary);
+  background: rgb(0 214 143 / 10%);
+}
+
+.ai-ws-source-chip.active i {
+  color: var(--accent-emerald);
+}
+
+/* Tool Execution Items */
+.ai-ws-tool-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-ws-tool-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.78rem;
+  color: var(--text-primary);
+}
+
+.ai-ws-tool-item i {
+  font-size: 0.75rem;
+}
+
+.ai-ws-tool-item i.success {
+  color: var(--accent-emerald);
+}
+
+.ai-ws-tool-item i.failed {
+  color: var(--accent-rose);
+}
+
+/* Confidence Bar & Depth */
+.ai-ws-confidence-box {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 8px);
+  padding: 10px 12px;
+}
+
+.ai-ws-confidence-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+}
+
+.ai-ws-confidence-score {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ai-ws-confidence-bar {
+  height: 5px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ai-ws-confidence-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s var(--ease-out-smooth);
+}
+
+.ai-ws-confidence-fill.high {
+  background: var(--accent-emerald);
+  width: 94%;
+}
+
+.ai-ws-confidence-fill.medium {
+  background: var(--accent-amber);
+  width: 65%;
+}
+
+.ai-ws-confidence-fill.low {
+  background: var(--accent-rose);
+  width: 30%;
+}
+
+/* Module List */
+.ai-ws-modules-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ai-ws-module-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+/* Future Capability Cards (Right Panel) */
+.ai-ws-right-future {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
