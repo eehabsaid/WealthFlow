@@ -5,8 +5,20 @@ window.RA = window.RA || {};
 
 window.RA.buildRiskAnalysisPaneHtml = function (ctx) {
   const {
-    payload, health, score, healthScore, healthRing, riskScore, riskRing, riskColor,
-    breakdownHtml, findingsHtml, stressHtml, sensitivitiesHtml, actionsHtml, incomeHtml,
+    payload,
+    health,
+    score,
+    healthScore,
+    healthRing,
+    riskScore,
+    riskRing,
+    riskColor,
+    breakdownHtml,
+    findingsHtml,
+    stressHtml,
+    sensitivitiesHtml,
+    actionsHtml,
+    incomeHtml,
     incomeStability,
   } = ctx;
   return `
@@ -139,4 +151,4 @@ window.RA.buildRiskAnalysisPaneHtml = function (ctx) {
       </div>
     </div>
 `;
-}
+};

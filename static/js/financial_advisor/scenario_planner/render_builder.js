@@ -1,41 +1,43 @@
 "use strict";
 window.SP = window.SP || {};
 
+// ── Requirement 2 & 7: Redesigned Event Templates & Chronological Flow ──
 
-  // ── Requirement 2 & 7: Redesigned Event Templates & Chronological Flow ──
-
-  window.SP.buildBuilderPaneHtml = function() {
-    const activeScenario = window.SP.state.cachedScenarios.find((s) => s.id === window.SP.state.activeScenarioId);
-    if (!activeScenario) {
-      return `
+window.SP.buildBuilderPaneHtml = function () {
+  const activeScenario = window.SP.state.cachedScenarios.find(
+    (s) => s.id === window.SP.state.activeScenarioId
+  );
+  if (!activeScenario) {
+    return `
         <div class="alert alert-info" data-i18n="scenario_planner_select_scenario_hint">
           Select or create a scenario from the left rail to edit its events.
         </div>
       `;
-    }
+  }
 
-    const schema = window.SP.state.cachedEventSchema || [];
-    const selectedSchema = schema.find((s) => s.event_type === window.SP.state.selectedEventType) || schema[0];
+  const schema = window.SP.state.cachedEventSchema || [];
+  const selectedSchema =
+    schema.find((s) => s.event_type === window.SP.state.selectedEventType) || schema[0];
 
-    // Template Subtitles mapping (Requirement 7)
-    const templateSubtitles = {
-      house: "Property Purchase & Mortgage",
-      car: "Vehicle Acquisition & Installments",
-      salary_change: "Income Scaling & Adjustments",
-      marriage: "Wedding & Household Setup",
-      child: "Newborn & Family Care",
-      retirement: "Retirement Transition Plan",
-      inheritance: "Windfall & Inheritance Inflow",
-      medical: "Healthcare & Care Expenses",
-      business: "Capital Investment & Profits",
-      job_loss: "Employment Transition / Safety Buffer",
-    };
+  // Template Subtitles mapping (Requirement 7)
+  const templateSubtitles = {
+    house: "Property Purchase & Mortgage",
+    car: "Vehicle Acquisition & Installments",
+    salary_change: "Income Scaling & Adjustments",
+    marriage: "Wedding & Household Setup",
+    child: "Newborn & Family Care",
+    retirement: "Retirement Transition Plan",
+    inheritance: "Windfall & Inheritance Inflow",
+    medical: "Healthcare & Care Expenses",
+    business: "Capital Investment & Profits",
+    job_loss: "Employment Transition / Safety Buffer",
+  };
 
-    // Sort configured events chronologically (Requirement 2)
-    const configuredEvents = [...(activeScenario.events || [])];
-    configuredEvents.sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
+  // Sort configured events chronologically (Requirement 2)
+  const configuredEvents = [...(activeScenario.events || [])];
+  configuredEvents.sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
 
-    return `
+  return `
       <div class="card border-0 p-4" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
         <div class="d-flex align-items-center justify-content-between mb-3">
           <h5 class="fw-bold m-0" style="color:var(--text-primary);">${activeScenario.name} — Life Event Builder</h5>
@@ -146,5 +148,4 @@ window.SP = window.SP || {};
         }
       </div>
     `;
-  }
-
+};

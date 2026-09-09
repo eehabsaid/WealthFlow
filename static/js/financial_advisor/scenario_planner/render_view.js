@@ -1,10 +1,10 @@
 "use strict";
 window.SP = window.SP || {};
 
-  window.SP.renderScenarioPlannerView = function(pane) {
-    if (!window.SP.state.scenarioPlannerData) return;
+window.SP.renderScenarioPlannerView = function (pane) {
+  if (!window.SP.state.scenarioPlannerData) return;
 
-    pane.innerHTML = `
+  pane.innerHTML = `
       <div class="container-fluid p-0">
         <!-- TOP: Action Bar & Subtitle (Requirement 8: Second title removed) -->
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
@@ -77,11 +77,13 @@ window.SP = window.SP || {};
       </div>
     `;
 
-    if (typeof applyTranslations === "function") applyTranslations();
-    window.SP.attachEventListeners(pane);
+  if (typeof applyTranslations === "function") applyTranslations();
+  window.SP.attachEventListeners(pane);
 
-    if (window.SP.state.activeSubTab === "dashboard" && typeof _renderScenarioPlannerChart === "function") {
-      _renderScenarioPlannerChart(window.SP.state.scenarioPlannerData);
-    }
+  if (
+    window.SP.state.activeSubTab === "dashboard" &&
+    typeof _renderScenarioPlannerChart === "function"
+  ) {
+    _renderScenarioPlannerChart(window.SP.state.scenarioPlannerData);
   }
-
+};

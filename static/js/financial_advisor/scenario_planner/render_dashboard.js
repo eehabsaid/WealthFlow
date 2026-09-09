@@ -1,48 +1,48 @@
 "use strict";
 window.SP = window.SP || {};
 
+// ── Requirement 4: Enhanced KPI Cards with Visual Change Indicators ───────
 
-  // ── Requirement 4: Enhanced KPI Cards with Visual Change Indicators ───────
+window.SP.buildDashboardPaneHtml = function () {
+  const base = window.SP.state.scenarioPlannerData?.baseline || {};
+  const scList = window.SP.state.scenarioPlannerData?.scenarios || [];
+  const activeSc =
+    scList.find((s) => s.id === window.SP.state.activeScenarioId) || scList[0] || base;
 
-  window.SP.buildDashboardPaneHtml = function() {
-    const base = window.SP.state.scenarioPlannerData?.baseline || {};
-    const scList = window.SP.state.scenarioPlannerData?.scenarios || [];
-    const activeSc = scList.find((s) => s.id === window.SP.state.activeScenarioId) || scList[0] || base;
+  // Deltas vs Baseline
+  const nwVal = activeSc.net_worth_12m || 0;
+  const nwBase = base.net_worth_12m || 0;
+  const nwDelta = nwVal - nwBase;
 
-    // Deltas vs Baseline
-    const nwVal = activeSc.net_worth_12m || 0;
-    const nwBase = base.net_worth_12m || 0;
-    const nwDelta = nwVal - nwBase;
+  const flowVal = activeSc.monthly_cash_flow || 0;
+  const flowBase = base.monthly_cash_flow || 0;
+  const flowDelta = flowVal - flowBase;
 
-    const flowVal = activeSc.monthly_cash_flow || 0;
-    const flowBase = base.monthly_cash_flow || 0;
-    const flowDelta = flowVal - flowBase;
+  const debtVal = activeSc.total_debt || 0;
+  const debtBase = base.total_debt || 0;
+  const debtDelta = debtVal - debtBase;
 
-    const debtVal = activeSc.total_debt || 0;
-    const debtBase = base.total_debt || 0;
-    const debtDelta = debtVal - debtBase;
+  const covVal = activeSc.cash_coverage_months;
+  const covBase = base.cash_coverage_months;
+  const covDelta = covVal !== null && covBase !== null ? covVal - covBase : 0;
 
-    const covVal = activeSc.cash_coverage_months;
-    const covBase = base.cash_coverage_months;
-    const covDelta = covVal !== null && covBase !== null ? covVal - covBase : 0;
+  const retireObj = activeSc.retirement_readiness || {};
+  const readinessPct = retireObj.readiness_pct || 0;
+  const baseReadiness = base.retirement_readiness?.readiness_pct || 0;
+  const readinessDelta = readinessPct - baseReadiness;
 
-    const retireObj = activeSc.retirement_readiness || {};
-    const readinessPct = retireObj.readiness_pct || 0;
-    const baseReadiness = base.retirement_readiness?.readiness_pct || 0;
-    const readinessDelta = readinessPct - baseReadiness;
-
-    function _renderKpiBadge(delta, isInverse = false) {
-      if (delta === 0 || isNaN(delta)) {
-        return `<span class="badge bg-secondary extra-small"><i class="bi bi-dash"></i> Baseline</span>`;
-      }
-      const isGood = isInverse ? delta < 0 : delta > 0;
-      const colorClass = isGood ? "bg-success text-white" : "bg-danger text-white";
-      const icon = isGood ? "bi-arrow-up-right" : "bi-arrow-down-right";
-      const sign = delta > 0 ? "+" : "";
-      return `<span class="badge ${colorClass} extra-small"><i class="bi ${icon}"></i> ${sign}${typeof delta === "number" ? delta.toFixed(1) : delta}</span>`;
+  function _renderKpiBadge(delta, isInverse = false) {
+    if (delta === 0 || isNaN(delta)) {
+      return `<span class="badge bg-secondary extra-small"><i class="bi bi-dash"></i> Baseline</span>`;
     }
+    const isGood = isInverse ? delta < 0 : delta > 0;
+    const colorClass = isGood ? "bg-success text-white" : "bg-danger text-white";
+    const icon = isGood ? "bi-arrow-up-right" : "bi-arrow-down-right";
+    const sign = delta > 0 ? "+" : "";
+    return `<span class="badge ${colorClass} extra-small"><i class="bi ${icon}"></i> ${sign}${typeof delta === "number" ? delta.toFixed(1) : delta}</span>`;
+  }
 
-    return `
+  return `
       <div class="d-flex flex-column gap-4">
         <!-- Requirement 4: Enhanced KPI Cards with Visual Change Indicators -->
         <div class="row row-cols-1 row-cols-md-5 g-3">
@@ -107,5 +107,4 @@ window.SP = window.SP || {};
         </div>
       </div>
     `;
-  }
-
+};

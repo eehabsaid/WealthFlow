@@ -1,14 +1,13 @@
 "use strict";
 window.SP = window.SP || {};
 
+// ── Requirement 3: Scrollable N-Scenario Comparison Table ─────────────────
 
-  // ── Requirement 3: Scrollable N-Scenario Comparison Table ─────────────────
+window.SP.buildComparePaneHtml = function () {
+  const base = window.SP.state.scenarioPlannerData?.baseline || {};
+  const scenarios = window.SP.state.scenarioPlannerData?.scenarios || [];
 
-  window.SP.buildComparePaneHtml = function() {
-    const base = window.SP.state.scenarioPlannerData?.baseline || {};
-    const scenarios = window.SP.state.scenarioPlannerData?.scenarios || [];
-
-    return `
+  return `
       <div class="card border-0 p-4" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
         <h5 class="fw-bold mb-3" style="color:var(--text-primary);" data-i18n="scenario_planner_compare_title">Side-by-Side N-Scenario Comparison</h5>
 
@@ -58,21 +57,21 @@ window.SP = window.SP || {};
         </div>
       </div>
     `;
-  }
+};
 
-  // ── Requirement 5: Actionable Insights with Financial Impact & Alternatives
+// ── Requirement 5: Actionable Insights with Financial Impact & Alternatives
 
-  window.SP.buildInsightsPaneHtml = function() {
-    const scenarios = window.SP.state.scenarioPlannerData?.scenarios || [];
-    if (scenarios.length === 0) {
-      return `
+window.SP.buildInsightsPaneHtml = function () {
+  const scenarios = window.SP.state.scenarioPlannerData?.scenarios || [];
+  if (scenarios.length === 0) {
+    return `
         <div class="alert alert-info" data-i18n="scenario_planner_insights_no_scenarios">
           Select or compare at least one scenario to generate financial insights.
         </div>
       `;
-    }
+  }
 
-    return `
+  return `
       <div class="d-flex flex-column gap-3">
         ${scenarios
           .map((sc) => {
@@ -108,5 +107,4 @@ window.SP = window.SP || {};
           .join("")}
       </div>
     `;
-  }
-
+};

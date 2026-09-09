@@ -1,7 +1,7 @@
 "use strict";
 window.RA = window.RA || {};
 
-window.RA.renderRiskAnalysisLoading = function() {
+window.RA.renderRiskAnalysisLoading = function () {
   const pane = document.getElementById("fa-pane-risk-analysis");
   if (!pane) return;
   pane.innerHTML = `
@@ -10,9 +10,9 @@ window.RA.renderRiskAnalysisLoading = function() {
     </div>
   `;
   if (typeof applyTranslations === "function") applyTranslations();
-}
+};
 
-window.RA.renderRiskAnalysisError = function() {
+window.RA.renderRiskAnalysisError = function () {
   const pane = document.getElementById("fa-pane-risk-analysis");
   if (!pane) return;
   pane.innerHTML = `
@@ -21,5 +21,4 @@ window.RA.renderRiskAnalysisError = function() {
     </div>
   `;
   if (typeof applyTranslations === "function") applyTranslations();
-}
-
+};

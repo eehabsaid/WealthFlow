@@ -6,8 +6,15 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 function buildCurrencyChartAnalysisRow(ctx) {
-  const { hasCurrHistory, selectedCurrency, currencyTimeframe, currRate,
-    currTrend7, currTrend30, currTrend90 } = ctx;
+  const {
+    hasCurrHistory,
+    selectedCurrency,
+    currencyTimeframe,
+    currRate,
+    currTrend7,
+    currTrend30,
+    currTrend90,
+  } = ctx;
   return `
         <!-- 4 & 5: Main Row 2 - Currency Chart & Analysis -->
         <div class="row g-4">

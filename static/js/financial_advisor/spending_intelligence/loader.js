@@ -1,7 +1,6 @@
 "use strict";
 // Spending intelligence: state + loadSpendingIntelligence data fetch/dispatch.
 
-
 let _spendingIntelligenceLoaded = false;
 let _spendingIntelligenceData = null;
 

@@ -3,7 +3,7 @@
 
 window.RA = window.RA || {};
 
-window.RA.drawRiskRadarChart = function(payload) {
+window.RA.drawRiskRadarChart = function (payload) {
   if (typeof _destroyChart === "function") _destroyChart("riskRadarChart");
   const radarData = payload?.radar || {};
   if (!radarData.labels || !radarData.values) return;
@@ -101,5 +101,4 @@ window.RA.drawRiskRadarChart = function(payload) {
       },
     },
   });
-}
-
+};

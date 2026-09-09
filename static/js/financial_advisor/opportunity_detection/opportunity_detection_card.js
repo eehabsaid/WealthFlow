@@ -7,25 +7,25 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 function buildOpportunityCardHtml(item) {
-      const iconClass = _getOpportunityIconClass(item.key);
-      const sev = String(item.severity || "medium").toLowerCase();
-      const badgeClass =
-        sev === "high"
-          ? "opp-badge-high"
-          : sev === "low"
-            ? "opp-badge-low"
-            : sev === "info"
-              ? "opp-badge-info"
-              : "opp-badge-medium";
+  const iconClass = _getOpportunityIconClass(item.key);
+  const sev = String(item.severity || "medium").toLowerCase();
+  const badgeClass =
+    sev === "high"
+      ? "opp-badge-high"
+      : sev === "low"
+        ? "opp-badge-low"
+        : sev === "info"
+          ? "opp-badge-info"
+          : "opp-badge-medium";
 
-      let signalsHtml = "";
-      if (item.signals) {
-        if ("idle_cash" in item.signals) {
-          // Gold opportunity signals box
-          const s = item.signals;
-          const trend7Color = s.gold_trend_7d >= 0 ? "var(--accent-green)" : "var(--accent-red)";
-          const trend30Color = s.gold_trend_30d >= 0 ? "var(--accent-green)" : "var(--accent-red)";
-          signalsHtml = `
+  let signalsHtml = "";
+  if (item.signals) {
+    if ("idle_cash" in item.signals) {
+      // Gold opportunity signals box
+      const s = item.signals;
+      const trend7Color = s.gold_trend_7d >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+      const trend30Color = s.gold_trend_30d >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+      signalsHtml = `
             <div class="opp-signals-box">
               <table class="opp-signals-table">
                 <tr>
@@ -47,10 +47,10 @@ function buildOpportunityCardHtml(item) {
               </table>
             </div>
           `;
-        } else if ("maturity_date" in item.signals) {
-          // Certificate maturity opportunity signals box
-          const s = item.signals;
-          signalsHtml = `
+    } else if ("maturity_date" in item.signals) {
+      // Certificate maturity opportunity signals box
+      const s = item.signals;
+      signalsHtml = `
             <div class="opp-signals-box">
               <table class="opp-signals-table">
                 <tr>
@@ -72,41 +72,39 @@ function buildOpportunityCardHtml(item) {
               </table>
             </div>
           `;
-        }
-      }
+    }
+  }
 
-      let highlightedHtml = "";
-      if (item.highlighted_amount != null && item.highlighted_amount > 0) {
-        highlightedHtml = `
+  let highlightedHtml = "";
+  if (item.highlighted_amount != null && item.highlighted_amount > 0) {
+    highlightedHtml = `
           <div class="opp-highlighted-amount">
             ${_fmtIntValue(item.highlighted_amount)} EGP
           </div>
         `;
-      }
+  }
 
-      let actionBoxHtml = "";
-      if (item.action_template_key) {
-        const paramsCopy = { ...(item.action_params || {}) };
-        if ("amount" in paramsCopy) {
-          paramsCopy.amount = _fmtIntValue(paramsCopy.amount);
-        }
-        const paramsStr = JSON.stringify(paramsCopy)
-          .replace(/'/g, "&apos;")
-          .replace(/"/g, "&quot;");
-        actionBoxHtml = `
+  let actionBoxHtml = "";
+  if (item.action_template_key) {
+    const paramsCopy = { ...(item.action_params || {}) };
+    if ("amount" in paramsCopy) {
+      paramsCopy.amount = _fmtIntValue(paramsCopy.amount);
+    }
+    const paramsStr = JSON.stringify(paramsCopy).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+    actionBoxHtml = `
           <div class="opp-action-box">
             <span data-i18n-key="${item.action_template_key}" data-i18n-params="${paramsStr}"></span>
           </div>
         `;
-      } else if (item.impact_key) {
-        actionBoxHtml = `
+  } else if (item.impact_key) {
+    actionBoxHtml = `
           <div class="opp-action-box">
             <span data-i18n="${item.impact_key}"></span>
           </div>
         `;
-      }
+  }
 
-      return `
+  return `
         <div class="opp-card fade-in-up" si-modern-card>
           <div class="d-flex justify-content-between align-items-center mb-1">
             <div class="d-flex align-items-center gap-2" style="color:var(--text-primary);">

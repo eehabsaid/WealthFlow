@@ -8,9 +8,20 @@
 
 function buildOverviewRow1Html(ctx) {
   const {
-    payload, kpis, goals, healthScore, healthColor, healthRing,
-    rangeExcellentActive, rangeGoodActive, rangeAverageActive, rangeNeedsActive,
-    recParagraphsHtml, alertsHtml, nwTrendIsUp, nwTrendText,
+    payload,
+    kpis,
+    goals,
+    healthScore,
+    healthColor,
+    healthRing,
+    rangeExcellentActive,
+    rangeGoodActive,
+    rangeAverageActive,
+    rangeNeedsActive,
+    recParagraphsHtml,
+    alertsHtml,
+    nwTrendIsUp,
+    nwTrendText,
   } = ctx;
   return `    <!-- ROW 1: Financial Health, AI Executive Summary, Alerts (Bottom Margin mb-4 for Spacing Rhythm) -->
     <div class="row g-3 mb-4">

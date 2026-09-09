@@ -15,8 +15,7 @@ function renderPerformanceView(container) {
   const goldTrend7 = gold.trend_7d || 0;
   const goldTrend30 = gold.trend_30d || 0;
   const goldTrend7Icon = goldTrend7 >= 0 ? "bi-arrow-up-right" : "bi-arrow-down-right";
-  const goldTrend7BadgeBg =
-    goldTrend7 >= 0 ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)";
+  const goldTrend7BadgeBg = goldTrend7 >= 0 ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)";
   const goldTrend7BadgeColor =
     goldTrend7 >= 0 ? "var(--accent-green, #22c55e)" : "var(--accent-red, #ef4444)";
 

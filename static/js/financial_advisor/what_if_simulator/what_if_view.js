@@ -3,22 +3,22 @@
 // chart canvas). Split out of what_if.js (200-line backlog). Bare global.
 // ════════════════════════════════════════════════════════════════════════════
 
-  function _renderWhatIfView(pane) {
-    if (!_whatIfData) return;
+function _renderWhatIfView(pane) {
+  if (!_whatIfData) return;
 
-    const curr = _whatIfData.current_values || {};
+  const curr = _whatIfData.current_values || {};
 
-    const salaryValStr = (curr.monthly_salary || 0).toLocaleString();
-    const expValStr = (curr.monthly_expenses || 0).toLocaleString();
-    const goldPctStr = Number(curr.gold_allocation_pct || 0).toFixed(1);
-    const goldMaxSlider = Number(curr.gold_allocation_max_slider || 40);
+  const salaryValStr = (curr.monthly_salary || 0).toLocaleString();
+  const expValStr = (curr.monthly_expenses || 0).toLocaleString();
+  const goldPctStr = Number(curr.gold_allocation_pct || 0).toFixed(1);
+  const goldMaxSlider = Number(curr.gold_allocation_max_slider || 40);
 
-    const salaryPctFormatted =
-      _salaryChangePct >= 0 ? `+${_salaryChangePct}%` : `${_salaryChangePct}%`;
-    const expPctFormatted =
-      _expensesChangePct >= 0 ? `+${_expensesChangePct}%` : `${_expensesChangePct}%`;
+  const salaryPctFormatted =
+    _salaryChangePct >= 0 ? `+${_salaryChangePct}%` : `${_salaryChangePct}%`;
+  const expPctFormatted =
+    _expensesChangePct >= 0 ? `+${_expensesChangePct}%` : `${_expensesChangePct}%`;
 
-    pane.innerHTML = `
+  pane.innerHTML = `
       <style>
         .whatif-tooltip {
           position: absolute;
@@ -148,7 +148,7 @@
       </div>
     `;
 
-    if (typeof applyTranslations === "function") applyTranslations();
-    _attachEventListeners(pane);
-    if (typeof _renderWhatIfChart === "function") _renderWhatIfChart(_whatIfData);
-  }
+  if (typeof applyTranslations === "function") applyTranslations();
+  _attachEventListeners(pane);
+  if (typeof _renderWhatIfChart === "function") _renderWhatIfChart(_whatIfData);
+}

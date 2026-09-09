@@ -5,7 +5,7 @@
 
 window.RA = window.RA || {};
 
-window.RA.renderRiskAnalysis = function(payload) {
+window.RA.renderRiskAnalysis = function (payload) {
   const pane = document.getElementById("fa-pane-risk-analysis");
   if (!pane) return;
 
@@ -181,9 +181,26 @@ window.RA.renderRiskAnalysis = function(payload) {
     .join("");
 
   pane.innerHTML = window.RA.buildRiskAnalysisPaneHtml({
-    payload, health, score, breakdown, findings, stressTests, sensitivities,
-    priorityActions, incomeStability, healthScore, healthRing, riskScore, riskRing, riskColor,
-    breakdownHtml, findingsHtml, stressHtml, sensitivitiesHtml, actionsHtml, incomeHtml,
+    payload,
+    health,
+    score,
+    breakdown,
+    findings,
+    stressTests,
+    sensitivities,
+    priorityActions,
+    incomeStability,
+    healthScore,
+    healthRing,
+    riskScore,
+    riskRing,
+    riskColor,
+    breakdownHtml,
+    findingsHtml,
+    stressHtml,
+    sensitivitiesHtml,
+    actionsHtml,
+    incomeHtml,
   });
 
   if (typeof applyTranslations === "function") {
@@ -199,4 +216,4 @@ window.RA.renderRiskAnalysis = function(payload) {
 
   window.RA.drawRiskRadarChart(payload);
   window.RA.drawIncomeStabilityChart(payload);
-}
+};

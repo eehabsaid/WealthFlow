@@ -5,7 +5,16 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 function buildOverviewRow3Html(params) {
-  const { cashFlow, cfChangeClass, cfChangeSign, cfChangeVal, wealthGrowth, wgGrowthSign, wgGrowthVal, opportunitiesHtml } = params;
+  const {
+    cashFlow,
+    cfChangeClass,
+    cfChangeSign,
+    cfChangeVal,
+    wealthGrowth,
+    wgGrowthSign,
+    wgGrowthVal,
+    opportunitiesHtml,
+  } = params;
   return `    <!-- ROW 3: Cash Flow, Wealth Growth, Top Opportunities -->
     <div class="row g-3 mb-3">
       <!-- Cash Flow Summary -->

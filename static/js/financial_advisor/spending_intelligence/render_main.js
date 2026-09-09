@@ -119,13 +119,23 @@ function _renderSpendingIntelligence(payload) {
   const { categoryHtml, catLabels, catValues, catPercentages, donutHtml } =
     buildSpendingCategoryDonutHtml({ categories, totalExpenses });
 
-  const { findingsHtml, aiHtml, recHtml, trendHtml } =
-    buildSpendingFindingsInsightsTrendHtml({
-      payload, keyFindings, aiInsights, recommendedActions, months,
-    });
+  const { findingsHtml, aiHtml, recHtml, trendHtml } = buildSpendingFindingsInsightsTrendHtml({
+    payload,
+    keyFindings,
+    aiInsights,
+    recommendedActions,
+    months,
+  });
 
   pane.innerHTML = buildSpendingIntelligencePaneHtml({
-    headerHtml, avgMonthlyHtml, categoryHtml, donutHtml, findingsHtml, aiHtml, recHtml, trendHtml,
+    headerHtml,
+    avgMonthlyHtml,
+    categoryHtml,
+    donutHtml,
+    findingsHtml,
+    aiHtml,
+    recHtml,
+    trendHtml,
   });
 
   if (typeof applyTranslations === "function") applyTranslations();

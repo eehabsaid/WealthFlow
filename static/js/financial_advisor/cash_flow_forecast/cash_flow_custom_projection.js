@@ -62,7 +62,9 @@ function _renderCashFlowCustomProjectionCard() {
   presetSelect.addEventListener("change", () => {
     const isCustom = presetSelect.value === "custom";
     dateWrapper().style.display = isCustom ? "block" : "none";
-    document.getElementById("custom_projection_date_hint").style.display = isCustom ? "block" : "none";
+    document.getElementById("custom_projection_date_hint").style.display = isCustom
+      ? "block"
+      : "none";
     if (isCustom && !dateInput.value) {
       // Pre-fill with a sensible default (today + 30 days) so the field
       // is never blank/ambiguous — the user can still change it freely.
@@ -75,7 +77,9 @@ function _renderCashFlowCustomProjectionCard() {
     }
   });
 
-  document.getElementById("custom_projection_load_btn").addEventListener("click", _loadCustomProjectionEvents);
+  document
+    .getElementById("custom_projection_load_btn")
+    .addEventListener("click", _loadCustomProjectionEvents);
 
   applyTranslations();
 }
@@ -107,7 +111,9 @@ async function _loadCustomProjectionEvents() {
   applyTranslations();
 
   try {
-    const response = await fetch(`/api/financial-advisor/cash-flow-custom-projection/?${params.toString()}`);
+    const response = await fetch(
+      `/api/financial-advisor/cash-flow-custom-projection/?${params.toString()}`
+    );
     if (!response.ok) throw new Error("request failed");
     const data = await response.json();
 
@@ -139,7 +145,11 @@ function _renderCustomProjectionEventsAndResult() {
   if (!resultEl || !state) return;
 
   const langCode = currentLang ? currentLang() : document.documentElement.lang || "en";
-  const dateFmt = new Intl.DateTimeFormat(langCode, { year: "numeric", month: "long", day: "numeric" });
+  const dateFmt = new Intl.DateTimeFormat(langCode, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
   const shortDateFmt = new Intl.DateTimeFormat(langCode, { month: "short", day: "numeric" });
 
   const eventsHtml = state.events.length

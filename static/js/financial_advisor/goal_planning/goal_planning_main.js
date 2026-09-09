@@ -63,7 +63,14 @@ function _renderGoalPlanning(payload) {
   const statusFilter = document.getElementById("goalStatusFilter");
   const dueDateFilter = document.getElementById("goalDueDateFilter");
   const sortBy = document.getElementById("goalSortBy");
-  const filterEls = { searchInput, priorityFilter, typeFilter, statusFilter, dueDateFilter, sortBy };
+  const filterEls = {
+    searchInput,
+    priorityFilter,
+    typeFilter,
+    statusFilter,
+    dueDateFilter,
+    sortBy,
+  };
 
   const drawGoalCards = () => renderGoalCardsList(cardsContainer, goals, filterEls);
 

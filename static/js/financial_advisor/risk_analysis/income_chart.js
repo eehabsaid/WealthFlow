@@ -3,7 +3,7 @@
 
 window.RA = window.RA || {};
 
-window.RA.drawIncomeStabilityChart = function(payload) {
+window.RA.drawIncomeStabilityChart = function (payload) {
   if (typeof _destroyChart === "function") _destroyChart("incomeStabilityChart");
   const sources = payload?.income_stability?.sources || [];
   if (sources.length === 0) return;
@@ -63,5 +63,4 @@ window.RA.drawIncomeStabilityChart = function(payload) {
       },
     },
   });
-}
-
+};

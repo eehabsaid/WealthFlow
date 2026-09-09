@@ -24,4 +24,3 @@ function _renderSpendingIntelligenceError() {
   `;
   if (typeof applyTranslations === "function") applyTranslations();
 }
-

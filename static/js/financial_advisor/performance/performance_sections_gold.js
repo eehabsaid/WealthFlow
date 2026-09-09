@@ -6,8 +6,17 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 function buildGoldOverviewSection(ctx) {
-  const { gold, goldTrend7, goldTrend7Icon, goldTrend7BadgeBg, goldTrend7BadgeColor,
-    goldTrend30, goldTrend30Icon, goldTrend30BadgeBg, goldTrend30BadgeColor } = ctx;
+  const {
+    gold,
+    goldTrend7,
+    goldTrend7Icon,
+    goldTrend7BadgeBg,
+    goldTrend7BadgeColor,
+    goldTrend30,
+    goldTrend30Icon,
+    goldTrend30BadgeBg,
+    goldTrend30BadgeColor,
+  } = ctx;
   return `
         <!-- 1. Gold Performance Overview (Hero Section) -->
         <div class="mb-4">
@@ -60,8 +69,15 @@ function buildGoldOverviewSection(ctx) {
 }
 
 function buildGoldChartExposureRow(ctx) {
-  const { hasGoldHistory, goldTimeframe, impact7d, impact30d, hasCurrHistory,
-    currencyTimeframe, selectedCurrency } = ctx;
+  const {
+    hasGoldHistory,
+    goldTimeframe,
+    impact7d,
+    impact30d,
+    hasCurrHistory,
+    currencyTimeframe,
+    selectedCurrency,
+  } = ctx;
   return `
         <!-- 2 & 3: Main Row 1 - Gold Chart & Exposure -->
         <div class="row g-4 mb-4">

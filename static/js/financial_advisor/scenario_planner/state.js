@@ -27,32 +27,31 @@ window.SP.state = {
   themeListenerAttached: false,
 };
 
-  window.SP.money = function(value) {
-    const num = Number(value) || 0;
-    if (typeof fmtpresent === "function") {
-      return fmtpresent(num);
+window.SP.money = function (value) {
+  const num = Number(value) || 0;
+  if (typeof fmtpresent === "function") {
+    return fmtpresent(num);
+  }
+  return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+window.SP.fmtDelta = function (val, isPct = false, digits = 1) {
+  if (val === null || val === undefined) return "-";
+  const num = Number(val) || 0;
+  const sign = num > 0 ? "+" : "";
+  if (isPct) return `${sign}${num.toFixed(digits)}%`;
+  if (typeof fmtpresent === "function") {
+    return `${sign}${fmtpresent(num)}`;
+  }
+  return `${sign}${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+window.SP.attachThemeListener = function () {
+  if (window.SP.state.themeListenerAttached) return;
+  window.addEventListener("themeChanged", () => {
+    if (window.SP.state.scenarioPlannerData && typeof _renderScenarioPlannerChart === "function") {
+      _renderScenarioPlannerChart(window.SP.state.scenarioPlannerData);
     }
-    return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  window.SP.fmtDelta = function(val, isPct = false, digits = 1) {
-    if (val === null || val === undefined) return "-";
-    const num = Number(val) || 0;
-    const sign = num > 0 ? "+" : "";
-    if (isPct) return `${sign}${num.toFixed(digits)}%`;
-    if (typeof fmtpresent === "function") {
-      return `${sign}${fmtpresent(num)}`;
-    }
-    return `${sign}${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-
-  window.SP.attachThemeListener = function() {
-    if (window.SP.state.themeListenerAttached) return;
-    window.addEventListener("themeChanged", () => {
-      if (window.SP.state.scenarioPlannerData && typeof _renderScenarioPlannerChart === "function") {
-        _renderScenarioPlannerChart(window.SP.state.scenarioPlannerData);
-      }
-    });
-    window.SP.state.themeListenerAttached = true;
-  }
-
+  });
+  window.SP.state.themeListenerAttached = true;
+};

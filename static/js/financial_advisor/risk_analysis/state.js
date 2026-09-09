@@ -17,4 +17,3 @@ window.RA.state = {
 // - radar_chart.js           Risk radar chart drawing
 // - income_chart.js          Income stability chart drawing
 // - loader.js                loadRiskAnalysis data fetch + dispatch
-

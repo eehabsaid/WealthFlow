@@ -3,7 +3,7 @@
 
 window.RA = window.RA || {};
 
-window.RA.loadRiskAnalysis = async function(force = false) {
+window.RA.loadRiskAnalysis = async function (force = false) {
   if (window.RA.state.riskAnalysisData && !force) {
     window.RA.renderRiskAnalysis(window.RA.state.riskAnalysisData);
     window.RA.state.riskAnalysisLoaded = true;
@@ -23,6 +23,6 @@ window.RA.loadRiskAnalysis = async function(force = false) {
   } catch (error) {
     window.RA.renderRiskAnalysisError();
   }
-}
+};
 
 window.loadRiskAnalysis = window.RA.loadRiskAnalysis;

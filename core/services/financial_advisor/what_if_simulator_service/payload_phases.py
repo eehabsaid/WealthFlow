@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from core.services.financial_advisor.what_if_simulator_service.context import WhatIfContext
-from core.services.financial_advisor.what_if_simulator_service.helpers import _clamp, _to_float
+from core.services.financial_advisor.what_if_simulator_service.context import \
+    WhatIfContext
+from core.services.financial_advisor.what_if_simulator_service.helpers import (
+    _clamp, _to_float)
 
 
 def clamp_params(ctx: WhatIfContext) -> None:
@@ -65,7 +67,7 @@ def build_forecast_overrides(ctx: WhatIfContext) -> None:
 
     # Gold value override: scale current gold to reach target % of net worth
     ctx.target_gold_value = None
-    if ctx.total_net_worth > 0:
+    if ctx.total_net_worth > 0 and ctx.gold_allocation_target_pct is not None:
         ctx.target_gold_value = (ctx.gold_allocation_target_pct / 100.0) * ctx.total_net_worth
 
     forecast_overrides: Dict[str, Any] = {}

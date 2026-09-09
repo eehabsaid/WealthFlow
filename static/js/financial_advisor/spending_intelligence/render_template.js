@@ -3,7 +3,16 @@
 // pre-built section HTML into the full page layout).
 
 function buildSpendingIntelligencePaneHtml(ctx) {
-  const { headerHtml, avgMonthlyHtml, categoryHtml, donutHtml, findingsHtml, aiHtml, recHtml, trendHtml } = ctx;
+  const {
+    headerHtml,
+    avgMonthlyHtml,
+    categoryHtml,
+    donutHtml,
+    findingsHtml,
+    aiHtml,
+    recHtml,
+    trendHtml,
+  } = ctx;
   return `
     <div class="container-fluid" style="max-width:1200px;">
       ${headerHtml}

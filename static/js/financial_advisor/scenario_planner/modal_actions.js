@@ -1,15 +1,15 @@
 "use strict";
 window.SP = window.SP || {};
 
-  window.SP.getOrCreateNewScenarioModal = function() {
-    let modalEl = document.getElementById("modal-create-scenario");
-    if (!modalEl) {
-      modalEl = document.createElement("div");
-      modalEl.id = "modal-create-scenario";
-      modalEl.className = "modal fade";
-      modalEl.tabIndex = -1;
-      modalEl.setAttribute("aria-hidden", "true");
-      modalEl.innerHTML = `
+window.SP.getOrCreateNewScenarioModal = function () {
+  let modalEl = document.getElementById("modal-create-scenario");
+  if (!modalEl) {
+    modalEl = document.createElement("div");
+    modalEl.id = "modal-create-scenario";
+    modalEl.className = "modal fade";
+    modalEl.tabIndex = -1;
+    modalEl.setAttribute("aria-hidden", "true");
+    modalEl.innerHTML = `
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content border-secondary text-light" style="background-color: var(--si-card-bg, #1e293b);">
             <div class="modal-header border-secondary">
@@ -34,147 +34,149 @@ window.SP = window.SP || {};
             </form>
           </div>
         </div>`;
-      document.body.appendChild(modalEl);
-    }
-    if (typeof applyTranslations === "function") {
-      applyTranslations(modalEl);
-    }
-    return modalEl;
+    document.body.appendChild(modalEl);
+  }
+  if (typeof applyTranslations === "function") {
+    applyTranslations(modalEl);
+  }
+  return modalEl;
+};
+
+window.SP.createNewScenarioPrompt = async function () {
+  const modalEl = window.SP.getOrCreateNewScenarioModal();
+  const inputName = modalEl.querySelector("#sp-new-scenario-name");
+  const inputDesc = modalEl.querySelector("#sp-new-scenario-desc");
+  const form = modalEl.querySelector("#form-create-scenario");
+
+  const defaultName =
+    (typeof getTranslation === "function" && getTranslation("scenario_planner_default_name")) ||
+    "New Scenario";
+  inputName.value = defaultName;
+  inputDesc.value = "";
+
+  if (typeof applyTranslations === "function") {
+    applyTranslations(modalEl);
   }
 
-  window.SP.createNewScenarioPrompt = async function() {
-    const modalEl = window.SP.getOrCreateNewScenarioModal();
-    const inputName = modalEl.querySelector("#sp-new-scenario-name");
-    const inputDesc = modalEl.querySelector("#sp-new-scenario-desc");
-    const form = modalEl.querySelector("#form-create-scenario");
-
-    const defaultName =
-      (typeof getTranslation === "function" && getTranslation("scenario_planner_default_name")) ||
-      "New Scenario";
-    inputName.value = defaultName;
-    inputDesc.value = "";
-
-    if (typeof applyTranslations === "function") {
-      applyTranslations(modalEl);
-    }
-
-    let bsModal = null;
-    if (typeof bootstrap !== "undefined" && bootstrap.Modal) {
-      bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-    }
-
-    const onSubmit = async (e) => {
-      e.preventDefault();
-      const name = inputName.value.trim();
-      const desc = inputDesc.value.trim();
-      if (!name) return;
-
-      if (bsModal) {
-        bsModal.hide();
-      }
-
-      form.removeEventListener("submit", onSubmit);
-
-      try {
-        const resp = await fetch("/api/scenarios/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name, description: desc }),
-        });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const sc = await resp.json();
-
-        window.SP.state.cachedScenarios.push(sc);
-        window.SP.state.activeScenarioId = sc.id;
-        if (!window.SP.state.selectedScenarioIds.includes(sc.id)) {
-          window.SP.state.selectedScenarioIds.push(sc.id);
-        }
-
-        await window.SP.recalculateBackend();
-      } catch (err) {
-    // Non-fatal: error already surfaced to the user via UI feedback.
+  let bsModal = null;
+  if (typeof bootstrap !== "undefined" && bootstrap.Modal) {
+    bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
   }
-    };
 
-    form.onsubmit = onSubmit;
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    const name = inputName.value.trim();
+    const desc = inputDesc.value.trim();
+    if (!name) return;
 
     if (bsModal) {
-      bsModal.show();
-    } else {
-      const name = prompt("Enter scenario name:", "New Scenario");
-      if (name) {
-        inputName.value = name;
-        form.dispatchEvent(new Event("submit"));
-      }
+      bsModal.hide();
     }
-  }
 
-  window.SP.duplicateScenario = async function(scId) {
+    form.removeEventListener("submit", onSubmit);
+
     try {
-      const resp = await fetch(`/api/scenarios/${scId}/duplicate/`, { method: "POST" });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const newSc = await resp.json();
-
-      window.SP.state.cachedScenarios.push(newSc);
-      window.SP.state.activeScenarioId = newSc.id;
-      if (!window.SP.state.selectedScenarioIds.includes(newSc.id)) {
-        window.SP.state.selectedScenarioIds.push(newSc.id);
-      }
-
-      await window.SP.recalculateBackend();
-    } catch (err) {
-    // Non-fatal: error already surfaced to the user via UI feedback.
-  }
-  }
-
-  window.SP.deleteScenario = async function(scId) {
-    try {
-      const resp = await fetch(`/api/scenarios/${scId}/`, { method: "DELETE" });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-      window.SP.state.cachedScenarios = window.SP.state.cachedScenarios.filter((s) => s.id !== scId);
-      window.SP.state.selectedScenarioIds = window.SP.state.selectedScenarioIds.filter((id) => id !== scId);
-      if (window.SP.state.activeScenarioId === scId) {
-        window.SP.state.activeScenarioId = window.SP.state.cachedScenarios.length > 0 ? window.SP.state.cachedScenarios[0].id : null;
-      }
-
-      await window.SP.recalculateBackend();
-    } catch (err) {
-    // Non-fatal: error already surfaced to the user via UI feedback.
-  }
-  }
-
-  window.SP.addScenarioEvent = async function(scId, eventType, eventDate, params) {
-    try {
-      const resp = await fetch(`/api/scenarios/${scId}/events/`, {
+      const resp = await fetch("/api/scenarios/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_type: eventType,
-          event_date: eventDate,
-          params: params,
-        }),
+        body: JSON.stringify({ name: name, description: desc }),
       });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const sc = await resp.json();
 
-      await window.SP.fetchScenarioList();
+      window.SP.state.cachedScenarios.push(sc);
+      window.SP.state.activeScenarioId = sc.id;
+      if (!window.SP.state.selectedScenarioIds.includes(sc.id)) {
+        window.SP.state.selectedScenarioIds.push(sc.id);
+      }
+
       await window.SP.recalculateBackend();
     } catch (err) {
+      // Non-fatal: error already surfaced to the user via UI feedback.
+    }
+  };
+
+  form.onsubmit = onSubmit;
+
+  if (bsModal) {
+    bsModal.show();
+  } else {
+    const name = prompt("Enter scenario name:", "New Scenario");
+    if (name) {
+      inputName.value = name;
+      form.dispatchEvent(new Event("submit"));
+    }
+  }
+};
+
+window.SP.duplicateScenario = async function (scId) {
+  try {
+    const resp = await fetch(`/api/scenarios/${scId}/duplicate/`, { method: "POST" });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const newSc = await resp.json();
+
+    window.SP.state.cachedScenarios.push(newSc);
+    window.SP.state.activeScenarioId = newSc.id;
+    if (!window.SP.state.selectedScenarioIds.includes(newSc.id)) {
+      window.SP.state.selectedScenarioIds.push(newSc.id);
+    }
+
+    await window.SP.recalculateBackend();
+  } catch (err) {
     // Non-fatal: error already surfaced to the user via UI feedback.
   }
-  }
+};
 
-  window.SP.deleteScenarioEvent = async function(scId, evId) {
-    try {
-      const resp = await fetch(`/api/scenarios/${scId}/events/${evId}/`, { method: "DELETE" });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+window.SP.deleteScenario = async function (scId) {
+  try {
+    const resp = await fetch(`/api/scenarios/${scId}/`, { method: "DELETE" });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
-      await window.SP.fetchScenarioList();
-      await window.SP.recalculateBackend();
-    } catch (err) {
+    window.SP.state.cachedScenarios = window.SP.state.cachedScenarios.filter((s) => s.id !== scId);
+    window.SP.state.selectedScenarioIds = window.SP.state.selectedScenarioIds.filter(
+      (id) => id !== scId
+    );
+    if (window.SP.state.activeScenarioId === scId) {
+      window.SP.state.activeScenarioId =
+        window.SP.state.cachedScenarios.length > 0 ? window.SP.state.cachedScenarios[0].id : null;
+    }
+
+    await window.SP.recalculateBackend();
+  } catch (err) {
     // Non-fatal: error already surfaced to the user via UI feedback.
   }
+};
+
+window.SP.addScenarioEvent = async function (scId, eventType, eventDate, params) {
+  try {
+    const resp = await fetch(`/api/scenarios/${scId}/events/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_type: eventType,
+        event_date: eventDate,
+        params: params,
+      }),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    await window.SP.fetchScenarioList();
+    await window.SP.recalculateBackend();
+  } catch (err) {
+    // Non-fatal: error already surfaced to the user via UI feedback.
   }
+};
 
+window.SP.deleteScenarioEvent = async function (scId, evId) {
+  try {
+    const resp = await fetch(`/api/scenarios/${scId}/events/${evId}/`, { method: "DELETE" });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
-  window.loadScenarioPlanner = window.SP.loadScenarioPlanner;
+    await window.SP.fetchScenarioList();
+    await window.SP.recalculateBackend();
+  } catch (err) {
+    // Non-fatal: error already surfaced to the user via UI feedback.
+  }
+};
+
+window.loadScenarioPlanner = window.SP.loadScenarioPlanner;
