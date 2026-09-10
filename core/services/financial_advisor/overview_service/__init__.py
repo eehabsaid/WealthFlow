@@ -43,13 +43,14 @@ from core.services.financial_advisor.overview_service.opportunities_and_misc imp
 
 
 class OverviewService:
-    def __init__(self, today: datetime.date | None = None, net_worth_service: NetWorthService | None = None):
+    def __init__(self, owner, today: datetime.date | None = None, net_worth_service: NetWorthService | None = None):
+        self.owner = owner
         self.today = today or datetime.date.today()
-        self.net_worth_service = net_worth_service or NetWorthService()
-        self.cash_flow_service = CashFlowForecastService(today=self.today, net_worth_service=self.net_worth_service)
-        self.wealth_growth_service = WealthGrowthForecastService(today=self.today, net_worth_service=self.net_worth_service)
-        self.portfolio_service = PortfolioOptimizerService(today=self.today, net_worth_service=self.net_worth_service)
-        self.goal_service = GoalPlanningService(today=self.today, net_worth_service=self.net_worth_service)
+        self.net_worth_service = net_worth_service or NetWorthService(owner)
+        self.cash_flow_service = CashFlowForecastService(owner, today=self.today, net_worth_service=self.net_worth_service)
+        self.wealth_growth_service = WealthGrowthForecastService(owner, today=self.today, net_worth_service=self.net_worth_service)
+        self.portfolio_service = PortfolioOptimizerService(owner, today=self.today, net_worth_service=self.net_worth_service)
+        self.goal_service = GoalPlanningService(owner, today=self.today, net_worth_service=self.net_worth_service)
 
     def payload(self) -> dict:
         ctx = OverviewContext(service=self)

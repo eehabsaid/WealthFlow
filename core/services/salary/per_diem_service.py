@@ -12,13 +12,13 @@ class PerDiemService:
         """
         return CurrencyConversionService.get_latest_buy_rate(currency_code)
 
-    def apply_balance_posting(self, bank: Bank | None, currency: Currency, amount: Decimal):
+    def apply_balance_posting(self, owner, bank: Bank | None, currency: Currency, amount: Decimal):
         """
         Updates the corresponding BalanceEntry by adding the amount.
         Creates a new entry if one doesn't exist.
         """
-        # Look up by normalized balance_type='cash', bank, and currency
         balance_entry = BalanceEntry.objects.filter(
+            owner=owner,
             balance_type__iexact="cash",
             bank=bank,
             currency=currency
@@ -29,6 +29,7 @@ class PerDiemService:
             balance_entry.save()
         else:
             BalanceEntry.objects.create(
+                owner=owner,
                 title="Per Diem",
                 balance_type="cash",
                 bank=bank,
@@ -37,27 +38,28 @@ class PerDiemService:
                 amount=amount
             )
 
-    def reverse_balance_posting(self, bank: Bank | None, currency: Currency, amount: Decimal):
+    def reverse_balance_posting(self, owner, bank: Bank | None, currency: Currency, amount: Decimal):
         """
         Updates the corresponding BalanceEntry by subtracting the amount.
         """
         BalanceEntry.objects.filter(
+            owner=owner,
             balance_type__iexact="cash",
             bank=bank,
             currency=currency
         ).update(amount=F("amount") - amount)
 
     @transaction.atomic
-    def create_per_diem(self, data: dict) -> PerDiem:
+    def create_per_diem(self, data: dict, owner) -> PerDiem:
         """
         Creates a new PerDiem record and applies the balance entry update.
         """
-        company = Company.objects.get(id=data["company_id"])
+        company = Company.objects.get(id=data["company_id"], owner=owner)
         currency = Currency.objects.get(id=data["currency_id"])
         amount = Decimal(str(data["amount"]))
-        
+
         bank_id = data.get("bank_id")
-        bank = Bank.objects.get(id=bank_id) if bank_id else None
+        bank = Bank.objects.get(id=bank_id, owner=owner) if bank_id else None
 
         buy_rate = self.get_latest_buy_rate(currency.code)
         amount_egp = amount * buy_rate
@@ -76,23 +78,23 @@ class PerDiemService:
             notes=data.get("notes", "")
         )
 
-        self.apply_balance_posting(bank, currency, amount)
+        self.apply_balance_posting(owner, bank, currency, amount)
         return pd
 
     @transaction.atomic
-    def update_per_diem(self, per_diem_id: int, data: dict) -> PerDiem:
+    def update_per_diem(self, per_diem_id: int, data: dict, owner) -> PerDiem:
         """
         Updates an existing PerDiem record by first reversing the old posting
         and then applying the new posting.
         """
-        pd = PerDiem.objects.select_related("currency", "bank").get(id=per_diem_id)
-        
+        pd = PerDiem.objects.select_related("currency", "bank").get(id=per_diem_id, company__owner=owner)
+
         # Reverse old posting
-        self.reverse_balance_posting(pd.bank, pd.currency, pd.amount)
+        self.reverse_balance_posting(owner, pd.bank, pd.currency, pd.amount)
 
         # Update values
         if "company_id" in data:
-            pd.company = Company.objects.get(id=data["company_id"])
+            pd.company = Company.objects.get(id=data["company_id"], owner=owner)
         if "year" in data:
             pd.year = int(data["year"])
         if "date" in data:
@@ -105,10 +107,10 @@ class PerDiemService:
             pd.currency = Currency.objects.get(id=data["currency_id"])
         if "amount" in data:
             pd.amount = Decimal(str(data["amount"]))
-        
+
         if "bank_id" in data:
             bank_id = data["bank_id"]
-            pd.bank = Bank.objects.get(id=bank_id) if bank_id else None
+            pd.bank = Bank.objects.get(id=bank_id, owner=owner) if bank_id else None
         elif "bank" in data:  # fallback
             pd.bank = data["bank"]
 
@@ -119,21 +121,23 @@ class PerDiemService:
         pd.save()
 
         # Apply new posting
-        self.apply_balance_posting(pd.bank, pd.currency, pd.amount)
+        self.apply_balance_posting(owner, pd.bank, pd.currency, pd.amount)
         return pd
 
     @transaction.atomic
-    def delete_per_diem(self, per_diem_id: int):
+    def delete_per_diem(self, per_diem_id: int, owner):
         """
         Deletes a PerDiem record and reverses the balance entry update.
         """
-        pd = PerDiem.objects.select_related("currency", "bank").get(id=per_diem_id)
-        self.reverse_balance_posting(pd.bank, pd.currency, pd.amount)
+        pd = PerDiem.objects.select_related("currency", "bank").get(id=per_diem_id, company__owner=owner)
+        self.reverse_balance_posting(owner, pd.bank, pd.currency, pd.amount)
         pd.delete()
 
-    def get_currencies_used_in_balance(self):
+    def get_currencies_used_in_balance(self, owner):
         """
         Retrieves list of currencies currently used inside BalanceEntry.
         """
-        used_currency_ids = BalanceEntry.objects.filter(currency__isnull=False).values_list("currency_id", flat=True).distinct()
+        used_currency_ids = BalanceEntry.objects.filter(
+            owner=owner, currency__isnull=False
+        ).values_list("currency_id", flat=True).distinct()
         return Currency.objects.filter(id__in=used_currency_ids).order_by("order")

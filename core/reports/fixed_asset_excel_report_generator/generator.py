@@ -12,11 +12,15 @@ from core.reports.fixed_asset_excel_report_generator.formatting import autofit_c
 from core.reports.fixed_asset_excel_report_generator.sale_sheet import build_sale_sheet
 from core.reports.fixed_asset_excel_report_generator.summary_sheet import build_summary_sheet
 from core.reports.fixed_asset_report_helpers import fixed_asset_report_context as _fixed_asset_report_context
+from core.validators import _api_auth_required
 
 
 class FixedAssetExcelReportGenerator(object):
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
             context = _fixed_asset_report_context(request)
         except ValueError as exc:

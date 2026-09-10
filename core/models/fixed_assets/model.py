@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import models
 
 from core.constants import ASSET_STATUS, ASSET_TYPES, VALUATION_SOURCE
@@ -8,6 +9,10 @@ from core.models.fixed_assets.serialization_mixin import FixedAssetSerialization
 
 
 class FixedAsset(FixedAssetCalculationsMixin, FixedAssetSerializationMixin, models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="fixed_assets",
+    )
     name = models.CharField(max_length=200)
 
     asset_type = models.CharField(

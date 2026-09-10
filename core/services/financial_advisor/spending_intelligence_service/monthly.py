@@ -11,7 +11,7 @@ class MonthlyComparisonMixin:
 
     def _monthly_comparison(self):
         months = []
-        monthly_qs = Expense.objects.values('year', 'month').annotate(
+        monthly_qs = Expense.objects.filter(owner=self.owner).values('year', 'month').annotate(
             total_egp=Coalesce(Sum('amount_egp'), Decimal('0.0')),
             count=Count('id')
         ).order_by('year', 'month')
@@ -25,7 +25,7 @@ class MonthlyComparisonMixin:
             })
 
         by_category = {}
-        monthly_cat_qs = Expense.objects.values('year', 'month', 'category_id').annotate(
+        monthly_cat_qs = Expense.objects.filter(owner=self.owner).values('year', 'month', 'category_id').annotate(
             total_egp=Coalesce(Sum('amount_egp'), Decimal('0.0')),
             count=Count('id')
         ).order_by('year', 'month')

@@ -12,27 +12,34 @@ from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.shortcuts import get_object_or_404
 from core.models import (
     Company,
 
 )
+from core.validators import _api_auth_required, _owned_queryset, _owned_object_or_404
 
 User = get_user_model()
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CompanyListView(View):
     def get(self, request):
-        companies = Company.objects.all().order_by("order")
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        companies = _owned_queryset(Company, request).order_by("order")
         return JsonResponse({"companies": [c.to_dict() for c in companies]})
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body) if request.body else {}
         name = data.get("name")
         if not name:
             return JsonResponse({"error": "name is required"}, status=400)
 
         company = Company.objects.create(
+            owner=request.user,
             name=name,
             display_name=data.get("display_name", name),
             group_name=data.get("group_name", ""),
@@ -53,16 +60,23 @@ class CompanyListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class CompanyDetailView(View):
     def get(self, request, pk):
-        c = get_object_or_404(
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        c = _owned_object_or_404(
             Company.objects.select_related(
                 "current_salary_currency", "default_bank", "per_diem_currency"
             ),
-            pk=pk,
+            pk,
+            request,
         )
         return JsonResponse(c.to_dict())
 
     def put(self, request, pk):
-        c = get_object_or_404(Company, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        c = _owned_object_or_404(Company, pk, request)
         data = json.loads(request.body)
         for field in [
             "name",
@@ -86,7 +100,10 @@ class CompanyDetailView(View):
         return JsonResponse(c.to_dict())
 
     def delete(self, request, pk):
-        c = get_object_or_404(Company, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        c = _owned_object_or_404(Company, pk, request)
         c.delete()
         return JsonResponse({"deleted": pk})
 

@@ -12,6 +12,7 @@ class CurrencyExchangeCoreTest(TestCase):
         from django.test import Client
         self.client = Client()
         self.user = User.objects.create_user(username="ce_testuser", password="password")
+        self.client.force_login(self.user)
 
         # Currencies
         self.egp, _ = Currency.objects.get_or_create(code="EGP", defaults={"name": "Egyptian Pound", "symbol": "EGP"})
@@ -25,16 +26,18 @@ class CurrencyExchangeCoreTest(TestCase):
         ExchangeRate.objects.create(currency_code="SAR", currency_name="Saudi Riyal", buy_rate=Decimal("13.333333"))
 
         # Banks
-        self.bank_cib = Bank.objects.create(name="CIB Bank Test")
+        self.bank_cib = Bank.objects.create(name="CIB Bank Test", owner=self.user)
 
         # Balance entries
         self.bal_usd = BalanceEntry.objects.create(
+            owner=self.user,
             title="USD Cash Test",
             balance_type=BalanceEntry.BalanceType.CASH,
             currency=self.usd,
             amount=Decimal("1000.00")
         )
         self.bal_egp = BalanceEntry.objects.create(
+            owner=self.user,
             title="CIB Account Test",
             balance_type=BalanceEntry.BalanceType.BANK,
             bank=self.bank_cib,
@@ -42,6 +45,7 @@ class CurrencyExchangeCoreTest(TestCase):
             amount=Decimal("50000.00")
         )
         self.bal_eur = BalanceEntry.objects.create(
+            owner=self.user,
             title="EUR Wallet Test",
             balance_type=BalanceEntry.BalanceType.CASH,
             currency=self.eur,
@@ -154,9 +158,11 @@ class CurrencyExchangeCoreTest(TestCase):
         self.assertEqual(len(res_eur.json()["exchanges"]), 0)
 
     def test_filter_by_user(self):
-        """GET /api/currency-exchanges/?user=<username> must return 200 and
-        filter exchanges by user username or id. The critical assertion is
-        that this returns HTTP 200, NOT 500 (the original NameError bug)."""
+        """The exchange list is now always scoped to the authenticated user
+        (no cross-user filtering via query param, by design), so any value
+        passed for ?user= is simply ignored and results stay scoped to
+        self.user. The critical assertion is that this returns HTTP 200,
+        NOT 500 (the original NameError bug)."""
         payload = {
             "exchange_date": "2026-08-05",
             "from_balance_id": self.bal_usd.id,
@@ -166,13 +172,13 @@ class CurrencyExchangeCoreTest(TestCase):
         }
         self.client.post("/api/currency-exchanges/", json.dumps(payload), content_type="application/json")
 
-        # Filter by username — should return 200 with results
+        # Any ?user= value is ignored; results are always the caller's own.
         res = self.client.get("/api/currency-exchanges/?user=ce_testuser")
         self.assertEqual(res.status_code, 200)
         exchanges = res.json()["exchanges"]
         self.assertIsInstance(exchanges, list)
+        self.assertEqual(len(exchanges), 1)
 
-        # Filter by numeric user ID that doesn't exist — should return 200 with empty list
         res_none = self.client.get("/api/currency-exchanges/?user=99999")
         self.assertEqual(res_none.status_code, 200)
-        self.assertEqual(len(res_none.json()["exchanges"]), 0)
+        self.assertEqual(len(res_none.json()["exchanges"]), 1)

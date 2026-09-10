@@ -20,7 +20,10 @@ class FixedAssetListOrderingTest(TestCase):
     ordering already applied to renovations."""
 
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_order", password="pass12345")
+        self.client.force_login(self.user)
         self.re_asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Nile View Apartment",
             asset_type="Real Estate",
             status="Owned",
@@ -29,6 +32,7 @@ class FixedAssetListOrderingTest(TestCase):
             current_market_value=1200000,
         )
         self.vehicle_asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Family Car",
             asset_type="Vehicles",
             status="Owned",

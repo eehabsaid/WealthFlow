@@ -23,7 +23,7 @@ class OpportunityDetectionTest(TestCase):
         profile.save()
 
     def test_opportunity_detection_service_payload(self):
-        service = OpportunityDetectionService(today=date(2026, 7, 22))
+        service = OpportunityDetectionService(self.user, today=date(2026, 7, 22))
         payload = service.payload()
         self.assertIn("as_of", payload)
         self.assertIn("opportunities", payload)
@@ -45,11 +45,12 @@ class OpportunityDetectionTest(TestCase):
 class SpendingIntelligenceTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="spending_user", password="password123")
-        self.cat1 = ExpenseCategory.objects.create(name="Food & Dining", icon="🍽️", color_hex="#fd7e14", order=1)
-        self.cat2 = ExpenseCategory.objects.create(name="Utilities", icon="💡", color_hex="#0d6efd", order=2)
+        self.cat1 = ExpenseCategory.objects.create(owner=self.user, name="Food & Dining", icon="🍽️", color_hex="#fd7e14", order=1)
+        self.cat2 = ExpenseCategory.objects.create(owner=self.user, name="Utilities", icon="💡", color_hex="#0d6efd", order=2)
         
         # Create expenses across months and categories
         Expense.objects.create(
+            owner=self.user,
             date=date(2026, 6, 10),
             year=2026,
             month=6,
@@ -58,6 +59,7 @@ class SpendingIntelligenceTest(TestCase):
             amount_egp=Decimal("500.00")
         )
         Expense.objects.create(
+            owner=self.user,
             date=date(2026, 6, 15),
             year=2026,
             month=6,
@@ -66,6 +68,7 @@ class SpendingIntelligenceTest(TestCase):
             amount_egp=Decimal("300.00")
         )
         Expense.objects.create(
+            owner=self.user,
             date=date(2026, 7, 5),
             year=2026,
             month=7,
@@ -77,7 +80,7 @@ class SpendingIntelligenceTest(TestCase):
     def test_spending_intelligence_registered_categories_and_by_category(self):
         from core.services.financial_advisor.spending_intelligence_service import SpendingIntelligenceService
 
-        payload = SpendingIntelligenceService(today=date(2026, 7, 26)).payload()
+        payload = SpendingIntelligenceService(self.user, today=date(2026, 7, 26)).payload()
 
         # Check registered categories
         reg_cats = payload.get("registered_categories", [])

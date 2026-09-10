@@ -6,7 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from core.models import CreditCardPayment
+from core.models import CreditCardPayment, Bank
+from core.validators import _api_auth_required, _owned_object_or_404
 
 
 def _balance_error_response(exc):
@@ -27,14 +28,21 @@ def _balance_error_response(exc):
 @method_decorator(csrf_exempt, name="dispatch")
 class CreditCardPaymentListView(View):
     def get(self, request):
-        entries = CreditCardPayment.objects.select_related("bank").all()
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        entries = CreditCardPayment.objects.select_related("bank").filter(owner=request.user)
         return JsonResponse({"credit_card_payments": [e.to_dict() for e in entries]})
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
             data = json.loads(request.body)
             payment_date = data["payment_date"]
             bank_id = data["bank_id"]
+            get_object_or_404(Bank, pk=bank_id, owner=request.user)
             payment_method = data.get("payment_method", "Card")
             card_label = data.get("card_label", "")
             amount_egp = Decimal(str(data.get("amount_egp", 0) or 0))
@@ -42,6 +50,7 @@ class CreditCardPaymentListView(View):
 
             with transaction.atomic():
                 entry = CreditCardPayment.objects.create(
+                    owner=request.user,
                     payment_date=payment_date,
                     bank_id=bank_id,
                     payment_method=payment_method,
@@ -61,9 +70,14 @@ class CreditCardPaymentListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class CreditCardPaymentDetailView(View):
     def put(self, request, pk):
-        entry = get_object_or_404(CreditCardPayment, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        entry = _owned_object_or_404(CreditCardPayment, pk, request)
         try:
             data = json.loads(request.body)
+            if "bank_id" in data and data["bank_id"]:
+                get_object_or_404(Bank, pk=data["bank_id"], owner=request.user)
 
             with transaction.atomic():
                 # Reverse the old debit + mirror before applying new values,
@@ -93,7 +107,10 @@ class CreditCardPaymentDetailView(View):
             return JsonResponse({"error": str(e)}, status=400)
 
     def delete(self, request, pk):
-        entry = get_object_or_404(CreditCardPayment, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        entry = _owned_object_or_404(CreditCardPayment, pk, request)
         try:
             with transaction.atomic():
                 entry.reverse_and_unmirror()

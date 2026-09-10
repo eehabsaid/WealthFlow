@@ -5,23 +5,33 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from core.models import BalanceTransfer
+from core.models import BalanceTransfer, Bank
+from core.validators import _api_auth_required, _owned_object_or_404
 
 @method_decorator(csrf_exempt, name="dispatch")
 class BalanceTransferListView(View):
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         transfers = BalanceTransfer.objects.select_related(
             'from_bank', 'to_bank', 'currency'
-        ).all()
+        ).filter(owner=request.user)
         return JsonResponse({"transfers": [t.to_dict() for t in transfers]})
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
             data = json.loads(request.body)
             transfer_date = data["transfer_date"]
             transfer_type = data["transfer_type"]
             from_bank_id = data.get("from_bank_id")
             to_bank_id = data.get("to_bank_id")
+            for bid in (from_bank_id, to_bank_id):
+                if bid:
+                    get_object_or_404(Bank, pk=bid, owner=request.user)
             currency_id = data["currency_id"]
             amount = float(data.get("amount", 0))
             fee = float(data.get("fee", 0))
@@ -29,6 +39,7 @@ class BalanceTransferListView(View):
 
             with transaction.atomic():
                 transfer = BalanceTransfer.objects.create(
+                    owner=request.user,
                     transfer_date=transfer_date,
                     transfer_type=transfer_type,
                     from_bank_id=from_bank_id if transfer_type in [BalanceTransfer.TransferType.BANK_TO_BANK, BalanceTransfer.TransferType.BANK_TO_CASH] else None,
@@ -47,9 +58,15 @@ class BalanceTransferListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class BalanceTransferDetailView(View):
     def put(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
-            transfer = get_object_or_404(BalanceTransfer, pk=pk)
+            transfer = _owned_object_or_404(BalanceTransfer, pk, request)
             data = json.loads(request.body)
+            for key in ("from_bank_id", "to_bank_id"):
+                if data.get(key):
+                    get_object_or_404(Bank, pk=data[key], owner=request.user)
 
             with transaction.atomic():
                 # Reverse the old transfer
@@ -89,8 +106,11 @@ class BalanceTransferDetailView(View):
             return JsonResponse({"error": str(e)}, status=400)
 
     def delete(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
-            transfer = get_object_or_404(BalanceTransfer, pk=pk)
+            transfer = _owned_object_or_404(BalanceTransfer, pk, request)
             with transaction.atomic():
                 transfer.reverse_transfer()
                 transfer.delete()

@@ -18,12 +18,16 @@ from core.utils import _to_decimal
 from core.services.fixed_assets.asset_sale_service import _resolve_sale_deposit_values, _sale_payment_row
 from core.services.fixed_assets.asset_purchase_service import _apply_asset_balance_delta
 from core.services.fixed_assets.gold_sync_service import _sync_gold_balance_from_assets
+from core.validators import _api_auth_required
 
 @method_decorator(csrf_exempt, name="dispatch")
 class AssetSaleView(View):
 
     def get(self, request, asset_id):
-        asset = get_object_or_404(FixedAsset, pk=asset_id)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        asset = get_object_or_404(FixedAsset, pk=asset_id, owner=request.user)
 
         if hasattr(asset, "sale"):
             return JsonResponse(asset.sale.to_dict())
@@ -31,7 +35,10 @@ class AssetSaleView(View):
         return JsonResponse({}, status=404)
 
     def post(self, request, asset_id):
-        asset = get_object_or_404(FixedAsset, pk=asset_id)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        asset = get_object_or_404(FixedAsset, pk=asset_id, owner=request.user)
 
         data = json.loads(request.body)
         sale_date_value = data.get("sale_date")
@@ -52,6 +59,7 @@ class AssetSaleView(View):
                         payment_method=previous_row["payment_method"],
                         bank_id=previous_row["bank_id"],
                         amount_delta=-_to_decimal(previous_row["amount"]),
+                        owner=request.user,
                     )
 
                 deposit_values = _resolve_sale_deposit_values(data, existing_sale=existing_sale)
@@ -77,11 +85,12 @@ class AssetSaleView(View):
                     payment_method=current_row["payment_method"],
                     bank_id=current_row["bank_id"],
                     amount_delta=_to_decimal(current_row["amount"]),
+                    owner=request.user,
                 )
 
                 asset.status = "Sold"
                 asset.save()
-                _sync_gold_balance_from_assets()
+                _sync_gold_balance_from_assets(request.user)
 
         except ValueError as exc:
             return JsonResponse(
@@ -95,7 +104,10 @@ class AssetSaleView(View):
         return JsonResponse(sale.to_dict(), status=201 if created else 200)
 
     def delete(self, request, asset_id):
-        asset = get_object_or_404(FixedAsset, pk=asset_id)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        asset = get_object_or_404(FixedAsset, pk=asset_id, owner=request.user)
 
         if not hasattr(asset, "sale"):
             return JsonResponse({"deleted": False}, status=200)
@@ -108,6 +120,7 @@ class AssetSaleView(View):
                     payment_method=sale_row["payment_method"],
                     bank_id=sale_row["bank_id"],
                     amount_delta=-_to_decimal(sale_row["amount"]),
+                    owner=request.user,
                 )
 
                 asset.sale.delete()
@@ -116,7 +129,7 @@ class AssetSaleView(View):
                     asset.status = "Owned"
                     asset.save()
 
-                _sync_gold_balance_from_assets()
+                _sync_gold_balance_from_assets(request.user)
 
         except ValueError as exc:
             return JsonResponse(

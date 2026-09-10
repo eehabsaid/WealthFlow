@@ -7,13 +7,17 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from core.models import Expense
+from core.validators import _api_auth_required
 
 User = get_user_model()
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ExpenseListView(View):
     def get(self, request):
-        qs = Expense.objects.select_related("category", "subcategory", "currency", "bank").all()
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        qs = Expense.objects.select_related("category", "subcategory", "currency", "bank").filter(owner=request.user)
 
         year = request.GET.get("year")
         month = request.GET.get("month")
@@ -47,10 +51,13 @@ class ExpenseListView(View):
         return JsonResponse({"entries": entries, "total": total})
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
         from core.services import ExpenseService
         try:
-            exp = ExpenseService.create_expense(data)
+            exp = ExpenseService.create_expense(data, request.user)
         except ValueError as exc:
             if str(exc) == "bank_account_required":
                 return JsonResponse(
@@ -84,6 +91,11 @@ class ExpenseListView(View):
                     },
                     status=400,
                 )
+            if str(exc) == "category_not_found":
+                return JsonResponse(
+                    {"error": "Category not found", "error_key": "category_not_found"},
+                    status=404,
+                )
             raise
 
         return JsonResponse(exp.to_dict(), status=201)
@@ -91,10 +103,13 @@ class ExpenseListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class ExpenseDetailView(View):
     def put(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
         from core.services import ExpenseService
         try:
-            exp = ExpenseService.update_expense(pk, data)
+            exp = ExpenseService.update_expense(pk, data, request.user)
         except ValueError as exc:
             if str(exc) == "readonly_mirrored_expense":
                 return JsonResponse(
@@ -136,14 +151,22 @@ class ExpenseDetailView(View):
                     },
                     status=400,
                 )
+            if str(exc) == "category_not_found":
+                return JsonResponse(
+                    {"error": "Category not found", "error_key": "category_not_found"},
+                    status=404,
+                )
             raise
 
         return JsonResponse(exp.to_dict())
 
     def delete(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         from core.services import ExpenseService
         try:
-            ExpenseService.delete_expense(pk)
+            ExpenseService.delete_expense(pk, request.user)
         except ValueError as exc:
             if str(exc) == "readonly_mirrored_expense":
                 return JsonResponse(

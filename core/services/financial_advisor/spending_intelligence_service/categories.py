@@ -15,7 +15,7 @@ class CategoriesMixin:
         most_frequent = None
         max_count = -1
 
-        cat_qs = Expense.objects.values('category__name', 'category__icon').annotate(
+        cat_qs = Expense.objects.filter(owner=self.owner).values('category__name', 'category__icon').annotate(
             amount=Coalesce(Sum('amount_egp'), Decimal('0.0')),
             count=Count('id')
         ).order_by('-amount')
@@ -42,9 +42,9 @@ class CategoriesMixin:
 
                 # Fetch months_span specifically for the most frequent category
                 if item['category__name']:
-                    months_qs = Expense.objects.filter(category__name=item['category__name']).values('year', 'month').distinct()
+                    months_qs = Expense.objects.filter(owner=self.owner, category__name=item['category__name']).values('year', 'month').distinct()
                 else:
-                    months_qs = Expense.objects.filter(category__isnull=True).values('year', 'month').distinct()
+                    months_qs = Expense.objects.filter(owner=self.owner, category__isnull=True).values('year', 'month').distinct()
                 months_span = months_qs.count()
                 avg_per_tx = amount / count if count > 0 else 0.0
 
@@ -58,7 +58,7 @@ class CategoriesMixin:
         return categories, most_frequent
 
     def _largest_expense(self):
-        largest_expense_obj = Expense.objects.select_related('category').order_by('-amount_egp', '-id').first()
+        largest_expense_obj = Expense.objects.filter(owner=self.owner).select_related('category').order_by('-amount_egp', '-id').first()
         if not largest_expense_obj:
             return None
 
@@ -79,5 +79,5 @@ class CategoriesMixin:
                 "icon": cat.icon,
                 "color_hex": cat.color_hex
             }
-            for cat in ExpenseCategory.objects.all().order_by('order', 'name')
+            for cat in ExpenseCategory.objects.filter(owner=self.owner).order_by('order', 'name')
         ]

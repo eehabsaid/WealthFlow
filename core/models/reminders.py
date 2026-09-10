@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -6,6 +7,10 @@ from core.constants import REMINDER_TYPE_CHOICES, SALARY_TRIGGER_CHOICES
 class ReminderRule(models.Model):
     """Fully configurable reminder rule — no hardcoded values."""
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="reminder_rules",
+    )
     name = models.CharField(max_length=200)
     rule_type = models.CharField(
         max_length=50, choices=REMINDER_TYPE_CHOICES, default="cert_maturity"

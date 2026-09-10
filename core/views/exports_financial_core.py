@@ -12,7 +12,7 @@ needs to change when those are reorganized internally.
 """
 
 from .settings import CompanyListView, CompanyDetailView, BankListView, BankDetailView, BankWithBalanceListView
-from .salary_views import (
+from .salary import (
     SalaryListView,
     SalaryDetailView,
     GenerateCurrentSalaryView,

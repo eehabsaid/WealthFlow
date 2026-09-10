@@ -13,7 +13,7 @@ from core.constants import (
     VEHICLE_ASSET_TYPES,
     OTHER_ASSET_TYPES,
 )
-from core.services.expenses.expense_service import _apply_expense_balance_delta
+from core.services.expenses.expense_balance_helpers import _apply_expense_balance_delta
 
 def _sync_asset_maintenance(asset, items):
     AssetMaintenance.objects.filter(asset=asset).delete()
@@ -68,7 +68,7 @@ def _sync_asset_furniture(asset, items):
         row = existing.get(item.get("id"))
 
         if row:
-            _apply_expense_balance_delta(row.payment_method, row.bank_id, Decimal(str(row.amount_egp or 0)))
+            _apply_expense_balance_delta(row.payment_method, row.bank_id, Decimal(str(row.amount_egp or 0)), owner=asset.owner)
             row.name = item.get("name", "")
             row.category = item.get("category", "")
             row.purchase_date = item.get("purchase_date") or None
@@ -94,12 +94,12 @@ def _sync_asset_furniture(asset, items):
                 bank_id=bank_id,
                 notes=item.get("notes", ""),
             )
-        _apply_expense_balance_delta(payment_method, bank_id, -Decimal(str(amount_egp or 0)))
+        _apply_expense_balance_delta(payment_method, bank_id, -Decimal(str(amount_egp or 0)), owner=asset.owner)
         keep_ids.add(row.id)
 
     for old_id, old in existing.items():
         if old_id not in keep_ids:
-            _apply_expense_balance_delta(old.payment_method, old.bank_id, Decimal(str(old.amount_egp or 0)))
+            _apply_expense_balance_delta(old.payment_method, old.bank_id, Decimal(str(old.amount_egp or 0)), owner=asset.owner)
             old.delete()
 
 def _sync_asset_valuation_history(asset, items):

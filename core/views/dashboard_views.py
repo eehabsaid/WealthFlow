@@ -55,14 +55,18 @@ class DashboardSummaryView(View):
     """Enhanced dashboard summary — salary KPIs + cert maturity + balance."""
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         _run_certificate_interest_sync()
         from datetime import date, timedelta
         from django.db.models import Sum, Count, Q
 
         today = date.today()
+        owner = request.user
 
         # Salary grand totals
-        sal_agg = SalaryEntry.objects.aggregate(
+        sal_agg = SalaryEntry.objects.filter(company__owner=owner).aggregate(
             total_paid=Sum("paid"),
             total_bonus=Sum("bonus"),
             total_expected=Sum("expected"),
@@ -70,7 +74,7 @@ class DashboardSummaryView(View):
         )
 
         # Certificates
-        certs = BankCertificate.objects.select_related("bank").all()
+        certs = BankCertificate.objects.select_related("bank").filter(owner=owner)
         cert_agg = certs.aggregate(
             total=Sum("amount"),
             total_interest=Sum("interest_value"),
@@ -90,7 +94,7 @@ class DashboardSummaryView(View):
 
         # Active reminders (due today)
         active_reminders = []
-        rules = list(ReminderRule.objects.filter(is_active=True, rule_type="cert_maturity"))
+        rules = list(ReminderRule.objects.filter(owner=owner, is_active=True, rule_type="cert_maturity"))
         if rules:
             logs = ReminderLog.objects.filter(rule__in=rules, fired_on=today).select_related("rule").values(
                 "message", "rule__name"
@@ -99,13 +103,13 @@ class DashboardSummaryView(View):
                 active_reminders.append({"rule": l["rule__name"], "message": l["message"]})
 
         # Balance
-        bal_entries = BalanceEntry.objects.select_related("currency").all()
+        bal_entries = BalanceEntry.objects.select_related("currency").filter(owner=owner)
         egp_balance = float(
             bal_entries.filter(currency__code="EGP").aggregate(s=Sum("amount"))["s"]
             or 0
         )
 
-        net_worth = NetWorthService().portfolio_components()
+        net_worth = NetWorthService(owner).portfolio_components()
 
         return JsonResponse(
             {

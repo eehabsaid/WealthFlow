@@ -14,6 +14,7 @@ class VehiclePropertyMixin:
         reminders = []
         target = today + timedelta(days=rule.days_before)
         for vehicle in VehicleDetails.objects.select_related("asset").filter(
+            asset__owner=rule.owner,
             license_expiry_date__gte=today,
             license_expiry_date__lte=target,
         ):
@@ -54,6 +55,7 @@ class VehiclePropertyMixin:
 
         allowed_countries = self._property_tax_allowed_countries()
         assets = FixedAsset.objects.select_related("real_estate").filter(
+            owner=rule.owner,
             asset_type="Real Estate",
             status="Owned",
         )

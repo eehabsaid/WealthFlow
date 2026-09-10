@@ -10,6 +10,7 @@ from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from core.models import (
     Goal,
+    FixedAsset,
 
 )
 
@@ -30,7 +31,7 @@ class GoalPlanningView(View):
             return auth_error
 
         _run_certificate_interest_sync()
-        payload = GoalPlanningService(today=datetime.date.today()).payload()
+        payload = GoalPlanningService(request.user, today=datetime.date.today()).payload()
         return JsonResponse(payload)
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -40,7 +41,7 @@ class GoalListView(View):
         if auth_error:
             return auth_error
 
-        goals = Goal.objects.select_related("currency", "linked_asset").all().order_by("target_date", "id")
+        goals = Goal.objects.select_related("currency", "linked_asset").filter(owner=request.user).order_by("target_date", "id")
         return JsonResponse({"goals": [goal.to_dict() for goal in goals]})
 
     def post(self, request):
@@ -50,6 +51,7 @@ class GoalListView(View):
 
         data = json.loads(request.body or "{}")
         goal = Goal.objects.create(
+            owner=request.user,
             name=data.get("name", "").strip(),
             goal_type=data.get("goal_type", "").strip(),
             target_amount=data.get("target_amount", 0) or 0,
@@ -69,7 +71,7 @@ class GoalDetailView(View):
         if auth_error:
             return auth_error
 
-        goal = get_object_or_404(Goal, pk=pk)
+        goal = get_object_or_404(Goal, pk=pk, owner=request.user)
         data = json.loads(request.body or "{}")
 
         for field in ["name", "goal_type", "target_amount", "current_saved_amount", "priority", "notes"]:
@@ -79,7 +81,10 @@ class GoalDetailView(View):
         if "currency_id" in data:
             goal.currency_id = data.get("currency_id") or None
         if "linked_asset_id" in data:
-            goal.linked_asset_id = data.get("linked_asset_id") or None
+            linked_asset_id = data.get("linked_asset_id") or None
+            if linked_asset_id:
+                get_object_or_404(FixedAsset, pk=linked_asset_id, owner=request.user)
+            goal.linked_asset_id = linked_asset_id
         if "target_date" in data:
             goal.target_date = _parse_iso_date(data.get("target_date"))
 
@@ -91,7 +96,7 @@ class GoalDetailView(View):
         if auth_error:
             return auth_error
 
-        goal = get_object_or_404(Goal, pk=pk)
+        goal = get_object_or_404(Goal, pk=pk, owner=request.user)
         goal.delete()
         return JsonResponse({"deleted": pk})
 

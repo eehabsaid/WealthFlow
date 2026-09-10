@@ -1,8 +1,13 @@
+from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Company(models.Model):
-    name = models.CharField(max_length=200, unique=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="companies",
+    )
+    name = models.CharField(max_length=200)
     display_name = models.CharField(max_length=200)
     group_name = models.CharField(max_length=200, blank=True)
     color_hex = models.CharField(max_length=7, default="#0d6efd")
@@ -48,6 +53,7 @@ class Company(models.Model):
 
     class Meta:
         ordering = ["order", "name"]
+        unique_together = ["owner", "name"]
 
     def to_dict(self):
         return {

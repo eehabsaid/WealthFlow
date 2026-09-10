@@ -14,8 +14,13 @@ class ExportExcelWorkbookGenerator(object):
     def post(self, request):
         from core.reports.excel_generator import generate_excel
         from datetime import date
+        from core.validators import _api_auth_required
 
-        buf = generate_excel()
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+
+        buf = generate_excel(request.user)
         filename = f"Balance_Tracker_{date.today().strftime('%Y%m%d')}.xlsx"
         response = HttpResponse(
             buf.read(),

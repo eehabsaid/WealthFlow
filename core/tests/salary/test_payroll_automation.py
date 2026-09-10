@@ -8,10 +8,13 @@ User = get_user_model()
 class PayrollAutomationTest(TestCase):
     def setUp(self):
         from core.models import Currency, Bank, Company
+        self.user = User.objects.create_user(username="testuser", password="pass12345")
+        self.client.force_login(self.user)
         self.currency = Currency.objects.create(code="USD", name="US Dollar", symbol="$", flag="🇺🇸")
-        self.bank = Bank.objects.create(name="Chase Bank", account_number="1234", card_id="5678", swift_code="CHAS")
+        self.bank = Bank.objects.create(name="Chase Bank", owner=self.user, account_number="1234", card_id="5678", swift_code="CHAS")
         self.company = Company.objects.create(
             name="Test Company",
+            owner=self.user,
             display_name="Test Company Disp",
             is_active=True,
             current_salary_amount=5000,

@@ -5,14 +5,17 @@ from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.shortcuts import get_object_or_404
 from core.models import ExpenseCategory, ExpenseSubcategory
+from core.validators import _api_auth_required, _owned_queryset, _owned_object_or_404, _child_owned_object_or_404
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ExpenseCategoryListView(View):
     def get(self, request):
-        cats = ExpenseCategory.objects.prefetch_related("subcategories").all()
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        cats = _owned_queryset(ExpenseCategory, request).prefetch_related("subcategories")
         data = []
         for c in cats:
             d = c.to_dict()
@@ -21,8 +24,12 @@ class ExpenseCategoryListView(View):
         return JsonResponse({"categories": data})
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
         cat = ExpenseCategory.objects.create(
+            owner=request.user,
             name=data["name"],
             icon=data.get("icon", "💰"),
             color_hex=data.get("color_hex", "#0d6efd"),
@@ -33,7 +40,10 @@ class ExpenseCategoryListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class ExpenseCategoryDetailView(View):
     def put(self, request, pk):
-        cat = get_object_or_404(ExpenseCategory, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        cat = _owned_object_or_404(ExpenseCategory, pk, request)
         data = json.loads(request.body)
         for f in ["name", "icon", "color_hex", "order"]:
             if f in data:
@@ -42,16 +52,23 @@ class ExpenseCategoryDetailView(View):
         return JsonResponse(cat.to_dict())
 
     def delete(self, request, pk):
-        cat = get_object_or_404(ExpenseCategory, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        cat = _owned_object_or_404(ExpenseCategory, pk, request)
         cat.delete()
         return JsonResponse({"deleted": pk})
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ExpenseSubcategoryListView(View):
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
+        category = _owned_object_or_404(ExpenseCategory, data["category_id"], request)
         sub = ExpenseSubcategory.objects.create(
-            category_id=data["category_id"],
+            category=category,
             name=data["name"],
             order=data.get("order", 0),
         )
@@ -60,7 +77,10 @@ class ExpenseSubcategoryListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class ExpenseSubcategoryDetailView(View):
     def put(self, request, pk):
-        sub = get_object_or_404(ExpenseSubcategory, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        sub = _child_owned_object_or_404(ExpenseSubcategory, pk, request, parent_field="category")
         data = json.loads(request.body)
         for f in ["name", "order"]:
             if f in data:
@@ -69,6 +89,9 @@ class ExpenseSubcategoryDetailView(View):
         return JsonResponse(sub.to_dict())
 
     def delete(self, request, pk):
-        sub = get_object_or_404(ExpenseSubcategory, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        sub = _child_owned_object_or_404(ExpenseSubcategory, pk, request, parent_field="category")
         sub.delete()
         return JsonResponse({"deleted": pk})

@@ -15,6 +15,7 @@ from core.models import (
 )
 
 from core.services.balance.net_worth_service import NetWorthService
+from core.validators import _api_auth_required
 
 User = get_user_model()
 from core.utils import (
@@ -59,10 +60,16 @@ class BalanceListView(View):
         return float(latest_gold.carat_24k or 0)
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         _run_certificate_interest_sync()
-        return JsonResponse(NetWorthService().balance_payload())
+        return JsonResponse(NetWorthService(request.user).balance_payload())
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body) if request.body else {}
         balance_type = data.get("balance_type")
         title = data.get("title")
@@ -75,10 +82,16 @@ class BalanceListView(View):
         else:
             purity = ""
 
+        bank_id = data.get("bank_id")
+        if bank_id:
+            from core.models import Bank
+            get_object_or_404(Bank, pk=bank_id, owner=request.user)
+
         entry = BalanceEntry.objects.create(
+            owner=request.user,
             title=title,
             balance_type=balance_type,
-            bank_id=data.get("bank_id"),
+            bank_id=bank_id,
             currency_id=data.get("currency_id", 1),
             purity=purity,
             amount=data.get("amount", 0),
@@ -89,8 +102,16 @@ class BalanceListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class BalanceDetailView(View):
     def put(self, request, pk):
-        entry = get_object_or_404(BalanceEntry, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        entry = get_object_or_404(BalanceEntry, pk=pk, owner=request.user)
         data = json.loads(request.body)
+
+        if "bank_id" in data and data["bank_id"]:
+            from core.models import Bank
+            get_object_or_404(Bank, pk=data["bank_id"], owner=request.user)
+
         for field in [
             "title",
             "balance_type",
@@ -112,6 +133,9 @@ class BalanceDetailView(View):
         return JsonResponse(entry.to_dict())
 
     def delete(self, request, pk):
-        entry = get_object_or_404(BalanceEntry, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        entry = get_object_or_404(BalanceEntry, pk=pk, owner=request.user)
         entry.delete()
         return JsonResponse({"deleted": pk})

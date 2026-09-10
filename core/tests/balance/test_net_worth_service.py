@@ -45,8 +45,13 @@ class BalanceRecommendationTranslationsTest(SimpleTestCase):
 
 class NetWorthIntegrationTest(TestCase):
     def setUp(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        self.user = User.objects.create_user(username="testuser_nw", password="pass12345")
+        self.client.force_login(self.user)
         self.currency = Currency.objects.create(code="EGP", symbol="L", name="Egyptian Pound")
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             currency=self.currency,
@@ -55,6 +60,7 @@ class NetWorthIntegrationTest(TestCase):
 
     def test_balance_grand_total_includes_fixed_assets_current_market_value(self):
         FixedAsset.objects.create(
+            owner=self.user,
             name="Apartment",
             asset_type="Real Estate",
             status="Owned",

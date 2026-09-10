@@ -17,6 +17,8 @@ from core.services.certificate.certificate_balance_deduction_service import (
     CertificateInsufficientBalanceError,
 )
 
+from core.validators import _api_auth_required, _owned_object_or_404, _owned_queryset
+
 User = get_user_model()
 
 import logging
@@ -72,14 +74,25 @@ def _certificate_balance_error_response(exc):
 @method_decorator(csrf_exempt, name="dispatch")
 class BankCertificateListView(View):
     def get(self, request):
-        certificates = BankCertificate.objects.select_related("bank", "currency").all()
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        certificates = _owned_queryset(BankCertificate, request).select_related("bank", "currency")
         return JsonResponse({"certificates": [c.to_dict() for c in certificates]})
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
+        bank_id = data.get("bank_id")
+        if bank_id:
+            from core.models import Bank
+            get_object_or_404(Bank, pk=bank_id, owner=request.user)
         try:
             certificate = BankCertificate.objects.create(
-                bank_id=data["bank_id"],
+                owner=request.user,
+                bank_id=bank_id,
                 currency_id=data.get("currency_id"),
                 issue_date=data.get("issue_date") or None,
                 expiry_date=data.get("expiry_date") or None,
@@ -97,12 +110,21 @@ class BankCertificateListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class BankCertificateDetailView(View):
     def get(self, request, pk):
-        certificate = get_object_or_404(BankCertificate, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        certificate = _owned_object_or_404(BankCertificate, pk, request)
         return JsonResponse(certificate.to_dict())
 
     def put(self, request, pk):
-        certificate = get_object_or_404(BankCertificate, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        certificate = _owned_object_or_404(BankCertificate, pk, request)
         data = json.loads(request.body)
+        if data.get("bank_id"):
+            from core.models import Bank
+            get_object_or_404(Bank, pk=data["bank_id"], owner=request.user)
         for field in [
             "bank_id",
             "currency_id",
@@ -124,14 +146,20 @@ class BankCertificateDetailView(View):
         return JsonResponse(certificate.to_dict())
 
     def delete(self, request, pk):
-        certificate = get_object_or_404(BankCertificate, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        certificate = _owned_object_or_404(BankCertificate, pk, request)
         certificate.delete()
         return JsonResponse({"deleted": pk})
 
 @method_decorator(csrf_exempt, name="dispatch")
 class BankCertificateInterestHistoryView(View):
     def get(self, request, certificate_id):
-        certificate = get_object_or_404(BankCertificate, pk=certificate_id)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        certificate = _owned_object_or_404(BankCertificate, certificate_id, request)
         rows = (
             BankCertificateInterestHistory.objects.select_related("bank", "currency")
             .filter(certificate_id=certificate_id)

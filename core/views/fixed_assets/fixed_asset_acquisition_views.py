@@ -8,8 +8,9 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
-from core.models import AssetAcquisitionCost
-from core.services.expenses.expense_service import _apply_expense_balance_delta
+from core.models import AssetAcquisitionCost, FixedAsset
+from core.services.expenses.expense_balance_helpers import _apply_expense_balance_delta
+from core.validators import _api_auth_required, _child_owned_object_or_404
 
 
 def _balance_error_response(exc):
@@ -29,8 +30,11 @@ def _balance_error_response(exc):
 @method_decorator(csrf_exempt, name="dispatch")
 class AssetAcquisitionCostListView(View):
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         asset_id = request.GET.get("asset")
-        qs = AssetAcquisitionCost.objects.all().order_by("-date", "-id")
+        qs = AssetAcquisitionCost.objects.filter(asset__owner=request.user).order_by("-date", "-id")
         if asset_id:
             qs = qs.filter(asset_id=asset_id)
         return JsonResponse({
@@ -38,7 +42,11 @@ class AssetAcquisitionCostListView(View):
         })
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
+        asset = get_object_or_404(FixedAsset, pk=data["asset_id"], owner=request.user)
         payment_method = data.get("payment_method", "Cash")
         bank_id = data.get("bank_id")
         amount_egp = data.get("amount_egp") or 0
@@ -46,7 +54,7 @@ class AssetAcquisitionCostListView(View):
         try:
             with transaction.atomic():
                 item = AssetAcquisitionCost.objects.create(
-                    asset_id=data["asset_id"],
+                    asset=asset,
                     date=data.get("date") or None,
                     category=data["category"],
                     description=data.get("description", ""),
@@ -61,6 +69,7 @@ class AssetAcquisitionCostListView(View):
                     payment_method,
                     bank_id,
                     -Decimal(str(amount_egp or 0)),
+                    owner=asset.owner,
                 )
         except ValueError as exc:
             return _balance_error_response(exc)
@@ -70,7 +79,10 @@ class AssetAcquisitionCostListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class AssetAcquisitionCostDetailView(View):
     def put(self, request, pk):
-        item = get_object_or_404(AssetAcquisitionCost, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        item = _child_owned_object_or_404(AssetAcquisitionCost, pk, request, parent_field="asset")
         data = json.loads(request.body)
 
         old_payment_method = item.payment_method
@@ -104,11 +116,13 @@ class AssetAcquisitionCostDetailView(View):
                     old_payment_method,
                     old_bank_id,
                     Decimal(str(old_amount_egp or 0)),
+                    owner=item.asset.owner,
                 )
                 _apply_expense_balance_delta(
                     item.payment_method,
                     item.bank_id,
                     -Decimal(str(item.amount_egp or 0)),
+                    owner=item.asset.owner,
                 )
         except ValueError as exc:
             return _balance_error_response(exc)
@@ -116,7 +130,10 @@ class AssetAcquisitionCostDetailView(View):
         return JsonResponse(item.to_dict())
 
     def delete(self, request, pk):
-        item = get_object_or_404(AssetAcquisitionCost, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        item = _child_owned_object_or_404(AssetAcquisitionCost, pk, request, parent_field="asset")
 
         try:
             with transaction.atomic():
@@ -124,6 +141,7 @@ class AssetAcquisitionCostDetailView(View):
                     item.payment_method,
                     item.bank_id,
                     Decimal(str(item.amount_egp or 0)),
+                    owner=item.asset.owner,
                 )
                 item.delete()
         except ValueError as exc:
@@ -134,5 +152,8 @@ class AssetAcquisitionCostDetailView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class AssetAcquisitionCostCategoriesView(View):
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         from core.constants import ACQUISITION_COST_CATEGORIES
         return JsonResponse({"categories": ACQUISITION_COST_CATEGORIES})

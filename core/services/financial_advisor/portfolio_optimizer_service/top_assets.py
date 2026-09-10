@@ -18,7 +18,7 @@ class TopAssetsMixin:
         rows: List[dict] = []
         rates = comp.get("rates", {})
 
-        fixed_assets = list(FixedAsset.objects.filter(status="Owned").order_by("name"))
+        fixed_assets = list(FixedAsset.objects.filter(owner=self.owner, status="Owned").order_by("name"))
         by_type: Dict[str, List[FixedAsset]] = {
             "Real Estate": [],
             "Vehicles": [],
@@ -59,7 +59,7 @@ class TopAssetsMixin:
         _asset_group("Gold", "Gold Holdings", "portfolio_optimizer_asset_gold")
         _asset_group("Other Assets", "Other Assets", "portfolio_optimizer_asset_other_assets")
 
-        active_certs = [c for c in BankCertificate.objects.select_related("currency").all() if _is_certificate_active(c)]
+        active_certs = [c for c in BankCertificate.objects.select_related("currency").filter(owner=self.owner) if _is_certificate_active(c)]
         cert_count = len(active_certs)
         if cert_count > 0:
             cert_value = 0.0

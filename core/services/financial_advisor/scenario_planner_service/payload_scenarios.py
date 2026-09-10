@@ -36,7 +36,7 @@ def build_scenarios(
         return scenarios_out
 
     scenarios_qs = (
-        Scenario.objects.filter(id__in=scenario_ids)
+        Scenario.objects.filter(id__in=scenario_ids, owner=service.user)
         .prefetch_related("events")
         .order_by("id")
     )
@@ -67,6 +67,7 @@ def build_scenarios(
         lump_monthly_net = (total_lump_out - total_lump_in) / 12.0
 
         sc_risk_svc = RiskAnalysisService(
+            service.user,
             today=service.today,
             net_worth_service=service._net_worth_service,
             salary_override=adj_salary if adj_salary != ctx.monthly_salary else None,
@@ -86,6 +87,7 @@ def build_scenarios(
         # Per-scenario capacity-sensitive goal achievement (% of goals with sufficient monthly capacity)
         sc_monthly_capacity = max(0.0, (adj_income - adj_expenses) - lump_monthly_net)
         sc_goal_svc = GoalPlanningService(
+            service.user,
             today=service.today,
             net_worth_service=service._net_worth_service,
             monthly_capacity_override=sc_monthly_capacity,

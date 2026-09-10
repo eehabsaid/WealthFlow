@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db import transaction
 from decimal import Decimal
@@ -11,6 +12,10 @@ class BalanceTransfer(models.Model):
         BANK_TO_CASH = "bank_to_cash", "Bank to Cash"
         CASH_TO_BANK = "cash_to_bank", "Cash to Bank"
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="balance_transfers",
+    )
     transfer_date = models.DateField()
     transfer_type = models.CharField(
         max_length=20,
@@ -69,12 +74,14 @@ class BalanceTransfer(models.Model):
         # we only filter by bank_id and currency.
         if is_cash:
             entry = BalanceEntry.objects.filter(
+                owner=self.owner,
                 balance_type=BalanceEntry.BalanceType.CASH,
                 bank_id__isnull=True,
                 currency_id=self.currency_id
             ).first()
         else:
             entry = BalanceEntry.objects.filter(
+                owner=self.owner,
                 bank_id=bank_id,
                 currency_id=self.currency_id
             ).first()
@@ -82,10 +89,11 @@ class BalanceTransfer(models.Model):
         if not entry:
             title = "Cash"
             if bank_id:
-                bank_obj = Bank.objects.get(id=bank_id)
+                bank_obj = Bank.objects.get(id=bank_id, owner=self.owner)
                 title = f"{bank_obj.name} Account"
                 
             entry = BalanceEntry.objects.create(
+                owner=self.owner,
                 title=f"{title} ({self.currency.code})",
                 balance_type=BalanceEntry.BalanceType.CASH if is_cash else BalanceEntry.BalanceType.BANK,
                 bank_id=bank_id,

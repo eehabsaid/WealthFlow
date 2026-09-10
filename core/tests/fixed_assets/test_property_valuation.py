@@ -17,7 +17,10 @@ User = get_user_model()
 
 class PropertyValuationServiceTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_propval", password="pass12345")
+        self.client.force_login(self.user)
         self.asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Apartment",
             asset_type="Real Estate",
             status="Owned",

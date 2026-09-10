@@ -20,7 +20,7 @@ class RiskAnalysisView(View):
         if auth_error:
             return auth_error
         _run_certificate_interest_sync()
-        payload = RiskAnalysisService(today=datetime.date.today()).payload()
+        payload = RiskAnalysisService(request.user, today=datetime.date.today()).payload()
         return JsonResponse(payload)
 
 
@@ -31,7 +31,7 @@ class SpendingIntelligenceView(View):
             return auth_error
         # We might not need _run_certificate_interest_sync since we're looking at expenses, but we use NetWorthService so let's keep the pattern.
         _run_certificate_interest_sync()
-        payload = SpendingIntelligenceService(today=datetime.date.today()).payload()
+        payload = SpendingIntelligenceService(request.user, today=datetime.date.today()).payload()
         return JsonResponse(payload)
 
 
@@ -41,7 +41,7 @@ class OpportunityDetectionView(View):
         if auth_error:
             return auth_error
         _run_certificate_interest_sync()
-        payload = OpportunityDetectionService(today=datetime.date.today()).payload()
+        payload = OpportunityDetectionService(request.user, today=datetime.date.today()).payload()
         return JsonResponse(payload)
 
 
@@ -51,7 +51,7 @@ class PerformanceView(View):
         if auth_error:
             return auth_error
         _run_certificate_interest_sync()
-        payload = PerformanceService(today=datetime.date.today()).payload()
+        payload = PerformanceService(request.user, today=datetime.date.today()).payload()
         return JsonResponse(payload)
 
 
@@ -82,7 +82,7 @@ class WhatIfSimulatorView(View):
             except (TypeError, ValueError):
                 gold_allocation_target_pct = None
 
-        payload = WhatIfSimulatorService(today=datetime.date.today()).payload(
+        payload = WhatIfSimulatorService(request.user, today=datetime.date.today()).payload(
             salary_change_pct=salary_change_pct,
             expenses_change_pct=expenses_change_pct,
             gold_allocation_target_pct=gold_allocation_target_pct,

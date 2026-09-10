@@ -3,7 +3,7 @@
 from decimal import Decimal
 from core.models import AssetRenovation, AssetAcquisitionCost
 from core.constants import REAL_ESTATE_ASSET_TYPES
-from core.services.expenses.expense_service import _apply_expense_balance_delta
+from core.services.expenses.expense_balance_helpers import _apply_expense_balance_delta
 
 
 def _sync_asset_renovations(asset, items):
@@ -25,7 +25,7 @@ def _sync_asset_renovations(asset, items):
         row = existing.get(item.get("id"))
 
         if row:
-            _apply_expense_balance_delta(row.payment_method, row.bank_id, Decimal(str(row.amount_egp or 0)))
+            _apply_expense_balance_delta(row.payment_method, row.bank_id, Decimal(str(row.amount_egp or 0)), owner=asset.owner)
             row.furniture_id = item.get("furniture_id")
             row.date = item.get("date") or None
             row.category = item.get("category", "")
@@ -51,12 +51,12 @@ def _sync_asset_renovations(asset, items):
                 bank_id=bank_id,
                 notes=item.get("notes", ""),
             )
-        _apply_expense_balance_delta(payment_method, bank_id, -Decimal(str(amount_egp or 0)))
+        _apply_expense_balance_delta(payment_method, bank_id, -Decimal(str(amount_egp or 0)), owner=asset.owner)
         keep_ids.add(row.id)
 
     for old_id, old in existing.items():
         if old_id not in keep_ids:
-            _apply_expense_balance_delta(old.payment_method, old.bank_id, Decimal(str(old.amount_egp or 0)))
+            _apply_expense_balance_delta(old.payment_method, old.bank_id, Decimal(str(old.amount_egp or 0)), owner=asset.owner)
             old.delete()
 
 
@@ -76,7 +76,7 @@ def _sync_asset_acquisition_costs(asset, items):
         row = existing.get(item.get("id"))
 
         if row:
-            _apply_expense_balance_delta(row.payment_method, row.bank_id, Decimal(str(row.amount_egp or 0)))
+            _apply_expense_balance_delta(row.payment_method, row.bank_id, Decimal(str(row.amount_egp or 0)), owner=asset.owner)
             row.date = item.get("date") or None
             row.category = item.get("category", "")
             row.description = item.get("description", "")
@@ -100,10 +100,10 @@ def _sync_asset_acquisition_costs(asset, items):
                 bank_id=bank_id,
                 notes=item.get("notes", ""),
             )
-        _apply_expense_balance_delta(payment_method, bank_id, -Decimal(str(amount_egp or 0)))
+        _apply_expense_balance_delta(payment_method, bank_id, -Decimal(str(amount_egp or 0)), owner=asset.owner)
         keep_ids.add(row.id)
 
     for old_id, old in existing.items():
         if old_id not in keep_ids:
-            _apply_expense_balance_delta(old.payment_method, old.bank_id, Decimal(str(old.amount_egp or 0)))
+            _apply_expense_balance_delta(old.payment_method, old.bank_id, Decimal(str(old.amount_egp or 0)), owner=asset.owner)
             old.delete()

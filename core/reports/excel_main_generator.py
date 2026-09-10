@@ -14,7 +14,7 @@ from core.reports.excel_sheets_builder import (
     build_currency_exchanges_sheet,
 )
 
-def generate_excel(output_path=None, lang="ar"):
+def generate_excel(owner, output_path=None, lang="ar"):
     from core.models import (
         Company,
         BalanceEntry,
@@ -28,9 +28,9 @@ def generate_excel(output_path=None, lang="ar"):
     wb = Workbook()
     wb.remove(wb.active)
 
-    companies = list(Company.objects.all().order_by("order"))
+    companies = list(Company.objects.filter(owner=owner).order_by("order"))
     balance_entries = list(
-        BalanceEntry.objects.select_related("currency", "bank").all()
+        BalanceEntry.objects.select_related("currency", "bank").filter(owner=owner)
     )
 
     ws_ex = wb.create_sheet("Exchange Rates")
@@ -62,18 +62,18 @@ def generate_excel(output_path=None, lang="ar"):
             company_sheet_rows[company.name] = (company.name, sr)
 
     ws_cert = wb.create_sheet("Bank-Certificates")
-    build_bank_certificates_sheet(ws_cert, BankCertificate.objects.all())
+    build_bank_certificates_sheet(ws_cert, BankCertificate.objects.filter(owner=owner))
     auto_adjust_columns(ws_cert)
 
     ws_bal = wb.create_sheet("BALANCE")
     build_balance_sheet(ws_bal, balance_entries, company_sheet_rows)
 
     ws_ce = wb.create_sheet("Currency Exchanges")
-    build_currency_exchanges_sheet(ws_ce, CurrencyExchange.objects.all(), lang=lang)
+    build_currency_exchanges_sheet(ws_ce, CurrencyExchange.objects.filter(user=owner), lang=lang)
     auto_adjust_columns(ws_ce)
 
     ws_exp = wb.create_sheet("Expenses")
-    build_expenses_sheet(ws_exp, Expense.objects.all())
+    build_expenses_sheet(ws_exp, Expense.objects.filter(owner=owner))
 
     if output_path:
         wb.save(output_path)

@@ -24,6 +24,7 @@ from core.views.fixed_assets.fixed_asset_helpers import (
     _sync_real_estate_details_for_update,
 )
 from core.views.fixed_assets.fixed_asset_list_view import FixedAssetListView
+from core.validators import _api_auth_required
 
 __all__ = [
     "FixedAssetListView",
@@ -38,11 +39,17 @@ __all__ = [
 class FixedAssetDetailView(View):
 
     def get(self, request, pk):
-        asset = get_object_or_404(FixedAsset.objects.prefetch_related("acquisition_costs"), pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        asset = get_object_or_404(FixedAsset.objects.prefetch_related("acquisition_costs"), pk=pk, owner=request.user)
         return JsonResponse(asset.to_dict())
 
     def put(self, request, pk):
-        asset = get_object_or_404(FixedAsset, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        asset = get_object_or_404(FixedAsset, pk=pk, owner=request.user)
 
         data = json.loads(request.body)
         vehicle_details = data.get("vehicle_details")
@@ -84,7 +91,7 @@ class FixedAssetDetailView(View):
                     purchase_rows = previous_rows
 
                 if previous_rows:
-                    _apply_asset_purchase_rows_delta(previous_rows, sign=1)
+                    _apply_asset_purchase_rows_delta(previous_rows, sign=1, owner=request.user)
 
                 for field in fields:
                     if field in data:
@@ -119,14 +126,14 @@ class FixedAssetDetailView(View):
 
                 if purchase_rows_payload_present:
                     if purchase_rows:
-                        _apply_asset_purchase_rows_delta(purchase_rows, sign=-1)
+                        _apply_asset_purchase_rows_delta(purchase_rows, sign=-1, owner=request.user)
                         _sync_asset_purchase_payments(asset, purchase_rows)
                     else:
                         AssetPurchasePayment.objects.filter(asset=asset).delete()
                 elif previous_rows:
-                    _apply_asset_purchase_rows_delta(previous_rows, sign=-1)
+                    _apply_asset_purchase_rows_delta(previous_rows, sign=-1, owner=request.user)
 
-                _sync_gold_balance_from_assets()
+                _sync_gold_balance_from_assets(request.user)
 
         except ValueError as exc:
             return JsonResponse(
@@ -140,7 +147,10 @@ class FixedAssetDetailView(View):
         return JsonResponse(asset.to_dict())
 
     def delete(self, request, pk):
-        asset = get_object_or_404(FixedAsset, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        asset = get_object_or_404(FixedAsset, pk=pk, owner=request.user)
 
         purchase_rows = _purchase_rows_from_instances(
             AssetPurchasePayment.objects.filter(asset=asset).order_by("id")
@@ -150,10 +160,10 @@ class FixedAssetDetailView(View):
             with transaction.atomic():
                 # Reverse only when this asset has explicit payment-source rows.
                 if purchase_rows:
-                    _apply_asset_purchase_rows_delta(purchase_rows, sign=1)
+                    _apply_asset_purchase_rows_delta(purchase_rows, sign=1, owner=request.user)
 
                 asset.delete()
-                _sync_gold_balance_from_assets()
+                _sync_gold_balance_from_assets(request.user)
         except ValueError as exc:
             return JsonResponse(
                 {

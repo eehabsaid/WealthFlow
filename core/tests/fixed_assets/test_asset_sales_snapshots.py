@@ -55,8 +55,13 @@ class AssetSaleSynchronizationTest(TestCase):
 
 
 class FixedAssetSnapshotTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser_snapshot", password="pass12345")
+        self.client.force_login(self.user)
+
     def test_certificate_forecast_exposes_fixed_assets_snapshot(self):
         FixedAsset.objects.create(
+            owner=self.user,
             name="Car",
             asset_type="Vehicles",
             status="Owned",
@@ -75,6 +80,7 @@ class FixedAssetSnapshotTest(TestCase):
 
     def test_fixed_assets_list_returns_portfolio_snapshot(self):
         FixedAsset.objects.create(
+            owner=self.user,
             name="Studio",
             asset_type="Other Assets",
             status="Owned",

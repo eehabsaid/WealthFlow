@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db import transaction
 from ..bank import Bank
@@ -23,6 +24,10 @@ class CardRenewalFee(models.Model):
     # is always deducted directly by the issuing bank.
     _PAYMENT_METHOD = "Bank"
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="card_renewal_fees",
+    )
     fee_date = models.DateField()
     bank = models.ForeignKey(Bank, on_delete=models.PROTECT)
     card_label = models.CharField(
@@ -57,25 +62,25 @@ class CardRenewalFee(models.Model):
 
     @transaction.atomic
     def apply_and_mirror(self):
-        from core.services.expenses.expense_service import _apply_expense_balance_delta
+        from core.services.expenses.expense_balance_helpers import _apply_expense_balance_delta
         from core.services.balance.card_renewal_fee_mirror_service import (
             sync_card_renewal_fee_mirror,
         )
 
         _apply_expense_balance_delta(
-            self._PAYMENT_METHOD, self.bank_id, -abs(self.amount_egp or 0)
+            self._PAYMENT_METHOD, self.bank_id, -abs(self.amount_egp or 0), owner=self.owner
         )
         sync_card_renewal_fee_mirror(self)
 
     @transaction.atomic
     def reverse_and_unmirror(self):
-        from core.services.expenses.expense_service import _apply_expense_balance_delta
+        from core.services.expenses.expense_balance_helpers import _apply_expense_balance_delta
         from core.services.balance.card_renewal_fee_mirror_service import (
             delete_card_renewal_fee_mirror,
         )
 
         _apply_expense_balance_delta(
-            self._PAYMENT_METHOD, self.bank_id, abs(self.amount_egp or 0)
+            self._PAYMENT_METHOD, self.bank_id, abs(self.amount_egp or 0), owner=self.owner
         )
         delete_card_renewal_fee_mirror(self.id)
 

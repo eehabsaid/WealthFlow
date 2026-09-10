@@ -23,6 +23,7 @@ class ScenarioPlannerTests(TestCase):
 
     def test_scenario_model_crud(self):
         sc = Scenario.objects.create(
+            owner=self.user,
             name="Plan A",
             description="Buy home and marry",
             is_baseline_pinned=False,
@@ -45,7 +46,7 @@ class ScenarioPlannerTests(TestCase):
 
     def test_scenario_service_payload_and_overrides(self):
         from core.services.financial_advisor.scenario_planner_service import ScenarioPlannerService
-        svc = ScenarioPlannerService(today=date(2026, 8, 1))
+        svc = ScenarioPlannerService(self.user, today=date(2026, 8, 1))
 
         # Test empty scenario list comparison
         payload = svc.payload(scenario_ids=[])
@@ -55,7 +56,7 @@ class ScenarioPlannerTests(TestCase):
         self.assertEqual(len(payload["scenarios"]), 0)
 
         # Test with actual scenario
-        sc = Scenario.objects.create(name="Apartment Purchase", description="House event")
+        sc = Scenario.objects.create(owner=self.user, name="Apartment Purchase", description="House event")
         ScenarioEvent.objects.create(
             scenario=sc,
             event_type="house",

@@ -171,10 +171,13 @@ class CertificateBalanceDeductionApiErrorTest(TestCase):
     body to display."""
 
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_certapi", password="pass12345")
+        self.client.force_login(self.user)
         self.egp = Currency.objects.create(code="EGP", symbol="ج.م", name="Egyptian Pound")
-        self.enbd = Bank.objects.create(name="ENBD")
-        self.qnb = Bank.objects.create(name="QNB")
+        self.enbd = Bank.objects.create(name="ENBD", owner=self.user)
+        self.qnb = Bank.objects.create(name="QNB", owner=self.user)
         self.cash_egp = BalanceEntry.objects.create(
+            owner=self.user,
             title="ENBD Bank Account Balance",
             balance_type="cash",
             bank=self.enbd,
@@ -221,6 +224,7 @@ class CertificateBalanceDeductionApiErrorTest(TestCase):
 
     def test_put_returns_json_400_when_insufficient_balance(self):
         cert = BankCertificate.objects.create(
+            owner=self.user,
             bank=self.enbd,
             currency=self.egp,
             issue_date="2026-01-01",

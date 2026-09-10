@@ -1,6 +1,11 @@
+from django.conf import settings
 from django.db import models
 
 class Bank(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="banks",
+    )
     name = models.CharField(max_length=200)
     account_number = models.CharField(max_length=100, blank=True)
     card_id = models.CharField(max_length=100, blank=True)

@@ -34,7 +34,8 @@ from .timeline_mixin import TimelineMixin
 class CashFlowForecastService(RatesMixin, RecurringMixin, EventsMixin, TimelineMixin):
     CHECKPOINT_DAYS = [30, 90, 180, 365]
 
-    def __init__(self, today: date | None = None, net_worth_service: NetWorthService | None = None):
+    def __init__(self, owner, today: date | None = None, net_worth_service: NetWorthService | None = None):
+        self.owner = owner
         self.today = today or date.today()
         self.horizon_date = self.today + timedelta(days=365)
         self.timeline_end_date = date(
@@ -42,7 +43,7 @@ class CashFlowForecastService(RatesMixin, RecurringMixin, EventsMixin, TimelineM
             self.horizon_date.month,
             calendar.monthrange(self.horizon_date.year, self.horizon_date.month)[1],
         )
-        self._net_worth_service = net_worth_service or NetWorthService()
+        self._net_worth_service = net_worth_service or NetWorthService(owner)
         self._financial_sync_service = FinancialSyncService()
         self._interest_service = CertificateInterestService()
         self._salary_rule = None

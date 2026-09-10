@@ -103,13 +103,13 @@ def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None
         ]
     )
 
-def _sync_gold_balance_from_assets():
+def _sync_gold_balance_from_assets(owner):
     gold_currency = Currency.objects.filter(code__iexact="gold").first()
     if not gold_currency:
         return
 
     gold_assets = (
-        FixedAsset.objects.filter(asset_type__in=GOLD_ASSET_TYPES, status="Owned")
+        FixedAsset.objects.filter(owner=owner, asset_type__in=GOLD_ASSET_TYPES, status="Owned")
         .select_related("gold_details")
         .order_by("id")
     )
@@ -124,6 +124,7 @@ def _sync_gold_balance_from_assets():
         grams_by_purity[purity_key] = grams_by_purity.get(purity_key, Decimal("0")) + grams
 
     balance_qs = BalanceEntry.objects.filter(
+        owner=owner,
         balance_type=BalanceEntry.BalanceType.GOLD,
         currency_id=gold_currency.id,
     ).order_by("id")
@@ -149,6 +150,7 @@ def _sync_gold_balance_from_assets():
             used_ids.append(entry.id)
         else:
             created = BalanceEntry.objects.create(
+                owner=owner,
                 title=title,
                 balance_type=BalanceEntry.BalanceType.GOLD,
                 bank=None,
@@ -162,18 +164,28 @@ def _sync_gold_balance_from_assets():
     balance_qs.exclude(id__in=used_ids).delete()
 
 def _refresh_all_gold_assets_from_live_prices():
+    """System-wide: a live gold price change affects every user's gold
+    holdings, so this refreshes each owner's assets and gold BalanceEntry
+    in turn (never mixing one owner's grams into another's balance)."""
+    from django.contrib.auth import get_user_model
+
     latest_gold = _latest_gold_price()
     if latest_gold is None:
         return
 
     gold_assets = FixedAsset.objects.filter(asset_type__in=GOLD_ASSET_TYPES).select_related("gold_details")
+    owner_ids = set()
     for asset in gold_assets:
         details = getattr(asset, "gold_details", None)
         if details is None:
             continue
         _refresh_gold_asset_pricing(asset, details, latest_gold)
+        if asset.owner_id:
+            owner_ids.add(asset.owner_id)
 
-    _sync_gold_balance_from_assets()
+    User = get_user_model()
+    for owner in User.objects.filter(id__in=owner_ids):
+        _sync_gold_balance_from_assets(owner)
 
 def _sync_gold_details(asset, details_data):
     if asset.asset_type not in GOLD_ASSET_TYPES or not details_data:

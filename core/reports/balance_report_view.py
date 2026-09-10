@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from django.db.models import Sum
 from core.models import BalanceEntry, Bank
 from core.services.balance.net_worth_service import NetWorthService
+from core.validators import _api_auth_required
 
 try:
     from core.views.certificate_views import _run_certificate_interest_sync
@@ -18,10 +19,13 @@ class BalanceReportView(View):
     """Balance summary across banks and currencies."""
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         _run_certificate_interest_sync()
 
-        entries = BalanceEntry.objects.select_related("bank", "currency").all()
-        banks = Bank.objects.all()
+        entries = BalanceEntry.objects.select_related("bank", "currency").filter(owner=request.user)
+        banks = Bank.objects.filter(owner=request.user)
 
         # Group by bank
         by_bank = []
@@ -48,7 +52,7 @@ class BalanceReportView(View):
         for e in home:
             by_currency.append(e.to_dict())
 
-        net_worth_data = NetWorthService().portfolio_components()
+        net_worth_data = NetWorthService(request.user).portfolio_components()
         cert_total = float(net_worth_data["certificate_total_egp"])
         cert_interest_total = float(net_worth_data["certificate_interest_total_egp"])
 

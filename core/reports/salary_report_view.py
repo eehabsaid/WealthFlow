@@ -5,17 +5,21 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Sum, Count, Q
 from core.models import SalaryEntry, Company
+from core.validators import _api_auth_required
 
 @method_decorator(csrf_exempt, name="dispatch")
 class SalaryReportView(View):
     """Salary + bonus analytics by year and company."""
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
 
         year = request.GET.get("year")
         company_id = request.GET.get("company_id")
 
-        qs = SalaryEntry.objects.all()
+        qs = SalaryEntry.objects.filter(company__owner=request.user)
         if year:
             qs = qs.filter(year=int(year))
         if company_id:
@@ -35,7 +39,7 @@ class SalaryReportView(View):
 
         # By company
         by_company = []
-        for c in Company.objects.all().order_by("order"):
+        for c in Company.objects.filter(owner=request.user).order_by("order"):
             cqs = qs.filter(company=c)
             agg = cqs.aggregate(
                 total_paid=Sum("paid"),
@@ -66,13 +70,13 @@ class SalaryReportView(View):
 
         # Available years
         years = list(
-            SalaryEntry.objects.values_list("year", flat=True)
+            qs.values_list("year", flat=True)
             .distinct()
             .order_by("year")
         )
         companies = [
             {"id": c.id, "name": c.display_name or c.name}
-            for c in Company.objects.all().order_by("order")
+            for c in Company.objects.filter(owner=request.user).order_by("order")
         ]
 
         return JsonResponse(

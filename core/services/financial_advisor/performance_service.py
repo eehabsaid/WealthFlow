@@ -21,12 +21,14 @@ def _calc_rolling_ma(values: List[float], window: int, decimals: int = 2) -> Lis
 class PerformanceService:
     def __init__(
         self,
+        owner,
         today: date | None = None,
         net_worth_service: NetWorthService | None = None,
         exchange_rate_history_service: ExchangeRateHistoryService | None = None,
     ):
+        self.owner = owner
         self.today = today or date.today()
-        self._net_worth_service = net_worth_service or NetWorthService()
+        self._net_worth_service = net_worth_service or NetWorthService(owner)
         self._exchange_rate_history_service = (
             exchange_rate_history_service or ExchangeRateHistoryService()
         )

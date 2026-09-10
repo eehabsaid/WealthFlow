@@ -23,10 +23,11 @@ class WealthGrowthForecastService(
 ):
     MONTHS_AHEAD = 12
 
-    def __init__(self, today: date | None = None, net_worth_service: NetWorthService | None = None):
+    def __init__(self, owner, today: date | None = None, net_worth_service: NetWorthService | None = None):
+        self.owner = owner
         self.today = today or date.today()
-        self._net_worth_service = net_worth_service or NetWorthService()
-        self._cash_flow_service = CashFlowForecastService(today=self.today, net_worth_service=self._net_worth_service)
+        self._net_worth_service = net_worth_service or NetWorthService(owner)
+        self._cash_flow_service = CashFlowForecastService(owner, today=self.today, net_worth_service=self._net_worth_service)
 
     def _add_months(self, base_date: date, months: int) -> date:
         month_index = base_date.month - 1 + months

@@ -11,7 +11,6 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
-from django.shortcuts import get_object_or_404
 from core.models import (
     ReminderRule,
     ReminderLog,
@@ -20,12 +19,16 @@ from core.models import (
 )
 
 from core.services.shared.reminder_automation_service import ReminderAutomationService
+from core.validators import _api_auth_required, _owned_queryset, _owned_object_or_404
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ReminderRuleListView(View):
     def get(self, request):
-        rules = ReminderRule.objects.all()
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        rules = _owned_queryset(ReminderRule, request)
         return JsonResponse(
             {
                 "rules": [r.to_dict() for r in rules],
@@ -39,8 +42,12 @@ class ReminderRuleListView(View):
         )
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
         rule = ReminderRule.objects.create(
+            owner=request.user,
             name=data["name"],
             rule_type=data.get("rule_type", "cert_maturity"),
             is_active=data.get("is_active", True),
@@ -55,7 +62,10 @@ class ReminderRuleListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class ReminderRuleDetailView(View):
     def put(self, request, pk):
-        rule = get_object_or_404(ReminderRule, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        rule = _owned_object_or_404(ReminderRule, pk, request)
         data = json.loads(request.body)
         rule.name = data.get("name", rule.name)
         rule.rule_type = data.get("rule_type", rule.rule_type)
@@ -68,7 +78,10 @@ class ReminderRuleDetailView(View):
         return JsonResponse({"rule": rule.to_dict()})
 
     def delete(self, request, pk):
-        rule = get_object_or_404(ReminderRule, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        rule = _owned_object_or_404(ReminderRule, pk, request)
         rule.delete()
         return JsonResponse({"deleted": pk})
 
@@ -78,7 +91,10 @@ class ReminderCheckView(View):
     """Called on page load — evaluates all active rules and returns due reminders."""
 
     def get(self, request):
-        result = ReminderAutomationService().evaluate(today=timezone.localdate()).to_dict()
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        result = ReminderAutomationService().evaluate(request.user, today=timezone.localdate()).to_dict()
         return JsonResponse(result)
 
 
@@ -87,11 +103,17 @@ class ReminderLogListView(View):
     """Return recent reminder log entries."""
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         limit = int(request.GET.get("limit", 30))
-        logs = ReminderLog.objects.select_related("rule").all()[:limit]
+        logs = ReminderLog.objects.select_related("rule").filter(rule__owner=request.user)[:limit]
         return JsonResponse({"logs": [l.to_dict() for l in logs]})
 
     def delete(self, request):
-        """Clear all log entries (reset fired state)."""
-        ReminderLog.objects.all().delete()
+        """Clear all log entries (reset fired state) for the current user."""
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        ReminderLog.objects.filter(rule__owner=request.user).delete()
         return JsonResponse({"cleared": True})

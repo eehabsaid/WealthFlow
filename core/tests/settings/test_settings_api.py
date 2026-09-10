@@ -1,9 +1,16 @@
 import json
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from core.models import AppSettings
 
+User = get_user_model()
+
 
 class SettingsAPITestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="admin_testuser", password="pass12345", is_staff=True)
+        self.client.force_login(self.user)
+
     def test_single_setting_save(self):
         payload = {"key": "test_single_key", "value": "test_single_val"}
         res = self.client.post(

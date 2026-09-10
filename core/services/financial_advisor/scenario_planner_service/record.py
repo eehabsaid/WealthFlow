@@ -14,6 +14,7 @@ from core.models import Scenario, ScenarioEvent
 
 
 def create_scenario_record(
+    owner,
     name: str,
     description: str = "",
     is_baseline_pinned: bool = False,
@@ -42,6 +43,7 @@ def create_scenario_record(
 
     with transaction.atomic():
         sc = Scenario.objects.create(
+            owner=owner,
             name=clean_name,
             description=str(description or "").strip(),
             is_baseline_pinned=bool(is_baseline_pinned),

@@ -11,6 +11,21 @@ from core.services.fixed_assets.gold_valuation_service import GoldValuationServi
 from core.services.fixed_assets.property_valuation_service import PropertyValuationService
 from core.services.shared.reminder_automation_service import ReminderAutomationService
 
+def _run_reminders_for_all_owners(today=None):
+    """System-wide scheduled job: each user's reminders are evaluated
+    independently against their own rules/assets, then combined for the
+    job-run summary."""
+    from django.contrib.auth import get_user_model
+    from core.models import ReminderRule
+
+    User = get_user_model()
+    owner_ids = ReminderRule.objects.filter(is_active=True).values_list("owner_id", flat=True).distinct()
+    all_reminders = []
+    for owner in User.objects.filter(id__in=owner_ids):
+        result = ReminderAutomationService().evaluate(owner, today=today)
+        all_reminders.extend(result.reminders)
+    return {"reminders": all_reminders, "count": len(all_reminders)}
+
 @dataclass
 class ScheduledJobResult:
     job_id: str
@@ -38,7 +53,7 @@ class SchedulerService:
         return {
             "reminders": {
                 "label": "Automatic reminders",
-                "runner": lambda today=None: ReminderAutomationService().evaluate(today=today).to_dict(),
+                "runner": lambda today=None: _run_reminders_for_all_owners(today),
             },
             "certificate_maturity": {
                 "label": "Certificate maturity",

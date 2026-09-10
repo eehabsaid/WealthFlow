@@ -17,18 +17,25 @@ from core.models import (
     BalanceEntry,
 
 )
+from core.validators import _api_auth_required, _owned_queryset
 
 User = get_user_model()
 
 @method_decorator(csrf_exempt, name="dispatch")
 class BankListView(View):
     def get(self, request):
-        return JsonResponse({"banks": [b.to_dict() for b in Bank.objects.all()]})
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        return JsonResponse({"banks": [b.to_dict() for b in _owned_queryset(Bank, request)]})
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
         from core.services import BankService
-        bank = BankService.create_bank(data)
+        bank = BankService.create_bank(data, request.user)
         return JsonResponse(bank.to_dict(), status=201)
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -40,27 +47,37 @@ class BankWithBalanceListView(View):
     pick a bank that actually has a tracked balance.
     """
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         bank_ids = (
-            BalanceEntry.objects.exclude(
+            BalanceEntry.objects.filter(owner=request.user)
+            .exclude(
                 balance_type__in=[BalanceEntry.BalanceType.GOLD, BalanceEntry.BalanceType.CERTIFICATE]
             )
             .filter(bank__isnull=False, bank__is_active=True)
             .values_list("bank_id", flat=True)
             .distinct()
         )
-        banks = Bank.objects.filter(id__in=bank_ids).order_by("order", "name")
+        banks = _owned_queryset(Bank, request).filter(id__in=bank_ids).order_by("order", "name")
         return JsonResponse({"banks": [b.to_dict() for b in banks]})
 
 @method_decorator(csrf_exempt, name="dispatch")
 class BankDetailView(View):
     def put(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
         from core.services import BankService
-        bank = BankService.update_bank(pk, data)
+        bank = BankService.update_bank(pk, data, request.user)
         return JsonResponse(bank.to_dict())
 
     def delete(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         from core.services import BankService
-        BankService.delete_bank(pk)
+        BankService.delete_bank(pk, request.user)
         return JsonResponse({"deleted": pk})
 

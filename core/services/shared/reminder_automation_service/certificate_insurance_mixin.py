@@ -13,6 +13,7 @@ class CertificateInsuranceMixin:
         reminders = []
 
         for cert in BankCertificate.objects.filter(
+            owner=rule.owner,
             expiry_date__gte=today,
             expiry_date__lte=target,
             status__iexact="active",
@@ -47,6 +48,7 @@ class CertificateInsuranceMixin:
         reminders = []
         target = today + timedelta(days=rule.days_before)
         for insurance in AssetInsurance.objects.select_related("asset").filter(
+            asset__owner=rule.owner,
             expiry_date__gte=today,
             expiry_date__lte=target,
         ):

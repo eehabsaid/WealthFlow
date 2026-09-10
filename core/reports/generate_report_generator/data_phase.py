@@ -12,7 +12,7 @@ from core.models import Expense, BankCertificate
 from core.reports.report_utils import format_arabic
 
 
-def resolve_period(data, t):
+def resolve_period(data, t, owner):
     """Returns (rtype, year, month, start_date, end_date, title_str, filename, qs)."""
     rtype = data.get("type", "monthly")
     year = int(data.get("year", datetime.date.today().year))
@@ -22,7 +22,7 @@ def resolve_period(data, t):
     start_date = data.get("start_date") or data.get("start")
     end_date = data.get("end_date") or data.get("end")
 
-    qs = Expense.objects.select_related("category", "subcategory").all()
+    qs = Expense.objects.select_related("category", "subcategory").filter(owner=owner)
     if rtype == "monthly":
         qs = qs.filter(year=year, month=month)
         json_month_key = f"month_short_{month}"
@@ -49,12 +49,12 @@ def resolve_period(data, t):
     return rtype, year, month, start_date, end_date, title_str, filename, qs
 
 
-def build_report_data(data, lang, t):
+def build_report_data(data, lang, t, owner):
     """Resolves the period, filters expenses, and computes all aggregates.
 
     Returns a dict of the fields required to construct a ReportContext.
     """
-    rtype, year, month, start_date, end_date, title_str, filename, qs = resolve_period(data, t)
+    rtype, year, month, start_date, end_date, title_str, filename, qs = resolve_period(data, t, owner)
 
     if lang == "ar":
         title_str = format_arabic(title_str)
@@ -65,10 +65,10 @@ def build_report_data(data, lang, t):
     # Income for period (salary paid amounts)
     from core.services.reports.report_service import ReportService
 
-    total_inc = ReportService.get_period_income(rtype, year, month, start_date, end_date)
+    total_inc = ReportService.get_period_income(owner, rtype, year, month, start_date, end_date)
 
     # Add bank interest (summing all certificates)
-    total_interest = sum(float(c.interest_value or 0) for c in BankCertificate.objects.all())
+    total_interest = sum(float(c.interest_value or 0) for c in BankCertificate.objects.filter(owner=owner))
     total_inc += total_interest
 
     net_sav = total_inc - total_exp

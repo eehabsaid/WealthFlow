@@ -10,9 +10,11 @@ from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from core.models import (
     AssetRenovation,
+    FixedAsset,
 
 )
-from core.services.expenses.expense_service import _apply_expense_balance_delta
+from core.services.expenses.expense_balance_helpers import _apply_expense_balance_delta
+from core.validators import _api_auth_required, _child_owned_object_or_404
 
 
 def _balance_error_response(exc):
@@ -33,9 +35,12 @@ def _balance_error_response(exc):
 class AssetRenovationListView(View):
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         asset_id = request.GET.get("asset")
 
-        qs = AssetRenovation.objects.all().order_by("-date", "-id")
+        qs = AssetRenovation.objects.filter(asset__owner=request.user).order_by("-date", "-id")
 
         if asset_id:
             qs = qs.filter(asset_id=asset_id)
@@ -45,7 +50,11 @@ class AssetRenovationListView(View):
         })
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
+        asset = get_object_or_404(FixedAsset, pk=data["asset_id"], owner=request.user)
 
         payment_method = data.get("payment_method", "Cash")
         bank_id = data.get("bank_id")
@@ -54,7 +63,7 @@ class AssetRenovationListView(View):
         try:
             with transaction.atomic():
                 item = AssetRenovation.objects.create(
-                    asset_id=data["asset_id"],
+                    asset=asset,
                     furniture_id=data.get("furniture_id"),
                     date=data["date"],
                     category=data["category"],
@@ -70,6 +79,7 @@ class AssetRenovationListView(View):
                     payment_method,
                     bank_id,
                     -Decimal(str(amount_egp or 0)),
+                    owner=asset.owner,
                 )
         except ValueError as exc:
             return _balance_error_response(exc)
@@ -80,7 +90,10 @@ class AssetRenovationListView(View):
 class AssetRenovationDetailView(View):
 
     def put(self, request, pk):
-        item = get_object_or_404(AssetRenovation, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        item = _child_owned_object_or_404(AssetRenovation, pk, request, parent_field="asset")
 
         data = json.loads(request.body)
 
@@ -112,11 +125,13 @@ class AssetRenovationDetailView(View):
                     old_payment_method,
                     old_bank_id,
                     Decimal(str(old_amount_egp or 0)),
+                    owner=item.asset.owner,
                 )
                 _apply_expense_balance_delta(
                     item.payment_method,
                     item.bank_id,
                     -Decimal(str(item.amount_egp or 0)),
+                    owner=item.asset.owner,
                 )
         except ValueError as exc:
             return _balance_error_response(exc)
@@ -124,7 +139,10 @@ class AssetRenovationDetailView(View):
         return JsonResponse(item.to_dict())
 
     def delete(self, request, pk):
-        item = get_object_or_404(AssetRenovation, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        item = _child_owned_object_or_404(AssetRenovation, pk, request, parent_field="asset")
 
         try:
             with transaction.atomic():
@@ -132,6 +150,7 @@ class AssetRenovationDetailView(View):
                     item.payment_method,
                     item.bank_id,
                     Decimal(str(item.amount_egp or 0)),
+                    owner=item.asset.owner,
                 )
                 item.delete()
         except ValueError as exc:
@@ -143,5 +162,8 @@ class AssetRenovationDetailView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class AssetRenovationCategoriesView(View):
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         from core.constants import RENOVATION_TYPES
         return JsonResponse({"categories": RENOVATION_TYPES})

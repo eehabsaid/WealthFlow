@@ -60,7 +60,7 @@ def build_baseline(service) -> tuple[Dict[str, Any], BaselineContext]:
     baseline_nw_12m = baseline_pts[-1]["net_worth"] if baseline_pts else 0.0
 
     baseline_risk_score = _to_float(
-        RiskAnalysisService(today=service.today, net_worth_service=service._net_worth_service)
+        RiskAnalysisService(service.user, today=service.today, net_worth_service=service._net_worth_service)
         .payload()
         .get("risk_score", {})
         .get("score")

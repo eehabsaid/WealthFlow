@@ -114,12 +114,17 @@ class CreditCardPaymentEndpointTest(TestCase):
     approach for the other Balance tabs."""
 
     def setUp(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         self.client = Client()
-        self.bank = Bank.objects.create(name="CIB")
+        self.user = User.objects.create_user(username="testuser_ccp", password="pass12345")
+        self.client.force_login(self.user)
+        self.bank = Bank.objects.create(name="CIB", owner=self.user)
         self.currency_egp, _ = Currency.objects.get_or_create(
             code="EGP", defaults={"symbol": "£", "name": "Egyptian Pound"}
         )
         self.entry = BalanceEntry.objects.create(
+            owner=self.user,
             title="CIB Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=self.bank,
@@ -146,7 +151,7 @@ class CreditCardPaymentEndpointTest(TestCase):
 
     def test_update_via_api_reapplies_delta(self):
         payment = CreditCardPayment.objects.create(
-            payment_date=date(2026, 8, 31), bank=self.bank, payment_method="Card", amount_egp=Decimal("100.00")
+            owner=self.user, payment_date=date(2026, 8, 31), bank=self.bank, payment_method="Card", amount_egp=Decimal("100.00")
         )
         payment.apply_and_mirror()
 
@@ -161,7 +166,7 @@ class CreditCardPaymentEndpointTest(TestCase):
 
     def test_delete_via_api_reverses_and_removes_mirror(self):
         payment = CreditCardPayment.objects.create(
-            payment_date=date(2026, 8, 31), bank=self.bank, payment_method="Card", amount_egp=Decimal("200.00")
+            owner=self.user, payment_date=date(2026, 8, 31), bank=self.bank, payment_method="Card", amount_egp=Decimal("200.00")
         )
         payment.apply_and_mirror()
 

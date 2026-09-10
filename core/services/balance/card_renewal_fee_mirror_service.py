@@ -23,12 +23,13 @@ CARD_FEE_SUBCATEGORY_NAME = "Card Renewal Fee"
 SOURCE_CARD_RENEWAL_FEE = "card_renewal_fee"
 
 
-def _get_or_create_card_fee_subcategory():
+def _get_or_create_card_fee_subcategory(owner):
     return get_or_create_mirror_subcategory(
         CARD_FEE_CATEGORY_NAME,
         CARD_FEE_CATEGORY_ICON,
         CARD_FEE_CATEGORY_COLOR,
         CARD_FEE_SUBCATEGORY_NAME,
+        owner,
     )
 
 
@@ -38,7 +39,7 @@ def sync_card_renewal_fee_mirror(fee):
     notes = "Auto-generated from a card renewal fee. Read-only — edit/delete it from the Balance › Card Renewal Fees tab instead."
     if fee.notes:
         notes = f"{notes}\n{fee.notes}"
-    category, subcategory = _get_or_create_card_fee_subcategory()
+    category, subcategory = _get_or_create_card_fee_subcategory(fee.owner)
     return sync_mirror(
         SOURCE_CARD_RENEWAL_FEE,
         fee.id,
@@ -50,6 +51,7 @@ def sync_card_renewal_fee_mirror(fee):
         notes=notes,
         category=category,
         subcategory=subcategory,
+        owner=fee.owner,
     )
 
 

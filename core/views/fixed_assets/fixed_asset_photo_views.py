@@ -11,13 +11,17 @@ from core.models import (
 
 )
 from django.http import HttpResponse
+from core.validators import _api_auth_required
 
 @method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetPhotoView(View):
 
     def post(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
 
-        asset = get_object_or_404(FixedAsset, pk=pk)
+        asset = get_object_or_404(FixedAsset, pk=pk, owner=request.user)
 
         files = request.FILES.getlist("photos")
 
@@ -43,11 +47,15 @@ class FixedAssetPhotoView(View):
         return JsonResponse(uploaded, safe=False)
 
     def delete(self, request, pk, photo_id):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
 
         photo = get_object_or_404(
             AssetPhoto,
             pk=photo_id,
             asset_id=pk,
+            asset__owner=request.user,
         )
 
         photo.delete()
@@ -57,10 +65,14 @@ class FixedAssetPhotoView(View):
 class AssetPhotoView(View):
 
     def get(self, request, photo_id):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
 
         photo = get_object_or_404(
             AssetPhoto,
             pk=photo_id,
+            asset__owner=request.user,
         )
 
         return HttpResponse(

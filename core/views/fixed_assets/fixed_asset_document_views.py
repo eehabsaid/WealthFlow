@@ -8,6 +8,7 @@ from django.db.utils import OperationalError, ProgrammingError
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from core.services.shared.document_service import DocumentService
+from core.validators import _api_auth_required
 
 def _document_validation_error_response(exc):
     if hasattr(exc, "messages") and exc.messages:
@@ -30,8 +31,11 @@ class DocumentListUploadView(View):
     service = DocumentService()
 
     def get(self, request, parent_type, parent_id):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
-            docs = self.service.list_documents(parent_type, parent_id)
+            docs = self.service.list_documents(parent_type, parent_id, owner=request.user)
             return JsonResponse({"documents": docs})
         except ValidationError as exc:
             return _document_validation_error_response(exc)
@@ -39,6 +43,9 @@ class DocumentListUploadView(View):
             return _document_database_error_response(exc)
 
     def post(self, request, parent_type, parent_id):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         uploaded_file = request.FILES.get("file")
         category = request.POST.get("document_category")
         notes = request.POST.get("notes", "")
@@ -51,6 +58,7 @@ class DocumentListUploadView(View):
                 uploaded_by=request.user,
                 category=category,
                 notes=notes,
+                owner=request.user,
             )
             return JsonResponse(item, status=201)
         except ValidationError as exc:
@@ -63,8 +71,11 @@ class DocumentFileView(View):
     service = DocumentService()
 
     def get(self, request, document_id):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
-            metadata, content = self.service.get_document_content(document_id)
+            metadata, content = self.service.get_document_content(document_id, owner=request.user)
         except (OperationalError, ProgrammingError) as exc:
             return _document_database_error_response(exc)
         if metadata is None:
@@ -80,7 +91,10 @@ class DocumentFileView(View):
         return response
 
     def put(self, request, document_id):
-        doc = self.service.get_document(document_id)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        doc = self.service.get_document(document_id, owner=request.user)
         if doc is None:
             return JsonResponse({"error": "document_not_found"}, status=404)
 
@@ -95,6 +109,7 @@ class DocumentFileView(View):
                 uploaded_by=request.user,
                 category=category,
                 notes=notes,
+                owner=request.user,
             )
             return JsonResponse(item)
         except ValidationError as exc:
@@ -106,8 +121,11 @@ class DocumentFileView(View):
         return self.put(request, document_id)
 
     def delete(self, request, document_id):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
-            deleted = self.service.delete_document(document_id)
+            deleted = self.service.delete_document(document_id, owner=request.user)
         except (OperationalError, ProgrammingError) as exc:
             return _document_database_error_response(exc)
         if not deleted:
@@ -119,6 +137,9 @@ class DocumentCategoriesView(View):
     service = DocumentService()
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         parent_type = request.GET.get("parent_type", "")
         try:
             categories = self.service.categories_for_parent(parent_type)

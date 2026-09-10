@@ -16,9 +16,12 @@ User = get_user_model()
 
 class CertificateInterestSynchronizationTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_certint", password="pass12345")
+        self.client.force_login(self.user)
         self.currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
-        self.bank = Bank.objects.create(name="QNB")
+        self.bank = Bank.objects.create(name="QNB", owner=self.user)
         self.cash_balance = BalanceEntry.objects.create(
+            owner=self.user,
             title="QNB Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=self.bank,
@@ -28,6 +31,7 @@ class CertificateInterestSynchronizationTest(TestCase):
 
     def test_service_recovers_missed_periods_and_prevents_duplicates(self):
         certificate = BankCertificate.objects.create(
+            owner=self.user,
             bank=self.bank,
             currency=self.currency,
             issue_date=date(2026, 1, 15),
@@ -64,6 +68,7 @@ class CertificateInterestSynchronizationTest(TestCase):
 
     def test_service_ignores_inactive_or_expired_certificates(self):
         inactive = BankCertificate.objects.create(
+            owner=self.user,
             bank=self.bank,
             currency=self.currency,
             issue_date=date(2026, 1, 1),
@@ -74,6 +79,7 @@ class CertificateInterestSynchronizationTest(TestCase):
             status="Closed",
         )
         expired = BankCertificate.objects.create(
+            owner=self.user,
             bank=self.bank,
             currency=self.currency,
             issue_date=date(2025, 1, 1),
@@ -93,6 +99,7 @@ class CertificateInterestSynchronizationTest(TestCase):
 
     def test_balance_view_triggers_interest_sync(self):
         BankCertificate.objects.create(
+            owner=self.user,
             bank=self.bank,
             currency=self.currency,
             issue_date=date(2026, 1, 1),
@@ -113,6 +120,7 @@ class CertificateInterestSynchronizationTest(TestCase):
 
     def test_monthly_posts_only_when_eligible_day_is_reached(self):
         certificate = BankCertificate.objects.create(
+            owner=self.user,
             bank=self.bank,
             currency=self.currency,
             issue_date=date(2025, 1, 2),
@@ -138,6 +146,7 @@ class CertificateInterestSynchronizationTest(TestCase):
 
     def test_quarterly_never_posts_future_period(self):
         certificate = BankCertificate.objects.create(
+            owner=self.user,
             bank=self.bank,
             currency=self.currency,
             issue_date=date(2025, 1, 2),

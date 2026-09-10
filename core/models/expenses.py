@@ -1,9 +1,14 @@
+from django.conf import settings
 from django.db import models
 from .currency import Currency
 from .bank import Bank
 
 class ExpenseCategory(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="expense_categories",
+    )
+    name = models.CharField(max_length=100)
     icon = models.CharField(max_length=10, default="💰")
     color_hex = models.CharField(max_length=7, default="#0d6efd")
     order = models.IntegerField(default=0)
@@ -11,6 +16,7 @@ class ExpenseCategory(models.Model):
 
     class Meta:
         ordering = ["order", "name"]
+        unique_together = ["owner", "name"]
 
     def to_dict(self):
         return {
@@ -62,6 +68,10 @@ EXPENSE_SOURCE_TYPE_CHOICES = [
 
 
 class Expense(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="expenses",
+    )
     date = models.DateField()
     year = models.IntegerField()
     month = models.IntegerField()  # 1-12

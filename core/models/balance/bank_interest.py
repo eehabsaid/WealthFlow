@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db import transaction
 from decimal import Decimal
@@ -13,6 +14,10 @@ class BankInterest(models.Model):
     it only credits the destination bank's BalanceEntry (no source leg).
     """
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="bank_interests",
+    )
     interest_date = models.DateField()
     bank = models.ForeignKey(Bank, on_delete=models.SET_NULL, null=True, blank=True)
     currency = models.ForeignKey(Currency, on_delete=models.PROTECT)
@@ -41,6 +46,7 @@ class BankInterest(models.Model):
 
     def _get_or_create_balance_entry(self):
         entry = BalanceEntry.objects.filter(
+            owner=self.owner,
             bank_id=self.bank_id,
             currency_id=self.currency_id,
         ).first()
@@ -51,6 +57,7 @@ class BankInterest(models.Model):
                 title = f"{self.bank.name} Account"
 
             entry = BalanceEntry.objects.create(
+                owner=self.owner,
                 title=f"{title} ({self.currency.code})",
                 balance_type=BalanceEntry.BalanceType.BANK,
                 bank_id=self.bank_id,

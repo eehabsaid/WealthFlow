@@ -61,10 +61,12 @@ class WhatIfSimulatorService(ComputationMixin):
 
     REINVESTMENT_OPTIONS = ["reinvest", "cashout"]
 
-    def __init__(self, today: date | None = None):
+    def __init__(self, owner, today: date | None = None):
+        self.owner = owner
         self.today = today or date.today()
-        self._net_worth_service = NetWorthService()
+        self._net_worth_service = NetWorthService(owner)
         self._forecast_service = WealthGrowthForecastService(
+            owner,
             today=self.today,
             net_worth_service=self._net_worth_service,
         )

@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 
 from core.models import BalanceEntry, Currency
 from core.services.shared.currency_conversion_service import CurrencyConversionService
+from core.validators import _api_auth_required
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -17,9 +18,12 @@ class CurrencyExchangeFormOptionsView(View):
     Excludes Gold and non-monetary balance entries/currencies.
     """
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         currencies = Currency.objects.exclude(code__iexact="GOLD").exclude(name__icontains="gold")
 
-        entries = BalanceEntry.objects.select_related("bank", "currency").exclude(
+        entries = BalanceEntry.objects.select_related("bank", "currency").filter(owner=request.user).exclude(
             balance_type__in=[BalanceEntry.BalanceType.GOLD, BalanceEntry.BalanceType.CERTIFICATE]
         ).exclude(
             currency__code__iexact="GOLD"
@@ -38,6 +42,9 @@ class CurrencyExchangeCalculateView(View):
     and available balance based on selected source & destination balances.
     """
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
             data = json.loads(request.body)
             from_balance_id = data.get("from_balance_id")
@@ -48,11 +55,11 @@ class CurrencyExchangeCalculateView(View):
             if not from_balance_id:
                 return JsonResponse({"error": "missing_source_balance"}, status=400)
 
-            from_balance = get_object_or_404(BalanceEntry.objects.select_related("currency", "bank"), pk=from_balance_id)
+            from_balance = get_object_or_404(BalanceEntry.objects.select_related("currency", "bank"), pk=from_balance_id, owner=request.user)
 
             to_balance = None
             if to_balance_id:
-                to_balance = get_object_or_404(BalanceEntry.objects.select_related("currency", "bank"), pk=to_balance_id)
+                to_balance = get_object_or_404(BalanceEntry.objects.select_related("currency", "bank"), pk=to_balance_id, owner=request.user)
 
             from_amount = Decimal(str(from_amount_raw or 0))
             custom_rate = Decimal(str(custom_rate_raw)) if custom_rate_raw and float(custom_rate_raw) > 0 else None

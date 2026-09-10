@@ -27,9 +27,10 @@ VALID_EVENT_TYPES = {
 }
 
 
-def _strict_egp_cash_balance() -> float:
+def _strict_egp_cash_balance(owner) -> float:
     """Literal EGP-currency cash only — excludes other-currency cash and gold."""
     agg = BalanceEntry.objects.filter(
+        owner=owner,
         balance_type__iexact=BalanceEntry.BalanceType.CASH,
         currency__code__iexact="EGP",
     ).aggregate(total=Sum("amount"))
@@ -37,6 +38,7 @@ def _strict_egp_cash_balance() -> float:
 
 
 def compute_custom_cash_projection(
+    owner,
     today: date,
     target_date: date,
     exclude_event_types: list[str] | None = None,
@@ -44,7 +46,7 @@ def compute_custom_cash_projection(
 ) -> dict[str, Any]:
     exclude_set = {e for e in (exclude_event_types or []) if e in VALID_EVENT_TYPES}
 
-    svc = CashFlowForecastService(today=today)
+    svc = CashFlowForecastService(owner, today=today)
     # _build_events() bounds itself by svc.timeline_end_date (read dynamically
     # at call time in events_mixin.py) — extend it here if the requested
     # target_date is further out than the service's default 365-day horizon.
@@ -59,7 +61,7 @@ def compute_custom_cash_projection(
         starting_balance = float(baseline.get("cash_balance") or 0)
     else:
         currency_scope = "egp_only"
-        starting_balance = _strict_egp_cash_balance()
+        starting_balance = _strict_egp_cash_balance(owner)
 
     included_events: list[dict[str, Any]] = []
     excluded_events: list[dict[str, Any]] = []

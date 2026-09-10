@@ -99,8 +99,9 @@ def _normalize_purchase_payments_payload(rows, purchase_price, purchase_currency
 
     return normalized_rows
 
-def _get_asset_cash_balance_entry(currency_id, bank_id):
+def _get_asset_cash_balance_entry(currency_id, bank_id, owner):
     qs = BalanceEntry.objects.select_for_update().filter(
+        owner=owner,
         balance_type=BalanceEntry.BalanceType.CASH,
         currency_id=currency_id,
     )
@@ -110,7 +111,7 @@ def _get_asset_cash_balance_entry(currency_id, bank_id):
         qs = qs.filter(bank__isnull=True)
     return qs.order_by("id").first()
 
-def _apply_asset_balance_delta(currency_id, payment_method, bank_id, amount_delta):
+def _apply_asset_balance_delta(currency_id, payment_method, bank_id, amount_delta, owner):
     delta = _to_decimal(amount_delta)
     if delta == 0:
         return
@@ -118,7 +119,7 @@ def _apply_asset_balance_delta(currency_id, payment_method, bank_id, amount_delt
     resolved_method = _normalize_asset_payment_method(payment_method)
     resolved_bank_id = bank_id if _asset_payment_requires_bank(resolved_method) else None
 
-    entry = _get_asset_cash_balance_entry(currency_id, resolved_bank_id)
+    entry = _get_asset_cash_balance_entry(currency_id, resolved_bank_id, owner)
     if not entry:
         raise ValueError("matching_balance_entry_not_found")
 
@@ -129,7 +130,7 @@ def _apply_asset_balance_delta(currency_id, payment_method, bank_id, amount_delt
     entry.amount = next_amount
     entry.save(update_fields=["amount"])
 
-def _apply_asset_purchase_rows_delta(rows, sign):
+def _apply_asset_purchase_rows_delta(rows, sign, owner):
     sign_multiplier = Decimal("1") if sign >= 0 else Decimal("-1")
     for row in rows:
         _apply_asset_balance_delta(
@@ -137,6 +138,7 @@ def _apply_asset_purchase_rows_delta(rows, sign):
             payment_method=row.get("payment_method"),
             bank_id=row.get("bank_id"),
             amount_delta=sign_multiplier * _to_decimal(row.get("amount")),
+            owner=owner,
         )
 
 def _purchase_rows_from_instances(instances):

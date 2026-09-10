@@ -17,7 +17,10 @@ User = get_user_model()
 
 class AssetExpenseMirrorReversalsTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_mirror_rev", password="pass12345")
+        self.client.force_login(self.user)
         self.asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Nile View Apartment",
             asset_type="Real Estate",
             status="Owned",
@@ -34,6 +37,7 @@ class AssetExpenseMirrorReversalsTest(TestCase):
 
     def test_mirroring_never_touches_balance(self):
         cash_entry = BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,
@@ -57,6 +61,7 @@ class AssetExpenseMirrorReversalsTest(TestCase):
         from core.services import ExpenseService
 
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,
@@ -68,12 +73,13 @@ class AssetExpenseMirrorReversalsTest(TestCase):
                 "date": "2025-03-01",
                 "amount": 1000,
                 "payment_method": "Cash",
-            }
+            },
+            self.user,
         )
         self.assertFalse(exp.is_readonly_mirror)
-        updated = ExpenseService.update_expense(exp.id, {"amount": 1200})
+        updated = ExpenseService.update_expense(exp.id, {"amount": 1200}, self.user)
         self.assertEqual(updated.amount, Decimal("1200"))
-        ExpenseService.delete_expense(exp.id)
+        ExpenseService.delete_expense(exp.id, self.user)
         self.assertFalse(Expense.objects.filter(pk=exp.id).exists())
 
     def test_adding_one_renovation_does_not_recreate_other_mirrors(self):
@@ -84,6 +90,7 @@ class AssetExpenseMirrorReversalsTest(TestCase):
         from core.services.fixed_assets.asset_cost_sync_service import _sync_asset_renovations
 
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,
@@ -118,6 +125,7 @@ class AssetExpenseMirrorReversalsTest(TestCase):
         from core.services.fixed_assets.asset_cost_sync_service import _sync_asset_acquisition_costs
 
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,
@@ -149,6 +157,7 @@ class AssetExpenseMirrorReversalsTest(TestCase):
         from core.services.fixed_assets.asset_cost_sync_service import _sync_asset_renovations
 
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,

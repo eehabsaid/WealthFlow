@@ -18,7 +18,7 @@ class SalaryCustomMixin:
         # Fire if ANY active company has no salary record for this month,
         # or has a record but paid == 0 (nothing paid yet).
         should_fire = False
-        for company in Company.objects.filter(is_active=True):
+        for company in Company.objects.filter(owner=rule.owner, is_active=True):
             try:
                 entry = SalaryEntry.objects.get(
                     company=company,

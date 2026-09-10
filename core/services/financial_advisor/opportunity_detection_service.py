@@ -8,10 +8,11 @@ from core.services.financial_advisor.portfolio_optimizer_service import Portfoli
 
 
 class OpportunityDetectionService:
-    def __init__(self, today: date | None = None, net_worth_service: NetWorthService | None = None):
+    def __init__(self, owner, today: date | None = None, net_worth_service: NetWorthService | None = None):
+        self.owner = owner
         self.today = today or date.today()
-        self._net_worth_service = net_worth_service or NetWorthService()
-        self._optimizer_service = PortfolioOptimizerService(today=self.today)
+        self._net_worth_service = net_worth_service or NetWorthService(owner)
+        self._optimizer_service = PortfolioOptimizerService(owner, today=self.today)
 
     def payload(self) -> Dict[str, Any]:
         optimizer_payload = self._optimizer_service.payload()

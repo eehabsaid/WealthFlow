@@ -50,7 +50,7 @@ class PerformanceTest(TestCase):
 
     def test_performance_service_payload_structure(self):
         from core.services.financial_advisor.performance_service import PerformanceService
-        svc = PerformanceService()
+        svc = PerformanceService(self.user)
         payload = svc.payload()
         self.assertIn("gold", payload)
         self.assertIn("currencies", payload)
@@ -69,7 +69,7 @@ class PerformanceTest(TestCase):
         GoldPriceHistory.objects.all().delete()
         ExchangeRateHistory.objects.all().delete()
 
-        svc = PerformanceService()
+        svc = PerformanceService(self.user)
         payload = svc.payload()
         self.assertEqual(payload["gold"]["current_price_24k"], 0.0)
         self.assertEqual(payload["gold"]["exposure"]["gold_value"], 0.0)

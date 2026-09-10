@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db.models import Case, Value, When
 from datetime import date, datetime
@@ -7,6 +8,10 @@ from core.models.currency import Currency
 
 
 class BankCertificate(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="bank_certificates",
+    )
     bank = models.ForeignKey(
         Bank,
         on_delete=models.SET_NULL,

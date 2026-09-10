@@ -116,7 +116,7 @@ class ContextBuilderService:
         low_priority_blocks.extend(biz_low)
 
         for key in service_keys:
-            payload = get_financial_advisor_payload(key)
+            payload = get_financial_advisor_payload(key, user)
             if not payload:
                 continue
             sources.append(key)

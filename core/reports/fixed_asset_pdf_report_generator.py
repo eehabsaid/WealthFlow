@@ -12,6 +12,7 @@ from reportlab.platypus import (
     PageBreak,
 )
 
+from core.validators import _api_auth_required
 from core.reports.fixed_asset_report_helpers import (
     fixed_asset_report_context as _fixed_asset_report_context,
     fixed_asset_report_label as _fixed_asset_report_label,
@@ -23,6 +24,9 @@ from core.reports.fixed_asset_report_helpers import (
 class FixedAssetPdfReportGenerator(object):
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
             context = _fixed_asset_report_context(request)
         except ValueError as exc:

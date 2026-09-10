@@ -28,7 +28,7 @@ def build_forecast_metrics(service, today: date | None = None) -> ForecastContex
     active_certs = service._active_certificates()
     from core.services.balance.financial_sync_service import FinancialSyncService
     rental_service = FinancialSyncService()
-    monthly_rental_income = _to_float(rental_service.period_rental_income_total("month"))
+    monthly_rental_income = _to_float(rental_service.period_rental_income_total("month", service.owner))
 
     # Liquidity is calibrated from BalanceEntry cash rows only and converted to EGP via BUY rates.
     cash_balance = service._strict_liquid_assets_egp()
@@ -86,7 +86,7 @@ def build_forecast_metrics(service, today: date | None = None) -> ForecastContex
     fixed_assets_ratio = (comp["fixed_assets_total_egp"] / total_portfolio) * 100
 
     last_90_days = today - timedelta(days=90)
-    expenses = Expense.objects.filter(date__gte=last_90_days)
+    expenses = Expense.objects.filter(owner=service.owner, date__gte=last_90_days)
     total_expenses = _to_float(expenses.aggregate(total=Sum("amount_egp"))["total"])
     months_with_expenses = len(set(expenses.values_list("year", "month")))
     avg_monthly_expenses = total_expenses / months_with_expenses if months_with_expenses > 0 else 0
@@ -95,7 +95,7 @@ def build_forecast_metrics(service, today: date | None = None) -> ForecastContex
 
     monthly_certificate_income = _to_float(comp["certificate_interest_total_egp"])
     from core.services.salary.salary_service import get_current_monthly_salary
-    monthly_salary = get_current_monthly_salary()
+    monthly_salary = get_current_monthly_salary(service.owner)
     total_monthly_income = monthly_salary + monthly_certificate_income + monthly_rental_income
 
     cash_coverage_months = cash_balance / avg_monthly_expenses if avg_monthly_expenses > 0 else None

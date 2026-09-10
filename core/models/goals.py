@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from datetime import date, datetime
 
@@ -16,6 +17,10 @@ class Goal(models.Model):
         ("Low", "Low"),
     ]
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="goals",
+    )
     name = models.CharField(max_length=200)
     goal_type = models.CharField(max_length=100)
     target_amount = models.DecimalField(max_digits=18, decimal_places=2, default=0)

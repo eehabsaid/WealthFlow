@@ -95,7 +95,8 @@ class PortfolioOptimizerService(
         "other_assets",
     ]
 
-    def __init__(self, *, today: date | None = None, net_worth_service: NetWorthService | None = None, monthly_expenses_override: float | None = None):
+    def __init__(self, owner, *, today: date | None = None, net_worth_service: NetWorthService | None = None, monthly_expenses_override: float | None = None):
+        self.owner = owner
         self.today = today or date.today()
-        self.net_worth = net_worth_service or NetWorthService()
+        self.net_worth = net_worth_service or NetWorthService(owner)
         self._monthly_expenses_override = monthly_expenses_override

@@ -2,8 +2,9 @@ from core.models import Bank
 
 class BankService(object):
     @staticmethod
-    def create_bank(data):
+    def create_bank(data, owner):
         bank = Bank.objects.create(
+            owner=owner,
             name=data["name"],
             account_number=data.get("account_number", ""),
             card_id=data.get("card_id", ""),
@@ -16,9 +17,9 @@ class BankService(object):
         return bank
 
     @staticmethod
-    def update_bank(bank_id, data):
+    def update_bank(bank_id, data, owner):
         from django.shortcuts import get_object_or_404
-        bank = get_object_or_404(Bank, pk=bank_id)
+        bank = get_object_or_404(Bank, pk=bank_id, owner=owner)
         for field in [
             "name",
             "account_number",
@@ -35,7 +36,7 @@ class BankService(object):
         return bank
 
     @staticmethod
-    def delete_bank(bank_id):
+    def delete_bank(bank_id, owner):
         from django.shortcuts import get_object_or_404
-        bank = get_object_or_404(Bank, pk=bank_id)
+        bank = get_object_or_404(Bank, pk=bank_id, owner=owner)
         bank.delete()

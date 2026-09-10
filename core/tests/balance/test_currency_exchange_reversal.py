@@ -12,6 +12,7 @@ class CurrencyExchangeReversalTest(TestCase):
         from django.test import Client
         self.client = Client()
         self.user = User.objects.create_user(username="ce_testuser", password="password")
+        self.client.force_login(self.user)
 
         # Currencies
         self.egp, _ = Currency.objects.get_or_create(code="EGP", defaults={"name": "Egyptian Pound", "symbol": "EGP"})
@@ -25,16 +26,18 @@ class CurrencyExchangeReversalTest(TestCase):
         ExchangeRate.objects.create(currency_code="SAR", currency_name="Saudi Riyal", buy_rate=Decimal("13.333333"))
 
         # Banks
-        self.bank_cib = Bank.objects.create(name="CIB Bank Test")
+        self.bank_cib = Bank.objects.create(name="CIB Bank Test", owner=self.user)
 
         # Balance entries
         self.bal_usd = BalanceEntry.objects.create(
+            owner=self.user,
             title="USD Cash Test",
             balance_type=BalanceEntry.BalanceType.CASH,
             currency=self.usd,
             amount=Decimal("1000.00")
         )
         self.bal_egp = BalanceEntry.objects.create(
+            owner=self.user,
             title="CIB Account Test",
             balance_type=BalanceEntry.BalanceType.BANK,
             bank=self.bank_cib,
@@ -42,6 +45,7 @@ class CurrencyExchangeReversalTest(TestCase):
             amount=Decimal("50000.00")
         )
         self.bal_eur = BalanceEntry.objects.create(
+            owner=self.user,
             title="EUR Wallet Test",
             balance_type=BalanceEntry.BalanceType.CASH,
             currency=self.eur,

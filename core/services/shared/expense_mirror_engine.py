@@ -46,8 +46,9 @@ def egp_currency():
     return Currency.objects.filter(code__iexact="EGP").order_by("id").first()
 
 
-def get_or_create_mirror_subcategory(category_name, category_icon, category_color, subcategory_name):
+def get_or_create_mirror_subcategory(category_name, category_icon, category_color, subcategory_name, owner):
     category, _ = ExpenseCategory.objects.get_or_create(
+        owner=owner,
         name=category_name,
         defaults={"icon": category_icon, "color_hex": category_color},
     )
@@ -65,7 +66,7 @@ def delete_mirror(source_type, source_id):
 
 
 def sync_mirror(source_type, source_id, *, date_value, description, amount_egp, payment_method, bank_id, notes,
-                 category, subcategory):
+                 category, subcategory, owner):
     """Create/update/delete the mirrored Expense row for one source
     record. A zero/blank amount deletes any existing mirror instead of
     leaving a noise $0 row (e.g. a draft the user hasn't filled in yet).
@@ -81,6 +82,7 @@ def sync_mirror(source_type, source_id, *, date_value, description, amount_egp, 
     date_value = normalize_date(date_value) or _date.today()
 
     defaults = {
+        "owner": owner,
         "date": date_value,
         "year": date_value.year,
         "month": date_value.month,

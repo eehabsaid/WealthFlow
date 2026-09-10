@@ -100,7 +100,7 @@ def export_excel(request):
     from core.reports.excel_generator import generate_excel
     from datetime import date
 
-    buf = generate_excel()
+    buf = generate_excel(request.user)
     filename = f"Balance_Tracker_{date.today().strftime('%Y%m%d')}.xlsx"
     response = HttpResponse(
         buf.read(),

@@ -126,7 +126,7 @@ class RiskFindingsMixin:
         ]
 
         from core.services.salary.salary_service import get_current_monthly_salary
-        salary_val = get_current_monthly_salary()
+        salary_val = get_current_monthly_salary(self.owner)
         if salary_val > 0:
             salary_annual_impact = salary_val * 6 * -1.0  # 6 months loss
             scenarios.append({

@@ -10,12 +10,15 @@ class PerDiemServiceTest(TestCase):
     def setUp(self):
         from core.models import Currency, Bank, Company, ExchangeRate
         from decimal import Decimal
+        self.user = User.objects.create_user(username="testuser", password="pass12345")
+        self.client.force_login(self.user)
         self.currency_usd, _ = Currency.objects.get_or_create(code="USD", defaults={"name": "US Dollar", "symbol": "$", "flag": "🇺🇸", "order": 1})
         self.currency_egp, _ = Currency.objects.get_or_create(code="EGP", defaults={"name": "Egyptian Pound", "symbol": "EGP", "flag": "🇪🇬", "order": 2})
         
-        self.bank, _ = Bank.objects.get_or_create(name="Chase Bank", defaults={"account_number": "1234", "card_id": "5678", "swift_code": "CHAS"})
+        self.bank, _ = Bank.objects.get_or_create(name="Chase Bank", owner=self.user, defaults={"account_number": "1234", "card_id": "5678", "swift_code": "CHAS"})
         self.company, _ = Company.objects.get_or_create(
             name="Giza Systems",
+            owner=self.user,
             defaults={
                 "display_name": "Giza Systems Disp",
                 "is_active": True,
@@ -158,6 +161,7 @@ class PerDiemServiceTest(TestCase):
         
         # Create a BalanceEntry for USD
         BalanceEntry.objects.create(
+            owner=self.user,
             title="My Balance",
             balance_type="cash",
             bank=self.bank,

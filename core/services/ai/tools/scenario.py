@@ -27,6 +27,7 @@ def _handle_create_scenario(user: Any, params: dict[str, Any]) -> dict[str, Any]
     is_baseline_pinned = bool(params.get("is_baseline_pinned", False))
     events = params.get("events", [])
     sc = create_scenario_record(
+        user,
         name=name,
         description=description,
         is_baseline_pinned=is_baseline_pinned,
@@ -45,13 +46,13 @@ def _handle_compare_scenarios(user: Any, params: dict[str, Any]) -> dict[str, An
 def _handle_summarize_report(user: Any, params: dict[str, Any]) -> dict[str, Any]:
     """Wraps get_financial_advisor_payload for a service key."""
     service_key = str(params.get("service_key", "")).strip().lower()
-    return get_financial_advisor_payload(service_key)
+    return get_financial_advisor_payload(service_key, user)
 
 
 def _handle_explain_chart(user: Any, params: dict[str, Any]) -> dict[str, Any]:
     """Wraps get_financial_advisor_payload for a service key."""
     service_key = str(params.get("service_key", "")).strip().lower()
-    return get_financial_advisor_payload(service_key)
+    return get_financial_advisor_payload(service_key, user)
 
 
 def _handle_suggest_optimizations(user: Any, params: dict[str, Any]) -> dict[str, Any]:
@@ -59,7 +60,7 @@ def _handle_suggest_optimizations(user: Any, params: dict[str, Any]) -> dict[str
     focus = str(params.get("focus", "all")).strip().lower()
     res: dict[str, Any] = {}
     if focus in ("all", "portfolio", "portfolio_optimizer"):
-        res["portfolio_optimizer"] = PortfolioOptimizerService().payload()
+        res["portfolio_optimizer"] = PortfolioOptimizerService(user).payload()
     if focus in ("all", "opportunity", "opportunity_detection"):
-        res["opportunity_detection"] = OpportunityDetectionService().payload()
+        res["opportunity_detection"] = OpportunityDetectionService(user).payload()
     return res

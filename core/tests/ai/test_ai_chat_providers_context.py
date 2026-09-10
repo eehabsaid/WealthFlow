@@ -64,11 +64,11 @@ class AIChatProvidersContextTest(TestCase):
         self.assertIn("goal_planning", available)
 
         # Call payload via registry
-        payload = get_financial_advisor_payload("overview")
+        payload = get_financial_advisor_payload("overview", self.user)
         self.assertIsInstance(payload, dict)
 
         # Unknown service returns empty dict
-        self.assertEqual(get_financial_advisor_payload("unknown_service"), {})
+        self.assertEqual(get_financial_advisor_payload("unknown_service", self.user), {})
 
     def test_context_builder_service_budget_and_topic_relevance(self):
         AppSettings.set("ai_context_token_budget", "1500")

@@ -19,7 +19,10 @@ User = get_user_model()
 
 class ReminderAutomationServiceTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_rem", password="pass12345")
+        self.client.force_login(self.user)
         self.asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Test Vehicle",
             asset_type="Vehicles",
             status="Owned",
@@ -43,22 +46,24 @@ class ReminderAutomationServiceTest(TestCase):
 
     def test_service_generates_insurance_and_vehicle_license_reminders_without_duplicates(self):
         insurance_rule = ReminderRule.objects.create(
+            owner=self.user,
             name="Insurance expiry",
             rule_type="insurance_expiry",
             days_before=10,
         )
         vehicle_rule = ReminderRule.objects.create(
+            owner=self.user,
             name="Vehicle license expiry",
             rule_type="vehicle_license_expiry",
             days_before=10,
         )
 
-        result = ReminderAutomationService().evaluate(today=date(2026, 7, 4))
+        result = ReminderAutomationService().evaluate(self.user, today=date(2026, 7, 4))
         self.assertEqual(result.count, 2)
         self.assertEqual(ReminderLog.objects.count(), 2)
 
         # Second call on same day: reminders still fire (no suppression), but log stays at 1 per rule
-        second = ReminderAutomationService().evaluate(today=date(2026, 7, 4))
+        second = ReminderAutomationService().evaluate(self.user, today=date(2026, 7, 4))
         self.assertEqual(second.count, 2)
         self.assertEqual(ReminderLog.objects.filter(rule=insurance_rule).count(), 1)
         self.assertEqual(ReminderLog.objects.filter(rule=vehicle_rule).count(), 1)
@@ -68,7 +73,8 @@ class ReminderAutomationServiceTest(TestCase):
         with patch("django.utils.timezone.localdate") as mock_localdate:
             mock_localdate.return_value = date(2026, 7, 4)
             ReminderRule.objects.create(
-                name="Vehicle license expiry",
+            owner=self.user,
+            name="Vehicle license expiry",
                 rule_type="vehicle_license_expiry",
                 days_before=10,
             )
@@ -81,6 +87,7 @@ class ReminderAutomationServiceTest(TestCase):
 
     def test_property_tax_reminder_uses_due_date_settings_and_avoids_duplicates(self):
         real_estate_asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Taxed Apartment",
             asset_type="Real Estate",
             status="Owned",
@@ -96,6 +103,7 @@ class ReminderAutomationServiceTest(TestCase):
             area_m2=85,
         )
         rule = ReminderRule.objects.create(
+            owner=self.user,
             name="Property tax",
             rule_type="property_tax_reminder",
             days_before=10,
@@ -105,14 +113,14 @@ class ReminderAutomationServiceTest(TestCase):
         AppSettings.set("property_tax_due_day", "10")
         AppSettings.set("property_tax_countries", "[\"Egypt\"]")
 
-        first = ReminderAutomationService().evaluate(today=date(2026, 7, 4))
+        first = ReminderAutomationService().evaluate(self.user, today=date(2026, 7, 4))
         self.assertEqual(first.count, 1)
         self.assertEqual(first.reminders[0]["rule_type"], "property_tax_reminder")
         self.assertEqual(first.reminders[0]["related_id"], details.id)
         self.assertEqual(first.reminders[0]["days_left"], 6)
 
         # Second call on same day: reminder still fires, but log entry remains a single record
-        second = ReminderAutomationService().evaluate(today=date(2026, 7, 4))
+        second = ReminderAutomationService().evaluate(self.user, today=date(2026, 7, 4))
         self.assertEqual(second.count, 1)
         self.assertEqual(
             ReminderLog.objects.filter(

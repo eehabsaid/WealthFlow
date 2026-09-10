@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db import transaction
 from ..bank import Bank
@@ -26,6 +27,10 @@ class CreditCardPayment(models.Model):
          Expenses/dashboards like any manual entry.
     """
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="credit_card_payments",
+    )
     payment_date = models.DateField()
     bank = models.ForeignKey(Bank, on_delete=models.PROTECT)
     payment_method = models.CharField(
@@ -64,25 +69,25 @@ class CreditCardPayment(models.Model):
 
     @transaction.atomic
     def apply_and_mirror(self):
-        from core.services.expenses.expense_service import _apply_expense_balance_delta
+        from core.services.expenses.expense_balance_helpers import _apply_expense_balance_delta
         from core.services.balance.credit_card_payment_mirror_service import (
             sync_credit_card_payment_mirror,
         )
 
         _apply_expense_balance_delta(
-            self.payment_method, self.bank_id, -abs(self.amount_egp or 0)
+            self.payment_method, self.bank_id, -abs(self.amount_egp or 0), owner=self.owner
         )
         sync_credit_card_payment_mirror(self)
 
     @transaction.atomic
     def reverse_and_unmirror(self):
-        from core.services.expenses.expense_service import _apply_expense_balance_delta
+        from core.services.expenses.expense_balance_helpers import _apply_expense_balance_delta
         from core.services.balance.credit_card_payment_mirror_service import (
             delete_credit_card_payment_mirror,
         )
 
         _apply_expense_balance_delta(
-            self.payment_method, self.bank_id, abs(self.amount_egp or 0)
+            self.payment_method, self.bank_id, abs(self.amount_egp or 0), owner=self.owner
         )
         delete_credit_card_payment_mirror(self.id)
 

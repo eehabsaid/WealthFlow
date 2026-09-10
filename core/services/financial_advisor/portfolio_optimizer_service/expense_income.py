@@ -18,7 +18,7 @@ from .shared import _to_float
 class ExpenseIncomeMixin:
     def _month_expense_baseline(self) -> Tuple[float, int]:
         start_date = self.today - timedelta(days=180)
-        qs = Expense.objects.filter(date__gte=start_date)
+        qs = Expense.objects.filter(owner=self.owner, date__gte=start_date)
         total = _to_float(qs.aggregate(total=Sum("amount_egp")).get("total"))
         active_months = len(set(qs.values_list("year", "month")))
         return total, active_months
@@ -35,7 +35,7 @@ class ExpenseIncomeMixin:
 
     def _latest_monthly_income(self) -> float:
         from core.services.salary.salary_service import get_current_monthly_salary
-        salary_value = get_current_monthly_salary()
+        salary_value = get_current_monthly_salary(self.owner)
         certificate_income = _to_float(self.net_worth.portfolio_components().get("certificate_interest_total_egp"))
         return salary_value + certificate_income
 
@@ -44,7 +44,7 @@ class ExpenseIncomeMixin:
         end_date = self.today + timedelta(days=days)
         total = 0.0
 
-        certs = BankCertificate.objects.select_related("currency").all()
+        certs = BankCertificate.objects.select_related("currency").filter(owner=self.owner)
         for cert in certs:
             if not _is_certificate_active(cert) or not cert.expiry_date:
                 continue

@@ -39,9 +39,13 @@ class DocumentValidationMixin:
             raise ValidationError("invalid_parent_type")
         return key, model
 
-    def _get_parent_instance(self, parent_type: str, parent_id: int):
+    def _get_parent_instance(self, parent_type: str, parent_id: int, owner=None):
         normalized_type, model = self._get_parent_model(parent_type)
-        parent = model.objects.filter(pk=parent_id).first()
+        qs = model.objects.filter(pk=parent_id)
+        if owner is not None:
+            owner_field = "asset__owner" if normalized_type == "asset_insurance" else "owner"
+            qs = qs.filter(**{owner_field: owner})
+        parent = qs.first()
         if parent is None:
             raise ValidationError("parent_not_found")
         return normalized_type, parent

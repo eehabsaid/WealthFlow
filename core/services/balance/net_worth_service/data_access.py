@@ -72,7 +72,7 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
 
     def _active_certificates(self) -> List[BankCertificate]:
         def _load():
-            certs = BankCertificate.objects.select_related("bank", "currency").all()
+            certs = BankCertificate.objects.select_related("bank", "currency").filter(owner=self.owner)
             return [c for c in certs if _is_certificate_active(c)]
 
         return self._cached("active_certs", _load)
@@ -93,7 +93,7 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
 
     def _fixed_assets_breakdown(self) -> Dict[str, float]:
         def _load():
-            owned = FixedAsset.objects.filter(status="Owned")
+            owned = FixedAsset.objects.filter(owner=self.owner, status="Owned")
             agg = owned.aggregate(
                 real_estate=Sum("current_market_value", filter=Q(asset_type__in=REAL_ESTATE_ASSET_TYPES)),
                 vehicles=Sum("current_market_value", filter=Q(asset_type__in=VEHICLE_ASSET_TYPES)),
@@ -119,7 +119,7 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
 
         rows = (
             BalanceEntry.objects.select_related("currency")
-            .filter(balance_type__iexact=BalanceEntry.BalanceType.CASH)
+            .filter(owner=self.owner, balance_type__iexact=BalanceEntry.BalanceType.CASH)
             .exclude(currency__code__iexact="GOLD")
         )
 
@@ -142,6 +142,7 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
         """
         agg = (
             BalanceEntry.objects.filter(
+                owner=self.owner,
                 balance_type__iexact=BalanceEntry.BalanceType.CASH,
                 currency__code__iexact="EGP",
             ).aggregate(total=Sum("amount"))

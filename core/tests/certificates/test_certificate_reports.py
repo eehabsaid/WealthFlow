@@ -12,10 +12,13 @@ User = get_user_model()
 
 class CertificateForecastBalanceTest(TestCase):
     def test_forecast_excludes_inactive_certificates_from_balance_metrics(self):
+        self.user = User.objects.create_user(username="testuser_certfc", password="pass12345")
+        self.client.force_login(self.user)
         currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
         # Matching cash balance entry required for certificate saves to
         # succeed (see certificate_balance_deduction_service.py).
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash (EGP)",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,
@@ -23,6 +26,7 @@ class CertificateForecastBalanceTest(TestCase):
             amount=100000,
         )
         BankCertificate.objects.create(
+            owner=self.user,
             currency=currency,
             issue_date=date(2026, 6, 1),
             expiry_date=date(2026, 8, 31),
@@ -31,6 +35,7 @@ class CertificateForecastBalanceTest(TestCase):
             status="Active",
         )
         BankCertificate.objects.create(
+            owner=self.user,
             currency=currency,
             issue_date=date(2026, 6, 1),
             expiry_date=date(2026, 8, 31),
@@ -49,10 +54,13 @@ class CertificateForecastBalanceTest(TestCase):
 
 class CertificateReportActiveOnlyTest(TestCase):
     def test_certificate_report_uses_active_certificates_only(self):
+        self.user = User.objects.create_user(username="testuser_certro", password="pass12345")
+        self.client.force_login(self.user)
         currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
         # Matching cash balance entry required for certificate saves to
         # succeed (see certificate_balance_deduction_service.py).
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash (EGP)",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,
@@ -60,6 +68,7 @@ class CertificateReportActiveOnlyTest(TestCase):
             amount=100000,
         )
         BankCertificate.objects.create(
+            owner=self.user,
             currency=currency,
             issue_date=date(2026, 1, 1),
             expiry_date=date(2026, 6, 1),
@@ -68,6 +77,7 @@ class CertificateReportActiveOnlyTest(TestCase):
             status="Active",
         )
         BankCertificate.objects.create(
+            owner=self.user,
             currency=currency,
             issue_date=date(2026, 1, 1),
             expiry_date=date(2026, 6, 1),

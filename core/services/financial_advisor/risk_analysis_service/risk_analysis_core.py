@@ -35,17 +35,19 @@ class RiskAnalysisService(RiskCalcMixin, RiskFindingsMixin, RiskWhatIfMixin, Ris
         "goal": 0.15,
     }
 
-    def __init__(self, today: date | None = None, net_worth_service: NetWorthService | None = None,
+    def __init__(self, owner, today: date | None = None, net_worth_service: NetWorthService | None = None,
                  salary_override: float | None = None,
                  monthly_expenses_override: float | None = None):
+        self.owner = owner
         self.today = today or date.today()
-        self._net_worth_service = net_worth_service or NetWorthService()
+        self._net_worth_service = net_worth_service or NetWorthService(owner)
         self._optimizer_service = PortfolioOptimizerService(
+            owner,
             today=self.today,
             net_worth_service=self._net_worth_service,
             monthly_expenses_override=monthly_expenses_override,
         )
-        self._goal_service = GoalPlanningService(today=self.today)
+        self._goal_service = GoalPlanningService(owner, today=self.today)
         self._salary_override = salary_override
         self._monthly_expenses_override = monthly_expenses_override
 
@@ -63,7 +65,7 @@ class RiskAnalysisService(RiskCalcMixin, RiskFindingsMixin, RiskWhatIfMixin, Ris
             salary_value = max(0.0, self._salary_override)
         else:
             from core.services.salary.salary_service import get_current_monthly_salary
-            salary_value = get_current_monthly_salary()
+            salary_value = get_current_monthly_salary(self.owner)
         if salary_value > 0:
             sources.append({"id": "salary", "label_key": "risk_analysis_income_salary", "value": salary_value})
 

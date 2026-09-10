@@ -15,7 +15,10 @@ User = get_user_model()
 
 class FixedAssetAcquisitionCostsTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_acq", password="pass12345")
+        self.client.force_login(self.user)
         self.asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Test Property",
             asset_type="Real Estate",
             status="Owned",
@@ -31,6 +34,7 @@ class FixedAssetAcquisitionCostsTest(TestCase):
             code="EGP", defaults={"symbol": "£", "name": "Egyptian Pound"}
         )
         self.cash_entry = BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,

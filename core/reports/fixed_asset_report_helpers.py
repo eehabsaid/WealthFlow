@@ -8,7 +8,7 @@ from core.services.balance.net_worth_service import NetWorthService
 from core.utils.date_formatter import format_date
 from core.reports.report_utils import get_translations, get_text
 
-def fixed_asset_report_queryset():
+def fixed_asset_report_queryset(owner):
     return (
         FixedAsset.objects.select_related(
             "vehicle_details",
@@ -26,7 +26,7 @@ def fixed_asset_report_queryset():
             "valuation_history",
             "photos",
         )
-        .all()
+        .filter(owner=owner)
     )
 
 def fixed_asset_report_context(request):
@@ -34,7 +34,7 @@ def fixed_asset_report_context(request):
     t = get_translations(lang)
     asset_id = request.GET.get("asset_id")
 
-    qs = fixed_asset_report_queryset()
+    qs = fixed_asset_report_queryset(request.user)
     if asset_id:
         try:
             asset_obj = qs.get(id=int(asset_id))
@@ -51,7 +51,7 @@ def fixed_asset_report_context(request):
         assets = list(qs)
         if not assets:
             raise FixedAsset.DoesNotExist("No fixed assets found")
-        net_worth_service = NetWorthService()
+        net_worth_service = NetWorthService(request.user)
         portfolio_snapshot = net_worth_service.fixed_assets_snapshot()
         return {
             "lang": lang,

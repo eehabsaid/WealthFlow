@@ -20,12 +20,16 @@ from django.shortcuts import get_object_or_404
 from core.models import FixedAsset
 
 from core.services.fixed_assets.property_valuation_service import PropertyValuationService
+from core.validators import _api_auth_required
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetValuationRefreshView(View):
     def post(self, request, pk):
-        asset = get_object_or_404(FixedAsset, pk=pk)
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        asset = get_object_or_404(FixedAsset, pk=pk, owner=request.user)
         updated, provider_name = PropertyValuationService().refresh_asset(asset, today=timezone.localdate())
         asset.refresh_from_db()
         return JsonResponse(

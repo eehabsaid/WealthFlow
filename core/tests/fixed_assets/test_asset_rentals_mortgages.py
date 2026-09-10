@@ -14,8 +14,11 @@ User = get_user_model()
 
 class RentalIncomeSynchronizationTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_rental", password="pass12345")
+        self.client.force_login(self.user)
         self.currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
         self.asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Rental Apartment",
             asset_type="Real Estate",
             status="Owned",
@@ -64,8 +67,11 @@ class RentalIncomeSynchronizationTest(TestCase):
 
 class MortgageSynchronizationTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_mortgage", password="pass12345")
+        self.client.force_login(self.user)
         self.currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
         self.asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Mortgage Apartment",
             asset_type="Real Estate",
             status="Owned",

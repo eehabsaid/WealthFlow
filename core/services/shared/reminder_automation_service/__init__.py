@@ -45,12 +45,12 @@ class ReminderAutomationResult:
 class ReminderAutomationService(CertificateInsuranceMixin, VehiclePropertyMixin, SalaryCustomMixin):
     """Evaluates active reminder rules and event-based reminders in one place."""
 
-    def evaluate(self, today=None):
+    def evaluate(self, owner, today=None):
         current_date = today or timezone.localdate()
         reminders = []
 
         with transaction.atomic():
-            for rule in ReminderRule.objects.filter(is_active=True):
+            for rule in ReminderRule.objects.filter(owner=owner, is_active=True):
                 reminders.extend(self._evaluate_rule(rule, current_date))
 
         return ReminderAutomationResult(reminders=reminders)

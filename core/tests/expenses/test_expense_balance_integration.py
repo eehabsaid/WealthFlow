@@ -9,12 +9,15 @@ User = get_user_model()
 
 class ExpenseBalanceIntegrationTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_expbal", password="pass12345")
+        self.client.force_login(self.user)
         self.currency_egp = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
-        self.bank_cib = Bank.objects.create(name="CIB")
-        self.bank_qnb = Bank.objects.create(name="QNB")
-        self.category = ExpenseCategory.objects.create(name="Utilities", icon="💡", color_hex="#0d6efd")
+        self.bank_cib = Bank.objects.create(name="CIB", owner=self.user)
+        self.bank_qnb = Bank.objects.create(name="QNB", owner=self.user)
+        self.category = ExpenseCategory.objects.create(owner=self.user, name="Utilities", icon="💡", color_hex="#0d6efd")
 
         self.cash_entry = BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,
@@ -22,6 +25,7 @@ class ExpenseBalanceIntegrationTest(TestCase):
             amount=2000,
         )
         self.cib_entry = BalanceEntry.objects.create(
+            owner=self.user,
             title="CIB Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=self.bank_cib,
@@ -29,6 +33,7 @@ class ExpenseBalanceIntegrationTest(TestCase):
             amount=10000,
         )
         self.qnb_entry = BalanceEntry.objects.create(
+            owner=self.user,
             title="QNB Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=self.bank_qnb,

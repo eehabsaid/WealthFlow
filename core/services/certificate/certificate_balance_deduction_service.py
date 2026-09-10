@@ -70,21 +70,22 @@ class CertificateInsufficientBalanceError(ValidationError):
     error_code = "certificate_insufficient_balance"
 
 
-def _cash_balance_queryset(bank_id, currency_id):
+def _cash_balance_queryset(bank_id, currency_id, owner):
     from core.models import BalanceEntry
 
     return BalanceEntry.objects.filter(
+        owner=owner,
         balance_type__iexact="cash",
         bank_id=bank_id,
         currency_id=currency_id,
     )
 
 
-def find_cash_balance_entry(bank_id, currency_id, for_update=False):
+def find_cash_balance_entry(bank_id, currency_id, owner, for_update=False):
     """Return the matching cash BalanceEntry for (bank_id, currency_id), or
     None. Logs a warning if more than one candidate row exists (ambiguous
     mapping); the lowest-id row is used deterministically."""
-    qs = _cash_balance_queryset(bank_id, currency_id).order_by("id")
+    qs = _cash_balance_queryset(bank_id, currency_id, owner).order_by("id")
     if for_update:
         qs = qs.select_for_update()
 
@@ -100,25 +101,25 @@ def find_cash_balance_entry(bank_id, currency_id, for_update=False):
     return rows[0]
 
 
-def validate_balance_entry_exists(bank_id, currency_id):
+def validate_balance_entry_exists(bank_id, currency_id, owner):
     """Raise CertificateBalanceMappingError if there is no cash BalanceEntry
     for this bank/currency pair. Called from pre_save so it blocks the
     certificate write entirely."""
-    if find_cash_balance_entry(bank_id, currency_id) is None:
+    if find_cash_balance_entry(bank_id, currency_id, owner) is None:
         raise CertificateBalanceMappingError(
             "There's no cash balance set up yet for this bank and currency. "
             "Please add one first, then save the certificate again."
         )
 
 
-def validate_sufficient_balance(bank_id, currency_id, new_amount, old_snapshot):
+def validate_sufficient_balance(bank_id, currency_id, new_amount, old_snapshot, owner):
     """Raise CertificateInsufficientBalanceError if the matching cash entry
     cannot cover `new_amount`. If `old_snapshot` (old_bank_id, old_currency_id,
     old_amount) applies to the SAME bank/currency as the new values, its
     amount is added back before checking - i.e. only the net delta must be
     covered. Assumes the matching entry already exists (call
     validate_balance_entry_exists first)."""
-    entry = find_cash_balance_entry(bank_id, currency_id)
+    entry = find_cash_balance_entry(bank_id, currency_id, owner)
     if entry is None:
         return  # existence already validated separately; nothing to check
 
@@ -136,14 +137,14 @@ def validate_sufficient_balance(bank_id, currency_id, new_amount, old_snapshot):
         )
 
 
-def _apply_delta(bank_id, currency_id, delta):
+def _apply_delta(bank_id, currency_id, delta, owner):
     """Add `delta` (Decimal, can be negative) to the matched cash balance
     entry's amount. No-op (with a warning) if no matching entry is found.
     Note: bank_id may legitimately be None (matches cash entries with no
     bank assigned) - only currency_id is required."""
     if currency_id is None or delta == 0:
         return
-    entry = find_cash_balance_entry(bank_id, currency_id, for_update=True)
+    entry = find_cash_balance_entry(bank_id, currency_id, owner, for_update=True)
     if entry is None:
         logger.warning(
             "Cannot apply certificate balance delta: no cash BalanceEntry "
@@ -165,9 +166,9 @@ def handle_certificate_pre_save(sender, instance, **kwargs):
         except sender.DoesNotExist:
             old_snapshot = None
 
-    validate_balance_entry_exists(instance.bank_id, instance.currency_id)
+    validate_balance_entry_exists(instance.bank_id, instance.currency_id, instance.owner)
     validate_sufficient_balance(
-        instance.bank_id, instance.currency_id, instance.amount, old_snapshot,
+        instance.bank_id, instance.currency_id, instance.amount, old_snapshot, instance.owner,
     )
     setattr(instance, _SNAPSHOT_ATTR, old_snapshot)
 
@@ -178,8 +179,8 @@ def handle_certificate_post_save(sender, instance, created, **kwargs):
     with transaction.atomic():
         if old_snapshot is not None:
             old_bank_id, old_currency_id, old_amount = old_snapshot
-            _apply_delta(old_bank_id, old_currency_id, old_amount)
-        _apply_delta(instance.bank_id, instance.currency_id, -Decimal(instance.amount or 0))
+            _apply_delta(old_bank_id, old_currency_id, old_amount, instance.owner)
+        _apply_delta(instance.bank_id, instance.currency_id, -Decimal(instance.amount or 0), instance.owner)
 
     if hasattr(instance, _SNAPSHOT_ATTR):
         delattr(instance, _SNAPSHOT_ATTR)
@@ -189,4 +190,4 @@ def handle_certificate_pre_delete(sender, instance, **kwargs):
     """Reverse the certificate's currently-applied deduction before it is
     removed from the database."""
     with transaction.atomic():
-        _apply_delta(instance.bank_id, instance.currency_id, Decimal(instance.amount or 0))
+        _apply_delta(instance.bank_id, instance.currency_id, Decimal(instance.amount or 0), instance.owner)

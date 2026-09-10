@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Sum, Count
 from core.models import BankCertificate
+from core.validators import _api_auth_required
 from datetime import date, timedelta
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -12,10 +13,13 @@ class CertificateReportView(View):
     """Certificate maturity and analytics report."""
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
 
         today = date.today()
         active_certs = BankCertificate.objects.select_related("bank", "currency").filter(
-            status__iexact="active"
+            owner=request.user, status__iexact="active"
         )
 
         agg = active_certs.aggregate(

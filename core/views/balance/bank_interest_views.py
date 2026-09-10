@@ -5,26 +5,36 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from core.models import BankInterest
+from core.models import BankInterest, Bank
+from core.validators import _api_auth_required, _owned_object_or_404
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class BankInterestListView(View):
     def get(self, request):
-        entries = BankInterest.objects.select_related("bank", "currency").all()
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        entries = BankInterest.objects.select_related("bank", "currency").filter(owner=request.user)
         return JsonResponse({"bank_interests": [e.to_dict() for e in entries]})
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
             data = json.loads(request.body)
             interest_date = data["interest_date"]
             bank_id = data.get("bank_id")
+            if bank_id:
+                get_object_or_404(Bank, pk=bank_id, owner=request.user)
             currency_id = data["currency_id"]
             amount = float(data.get("amount", 0))
             notes = data.get("notes", "")
 
             with transaction.atomic():
                 entry = BankInterest.objects.create(
+                    owner=request.user,
                     interest_date=interest_date,
                     bank_id=bank_id,
                     currency_id=currency_id,
@@ -41,9 +51,14 @@ class BankInterestListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class BankInterestDetailView(View):
     def put(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
-            entry = get_object_or_404(BankInterest, pk=pk)
+            entry = _owned_object_or_404(BankInterest, pk, request)
             data = json.loads(request.body)
+            if data.get("bank_id"):
+                get_object_or_404(Bank, pk=data["bank_id"], owner=request.user)
 
             with transaction.atomic():
                 # Reverse the old interest credit
@@ -70,8 +85,11 @@ class BankInterestDetailView(View):
             return JsonResponse({"error": str(e)}, status=400)
 
     def delete(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
-            entry = get_object_or_404(BankInterest, pk=pk)
+            entry = _owned_object_or_404(BankInterest, pk, request)
             with transaction.atomic():
                 entry.reverse_interest()
                 entry.delete()

@@ -26,51 +26,51 @@ from core.services.financial_advisor.wealth_growth_forecast_service import Wealt
 from core.services.financial_advisor.what_if_simulator_service import WhatIfSimulatorService
 
 
-def _fetch_overview_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return OverviewService(today=today).payload()
+def _fetch_overview_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return OverviewService(owner, today=today).payload()
 
 
-def _fetch_cash_flow_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return CashFlowForecastService(today=today).payload()
+def _fetch_cash_flow_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return CashFlowForecastService(owner, today=today).payload()
 
 
-def _fetch_wealth_growth_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return WealthGrowthForecastService(today=today).payload()
+def _fetch_wealth_growth_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return WealthGrowthForecastService(owner, today=today).payload()
 
 
-def _fetch_portfolio_optimizer_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return PortfolioOptimizerService(today=today).payload()
+def _fetch_portfolio_optimizer_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return PortfolioOptimizerService(owner, today=today).payload()
 
 
-def _fetch_goal_planning_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return GoalPlanningService(today=today).payload()
+def _fetch_goal_planning_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return GoalPlanningService(owner, today=today).payload()
 
 
-def _fetch_risk_analysis_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return RiskAnalysisService(today=today).payload()
+def _fetch_risk_analysis_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return RiskAnalysisService(owner, today=today).payload()
 
 
-def _fetch_spending_intelligence_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return SpendingIntelligenceService(today=today).payload()
+def _fetch_spending_intelligence_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return SpendingIntelligenceService(owner, today=today).payload()
 
 
-def _fetch_opportunity_detection_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return OpportunityDetectionService(today=today).payload()
+def _fetch_opportunity_detection_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return OpportunityDetectionService(owner, today=today).payload()
 
 
-def _fetch_performance_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return PerformanceService(today=today).payload()
+def _fetch_performance_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return PerformanceService(owner, today=today).payload()
 
 
-def _fetch_what_if_simulator_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return WhatIfSimulatorService(today=today).payload()
+def _fetch_what_if_simulator_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return WhatIfSimulatorService(owner, today=today).payload()
 
 
-def _fetch_scenario_planner_payload(today: datetime.date | None = None) -> dict[str, Any]:
-    return ScenarioPlannerService(today=today).payload()
+def _fetch_scenario_planner_payload(owner, today: datetime.date | None = None) -> dict[str, Any]:
+    return ScenarioPlannerService(owner, today=today).payload()
 
 
-ADVISOR_SERVICE_PROVIDERS: dict[str, Callable[[datetime.date | None], dict[str, Any]]] = {
+ADVISOR_SERVICE_PROVIDERS: dict[str, Callable[..., dict[str, Any]]] = {
     "overview": _fetch_overview_payload,
     "cash_flow": _fetch_cash_flow_payload,
     "wealth_growth": _fetch_wealth_growth_payload,
@@ -85,9 +85,9 @@ ADVISOR_SERVICE_PROVIDERS: dict[str, Callable[[datetime.date | None], dict[str, 
 }
 
 
-def get_financial_advisor_payload(service_key: str, today: datetime.date | None = None) -> dict[str, Any]:
+def get_financial_advisor_payload(service_key: str, owner, today: datetime.date | None = None) -> dict[str, Any]:
     """
-    Retrieve payload dict for a given service key.
+    Retrieve payload dict for a given service key, scoped to `owner`.
     Returns empty dict if service key is unknown.
     """
     key = str(service_key or "").strip().lower()
@@ -95,7 +95,7 @@ def get_financial_advisor_payload(service_key: str, today: datetime.date | None 
     if not provider:
         return {}
     try:
-        return provider(today)
+        return provider(owner, today)
     except Exception as exc:
         logger.warning(
             "Failed to retrieve payload for financial advisor service '%s': %s",

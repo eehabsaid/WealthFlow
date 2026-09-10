@@ -16,8 +16,8 @@ from core.services.shared.document_service.constants import DOCUMENT_CATEGORIES
 
 
 class DocumentCrudMixin:
-    def list_documents(self, parent_type: str, parent_id: int) -> List[dict]:
-        normalized_type, parent = self._get_parent_instance(parent_type, parent_id)
+    def list_documents(self, parent_type: str, parent_id: int, owner=None) -> List[dict]:
+        normalized_type, parent = self._get_parent_instance(parent_type, parent_id, owner=owner)
         ct = ContentType.objects.get_for_model(parent.__class__)
         docs = Document.objects.filter(
             parent_object_type=normalized_type,
@@ -26,8 +26,8 @@ class DocumentCrudMixin:
         ).order_by("-upload_date", "-id")
         return [d.to_dict() for d in docs]
 
-    def upload_document(self, parent_type: str, parent_id: int, uploaded_file, uploaded_by=None, category: str = "", notes: str = "") -> dict:
-        normalized_type, parent = self._get_parent_instance(parent_type, parent_id)
+    def upload_document(self, parent_type: str, parent_id: int, uploaded_file, uploaded_by=None, category: str = "", notes: str = "", owner=None) -> dict:
+        normalized_type, parent = self._get_parent_instance(parent_type, parent_id, owner=owner)
         payload = self._extract_file(uploaded_file)
         category_value = self._validate_category(normalized_type, category)
         file_hash = self._hash_content(payload.content)
@@ -59,11 +59,18 @@ class DocumentCrudMixin:
         )
         return doc.to_dict()
 
-    def get_document(self, document_id: int) -> Optional[Document]:
-        return Document.objects.filter(pk=document_id).first()
+    def get_document(self, document_id: int, owner=None) -> Optional[Document]:
+        doc = Document.objects.filter(pk=document_id).first()
+        if doc is None or owner is None:
+            return doc
+        parent = doc.parent_object
+        parent_owner = getattr(parent, "owner", None)
+        if parent_owner is None and hasattr(parent, "asset"):
+            parent_owner = getattr(parent.asset, "owner", None)
+        return doc if parent_owner == owner else None
 
-    def replace_document(self, document_id: int, uploaded_file, uploaded_by=None, category: Optional[str] = None, notes: Optional[str] = None) -> dict:
-        doc = self.get_document(document_id)
+    def replace_document(self, document_id: int, uploaded_file, uploaded_by=None, category: Optional[str] = None, notes: Optional[str] = None, owner=None) -> dict:
+        doc = self.get_document(document_id, owner=owner)
         if doc is None:
             raise ValidationError("document_not_found")
 
@@ -95,15 +102,15 @@ class DocumentCrudMixin:
         doc.save()
         return doc.to_dict()
 
-    def delete_document(self, document_id: int) -> bool:
-        doc = self.get_document(document_id)
+    def delete_document(self, document_id: int, owner=None) -> bool:
+        doc = self.get_document(document_id, owner=owner)
         if doc is None:
             return False
         doc.delete()
         return True
 
-    def get_document_content(self, document_id: int) -> Tuple[Optional[dict], Optional[bytes]]:
-        doc = self.get_document(document_id)
+    def get_document_content(self, document_id: int, owner=None) -> Tuple[Optional[dict], Optional[bytes]]:
+        doc = self.get_document(document_id, owner=owner)
         if doc is None:
             return None, None
         return doc.to_dict(), bytes(doc.file_content or b"")

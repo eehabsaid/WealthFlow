@@ -1,6 +1,9 @@
 from datetime import date
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
+
+User = get_user_model()
 
 from core.models import BalanceEntry, Currency
 from core.services.financial_advisor.cash_flow_forecast_service.custom_projection import (
@@ -10,16 +13,19 @@ from core.services.financial_advisor.cash_flow_forecast_service.custom_projectio
 
 class CustomCashProjectionTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_ccp2", password="pass12345")
         self.egp = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
         self.usd = Currency.objects.create(code="USD", symbol="$", name="US Dollar")
 
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Home Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             currency=self.egp,
             amount=1000,
         )
         BalanceEntry.objects.create(
+            owner=self.user,
             title="USD Wallet",
             balance_type=BalanceEntry.BalanceType.CASH,
             currency=self.usd,
@@ -28,6 +34,7 @@ class CustomCashProjectionTest(TestCase):
 
     def test_egp_only_scope_excludes_other_currencies(self):
         result = compute_custom_cash_projection(
+            self.user,
             today=date(2026, 1, 1),
             target_date=date(2026, 1, 31),
             exclude_event_types=[],
@@ -40,6 +47,7 @@ class CustomCashProjectionTest(TestCase):
 
     def test_invalid_currency_scope_falls_back_to_egp_only(self):
         result = compute_custom_cash_projection(
+            self.user,
             today=date(2026, 1, 1),
             target_date=date(2026, 1, 31),
             exclude_event_types=[],
@@ -49,6 +57,7 @@ class CustomCashProjectionTest(TestCase):
 
     def test_unknown_exclude_types_are_ignored_not_errored(self):
         result = compute_custom_cash_projection(
+            self.user,
             today=date(2026, 1, 1),
             target_date=date(2026, 1, 31),
             exclude_event_types=["not_a_real_type", "salary"],
@@ -58,6 +67,7 @@ class CustomCashProjectionTest(TestCase):
 
     def test_no_events_beyond_target_date_are_included(self):
         result = compute_custom_cash_projection(
+            self.user,
             today=date(2026, 1, 1),
             target_date=date(2026, 1, 5),
             exclude_event_types=[],

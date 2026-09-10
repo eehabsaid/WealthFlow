@@ -15,10 +15,19 @@ def _to_decimal(value, default="0") -> Decimal:
         return Decimal(default)
 
 class FinancialSyncService:
-    def __init__(self):
+    def __init__(self, owner=None):
+        self.owner = owner
+        self._net_worth_service_cache = None
+
+    @property
+    def _net_worth_service(self):
         from core.services.balance.net_worth_service import NetWorthService
 
-        self._net_worth_service = NetWorthService()
+        if self._net_worth_service_cache is None:
+            if self.owner is None:
+                raise ValueError("FinancialSyncService needs an owner to access NetWorthService-backed data")
+            self._net_worth_service_cache = NetWorthService(self.owner)
+        return self._net_worth_service_cache
 
     def _rental_balance_note(self, asset_id: int) -> str:
         return f"{RENTAL_BALANCE_NOTE_PREFIX}{asset_id}"
@@ -36,19 +45,21 @@ class FinancialSyncService:
             Decimal("0.01")
         )
 
-    def monthly_rental_income_total(self) -> Decimal:
+    def monthly_rental_income_total(self, owner=None) -> Decimal:
         total = Decimal("0")
         rentals = (
             AssetRental.objects.select_related("asset")
             .filter(asset__asset_type__in=REAL_ESTATE_ASSET_TYPES, asset__status="Owned")
             .order_by("id")
         )
+        if owner is not None:
+            rentals = rentals.filter(asset__owner=owner)
         for rental in rentals:
             total += self.rental_income_amount(rental)
         return total.quantize(Decimal("0.01"))
 
-    def period_rental_income_total(self, period: str | None = None) -> Decimal:
-        monthly_total = self.monthly_rental_income_total()
+    def period_rental_income_total(self, period: str | None = None, owner=None) -> Decimal:
+        monthly_total = self.monthly_rental_income_total(owner)
         period_value = str(period or "month").strip().lower()
 
         if period_value == "year":

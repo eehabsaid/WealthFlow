@@ -15,11 +15,14 @@ User = get_user_model()
 
 class DocumentManagementApiTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_doc", password="pass12345")
+        self.client.force_login(self.user)
         self.currency = Currency.objects.create(code="EGP", symbol="L", name="Egyptian Pound")
-        self.bank = Bank.objects.create(name="QNB")
+        self.bank = Bank.objects.create(name="QNB", owner=self.user)
         # Matching cash balance entry required for certificate saves to
         # succeed (see certificate_balance_deduction_service.py).
         BalanceEntry.objects.create(
+            owner=self.user,
             title="QNB Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=self.bank,
@@ -27,6 +30,7 @@ class DocumentManagementApiTest(TestCase):
             amount=100000,
         )
         self.asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Doc Asset",
             asset_type="Other Assets",
             status="Owned",
@@ -35,6 +39,7 @@ class DocumentManagementApiTest(TestCase):
             current_market_value=1200,
         )
         self.certificate = BankCertificate.objects.create(
+            owner=self.user,
             bank=self.bank,
             currency=self.currency,
             issue_date=date(2026, 1, 1),

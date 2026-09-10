@@ -15,7 +15,7 @@ from core.constants import (
 from core.utils import (
     _parse_iso_date,
 )
-from core.services.expenses.expense_service import _apply_expense_balance_delta
+from core.services.expenses.expense_balance_helpers import _apply_expense_balance_delta
 
 def _sync_other_asset_details(asset, details_data):
     if asset.asset_type not in OTHER_ASSET_TYPES or not details_data:
@@ -74,7 +74,7 @@ def _sync_asset_mortgage(asset, mortgage_data):
 def _sync_asset_rental(asset, rental_data):
     if asset.asset_type not in REAL_ESTATE_ASSET_TYPES or not rental_data:
         if hasattr(asset, "rental"):
-            _reverse_rental_balance(asset.rental)
+            _reverse_rental_balance(asset.rental, asset.owner)
             asset.rental.delete()
         return
 
@@ -92,7 +92,7 @@ def _sync_asset_rental(asset, rental_data):
 
     if not has_values:
         if hasattr(asset, "rental"):
-            _reverse_rental_balance(asset.rental)
+            _reverse_rental_balance(asset.rental, asset.owner)
             asset.rental.delete()
         return
 
@@ -117,16 +117,16 @@ def _sync_asset_rental(asset, rental_data):
         )
 
         if previous_amount > 0 and previous_method:
-            _apply_expense_balance_delta(previous_method, previous_bank_id, -previous_amount)
+            _apply_expense_balance_delta(previous_method, previous_bank_id, -previous_amount, owner=asset.owner)
 
         new_amount = Decimal(str(rental.monthly_rent or 0))
         if new_amount > 0:
-            _apply_expense_balance_delta(rental.receive_method, rental.bank_id, new_amount)
+            _apply_expense_balance_delta(rental.receive_method, rental.bank_id, new_amount, owner=asset.owner)
 
-def _reverse_rental_balance(rental):
+def _reverse_rental_balance(rental, owner):
     if rental is None:
         return
     amount = Decimal(str(rental.monthly_rent or 0))
     if amount > 0 and rental.receive_method:
-        _apply_expense_balance_delta(rental.receive_method, rental.bank_id, -amount)
+        _apply_expense_balance_delta(rental.receive_method, rental.bank_id, -amount, owner=owner)
 

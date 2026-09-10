@@ -1,8 +1,13 @@
+from django.conf import settings
 from django.db import models
 from ..bank import Bank
 from ..currency import Currency
 
 class BalanceEntry(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="balance_entries",
+    )
     title = models.CharField(max_length=200)
     
     # Clean, scalable choice definition

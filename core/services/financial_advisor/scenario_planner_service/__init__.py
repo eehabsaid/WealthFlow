@@ -73,27 +73,30 @@ __all__ = [
 class ScenarioPlannerService(OverridesMixin, RetirementMixin, InsightsMixin, PayloadMixin):
     """Computes projections, comparison, and insights for Scenario Planner."""
 
-    def __init__(self, today: date | None = None, user=None):
+    def __init__(self, user, today: date | None = None):
         self.today = today or date.today()
         self.user = user
         self.config = dict(SCENARIO_PLANNER_CONFIG)
-        self._net_worth_service = NetWorthService()
+        self._net_worth_service = NetWorthService(user)
         self._forecast_service = WealthGrowthForecastService(
+            user,
             today=self.today,
             net_worth_service=self._net_worth_service,
         )
         self._cash_flow_service = CashFlowForecastService(
+            user,
             today=self.today,
             net_worth_service=self._net_worth_service,
         )
         self._goal_service = GoalPlanningService(
+            user,
             today=self.today,
             net_worth_service=self._net_worth_service,
         )
 
     def _get_current_real_debt(self) -> float:
         """Fetch total real debt from AssetMortgage model."""
-        mortgages = AssetMortgage.objects.all()
+        mortgages = AssetMortgage.objects.filter(asset__owner=self.user)
         rates = self._net_worth_service.portfolio_components().get("rates", {})
         total_debt = 0.0
         for m in mortgages:

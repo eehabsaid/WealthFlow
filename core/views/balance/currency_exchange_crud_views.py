@@ -9,22 +9,25 @@ from django.db import models, transaction
 
 from core.models import CurrencyExchange, BalanceEntry
 from core.services.shared.currency_conversion_service import CurrencyConversionService
+from core.validators import _api_auth_required
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CurrencyExchangeListView(View):
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         qs = CurrencyExchange.objects.select_related(
             "from_balance", "from_balance__bank", "from_currency",
             "to_balance", "to_balance__bank", "to_currency",
             "user", "reversed_by"
-        ).all()
+        ).filter(user=request.user)
 
         start_date = request.GET.get("start_date")
         end_date = request.GET.get("end_date")
         currency_code = request.GET.get("currency")
         balance_id = request.GET.get("balance_id")
-        user_param = request.GET.get("user")
         status_param = request.GET.get("status")
 
         if start_date:
@@ -41,17 +44,15 @@ class CurrencyExchangeListView(View):
                 models.Q(from_balance_id=balance_id) |
                 models.Q(to_balance_id=balance_id)
             )
-        if user_param:
-            qs = qs.filter(
-                models.Q(user__username__icontains=user_param) |
-                models.Q(user_id=user_param if user_param.isdigit() else None)
-            )
         if status_param and status_param.upper() != "ALL":
             qs = qs.filter(status=status_param.upper())
 
         return JsonResponse({"exchanges": [e.to_dict() for e in qs]})
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
             data = json.loads(request.body)
             exchange_date = data["exchange_date"]
@@ -66,8 +67,8 @@ class CurrencyExchangeListView(View):
             if from_amount <= 0:
                 return JsonResponse({"error": "invalid_amount_error"}, status=400)
 
-            from_balance = get_object_or_404(BalanceEntry, pk=from_balance_id)
-            to_balance = get_object_or_404(BalanceEntry, pk=to_balance_id)
+            from_balance = get_object_or_404(BalanceEntry, pk=from_balance_id, owner=request.user)
+            to_balance = get_object_or_404(BalanceEntry, pk=to_balance_id, owner=request.user)
 
             if from_balance.currency_id == to_balance.currency_id:
                 return JsonResponse({"error": "same_currency_error"}, status=400)
@@ -91,7 +92,7 @@ class CurrencyExchangeListView(View):
                     to_amount=to_amount,
                     exchange_rate=applied_rate,
                     notes=notes,
-                    user=request.user if hasattr(request, "user") and request.user.is_authenticated else None
+                    user=request.user
                 )
                 exchange.apply_exchange()
 
@@ -105,8 +106,11 @@ class CurrencyExchangeListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class CurrencyExchangeDetailView(View):
     def put(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
-            exchange = get_object_or_404(CurrencyExchange, pk=pk)
+            exchange = get_object_or_404(CurrencyExchange, pk=pk, user=request.user)
             if exchange.status == CurrencyExchange.Status.REVERSED:
                 return JsonResponse({"error": "cannot_edit_reversed_error"}, status=400)
 
@@ -123,8 +127,8 @@ class CurrencyExchangeDetailView(View):
             if from_amount <= 0:
                 return JsonResponse({"error": "invalid_amount_error"}, status=400)
 
-            from_balance = get_object_or_404(BalanceEntry, pk=from_balance_id)
-            to_balance = get_object_or_404(BalanceEntry, pk=to_balance_id)
+            from_balance = get_object_or_404(BalanceEntry, pk=from_balance_id, owner=request.user)
+            to_balance = get_object_or_404(BalanceEntry, pk=to_balance_id, owner=request.user)
 
             custom_rate = Decimal(str(custom_rate_raw)) if custom_rate_raw and float(custom_rate_raw) > 0 else None
             from_code = from_balance.currency.code if from_balance.currency else "EGP"
@@ -159,8 +163,11 @@ class CurrencyExchangeDetailView(View):
             return JsonResponse({"error": str(e)}, status=400)
 
     def delete(self, request, pk):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         try:
-            exchange = get_object_or_404(CurrencyExchange, pk=pk)
+            exchange = get_object_or_404(CurrencyExchange, pk=pk, user=request.user)
             with transaction.atomic():
                 exchange.reverse_exchange(user=request.user if hasattr(request, "user") and request.user.is_authenticated else None, is_edit=False)
             return JsonResponse({"reversed": pk, "status": "REVERSED", "exchange": exchange.to_dict()})

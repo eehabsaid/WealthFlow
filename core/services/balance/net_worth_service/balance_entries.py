@@ -19,7 +19,7 @@ from core.services.balance.net_worth_service.helpers import REAL_ESTATE_ASSET_TY
 class ProjectedBalanceEntriesMixin:
     def _projected_balance_entries(self) -> List[dict]:
         def _load():
-            entries = list(BalanceEntry.objects.select_related("bank", "currency").all())
+            entries = list(BalanceEntry.objects.select_related("bank", "currency").filter(owner=self.owner))
             cert_map = self._certificate_projection_map()
             egp_currency = Currency.objects.filter(code__iexact="EGP").first()
             virtual_entries: List[dict] = []
@@ -44,7 +44,7 @@ class ProjectedBalanceEntriesMixin:
 
             rental_qs = (
                 AssetRental.objects.select_related("asset")
-                .filter(asset__asset_type__in=REAL_ESTATE_ASSET_TYPES, asset__status="Owned")
+                .filter(asset__owner=self.owner, asset__asset_type__in=REAL_ESTATE_ASSET_TYPES, asset__status="Owned")
                 .order_by("id")
             )
             for rental in rental_qs:
@@ -63,7 +63,7 @@ class ProjectedBalanceEntriesMixin:
 
             mortgage_qs = (
                 AssetMortgage.objects.select_related("asset")
-                .filter(asset__asset_type__in=REAL_ESTATE_ASSET_TYPES, asset__status="Owned")
+                .filter(asset__owner=self.owner, asset__asset_type__in=REAL_ESTATE_ASSET_TYPES, asset__status="Owned")
                 .order_by("id")
             )
             for mortgage in mortgage_qs:

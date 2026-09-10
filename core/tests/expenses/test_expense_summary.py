@@ -12,7 +12,9 @@ User = get_user_model()
 
 class ExpenseSummaryIncomeTest(TestCase):
     def test_income_summary_uses_previous_month_salary_and_certificate_interest_window(self):
-        company = Company.objects.create(name="Acme", display_name="Acme")
+        self.user = User.objects.create_user(username="testuser_expsum", password="pass12345")
+        self.client.force_login(self.user)
+        company = Company.objects.create(owner=self.user, name="Acme", display_name="Acme")
         SalaryEntry.objects.create(
             company=company,
             year=2026,
@@ -25,6 +27,7 @@ class ExpenseSummaryIncomeTest(TestCase):
         # Matching cash balance entry required for certificate saves to
         # succeed (see certificate_balance_deduction_service.py).
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash (EGP)",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,
@@ -33,6 +36,7 @@ class ExpenseSummaryIncomeTest(TestCase):
         )
 
         BankCertificate.objects.create(
+            owner=self.user,
             currency=currency,
             issue_date=date(2026, 6, 1),
             expiry_date=date(2026, 8, 31),
@@ -41,6 +45,7 @@ class ExpenseSummaryIncomeTest(TestCase):
             status="Active",
         )
         BankCertificate.objects.create(
+            owner=self.user,
             currency=currency,
             issue_date=date(2026, 6, 1),
             expiry_date=date(2026, 8, 31),
@@ -49,6 +54,7 @@ class ExpenseSummaryIncomeTest(TestCase):
             status="Inactive",
         )
         BankCertificate.objects.create(
+            owner=self.user,
             currency=currency,
             issue_date=date(2026, 9, 1),
             expiry_date=date(2026, 10, 31),

@@ -51,7 +51,8 @@ class NetWorthService(NetWorthDataAccessMixin, NetWorthPortfolioMixin):
     _shared_cache: Dict[str, Any] = {}
     _shared_cache_time: float = 0.0
 
-    def __init__(self, cache: Dict[str, Any] | None = None):
+    def __init__(self, owner, cache: Dict[str, Any] | None = None):
+        self.owner = owner
         self._cache = cache if cache is not None else {}
 
     def _cached(self, key: str, producer: Callable[[], T]) -> T:

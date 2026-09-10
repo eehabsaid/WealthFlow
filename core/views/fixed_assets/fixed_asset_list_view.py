@@ -11,6 +11,7 @@ from core.models import (
     RealEstateDetails,
 )
 from core.services.balance.net_worth_service import NetWorthService
+from core.validators import _api_auth_required
 from core.services.fixed_assets.asset_purchase_service import _apply_asset_purchase_rows_delta, _normalize_purchase_payments_payload, _sync_asset_purchase_payments
 from core.services.fixed_assets.vehicle_service import _sync_vehicle_details
 from core.services.fixed_assets.gold_sync_service import _sync_gold_balance_from_assets, _sync_gold_details
@@ -27,6 +28,9 @@ from core.views.fixed_assets.fixed_asset_helpers import (
 class FixedAssetListView(View):
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         qs = (
             FixedAsset.objects.select_related(
                 "real_estate",
@@ -47,7 +51,7 @@ class FixedAssetListView(View):
                 "purchase_payments",
                 "purchase_payments__currency",
             )
-            .all()
+            .filter(owner=request.user)
             .order_by("name")
         )
 
@@ -60,7 +64,7 @@ class FixedAssetListView(View):
         if status:
             qs = qs.filter(status=status)
 
-        service = NetWorthService()
+        service = NetWorthService(request.user)
         return JsonResponse(
             {
                 "assets": [a.to_dict() for a in qs],
@@ -69,6 +73,9 @@ class FixedAssetListView(View):
         )
 
     def post(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         data = json.loads(request.body)
         re = data.get("real_estate_details")
         vehicle_details = data.get("vehicle_details")
@@ -88,6 +95,7 @@ class FixedAssetListView(View):
                 usd_rate, price_usd = _resolve_asset_usd_rate_and_price(data)
 
                 asset = FixedAsset.objects.create(
+                    owner=request.user,
                     name=data["name"],
                     asset_type=data["asset_type"],
                     status=data.get("status", "Owned"),
@@ -147,10 +155,10 @@ class FixedAssetListView(View):
                 _sync_asset_valuation_history(asset, data.get("valuation_history", []))
                 _clear_non_selected_asset_details(asset)
 
-                _apply_asset_purchase_rows_delta(purchase_rows, sign=-1)
+                _apply_asset_purchase_rows_delta(purchase_rows, sign=-1, owner=request.user)
                 _sync_asset_purchase_payments(asset, purchase_rows)
 
-                _sync_gold_balance_from_assets()
+                _sync_gold_balance_from_assets(request.user)
 
         except ValueError as exc:
             return JsonResponse(

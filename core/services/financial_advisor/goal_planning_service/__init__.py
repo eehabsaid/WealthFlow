@@ -29,13 +29,15 @@ class GoalPlanningService(
 ):
     def __init__(
         self,
+        owner,
         today: date | None = None,
         net_worth_service: NetWorthService | None = None,
         *,
         monthly_capacity_override: float | None = None,
     ):
+        self.owner = owner
         self.today = today or date.today()
-        self._net_worth_service = net_worth_service or NetWorthService()
+        self._net_worth_service = net_worth_service or NetWorthService(owner)
         self._capacity_override = monthly_capacity_override
 
     def payload(self) -> dict:
@@ -43,7 +45,7 @@ class GoalPlanningService(
         monthly_capacity_egp = self._monthly_capacity_egp()
 
         goal_rows = list(
-            Goal.objects.select_related("currency", "linked_asset").all().order_by("target_date", "id")
+            Goal.objects.select_related("currency", "linked_asset").filter(owner=self.owner).order_by("target_date", "id")
         )
         goals = [self._goal_calc(goal, rates, monthly_capacity_egp) for goal in goal_rows]
         goals_sorted = sorted(

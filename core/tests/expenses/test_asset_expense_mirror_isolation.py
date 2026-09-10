@@ -18,7 +18,10 @@ User = get_user_model()
 
 class AssetExpenseMirrorIsolationTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username="testuser_mirror_iso", password="pass12345")
+        self.client.force_login(self.user)
         self.asset = FixedAsset.objects.create(
+            owner=self.user,
             name="Nile View Apartment",
             asset_type="Real Estate",
             status="Owned",
@@ -35,6 +38,7 @@ class AssetExpenseMirrorIsolationTest(TestCase):
 
     def test_mirror_via_acquisition_cost_endpoint_with_string_date(self):
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,
@@ -59,6 +63,7 @@ class AssetExpenseMirrorIsolationTest(TestCase):
 
     def test_mirror_via_renovation_endpoint_with_string_date(self):
         BalanceEntry.objects.create(
+            owner=self.user,
             title="Cash",
             balance_type=BalanceEntry.BalanceType.CASH,
             bank=None,
@@ -112,11 +117,11 @@ class AssetExpenseMirrorIsolationTest(TestCase):
         mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
 
         with self.assertRaises(ValueError) as ctx:
-            ExpenseService.update_expense(mirror.id, {"amount": 9999})
+            ExpenseService.update_expense(mirror.id, {"amount": 9999}, self.user)
         self.assertEqual(str(ctx.exception), "readonly_mirrored_expense")
 
         with self.assertRaises(ValueError) as ctx:
-            ExpenseService.delete_expense(mirror.id)
+            ExpenseService.delete_expense(mirror.id, self.user)
         self.assertEqual(str(ctx.exception), "readonly_mirrored_expense")
 
         # Untouched

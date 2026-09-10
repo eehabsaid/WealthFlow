@@ -18,8 +18,11 @@ from core.views.balance.forecasts.shared import _api_auth_required
 @method_decorator(csrf_exempt, name="dispatch")
 class CertificateForecastView(View):
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         _run_certificate_interest_sync()
-        return JsonResponse(NetWorthService().certificate_forecast_payload(today=datetime.date.today()))
+        return JsonResponse(NetWorthService(request.user).certificate_forecast_payload(today=datetime.date.today()))
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -29,7 +32,7 @@ class CashFlowForecastView(View):
         if auth_error:
             return auth_error
         _run_certificate_interest_sync()
-        payload = CashFlowForecastService(today=datetime.date.today()).payload()
+        payload = CashFlowForecastService(request.user, today=datetime.date.today()).payload()
         return JsonResponse(payload)
 
 
@@ -79,6 +82,7 @@ class CashFlowCustomProjectionView(View):
         currency_scope = request.GET.get("currency_scope", "egp_only")
 
         payload = compute_custom_cash_projection(
+            request.user,
             today=today,
             target_date=target_date,
             exclude_event_types=exclude_types,
@@ -94,7 +98,7 @@ class WealthGrowthForecastView(View):
         if auth_error:
             return auth_error
         _run_certificate_interest_sync()
-        payload = WealthGrowthForecastService(today=datetime.date.today()).payload()
+        payload = WealthGrowthForecastService(request.user, today=datetime.date.today()).payload()
         return JsonResponse(payload)
 
 
@@ -105,31 +109,32 @@ class PortfolioOptimizerView(View):
         if auth_error:
             return auth_error
         _run_certificate_interest_sync()
-        payload = PortfolioOptimizerService(today=datetime.date.today()).payload()
+        payload = PortfolioOptimizerService(request.user, today=datetime.date.today()).payload()
         return JsonResponse(payload)
 
 
-_overview_cache = None
-_overview_cache_expiry = 0.0
+# Keyed by user id so one user's cached payload is never served to another
+# — a bare module-level (payload, expiry) tuple would leak across users.
+_overview_cache: dict = {}
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class OverviewView(View):
     def get(self, request):
-        global _overview_cache, _overview_cache_expiry
-
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
 
         now = time.time()
-        if _overview_cache is not None and now < _overview_cache_expiry:
-            return JsonResponse(_overview_cache)
+        cached = _overview_cache.get(request.user.id)
+        if cached is not None:
+            payload, expiry = cached
+            if now < expiry:
+                return JsonResponse(payload)
 
         _run_certificate_interest_sync()
-        payload = OverviewService(today=datetime.date.today()).payload()
+        payload = OverviewService(request.user, today=datetime.date.today()).payload()
 
-        _overview_cache = payload
-        _overview_cache_expiry = now + 30.0
+        _overview_cache[request.user.id] = (payload, now + 30.0)
 
         return JsonResponse(payload)

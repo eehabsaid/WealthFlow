@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from datetime import date, datetime
 
@@ -11,6 +12,10 @@ def _date_to_iso(value):
 
 
 class Scenario(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name="scenarios",
+    )
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     is_baseline_pinned = models.BooleanField(default=False)

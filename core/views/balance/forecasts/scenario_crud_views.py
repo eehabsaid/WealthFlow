@@ -7,6 +7,7 @@ from django.utils.decorators import method_decorator
 from core.models.scenario import Scenario, ScenarioEvent
 from core.services.financial_advisor.scenario_planner_service import create_scenario_record
 from core.views.balance.forecasts.shared import _api_auth_required
+from core.validators import _owned_object_or_404, _owned_queryset
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -15,7 +16,7 @@ class ScenarioListCreateView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        scenarios = [sc.to_dict() for sc in Scenario.objects.all()]
+        scenarios = [sc.to_dict() for sc in _owned_queryset(Scenario, request)]
         return JsonResponse({"scenarios": scenarios})
 
     def post(self, request):
@@ -29,6 +30,7 @@ class ScenarioListCreateView(View):
 
         try:
             sc = create_scenario_record(
+                request.user,
                 name=body.get("name"),
                 description=body.get("description", ""),
                 is_baseline_pinned=body.get("is_baseline_pinned", False),
@@ -46,7 +48,7 @@ class ScenarioDetailView(View):
         if auth_error:
             return auth_error
         try:
-            sc = Scenario.objects.get(pk=pk)
+            sc = _owned_object_or_404(Scenario, pk, request)
             return JsonResponse(sc.to_dict())
         except Scenario.DoesNotExist:
             return JsonResponse({"error": "Scenario not found"}, status=404)
@@ -56,7 +58,7 @@ class ScenarioDetailView(View):
         if auth_error:
             return auth_error
         try:
-            sc = Scenario.objects.get(pk=pk)
+            sc = _owned_object_or_404(Scenario, pk, request)
         except Scenario.DoesNotExist:
             return JsonResponse({"error": "Scenario not found"}, status=404)
 
@@ -82,7 +84,7 @@ class ScenarioDetailView(View):
         if auth_error:
             return auth_error
         try:
-            sc = Scenario.objects.get(pk=pk)
+            sc = _owned_object_or_404(Scenario, pk, request)
             sc.delete()
             return JsonResponse({"status": "deleted"})
         except Scenario.DoesNotExist:
@@ -95,10 +97,11 @@ class ScenarioDuplicateView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        sc = Scenario.objects.filter(id=pk).prefetch_related("events").first()
+        sc = Scenario.objects.filter(id=pk, owner=request.user).prefetch_related("events").first()
         if not sc:
             return JsonResponse({"error": "Scenario not found"}, status=404)
         new_sc = Scenario.objects.create(
+            owner=request.user,
             name=f"{sc.name} (Copy)",
             description=sc.description or "",
             is_baseline_pinned=False,

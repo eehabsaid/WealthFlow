@@ -9,6 +9,7 @@ build reportlab doc/styles -> section builders append to story -> render
 PDF bytes -> HttpResponse.
 """
 from core.reports.report_utils import get_translations, get_text
+from core.validators import _api_auth_required
 from core.reports.generate_report_generator.context import ReportContext
 from core.reports.generate_report_generator.data_phase import build_report_data
 from core.reports.generate_report_generator import styles as styles_mod
@@ -32,6 +33,10 @@ class GenerateReportGenerator(object):
         import json as _json
         from django.http import HttpResponse, JsonResponse
 
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+
         try:
             from reportlab.lib.pagesizes import A4
             from reportlab.lib.styles import getSampleStyleSheet
@@ -51,7 +56,7 @@ class GenerateReportGenerator(object):
         from core.reports.pdf_font_utils import get_arabic_pdf_font, process_pdf_text
         pdf_font, pdf_font_bold = get_arabic_pdf_font()
 
-        report_data = build_report_data(data, lang, t)
+        report_data = build_report_data(data, lang, t, request.user)
         ctx = ReportContext(lang=lang, t=t, pdf_font=pdf_font, pdf_font_bold=pdf_font_bold, **report_data)
 
         palette = styles_mod.build_colors()

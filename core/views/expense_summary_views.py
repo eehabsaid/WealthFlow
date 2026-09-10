@@ -8,6 +8,7 @@ from django.utils.decorators import method_decorator
 from django.db.models import Sum
 from core.models import SalaryEntry, Expense, BankCertificate
 from core.services.balance.financial_sync_service import FinancialSyncService
+from core.validators import _api_auth_required
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -15,11 +16,15 @@ class ExpenseSummaryView(View):
     """Returns monthly totals + category breakdown for charts."""
 
     def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
         import calendar
 
+        owner = request.user
         year = request.GET.get("year")
         month = request.GET.get("month")
-        qs = Expense.objects.all()
+        qs = Expense.objects.filter(owner=owner)
         if year:
             qs = qs.filter(year=int(year))
         if month:
@@ -41,7 +46,7 @@ class ExpenseSummaryView(View):
         for m in range(1, 13):
             y = int(year) if year else datetime.date.today().year
             total = (
-                Expense.objects.filter(year=y, month=m).aggregate(t=Sum("amount_egp"))["t"]
+                Expense.objects.filter(owner=owner, year=y, month=m).aggregate(t=Sum("amount_egp"))["t"]
                 or 0
             )
             monthly.append({"month": m, "total": float(total)})
@@ -98,6 +103,7 @@ class ExpenseSummaryView(View):
 
             prev_month_name = month_names[prev_month - 1]
             salary_qs = SalaryEntry.objects.filter(
+                company__owner=owner,
                 year=prev_year,
                 month__iexact=prev_month_name,
             )
@@ -106,36 +112,36 @@ class ExpenseSummaryView(View):
             )
 
             start_date, end_date = _month_bounds(target_year, target_month)
-            certs = BankCertificate.objects.all()
+            certs = BankCertificate.objects.filter(owner=owner)
             total_interest = sum(
                 float(c.interest_value or 0)
                 for c in certs
                 if _includes_in_period(c, start_date, end_date)
             )
-            rental_income = float(FinancialSyncService().period_rental_income_total("month"))
+            rental_income = float(FinancialSyncService().period_rental_income_total("month", owner))
         elif year:
             salary_amount = float(
-                SalaryEntry.objects.filter(year=int(year)).aggregate(total=Sum("paid"))["total"]
+                SalaryEntry.objects.filter(company__owner=owner, year=int(year)).aggregate(total=Sum("paid"))["total"]
                 or 0
             )
             start_date, end_date = _year_bounds(int(year))
-            certs = BankCertificate.objects.all()
+            certs = BankCertificate.objects.filter(owner=owner)
             total_interest = sum(
                 float(c.interest_value or 0)
                 for c in certs
                 if _includes_in_period(c, start_date, end_date)
             )
-            rental_income = float(FinancialSyncService().period_rental_income_total("year"))
+            rental_income = float(FinancialSyncService().period_rental_income_total("year", owner))
         else:
             today = datetime.date.today()
             start_date, end_date = _month_bounds(today.year, today.month)
             salary_amount = 0.0
             total_interest = sum(
                 float(c.interest_value or 0)
-                for c in BankCertificate.objects.all()
+                for c in BankCertificate.objects.filter(owner=owner)
                 if _includes_in_period(c, start_date, end_date)
             )
-            rental_income = float(FinancialSyncService().period_rental_income_total("month"))
+            rental_income = float(FinancialSyncService().period_rental_income_total("month", owner))
 
         total_income = salary_amount + total_interest + rental_income
 
