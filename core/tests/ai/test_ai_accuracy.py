@@ -34,15 +34,16 @@ class AIAccuracyTestSuite(TestCase):
         ExchangeRate.objects.create(currency_code="USD", currency_name="US Dollar", mid_rate=Decimal("50.00"), buy_rate=Decimal("50.00"), sell_rate=Decimal("50.00"))
 
         # Bank
-        self.bank = Bank.objects.create(name="CIB Bank")
+        self.bank = Bank.objects.create(name="CIB Bank", owner=self.user_a)
 
         # User Balances (EGP balance sized to cover the 200,000 certificate
         # principal deduction below; see certificate_balance_deduction_service.py)
-        BalanceEntry.objects.create(bank=self.bank, currency=self.egp, title="CIB EGP Current", amount=Decimal("300000.00"))
-        BalanceEntry.objects.create(bank=self.bank, currency=self.usd, title="CIB USD Savings", amount=Decimal("10000.00"))
+        BalanceEntry.objects.create(owner=self.user_a, bank=self.bank, currency=self.egp, title="CIB EGP Current", amount=Decimal("300000.00"))
+        BalanceEntry.objects.create(owner=self.user_a, bank=self.bank, currency=self.usd, title="CIB USD Savings", amount=Decimal("10000.00"))
 
         # User Certificates (post-save signal auto-syncs 200,000 EGP certificate balance entry)
         BankCertificate.objects.create(
+            owner=self.user_a,
             bank=self.bank,
             currency=self.egp,
             amount=Decimal("200000.00"),
@@ -57,15 +58,15 @@ class AIAccuracyTestSuite(TestCase):
         GoldPrice.objects.create(carat_24k=Decimal("3000.00"), carat_18k=Decimal("2250.00"))
 
         # User Gold Asset (100g of 18K Gold -> 100 * 2250 = 225,000 EGP)
-        gold_fa = FixedAsset.objects.create(name="Gold Bar 18K", asset_type="Gold", purchase_date=date(2025, 1, 1), purchase_price=Decimal("200000.00"), current_market_value=Decimal("225000.00"))
+        gold_fa = FixedAsset.objects.create(owner=self.user_a, name="Gold Bar 18K", asset_type="Gold", purchase_date=date(2025, 1, 1), purchase_price=Decimal("200000.00"), current_market_value=Decimal("225000.00"))
         GoldDetails.objects.create(asset=gold_fa, purity="18K", weight=Decimal("100.00"), unit="gram", market_price=Decimal("2250.00"))
 
         # Expenses
-        cat_housing = ExpenseCategory.objects.create(name="Housing")
-        Expense.objects.create(category=cat_housing, currency=self.egp, amount=Decimal("15000.00"), date=date(2026, 7, 1), year=2026, month=7)
+        cat_housing = ExpenseCategory.objects.create(owner=self.user_a, name="Housing")
+        Expense.objects.create(owner=self.user_a, category=cat_housing, currency=self.egp, amount=Decimal("15000.00"), date=date(2026, 7, 1), year=2026, month=7)
 
         # Salary
-        company = Company.objects.create(name="TechCorp", is_active=True)
+        company = Company.objects.create(owner=self.user_a, name="TechCorp", is_active=True)
         SalaryEntry.objects.create(company=company, year=2025, month="January", paid=Decimal("50000.00"), expected=Decimal("50000.00"))
         SalaryEntry.objects.create(company=company, year=2026, month="January", paid=Decimal("60000.00"), expected=Decimal("60000.00"))
 

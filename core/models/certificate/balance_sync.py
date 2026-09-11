@@ -103,7 +103,7 @@ def _sync_certificate_balance(bank_id, currency_id):
             bank_instance = Bank.objects.get(pk=bank_id)
             title_text = f"{bank_instance.name} Certificates Balance"
         except Bank.DoesNotExist:
-            title_text = "Certificates Balance"
+            return
 
         # Update matching row or build a clean new asset profile block automatically
         BalanceEntry.objects.update_or_create(
@@ -111,6 +111,7 @@ def _sync_certificate_balance(bank_id, currency_id):
             bank_id=bank_id,
             currency_id=currency_id,
             defaults={
+                "owner": bank_instance.owner,
                 "title": title_text,
                 "amount": total_amount,
                 "notes": "Automated system synchronization from active bank certificates profile pipeline."

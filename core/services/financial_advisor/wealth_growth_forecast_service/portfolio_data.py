@@ -37,7 +37,7 @@ class PortfolioDataMixin:
 
     def _get_active_certs(self):
         if not hasattr(self, "_cached_certs"):
-            self._cached_certs = list(BankCertificate.objects.select_related("currency").all())
+            self._cached_certs = list(BankCertificate.objects.select_related("currency").filter(owner=self.owner))
         return self._cached_certs
 
     def _active_certificate_principal_by_month(self, month_end: date) -> float:

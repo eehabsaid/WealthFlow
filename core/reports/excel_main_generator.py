@@ -48,7 +48,7 @@ def generate_excel(owner, output_path=None, lang="ar"):
     auto_adjust_columns(ws_ex)
 
     ws_gold = wb.create_sheet("Gold Price")
-    build_gold_price_sheet(ws_gold, GoldPrice.objects, balance_entries)
+    build_gold_price_sheet(ws_gold, GoldPrice.objects, balance_entries, owner)
     auto_adjust_columns(ws_gold)
 
     company_sheet_rows = {}

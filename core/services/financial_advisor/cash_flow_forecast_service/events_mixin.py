@@ -42,7 +42,7 @@ class EventsMixin:
         return out
 
     def _certificate_events(self, rates: Dict[str, float]) -> List[ForecastEvent]:
-        certs = list(BankCertificate.objects.select_related("bank", "currency").all())
+        certs = list(BankCertificate.objects.select_related("bank", "currency").filter(owner=self.owner))
         active_certs = [cert for cert in certs if _is_certificate_active(cert)]
         if not active_certs:
             return []

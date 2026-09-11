@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.models import Company, SalaryEntry
+from core.models import SalaryEntry
 from core.services.ai.providers.base import BaseContextProvider
 from core.services.ai.providers.salary_provider.aggregation import (
     compute_company_breakdown,
@@ -56,10 +56,7 @@ class SalaryDataProvider(BaseContextProvider):
         # 1. User Scoping
         qs = SalaryEntry.objects.all()
         if user and user.is_authenticated:
-            if hasattr(SalaryEntry, "user"):
-                qs = qs.filter(user=user)
-            elif hasattr(Company, "user"):
-                qs = qs.filter(company__user=user)
+            qs = qs.filter(company__owner=user)
 
         # 2. Complete ORM Aggregation
         totals = compute_totals(qs)

@@ -94,7 +94,7 @@ class NewAIToolsRegistryAnalyticsTest(TestCase):
         from core.models import Company, SalaryEntry
         from core.services.ai.providers.salary_provider import SalaryDataProvider
 
-        company = Company.objects.create(name="Test Giza Systems", is_active=True)
+        company = Company.objects.create(owner=self.user, name="Test Giza Systems", is_active=True)
         SalaryEntry.objects.create(company=company, year=2026, month="January", paid=87643.86, expected=87643.86, bonus=0)
         SalaryEntry.objects.create(company=company, year=2026, month="February", paid=87643.86, expected=87643.86, bonus=0)
         SalaryEntry.objects.create(company=company, year=2026, month="March", paid=87643.86, expected=87643.86, bonus=0)

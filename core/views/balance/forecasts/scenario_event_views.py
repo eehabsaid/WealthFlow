@@ -28,7 +28,7 @@ class ScenarioEventListCreateView(View):
         if auth_error:
             return auth_error
         try:
-            sc = Scenario.objects.get(pk=pk)
+            sc = Scenario.objects.get(pk=pk, owner=request.user)
             events = [ev.to_dict() for ev in sc.events.all()]
             return JsonResponse({"events": events})
         except Scenario.DoesNotExist:
@@ -39,7 +39,7 @@ class ScenarioEventListCreateView(View):
         if auth_error:
             return auth_error
         try:
-            sc = Scenario.objects.get(pk=pk)
+            sc = Scenario.objects.get(pk=pk, owner=request.user)
         except Scenario.DoesNotExist:
             return JsonResponse({"error": "Scenario not found"}, status=404)
 
@@ -65,14 +65,14 @@ class ScenarioEventListCreateView(View):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ScenarioEventDetailView(View):
-    def _get_event(self, pk, event_id):
-        return ScenarioEvent.objects.filter(scenario_id=pk, id=event_id).first()
+    def _get_event(self, pk, event_id, owner):
+        return ScenarioEvent.objects.filter(scenario_id=pk, id=event_id, scenario__owner=owner).first()
 
     def get(self, request, pk, event_id):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        ev = self._get_event(pk, event_id)
+        ev = self._get_event(pk, event_id, request.user)
         if not ev:
             return JsonResponse({"error": "Event not found"}, status=404)
         return JsonResponse(ev.to_dict())
@@ -81,7 +81,7 @@ class ScenarioEventDetailView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        ev = self._get_event(pk, event_id)
+        ev = self._get_event(pk, event_id, request.user)
         if not ev:
             return JsonResponse({"error": "Event not found"}, status=404)
 
@@ -106,7 +106,7 @@ class ScenarioEventDetailView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        ev = self._get_event(pk, event_id)
+        ev = self._get_event(pk, event_id, request.user)
         if not ev:
             return JsonResponse({"error": "Event not found"}, status=404)
         ev.delete()

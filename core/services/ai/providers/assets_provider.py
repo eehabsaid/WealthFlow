@@ -41,9 +41,8 @@ class FixedAssetsDataProvider(BaseContextProvider):
 
         # 1. Multi-tenant User Scoping
         qs = FixedAsset.objects.all()
-        has_user_field = any(f.name == "user" for f in FixedAsset._meta.fields)
-        if user and user.is_authenticated and has_user_field:
-            qs = qs.filter(user=user)
+        if user and user.is_authenticated:
+            qs = qs.filter(owner=user)
 
         qs = qs.order_by("-purchase_date", "-id")
 

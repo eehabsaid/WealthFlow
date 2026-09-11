@@ -41,9 +41,8 @@ class ExpensesDataProvider(BaseContextProvider):
 
         # 1. Multi-tenant User Scoping
         qs = Expense.objects.all()
-        has_user_field = any(f.name == "user" for f in Expense._meta.fields)
-        if user and user.is_authenticated and has_user_field:
-            qs = qs.filter(user=user)
+        if user and user.is_authenticated:
+            qs = qs.filter(owner=user)
 
         qs = qs.select_related("category", "currency").order_by("-date")
         if limit is not None and limit > 0:

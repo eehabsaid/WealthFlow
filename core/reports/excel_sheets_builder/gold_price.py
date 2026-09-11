@@ -16,7 +16,7 @@ from core.reports.excel_formatting_helpers import (
 )
 
 
-def build_gold_price_sheet(ws, gold_qs, balance_entries):
+def build_gold_price_sheet(ws, gold_qs, balance_entries, owner):
     ws.column_dimensions["A"].width = 18.6
     ws.column_dimensions["B"].width = 10.7
     ws.column_dimensions["C"].width = 10.7
@@ -118,7 +118,20 @@ def build_gold_price_sheet(ws, gold_qs, balance_entries):
         c_head.alignment = _center()
         c_head.border = _thin()
 
-    vals = ["=(C2+28.5)*(BALANCE!F2)", 897375, "=G11-H11"]
+    from core.models import FixedAsset
+    from django.db.models import Sum
+
+    paid_amount = 0
+    try:
+        paid_agg = FixedAsset.objects.filter(
+            owner=owner,
+            asset_type__icontains="gold",
+        ).aggregate(total=Sum("purchase_price"))
+        paid_amount = float(paid_agg.get("total") or 0)
+    except Exception:
+        pass
+
+    vals = ["=(C2+28.5)*(BALANCE!F2)", round(paid_amount, 2), "=G11-H11"]
     for c, val in enumerate(vals, 7):
         c_val = ws.cell(row=11, column=c, value=val)
         c_val.font = _f(name="Arial")

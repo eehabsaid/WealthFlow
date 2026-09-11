@@ -41,9 +41,8 @@ class BalanceDataProvider(BaseContextProvider):
 
         # 1. Multi-tenant User Scoping
         qs = BalanceEntry.objects.all()
-        has_user_field = any(f.name == "user" for f in BalanceEntry._meta.fields)
-        if user and user.is_authenticated and has_user_field:
-            qs = qs.filter(user=user)
+        if user and user.is_authenticated:
+            qs = qs.filter(owner=user)
 
         qs = qs.select_related("bank", "currency").order_by("-id")
 

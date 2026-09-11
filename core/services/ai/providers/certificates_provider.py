@@ -41,9 +41,8 @@ class BankCertificatesDataProvider(BaseContextProvider):
 
         # 1. Multi-tenant User Scoping
         qs = BankCertificate.objects.all()
-        has_user_field = any(f.name == "user" for f in BankCertificate._meta.fields)
-        if user and user.is_authenticated and has_user_field:
-            qs = qs.filter(user=user)
+        if user and user.is_authenticated:
+            qs = qs.filter(owner=user)
 
         active_qs = qs.filter(status__iexact="active").select_related("bank", "currency").order_by("-issue_date", "-id")
 
