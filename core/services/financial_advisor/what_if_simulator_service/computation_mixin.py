@@ -55,6 +55,7 @@ class ComputationMixin:
         """Call RiskAnalysisService itself with overridden inputs.  No scoring math is
         duplicated — the service's complete payload() pipeline runs with injected values."""
         svc = RiskAnalysisService(
+            self.owner,
             today=self.today,
             net_worth_service=self._net_worth_service,
             salary_override=salary_override,
