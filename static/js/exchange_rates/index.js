@@ -1,17 +1,17 @@
-// exchange_rates.js — Exchange Rates refresh handler + module exports.
+// index.js — Exchange Rates refresh handler + module exports.
 // Source: open.er-api.com (free, no key) → stored in Django DB
 // CBE scrape runs locally via Python backend on user's machine
 //
-// Split out into a small file group to stay under the 200-line-per-file
-// ceiling. Structural split only - no logic changes.
+// Domain folder for the Exchange Rates page - one directory per domain,
+// per convention. Structural split only - no logic changes.
 //
 // Siblings (loaded before this file, in templates/index.html):
 // - rates_meta.js: CURRENCY_META, TOP_CURRENCY_ORDER, sortRatesByPriority,
 //   fmtRate.
 // - rates_render.js: renderExchangeRates() - featured cards + full table.
 //
-// This file keeps the original exchange_rates.js entry point name and
-// handles the refresh button plus the window.* exports for this module.
+// This file handles the refresh button plus the window.* exports for
+// this module.
 
 // ════════════════════════════════════════════════════════════════════════════
 // EXCHANGE RATES REFRESH
