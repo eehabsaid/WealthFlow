@@ -1,0 +1,18 @@
+/*
+ * Responsive breakpoint styles — split into per-concern files.
+ * Siblings:
+ *   components.css       — general small-screen component tweaks (<=768px etc.)
+ *   settings_tabs.css     — settings tab bar responsive behavior
+ *   sidebar_desktop.css   — desktop (>=992px) sidebar layout
+ *   sidebar_mobile.css    — mobile (<992px) offcanvas sidebar
+ *   grid_forms.css        — KPI grid stacking + modal form tweaks
+ *   filters_expense.css   — expense/report filter stacking on mobile
+ * Load order does not matter for these (non-overlapping selectors/media
+ * queries), but this file re-imports them all as the umbrella entry point.
+ */
+@import url("components.css");
+@import url("settings_tabs.css");
+@import url("sidebar_desktop.css");
+@import url("sidebar_mobile.css");
+@import url("grid_forms.css");
+@import url("filters_expense.css");

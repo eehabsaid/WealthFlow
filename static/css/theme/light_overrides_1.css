@@ -1,0 +1,132 @@
+/* ── Light Theme Overrides ── */
+[data-theme="light"] body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .wf-tab,
+[data-theme="light"] .wf-dropdown-item {
+  color: #64748b;
+}
+
+[data-theme="light"] .wf-tab:hover,
+[data-theme="light"] .wf-dropdown-item:hover {
+  color: #0f172a;
+  background: rgb(100 116 139 / 8%);
+}
+
+[data-theme="light"] .wf-tab.active,
+[data-theme="light"] .wf-dropdown-item.active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+[data-theme="light"] .wf-more-menu {
+  background: #fff;
+  border-color: #e2e8f0;
+  box-shadow: 0 10px 30px rgb(15 23 42 / 8%);
+}
+
+[data-theme="light"] .portfolio-card {
+  background: linear-gradient(160deg, rgb(79 70 229 / 4%), rgb(255 255 255 / 98%));
+  border-color: #e2e8f0;
+  box-shadow: 0 6px 24px -4px rgb(15 23 42 / 6%);
+}
+
+[data-theme="light"] .portfolio-optimizer-header h4 {
+  color: #0f172a;
+}
+
+[data-theme="light"] .portfolio-optimizer-header p,
+[data-theme="light"] .portfolio-optimizer-date,
+[data-theme="light"] .portfolio-chart-footnote,
+[data-theme="light"] .portfolio-baseline-row,
+[data-theme="light"] .portfolio-opp-impact,
+[data-theme="light"] .portfolio-kv-row {
+  color: #475569;
+}
+
+[data-theme="light"] .portfolio-optimizer-date {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .portfolio-optimizer-date strong,
+[data-theme="light"] .portfolio-card-title,
+[data-theme="light"] .portfolio-score-center,
+[data-theme="light"] .portfolio-allocation-value,
+[data-theme="light"] .portfolio-allocation-pct,
+[data-theme="light"] .portfolio-rec-text,
+[data-theme="light"] .portfolio-opp-title,
+[data-theme="light"] .portfolio-kv-row strong,
+[data-theme="light"] .portfolio-baseline-row strong {
+  color: #0f172a;
+}
+
+[data-theme="light"] .portfolio-score-ring::after {
+  background: #fff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .portfolio-score-label {
+  color: #059669;
+}
+
+[data-theme="light"] .portfolio-score-footnote,
+[data-theme="light"] .portfolio-allocation-title,
+[data-theme="light"] .portfolio-allocation-range {
+  color: #64748b;
+}
+
+[data-theme="light"] .portfolio-allocation-card {
+  background: #fff;
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 10px rgb(15 23 42 / 3%);
+}
+
+[data-theme="light"] .portfolio-rec-item,
+[data-theme="light"] .portfolio-opp-item {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .goal-insights-card,
+[data-theme="light"] .goal-recommendations-card {
+  border-color: #e2e8f0;
+  background: linear-gradient(160deg, rgb(79 70 229 / 5%), #fff 60%);
+  box-shadow: 0 10px 30px rgb(15 23 42 / 6%);
+}
+
+[data-theme="light"] .goal-insight-item,
+[data-theme="light"] .goal-recommendation-item {
+  border-color: #e2e8f0;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 4%);
+}
+
+[data-theme="light"] .goal-insight-icon,
+[data-theme="light"] .goal-rec-icon {
+  border-color: #c7d2fe;
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+[data-theme="light"] .portfolio-table {
+  --bs-table-color: #0f172a;
+  --bs-table-border-color: #e2e8f0;
+}
+
+[data-theme="light"] .portfolio-table th {
+  color: #334155;
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+}
+
+[data-theme="light"] .portfolio-table td {
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .portfolio-table tbody tr {
+  background: #fff;
+}

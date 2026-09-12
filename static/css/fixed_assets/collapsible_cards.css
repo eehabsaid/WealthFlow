@@ -1,0 +1,109 @@
+/* Collapsible Cards & Summary Strip */
+.item-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 12px !important;
+  overflow: hidden;
+  display: block; /* Override bootstrap row display */
+  transition: border-color 0.15s ease;
+}
+
+.item-card.open {
+  border-color: var(--accent-primary);
+}
+
+.item-card .item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+}
+
+.item-card .item-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.item-card .item-chevron {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.item-card.open .item-chevron {
+  transform: rotate(90deg);
+}
+
+.item-card .item-name-preview {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-card .item-category-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.item-card .item-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.item-card .item-amount-preview {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.item-card .item-remove-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.item-card .item-remove-btn:hover {
+  background: color-mix(in srgb, var(--accent-red) 12%, transparent);
+}
+
+.item-card .item-body {
+  display: none;
+  padding: 4px 14px 16px;
+  border-top: 1px solid var(--border-color);
+  background: transparent;
+}
+
+.item-card.open .item-body {
+  display: block;
+}
+
+.item-card .field-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}

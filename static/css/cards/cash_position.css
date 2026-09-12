@@ -1,0 +1,89 @@
+/* Future Cash Position */
+.fi-cash-position-card .fi-amount-caption {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.fi-cash-position-card .fi-amount-value {
+  font-size: clamp(15px, 1.2vw + 12px, 18px);
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.fi-cash-position-card .fi-metric-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.fi-cash-position-card .fi-amount-tile {
+  min-height: 104px;
+  padding: 12px;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+}
+
+.fi-cash-position-card .fi-amount-grid-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fi-boardroom-card {
+  padding: 24px;
+  border-radius: var(--radius-lg, 16px);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.fi-top-grid .kpi-card,
+.fi-cash-grid .kpi-card {
+  margin-bottom: 0 !important;
+  min-height: 100%;
+  width: 100%;
+}
+
+.fi-top-grid .kpi-label,
+.fi-cash-grid .kpi-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fi-financial-card > .kpi-label::before,
+.fi-action-card > .kpi-label::before,
+.fi-investment-card > .kpi-label::before {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.fi-financial-card > .kpi-label::before {
+  content: "📊";
+}
+
+.fi-action-card > .kpi-label::before {
+  content: "🎯";
+}
+
+.fi-investment-card > .kpi-label::before {
+  content: "📈";
+}
+
+.fi-investment-card .fi-metric-grid,
+.fi-action-card .fi-metric-grid,
+.fi-financial-card .fi-metric-grid {
+  margin-top: 8px;
+}
+
+.fi-note-card {
+  margin-top: 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 8px);
+  padding: 12px 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+

@@ -1,0 +1,69 @@
+/* ══════════════════════════════════════
+   GRID / KPI cards
+   ══════════════════════════════════════ */
+
+/* Keep 2-col grid until 480px, then stack */
+@media (width <= 480px) {
+  #main-content .row > .col-6,
+  #main-content .row > .col-md-3,
+  #main-content .row > .col-md-4,
+  #main-content .row > .col-lg-3 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ══════════════════════════════════════
+   FORMS inside modals
+   ══════════════════════════════════════ */
+
+@media (width <= 575.98px) {
+  .year-pill {
+    padding: 4px 11px;
+    font-size: 11.5px;
+  }
+
+  /* Modal full width */
+  .modal-dialog {
+    margin: 8px;
+    max-width: calc(100% - 16px) !important;
+  }
+
+  /* Stack modal form columns */
+  .modal-body .row > [class*="col-"] {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Prevent iOS zoom on input focus */
+  .modal-body .form-control,
+  .modal-body .form-select {
+    font-size: 16px !important;
+    min-height: 44px !important;
+  }
+
+  /* Stack modal footer buttons */
+  .modal-footer {
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+  }
+
+  .modal-footer .btn {
+    width: 100% !important;
+  }
+
+  /* Toast full width */
+  #toast-container {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    width: auto !important;
+  }
+
+  .toast {
+    width: 100% !important;
+  }
+}
+

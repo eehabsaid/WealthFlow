@@ -1,0 +1,123 @@
+/* Financial Intelligence executive sections */
+.fi-section-title {
+  margin-top: 14px;
+  margin-bottom: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.fi-metric-tile {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 124px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+
+.fi-metric-tile.fi-priority {
+  border-color: var(--accent-primary);
+}
+
+.fi-metric-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.fi-metric-title {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fi-metric-main {
+  color: var(--text-primary);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.fi-metric-sub {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.fi-amount-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.fi-amount-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fi-amount-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.fi-amount-tile {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.fi-amount-tile.fi-up {
+  border-color: var(--accent-green);
+}
+
+.fi-amount-value {
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.fi-amount-tile.fi-up .fi-amount-value {
+  color: var(--accent-green);
+}
+
+.fi-amount-caption {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fi-top-grid {
+  align-items: stretch;
+}
+
+.fi-top-grid > [class*="col-"],
+.fi-cash-grid > [class*="col-"] {
+  display: flex;
+}
+
+.fi-emphasis-band {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: rgb(26 110 245 / 10%);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}

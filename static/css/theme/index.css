@@ -1,0 +1,16 @@
+/*
+ * Theme tokens and light/dark theme overrides — split into per-concern files.
+ * Siblings:
+ *   tokens.css              — dark-blue (default) and light theme CSS variable tokens
+ *   light_overrides_1.css   — light-theme element overrides, part 1
+ *   light_overrides_2.css   — light-theme element overrides, part 2
+ *   light_overrides_3.css   — light-theme element overrides, part 3
+ *   dark_overrides.css      — dark-blue theme overrides
+ * Parts are ordered fragments of a single original selector block; load in
+ * this order to preserve source order for the light-theme cascade.
+ */
+@import url("tokens.css");
+@import url("light_overrides_1.css");
+@import url("light_overrides_2.css");
+@import url("light_overrides_3.css");
+@import url("dark_overrides.css");

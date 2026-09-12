@@ -1,0 +1,36 @@
+/* ── Scenario Planner Component Extensions ── */
+.sp-event-type-card {
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.sp-event-type-card:hover {
+  border-color: var(--accent-primary) !important;
+}
+
+[data-theme="light"] .sp-event-type-card.border-primary {
+  background-color: rgb(26 110 245 / 8%) !important;
+}
+
+/* ── Custom Cash Projection: dark-theme calendar icon fix ──
+   Same fix already applied to #bal-pane-currency_exchange in balance.css —
+   native date-picker icons render dark-on-dark by default and become
+   effectively invisible without this. Also sets color-scheme, the more
+   complete modern fix (covers the native picker's own text/background,
+   not just the calendar icon) for broader browser coverage. */
+#custom_projection_date {
+  color-scheme: dark;
+}
+
+#custom_projection_date::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+}
+
+[data-theme="light"] #custom_projection_date {
+  color-scheme: light;
+}
+
+[data-theme="light"] #custom_projection_date::-webkit-calendar-picker-indicator {
+  filter: none;
+}

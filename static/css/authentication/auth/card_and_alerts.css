@@ -1,0 +1,119 @@
+/* si-modern-card glassmorphism container - Compact Fit */
+.auth-card,
+[si-modern-card] {
+  position: relative;
+  z-index: 1;
+  background: var(--wf-auth-bg-secondary);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--wf-auth-border);
+  border-radius: var(--wf-auth-radius);
+  padding: 20px 26px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: var(--wf-auth-shadow);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+  max-height: 96vh;
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+.auth-card.signup-card {
+  max-width: 520px;
+  padding: 18px 24px;
+}
+
+.auth-card:hover {
+  border-color: var(--wf-auth-border-hover);
+}
+
+.auth-logo {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.auth-logo .logo-icon {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, rgb(37 99 235 / 15%), rgb(124 58 237 / 15%));
+  border: 1px solid var(--wf-auth-border);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  box-shadow: 0 4px 16px var(--wf-auth-accent-glow);
+  transition: transform 0.3s ease;
+}
+
+.auth-logo:hover .logo-icon {
+  transform: scale(1.05);
+}
+
+.auth-logo h1 {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--wf-auth-text-primary);
+  margin-bottom: 2px;
+  letter-spacing: -0.02em;
+}
+
+.auth-logo p {
+  font-size: 11.5px;
+  color: var(--wf-auth-text-muted);
+}
+
+/* Alert Banners */
+.alert-dark-danger {
+  background: var(--wf-auth-red-bg);
+  border: 1px solid var(--wf-auth-red-border);
+  color: var(--wf-auth-red);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-dark-success {
+  background: var(--wf-auth-green-bg);
+  border: 1px solid var(--wf-auth-green-border);
+  color: var(--wf-auth-green);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Footer & Divider */
+.auth-divider {
+  border: none;
+  border-top: 1px solid var(--wf-auth-border);
+  margin: 12px 0;
+}
+
+.auth-footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--wf-auth-text-muted);
+}
+
+.auth-footer a {
+  color: var(--wf-auth-accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.auth-footer a:hover {
+  color: var(--wf-auth-accent-hover);
+}
+

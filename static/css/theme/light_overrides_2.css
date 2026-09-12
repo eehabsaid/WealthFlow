@@ -1,0 +1,127 @@
+
+[data-theme="light"] .portfolio-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+[data-theme="light"] .portfolio-gain-up {
+  color: #059669 !important;
+}
+
+[data-theme="light"] .portfolio-gain-down {
+  color: #e11d48 !important;
+}
+
+[data-theme="light"] .portfolio-warning {
+  color: #9f1239;
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+[data-theme="light"] .portfolio-healthy {
+  color: #047857;
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+[data-theme="light"] .portfolio-empty-state {
+  color: #64748b;
+}
+
+[data-theme="light"] .portfolio-badge-high {
+  color: #9f1239;
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+[data-theme="light"] .portfolio-badge-medium {
+  color: #92400e;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+[data-theme="light"] .portfolio-badge-low {
+  color: #1e40af;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+[data-theme="light"] .portfolio-badge-info {
+  color: #475569;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+[data-theme="light"] .goal-kpi-card,
+[data-theme="light"] .goal-card,
+[data-theme="light"] .goal-milestone-item,
+[data-theme="light"] .goal-toolbar .form-control,
+[data-theme="light"] .goal-toolbar .form-select {
+  background: #fff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .goal-planning-hero {
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .goal-planning-header h4,
+[data-theme="light"] .goal-card-title,
+[data-theme="light"] .goal-card-meta strong,
+[data-theme="light"] .goal-progress-label,
+[data-theme="light"] .goal-kpi-card strong,
+[data-theme="light"] .goal-milestone-title {
+  color: #0f172a;
+}
+
+[data-theme="light"] .goal-planning-header p,
+[data-theme="light"] .goal-kpi-card span,
+[data-theme="light"] .goal-card-sub,
+[data-theme="light"] .goal-card-meta,
+[data-theme="light"] .goal-milestone-meta,
+[data-theme="light"] .goal-milestone-side small,
+[data-theme="light"] .goal-toolbar .form-control::placeholder {
+  color: #64748b;
+}
+
+[data-theme="light"] .goal-kpi-card .goal-kpi-icon {
+  border-color: #c7d2fe;
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+[data-theme="light"] .goal-card-meta-strong strong {
+  color: #0f172a;
+}
+
+[data-theme="light"] .goal-progress-track {
+  background: #e2e8f0;
+}
+
+[data-theme="light"] .goal-editor-modal .goal-editor-surface {
+  background: #fff !important;
+  box-shadow: 0 20px 60px rgb(15 23 42 / 15%);
+}
+
+[data-theme="light"] .goal-editor-modal .goal-editor-header,
+[data-theme="light"] .goal-editor-modal .goal-editor-footer {
+  background: #f8fafc;
+}
+
+[data-theme="light"] .goal-editor-modal .form-control,
+[data-theme="light"] .goal-editor-modal .form-select,
+[data-theme="light"] .goal-editor-modal textarea {
+  background: #fff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .goal-editor-modal .modal-title,
+[data-theme="light"] .goal-editor-modal .form-label {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .goal-editor-modal .form-control::placeholder,
+[data-theme="light"] .goal-editor-modal textarea::placeholder {
+  color: #64748b !important;
+}

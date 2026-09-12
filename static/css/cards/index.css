@@ -1,0 +1,10 @@
+/*
+ * Card component styles — split into per-concern files.
+ * Siblings:
+ *   kpi_panels.css     — Modern Cards & KPI Panels base styles + top-edge lighting
+ *   cash_position.css  — Future Cash Position card styles
+ *   currency_cards.css — Currency cards (Balance module)
+ */
+@import url("kpi_panels.css");
+@import url("cash_position.css");
+@import url("currency_cards.css");

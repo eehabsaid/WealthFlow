@@ -1,0 +1,111 @@
+
+.item-card .field-grid .span-2 {
+  grid-column: span 2;
+}
+
+.item-card .field-grid .span-4 {
+  grid-column: span 4;
+}
+
+.item-card .field-grid .field {
+  min-width: 0;
+}
+
+.item-card .field-grid .field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-card .field-grid .field input,
+.item-card .field-grid .field select,
+.item-card .field-grid .field textarea {
+  width: 100%;
+  min-width: 0;
+  font-size: 13px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+}
+
+.item-card .field-grid .field .input-group {
+  flex-wrap: nowrap;
+}
+
+.item-card .field-grid .field .input-group input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.item-card .field-grid .field .input-group .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 8px 12px;
+}
+
+/* Summary strip style */
+.furniture-summary-strip {
+  display: flex;
+  gap: 20px;
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+
+.furniture-summary-strip .stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.furniture-summary-strip .stat-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.furniture-summary-strip .stat-value {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+@media (width <= 1024px) {
+  .item-card .field-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .item-card .field-grid .span-2 {
+    grid-column: span 2;
+  }
+}
+
+@media (width <= 700px) {
+  .item-card .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .item-card .field-grid .span-2,
+  .item-card .field-grid .span-4 {
+    grid-column: span 1;
+  }
+
+  .item-card .item-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .item-card .item-name-preview {
+    max-width: 100px;
+  }
+}

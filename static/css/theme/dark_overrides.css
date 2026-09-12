@@ -1,0 +1,12 @@
+/* ── Dark Blue Theme Overrides ── */
+[data-theme="dark"] #sidebar {
+  background: linear-gradient(180deg, #101726 0%, #0a0f1e 100%);
+  border-right: 1px solid rgb(92 140 230 / 24%);
+  box-shadow: 10px 0 30px rgb(0 0 0 / 45%);
+}
+
+[data-theme="dark"] #topbar {
+  background: rgb(13 21 48 / 88%);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgb(92 140 230 / 24%);
+}

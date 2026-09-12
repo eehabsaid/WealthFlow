@@ -1,0 +1,10 @@
+/*
+ * Authentication page design system — split into per-concern files.
+ * Siblings:
+ *   core_theme.css        — core theme/layout, scrollbar prevention, ambient glows
+ *   card_and_alerts.css   — glassmorphism card container, alert banners, footer/divider
+ *   controls_and_forms.css — language/theme toggle, form section divider, checkboxes
+ */
+@import url("core_theme.css");
+@import url("card_and_alerts.css");
+@import url("controls_and_forms.css");

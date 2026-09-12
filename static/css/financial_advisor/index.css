@@ -1,0 +1,10 @@
+/*
+ * Financial Advisor module styles — split into per-concern files.
+ * Siblings:
+ *   overview_dashboard.css   — Overview tab custom dashboard (score, AI summary, alerts)
+ *   kpi_and_summaries.css    — KPI cards, cash flow/wealth growth summaries, opportunities
+ *   scenario_and_theme.css   — Scenario Planner extensions + dark-theme fixes
+ */
+@import url("overview_dashboard.css");
+@import url("kpi_and_summaries.css");
+@import url("scenario_and_theme.css");

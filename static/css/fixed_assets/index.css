@@ -1,0 +1,10 @@
+/*
+ * Fixed Assets module styles — split into per-concern files.
+ * Siblings:
+ *   base_layout.css        — general Fixed Assets list/card layout
+ *   collapsible_cards.css  — collapsible card behavior, part 1
+ *   summary_strip.css      — collapsible card behavior part 2 + summary strip
+ */
+@import url("base_layout.css");
+@import url("collapsible_cards.css");
+@import url("summary_strip.css");

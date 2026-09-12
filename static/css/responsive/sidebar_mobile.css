@@ -1,0 +1,99 @@
+/* ══════════════════════════════════════
+   MOBILE (< 992px): offcanvas sidebar
+   ══════════════════════════════════════ */
+@media (width <= 991.98px) {
+  #desktop-sidebar-mode-btn {
+    display: none !important;
+  }
+
+  /* Offcanvas sidebar */
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px !important;
+    height: 100vh;
+    border-radius: 0;
+    margin: 0;
+    z-index: 1050;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
+    box-shadow: 4px 0 20px rgb(0 0 0 / 50%);
+  }
+
+  #sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  [dir="rtl"] #sidebar {
+    left: auto;
+    right: 0;
+    transform: translateX(100%);
+  }
+
+  [dir="rtl"] #sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  /* Full-width content, padded below fixed topbar */
+  #page-wrapper {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    padding-top: 60px;
+  }
+
+  /* Fixed topbar */
+  #topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    z-index: 1030;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 12px !important;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* Show hamburger */
+  #mobile-nav-trigger,
+  #sidebarToggle {
+    display: inline-flex !important;
+    align-items: center;
+  }
+
+  #sidebarClose {
+    display: inline-flex !important;
+  }
+
+  /* Always show sidebar labels (full offcanvas) */
+  #sidebar .brand-text,
+  #sidebar .nav-section-label,
+  #sidebar .nav-group-label,
+  #sidebar .nav-item span,
+  #sidebar .nav-item .nav-text {
+    display: block !important;
+  }
+
+  #sidebar .nav-item {
+    justify-content: flex-start !important;
+    padding: 9px 12px !important;
+  }
+
+  /* Main content padding */
+  #main-content {
+    padding: 16px 12px 48px !important;
+  }
+
+  /* Page header stacks */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+

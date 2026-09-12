@@ -1,0 +1,14 @@
+/*
+ * Financial Advisor page layout — split into per-concern files.
+ * Siblings:
+ *   executive_sections_1.css — Financial Intelligence executive sections, part 1
+ *   executive_sections_2.css — Financial Intelligence executive sections, part 2
+ *   executive_sections_3.css — Financial Intelligence executive sections, part 3
+ *   amounts_and_pills.css    — amount color helpers and year-pill styles
+ * Parts are ordered fragments of a single original block; load in this
+ * order to preserve source cascade order.
+ */
+@import url("executive_sections_1.css");
+@import url("executive_sections_2.css");
+@import url("executive_sections_3.css");
+@import url("amounts_and_pills.css");

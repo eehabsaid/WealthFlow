@@ -1,0 +1,87 @@
+/* ── Modern Cards & KPI Panels ── */
+
+/* Centralized Modern Card Attribute Class */
+[si-modern-card],
+.kpi-card,
+.fi-sub-card,
+.asset-summary-card,
+.asset-renovation-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 12px);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(10px);
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle top edge lighting effect for cards */
+[si-modern-card]::before,
+.kpi-card::before,
+.portfolio-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 15%), transparent);
+  pointer-events: none;
+}
+
+[si-modern-card]:hover,
+.kpi-card:hover,
+.asset-summary-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.kpi-card .kpi-label {
+  font-family: var(--font-family-display);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.kpi-card .kpi-value {
+  font-family: var(--font-family-display);
+  font-size: clamp(20px, 1.8vw + 14px, 26px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.kpi-card .kpi-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.fi-card-grid {
+  margin-top: 8px;
+}
+
+.fi-sub-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 12px);
+  padding: 16px;
+}
+
+.fi-metric-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+

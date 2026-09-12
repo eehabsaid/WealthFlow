@@ -1,0 +1,113 @@
+
+.fi-allocation-sentence {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.fi-highlight-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.fi-highlight-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgb(26 110 245 / 35%);
+  background: rgb(26 110 245 / 12%);
+  border-inline-start: 3px solid var(--accent-primary);
+  border-radius: 10px;
+  padding: 11px 12px;
+}
+
+.fi-highlight-row .fi-metric-label {
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.fi-highlight-row .fi-metric-value {
+  justify-self: end;
+  min-width: 0;
+  text-align: end;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.fi-value-inline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.fi-highlight-row .fi-value-inline {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.fi-highlight-row .num-fmtpresent {
+  font-size: 15px;
+  line-height: 1.15;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.fi-highlight-row .fi-value-unit {
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.fi-value-unit {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.fi-badge-row {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.fi-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid currentcolor;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.fi-status-badge.fi-positive {
+  background: rgb(0 214 143 / 12%);
+}
+
+.fi-status-badge.fi-warning {
+  background: rgb(255 209 102 / 14%);
+}
+
+.fi-status-badge.fi-negative {
+  background: rgb(255 77 109 / 12%);
+}
+
+.fi-status-badge.fi-neutral {
+  background: rgb(123 147 201 / 12%);
+}
+
+.fi-list-compact {
+  display: grid;
+  gap: 8px;
+}
+

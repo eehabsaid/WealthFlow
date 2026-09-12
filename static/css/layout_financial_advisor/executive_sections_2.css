@@ -1,0 +1,118 @@
+
+.fi-band-icon {
+  line-height: 1;
+}
+
+.fi-emphasis-neutral {
+  border-color: rgb(123 147 201 / 45%);
+  background: rgb(123 147 201 / 10%);
+}
+
+.fi-emphasis-primary {
+  border-color: rgb(26 110 245 / 45%);
+  background: rgb(26 110 245 / 14%);
+}
+
+.fi-emphasis-health {
+  border-color: rgb(0 214 143 / 35%);
+  background: rgb(0 214 143 / 12%);
+}
+
+.fi-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.fi-metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 2px 0 10px;
+  border-bottom: 1px dashed rgb(123 147 201 / 22%);
+}
+
+.fi-metric-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.fi-metric-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.6;
+}
+
+.fi-metric-value {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.fi-label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fi-trend-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  border: 1px solid currentcolor;
+  padding: 3px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.fi-accent {
+  color: var(--accent-primary);
+}
+
+.fi-positive {
+  color: var(--accent-green);
+}
+
+.fi-warning {
+  color: var(--accent-yellow);
+}
+
+.fi-negative {
+  color: var(--accent-red);
+}
+
+.fi-neutral {
+  color: var(--text-primary);
+}
+
+.fi-paragraph {
+  margin-top: 8px;
+  color: var(--text-primary);
+  line-height: 1.85;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.fi-sub-paragraph {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.fi-info-box {
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  padding: 12px 14px;
+  color: var(--text-primary);
+  line-height: 1.75;
+}
