@@ -66,8 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (strengthText) {
       strengthText.setAttribute("data-i18n", labelKey);
       strengthText.style.color = color;
-      // Lookup translation if available
-      const translations = localStorage.getItem("lang");
       if (labelKey === "auth_str_very_strong") strengthText.textContent = "Very Strong";
       else if (labelKey === "auth_str_strong") strengthText.textContent = "Strong";
       else if (labelKey === "auth_str_medium") strengthText.textContent = "Medium";

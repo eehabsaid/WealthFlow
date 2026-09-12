@@ -7,20 +7,6 @@ async function loadReportData() {
   const endVal = document.getElementById("rEnd")?.value || "";
 
   const MONTH_NAMES_I18N = REPORT_MONTH_I18N_KEYS.map((key) => t(key));
-  const MONTH_NAMES_EN = [
-    "january",
-    "february",
-    "march",
-    "april",
-    "may",
-    "june",
-    "july",
-    "august",
-    "september",
-    "october",
-    "november",
-    "december",
-  ];
 
   const trendTitleEl = document.getElementById("trendTitle");
   if (trendTitleEl) {

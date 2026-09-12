@@ -18,8 +18,6 @@ async function renderReminderSettings() {
   const rulesData = await rulesRes.json();
   const settingsData = await settingsRes.json();
   const rules = rulesData.rules || [];
-  const ruleTypes = rulesData.rule_types || [];
-  const triggers = rulesData.salary_triggers || [];
   const s = settingsData.settings || {};
 
   const enabledText = t("enabled", "Enabled");

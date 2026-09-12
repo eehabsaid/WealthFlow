@@ -5,7 +5,7 @@
 // spending_intelligence_render.js (already under 200 lines, untouched).
 
 function buildSpendingFindingsInsightsTrendHtml(ctx) {
-  const { payload, keyFindings, aiInsights, recommendedActions, months } = ctx;
+  const { payload, keyFindings, aiInsights, recommendedActions } = ctx;
   // 4. Key Findings
   let findingsHtml = _buildKeyFindingsHtml(keyFindings);
 

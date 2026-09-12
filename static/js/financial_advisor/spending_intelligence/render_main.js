@@ -116,8 +116,10 @@ function _renderSpendingIntelligence(payload) {
     return;
   }
 
-  const { categoryHtml, catLabels, catValues, catPercentages, donutHtml } =
-    buildSpendingCategoryDonutHtml({ categories, totalExpenses });
+  const { categoryHtml, catLabels, catValues, donutHtml } = buildSpendingCategoryDonutHtml({
+    categories,
+    totalExpenses,
+  });
 
   const { findingsHtml, aiHtml, recHtml, trendHtml } = buildSpendingFindingsInsightsTrendHtml({
     payload,

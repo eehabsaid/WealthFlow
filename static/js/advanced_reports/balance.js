@@ -28,8 +28,6 @@ async function _renderBalanceReport() {
     )
     .join("");
 
-  const grandEGP = banks.reduce((s, b) => s + b.total_egp, 0) + d.cert_total;
-
   document.getElementById("reportContent").innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
             ${_kpi("🏛️", "bank_balance", _fmt(banks.reduce((s, b) => s + b.total_egp, 0)) + ' <span data-i18n="EGP"></span>', "")}

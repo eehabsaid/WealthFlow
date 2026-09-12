@@ -26,16 +26,6 @@ window.RA.drawRiskRadarChart = function (payload) {
     typeof _themeColor === "function" ? _themeColor("--border-color", "#e2e8f0") : "#e2e8f0";
   const isRtl = typeof _pageDirection === "function" ? _pageDirection() === "rtl" : false;
 
-  // Ensure chart updates on language change
-  const updateChartLabels = () => {
-    if (!window._riskRadarChart) return;
-    const translatedLabels = radarData.labels.map((k) => (typeof t === "function" ? t(k, k) : k));
-    window._riskRadarChart.data.labels = translatedLabels;
-    window._riskRadarChart.data.datasets[0].label =
-      typeof t === "function" ? t("risk_analysis_risk_score", "Risk Score") : "Risk Score";
-    window._riskRadarChart.update();
-  };
-
   if (window._riskRadarChart) {
     window._riskRadarChart.destroy();
   }

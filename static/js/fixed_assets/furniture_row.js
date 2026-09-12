@@ -8,7 +8,6 @@ function addFurnitureRow(data = {}, expand = false) {
 
   const category = data.category || "Living Room";
   const normVal = category.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
-  const quantity = parseInt(data.quantity) || 1;
   const amountEgpVal = data.amount_egp || 0; // Use raw amount
   const nameVal = data.name || "";
   const paymentMethodVal = data.payment_method || "Cash";
@@ -133,7 +132,6 @@ function addFurnitureRow(data = {}, expand = false) {
   initCollapsibleCard(row, "#furnitureContainer");
 
   // Initial expansion state
-  const isFirstCard = container.children.length === 1;
   const shouldExpand = expand;
   toggleCollapsibleCard(row, "#furnitureContainer", shouldExpand);
 

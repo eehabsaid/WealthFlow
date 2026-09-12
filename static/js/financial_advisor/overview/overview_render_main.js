@@ -67,7 +67,6 @@ function _renderOverview(payload) {
 
   // Net Worth trend calculations
   const nwTrendIsUp = Number(kpis.net_worth_growth_yoy || 0) >= 0;
-  const nwTrendClass = nwTrendIsUp ? "up" : "down";
   const nwTrendText = nwTrendIsUp
     ? t("overview_kpi_yoy_trend_up", `↑ {pct}% vs last year`).replace(
         "{pct}",

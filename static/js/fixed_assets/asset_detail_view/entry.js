@@ -82,9 +82,24 @@ async function showFixedAssetDetails(assetId, options = {}) {
     let assetViewMap = null;
 
     const ctx = {
-      asset, photos, renovations, furniture, valuationHistory, maintenance,
-      insurance, vehicleDetails, goldDetails, otherDetails, sale, mortgage,
-      rental, realEstate, utilitiesBadges, featuresBadges, gainValue, gainClass,
+      asset,
+      photos,
+      renovations,
+      furniture,
+      valuationHistory,
+      maintenance,
+      insurance,
+      vehicleDetails,
+      goldDetails,
+      otherDetails,
+      sale,
+      mortgage,
+      rental,
+      realEstate,
+      utilitiesBadges,
+      featuresBadges,
+      gainValue,
+      gainClass,
     };
 
     if (!isRealEstateAssetType(asset.asset_type)) {
@@ -115,7 +130,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
     });
 
     const assetPhotoThumbnails = document.querySelectorAll(".asset-photo-thumbnail");
-    assetPhotoThumbnails.forEach((thumb, index) => {
+    assetPhotoThumbnails.forEach((thumb) => {
       thumb.addEventListener("click", (e) => {
         const url = e.currentTarget.dataset.url;
         const mainImg = document.getElementById("assetMainPhoto");

@@ -181,7 +181,6 @@ function addAcquisitionRow(data = {}, expand = false) {
   initCollapsibleCard(row, "#acquisitionContainer");
 
   // Initial expansion state
-  const isFirstCard = container.children.length === 1;
   const shouldExpand = expand;
   toggleCollapsibleCard(row, "#acquisitionContainer", shouldExpand);
 

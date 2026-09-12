@@ -16,7 +16,6 @@ function renderBalanceRecommendations(data) {
     actionReasonText,
     goldRecommendationText,
     getRecommendationText,
-    getReasonText,
     encodeI18nParams,
     trendMeta,
     localizedTrendLabel,

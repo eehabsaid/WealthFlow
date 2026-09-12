@@ -39,7 +39,6 @@ async function renderReports() {
   const month = today.getMonth() + 1;
   _currentTab = "monthly";
 
-  const reportsTitle = t("reports_title", "📊 Reports");
   const reportsDesc = t(
     "reports_income_expenses_analysis",
     "Income vs Expenses analysis and PDF export"
@@ -157,4 +156,3 @@ function switchReportTab(tab) {
 
   loadReportData();
 }
-

@@ -54,7 +54,6 @@ async function renderCertStatusSettings() {
           )
           .join("");
 
-  const certStatusesTitle = t("cert_statuses", "Certificate Statuses");
   const certStatusesDesc = t(
     "cert_statuses_desc",
     "Define the lifecycle statuses for bank certificates. One status must be set as default."

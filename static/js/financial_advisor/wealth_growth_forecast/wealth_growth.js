@@ -40,7 +40,6 @@ function _renderWealthGrowthForecast(payload) {
   const pane = document.getElementById("fa-pane-wealth-growth-forecast");
   if (!pane) return;
 
-  const current = payload?.current_net_worth || 0;
   const checkpoints = payload?.checkpoints || {};
   const breakdown = payload?.breakdown || {};
   const summary = payload?.summary || {};

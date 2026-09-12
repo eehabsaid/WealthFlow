@@ -10,10 +10,7 @@
 //   that markup was part of the same original template literal)
 
 function buildRealEstateModalHtml(ctx) {
-  const {
-    asset, gainValue, gainClass, photos, renovations, furniture,
-    valuationHistory, sale, mortgage, rental, utilitiesBadges, featuresBadges,
-  } = ctx;
+  const { asset, gainValue, gainClass, furniture, valuationHistory, mortgage, rental } = ctx;
 
   return `
     <div class="modal-header border-0 pb-0">

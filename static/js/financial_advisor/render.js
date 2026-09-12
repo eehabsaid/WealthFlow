@@ -15,13 +15,6 @@ function renderFinancialAdvisor() {
   const savedTab = sessionStorage.getItem(FINANCIAL_ADVISOR_ACTIVE_TAB_KEY) || "overview";
   const hasSavedTab = FINANCIAL_ADVISOR_TABS.some((tab) => tab.id === savedTab);
   const activeTabId = hasSavedTab ? savedTab : "overview";
-  const primaryTabs = FINANCIAL_ADVISOR_TABS.filter((tab) =>
-    FINANCIAL_ADVISOR_PRIMARY_TAB_IDS.includes(tab.id)
-  );
-  const overflowTabs = FINANCIAL_ADVISOR_TABS.filter(
-    (tab) => !FINANCIAL_ADVISOR_PRIMARY_TAB_IDS.includes(tab.id)
-  );
-  const overflowHasActive = overflowTabs.some((tab) => tab.id === activeTabId);
 
   const renderTabButton = (tab) => `
     <button
@@ -39,8 +32,9 @@ function renderFinancialAdvisor() {
 
   const tabsNav = FINANCIAL_ADVISOR_TABS.map((tab) => renderTabButton(tab)).join("");
 
-
-  const tabsContent = FINANCIAL_ADVISOR_TABS.map((tab) => _renderFATabPane(tab, activeTabId)).join("");
+  const tabsContent = FINANCIAL_ADVISOR_TABS.map((tab) => _renderFATabPane(tab, activeTabId)).join(
+    ""
+  );
 
   const activeTabObj =
     FINANCIAL_ADVISOR_TABS.find((tab) => tab.id === activeTabId) || FINANCIAL_ADVISOR_TABS[0];

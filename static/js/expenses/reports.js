@@ -9,7 +9,6 @@ async function exportExpenses() {
   const res = await fetch(url);
   const data = await res.json();
 
-  const isAr = window.currentLang === "ar";
   const headers = [
     typeof t === "function" ? t("date") : "Date",
     typeof t === "function" ? t("category") : "Category",

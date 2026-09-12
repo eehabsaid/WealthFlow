@@ -11,7 +11,7 @@
  */
 "use strict";
 
-function formatDate(value, lang) {
+function formatDate(value) {
   if (value === null || value === undefined) return "";
   const strVal = String(value).trim();
   if (!strVal) return "";
@@ -88,9 +88,6 @@ function formatDate(value, lang) {
     }
 
     if (dt && !isNaN(dt.getTime())) {
-      const activeLang =
-        lang ||
-        (typeof currentLang === "function" ? currentLang() : localStorage.getItem("lang") || "en");
       const dayStr = String(dt.getDate()).padStart(2, "0");
       const monthIndex = dt.getMonth() + 1;
       const monthKey = `month_short_${monthIndex}`;

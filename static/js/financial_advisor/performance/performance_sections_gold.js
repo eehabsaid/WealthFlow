@@ -69,15 +69,7 @@ function buildGoldOverviewSection(ctx) {
 }
 
 function buildGoldChartExposureRow(ctx) {
-  const {
-    hasGoldHistory,
-    goldTimeframe,
-    impact7d,
-    impact30d,
-    hasCurrHistory,
-    currencyTimeframe,
-    selectedCurrency,
-  } = ctx;
+  const { hasGoldHistory, goldTimeframe, impact7d, impact30d } = ctx;
   return `
         <!-- 2 & 3: Main Row 1 - Gold Chart & Exposure -->
         <div class="row g-4 mb-4">

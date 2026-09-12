@@ -147,7 +147,6 @@ function addValuationRow(data = {}, expand = false) {
   initCollapsibleCard(row, "#valuationContainer");
 
   // Initial expansion state
-  const isFirstCard = container.children.length === 1;
   const shouldExpand = expand;
   toggleCollapsibleCard(row, "#valuationContainer", shouldExpand);
 

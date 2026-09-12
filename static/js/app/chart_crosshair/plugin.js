@@ -20,14 +20,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 (function () {
-  const {
-    _nearestIndex,
-    _xForIndex,
-    _ensureCard,
-    _removeCard,
-    _updateCard,
-    _hideOverlay,
-  } = window._ChartCrosshairHelpers;
+  const { _nearestIndex, _xForIndex, _ensureCard, _removeCard, _updateCard, _hideOverlay } =
+    window._ChartCrosshairHelpers;
 
   // ── Plugin ─────────────────────────────────────────────────────────────────
 
@@ -139,7 +133,6 @@
         const color = ds.borderColor || "#7b93c9";
         // Use the first dataset's color for the outer ring stroke
         const outerColor = color;
-        const innerColor = ds.backgroundColor || "rgba(10,20,46,0.9)";
 
         // Outer filled ring
         ctx.beginPath();

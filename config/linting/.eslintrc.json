@@ -21,6 +21,7 @@
     "no-unused-vars": [
       "warn",
       {
+        "vars": "local",
         "varsIgnorePattern": "^_",
         "argsIgnorePattern": "^_"
       }
@@ -28,8 +29,5 @@
     "no-console": "error",
     "no-debugger": "error"
   },
-  "ignorePatterns": [
-    "node_modules/",
-    "venv/"
-  ]
+  "ignorePatterns": ["node_modules/", "venv/"]
 }

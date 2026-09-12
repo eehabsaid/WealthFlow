@@ -74,7 +74,6 @@ async function loadLanguage(code) {
 function applyTranslations(container = document) {
   if (!_t) return;
   const root = container || document;
-  const lang = document.documentElement.lang || "en";
 
   const formatTemplateValue = (name, value) => {
     const num = Number(value);

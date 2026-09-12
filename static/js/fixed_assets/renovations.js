@@ -186,7 +186,6 @@ function addRenovationRow(data = {}, expand = false) {
   initCollapsibleCard(row, "#renovationContainer");
 
   // Initial expansion state
-  const isFirstCard = container.children.length === 1;
   const shouldExpand = expand;
   toggleCollapsibleCard(row, "#renovationContainer", shouldExpand);
 
