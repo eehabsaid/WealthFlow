@@ -128,3 +128,72 @@ class BackupRestoreTests(TestCase):
 
         finally:
             shutil.rmtree(temp_dir)
+
+    def test_backup_and_restore_includes_letter_suffixed_prefix_table(self):
+        """Regression test: get_model_export_order() assigns CurrencyExchange
+        the prefix "16b" (inserted between "16" and "17" without renumbering
+        everything else). The restore command's file-matching regex used to
+        require exactly two digits before the underscore, so
+        "16b_currencyexchange.json" was silently excluded from the files
+        restored - no error, no warning, just missing data. This confirms
+        CurrencyExchange rows survive a full backup + restore round trip."""
+        import tempfile
+        import shutil
+        import os
+        from decimal import Decimal
+        from django.core.management import call_command
+        from core.models import Bank, BalanceEntry, Currency, CurrencyExchange
+
+        usd = Currency.objects.create(code="USD", symbol="$", name="US Dollar")
+        bank = Bank.objects.create(name="QA Exchange Bank")
+        from_balance = BalanceEntry.objects.create(
+            title="QA CE From EGP",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=bank,
+            currency=self.currency,
+            amount=Decimal("50000.00"),
+        )
+        to_balance = BalanceEntry.objects.create(
+            title="QA CE To USD",
+            balance_type=BalanceEntry.BalanceType.BANK,
+            bank=bank,
+            currency=usd,
+            amount=Decimal("500.00"),
+        )
+        CurrencyExchange.objects.create(
+            exchange_date=date(2026, 1, 1),
+            from_balance=from_balance,
+            to_balance=to_balance,
+            from_currency=self.currency,
+            to_currency=usd,
+            from_amount=Decimal("1000.00"),
+            to_amount=Decimal("20.00"),
+            exchange_rate=Decimal("50.000000"),
+            status=CurrencyExchange.Status.ACTIVE,
+        )
+
+        temp_dir = tempfile.mkdtemp()
+        try:
+            backup_file = os.path.join(temp_dir, "test_ce_backup.wfbackup")
+            call_command("backup_data", output=temp_dir, filename="test_ce_backup.wfbackup", no_compress=True)
+
+            # Confirm the letter-suffixed entry is actually present in the
+            # archive (i.e. this test would catch a future prefix-scheme
+            # change too, not just this specific regex bug).
+            import zipfile
+            with zipfile.ZipFile(backup_file) as zf:
+                names = zf.namelist()
+            self.assertIn("16b_currencyexchange.json", names)
+
+            CurrencyExchange.objects.all().delete()
+            self.assertEqual(CurrencyExchange.objects.count(), 0)
+
+            call_command("restore_data", backup_file)
+
+            self.assertEqual(CurrencyExchange.objects.count(), 1)
+            restored = CurrencyExchange.objects.first()
+            self.assertEqual(restored.from_amount, Decimal("1000.00"))
+            self.assertEqual(restored.to_amount, Decimal("20.00"))
+            self.assertEqual(restored.exchange_rate, Decimal("50.000000"))
+        finally:
+            shutil.rmtree(temp_dir)

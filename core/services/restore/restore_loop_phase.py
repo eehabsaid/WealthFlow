@@ -39,7 +39,8 @@ def run_restore_loop(zf, table_files: list[str], ctx: RestoreRunContext) -> Rest
     try:
         for entry_name in table_files:
             # Extract model name from filename: "01_user.json" → "user"
-            model_name = re.sub(r"^\d{2}_(.+)\.json$", r"\1", entry_name)
+            # (prefix may carry an optional trailing letter, e.g. "16b_currencyexchange.json")
+            model_name = re.sub(r"^\d{2}[a-z]?_(.+)\.json$", r"\1", entry_name)
 
             # Apply --tables filter
             if ctx.tables_filter and model_name not in ctx.tables_filter:

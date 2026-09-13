@@ -77,6 +77,9 @@ def validate_manifest(zf, names: list[str], ctx: RestoreRunContext) -> dict:
     ctx.stdout.write(ctx.style.SUCCESS("  OK  All checksums valid"))
 
     # -- Sort table files in numeric prefix order -----------------
-    table_files = sorted([n for n in names if re.match(r"^\d{2}_.*\.json$", n)])
+    # Prefix may carry an optional trailing letter (e.g. "16b_") when a
+    # model needed to be inserted between two already-numbered entries in
+    # get_model_export_order() without renumbering everything else.
+    table_files = sorted([n for n in names if re.match(r"^\d{2}[a-z]?_.*\.json$", n)])
 
     return {"manifest": manifest, "table_files": table_files}
