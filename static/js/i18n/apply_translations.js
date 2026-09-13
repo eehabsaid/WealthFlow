@@ -1,75 +1,6 @@
-// i18n.js — Language engine (translation loading, applying, t() helper)
-
 "use strict";
-
-// ── Module state ──────────────────────────────────────────────────────────
-let _t = {};
-let _lang = localStorage.getItem("lang") || "en";
-
-// ════════════════════════════════════════════════════════════════════════════
-// LANGUAGE LOADING
-// ════════════════════════════════════════════════════════════════════════════
-
-async function loadLanguage(code) {
-  try {
-    // Added cache buster to force the browser to download the newly injected translations
-    const res = await fetch(`/static/i18n/${code}.json?v=${Date.now()}`);
-    if (!res.ok) throw new Error("Not found");
-
-    _t = await res.json();
-    _lang = code;
-    localStorage.setItem("lang", code);
-
-    // RTL detection — read from available_languages setting, fallback to _t.__rtl
-    let isRTL = false;
-    try {
-      const sRes = await fetch(`/api/settings/?v=${Date.now()}`);
-      if (sRes.ok) {
-        const sData = await sRes.json();
-        const langs = JSON.parse(sData.settings?.available_languages || "[]");
-        const found = langs.find((l) => l.code === code);
-        if (found !== undefined && found.rtl !== undefined) {
-          isRTL = found.rtl === true || found.rtl === "true" || found.rtl === 1;
-        } else {
-          const rtlVal = String(_t.__rtl || "").toLowerCase();
-          isRTL = rtlVal === "true" || rtlVal === "1";
-        }
-      } else {
-        const rtlVal = String(_t.__rtl || "").toLowerCase();
-        isRTL = rtlVal === "true" || rtlVal === "1";
-      }
-    } catch (e) {
-      const rtlVal = String(_t.__rtl || "").toLowerCase();
-      isRTL = rtlVal === "true" || rtlVal === "1";
-    }
-
-    document.documentElement.setAttribute("dir", isRTL ? "rtl" : "ltr");
-    document.documentElement.lang = code;
-
-    applyTranslations();
-
-    // Persist active language to server
-    await fetch("/api/settings/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: "active_language", value: code }),
-    });
-
-    // Re-render active route so runtime-computed labels update immediately.
-    if (window.__wfRouterReady && typeof window.route === "function") {
-      window.route();
-    }
-
-    document.dispatchEvent(new CustomEvent("languageChanged", { detail: { code } }));
-  } catch (e) {
-    // Silently ignore language load failures; UI falls back to existing translations.
-  }
-  applyTranslations();
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// APPLY TRANSLATIONS
-// ════════════════════════════════════════════════════════════════════════════
+// i18n: applyTranslations DOM binder
+// This file is part of the i18n module. Do not edit directly.
 
 function applyTranslations(container = document) {
   if (!_t) return;
@@ -220,30 +151,4 @@ function applyTranslations(container = document) {
 
   // Auto-apply collapsible behaviour to any new tables rendered since last call
   if (typeof initCollapsibleTables === "function") initCollapsibleTables();
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// TRANSLATION HELPER — t(key, fallback)
-// ════════════════════════════════════════════════════════════════════════════
-
-function t(key, fallback) {
-  if (typeof _t === "undefined" || !_t) return fallback ?? key;
-
-  const lang = localStorage.getItem("lang") || "en";
-
-  // Nested: _t[lang][key]
-  if (_t[lang]?.[key]) return _t[lang][key];
-
-  // Flat: _t[key]
-  if (_t[key]) return _t[key];
-
-  return fallback !== undefined ? fallback : key;
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// CURRENT LANGUAGE ACCESSOR
-// ════════════════════════════════════════════════════════════════════════════
-
-function currentLang() {
-  return _lang;
 }

@@ -47,7 +47,9 @@
 <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'vendor/chartjs/chart.umd.js' %}"></script>
 <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
-<script src="{% static 'js/i18n.js' %}?v=1784452207"></script>
+<script src="{% static 'js/i18n/index.js' %}?v=1784452207"></script>
+<script src="{% static 'js/i18n/load_language.js' %}?v=1784452207"></script>
+<script src="{% static 'js/i18n/apply_translations.js' %}?v=1784452207"></script>
 <script src="{% static 'js/utils/dateFormatter.js' %}?v=1784452207"></script>
 <script src="{% static 'js/datepicker/localization.js' %}?v=1784452207"></script>
 <script src="{% static 'js/datepicker/dom.js' %}?v=1784452207"></script>
@@ -84,6 +86,7 @@
 <script src="{% static 'js/app/authentication.js' %}?v=1784452207"></script>
 <script src="{% static 'js/app/navigation.js' %}?v=1784452207"></script>
 <script src="{% static 'js/app/routing.js' %}?v=1784452207"></script>
+<script src="{% static 'js/app/route_dispatch.js' %}?v=1784452207"></script>
 <script src="{% static 'js/app/topbar.js' %}?v=1784452207"></script>
 <script src="{% static 'js/app/sidebar/render.js' %}?v=1784452207"></script>
 <script src="{% static 'js/app/sidebar/footer.js' %}?v=1784452207"></script>
@@ -95,11 +98,14 @@
 <script src="{% static 'js/financial_advisor/cash_flow_forecast/cash_flow.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/cash_flow_forecast/cash_flow_custom_projection.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/wealth_growth_forecast/charts.js' %}?v=1784452207"></script>
+<script src="{% static 'js/financial_advisor/wealth_growth_forecast/fragments.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/wealth_growth_forecast/wealth_growth.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/portfolio_optimizer/charts.js' %}?v=1784452207"></script>
+<script src="{% static 'js/financial_advisor/portfolio_optimizer/fragments.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/portfolio_optimizer/portfolio_optimizer.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/goal_planning/charts.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/goal_planning/ui.js' %}?v=1784452207"></script>
+<script src="{% static 'js/financial_advisor/goal_planning/ui_sections.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/goal_planning/modal.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/goal_planning/goal_planning_cards.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/goal_planning/goal_planning_modal.js' %}?v=1784452207"></script>
@@ -118,6 +124,7 @@
 <script src="{% static 'js/financial_advisor/risk_analysis/state.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/risk_analysis/render_loading_error.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/risk_analysis/render_template.js' %}?v=1784452207"></script>
+<script src="{% static 'js/financial_advisor/risk_analysis/fragments.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/risk_analysis/render_main.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/risk_analysis/radar_chart.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/risk_analysis/income_chart.js' %}?v=1784452207"></script>
@@ -127,6 +134,7 @@
 <script src="{% static 'js/financial_advisor/spending_intelligence/build_category_donut.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/spending_intelligence/build_findings_insights_trend.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/spending_intelligence/render_template.js' %}?v=1784452207"></script>
+<script src="{% static 'js/financial_advisor/spending_intelligence/fragments.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/spending_intelligence/render_main.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/spending_intelligence/loader.js' %}?v=1784452207"></script>
 <script src="{% static 'js/financial_advisor/opportunity_detection/opportunity_detection_helpers.js' %}?v=1784452207"></script>
@@ -164,6 +172,7 @@
 <script src="{% static 'js/ai/ai_context_panel_helpers.js' %}?v=1784452207"></script>
 <script src="{% static 'js/ai/ai_context_panel.js' %}?v=1784452207"></script>
 <script src="{% static 'js/ai/ai_conversations.js' %}?v=1784452207"></script>
+<script src="{% static 'js/ai/ai_conversations_actions.js' %}?v=1784452207"></script>
 <script src="{% static 'js/ai/ai_chat_submit.js' %}?v=1784452207"></script>
 <script src="{% static 'js/ai/ai_shell.js' %}?v=1784452207"></script>
 <script src="{% static 'js/ai_prompt_library/pl_state.js' %}?v=1784452207"></script>
@@ -268,13 +277,17 @@
 <script src="{% static 'js/fixed_assets/calculations.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/purchase_payments.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/sale.js' %}?v=1784452207"></script>
+<script src="{% static 'js/fixed_assets/sale_tabs.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/mortgage.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/rental.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/acquisition_costs.js' %}?v=1784452207"></script>
+<script src="{% static 'js/fixed_assets/acquisition_costs_collect.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/renovations.js' %}?v=1784452207"></script>
+<script src="{% static 'js/fixed_assets/renovations_collect.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/furniture_summary.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/furniture_row.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/valuation.js' %}?v=1784452207"></script>
+<script src="{% static 'js/fixed_assets/valuation_sync.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/vehicle.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/gold_details.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/other_assets.js' %}?v=1784452207"></script>
@@ -289,6 +302,7 @@
 <script src="{% static 'js/fixed_assets/validation/sale_modal.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/validation/submit_sale_misc.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/details_shared_tabs.js' %}?v=1784452207"></script>
+<script src="{% static 'js/fixed_assets/details_insurance_sale_tabs.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/details_property_tab.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/details_property_other_tabs.js' %}?v=1784452207"></script>
 <script src="{% static 'js/fixed_assets/details_asset_types.js' %}?v=1784452207"></script>
@@ -311,8 +325,11 @@
 <script src="{% static 'js/settings/app_settings.js' %}?v=1784452207"></script>
 <script src="{% static 'js/settings/email_templates.js' %}?v=1784452207"></script>
 <script src="{% static 'js/settings/cert_status_settings.js' %}?v=1784452207"></script>
+<script src="{% static 'js/settings/cert_status_actions.js' %}?v=1784452207"></script>
 <script src="{% static 'js/settings/gold_settings.js' %}?v=1784452207"></script>
+<script src="{% static 'js/settings/gold_purity.js' %}?v=1784452207"></script>
 <script src="{% static 'js/settings/property_valuation.js' %}?v=1784452207"></script>
+<script src="{% static 'js/settings/property_valuation_scrape.js' %}?v=1784452207"></script>
 <script src="{% static 'js/settings/translations/translations_languages.js' %}?v=1784452207"></script>
 <script src="{% static 'js/settings/translations/translations_editor.js' %}?v=1784452207"></script>
 <script src="{% static 'js/settings/translations/translations_coverage.js' %}?v=1784452207"></script>
@@ -345,6 +362,7 @@
 <script src="{% static 'js/settings/ai_advisor/save_settings.js' %}?v=1784452207"></script>
 <script src="{% static 'js/settings/ai_advisor/platform_overview_actions.js' %}?v=1784452207"></script>
 <script src="{% static 'js/settings/index.js' %}?v=1784452207"></script>
+<script src="{% static 'js/settings/window_exports.js' %}?v=1784452207"></script>
 <script src="{% static 'js/bank_certificates/utils.js' %}?v=1784452207"></script>
 <script src="{% static 'js/bank_certificates/api.js' %}?v=1784452207"></script>
 <script src="{% static 'js/bank_certificates/calculations.js' %}?v=1784452207"></script>
@@ -355,7 +373,8 @@
 <script src="{% static 'js/exchange_rates/rates_meta.js' %}?v=1784452207"></script>
 <script src="{% static 'js/exchange_rates/rates_render.js' %}?v=1784452207"></script>
 <script src="{% static 'js/exchange_rates/index.js' %}?v=1784452207"></script>
-<script src="{% static 'js/gold_price.js' %}?v=1784452207"></script>
+<script src="{% static 'js/gold_price/index.js' %}?v=1784452207"></script>
+<script src="{% static 'js/gold_price/refresh.js' %}?v=1784452207"></script>
 <script src="{% static 'js/expenses/utils.js' %}?v=1784452207"></script>
 <script src="{% static 'js/expenses/api.js' %}?v=1784452207"></script>
 <script src="{% static 'js/expenses/reports.js' %}?v=1784452207"></script>
