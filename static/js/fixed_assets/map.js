@@ -173,6 +173,16 @@ async function removePropertyPhoto(index) {
   }
 }
 
+async function geocodeQuery(query) {
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`
+  );
+
+  const results = await response.json();
+
+  return results && results.length ? results[0] : null;
+}
+
 async function locatePropertyOnMap() {
   const country = document.getElementById("re_country").value.trim();
   const governorate = document.getElementById("re_governorate").value.trim();
@@ -180,9 +190,26 @@ async function locatePropertyOnMap() {
   const district = document.getElementById("re_district").value.trim();
   const address = document.getElementById("re_address").value.trim();
 
-  const query = [address, district, city, governorate, country].filter(Boolean).join(", ");
+  // Fields stay exactly as entered/displayed. We only try progressively
+  // less specific combinations of the SAME fields, since Nominatim often
+  // has no match for a full street-level address but does have a match
+  // for the district/city/governorate it sits within.
+  const candidateQueries = [
+    [address, district, city, governorate, country],
+    [address, city, governorate, country],
+    [district, city, governorate, country],
+    [city, governorate, country],
+    [governorate, country],
+    [country],
+  ]
+    .map((parts) => parts.filter(Boolean).join(", "))
+    .filter(Boolean);
 
-  if (!query) {
+  // De-duplicate while preserving order (short address forms can collapse
+  // into the same string once empty fields are dropped).
+  const queries = [...new Set(candidateQueries)];
+
+  if (!queries.length) {
     showToast("Please enter an address first.", "warning");
     return;
   }
@@ -190,19 +217,25 @@ async function locatePropertyOnMap() {
   showLoading();
 
   try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
-    );
+    let match = null;
 
-    const results = await response.json();
+    for (const query of queries) {
+      try {
+        match = await geocodeQuery(query);
+      } catch (err) {
+        match = null;
+      }
 
-    if (!results.length) {
+      if (match) break;
+    }
+
+    if (!match) {
       showToast("Address not found.", "warning");
       return;
     }
 
-    const lat = parseFloat(results[0].lat);
-    const lng = parseFloat(results[0].lon);
+    const lat = parseFloat(match.lat);
+    const lng = parseFloat(match.lon);
 
     document.getElementById("re_latitude").value = lat.toFixed(6);
     document.getElementById("re_longitude").value = lng.toFixed(6);
