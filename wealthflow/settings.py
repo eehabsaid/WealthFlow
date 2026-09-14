@@ -4,8 +4,16 @@ Django settings for wealthflow project.
 
 import os
 
+from dotenv import load_dotenv
+
 # Build paths inside the project
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Load environment variables from a local .env file if present (e.g.
+# WF_USERNAME/WF_PASSWORD for the documentation/QA screenshot tooling).
+# Safe no-op when no .env file exists. Never commit a real .env file -
+# see .env.example for the expected keys.
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-8pg_zmp_cy^rl+p7=hb3ournneiqklid=m4z1x-69j6-u+#77g"

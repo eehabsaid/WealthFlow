@@ -55,8 +55,7 @@ class PythonPlaywrightCaptureEngine(
     pass
 
 
-def run_python_capture(host: str = '127.0.0.1', port: str = '8001',
-                       username: str = 'eehab_said', password: str = 'Eehabdev1',
+def run_python_capture(username: str, password: str, host: str = '127.0.0.1', port: str = '8001',
                        theme: str = 'dark', language: str = 'en', device: Optional[str] = None) -> bool:
     """Entry point function to invoke Python Playwright capture engine."""
     engine = PythonPlaywrightCaptureEngine(

@@ -13,7 +13,8 @@ class PlaywrightBackend(ABC):
 
     @abstractmethod
     def capture(self, language: str = 'en', theme: str = 'dark', device: Optional[str] = None,
-                host: str = '127.0.0.1', port: str = '8001') -> bool:
+                host: str = '127.0.0.1', port: str = '8001',
+                username: Optional[str] = None, password: Optional[str] = None) -> bool:
         """Executes full page screenshot capture workflow."""
         pass
 
@@ -27,12 +28,23 @@ class PythonPlaywrightBackend(PlaywrightBackend):
     """Native Python Playwright Backend implementation."""
 
     def capture(self, language: str = 'en', theme: str = 'dark', device: Optional[str] = None,
-                host: str = '127.0.0.1', port: str = '8001') -> bool:
+                host: str = '127.0.0.1', port: str = '8001',
+                username: Optional[str] = None, password: Optional[str] = None) -> bool:
         from doc_engine.playwright_engine.capture_runner import run_python_capture
+
+        resolved_username = username or os.environ.get('WF_USERNAME')
+        resolved_password = password or os.environ.get('WF_PASSWORD')
+        if not resolved_username or not resolved_password:
+            raise RuntimeError(
+                "No credentials provided for the documentation screenshot capture "
+                "login. Pass --username/--password to scripts/generate_docs.py, or "
+                "set the WF_USERNAME and WF_PASSWORD environment variables."
+            )
+
         return run_python_capture(
             host=host, port=port,
-            username=os.environ.get('WF_USERNAME', 'eehab_said'),
-            password=os.environ.get('WF_PASSWORD', 'Eehabdev1'),
+            username=resolved_username,
+            password=resolved_password,
             theme=theme, language=language, device=device
         )
 

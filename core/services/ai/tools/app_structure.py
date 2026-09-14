@@ -10,6 +10,7 @@ package.
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -72,17 +73,24 @@ def _crawl_live_pages_with_playwright(
             page = context.new_page()
             install_cdn_fallback(page)
 
-            # Perform login as eehab_said / Eehabdev1
+            # Perform login using credentials from the environment, if available.
+            login_username = os.environ.get("WF_USERNAME")
+            login_password = os.environ.get("WF_PASSWORD")
             login_url = f"{base_url.rstrip('/')}/accounts/login/"
             try:
                 page.goto(login_url, timeout=8000)
                 page.wait_for_load_state("networkidle", timeout=5000)
 
                 if page.query_selector('input[name="username"]'):
-                    page.fill('input[name="username"]', "eehab_said")
-                    page.fill('input[name="password"]', "Eehabdev1")
-                    page.click('button[type="submit"], input[type="submit"], .btn-login')
-                    page.wait_for_load_state("networkidle", timeout=5000)
+                    if login_username and login_password:
+                        page.fill('input[name="username"]', login_username)
+                        page.fill('input[name="password"]', login_password)
+                        page.click('button[type="submit"], input[type="submit"], .btn-login')
+                        page.wait_for_load_state("networkidle", timeout=5000)
+                    else:
+                        logger.warning(
+                            "WF_USERNAME/WF_PASSWORD not set; skipping login for %s", login_url
+                        )
             except Exception as login_exc:
                 logger.warning("Playwright login attempt error on %s: %s", login_url, login_exc)
 

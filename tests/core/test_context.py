@@ -6,6 +6,7 @@ and browser navigation controls (reload, back/forward, keyboard nav).
 """
 
 import json
+import os
 
 from tests.core.cdn_fallback import install_cdn_fallback
 
@@ -91,7 +92,14 @@ class TestContext:
         self.page.on("pageerror", on_page_error)
         self.page.on("response", on_response)
 
-    def login(self, username="eehab_said", password="Eehabdev1", base_url="http://127.0.0.1:8000"):
+    def login(self, username=None, password=None, base_url="http://127.0.0.1:8000"):
+        username = username or os.environ.get("WF_USERNAME")
+        password = password or os.environ.get("WF_PASSWORD")
+        if not username or not password:
+            raise RuntimeError(
+                "No credentials provided for TestContext.login(). Pass username/password "
+                "explicitly, or set the WF_USERNAME and WF_PASSWORD environment variables."
+            )
         res = self.context.request.post(
             f"{base_url}/api/auth/login/",
             data=json.dumps({"username": username, "password": password}),

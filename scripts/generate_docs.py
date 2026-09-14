@@ -3,6 +3,8 @@ import sys
 import argparse
 from datetime import datetime
 
+from dotenv import load_dotenv
+
 def log(msg):
     now_str = datetime.now().strftime("%H:%M:%S")
     try:
@@ -15,13 +17,19 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
+# Load WF_USERNAME/WF_PASSWORD (and any other local overrides) from a .env
+# file at the project root if present. Safe no-op otherwise. This covers
+# running this script directly from the CLI, outside of Django.
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from start_doc_server import start_server
 from stop_doc_server import stop_server
 
 from doc_engine.playwright_engine import get_playwright_backend
 
-def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port='8001'):
+def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port='8001',
+                 username=None, password=None):
     """
     Reusable function to generate documentation screenshots.
     Executes Python Playwright capture engine natively.
@@ -50,7 +58,9 @@ def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port
             theme=theme,
             device=device,
             host=host,
-            port=port
+            port=port,
+            username=username,
+            password=password
         )
         log(f"PythonPlaywrightBackend completed with success={success}.")
         return success
@@ -66,6 +76,12 @@ if __name__ == "__main__":
     parser.add_argument('--device', default=None, help="Device to emulate (e.g., 'iPhone 13')")
     parser.add_argument('--host', default='127.0.0.1', help="Server Host")
     parser.add_argument('--port', default='8001', help="Server Port")
+    parser.add_argument('--username', default=None,
+                         help="Login username for the capture session. Falls back to the "
+                              "WF_USERNAME environment variable if not given.")
+    parser.add_argument('--password', default=None,
+                         help="Login password for the capture session. Falls back to the "
+                              "WF_PASSWORD environment variable if not given.")
 
     args = parser.parse_args()
 
@@ -74,5 +90,7 @@ if __name__ == "__main__":
         theme=args.theme,
         device=args.device,
         host=args.host,
-        port=args.port
+        port=args.port,
+        username=args.username,
+        password=args.password
     )

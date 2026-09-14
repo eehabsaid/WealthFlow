@@ -108,9 +108,9 @@ def main():
 
             # Step 1: Login
             print("\n[STEP 1] Authenticating user session...")
-            login_ok = ctx.login(username="eehab_said", password="Eehabdev1")
+            login_ok = ctx.login()
             assert login_ok, "API Authentication failed!"
-            reporter.add_step("User Session Login", "Auth", "PASS", "Authenticated successfully with user 'eehab_said'.")
+            reporter.add_step("User Session Login", "Auth", "PASS", "Authenticated successfully.")
 
             # Step 2: Apply Theme & Language
             ctx.set_theme(args.theme)

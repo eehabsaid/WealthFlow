@@ -12,8 +12,7 @@ from doc_engine.services.documentation_metadata_service import DocumentationMeta
 
 
 class LifecycleMixin:
-    def __init__(self, host: str = '127.0.0.1', port: str = '8001',
-                 username: str = 'eehab_said', password: str = 'Eehabdev1',
+    def __init__(self, username: str, password: str, host: str = '127.0.0.1', port: str = '8001',
                  theme: str = 'dark', language: str = 'en', device: Optional[str] = None):
         self.host = host
         self.port = port
