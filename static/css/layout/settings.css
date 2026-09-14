@@ -8,8 +8,8 @@
    - misc_ui.css               Toast, spinner, group badge, mobile sidebar bits
    ── */
 
-@import url("settings_layout/tabs.css");
-@import url("settings_layout/portfolio_scoring.css");
-@import url("settings_layout/portfolio_recs_goals.css");
-@import url("settings_layout/goal_planning.css");
-@import url("settings_layout/misc_ui.css");
+@import url("../settings_layout/tabs.css");
+@import url("../settings_layout/portfolio_scoring.css");
+@import url("../settings_layout/portfolio_recs_goals.css");
+@import url("../settings_layout/goal_planning.css");
+@import url("../settings_layout/misc_ui.css");
