@@ -27,6 +27,7 @@ from .ai_conversation import AIConversation
 from .ai_message import AIMessage
 from .ai_knowledge import AIKnowledgeEntry, AIModelVersion, AIBenchmarkReport
 from .ai_prompt import AIPromptCategory, AIPrompt
+from .billing import Plan, Subscription, Invoice
 
 __all__ = [
     "Company",
@@ -96,5 +97,8 @@ __all__ = [
     "AIBenchmarkReport",
     "AIPromptCategory",
     "AIPrompt",
+    "Plan",
+    "Subscription",
+    "Invoice",
 ]
 

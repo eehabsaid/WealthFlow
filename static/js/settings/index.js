@@ -10,6 +10,7 @@ async function renderSettings(route) {
     banks: "banks",
     currency: "currency",
     users: "users",
+    billing: "billing",
     emailtemplates: "emailtemplates",
     translationcoverage: "translationcoverage",
     translations: "translations",
@@ -48,6 +49,12 @@ async function renderSettings(route) {
     { id: "banks", i18n: "settings_banks", fallback: "Banks", route: "settings-banks" },
     { id: "currency", i18n: "settings_currency", fallback: "Currency", route: "settings-currency" },
     { id: "users", i18n: "settings_users", fallback: "Users", route: "settings-users" },
+    {
+      id: "billing",
+      i18n: "settings_billing",
+      fallback: "Billing Plans",
+      route: "settings-billing",
+    },
     {
       id: "emailtemplates",
       i18n: "settings_email_templates",
@@ -165,6 +172,7 @@ async function renderSettings(route) {
     backuprestore: renderBackupRestoreSettings,
     documentation: renderDocumentationSettings,
     aiadvisor: renderAIAdvisorSettings,
+    billing: renderBillingSettings,
   };
 
   await (renderers[activeTab] || renderers.banks)();

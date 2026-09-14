@@ -17,6 +17,8 @@ urlpatterns = [
     path("api/settings/gold-purities/", views.GoldPuritySettingsListView.as_view()),
     path("api/settings/gold-purities/<int:pk>/", views.GoldPuritySettingsDetailView.as_view()),
     path("api/settings/scrape-property-rates/", views.ScrapePropertyRatesView.as_view()),
+    path("api/settings/billing/plans/", views.PlanAdminListView.as_view()),
+    path("api/settings/billing/plans/<int:pk>/", views.PlanAdminDetailView.as_view()),
     # Backup & Restore
     path("api/settings/backup/create/", views.BackupCreateView.as_view()),
     path("api/settings/backup/list/", views.BackupListView.as_view()),

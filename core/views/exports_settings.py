@@ -20,6 +20,8 @@ from .settings import (
     AIConnectionTestView,
     AIProviderListView,
     ScrapePropertyRatesView,
+    PlanAdminListView,
+    PlanAdminDetailView,
     GoldTypeSettingsListView,
     GoldTypeSettingsDetailView,
     GoldPuritySettingsListView,
@@ -58,6 +60,8 @@ from .settings import (
 
 __all__ = [
     "SettingsView",
+    "PlanAdminListView",
+    "PlanAdminDetailView",
     "EmailTemplateListView",
     "EmailTemplateDetailView",
     "EmailSettingsTestView",

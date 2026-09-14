@@ -8,6 +8,7 @@ Sibling modules:
 - fixed_assets_urls.py: fixed assets, renovations, acquisition costs, furniture, valuations, maintenance, insurance
 - financial_advisor_urls.py: forecasts, overview, optimizer, risk analysis, scenarios, goal planning, ai chat
 - ai_platform_urls.py: knowledge base, datasets, models, benchmarks, prompt library
+- billing_urls.py: subscription status, plan list
 
 All lists are concatenated below to form the single `urlpatterns` Django expects.
 """
@@ -19,6 +20,7 @@ from .misc_urls import urlpatterns as misc_urlpatterns
 from .fixed_assets_urls import urlpatterns as fixed_assets_urlpatterns
 from .financial_advisor_urls import urlpatterns as financial_advisor_urlpatterns
 from .ai_platform_urls import urlpatterns as ai_platform_urlpatterns
+from .billing_urls import urlpatterns as billing_urlpatterns
 
 urlpatterns = (
     auth_urlpatterns
@@ -28,4 +30,5 @@ urlpatterns = (
     + fixed_assets_urlpatterns
     + financial_advisor_urlpatterns
     + ai_platform_urlpatterns
+    + billing_urlpatterns
 )

@@ -95,6 +95,10 @@ from core.views.settings.user.user_permission_views import (
     UserPermissionDetailView,
     PagePermissionChoicesView,
 )
+from core.views.settings.billing.plan_admin_views import (
+    PlanAdminListView,
+    PlanAdminDetailView,
+)
 
 from core.views.settings.documentation.documentation_core_views import (
     ValidateCaptureView,
@@ -157,6 +161,8 @@ __all__ = [
     "UserPermissionListView",
     "UserPermissionDetailView",
     "PagePermissionChoicesView",
+    "PlanAdminListView",
+    "PlanAdminDetailView",
     "ValidateCaptureView",
     "ValidateGenerationView",
     "DocumentationDevicesView",

@@ -4,6 +4,7 @@ from django.utils import timezone
 
 from core.authentication.serializers import AuthFlowResult
 from core.authentication.emails import EmailDeliveryError
+from core.services.billing import SubscriptionService
 
 
 class AccountStatusMixin:
@@ -28,6 +29,7 @@ class AccountStatusMixin:
         profile.save()
         user.is_active = True
         user.save(update_fields=["is_active"])
+        SubscriptionService.start_trial(user)
         cls.mark_token_used(token)
         cls.record_audit(user, "admin_approved", actor=actor)
         context = cls._common_context(user, None, {"VerificationLink": "", "PasswordResetLink": ""})
