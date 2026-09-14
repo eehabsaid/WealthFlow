@@ -14,8 +14,8 @@
    - theme_responsive.css  Light theme overrides + mobile responsive
    ═══════════════════════════════════════════════════════════════ */
 
-@import url("date_picker/wrapper_trigger.css");
-@import url("date_picker/popup_header.css");
-@import url("date_picker/month_day_grid.css");
-@import url("date_picker/footer_buttons.css");
-@import url("date_picker/theme_responsive.css");
+@import url("wrapper_trigger.css");
+@import url("popup_header.css");
+@import url("month_day_grid.css");
+@import url("footer_buttons.css");
+@import url("theme_responsive.css");

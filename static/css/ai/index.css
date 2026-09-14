@@ -13,13 +13,16 @@
    - responsive_misc.css      Empty-state text, scrollbars, responsive
                               breakpoints, prompt-library styling, mobile
                               sidebar hamburger toggle
+   - mobile_fixes.css         Mobile overflow fixes (formerly the separate
+                              ai-mobile-fix.css, loaded last as before)
    ═══════════════════════════════════════════════════════════════════ */
 
-@import url("ai/workspace_header.css");
-@import url("ai/left_panel.css");
-@import url("ai/center_empty_state.css");
-@import url("ai/message_bubbles.css");
-@import url("ai/code_tables_badges.css");
-@import url("ai/input_area.css");
-@import url("ai/right_panel.css");
-@import url("ai/responsive_misc.css");
+@import url("workspace_header.css");
+@import url("left_panel.css");
+@import url("center_empty_state.css");
+@import url("message_bubbles.css");
+@import url("code_tables_badges.css");
+@import url("input_area.css");
+@import url("right_panel.css");
+@import url("responsive_misc.css");
+@import url("mobile_fixes.css");

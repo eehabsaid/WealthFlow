@@ -4,7 +4,7 @@
 // CENTER ALERT — centered, responsive overlay for blocking validation errors
 // (e.g. certificate balance-deduction failures). Visually matches the
 // existing corner toast (same colors/border) but is centered on screen and
-// scales down on small viewports via css/center_alert.css. Does not replace
+// scales down on small viewports via css/components/center_alert.css. Does not replace
 // or modify showToast()/#toast-container, which are used elsewhere.
 // ════════════════════════════════════════════════════════════════════════════
 

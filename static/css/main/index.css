@@ -1,0 +1,39 @@
+/*
+* Main Stylesheet
+* This file imports all modular CSS components in the correct cascade order.
+* Lives in main/ so no flat files remain at the static/css root.
+*/
+
+@import url("../base/variables.css?v=1784442773?v=1784442773");
+@import url("../base/typography.css?v=1784442773?v=1784442773");
+@import url("../layout/shared.css?v=1784442773");
+@import url("../layout_financial_advisor/index.css?v=1784442773");
+@import url("../layout/fixed_assets.css?v=1784442773");
+@import url("../layout/settings.css?v=1784442773");
+@import url("../theme/index.css?v=1784442773?v=1784442773");
+
+/* Components */
+@import url("../components/sidebar.css?v=1784442773?v=1784442773");
+@import url("../components/topbar.css?v=1784442773?v=1784442773");
+@import url("../components/tables.css?v=1784442773?v=1784442773");
+@import url("../components/forms.css?v=1784442773?v=1784442773");
+@import url("../components/buttons.css?v=1784442773?v=1784442773");
+@import url("../cards/index.css?v=1784442773?v=1784442773");
+@import url("../components/modals.css?v=1784442773?v=1784442773");
+
+/* Features */
+@import url("../features/dashboard.css?v=1784442773?v=1784442773");
+@import url("../features/salary.css?v=1784442773?v=1784442773");
+@import url("../features/balance.css?v=1784442773?v=1784442773");
+@import url("../features/certificates.css?v=1784442773?v=1784442773");
+@import url("../features/expenses.css?v=1784442773?v=1784442773");
+@import url("../features/reports.css?v=1784442773?v=1784442773");
+@import url("../features/reminders.css?v=1784442773?v=1784442773");
+@import url("../features/settings.css?v=1784442773?v=1784442773");
+@import url("../fixed_assets/index.css?v=1784442773?v=1784442773");
+@import url("../financial_advisor/index.css?v=1784442773?v=1784442773");
+@import url("../date_picker/index.css?v=1784442773");
+@import url("../components/center_alert.css?v=1784442773");
+
+/* Responsive / Overrides */
+@import url("../responsive/index.css?v=1784442773?v=1784442773");
