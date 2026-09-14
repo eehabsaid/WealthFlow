@@ -5,7 +5,9 @@ grows past ~200 lines, split it further within this folder and update
 core/views/settings/__init__.py accordingly."""
 
 import json
+from django.db.models import ProtectedError
 from django.http import JsonResponse
+from django.utils.text import slugify
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -14,7 +16,18 @@ from django.shortcuts import get_object_or_404
 from core.models import Plan
 from core.views.auth_views import AdminRequiredMixin
 
-EDITABLE_FIELDS = ["name", "price_egp", "price_usd", "billing_interval_days", "is_active", "sort_order"]
+EDITABLE_FIELDS = ["name", "billing_interval_days", "is_active", "sort_order"]
+
+
+def _unique_code_from_name(name: str) -> str:
+    base = slugify(name)[:30] or "plan"
+    code = base
+    n = 2
+    while Plan.objects.filter(code=code).exists():
+        suffix = f"-{n}"
+        code = f"{base[: 30 - len(suffix)]}{suffix}"
+        n += 1
+    return code
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -25,6 +38,20 @@ class PlanAdminListView(AdminRequiredMixin, View):
     def get(self, request):
         plans = Plan.objects.all().order_by("sort_order", "id")
         return JsonResponse({"plans": [p.to_dict() for p in plans]})
+
+    def post(self, request):
+        data = json.loads(request.body)
+        name = (data.get("name") or "").strip()
+        if not name:
+            return JsonResponse({"error": "Plan name is required."}, status=400)
+        plan = Plan.objects.create(
+            code=_unique_code_from_name(name),
+            name=name,
+            billing_interval_days=data.get("billing_interval_days", 30),
+            is_active=data.get("is_active", True),
+            sort_order=data.get("sort_order", 0),
+        )
+        return JsonResponse(plan.to_dict(), status=201)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -41,3 +68,14 @@ class PlanAdminDetailView(AdminRequiredMixin, View):
                 setattr(plan, field, data[field])
         plan.save()
         return JsonResponse(plan.to_dict())
+
+    def delete(self, request, pk):
+        plan = get_object_or_404(Plan, pk=pk)
+        try:
+            plan.delete()
+        except ProtectedError:
+            return JsonResponse(
+                {"error": "This plan has subscribers and can't be deleted. Deactivate it instead."},
+                status=409,
+            )
+        return JsonResponse({"deleted": pk})

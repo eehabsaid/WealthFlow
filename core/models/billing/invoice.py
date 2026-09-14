@@ -18,7 +18,11 @@ class Invoice(models.Model):
         related_name="invoices",
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=3, default="EGP")
+    currency = models.ForeignKey(
+        "core.Currency",
+        on_delete=models.PROTECT,
+        related_name="invoices",
+    )
     status = models.CharField(max_length=20, choices=INVOICE_STATUS_CHOICES, default="pending")
     gateway_reference = models.CharField(max_length=255, blank=True, default="")
     period_start = models.DateTimeField(null=True, blank=True)
@@ -33,11 +37,11 @@ class Invoice(models.Model):
         return {
             "id": self.id,
             "amount": str(self.amount),
-            "currency": self.currency,
+            "currency": self.currency.code,
             "status": self.status,
             "issued_at": self.issued_at.isoformat() if self.issued_at else None,
             "paid_at": self.paid_at.isoformat() if self.paid_at else None,
         }
 
     def __str__(self):
-        return f"Invoice({self.owner.username}, {self.amount} {self.currency}, {self.status})"
+        return f"Invoice({self.owner.username}, {self.amount} {self.currency.code}, {self.status})"

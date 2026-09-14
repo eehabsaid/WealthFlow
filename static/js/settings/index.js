@@ -48,12 +48,13 @@ async function renderSettings(route) {
     },
     { id: "banks", i18n: "settings_banks", fallback: "Banks", route: "settings-banks" },
     { id: "currency", i18n: "settings_currency", fallback: "Currency", route: "settings-currency" },
-    { id: "users", i18n: "settings_users", fallback: "Users", route: "settings-users" },
+    { id: "users", i18n: "settings_users", fallback: "Users", route: "settings-users", adminOnly: true },
     {
       id: "billing",
       i18n: "settings_billing",
       fallback: "Billing Plans",
       route: "settings-billing",
+      adminOnly: true,
     },
     {
       id: "emailtemplates",
@@ -118,7 +119,12 @@ async function renderSettings(route) {
     },
   ];
 
-  const tabBar = tabs
+  const visibleTabs = tabs.filter((tab) => !tab.adminOnly || isPrivilegedUser());
+  if (!visibleTabs.some((tab) => tab.id === activeTab)) {
+    activeTab = "languages";
+  }
+
+  const tabBar = visibleTabs
     .map((tab) => {
       const label = t(tab.i18n, tab.fallback || tab.id);
       return `
@@ -130,7 +136,7 @@ async function renderSettings(route) {
     })
     .join("");
 
-  const activeTabObj = tabs.find((tab) => tab.id === activeTab) || tabs[0];
+  const activeTabObj = visibleTabs.find((tab) => tab.id === activeTab) || visibleTabs[0];
   const activeTabLabel = t(activeTabObj.i18n, activeTabObj.fallback || activeTabObj.id);
 
   mc.innerHTML = `

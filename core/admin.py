@@ -1,11 +1,17 @@
 from django.contrib import admin
-from .models import Company, SalaryEntry, Bank, BalanceEntry, AppSettings, BankCertificate, Currency, ExchangeRate, GoldPrice, PagePermission, CurrencyExchange, Plan, Subscription, Invoice
+from .models import Company, SalaryEntry, Bank, BalanceEntry, AppSettings, BankCertificate, Currency, ExchangeRate, GoldPrice, PagePermission, CurrencyExchange, Plan, PlanPrice, Subscription, Invoice
+
+
+class PlanPriceInline(admin.TabularInline):
+    model = PlanPrice
+    extra = 1
 
 
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "price_egp", "price_usd", "is_active", "sort_order")
-    list_editable = ("price_egp", "price_usd", "is_active", "sort_order")
+    list_display = ("code", "name", "is_active", "sort_order")
+    list_editable = ("is_active", "sort_order")
+    inlines = [PlanPriceInline]
 
 
 @admin.register(Subscription)

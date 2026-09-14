@@ -1,15 +1,13 @@
 from django.db import models
 
-from core.constants import PLAN_CODE_CHOICES
-
 
 class Plan(models.Model):
-    """A purchasable subscription tier (e.g. Basic, Pro)."""
+    """A purchasable subscription tier (e.g. Basic, Pro, or any tier an
+    admin creates). Prices live on PlanPrice, one row per app-configured
+    Currency — see core.models.Currency (Settings > Currency)."""
 
-    code = models.CharField(max_length=20, choices=PLAN_CODE_CHOICES, unique=True)
+    code = models.SlugField(max_length=30, unique=True)
     name = models.CharField(max_length=100)
-    price_egp = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    price_usd = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     billing_interval_days = models.PositiveIntegerField(default=30)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
@@ -19,15 +17,18 @@ class Plan(models.Model):
     class Meta:
         ordering = ["sort_order", "id"]
 
+    def price_for(self, currency_code: str):
+        price = self.prices.filter(currency__code=currency_code).select_related("currency").first()
+        return price.amount if price else None
+
     def to_dict(self):
         return {
             "id": self.id,
             "code": self.code,
             "name": self.name,
-            "price_egp": str(self.price_egp),
-            "price_usd": str(self.price_usd),
             "billing_interval_days": self.billing_interval_days,
             "is_active": self.is_active,
+            "prices": [p.to_dict() for p in self.prices.select_related("currency").all()],
         }
 
     def __str__(self):

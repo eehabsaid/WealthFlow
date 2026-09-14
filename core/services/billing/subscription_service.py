@@ -14,11 +14,9 @@ from core.models import Plan, Subscription
 class SubscriptionService:
     @staticmethod
     def get_default_trial_plan():
-        """Trial users start on Basic; they can upgrade to Pro at checkout."""
-        plan = Plan.objects.filter(code="basic", is_active=True).first()
-        if plan is None:
-            plan = Plan.objects.filter(is_active=True).order_by("sort_order", "id").first()
-        return plan
+        """Trial users start on the lowest-tier active plan (by sort_order),
+        so this keeps working regardless of which codes admins define."""
+        return Plan.objects.filter(is_active=True).order_by("sort_order", "id").first()
 
     @classmethod
     def start_trial(cls, user, trial_days: int = TRIAL_DAYS_DEFAULT) -> Subscription:
@@ -64,12 +62,16 @@ class SubscriptionService:
 
     @classmethod
     def plan_allows(cls, user, required_plan_code: str) -> bool:
-        """Pro-gated features: Pro subscribers pass; Basic subscribers don't."""
+        """A user's plan "allows" a required plan if its sort_order is at
+        least as high as the required plan's — i.e. tiers are ordered by
+        sort_order (higher sort_order = higher tier), not by hardcoded codes.
+        This keeps working no matter how many tiers admins define."""
         if user is not None and user.is_superuser:
             return True
         subscription = cls.get_subscription(user)
         if subscription is None or not subscription.has_access():
             return False
-        if required_plan_code == "basic":
-            return True
-        return subscription.plan.code == required_plan_code
+        required_plan = Plan.objects.filter(code=required_plan_code).first()
+        if required_plan is None:
+            return False
+        return subscription.plan.sort_order >= required_plan.sort_order

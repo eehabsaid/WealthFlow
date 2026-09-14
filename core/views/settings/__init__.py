@@ -99,6 +99,10 @@ from core.views.settings.billing.plan_admin_views import (
     PlanAdminListView,
     PlanAdminDetailView,
 )
+from core.views.settings.billing.plan_price_admin_views import (
+    PlanPriceAdminListView,
+    PlanPriceAdminDetailView,
+)
 
 from core.views.settings.documentation.documentation_core_views import (
     ValidateCaptureView,
@@ -163,6 +167,8 @@ __all__ = [
     "PagePermissionChoicesView",
     "PlanAdminListView",
     "PlanAdminDetailView",
+    "PlanPriceAdminListView",
+    "PlanPriceAdminDetailView",
     "ValidateCaptureView",
     "ValidateGenerationView",
     "DocumentationDevicesView",

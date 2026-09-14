@@ -2,11 +2,6 @@
 
 TRIAL_DAYS_DEFAULT = 14
 
-PLAN_CODE_CHOICES = [
-    ("basic", "Basic"),
-    ("pro", "Pro"),
-]
-
 SUBSCRIPTION_STATUS_CHOICES = [
     ("trialing", "Trialing"),
     ("active", "Active"),

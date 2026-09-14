@@ -19,6 +19,8 @@ urlpatterns = [
     path("api/settings/scrape-property-rates/", views.ScrapePropertyRatesView.as_view()),
     path("api/settings/billing/plans/", views.PlanAdminListView.as_view()),
     path("api/settings/billing/plans/<int:pk>/", views.PlanAdminDetailView.as_view()),
+    path("api/settings/billing/plans/<int:plan_id>/prices/", views.PlanPriceAdminListView.as_view()),
+    path("api/settings/billing/plans/<int:plan_id>/prices/<int:price_id>/", views.PlanPriceAdminDetailView.as_view()),
     # Backup & Restore
     path("api/settings/backup/create/", views.BackupCreateView.as_view()),
     path("api/settings/backup/list/", views.BackupListView.as_view()),
