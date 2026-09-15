@@ -16,11 +16,13 @@ from core.services.ai.training_backends.ollama_backend import (
     OllamaTrainingBackend,
     _load_training_examples,
 )
+from core.tests.billing.test_support import grant_ai_workspace_access
 
 
 class AIPlatformTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="test_ai_user", password="password123")
+        grant_ai_workspace_access(self.user)
 
     def test_knowledge_engine_record_and_context(self):
         entry = AIKnowledgeEngine.record_knowledge_entry(

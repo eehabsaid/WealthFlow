@@ -7,10 +7,12 @@ from django.contrib.auth.models import User
 
 from core.models.ai_prompt import AIPromptCategory
 from core.services.ai import AIPromptService
+from core.tests.billing.test_support import grant_ai_workspace_access
 
 class AIPromptApiTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="test_prompt_user", password="password123")
+        grant_ai_workspace_access(self.user)
 
         self.cat_general = AIPromptCategory.objects.filter(code="general").first()
         if not self.cat_general:

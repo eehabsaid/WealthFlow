@@ -19,6 +19,7 @@ from core.services.ai.tools import (
     get_registered_tool_schemas,
     validate_and_execute_tool,
 )
+from core.tests.billing.test_support import grant_ai_workspace_access
 
 User = get_user_model()
 
@@ -29,6 +30,7 @@ class AIToolsExecutionTest(TestCase):
         self.inactive_user = User.objects.create_user(
             username="inactive_user", password="password123", is_active=False
         )
+        grant_ai_workspace_access(self.user)
 
     def test_create_scenario_tool_success_flow(self):
         events = [

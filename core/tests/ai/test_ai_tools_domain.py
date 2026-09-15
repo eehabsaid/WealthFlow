@@ -13,12 +13,14 @@ from core.models import AppSettings
 from core.services.ai.tools import (
     validate_and_execute_tool,
 )
+from core.tests.billing.test_support import grant_ai_workspace_access
 
 User = get_user_model()
 
 class NewAIToolsDomainTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="test_ai_user", password="Password123!")
+        grant_ai_workspace_access(self.user)
 
     def test_ai_chat_view_question_domain_filtering(self):
         self.client.force_login(self.user)

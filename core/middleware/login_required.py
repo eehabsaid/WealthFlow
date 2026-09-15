@@ -1,6 +1,7 @@
 """Requires an authenticated session for every request except an explicit
 public allowlist (login/signup/password-reset pages, the auth API, the
-SPA shell, Django admin, and static/media assets).
+SPA shell, Django admin, static/media assets, and the Paymob webhook,
+which is verified via HMAC signature instead of a session).
 
 This existed as a per-view convention (`_api_auth_required`) but many
 view files never called it, so those endpoints were reachable without a
@@ -22,6 +23,7 @@ EXEMPT_PATH_PREFIXES = (
 EXEMPT_PATHS = (
     "/",
     "/favicon.ico",
+    "/api/billing/paymob/webhook/",
 )
 
 

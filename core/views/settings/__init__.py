@@ -103,6 +103,7 @@ from core.views.settings.billing.plan_price_admin_views import (
     PlanPriceAdminListView,
     PlanPriceAdminDetailView,
 )
+from core.views.settings.billing.gateway_settings_views import PaymobGatewaySettingsView
 
 from core.views.settings.documentation.documentation_core_views import (
     ValidateCaptureView,
@@ -169,6 +170,7 @@ __all__ = [
     "PlanAdminDetailView",
     "PlanPriceAdminListView",
     "PlanPriceAdminDetailView",
+    "PaymobGatewaySettingsView",
     "ValidateCaptureView",
     "ValidateGenerationView",
     "DocumentationDevicesView",

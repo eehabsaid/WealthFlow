@@ -23,3 +23,11 @@ function hasAnyAssignedPageAccess() {
 function shouldShowWelcomeOnly() {
   return !hasAnyAssignedPageAccess();
 }
+
+function planAllowsAIWorkspace() {
+  if (isPrivilegedUser()) {
+    return true;
+  }
+  const sub = window._billingSubscription;
+  return !!(sub && sub.plan && sub.plan.allows_ai_workspace);
+}

@@ -75,3 +75,17 @@ class SubscriptionService:
         if required_plan is None:
             return False
         return subscription.plan.sort_order >= required_plan.sort_order
+
+    @classmethod
+    def plan_allows_feature(cls, user, feature_flag: str) -> bool:
+        """A user's plan "allows" a feature if the boolean flag with that
+        name is set on their current Plan (e.g. `allows_ai_workspace`).
+        Admin-configured per plan from the Billing Plans settings tab —
+        never a hardcoded plan code/tier check, so it stays correct no
+        matter how many tiers admins define or rename."""
+        if user is not None and user.is_superuser:
+            return True
+        subscription = cls.get_subscription(user)
+        if subscription is None or not subscription.has_access():
+            return False
+        return bool(getattr(subscription.plan, feature_flag, False))

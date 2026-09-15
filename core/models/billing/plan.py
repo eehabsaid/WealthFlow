@@ -11,6 +11,12 @@ class Plan(models.Model):
     billing_interval_days = models.PositiveIntegerField(default=30)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
+
+    # Feature-gating flags — admin-configured per plan from the Billing
+    # Plans settings tab. Deliberately a plain boolean per feature rather
+    # than a hardcoded "pro" plan code, so gating stays correct no matter
+    # how many tiers/plans an admin defines or renames.
+    allows_ai_workspace = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -28,6 +34,7 @@ class Plan(models.Model):
             "name": self.name,
             "billing_interval_days": self.billing_interval_days,
             "is_active": self.is_active,
+            "allows_ai_workspace": self.allows_ai_workspace,
             "prices": [p.to_dict() for p in self.prices.select_related("currency").all()],
         }
 

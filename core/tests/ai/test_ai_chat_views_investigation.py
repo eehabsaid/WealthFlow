@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from core.models import AppSettings, AIConversation, AIMessage
 from core.integrations.ai_provider import OllamaProvider
+from core.tests.billing.test_support import grant_ai_workspace_access
 
 User = get_user_model()
 
@@ -12,6 +13,7 @@ class AIChatViewsInvestigationTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="test_user", password="password123")
         self.admin = User.objects.create_user(username="admin_user", password="password123", is_staff=True)
+        grant_ai_workspace_access(self.user)
 
     def test_ai_chat_view_unauthenticated(self):
         res = self.client.post("/api/financial-advisor/ai/chat/", json.dumps({"message": "Hi"}), content_type="application/json")

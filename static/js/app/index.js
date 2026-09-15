@@ -59,12 +59,13 @@ async function initApp() {
   // Merge user info from both endpoints
   window._currentUser = { ...meData.user, ...pData.profile };
 
+  // Awaited before renderSidebar() so plan-gated nav items (e.g. AI
+  // Workplace) render correctly on first paint instead of racing it.
+  if (typeof checkBillingStatus === "function") await checkBillingStatus();
+
   renderSidebar();
   renderTopbar();
   applySidebarDesktopMode(_sidebarDesktopMode, true);
-
-  // Trial/subscription banner — check immediately, not after a delay.
-  if (typeof checkBillingStatus === "function") checkBillingStatus();
 
   // Check reminders in background after load
   setTimeout(() => {

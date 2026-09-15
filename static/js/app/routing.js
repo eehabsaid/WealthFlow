@@ -15,7 +15,7 @@ function routeAllowed(hash) {
     return canAccessAny(["dashboard"]);
   }
   if (hash === "ai" || hash === "wealthflow-ai" || hash.startsWith("ai")) {
-    return canAccessAny(["ai", "wealthflow_ai", "financial_advisor"]);
+    return canAccessAny(["ai", "wealthflow_ai", "financial_advisor"]) && planAllowsAIWorkspace();
   }
   if (hash === "financial-advisor" || hash.startsWith("financial-advisor")) {
     return canAccessAny(["financial_advisor"]);

@@ -57,6 +57,11 @@ async function showPlanEditModal(planId) {
                 <div class="col-4"><label data-i18n="billing_interval_days">${t("billing_interval_days", "Interval (days)")}</label><input type="number" class="form-control" id="planIntervalDays" value="${plan.billing_interval_days}"></div>
                 <div class="col-4"><label data-i18n="active">${t("active", "Active")}</label><select class="form-select" id="planActive"><option value="true" ${plan.is_active ? "selected" : ""}>${t("yes", "Yes")}</option><option value="false" ${!plan.is_active ? "selected" : ""}>${t("no", "No")}</option></select></div>
             </div>
+            <div class="form-check mt-3">
+                <input type="checkbox" class="form-check-input" id="planAllowsAiWorkspace" ${plan.allows_ai_workspace ? "checked" : ""}>
+                <label class="form-check-label" for="planAllowsAiWorkspace" data-i18n="plan_allows_ai_workspace">${t("plan_allows_ai_workspace", "Includes AI Workplace")}</label>
+                <div style="color:var(--text-muted);font-size:12px;" data-i18n="plan_allows_ai_workspace_hint">${t("plan_allows_ai_workspace_hint", "Subscribers on this plan get AI chat, knowledge base, datasets, benchmarks and the prompt library.")}</div>
+            </div>
             <hr>
             <div style="font-weight:600;color:var(--text-secondary);margin-bottom:8px;" data-i18n="prices">${t("prices", "Prices")}</div>
             <table class="data-table">
@@ -78,6 +83,7 @@ async function savePlanFields(planId) {
     name: document.getElementById("planName").value.trim(),
     billing_interval_days: parseInt(document.getElementById("planIntervalDays").value) || 30,
     is_active: document.getElementById("planActive").value === "true",
+    allows_ai_workspace: document.getElementById("planAllowsAiWorkspace").checked,
   };
 
   if (!body.name) {

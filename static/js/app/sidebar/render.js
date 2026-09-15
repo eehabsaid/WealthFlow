@@ -5,7 +5,8 @@ function renderSidebar() {
 
   const canSalary = canAccessAny(["employment", "salary", "companies", "all_companies"]);
   const canDashboard = canAccessAny(["dashboard"]);
-  const canAI = canAccessAny(["ai", "wealthflow_ai", "financial_advisor"]);
+  const canAI =
+    canAccessAny(["ai", "wealthflow_ai", "financial_advisor"]) && planAllowsAIWorkspace();
   const canFinancialAdvisor = canAccessAny(["financial_advisor"]);
   const canBalance = canAccessAny(["balance", "banks"]);
   const canBankCertificates = canAccessAny(["bank_certificates"]);

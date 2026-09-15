@@ -1,5 +1,6 @@
 from django.urls import path
 from .. import views
+from core.services.billing import feature_required
 
 urlpatterns = [
     path(
@@ -76,18 +77,18 @@ urlpatterns = [
     ),
     path(
         "api/financial-advisor/ai/chat/",
-        views.AIChatView.as_view(),
+        feature_required("allows_ai_workspace")(views.AIChatView.as_view()),
     ),
     path(
         "api/financial-advisor/ai/conversations/",
-        views.AIConversationListView.as_view(),
+        feature_required("allows_ai_workspace")(views.AIConversationListView.as_view()),
     ),
     path(
         "api/financial-advisor/ai/conversations/<int:pk>/",
-        views.AIConversationDetailView.as_view(),
+        feature_required("allows_ai_workspace")(views.AIConversationDetailView.as_view()),
     ),
     path(
         "api/financial-advisor/ai/progress/",
-        views.AIProgressView.as_view(),
+        feature_required("allows_ai_workspace")(views.AIProgressView.as_view()),
     ),
 ]

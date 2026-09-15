@@ -85,6 +85,8 @@ function _planCardHtml(plan, currentPlanId, pendingRequest) {
   let ctaHtml;
   if (isCurrent) {
     ctaHtml = `<button class="wf-plan-card-cta" disabled>${t("current_plan_badge", "Current Plan")}</button>`;
+  } else if (price) {
+    ctaHtml = `<button class="wf-plan-card-cta" onclick="checkoutPlan(${plan.id})">${t("subscribe_btn", "Subscribe")}</button>`;
   } else if (pendingRequest && pendingRequest.plan_id === plan.id) {
     ctaHtml = `<button class="wf-plan-card-cta wf-plan-cta-pending" disabled>${t("upgrade_request_pending", "Request Pending")}</button>`;
   } else {
@@ -119,5 +121,52 @@ async function submitUpgradeRequest(planId) {
   }
 }
 
+async function checkoutPlan(planId) {
+  try {
+    const res = await fetch("/api/billing/checkout/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+      body: JSON.stringify({ plan_id: planId, currency_code: _plansPageCurrency }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "checkout failed");
+
+    if (data.mode === "paymob") {
+      window.location.href = data.iframe_url;
+      return;
+    }
+
+    // No gateway configured yet — fake/test-mode checkout.
+    if (
+      !confirm(
+        t(
+          "fake_payment_confirm",
+          "Test Payment Mode: no payment gateway is configured yet. Simulate a successful payment now?"
+        )
+      )
+    ) {
+      return;
+    }
+
+    const completeRes = await fetch("/api/billing/checkout/fake-complete/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+      body: JSON.stringify({ invoice_id: data.invoice_id }),
+    });
+    if (!completeRes.ok) throw new Error("fake payment failed");
+
+    showToast(
+      t("fake_payment_success", "Test payment complete ✓ — you're now on this plan."),
+      "success"
+    );
+    renderBillingPlansPage();
+    if (typeof checkBillingStatus === "function") checkBillingStatus();
+    if (typeof renderSidebar === "function") renderSidebar();
+  } catch (e) {
+    showToast(t("error_starting_checkout", "Couldn't start checkout. Please try again."), "error");
+  }
+}
+
 window.renderBillingPlansPage = renderBillingPlansPage;
 window.submitUpgradeRequest = submitUpgradeRequest;
+window.checkoutPlan = checkoutPlan;

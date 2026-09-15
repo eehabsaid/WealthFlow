@@ -17,6 +17,11 @@ class Invoice(models.Model):
         on_delete=models.CASCADE,
         related_name="invoices",
     )
+    plan = models.ForeignKey(
+        "core.Plan",
+        on_delete=models.PROTECT,
+        related_name="invoices",
+    )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.ForeignKey(
         "core.Currency",
@@ -36,6 +41,8 @@ class Invoice(models.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "plan_id": self.plan_id,
+            "plan_name": self.plan.name,
             "amount": str(self.amount),
             "currency": self.currency.code,
             "status": self.status,

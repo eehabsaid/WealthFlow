@@ -14,6 +14,9 @@ async function checkBillingStatus() {
     const res = await fetch("/api/billing/status/");
     if (!res.ok) return;
     const data = await res.json();
+    // Cached globally so sidebar/routing can gate plan-only features
+    // (e.g. AI Workplace) without a second round-trip.
+    window._billingSubscription = data.subscription || null;
     _renderTrialBanner(data.subscription, data.pending_upgrade_request);
   } catch (e) {}
 }

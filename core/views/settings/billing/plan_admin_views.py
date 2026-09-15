@@ -16,7 +16,13 @@ from django.shortcuts import get_object_or_404
 from core.models import Plan
 from core.views.auth_views import AdminRequiredMixin
 
-EDITABLE_FIELDS = ["name", "billing_interval_days", "is_active", "sort_order"]
+EDITABLE_FIELDS = [
+    "name",
+    "billing_interval_days",
+    "is_active",
+    "sort_order",
+    "allows_ai_workspace",
+]
 
 
 def _unique_code_from_name(name: str) -> str:
