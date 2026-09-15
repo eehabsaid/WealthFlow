@@ -47,10 +47,23 @@ def test_fixed_assets_module(context, reporter, screenshot_logger):
             context.page.wait_for_timeout(500)
             context.page.fill("#fa_name", asset_data["name"])
             if context.page.query_selector("#fa_status"):
-                context.page.select_option("#fa_status", index=0)
+                # #fa_status options are the 2 fixed literal values below (not
+                # dynamic per-install data), so selecting by value is exact
+                # and stable - unlike select_option(index=0), which has been
+                # observed to clear the select's value entirely on some
+                # Playwright/browser combinations.
+                context.page.select_option("#fa_status", value="Owned")
             context.page.wait_for_selector("#fa_purchase_currency option", state="attached", timeout=5000)
             if context.page.query_selector("#fa_purchase_currency"):
-                context.page.select_option("#fa_purchase_currency", index=0)
+                # Options here are dynamic per-install currency ids with no
+                # fixed literal to select by value, so read the first real
+                # option's actual value and select by that instead of
+                # select_option(index=0) (see #fa_status note above).
+                first_currency_value = context.page.eval_on_selector(
+                    "#fa_purchase_currency", "el => el.options[0]?.value || ''"
+                )
+                if first_currency_value:
+                    context.page.select_option("#fa_purchase_currency", value=first_currency_value)
             # Use a small, safe purchase price rather than the data
             # generator's large realistic amounts (e.g. 1.8M EGP) — the
             # disposable test DB's sample Cash balance is finite and the

@@ -91,7 +91,12 @@ def test_salary_module(context, reporter, screenshot_logger):
             test_expected = 100
             if context.page.query_selector("#mYear"):
                 context.page.fill("#mYear", str(test_year))
-                context.page.select_option("#mMonth", index=0)
+                # #mMonth options are the 12 fixed literal month names (not
+                # dynamic per-install data), so selecting by value is exact
+                # and stable - unlike select_option(index=0), which has been
+                # observed to clear the select's value entirely on some
+                # Playwright/browser combinations.
+                context.page.select_option("#mMonth", value="January")
                 context.page.fill("#mExpected", str(test_expected))
                 context.page.evaluate(f"(async () => {{ if (typeof saveSalaryEntry === 'function') {{ await saveSalaryEntry(null, {company_id}); }} }})()")
                 context.page.wait_for_timeout(900)
@@ -146,7 +151,18 @@ def test_salary_module(context, reporter, screenshot_logger):
                 context.page.evaluate(f"document.getElementById('pdDate').value = '{test_year}-01-15'")
                 context.page.fill("#pdAmount", str(test_amount))
                 if context.page.query_selector("#pdCurrency"):
-                    context.page.select_option("#pdCurrency", index=1)
+                    # #pdCurrency's option[0] is the blank "Select Currency"
+                    # placeholder and the real options are dynamic per-install
+                    # currency ids, so there's no fixed literal to select by
+                    # value. Read the first real option's actual value and
+                    # select by that instead of select_option(index=1), which
+                    # has been observed to clear the select's value entirely
+                    # on some Playwright/browser combinations.
+                    first_currency_value = context.page.eval_on_selector(
+                        "#pdCurrency", "el => (el.options[1] || el.options[0])?.value || ''"
+                    )
+                    if first_currency_value:
+                        context.page.select_option("#pdCurrency", value=first_currency_value)
                 context.page.evaluate(f"(async () => {{ if (typeof savePerDiem === 'function') {{ await savePerDiem(null, {company_id}, {test_year}); }} }})()")
                 context.page.wait_for_timeout(900)
 
