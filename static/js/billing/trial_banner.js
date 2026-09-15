@@ -2,7 +2,12 @@
 // App-wide trial/subscription banner — shown under the topbar.
 // This file is part of the billing module. Do not edit directly.
 
-const TRIAL_BANNER_DISMISS_KEY = "wf_trial_banner_dismissed_session";
+function _trialBannerDismissKey() {
+  const uid =
+    (window._currentUser && (window._currentUser.id || window._currentUser.username)) || "anon";
+  const today = new Date().toISOString().slice(0, 10);
+  return `wf_trial_banner_dismissed_${uid}_${today}`;
+}
 
 async function checkBillingStatus() {
   try {
@@ -23,7 +28,7 @@ function _renderTrialBanner(subscription, pendingRequest) {
   if (!mount || !subscription) return;
 
   if (subscription.status === "trialing" && subscription.has_access) {
-    if (sessionStorage.getItem(TRIAL_BANNER_DISMISS_KEY)) return;
+    if (localStorage.getItem(_trialBannerDismissKey())) return;
     return _paintTrialBanner(mount, subscription, pendingRequest);
   }
 
@@ -89,7 +94,7 @@ function _upgradeCta(pendingRequest, variant) {
 }
 
 function dismissTrialBanner() {
-  sessionStorage.setItem(TRIAL_BANNER_DISMISS_KEY, "1");
+  localStorage.setItem(_trialBannerDismissKey(), "1");
   _clearTrialBanner();
 }
 
