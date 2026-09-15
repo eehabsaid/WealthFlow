@@ -44,4 +44,3 @@ function getTranslatedBalanceTitle(b) {
   }
   return `${title}${bankStr} - ${b.currency_code}`;
 }
-

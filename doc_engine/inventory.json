@@ -71,6 +71,7 @@
     { "name": "Analytics", "id": "analytics" }, 
     { "name": "Reports", "id": "reports" }
   ]},
+  { "route": "billing-plans", "title": "Plans" },
   { "route": "exchange-rates", "title": "Exchange Rates" },
   { "route": "gold-price", "title": "Gold Price" },
   { "route": "expenses", "title": "Expenses", "nested_navigation": [
@@ -113,6 +114,10 @@
         { "name": "Add User", "type": "modal", "trigger": "eval:showUserModal()" },
         { "name": "Edit User", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showUserModal\"]'); if(btn) btn.click(); else if(window.showUserModal) showUserModal(1);" },
         { "name": "Manage Permissions", "type": "modal", "trigger": "eval:window.showPermissionsModal && window.showPermissionsModal(1)" }
+    ]}, 
+    { "name": "Billing Plans", "id": "settings-billing", "nested_navigation": [
+        { "name": "Add Plan", "type": "modal", "trigger": "eval:showPlanCreateModal()" },
+        { "name": "Edit Plan", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showPlanEditModal\"]'); if(btn) btn.click(); else if(window.showPlanEditModal) showPlanEditModal(1);" }
     ]}, 
     { "name": "Email Templates", "id": "settings-emailtemplates", "nested_navigation": [
         { "name": "Add Template", "type": "modal", "trigger": "eval:showEmailTemplateModal()" },

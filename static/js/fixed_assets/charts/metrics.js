@@ -131,7 +131,6 @@ function buildFixedAssetsGrowthSeries(assets) {
   };
 }
 
-
 function _noDataFixedAssets(cols) {
   return `<tr><td colspan="${cols}" style="text-align:center;padding:28px;color:var(--text-secondary)" data-i18n="no_data">${t("no_data", "No data available")}</td></tr>`;
 }

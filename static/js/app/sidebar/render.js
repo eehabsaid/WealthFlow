@@ -198,4 +198,3 @@ function renderSidebar() {
   _renderSidebarFooter(sidebar);
   applyTranslations();
 }
-

@@ -2,7 +2,6 @@
 // Sale tab: real-estate dependent tab visibility
 // This file is part of the fixed_assets module. Do not edit directly.
 
-
 function toggleRealEstateDependentTabs() {
   const assetType = document.getElementById("fa_type")?.value;
   const isRealEstate = isRealEstateAssetType(assetType);

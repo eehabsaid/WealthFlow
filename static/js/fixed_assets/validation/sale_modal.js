@@ -113,4 +113,3 @@ function showSaleModal(assetId, assetName, currentMarketValue) {
   showModal(html);
   applyTranslations();
 }
-

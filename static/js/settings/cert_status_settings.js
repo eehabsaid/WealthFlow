@@ -194,4 +194,3 @@ async function saveCertStatus(id) {
     showToast(d.error || t("error_saving", "Error saving"), "error");
   }
 }
-

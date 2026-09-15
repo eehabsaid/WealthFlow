@@ -54,4 +54,3 @@ function _renderSidebarFooter(sidebar) {
         </button>`;
   nav.appendChild(footer);
 }
-

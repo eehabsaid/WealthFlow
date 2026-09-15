@@ -65,4 +65,3 @@ async function fillCurrentUsdRate() {
     showToast(error.message, "danger");
   }
 }
-

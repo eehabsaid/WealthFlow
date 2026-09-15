@@ -140,4 +140,3 @@ async function showCompanyModal(companyId) {
         </div>`);
   applyTranslations();
 }
-

@@ -178,4 +178,3 @@ async function savePropertyValuationSettings() {
     );
   }
 }
-

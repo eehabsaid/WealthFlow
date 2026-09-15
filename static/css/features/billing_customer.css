@@ -1,0 +1,168 @@
+/* Customer-facing billing: trial banner + plans page */
+
+.wf-billing-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-inverse);
+}
+
+.wf-billing-banner-trial {
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover));
+}
+
+.wf-billing-banner-expired {
+  background: var(--accent-rose);
+}
+
+.wf-billing-banner-pastdue {
+  background: var(--accent-amber);
+  color: var(--bg-primary);
+}
+
+.wf-billing-banner-btn {
+  background: var(--text-inverse);
+  color: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wf-billing-banner-btn.light {
+  background: rgb(255 255 255 / 18%);
+  color: var(--text-inverse);
+}
+
+.wf-billing-banner-pending {
+  font-size: 13px;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.wf-billing-banner-dismiss {
+  background: transparent;
+  border: none;
+  color: var(--text-inverse);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.8;
+  padding: 0 4px;
+}
+
+.wf-billing-banner-dismiss:hover {
+  opacity: 1;
+}
+
+/* Plans page */
+
+.wf-plans-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.wf-plans-header h1 {
+  font-size: 26px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.wf-plans-header p {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.wf-plans-currency-select {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.wf-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.wf-plan-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow-card);
+}
+
+.wf-plan-card.wf-plan-current {
+  border-color: var(--accent-primary);
+  box-shadow:
+    0 0 0 1px var(--accent-primary),
+    var(--shadow-card);
+}
+
+.wf-plan-card-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.wf-plan-card-price {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.wf-plan-card-price span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.wf-plan-card-badge {
+  align-self: flex-start;
+  background: var(--accent-light);
+  color: var(--accent-primary);
+  border-radius: var(--radius-full);
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.wf-plan-card-desc {
+  color: var(--text-secondary);
+  font-size: 13px;
+  flex: 1;
+}
+
+.wf-plan-card-cta {
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.wf-plan-card-cta:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.wf-plan-card-cta.wf-plan-cta-pending {
+  background: transparent;
+  color: var(--accent-primary);
+}

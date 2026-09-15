@@ -42,4 +42,3 @@ async function deleteFixedAsset(assetId) {
     hideLoading();
   }
 }
-

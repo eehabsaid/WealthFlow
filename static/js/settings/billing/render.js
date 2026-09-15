@@ -8,9 +8,7 @@ function _planPricesSummary(plan) {
   if (!plan.prices || !plan.prices.length) {
     return `<span style="color:var(--text-muted)">${t("no_prices_set", "No prices set")}</span>`;
   }
-  return plan.prices
-    .map((p) => `${fmt(p.amount)} ${p.currency_code}`)
-    .join(", ");
+  return plan.prices.map((p) => `${fmt(p.amount)} ${p.currency_code}`).join(", ");
 }
 
 async function renderBillingSettings() {

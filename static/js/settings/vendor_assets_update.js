@@ -35,15 +35,24 @@ async function updateVendorAssets() {
     const data = await res.json();
 
     if (data.success && data.updated) {
-      showToast(t("vendor_assets_update_success", "Offline assets updated successfully."), "success");
+      showToast(
+        t("vendor_assets_update_success", "Offline assets updated successfully."),
+        "success"
+      );
     } else if (data.success && !data.updated) {
-      showToast(t("vendor_assets_already_current", "Already up to date. Nothing was downloaded."), "success");
+      showToast(
+        t("vendor_assets_already_current", "Already up to date. Nothing was downloaded."),
+        "success"
+      );
     } else {
       const failMsg = t("vendor_assets_update_failed", "Update failed. Existing assets were kept.");
       showToast(data.message ? `${failMsg} (${data.message})` : failMsg, "error");
     }
   } catch (e) {
-    showToast(t("vendor_assets_update_failed", "Update failed. Existing assets were kept."), "error");
+    showToast(
+      t("vendor_assets_update_failed", "Update failed. Existing assets were kept."),
+      "error"
+    );
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalHtml;

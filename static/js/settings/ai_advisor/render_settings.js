@@ -11,7 +11,7 @@
 
 window.AIA = window.AIA || {};
 
-window.AIA.renderAIAdvisorSettings = async function() {
+window.AIA.renderAIAdvisorSettings = async function () {
   const container = document.getElementById("settingsContent");
   if (!container) return;
 
@@ -30,7 +30,9 @@ window.AIA.renderAIAdvisorSettings = async function() {
     }
 
     window.AIA.state.currentAISettings = await res.json();
-    window.AIA.state.currentProviderSchemas = Array.isArray(window.AIA.state.currentAISettings.providers_schema)
+    window.AIA.state.currentProviderSchemas = Array.isArray(
+      window.AIA.state.currentAISettings.providers_schema
+    )
       ? window.AIA.state.currentAISettings.providers_schema
       : [];
   } catch (err) {
@@ -55,10 +57,14 @@ window.AIA.renderAIAdvisorSettings = async function() {
     .join("");
 
   const enabledChecked = window.AIA.state.currentAISettings.ai_enabled ? "checked" : "";
-  const readOnlyChecked = (window.AIA.state.currentAISettings.ai_read_only ?? true) ? "checked" : "";
+  const readOnlyChecked =
+    (window.AIA.state.currentAISettings.ai_read_only ?? true) ? "checked" : "";
 
   const html = window.AIA.buildAISettingsFormHtml({
-    activeProviderKey, providerOptions, enabledChecked, readOnlyChecked,
+    activeProviderKey,
+    providerOptions,
+    enabledChecked,
+    readOnlyChecked,
   });
   container.innerHTML = html;
 
@@ -69,5 +75,4 @@ window.AIA.renderAIAdvisorSettings = async function() {
   if (typeof applyTranslations === "function") {
     applyTranslations();
   }
-}
-
+};

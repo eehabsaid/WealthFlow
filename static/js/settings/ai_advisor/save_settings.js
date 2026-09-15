@@ -3,7 +3,7 @@
 
 window.AIA = window.AIA || {};
 
-window.AIA.saveAISettingsFromGui = async function() {
+window.AIA.saveAISettingsFromGui = async function () {
   const btn = document.getElementById("aiSaveBtn");
   const enabled = document.getElementById("aiEnabledToggle")?.checked || false;
   const readOnly = document.getElementById("aiReadOnlyToggle")?.checked ?? true;
@@ -95,5 +95,4 @@ window.AIA.saveAISettingsFromGui = async function() {
       btn.innerHTML = `<i class="bi bi-check-lg me-1"></i> <span>${t("ai_save_settings", "Save Settings")}</span>`;
     }
   }
-}
-
+};

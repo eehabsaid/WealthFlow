@@ -4,6 +4,10 @@ function routeAllowed(hash) {
   if (isPrivilegedUser()) {
     return true;
   }
+  if (hash === "billing-plans") {
+    // Every account can view/upgrade their own plan, regardless of assigned page permissions.
+    return true;
+  }
   if (hash === "welcome") {
     return shouldShowWelcomeOnly();
   }

@@ -25,3 +25,12 @@ INVOICE_STATUS_CHOICES = [
     ("failed", "Failed"),
     ("refunded", "Refunded"),
 ]
+
+# Customer-submitted "I want to upgrade" requests, captured while gateway
+# checkout (Paymob/Stripe) isn't wired up yet.
+UPGRADE_REQUEST_STATUS_CHOICES = [
+    ("pending", "Pending"),
+    ("contacted", "Contacted"),
+    ("completed", "Completed"),
+    ("cancelled", "Cancelled"),
+]

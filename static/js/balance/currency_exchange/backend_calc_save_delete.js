@@ -129,4 +129,3 @@ async function deleteExchange(id) {
     showToast(e.message, "danger");
   }
 }
-

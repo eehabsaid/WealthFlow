@@ -48,7 +48,13 @@ async function renderSettings(route) {
     },
     { id: "banks", i18n: "settings_banks", fallback: "Banks", route: "settings-banks" },
     { id: "currency", i18n: "settings_currency", fallback: "Currency", route: "settings-currency" },
-    { id: "users", i18n: "settings_users", fallback: "Users", route: "settings-users", adminOnly: true },
+    {
+      id: "users",
+      i18n: "settings_users",
+      fallback: "Users",
+      route: "settings-users",
+      adminOnly: true,
+    },
     {
       id: "billing",
       i18n: "settings_billing",
@@ -183,4 +189,3 @@ async function renderSettings(route) {
 
   await (renderers[activeTab] || renderers.banks)();
 }
-

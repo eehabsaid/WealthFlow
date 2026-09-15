@@ -222,4 +222,3 @@ async function saveFixedAsset(assetId = null) {
     hideLoading();
   }
 }
-

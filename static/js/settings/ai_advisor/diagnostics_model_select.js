@@ -3,7 +3,7 @@
 
 window.AIA = window.AIA || {};
 
-window.AIA.renderAIDiagnosticResult = function(data) {
+window.AIA.renderAIDiagnosticResult = function (data) {
   const resultDiv = document.getElementById("aiTestDiagnosticResult");
   if (!resultDiv) return;
 
@@ -65,9 +65,9 @@ window.AIA.renderAIDiagnosticResult = function(data) {
                 ${errorMsg ? `<div class="col-12 text-danger mt-1"><strong>${t("error", "Error")}:</strong> ${escapeHtml(errorMsg)}</div>` : ""}
             </div>
         </div>`;
-}
+};
 
-window.AIA.selectAIModel = function(modelName) {
+window.AIA.selectAIModel = function (modelName) {
   const input = document.getElementById("aiModelInput");
   if (input) {
     input.value = modelName;
@@ -75,5 +75,4 @@ window.AIA.selectAIModel = function(modelName) {
       showToast(t("ai_model_selected", `Model "${modelName}" selected`));
     }
   }
-}
-
+};

@@ -215,4 +215,3 @@ function initTabsWithMoreMenu(options = {}) {
 // Called automatically from applyTranslations() so no individual file needs
 // to be touched.
 // ════════════════════════════════════════════════════════════════════════════
-

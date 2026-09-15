@@ -101,4 +101,5 @@ const ROUTES = {
     fn: () => renderAdvancedReports(),
   },
   "fixed-assets": { key: "nav_fixed_assets", add: false, fn: () => renderFixedAssets() },
+  "billing-plans": { key: "nav_billing_plans", add: false, fn: () => renderBillingPlansPage() },
 };

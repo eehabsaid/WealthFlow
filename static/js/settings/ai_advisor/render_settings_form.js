@@ -184,5 +184,4 @@ window.AIA.buildAISettingsFormHtml = function (ctx) {
                 </div>
             </div>
         </div>`;
-
-}
+};

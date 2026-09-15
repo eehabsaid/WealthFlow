@@ -128,4 +128,3 @@ async function renderBalanceCurrencyExchange(data) {
 
   applyTranslations();
 }
-

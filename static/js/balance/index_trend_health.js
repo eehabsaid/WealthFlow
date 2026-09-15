@@ -120,5 +120,11 @@ function deriveBalanceFinancialHealth(forecastData, financialDetails, getRecomme
     },
   ].filter((r) => r.value > 0 || forecastData.action_plan?.key === "action_gold_cash");
 
-  return { netMonthlySurplus, diversificationLabel, financialHealth, financialParagraph, suggestedAllocations };
+  return {
+    netMonthlySurplus,
+    diversificationLabel,
+    financialHealth,
+    financialParagraph,
+    suggestedAllocations,
+  };
 }

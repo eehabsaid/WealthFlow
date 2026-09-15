@@ -156,4 +156,3 @@ function addValuationRow(data = {}, expand = false) {
 
   updateValuationSummary();
 }
-

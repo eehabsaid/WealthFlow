@@ -102,4 +102,3 @@ function _startNewAIChatConversation() {
     inputEl.focus();
   }
 }
-

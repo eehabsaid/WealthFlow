@@ -184,4 +184,3 @@ function drawFixedAssetsLineChart(canvasId, labels, datasets) {
     });
   }, 50);
 }
-

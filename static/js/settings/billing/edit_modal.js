@@ -11,7 +11,9 @@ async function showPlanEditModal(planId) {
   const { currencies = [] } = await currenciesRes.json();
 
   const pricedCodes = new Set((plan.prices || []).map((p) => p.currency_code));
-  const availableCurrencies = currencies.filter((c) => !pricedCodes.has(c.code) && c.code.toLowerCase() !== "gold");
+  const availableCurrencies = currencies.filter(
+    (c) => !pricedCodes.has(c.code) && c.code.toLowerCase() !== "gold"
+  );
 
   const priceRows = (plan.prices || [])
     .map(

@@ -104,10 +104,7 @@ function _renderRightPanel() {
       <div class="ai-ws-right-title"><i class="bi bi-grid me-1"></i> <span data-i18n="ai_ws_app_modules">Application Modules</span></div>
       <div class="ai-ws-modules-grid">
         ${_getApplicationModuleChips()
-          .map(
-            (m) =>
-              `<div class="ai-ws-module-chip" data-i18n="${m.i18nKey}">${m.text}</div>`
-          )
+          .map((m) => `<div class="ai-ws-module-chip" data-i18n="${m.i18nKey}">${m.text}</div>`)
           .join("")}
       </div>
     </div>

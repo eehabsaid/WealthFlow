@@ -3,7 +3,7 @@
 
 window.AIA = window.AIA || {};
 
-window.AIA.getProviderModelValue = function(providerKey) {
+window.AIA.getProviderModelValue = function (providerKey) {
   if (!window.AIA.state.currentAISettings) return "";
   if (providerKey === "ollama") return window.AIA.state.currentAISettings.ai_model || "";
   if (providerKey === "openai") return window.AIA.state.currentAISettings.ai_openai_model || "";
@@ -11,18 +11,18 @@ window.AIA.getProviderModelValue = function(providerKey) {
   if (providerKey === "gemini") return window.AIA.state.currentAISettings.ai_gemini_model || "";
   if (providerKey === "azure") return window.AIA.state.currentAISettings.ai_azure_deployment || "";
   return window.AIA.state.currentAISettings.ai_model || "";
-}
+};
 
-window.AIA.onAIProviderChanged = function() {
+window.AIA.onAIProviderChanged = function () {
   const pKey = document.getElementById("aiProviderSelect")?.value || "ollama";
   window.AIA.renderProviderFields(pKey);
   const mInput = document.getElementById("aiModelInput");
   if (mInput) {
     mInput.value = window.AIA.getProviderModelValue(pKey);
   }
-}
+};
 
-window.AIA.renderProviderFields = function(providerKey) {
+window.AIA.renderProviderFields = function (providerKey) {
   const container = document.getElementById("providerSpecificFields");
   if (!container) return;
 
@@ -43,7 +43,9 @@ window.AIA.renderProviderFields = function(providerKey) {
       ) {
         return ""; // Model is rendered in main top control
       }
-      const val = window.AIA.state.currentAISettings ? (window.AIA.state.currentAISettings[f.name] ?? "") : "";
+      const val = window.AIA.state.currentAISettings
+        ? (window.AIA.state.currentAISettings[f.name] ?? "")
+        : "";
       const label = t(f.label_key || f.name, f.name);
       const inputType = f.type || "text";
       const placeholder = f.placeholder ? `placeholder="${escapeHtml(f.placeholder)}"` : "";
@@ -59,5 +61,4 @@ window.AIA.renderProviderFields = function(providerKey) {
   if (typeof applyTranslations === "function") {
     applyTranslations();
   }
-}
-
+};

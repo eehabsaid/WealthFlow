@@ -63,4 +63,3 @@ async function renderCompanySettings() {
         </div>`;
   applyTranslations();
 }
-

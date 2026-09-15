@@ -17,4 +17,3 @@ window.AIA.state = {
   currentAISettings: null,
   currentProviderSchemas: [],
 };
-

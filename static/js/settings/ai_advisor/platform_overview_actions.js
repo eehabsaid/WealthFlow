@@ -3,7 +3,7 @@
 
 window.AIA = window.AIA || {};
 
-window.AIA.loadAIPlatformOverviewData = async function() {
+window.AIA.loadAIPlatformOverviewData = async function () {
   try {
     const [dsRes, mRes] = await Promise.all([
       fetch("/api/ai-platform/datasets/"),
@@ -64,9 +64,9 @@ window.AIA.loadAIPlatformOverviewData = async function() {
   } catch (err) {
     // Silently ignore AI Platform overview load failures.
   }
-}
+};
 
-window.AIA.runAutonomousAppScan = async function(btn) {
+window.AIA.runAutonomousAppScan = async function (btn) {
   if (btn) btn.disabled = true;
   try {
     const res = await fetch("/api/ai-platform/knowledge/", {
@@ -85,9 +85,9 @@ window.AIA.runAutonomousAppScan = async function(btn) {
   } finally {
     if (btn) btn.disabled = false;
   }
-}
+};
 
-window.AIA.refreshDatasetStats = async function(btn) {
+window.AIA.refreshDatasetStats = async function (btn) {
   if (btn) btn.disabled = true;
   try {
     const res = await fetch("/api/ai-platform/datasets/", { method: "POST" });
@@ -101,9 +101,9 @@ window.AIA.refreshDatasetStats = async function(btn) {
   } finally {
     if (btn) btn.disabled = false;
   }
-}
+};
 
-window.AIA.triggerModelFineTuning = async function(btn) {
+window.AIA.triggerModelFineTuning = async function (btn) {
   const backend = document.getElementById("aiTrainingBackendSelect")?.value || "ollama";
   if (btn) btn.disabled = true;
 
@@ -128,9 +128,9 @@ window.AIA.triggerModelFineTuning = async function(btn) {
   } finally {
     if (btn) btn.disabled = false;
   }
-}
+};
 
-window.AIA.promoteModelVersion = async function(versionName) {
+window.AIA.promoteModelVersion = async function (versionName) {
   try {
     const res = await fetch("/api/ai-platform/models/", {
       method: "POST",
@@ -146,6 +146,6 @@ window.AIA.promoteModelVersion = async function(versionName) {
   } catch (err) {
     if (typeof showToast === "function") showToast("Promotion failed", "error");
   }
-}
+};
 
 window.renderAIAdvisorSettings = window.AIA.renderAIAdvisorSettings;

@@ -16,7 +16,7 @@ function buildAndShowNonRealEstateModal(ctx) {
     extraValuationPane,
   } = buildNonRealEstateCoreTabParts(ctx);
 
-      const html = `
+  const html = `
       <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fixed-assets-heading" data-i18n="asset_details">Asset Details</h5>
           <button type="button" class="btn-close btn-close-white" onclick="handleAssetWindowClose()"></button>
@@ -80,33 +80,33 @@ function buildAndShowNonRealEstateModal(ctx) {
       <div id="assetPhotoOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-90 d-none" style="z-index:2000;"><div class="d-flex h-100 align-items-center justify-content-center"><img id="assetFullscreenImage" src="" alt="Fullscreen asset photo" class="img-fluid rounded" style="max-height:90%; max-width:90%;" /></div></div>
       `;
 
-      showModal(html);
-      applyTranslations();
+  showModal(html);
+  applyTranslations();
 
-      const mainPhoto = document.getElementById("assetMainPhoto");
-      const photoOverlay = document.getElementById("assetPhotoOverlay");
-      const fullscreenImage = document.getElementById("assetFullscreenImage");
-      if (mainPhoto) {
-        mainPhoto.addEventListener("click", () => {
-          fullscreenImage.src = mainPhoto.src;
-          photoOverlay?.classList.remove("d-none");
-        });
-      }
-      photoOverlay?.addEventListener("click", () => {
-        photoOverlay.classList.add("d-none");
-        fullscreenImage.src = "";
-      });
+  const mainPhoto = document.getElementById("assetMainPhoto");
+  const photoOverlay = document.getElementById("assetPhotoOverlay");
+  const fullscreenImage = document.getElementById("assetFullscreenImage");
+  if (mainPhoto) {
+    mainPhoto.addEventListener("click", () => {
+      fullscreenImage.src = mainPhoto.src;
+      photoOverlay?.classList.remove("d-none");
+    });
+  }
+  photoOverlay?.addEventListener("click", () => {
+    photoOverlay.classList.add("d-none");
+    fullscreenImage.src = "";
+  });
 
-      const assetPhotoThumbnails = document.querySelectorAll(".asset-photo-thumbnail");
-      assetPhotoThumbnails.forEach((thumb) => {
-        thumb.addEventListener("click", (e) => {
-          const url = e.currentTarget.dataset.url;
-          const mainImg = document.getElementById("assetMainPhoto");
-          if (mainImg) mainImg.src = url;
-          assetPhotoThumbnails.forEach((item) => item.classList.remove("active"));
-          e.currentTarget.classList.add("active");
-        });
-      });
-      hideLoading();
-      return;
+  const assetPhotoThumbnails = document.querySelectorAll(".asset-photo-thumbnail");
+  assetPhotoThumbnails.forEach((thumb) => {
+    thumb.addEventListener("click", (e) => {
+      const url = e.currentTarget.dataset.url;
+      const mainImg = document.getElementById("assetMainPhoto");
+      if (mainImg) mainImg.src = url;
+      assetPhotoThumbnails.forEach((item) => item.classList.remove("active"));
+      e.currentTarget.classList.add("active");
+    });
+  });
+  hideLoading();
+  return;
 }

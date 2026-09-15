@@ -31,7 +31,7 @@ def get_model_export_order():
         SalaryEntry, Scenario, ScenarioEvent,
         UserProfile,
         VehicleDetails,
-        Plan, PlanPrice, Subscription, Invoice,
+        Plan, PlanPrice, Subscription, Invoice, UpgradeRequest,
     )
 
     return [
@@ -100,4 +100,5 @@ def get_model_export_order():
         ("62", PlanPrice,                    None),
         ("63", Subscription,                 None),
         ("64", Invoice,                      None),
+        ("65", UpgradeRequest,                None),
     ]

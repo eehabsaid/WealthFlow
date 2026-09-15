@@ -4,14 +4,14 @@
 // buildAndShowNonRealEstateModal (non_real_estate_modal.js).
 
 function buildNonRealEstateCoreTabParts(ctx) {
-      const coreTabLabel = isVehicleAssetType(ctx.asset.asset_type)
-        ? t("vehicle", "Vehicle")
-        : isGoldAssetType(ctx.asset.asset_type)
-          ? t("gold_details", "Gold Details")
-          : t("details", "Details");
+  const coreTabLabel = isVehicleAssetType(ctx.asset.asset_type)
+    ? t("vehicle", "Vehicle")
+    : isGoldAssetType(ctx.asset.asset_type)
+      ? t("gold_details", "Gold Details")
+      : t("details", "Details");
 
-      const coreTabPane = isVehicleAssetType(ctx.asset.asset_type)
-        ? `
+  const coreTabPane = isVehicleAssetType(ctx.asset.asset_type)
+    ? `
           <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
             <div class="card-body p-4">
               <div class="row row-cols-1 row-cols-md-2 g-3">
@@ -29,8 +29,8 @@ function buildNonRealEstateCoreTabParts(ctx) {
             </div>
           </div>
         `
-        : isGoldAssetType(ctx.asset.asset_type)
-          ? `
+    : isGoldAssetType(ctx.asset.asset_type)
+      ? `
           <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
             <div class="card-body p-4">
               <div class="row row-cols-1 row-cols-md-2 g-3">
@@ -44,7 +44,7 @@ function buildNonRealEstateCoreTabParts(ctx) {
             </div>
           </div>
         `
-          : `
+      : `
           <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
             <div class="card-body p-4">
               <div class="row row-cols-1 row-cols-md-2 g-3">
@@ -60,8 +60,8 @@ function buildNonRealEstateCoreTabParts(ctx) {
           </div>
         `;
 
-      const extraVehicleTabs = isVehicleAssetType(ctx.asset.asset_type)
-        ? `
+  const extraVehicleTabs = isVehicleAssetType(ctx.asset.asset_type)
+    ? `
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="asset-maintenance-tab" data-bs-toggle="tab" data-bs-target="#asset-maintenance-pane" type="button" role="tab" data-i18n="maintenance">Maintenance</button>
           </li>
@@ -69,13 +69,16 @@ function buildNonRealEstateCoreTabParts(ctx) {
             <button class="nav-link" id="asset-insurance-tab" data-bs-toggle="tab" data-bs-target="#asset-insurance-pane" type="button" role="tab" data-i18n="insurance">Insurance</button>
           </li>
         `
-        : "";
+    : "";
 
-      const extraVehiclePanes = isVehicleAssetType(ctx.asset.asset_type)
-        ? `
+  const extraVehiclePanes = isVehicleAssetType(ctx.asset.asset_type)
+    ? `
           <div class="tab-pane fade" id="asset-maintenance-pane" role="tabpanel" aria-labelledby="asset-maintenance-tab">
             <div class="row g-3">
-              ${(ctx.maintenance.length ? ctx.maintenance : [{ date: "-", type: "-", cost: 0, notes: "-" }])
+              ${(ctx.maintenance.length
+                ? ctx.maintenance
+                : [{ date: "-", type: "-", cost: 0, notes: "-" }]
+              )
                 .map(
                   (item) => `
                 <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${formatDate(item.date) || "-"}</div></div><div><div class="small" data-i18n="type">Type</div><div>${item.type || "-"}</div></div><div><div class="small" data-i18n="cost">Cost</div><div>${fmt(item.cost)}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${item.notes || "-"}</div></div></div></div></div>
@@ -99,18 +102,18 @@ function buildNonRealEstateCoreTabParts(ctx) {
             </div>
           </div>
         `
-        : "";
+    : "";
 
-      const extraValuationTab = !isGoldAssetType(ctx.asset.asset_type)
-        ? `
+  const extraValuationTab = !isGoldAssetType(ctx.asset.asset_type)
+    ? `
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="asset-valuation-tab" data-bs-toggle="tab" data-bs-target="#asset-valuation-pane" type="button" role="tab" data-i18n="valuation_history">Valuation History</button>
           </li>
         `
-        : "";
+    : "";
 
-      const extraValuationPane = !isGoldAssetType(ctx.asset.asset_type)
-        ? `
+  const extraValuationPane = !isGoldAssetType(ctx.asset.asset_type)
+    ? `
           <div class="tab-pane fade" id="asset-valuation-pane" role="tabpanel" aria-labelledby="asset-valuation-tab">
             <div class="row g-3">
               ${(ctx.valuationHistory.length
@@ -126,7 +129,7 @@ function buildNonRealEstateCoreTabParts(ctx) {
             </div>
           </div>
         `
-        : "";
+    : "";
 
   return {
     coreTabLabel,

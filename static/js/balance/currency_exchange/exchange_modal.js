@@ -139,4 +139,3 @@ async function showExchangeModal(id = null) {
 
   applyTranslations();
 }
-

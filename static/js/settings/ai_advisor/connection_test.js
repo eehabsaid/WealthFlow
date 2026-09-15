@@ -3,7 +3,7 @@
 
 window.AIA = window.AIA || {};
 
-window.AIA.testAIConnectionFromGui = async function() {
+window.AIA.testAIConnectionFromGui = async function () {
   const btn = document.getElementById("aiTestConnBtn");
   const resultDiv = document.getElementById("aiTestDiagnosticResult");
   if (!resultDiv) return;
@@ -63,5 +63,4 @@ window.AIA.testAIConnectionFromGui = async function() {
       btn.innerHTML = `<i class="bi bi-activity me-1"></i> <span>${t("ai_test_connection", "Test Connection")}</span>`;
     }
   }
-}
-
+};

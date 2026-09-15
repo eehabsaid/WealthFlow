@@ -176,4 +176,3 @@ function renderPropertyTab() {
                         
                   </div> <!-- End Property Tab -->`;
 }
-

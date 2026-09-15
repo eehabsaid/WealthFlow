@@ -13,8 +13,7 @@ async function renderBackupRestoreSettings() {
     const res = await fetch("/api/settings/backup/list/?t=" + Date.now());
     const data = await res.json();
     backups = data.backups || [];
-  } catch (e) {
-  }
+  } catch (e) {}
 
   const rows =
     backups.length > 0

@@ -43,8 +43,7 @@ function _startProgressPolling(conversationId) {
           (data.tool
             ? data.tool.replace(/_/g, " ")
             : _aiT("ai_ws_thinking_status", "WealthFlow AI is thinking..."));
-        const elapsedStr =
-          data.elapsed_s != null ? ` (${_formatElapsed(data.elapsed_s)})` : "";
+        const elapsedStr = data.elapsed_s != null ? ` (${_formatElapsed(data.elapsed_s)})` : "";
         let statusText = "";
         if (data.step && data.step > 0) {
           statusText = `Step ${data.step}/${data.max_steps || 8}: ${desc}${elapsedStr}`;

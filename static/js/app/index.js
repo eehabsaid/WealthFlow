@@ -63,6 +63,9 @@ async function initApp() {
   renderTopbar();
   applySidebarDesktopMode(_sidebarDesktopMode, true);
 
+  // Trial/subscription banner — check immediately, not after a delay.
+  if (typeof checkBillingStatus === "function") checkBillingStatus();
+
   // Check reminders in background after load
   setTimeout(() => {
     if (typeof checkReminders === "function") checkReminders();

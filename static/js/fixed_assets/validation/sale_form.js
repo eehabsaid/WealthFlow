@@ -94,4 +94,3 @@ async function syncAssetSale(assetId, status) {
     throw new Error(message);
   }
 }
-

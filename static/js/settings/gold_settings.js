@@ -154,4 +154,3 @@ async function saveGoldType(itemId) {
     showToast(t("error_saving_gold_type", "Error saving gold type"), "error");
   }
 }
-

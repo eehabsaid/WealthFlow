@@ -55,4 +55,3 @@ async function renderAllCompanies() {
         </div>`;
   applyTranslations();
 }
-
