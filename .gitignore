@@ -12,7 +12,6 @@ backups/
 *.wfbackup
 
 # Documentation Engine
-node_modules/
 doc_engine/.auth/
 docs/screenshots/
 docs/generated/
