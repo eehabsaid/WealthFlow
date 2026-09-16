@@ -30,7 +30,7 @@ function route() {
   const hash =
     requested || storedRoute || (shouldShowWelcomeOnly() ? "welcome" : getFirstAllowedRoute());
 
-  if (shouldShowWelcomeOnly() && hash !== "welcome") {
+  if (shouldShowWelcomeOnly() && hash !== "welcome" && hash !== "billing-plans") {
     navigate("welcome");
     return;
   }

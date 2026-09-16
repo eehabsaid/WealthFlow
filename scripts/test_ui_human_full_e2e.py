@@ -62,11 +62,12 @@ from tests.modules.financial_advisor import test_financial_advisor_module
 from tests.modules.ai import test_ai_module
 from tests.modules.settings import test_settings_module
 from tests.modules.translations import test_translations_module
+from tests.modules.billing import test_billing_module
 
 def main():
     parser = argparse.ArgumentParser(description="WealthFlow Human QA End-to-End Regression Suite")
     parser.add_argument("--mode", default="full", choices=["full", "smoke", "module", "page", "crud", "lang", "theme", "device"])
-    parser.add_argument("--module", default="all", choices=["all", "auth", "dashboard", "ai", "balance", "salary", "expenses", "certificates", "fixed_assets", "reports", "reminders", "financial_advisor", "settings", "translations"])
+    parser.add_argument("--module", default="all", choices=["all", "auth", "dashboard", "ai", "balance", "salary", "expenses", "certificates", "fixed_assets", "reports", "reminders", "financial_advisor", "settings", "translations", "billing"])
     parser.add_argument("--page", default=None)
     parser.add_argument("--lang", default="en", choices=["en", "ar", "fr", "de"])
     parser.add_argument("--theme", default="dark", choices=["dark", "light"])
@@ -125,7 +126,7 @@ def main():
                 modules_to_run = [
                     "auth", "dashboard", "ai", "balance", "salary", "certificates",
                     "fixed_assets", "expenses", "reports", "reminders",
-                    "financial_advisor", "settings", "translations"
+                    "financial_advisor", "settings", "translations", "billing"
                 ]
 
             # Suite-level watchdog: a hard wall-clock ceiling on the whole run.
@@ -174,6 +175,8 @@ def main():
                     test_settings_module(ctx, reporter, screenshot_logger)
                 elif mod == "translations":
                     test_translations_module(ctx, reporter, screenshot_logger)
+                elif mod == "billing":
+                    test_billing_module(ctx, reporter, screenshot_logger)
 
             ctx.close()
 
