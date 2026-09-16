@@ -1,3 +1,7 @@
+"use strict";
+// Renovation row rendering, category fetch, and per-row event wiring.
+// Part of the fixed_assets module (split from the former monolithic
+// renovations.js, 200-line rule). Do not edit directly.
 // Scanner references: _t('renovation_finishing'), _t('renovation_painting'), _t('renovation_flooring'), _t('renovation_kitchen'), _t('renovation_bathroom'), _t('renovation_electrical'), _t('renovation_plumbing'), _t('renovation_doors_windows'), _t('renovation_furniture'), _t('renovation_landscape'), _t('renovation_maintenance'), _t('renovation_flooring_ceramic'), _t('renovation_wall_tiles'), _t('renovation_alumital_windows'), _t('renovation_other')
 
 let renovationCategories = [];
@@ -11,51 +15,6 @@ fetch("/api/asset-renovations/categories/")
     }
   })
   .catch(() => {});
-
-function updateRenovationSummary() {
-  const summaryStrip = document.getElementById("renovationSummaryStrip");
-  const badge = document.getElementById("renovation-count-badge");
-
-  const rows = document.querySelectorAll(".renovation-row");
-  const count = rows.length;
-
-  if (badge) {
-    badge.textContent = count > 0 ? `(${count})` : "";
-  }
-
-  let totalEGP = 0;
-  let totalUSD = 0;
-
-  rows.forEach((row) => {
-    const egp = parseFloat(row.querySelector(".renovation-egp").value) || 0;
-    const usd = parseFloat(row.querySelector(".renovation-usd").value) || 0;
-    totalEGP += egp;
-    totalUSD += usd;
-  });
-
-  const fmt = (n) =>
-    Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  if (summaryStrip) {
-    summaryStrip.innerHTML = `
-      <div class="stat">
-        <span class="stat-label" data-i18n="items">Items</span>
-        <span class="stat-value">${count}</span>
-      </div>
-      <div class="stat">
-        <span class="stat-label" data-i18n="total_egp">Total (EGP)</span>
-        <span class="stat-value">${fmt(totalEGP)}</span>
-      </div>
-      <div class="stat">
-        <span class="stat-label" data-i18n="total_usd">Total (USD)</span>
-        <span class="stat-value">${fmt(totalUSD)}</span>
-      </div>
-    `;
-    if (typeof applyTranslations === "function") {
-      applyTranslations();
-    }
-  }
-}
 
 function addRenovationRow(data = {}, expand = false) {
   const container = document.getElementById("renovationContainer");

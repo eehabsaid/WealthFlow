@@ -1,30 +1,8 @@
 "use strict";
-
-function setBreadcrumb(title) {
-  const bc = document.getElementById("breadcrumb");
-  if (bc) bc.textContent = title;
-}
-
-// Legacy translation alias used by some modules
-
-function translate(key) {
-  const lang = localStorage.getItem("lang") || "en";
-  return window.translations?.[lang]?.[key] || key;
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// THEME TOGGLE
-// ════════════════════════════════════════════════════════════════════════════
-
-function renderTabsShell(containerId, tabButtonsHtml) {
-  return `
-        <div class="wf-tabs-shell">
-            <div class="wf-tabs-row" id="${containerId}" role="tablist">
-                ${tabButtonsHtml}
-            </div>
-        </div>
-    `;
-}
+// Collapses overflow tabs into a "More" dropdown menu with positioning and
+// active-state syncing.
+// Part of the app/utils module (split from the former monolithic tabs.js,
+// 200-line rule). Do not edit directly.
 
 function initTabsWithMoreMenu(options = {}) {
   const containerId = options.containerId;
@@ -207,11 +185,3 @@ function initTabsWithMoreMenu(options = {}) {
 
   syncMoreActiveState();
 }
-
-// ════════════════════════════════════════════════════════════════════════════
-// COLLAPSIBLE TABLES
-// Auto-discovers every .data-table whose <tbody> has more than ROW_LIMIT rows
-// and attaches an expand / collapse toggle button beneath the wrapping card.
-// Called automatically from applyTranslations() so no individual file needs
-// to be touched.
-// ════════════════════════════════════════════════════════════════════════════
