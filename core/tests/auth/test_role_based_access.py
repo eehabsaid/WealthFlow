@@ -96,3 +96,29 @@ class RoleBasedAccessTests(TestCase):
         self.client.force_login(self.user)
         res = self.client.get("/api/settings/ai/")
         self.assertEqual(res.status_code, 200)
+
+    def test_every_sidebar_page_and_settings_tab_is_grantable(self):
+        """Every main-app page and settings tab must be assignable via a
+        Role or per-user override, so an end-user can be given access to
+        any single one of them without becoming sysadmin. Regression test
+        for the WealthFlow AI page, which was previously missing here."""
+        from core.constants.roles import grantable_permission_keys
+
+        grantable = set(grantable_permission_keys())
+        main_app_pages = {
+            "dashboard",
+            "wealthflow_ai",
+            "financial_advisor",
+            "employment",
+            "balance",
+            "bank_certificates",
+            "fixed_assets",
+            "exchange_rates",
+            "gold_price",
+            "expenses",
+            "expense-categories",
+            "reports",
+            "advanced_reports",
+        }
+        for key in main_app_pages:
+            self.assertIn(key, grantable, f"{key} is missing from the grantable keys")

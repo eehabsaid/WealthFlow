@@ -11,6 +11,7 @@ from core.constants.billing import (
 
 PAGE_PERMISSION_CHOICES = [
     ("dashboard", "Dashboard"),
+    ("wealthflow_ai", "WealthFlow AI"),
     ("financial_advisor", "Financial Advisor"),
     ("employment", "Employment"),
     ("balance", "Balance"),

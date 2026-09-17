@@ -9,13 +9,16 @@ def test_users(context, reporter, screenshot_logger):
     # large page_size ensures the newly created test user is captured.
     user_checker = CrudVerifier(context.page, api_list_url="/api/users/?page_size=1000", list_key="users")
     try:
-        context.page.evaluate("if (typeof switchSettingsTab === 'function') switchSettingsTab('users');")
+        context.page.evaluate("if (typeof switchSettingsTab === 'function') switchSettingsTab('users'); else if (typeof navigate === 'function') navigate('settings-users');")
         context.page.wait_for_timeout(500)
 
         before_ids = user_checker.snapshot_ids()
 
-        context.page.evaluate("if (typeof showUserModal === 'function') showUserModal();")
-        context.page.wait_for_timeout(600)
+        context.page.evaluate("(async () => { if (typeof showUserModal === 'function') await showUserModal(); })()")
+        try:
+            context.page.wait_for_selector("#globalModal.show #uName", state="visible", timeout=6000)
+        except Exception:
+            context.page.wait_for_timeout(600)
         reporter.modals_opened.add("User Management Modal")
         shot_usr = screenshot_logger.capture(context.page, "settings", "user_modal", "showUserModal", "open", "ok")
         user_checker.add_manual_step(context.page.query_selector("#uName") is not None)
@@ -30,18 +33,29 @@ def test_users(context, reporter, screenshot_logger):
             save_btn = context.page.query_selector("#globalModal button[type='submit'], #globalModal .btn-primary-custom, #globalModal button:has-text('Save')")
             if save_btn:
                 save_btn.click()
-                context.page.wait_for_timeout(700)
+                try:
+                    context.page.wait_for_selector("#globalModal.show", state="hidden", timeout=8000)
+                except Exception:
+                    pass
+                context.page.wait_for_timeout(500)
 
         create_result = user_checker.verify_created(before_ids, match_field="username", expected_value=username)
 
         new_email = "edited_" + email
         if create_result.new_id is not None:
-            context.page.evaluate(f"if (typeof showUserModal === 'function') showUserModal({create_result.new_id});")
-            context.page.wait_for_timeout(500)
-            if context.page.query_selector("#uEmail"):
-                context.page.fill("#uEmail", new_email)
+            context.page.evaluate(f"(async () => {{ if (typeof showUserModal === 'function') await showUserModal({create_result.new_id}); }})()")
+            try:
+                context.page.wait_for_selector("#globalModal.show #uEmail", state="visible", timeout=8000)
+            except Exception:
+                context.page.wait_for_timeout(600)
+            if context.page.query_selector("#globalModal.show #uEmail"):
+                context.page.fill("#globalModal.show #uEmail", new_email)
                 context.page.evaluate(f"(async () => {{ if (typeof saveUser === 'function') {{ await saveUser({create_result.new_id}); }} }})()")
-                context.page.wait_for_timeout(700)
+                try:
+                    context.page.wait_for_selector("#globalModal.show", state="hidden", timeout=8000)
+                except Exception:
+                    pass
+                context.page.wait_for_timeout(500)
         edit_result = user_checker.verify_field_updated(create_result.new_id, "email", new_email)
 
         if create_result.new_id is not None:
