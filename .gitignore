@@ -1,7 +1,11 @@
 __pycache__/
 *.pyc
 venv/
-.agents/
+# .agents — track rules, plugins (portable); ignore everything else
+.agents/*
+!.agents/AGENTS.md
+!.agents/plugins.json
+!.agents/plugins
 .ruff_cache/
 .vscode/
 .mypy_cache
