@@ -2275,5 +2275,9 @@
   "granted": "Gewährt",
   "revoked": "Entzogen",
   "grant": "Gewähren",
-  "revoke": "Entziehen"
+  "revoke": "Entziehen",
+  "user_access_level": "Zugriffsebene",
+  "access_level_normal": "Normaler Benutzer",
+  "access_level_staff": "Personal-Benutzer",
+  "access_level_sysadmin": "Systemadministrator-Benutzer"
 }

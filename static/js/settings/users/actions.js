@@ -81,12 +81,13 @@ async function saveUser(userId) {
     return;
   }
 
+  const accessLevel = document.getElementById("uAccessLevel").value;
   const body = {
     username,
     email,
     is_active: document.getElementById("uActive").value === "true",
-    is_staff: document.getElementById("uStaff").value === "true",
-    is_sysadmin: document.getElementById("uSysadmin").value === "true",
+    is_staff: accessLevel === "staff" || accessLevel === "sysadmin",
+    is_sysadmin: accessLevel === "sysadmin",
   };
   if (password) body.password = password;
 

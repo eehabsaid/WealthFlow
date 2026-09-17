@@ -2275,5 +2275,9 @@
   "granted": "ممنوح",
   "revoked": "ملغى",
   "grant": "منح",
-  "revoke": "إلغاء"
+  "revoke": "إلغاء",
+  "user_access_level": "مستوى الصلاحية",
+  "access_level_normal": "مستخدم عادي",
+  "access_level_staff": "مستخدم طاقم عمل",
+  "access_level_sysadmin": "مستخدم مسؤول نظام"
 }

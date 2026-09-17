@@ -2275,5 +2275,9 @@
   "granted": "Granted",
   "revoked": "Revoked",
   "grant": "Grant",
-  "revoke": "Revoke"
+  "revoke": "Revoke",
+  "user_access_level": "Access Level",
+  "access_level_normal": "Normal User",
+  "access_level_staff": "Staff User",
+  "access_level_sysadmin": "Sysadmin User"
 }

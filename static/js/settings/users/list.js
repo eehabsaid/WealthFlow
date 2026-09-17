@@ -114,8 +114,15 @@ async function loadUsers({ page = 1, pageSize = 10, q = "" } = {}) {
             <td data-i18n="${statusKeyForUser(u)}">${t(statusKeyForUser(u), u.account_status || "active")}</td>
             <td data-i18n="${u.is_active ? "active" : "inactive"}">${u.is_active ? t("active", "Active") : t("inactive", "Inactive")}</td>
             <td>
-                ${u.is_sysadmin ? '<span class="badge-sysadmin" data-i18n="user_is_sysadmin">Sysadmin</span> ' : ""}
+                ${
+                  u.is_sysadmin
+                    ? '<span class="badge-sysadmin" data-i18n="user_is_sysadmin">Sysadmin</span> '
+                    : u.is_staff
+                      ? '<span class="badge-staff" data-i18n="user_is_staff">Staff</span> '
+                      : ""
+                }
                 ${(u.roles || []).map((r) => `<span class="badge-role">${r}</span>`).join(" ")}
+                ${!u.is_sysadmin && !u.is_staff && !(u.roles || []).length ? `<span class="text-muted" data-i18n="access_level_normal">${t("access_level_normal", "Normal User")}</span>` : ""}
             </td>
             <td>
                 <button class="btn-icon" onclick="showUserModal(${u.id})"><i class="bi bi-pencil"></i></button>
@@ -162,17 +169,11 @@ async function showUserModal(userId) {
                     </select>
                 </div>
                 <div class="col-6">
-                    <label data-i18n="user_is_staff">Staff</label>
-                    <select class="form-select" id="uStaff">
-                        <option value="false" ${!u?.is_staff ? "selected" : ""} data-i18n="no">No</option>
-                        <option value="true"  ${u?.is_staff ? "selected" : ""} data-i18n="yes">Yes</option>
-                    </select>
-                </div>
-                <div class="col-6">
-                    <label data-i18n="user_is_sysadmin">Sysadmin</label>
-                    <select class="form-select" id="uSysadmin">
-                        <option value="false" ${!u?.is_sysadmin ? "selected" : ""} data-i18n="no">No</option>
-                        <option value="true"  ${u?.is_sysadmin ? "selected" : ""} data-i18n="yes">Yes</option>
+                    <label data-i18n="user_access_level">Access Level</label>
+                    <select class="form-select" id="uAccessLevel">
+                        <option value="normal"   ${!u?.is_staff && !u?.is_sysadmin ? "selected" : ""} data-i18n="access_level_normal">Normal User</option>
+                        <option value="staff"    ${u?.is_staff && !u?.is_sysadmin ? "selected" : ""} data-i18n="access_level_staff">Staff User</option>
+                        <option value="sysadmin" ${u?.is_sysadmin ? "selected" : ""} data-i18n="access_level_sysadmin">Sysadmin User</option>
                     </select>
                 </div>
             </div>

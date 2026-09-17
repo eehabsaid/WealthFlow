@@ -51,6 +51,33 @@
   margin-left: 6px;
 }
 
+/* ── User access/role badges (Settings → Users) ── */
+.badge-sysadmin,
+.badge-staff,
+.badge-role {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0 4px 4px 0;
+}
+
+.badge-sysadmin {
+  background: rgb(220 53 69 / 15%);
+  color: #dc3545;
+}
+
+.badge-staff {
+  background: rgb(255 193 7 / 15%);
+  color: #ffc107;
+}
+
+.badge-role {
+  background: rgb(26 110 245 / 15%);
+  color: var(--accent-primary);
+}
+
 /* ════════════════════════════════════════════════════════════
    RESPONSIVE LAYOUT
    ════════════════════════════════════════════════════════════ */

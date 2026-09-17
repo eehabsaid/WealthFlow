@@ -2275,5 +2275,9 @@
   "granted": "Accordé",
   "revoked": "Révoqué",
   "grant": "Accorder",
-  "revoke": "Révoquer"
+  "revoke": "Révoquer",
+  "user_access_level": "Niveau d'accès",
+  "access_level_normal": "Utilisateur normal",
+  "access_level_staff": "Utilisateur du personnel",
+  "access_level_sysadmin": "Utilisateur administrateur système"
 }
