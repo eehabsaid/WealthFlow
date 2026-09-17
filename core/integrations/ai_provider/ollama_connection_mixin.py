@@ -71,7 +71,7 @@ class OllamaConnectionMixin:
         if not target_model:
             return False
 
-        models = self.list_models()
+        models = self.list_models(include_fine_tuned=True)
         for m in models:
             name = str(m.get("name", "")).strip().lower()
             model_id = str(m.get("model", "")).strip().lower()
