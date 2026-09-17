@@ -17,14 +17,15 @@ from django.utils.decorators import method_decorator
 from django.conf import settings
 from django.core.management import call_command
 
-from core.views.auth_views import AdminRequiredMixin
+from core.views.auth_views import PermissionRequiredMixin
 
 # ══════════════════════════════════════════════════════════════
 # BACKUP & RESTORE VIEWS
 # ══════════════════════════════════════════════════════════════
 
 @method_decorator(csrf_exempt, name="dispatch")
-class BackupCreateView(AdminRequiredMixin, View):
+class BackupCreateView(PermissionRequiredMixin, View):
+    required_key = "settings_backuprestore"
     def get(self, request):
         return self.post(request)
 
@@ -55,7 +56,8 @@ class BackupCreateView(AdminRequiredMixin, View):
                 return JsonResponse({"error": str(e)}, status=500)
 
 @method_decorator(csrf_exempt, name="dispatch")
-class BackupListView(AdminRequiredMixin, View):
+class BackupListView(PermissionRequiredMixin, View):
+    required_key = "settings_backuprestore"
     def get(self, request):
         backups_dir = os.path.join(settings.BASE_DIR, "backups")
         os.makedirs(backups_dir, exist_ok=True)
@@ -74,7 +76,8 @@ class BackupListView(AdminRequiredMixin, View):
         return JsonResponse({"backups": files})
 
 @method_decorator(csrf_exempt, name="dispatch")
-class BackupDeleteView(AdminRequiredMixin, View):
+class BackupDeleteView(PermissionRequiredMixin, View):
+    required_key = "settings_backuprestore"
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -93,7 +96,8 @@ class BackupDeleteView(AdminRequiredMixin, View):
             return JsonResponse({"error": str(e)}, status=500)
 
 @method_decorator(csrf_exempt, name="dispatch")
-class BackupRestoreView(AdminRequiredMixin, View):
+class BackupRestoreView(PermissionRequiredMixin, View):
+    required_key = "settings_backuprestore"
     def post(self, request):
         overwrite = request.GET.get("overwrite", "false").lower() == "true"
 

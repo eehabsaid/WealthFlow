@@ -2261,5 +2261,19 @@
   "no_active_plans": "Noch keine Pläne verfügbar.",
   "error_loading_plans": "Pläne konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
   "days_suffix": "T",
-  "loading_ellipsis": "Wird geladen…"
+  "loading_ellipsis": "Wird geladen…",
+  "settings_roles": "Rollen",
+  "btn_add_role": "Rolle hinzufügen",
+  "role_name": "Name",
+  "role_description": "Beschreibung",
+  "role_key_count": "Gewährte Rechte",
+  "edit_role": "Rolle bearbeiten",
+  "add_role": "Rolle hinzufügen",
+  "user_is_sysadmin": "Systemadministrator",
+  "set_sysadmin": "Als Systemadministrator festlegen",
+  "unset_sysadmin": "Systemadministrator entfernen",
+  "granted": "Gewährt",
+  "revoked": "Entzogen",
+  "grant": "Gewähren",
+  "revoke": "Entziehen"
 }

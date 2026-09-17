@@ -7,6 +7,8 @@ Re-exports all authentication views, mixins, and helpers from core.authenticatio
 
 from core.authentication.views import (
     AdminRequiredMixin,
+    SysadminRequiredMixin,
+    PermissionRequiredMixin,
     LoginAPIView,
     SignupAPIView,
     LogoutAPIView,
@@ -33,6 +35,8 @@ from core.authentication.views import (
 
 __all__ = [
     "AdminRequiredMixin",
+    "SysadminRequiredMixin",
+    "PermissionRequiredMixin",
     "LoginAPIView",
     "SignupAPIView",
     "LogoutAPIView",

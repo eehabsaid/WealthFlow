@@ -128,6 +128,10 @@ class AuthSecurityTokensTest(TestCase):
             is_superuser=True,
             is_active=True,
         )
+        from core.authentication.services import AuthWorkflowService
+        profile = AuthWorkflowService.get_profile(admin)
+        profile.is_sysadmin = True
+        profile.save(update_fields=["is_sysadmin"])
         self.client.force_login(admin)
         AppSettings.set("sender_email", "sender@example.com")
         AppSettings.set("smtp_host", "smtp.example.com")
@@ -159,6 +163,10 @@ class AuthSecurityTokensTest(TestCase):
             is_superuser=True,
             is_active=True,
         )
+        from core.authentication.services import AuthWorkflowService
+        profile = AuthWorkflowService.get_profile(admin)
+        profile.is_sysadmin = True
+        profile.save(update_fields=["is_sysadmin"])
         self.client.force_login(admin)
         AppSettings.set("sender_email", "sender@example.com")
         AppSettings.set("smtp_host", "smtp.office365.com")

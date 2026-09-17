@@ -40,6 +40,10 @@ async function applyBulkAction() {
 
   const payload = { action, ids };
   if (action.startsWith("set_staff")) payload.value = action.endsWith("true");
+  if (action.startsWith("set_sysadmin")) {
+    payload.action = "set_sysadmin";
+    payload.value = action.endsWith("true");
+  }
 
   try {
     const res = await fetch("/api/users/bulk/", {
@@ -82,6 +86,7 @@ async function saveUser(userId) {
     email,
     is_active: document.getElementById("uActive").value === "true",
     is_staff: document.getElementById("uStaff").value === "true",
+    is_sysadmin: document.getElementById("uSysadmin").value === "true",
   };
   if (password) body.password = password;
 

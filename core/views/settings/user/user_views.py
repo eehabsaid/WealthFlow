@@ -74,6 +74,10 @@ class UserListView(AdminRequiredMixin, View):
         user.is_staff = data.get("is_staff", False)
         user.is_superuser = data.get("is_superuser", False)
         user.save()
+        if "is_sysadmin" in data:
+            profile = AuthWorkflowService.get_profile(user)
+            profile.is_sysadmin = bool(data["is_sysadmin"])
+            profile.save(update_fields=["is_sysadmin"])
         if user.is_active:
             AuthWorkflowService.enable_user(user, actor=request.user)
         else:
@@ -104,6 +108,10 @@ class UserDetailView(AdminRequiredMixin, View):
         if data.get("password"):
             user.set_password(data["password"])
         user.save()
+        if "is_sysadmin" in data:
+            profile = AuthWorkflowService.get_profile(user)
+            profile.is_sysadmin = bool(data["is_sysadmin"])
+            profile.save(update_fields=["is_sysadmin"])
         if "is_active" in data and data["is_active"] != original_is_active:
             if data["is_active"]:
                 AuthWorkflowService.enable_user(user, actor=request.user)
@@ -152,6 +160,14 @@ class UserBulkActionView(AdminRequiredMixin, View):
         elif action == "set_superuser":
             val = bool(data.get("value"))
             changed = users.update(is_superuser=val)
+        elif action == "set_sysadmin":
+            val = bool(data.get("value"))
+            changed = 0
+            for user in users:
+                profile = AuthWorkflowService.get_profile(user)
+                profile.is_sysadmin = val
+                profile.save(update_fields=["is_sysadmin"])
+                changed += 1
         else:
             return JsonResponse({"error": "unknown action"}, status=400)
 

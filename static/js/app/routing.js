@@ -56,7 +56,8 @@ function routeAllowed(hash) {
     return canAccessAny(["advanced_reports"]);
   }
   if (hash.startsWith("settings")) {
-    return canAccessAny(["settings", "user_management"]);
+    if (isPrivilegedUser()) return true;
+    return (_allowedPages || []).some((k) => k === "settings" || k.startsWith("settings_"));
   }
   return false;
 }
@@ -120,5 +121,6 @@ function permissionToRoute(pageKey) {
   if (pageKey === "advanced_reports") return "advanced-reports";
   if (pageKey === "settings") return "settings-languages";
   if (pageKey === "user_management") return "settings-users";
+  if (typeof pageKey === "string" && pageKey.startsWith("settings_")) return "settings-languages";
   return "";
 }

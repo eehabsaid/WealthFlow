@@ -9,12 +9,13 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-from core.views.auth_views import AdminRequiredMixin
+from core.views.auth_views import PermissionRequiredMixin
 from core.integrations.ai_provider import AVAILABLE_AI_PROVIDERS
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class AIProviderListView(AdminRequiredMixin, View):
+class AIProviderListView(PermissionRequiredMixin, View):
+    required_key = "settings_aiadvisor"
     def get(self, request):
         providers = [
             cls.get_config_schema() for cls in AVAILABLE_AI_PROVIDERS.values()

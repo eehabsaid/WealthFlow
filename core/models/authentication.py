@@ -10,6 +10,7 @@ class UserProfile(models.Model):
     birthday = models.DateField(null=True, blank=True)
     email_verified = models.BooleanField(default=True)
     account_status = models.CharField(max_length=50, default="active")
+    is_sysadmin = models.BooleanField(default=False)
     status_reason = models.TextField(blank=True, default="")
     preferred_language = models.CharField(max_length=10, blank=True, default="")
     approved_at = models.DateTimeField(null=True, blank=True)
@@ -56,6 +57,7 @@ class UserProfile(models.Model):
             "account_status": self.account_status,
             "status_reason": self.status_reason,
             "preferred_language": self.preferred_language,
+            "is_sysadmin": self.is_sysadmin,
         }
 
     def __str__(self):

@@ -2,7 +2,12 @@
 
 """NOTE: part of the settings/user/ domain package. If this file grows
 past ~200 lines, split it further within this folder and update
-core/views/settings/__init__.py accordingly."""
+core/views/settings/__init__.py accordingly.
+
+`page` here means any key in the unified permission-key namespace (main-app
+pages + settings tabs) — see core/constants/roles.py. A PagePermission row
+is a per-user override: `granted=True` grants the key even without a role;
+`granted=False` revokes it even if a role grants it. Overrides always win."""
 
 import json
 from django.contrib.auth import get_user_model
@@ -12,13 +17,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
-from core.models import (
-    PagePermission,
-    PAGE_PERMISSION_CHOICES,
-)
-from core.constants import (
-    PAGE_PERMISSION_KEYS,
-)
+from core.models import PagePermission
+from core.constants.roles import grantable_permission_choices, grantable_permission_keys
 from core.views.auth_views import AdminRequiredMixin
 
 User = get_user_model()
@@ -35,7 +35,7 @@ class UserPermissionListView(AdminRequiredMixin, View):
         return JsonResponse(
             {
                 "permissions": [perm.to_dict() for perm in permissions],
-                "available_pages": PAGE_PERMISSION_CHOICES,
+                "available_pages": grantable_permission_choices(),
             }
         )
 
@@ -47,9 +47,12 @@ class UserPermissionListView(AdminRequiredMixin, View):
             else request.body
         )
         page = data.get("page")
-        if page not in PAGE_PERMISSION_KEYS:
-            return JsonResponse({"error": "Invalid page permission"}, status=400)
-        perm, created = PagePermission.objects.get_or_create(user=user, page=page)
+        granted = bool(data.get("granted", True))
+        if page not in grantable_permission_keys():
+            return JsonResponse({"error": "Invalid permission key"}, status=400)
+        perm, created = PagePermission.objects.update_or_create(
+            user=user, page=page, defaults={"granted": granted}
+        )
         return JsonResponse(
             {"permission": perm.to_dict()}, status=201 if created else 200
         )
@@ -68,4 +71,43 @@ class UserPermissionDetailView(AdminRequiredMixin, View):
 
 class PagePermissionChoicesView(AdminRequiredMixin, View):
     def get(self, request):
-        return JsonResponse({"available_pages": PAGE_PERMISSION_CHOICES})
+        return JsonResponse({"available_pages": grantable_permission_choices()})
+
+
+class UserRoleListView(AdminRequiredMixin, View):
+    """Roles currently assigned to a user (a user may hold several); POST
+    assigns one more."""
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        return JsonResponse({"roles": [ur.to_dict() for ur in user.roles.all()]})
+
+    def post(self, request, pk):
+        from core.models.permissions import Role, UserRole
+
+        user = get_object_or_404(User, pk=pk)
+        data = json.loads(
+            request.body.decode("utf-8")
+            if isinstance(request.body, bytes)
+            else request.body
+        )
+        role = get_object_or_404(Role, pk=data.get("role_id"))
+        ur, created = UserRole.objects.get_or_create(user=user, role=role)
+        return JsonResponse({"user_role": ur.to_dict()}, status=201 if created else 200)
+
+
+class UserRoleDetailView(AdminRequiredMixin, View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def delete(self, request, pk):
+        from core.models.permissions import UserRole
+
+        ur = get_object_or_404(UserRole, pk=pk)
+        ur.delete()
+        return JsonResponse({"deleted": pk})

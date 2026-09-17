@@ -33,7 +33,22 @@ function closeModal() {
   const el = document.getElementById("globalModal");
   if (el) {
     const modal = bootstrap.Modal.getInstance(el);
-    if (modal) modal.hide();
+    if (modal) {
+      // Dispose once Bootstrap's own hide transition finishes, not
+      // immediately — disposing mid-transition would cut the fade short.
+      // Without this, the instance is left in a "hiding" state and the
+      // next showModal()'s modal.show() is silently ignored (documented
+      // shared-modal race: #globalModal is reused across ~29 files).
+      el.addEventListener(
+        "hidden.bs.modal",
+        () => {
+          const stale = bootstrap.Modal.getInstance(el);
+          if (stale) stale.dispose();
+        },
+        { once: true }
+      );
+      modal.hide();
+    }
   }
   document.body.style.paddingRight = "";
   document.body.style.overflow = "";

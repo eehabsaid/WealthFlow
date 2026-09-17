@@ -58,6 +58,10 @@ class NewAIToolsDomainTest(TestCase):
         self.user.is_staff = True
         self.user.is_superuser = True
         self.user.save()
+        from core.authentication.services import AuthWorkflowService
+        profile = AuthWorkflowService.get_profile(self.user)
+        profile.is_sysadmin = True
+        profile.save(update_fields=["is_sysadmin"])
 
         # GET settings returns ai_read_only
         res_get = self.client.get("/api/settings/ai/")

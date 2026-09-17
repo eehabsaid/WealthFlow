@@ -2261,5 +2261,19 @@
   "no_active_plans": "Aucun forfait disponible pour le moment.",
   "error_loading_plans": "Impossible de charger les forfaits. Veuillez réessayer.",
   "days_suffix": "j",
-  "loading_ellipsis": "Chargement…"
+  "loading_ellipsis": "Chargement…",
+  "settings_roles": "Rôles",
+  "btn_add_role": "Ajouter un rôle",
+  "role_name": "Nom",
+  "role_description": "Description",
+  "role_key_count": "Accès accordés",
+  "edit_role": "Modifier le rôle",
+  "add_role": "Ajouter un rôle",
+  "user_is_sysadmin": "Administrateur système",
+  "set_sysadmin": "Définir administrateur système",
+  "unset_sysadmin": "Retirer administrateur système",
+  "granted": "Accordé",
+  "revoked": "Révoqué",
+  "grant": "Accorder",
+  "revoke": "Révoquer"
 }

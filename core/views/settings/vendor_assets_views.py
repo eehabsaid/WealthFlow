@@ -10,7 +10,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-from core.views.auth_views import AdminRequiredMixin
+from core.views.auth_views import PermissionRequiredMixin
 from core.services.shared.vendor_assets_updater_service import update_vendor_assets
 
 # ══════════════════════════════════════════════════════════════
@@ -19,7 +19,8 @@ from core.services.shared.vendor_assets_updater_service import update_vendor_ass
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class VendorAssetsUpdateView(AdminRequiredMixin, View):
+class VendorAssetsUpdateView(PermissionRequiredMixin, View):
+    required_key = "settings_backuprestore"
     def post(self, request):
         updated, success, message = update_vendor_assets()
         return JsonResponse({"success": success, "updated": updated, "message": message})

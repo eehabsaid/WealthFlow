@@ -26,5 +26,9 @@ urlpatterns = [
     path("api/users/<int:pk>/permissions/", views.UserPermissionListView.as_view()),
     path("api/users/permissions/<int:pk>/", views.UserPermissionDetailView.as_view()),
     path("api/users/permissions/pages/", views.PagePermissionChoicesView.as_view()),
+    path("api/users/<int:pk>/roles/", views.UserRoleListView.as_view()),
+    path("api/users/roles/<int:pk>/", views.UserRoleDetailView.as_view()),
+    path("api/roles/", views.RoleListView.as_view()),
+    path("api/roles/<int:pk>/", views.RoleDetailView.as_view()),
     path("user-management/", views.user_management_page, name="user_management"),
 ]

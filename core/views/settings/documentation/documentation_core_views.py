@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from core.views.auth_views import AdminRequiredMixin
+from core.views.auth_views import PermissionRequiredMixin
 from core.views.settings.documentation.documentation_constants import STATUS_FILE, CANCEL_FILE, read_json_file, write_json_file
 from core.views.settings.documentation.documentation_permutations_runner import run_documentation_permutations
 
@@ -13,7 +13,8 @@ from doc_engine.device_inventory import load_inventory, validate_inventory
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class ValidateCaptureView(AdminRequiredMixin, View):
+class ValidateCaptureView(PermissionRequiredMixin, View):
+    required_key = "settings_documentation"
     def get(self, request):
         from doc_engine.services.playwright_validator import PlaywrightValidator
         res = PlaywrightValidator().validate_capture_environment()
@@ -22,7 +23,8 @@ class ValidateCaptureView(AdminRequiredMixin, View):
         return JsonResponse({"valid": True})
 
 @method_decorator(csrf_exempt, name="dispatch")
-class ValidateGenerationView(AdminRequiredMixin, View):
+class ValidateGenerationView(PermissionRequiredMixin, View):
+    required_key = "settings_documentation"
     def get(self, request):
         from doc_engine.services.playwright_validator import PlaywrightValidator
         res = PlaywrightValidator().validate_generation_environment()
@@ -33,7 +35,8 @@ class ValidateGenerationView(AdminRequiredMixin, View):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class DocumentationDevicesView(AdminRequiredMixin, View):
+class DocumentationDevicesView(PermissionRequiredMixin, View):
+    required_key = "settings_documentation"
     def get(self, request):
         is_valid, err_msg = validate_inventory()
         if not is_valid:
@@ -41,13 +44,15 @@ class DocumentationDevicesView(AdminRequiredMixin, View):
         inventory = load_inventory()
         return JsonResponse(inventory)
 
-class DocumentationStatusView(AdminRequiredMixin, View):
+class DocumentationStatusView(PermissionRequiredMixin, View):
+    required_key = "settings_documentation"
     def get(self, request):
         status = read_json_file(STATUS_FILE, {})
         return JsonResponse(status)
 
 @method_decorator(csrf_exempt, name="dispatch")
-class DocumentationHistoryView(AdminRequiredMixin, View):
+class DocumentationHistoryView(PermissionRequiredMixin, View):
+    required_key = "settings_documentation"
     def get(self, request):
         from core.models import DocumentationExecution
         from django.utils.timezone import localtime
@@ -77,7 +82,8 @@ class DocumentationHistoryView(AdminRequiredMixin, View):
         return JsonResponse({"history": history})
 
 @method_decorator(csrf_exempt, name="dispatch")
-class GenerateDocumentationView(AdminRequiredMixin, View):
+class GenerateDocumentationView(PermissionRequiredMixin, View):
+    required_key = "settings_documentation"
     def post(self, request):
         try:
             data = json.loads(request.body)

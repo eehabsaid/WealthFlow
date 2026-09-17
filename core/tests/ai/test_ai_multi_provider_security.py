@@ -74,6 +74,10 @@ class AIMultiProviderSettingsApiTests(TestCase):
     def setUp(self):
         AppSettings.objects.all().delete()
         self.admin = User.objects.create_superuser(username="admin", password="password")
+        from core.authentication.services import AuthWorkflowService
+        profile = AuthWorkflowService.get_profile(self.admin)
+        profile.is_sysadmin = True
+        profile.save(update_fields=["is_sysadmin"])
         self.client.force_login(self.admin)
 
     @patch("core.integrations.openai_provider.make_json_http_request")

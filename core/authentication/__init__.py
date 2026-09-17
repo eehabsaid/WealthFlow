@@ -5,6 +5,8 @@ WealthFlow Authentication Package
 from core.authentication.services.auth_service import AuthWorkflowService, AuthFlowResult, EmailDeliveryError
 from core.authentication.views import (
     AdminRequiredMixin,
+    SysadminRequiredMixin,
+    PermissionRequiredMixin,
     LoginAPIView,
     SignupAPIView,
     LogoutAPIView,
@@ -34,6 +36,8 @@ __all__ = [
     "AuthFlowResult",
     "EmailDeliveryError",
     "AdminRequiredMixin",
+    "SysadminRequiredMixin",
+    "PermissionRequiredMixin",
     "LoginAPIView",
     "SignupAPIView",
     "LogoutAPIView",

@@ -10,6 +10,10 @@ class AIAdvisorViewsTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="regular_user", password="password123")
         self.admin = User.objects.create_user(username="admin_user", password="password123", is_staff=True)
+        from core.authentication.services import AuthWorkflowService
+        profile = AuthWorkflowService.get_profile(self.admin)
+        profile.is_sysadmin = True
+        profile.save(update_fields=["is_sysadmin"])
 
     def test_ai_provider_list_view_permissions(self):
         # Unauthenticated / Regular user forbidden

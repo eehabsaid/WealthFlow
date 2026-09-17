@@ -94,7 +94,10 @@ from core.views.settings.user.user_permission_views import (
     UserPermissionListView,
     UserPermissionDetailView,
     PagePermissionChoicesView,
+    UserRoleListView,
+    UserRoleDetailView,
 )
+from core.views.settings.roles import RoleListView, RoleDetailView
 from core.views.settings.billing.plan_admin_views import (
     PlanAdminListView,
     PlanAdminDetailView,
@@ -166,6 +169,10 @@ __all__ = [
     "UserPermissionListView",
     "UserPermissionDetailView",
     "PagePermissionChoicesView",
+    "UserRoleListView",
+    "UserRoleDetailView",
+    "RoleListView",
+    "RoleDetailView",
     "PlanAdminListView",
     "PlanAdminDetailView",
     "PlanPriceAdminListView",

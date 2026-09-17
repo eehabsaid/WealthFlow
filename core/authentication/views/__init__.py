@@ -2,7 +2,7 @@
 core/authentication/views package.
 
 Sibling modules:
-- mixins.py       — AdminRequiredMixin
+- mixins.py       — AdminRequiredMixin, SysadminRequiredMixin, PermissionRequiredMixin
 - helpers.py       — _render_auth, _render_auth_status
 - page_views.py        — template-rendering auth views (login/signup/forgot/reset/verify)
 - page_status_views.py — status-page views (pending/rejected/disabled/admin-approve/
@@ -15,7 +15,11 @@ This file re-exports the public surface so external callers can keep importing
 from core.authentication.views.
 """
 
-from core.authentication.views.mixins import AdminRequiredMixin
+from core.authentication.views.mixins import (
+    AdminRequiredMixin,
+    SysadminRequiredMixin,
+    PermissionRequiredMixin,
+)
 from core.authentication.views.helpers import _render_auth, _render_auth_status
 from core.authentication.views.page_views import (
     login_view,
@@ -48,6 +52,8 @@ from core.authentication.utils import (
 
 __all__ = [
     "AdminRequiredMixin",
+    "SysadminRequiredMixin",
+    "PermissionRequiredMixin",
     "LoginAPIView",
     "SignupAPIView",
     "LogoutAPIView",

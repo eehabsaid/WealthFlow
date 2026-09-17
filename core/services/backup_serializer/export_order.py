@@ -27,6 +27,7 @@ def get_model_export_order():
         Goal, GoldDetails, GoldPrice, GoldPriceHistory, GoldPuritySetting, GoldTypeSetting,
         OtherAssetDetails,
         PagePermission, PerDiem,
+        Role, RolePermission, UserRole,
         RealEstateDetails, ReminderLog, ReminderRule,
         SalaryEntry, Scenario, ScenarioEvent,
         UserProfile,
@@ -101,4 +102,7 @@ def get_model_export_order():
         ("63", Subscription,                 None),
         ("64", Invoice,                      None),
         ("65", UpgradeRequest,                None),
+        ("66", Role,                          "name"),
+        ("67", RolePermission,                None),
+        ("68", UserRole,                      None),
     ]

@@ -11,12 +11,12 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-from core.views.auth_views import AdminRequiredMixin
+from core.views.auth_views import PermissionRequiredMixin
 from core.models import AppSettings
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class ScrapePropertyRatesView(AdminRequiredMixin, View):
+class ScrapePropertyRatesView(PermissionRequiredMixin, View):
     """
     POST /api/settings/scrape-property-rates/
 
@@ -26,6 +26,8 @@ class ScrapePropertyRatesView(AdminRequiredMixin, View):
     Body (optional JSON):
         { "baseline_only": true, "timeout": 25 }
     """
+
+    required_key = "settings_propertyvaluation"
 
     def post(self, request):
         import json as _json

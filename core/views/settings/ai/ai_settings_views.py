@@ -10,7 +10,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-from core.views.auth_views import AdminRequiredMixin
+from core.views.auth_views import PermissionRequiredMixin
 from core.views.settings.ai.ai_settings_get_helpers import build_ai_settings_get_payload
 from core.views.settings.ai.ai_settings_save_helpers import (
     validate_ai_settings_post_data,
@@ -24,7 +24,8 @@ from core.views.settings.ai.ai_settings_save_helpers import (
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class AISettingsView(AdminRequiredMixin, View):
+class AISettingsView(PermissionRequiredMixin, View):
+    required_key = "settings_aiadvisor"
     def get(self, request):
         return JsonResponse(build_ai_settings_get_payload())
 

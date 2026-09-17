@@ -13,20 +13,22 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
-from core.views.auth_views import AdminRequiredMixin
+from core.views.auth_views import PermissionRequiredMixin
 from core.models import AppSettings, EmailTemplate
 from core.services.shared.auth_workflow_service import AuthWorkflowService, EmailTemplateService
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class EmailTemplateListView(AdminRequiredMixin, View):
+class EmailTemplateListView(PermissionRequiredMixin, View):
+    required_key = "settings_emailtemplates"
     def get(self, request):
         lang = request.GET.get("lang", "en")
         return JsonResponse({"items": EmailTemplateService.list_templates(lang)})
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class EmailTemplateDetailView(AdminRequiredMixin, View):
+class EmailTemplateDetailView(PermissionRequiredMixin, View):
+    required_key = "settings_emailtemplates"
     def get(self, request, pk):
         lang = request.GET.get("lang", "en")
         template = get_object_or_404(EmailTemplate, pk=pk)
@@ -47,7 +49,8 @@ class EmailTemplateDetailView(AdminRequiredMixin, View):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class EmailSettingsTestView(AdminRequiredMixin, View):
+class EmailSettingsTestView(PermissionRequiredMixin, View):
+    required_key = "settings_emailtemplates"
     def post(self, request):
         data = json.loads(request.body or "{}")
         recipient = (data.get("to_email") or "").strip()

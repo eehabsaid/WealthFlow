@@ -20,7 +20,9 @@ function renderSidebar() {
   const canExpenseCategories = canAccessAny(["expense-categories"]);
   const canReports = canAccessAny(["reports"]);
   const canAdvancedReports = canAccessAny(["advanced_reports"]);
-  const canSettings = canAccessAny(["settings", "user_management"]);
+  const canSettings =
+    isPrivilegedUser() ||
+    (_allowedPages || []).some((k) => k === "settings" || k.startsWith("settings_"));
 
   const showWelcomeOnly = shouldShowWelcomeOnly();
 

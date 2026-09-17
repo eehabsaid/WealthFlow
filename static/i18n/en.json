@@ -2261,5 +2261,19 @@
   "no_active_plans": "No plans available yet.",
   "error_loading_plans": "Couldn't load plans. Please try again.",
   "days_suffix": "d",
-  "loading_ellipsis": "Loading…"
+  "loading_ellipsis": "Loading…",
+  "settings_roles": "Roles",
+  "btn_add_role": "Add Role",
+  "role_name": "Name",
+  "role_description": "Description",
+  "role_key_count": "Granted Keys",
+  "edit_role": "Edit Role",
+  "add_role": "Add Role",
+  "user_is_sysadmin": "Sysadmin",
+  "set_sysadmin": "Set sysadmin",
+  "unset_sysadmin": "Unset sysadmin",
+  "granted": "Granted",
+  "revoked": "Revoked",
+  "grant": "Grant",
+  "revoke": "Revoke"
 }

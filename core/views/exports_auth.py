@@ -12,6 +12,8 @@ change when auth_views.py or settings/user/ is reorganized internally.
 
 from .auth_views import (
     AdminRequiredMixin,
+    SysadminRequiredMixin,
+    PermissionRequiredMixin,
     LoginAPIView,
     SignupAPIView,
     LogoutAPIView,
@@ -43,10 +45,16 @@ from .settings import (
     UserPermissionDetailView,
     PagePermissionChoicesView,
     user_management_page,
+    RoleListView,
+    RoleDetailView,
+    UserRoleListView,
+    UserRoleDetailView,
 )
 
 __all__ = [
     "AdminRequiredMixin",
+    "SysadminRequiredMixin",
+    "PermissionRequiredMixin",
     "LoginAPIView",
     "SignupAPIView",
     "LogoutAPIView",
@@ -76,4 +84,8 @@ __all__ = [
     "UserPermissionDetailView",
     "PagePermissionChoicesView",
     "user_management_page",
+    "RoleListView",
+    "RoleDetailView",
+    "UserRoleListView",
+    "UserRoleDetailView",
 ]

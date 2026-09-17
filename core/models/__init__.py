@@ -9,7 +9,7 @@ from .exchange_rate_history import ExchangeRateHistory
 from .gold import GoldPrice, GoldPriceHistory, GoldTypeSetting, GoldPuritySetting
 from .expenses import ExpenseCategory, ExpenseSubcategory, Expense
 from .authentication import UserProfile, AuthToken, AuthAuditLog
-from .permissions import PagePermission, PAGE_PERMISSION_CHOICES
+from .permissions import PagePermission, PAGE_PERMISSION_CHOICES, Role, RolePermission, UserRole
 from .settings import AppSettings, EmailTemplate
 from .reminders import ReminderRule, ReminderLog, REMINDER_TYPE_CHOICES, SALARY_TRIGGER_CHOICES
 from .goals import Goal
@@ -60,6 +60,9 @@ __all__ = [
     "AuthAuditLog",
     "PagePermission",
     "PAGE_PERMISSION_CHOICES",
+    "Role",
+    "RolePermission",
+    "UserRole",
     "AppSettings",
     "EmailTemplate",
     "ReminderRule",

@@ -11,6 +11,10 @@ class PaymobGatewaySettingsTestCase(TestCase):
         self.admin = User.objects.create_superuser(
             username="gw_admin", password="pass12345", email="gw@a.com"
         )
+        from core.authentication.services import AuthWorkflowService
+        profile = AuthWorkflowService.get_profile(self.admin)
+        profile.is_sysadmin = True
+        profile.save(update_fields=["is_sysadmin"])
         self.plain_user = User.objects.create_user(username="gw_user", password="pass12345")
 
     def test_requires_admin(self):

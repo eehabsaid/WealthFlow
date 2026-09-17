@@ -10,7 +10,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-from core.views.auth_views import AdminRequiredMixin
+from core.views.auth_views import PermissionRequiredMixin
 from core.models import AppSettings
 from core.services.ai.credential_encryption import decrypt_credential, is_masked
 from core.integrations.ai_provider import (
@@ -24,7 +24,8 @@ from core.integrations.ai_provider import (
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class AIConnectionTestView(AdminRequiredMixin, View):
+class AIConnectionTestView(PermissionRequiredMixin, View):
+    required_key = "settings_aiadvisor"
     def post(self, request):
         try:
             data = json.loads(request.body or "{}")

@@ -2261,5 +2261,19 @@
   "no_active_plans": "لا توجد خطط متاحة حتى الآن.",
   "error_loading_plans": "تعذر تحميل الخطط. يرجى المحاولة مرة أخرى.",
   "days_suffix": "يوم",
-  "loading_ellipsis": "جارٍ التحميل…"
+  "loading_ellipsis": "جارٍ التحميل…",
+  "settings_roles": "الأدوار",
+  "btn_add_role": "إضافة دور",
+  "role_name": "الاسم",
+  "role_description": "الوصف",
+  "role_key_count": "الصلاحيات الممنوحة",
+  "edit_role": "تعديل الدور",
+  "add_role": "إضافة دور",
+  "user_is_sysadmin": "مسؤول النظام",
+  "set_sysadmin": "تعيين كمسؤول نظام",
+  "unset_sysadmin": "إلغاء مسؤول النظام",
+  "granted": "ممنوح",
+  "revoked": "ملغى",
+  "grant": "منح",
+  "revoke": "إلغاء"
 }
