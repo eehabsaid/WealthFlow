@@ -115,6 +115,10 @@
         { "name": "Edit User", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showUserModal\"]'); if(btn) btn.click(); else if(window.showUserModal) showUserModal(1);" },
         { "name": "Manage Permissions", "type": "modal", "trigger": "eval:window.showPermissionsModal && window.showPermissionsModal(1)" }
     ]}, 
+    { "name": "Roles", "id": "settings-roles", "nested_navigation": [
+        { "name": "Add Role", "type": "modal", "trigger": "eval:showRoleModal(null)" },
+        { "name": "Edit Role", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showRoleModal\"]'); if(btn) btn.click(); else if(window.showRoleModal) showRoleModal(1);" }
+    ]}, 
     { "name": "Billing Plans", "id": "settings-billing", "nested_navigation": [
         { "name": "Add Plan", "type": "modal", "trigger": "eval:showPlanCreateModal()" },
         { "name": "Edit Plan", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showPlanEditModal\"]'); if(btn) btn.click(); else if(window.showPlanEditModal) showPlanEditModal(1);" }

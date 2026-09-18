@@ -127,6 +127,15 @@
       "Save the configuration to apply changes globally."
     ]
   },
+  "settings::settings-roles": {
+    "purpose": "Define and manage roles that bundle grantable permission keys for main-app pages and settings tabs. Roles are assigned to users from the Users tab's Manage Access modal.",
+    "steps": [
+      "Navigate to Settings > Roles.",
+      "Review the list of existing roles and the number of permission keys each grants.",
+      "Click Add Role to create a new role, or click the edit icon on an existing role to modify it.",
+      "Check or uncheck permission keys for Main App Pages and Settings Tabs, then save."
+    ]
+  },
   "settings::settings-emailtemplates": {
     "purpose": "Configure the administrative settings and preferences for Settings Emailtemplates.",
     "steps": [
@@ -878,6 +887,25 @@
       "Navigate to the Settings panel.",
       "Adjust the system preferences as needed.",
       "Save the configuration to apply changes globally."
+    ]
+  },
+  "settings::settings-roles::add_role": {
+    "purpose": "Create a new role by specifying its name, description, and the set of permission keys it grants across main-app pages and settings tabs.",
+    "steps": [
+      "Navigate to Settings > Roles.",
+      "Click the Add Role button.",
+      "Enter a role name and optional description.",
+      "Check the desired permission keys under Main App Pages and Settings Tabs.",
+      "Click Save to create the role."
+    ]
+  },
+  "settings::settings-roles::edit_role": {
+    "purpose": "Modify an existing role's name, description, or granted permission keys.",
+    "steps": [
+      "Navigate to Settings > Roles.",
+      "Click the edit (pencil) icon on the role you want to modify.",
+      "Update the name, description, or permission key selections as needed.",
+      "Click Save to apply the changes."
     ]
   },
   "settings::settings-emailtemplates::add_template": {
