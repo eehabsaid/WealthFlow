@@ -4,6 +4,14 @@ from django.conf import settings
 from core.constants import PAGE_PERMISSION_CHOICES
 from core.constants.roles import grantable_permission_choices
 
+__all__ = [
+    "PagePermission",
+    "PAGE_PERMISSION_CHOICES",
+    "Role",
+    "RolePermission",
+    "UserRole",
+]
+
 
 class PagePermission(models.Model):
     """A per-user override on top of whatever the user's Role(s) grant.

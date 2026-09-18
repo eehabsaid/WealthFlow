@@ -77,7 +77,7 @@ class RoleBasedAccessTests(TestCase):
             self.assertNotIn(locked_key, grantable)
 
     def test_sysadmin_locked_view_rejects_role_grant_but_allows_sysadmin(self):
-        role = Role.objects.create(name="AllSettings")
+        Role.objects.create(name="AllSettings")
         # Even if somehow granted via override, the view for a locked tab
         # must only trust is_sysadmin, not effective_permission_keys().
         PagePermission.objects.create(user=self.user, page="settings_users", granted=True)

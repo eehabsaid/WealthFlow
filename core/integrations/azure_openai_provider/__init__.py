@@ -3,6 +3,16 @@ Azure OpenAI Provider Implementation.
 
 Interacts with Azure OpenAI deployment endpoints via stdlib urllib.request.
 Supports deployment-based completions, tool calling, token usage tracking, and secret redaction.
+
+Split into a package (200-line rule):
+  - config.py : AzureOpenAIConfigMixin (from_settings, get_config_schema, capabilities)
+  - __init__.py (this file) : AzureOpenAIProvider class with __init__, generate,
+    check_connection, list_models, check_model_available — kept together
+    here (not in config.py) because these call make_json_http_request,
+    imported at module level right below, and existing tests patch
+    "core.integrations.azure_openai_provider.make_json_http_request" —
+    that patch only takes effect on calls made from code defined in this
+    module's own namespace.
 """
 
 from __future__ import annotations
@@ -10,19 +20,17 @@ from __future__ import annotations
 import logging
 import time
 import urllib.parse
-from typing import Any, Optional
+from typing import Any
 
 from core.integrations.ai_provider import BaseAIProvider
 from core.integrations.provider_utils import make_json_http_request
-from core.services.ai.credential_encryption import (
-    decrypt_credential,
-    redact_secrets,
-)
+from core.integrations.azure_openai_provider.config import AzureOpenAIConfigMixin
+from core.services.ai.credential_encryption import redact_secrets
 
 logger = logging.getLogger(__name__)
 
 
-class AzureOpenAIProvider(BaseAIProvider):
+class AzureOpenAIProvider(AzureOpenAIConfigMixin, BaseAIProvider):
     PROVIDER_NAME = "azure"
     supports_tools: bool = True
 
@@ -39,79 +47,6 @@ class AzureOpenAIProvider(BaseAIProvider):
         self.deployment = (deployment or "").strip()
         self.api_version = (api_version or "2024-06-01").strip()
         self.timeout = max(1, int(timeout))
-
-    @classmethod
-    def from_settings(cls) -> Optional[AzureOpenAIProvider]:
-        from core.models import AppSettings
-
-        raw_key = AppSettings.get("ai_azure_api_key", "").strip()
-        api_key = decrypt_credential(raw_key)
-        endpoint = AppSettings.get("ai_azure_endpoint", "").strip()
-        deployment = AppSettings.get("ai_azure_deployment", "").strip()
-        api_version = AppSettings.get("ai_azure_api_version", "2024-06-01").strip()
-        try:
-            timeout = int(AppSettings.get("ai_timeout", "60"))
-        except (ValueError, TypeError):
-            timeout = 60
-
-        return cls(
-            api_key=api_key,
-            endpoint=endpoint,
-            deployment=deployment,
-            api_version=api_version,
-            timeout=timeout,
-        )
-
-    @classmethod
-    def get_config_schema(cls) -> dict[str, Any]:
-        return {
-            "key": cls.PROVIDER_NAME,
-            "label_key": "ai_provider_azure",
-            "capabilities": {
-                "supports_tools": True,
-                "max_context_tokens": 128000,
-            },
-            "fields": [
-                {
-                    "name": "ai_azure_api_key",
-                    "type": "password",
-                    "is_secret": True,
-                    "label_key": "ai_azure_api_key",
-                    "required": False,
-                },
-                {
-                    "name": "ai_azure_endpoint",
-                    "type": "text",
-                    "is_secret": False,
-                    "label_key": "ai_azure_endpoint",
-                    "placeholder": "https://your-resource.openai.azure.com",
-                    "required": False,
-                },
-                {
-                    "name": "ai_azure_deployment",
-                    "type": "text",
-                    "is_secret": False,
-                    "label_key": "ai_azure_deployment",
-                    "placeholder": "e.g. gpt-4o-deployment",
-                    "required": False,
-                },
-                {
-                    "name": "ai_azure_api_version",
-                    "type": "text",
-                    "is_secret": False,
-                    "label_key": "ai_azure_api_version",
-                    "placeholder": "2024-06-01",
-                    "required": False,
-                },
-            ],
-        }
-
-    @property
-    def capabilities(self) -> dict[str, Any]:
-        return {
-            "supports_tools": self.supports_tools,
-            "max_context_tokens": 128000,
-        }
 
     def generate(
         self,

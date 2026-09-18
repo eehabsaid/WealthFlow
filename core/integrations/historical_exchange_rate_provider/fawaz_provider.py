@@ -1,15 +1,8 @@
 """
-Historical exchange-rate provider abstraction.
+FawazAhmedCurrencyApiProvider concrete implementation.
 
-The provider is encapsulated behind a base class so the underlying
-data source can be replaced without touching ExchangeRateHistoryService
-or any of its consumers.
-
-Current implementation: FawazAhmedCurrencyApiProvider
-  Uses Fawaz Ahmed Currency API via jsDelivr CDN.
-  Free, public, open-source daily currency snapshots without API key.
-  URL format: https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{YYYY-MM-DD}/v1/currencies/egp.json
-  Uses standard urllib.request — zero external dependencies.
+Split out of the former monolithic historical_exchange_rate_provider.py
+(200-line rule).
 """
 
 from __future__ import annotations
@@ -19,109 +12,18 @@ import logging
 import time
 import urllib.error
 import urllib.request
-from abc import ABC, abstractmethod
-from datetime import date, timedelta
+from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Optional
 
+from core.integrations.historical_exchange_rate_provider.records import (
+    BaseHistoricalRateProvider,
+    HistoricalRateRecord,
+    CURRENCY_NAMES,
+    SYMBOLS,
+)
+
 logger = logging.getLogger(__name__)
-
-# Currencies mirrored from ExchangeRateService.CURRENCY_NAMES
-_SYMBOLS: list[str] = [
-    "USD", "EUR", "GBP", "SAR", "AED", "KWD", "CAD", "CHF",
-    "JPY", "CNY", "QAR", "BHD", "OMR", "JOD", "NOK", "SEK",
-    "DKK", "AUD",
-]
-
-_CURRENCY_NAMES: dict[str, str] = {
-    "USD": "US Dollar",
-    "EUR": "Euro",
-    "GBP": "Pound Sterling",
-    "SAR": "Saudi Riyal",
-    "AED": "UAE Dirham",
-    "KWD": "Kuwaiti Dinar",
-    "CAD": "Canadian Dollar",
-    "CHF": "Swiss Franc",
-    "JPY": "Japanese Yen",
-    "CNY": "Chinese Yuan",
-    "QAR": "Qatari Riyal",
-    "BHD": "Bahraini Dinar",
-    "OMR": "Omani Riyal",
-    "JOD": "Jordanian Dinar",
-    "NOK": "Norwegian Krone",
-    "SEK": "Swedish Krona",
-    "DKK": "Danish Krone",
-    "AUD": "Australian Dollar",
-}
-
-
-class HistoricalRateRecord:
-    """
-    Value object returned by providers.
-    All numeric fields are Decimal — never float.
-    """
-
-    __slots__ = (
-        "currency_code",
-        "currency_name",
-        "buy_rate",
-        "sell_rate",
-        "mid_rate",
-        "source",
-        "snapshot_date",
-    )
-
-    def __init__(
-        self,
-        currency_code: str,
-        currency_name: str,
-        buy_rate: Decimal,
-        sell_rate: Decimal,
-        mid_rate: Decimal,
-        source: str,
-        snapshot_date: date,
-    ) -> None:
-        self.currency_code = currency_code
-        self.currency_name = currency_name
-        self.buy_rate = buy_rate
-        self.sell_rate = sell_rate
-        self.mid_rate = mid_rate
-        self.source = source
-        self.snapshot_date = snapshot_date
-
-
-class BaseHistoricalRateProvider(ABC):
-    """
-    Abstract base for historical exchange-rate data sources.
-
-    Implement fetch_date() in a subclass to support a new provider.
-    ExchangeRateHistoryService depends only on this interface.
-    """
-
-    SOURCE_NAME: str = "unknown"
-
-    @abstractmethod
-    def fetch_date(self, target_date: date) -> list[HistoricalRateRecord]:
-        """
-        Fetch all known currency rates for *target_date*.
-
-        Returns an empty list if no data is available.
-        Must never raise — log errors and return [].
-        """
-
-    def fetch_range(
-        self, start: date, end: date
-    ) -> dict[date, list[HistoricalRateRecord]]:
-        """
-        Fetch all known currency rates for a date range [start, end].
-        Default implementation calls fetch_date for each date.
-        """
-        result: dict[date, list[HistoricalRateRecord]] = {}
-        current = start
-        while current <= end:
-            result[current] = self.fetch_date(current)
-            current += timedelta(days=1)
-        return result
 
 
 class FawazAhmedCurrencyApiProvider(BaseHistoricalRateProvider):
@@ -188,7 +90,7 @@ class FawazAhmedCurrencyApiProvider(BaseHistoricalRateProvider):
         rates: dict = data.get("egp", {}) or {}
         records: list[HistoricalRateRecord] = []
 
-        for code in _SYMBOLS:
+        for code in SYMBOLS:
             raw_rate = rates.get(code.lower()) or rates.get(code)
             if not raw_rate:
                 continue
@@ -201,7 +103,7 @@ class FawazAhmedCurrencyApiProvider(BaseHistoricalRateProvider):
                 records.append(
                     HistoricalRateRecord(
                         currency_code=code,
-                        currency_name=_CURRENCY_NAMES.get(code, code),
+                        currency_name=CURRENCY_NAMES.get(code, code),
                         buy_rate=(egp_per_unit - spread).quantize(Decimal("0.000001")),
                         sell_rate=(egp_per_unit + spread).quantize(Decimal("0.000001")),
                         mid_rate=egp_per_unit.quantize(Decimal("0.000001")),
@@ -214,8 +116,3 @@ class FawazAhmedCurrencyApiProvider(BaseHistoricalRateProvider):
                     "Skipping %s for %s — parse error: %s", code, snapshot_date, exc
                 )
         return records
-
-
-# Backward compatibility aliases
-ExchangeRateHostProvider = FawazAhmedCurrencyApiProvider
-YFinanceHistoricalRateProvider = FawazAhmedCurrencyApiProvider

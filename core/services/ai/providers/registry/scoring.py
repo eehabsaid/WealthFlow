@@ -1,66 +1,22 @@
 """
-Automatic Provider Discovery & Registry for AI context subsystem.
-Dynamically discovers all BaseContextProvider implementations in core.services.ai.providers at startup.
+Relevance scoring and data retrieval for the AI provider registry.
+
+Split out of the former monolithic registry.py (200-line rule). Reads
+the shared registry dict from __init__.py (this package's parent module)
+via `from . import ...` — the dict object itself is mutated in place by
+autodiscover_providers(), never reassigned, so this module's reference
+to it always reflects the current registered providers.
 """
 
 from __future__ import annotations
 
-import importlib
-import inspect
-import pkgutil
 import logging
 from typing import Any
-from core.services.ai.providers.base import BaseContextProvider
 
 logger = logging.getLogger(__name__)
 
-_DATA_PROVIDER_REGISTRY: dict[str, BaseContextProvider] = {}
 
-
-def autodiscover_providers() -> dict[str, BaseContextProvider]:
-    """
-    Dynamically scans core.services.ai.providers package for BaseContextProvider subclasses
-    and registers them automatically without requiring manual registry edits.
-    """
-    _DATA_PROVIDER_REGISTRY.clear()
-
-    import core.services.ai.providers as providers_pkg
-    package_path = providers_pkg.__path__
-
-    for _, module_name, _ in pkgutil.iter_modules(package_path):
-        if module_name in ("base", "registry"):
-            continue
-        try:
-            full_module_name = f"core.services.ai.providers.{module_name}"
-            module = importlib.import_module(full_module_name)
-
-            for _, cls in inspect.getmembers(module, inspect.isclass):
-                if issubclass(cls, BaseContextProvider) and cls is not BaseContextProvider:
-                    inst = cls()
-                    if inst.key in _DATA_PROVIDER_REGISTRY:
-                        logger.warning("Duplicate provider key '%s' discovered in %s", inst.key, full_module_name)
-                    else:
-                        _DATA_PROVIDER_REGISTRY[inst.key] = inst
-        except Exception as exc:
-            logger.error("Failed to autodiscover AI provider module '%s': %s", module_name, exc)
-
-    return _DATA_PROVIDER_REGISTRY
-
-
-# Initialize registry on load
-autodiscover_providers()
-
-DATA_PROVIDER_REGISTRY = _DATA_PROVIDER_REGISTRY
-
-
-def get_data_provider(key: str) -> BaseContextProvider | None:
-    """Lookup data provider by key."""
-    if not _DATA_PROVIDER_REGISTRY:
-        autodiscover_providers()
-    return _DATA_PROVIDER_REGISTRY.get(str(key or "").strip().lower())
-
-
-def _score_provider_relevance(provider: BaseContextProvider, search_query: str) -> float:
+def _score_provider_relevance(provider: Any, search_query: str) -> float:
     """
     Implementation-agnostic capability matcher.
     Evaluates query intent against provider metadata (key, name, get_capabilities()).
@@ -149,6 +105,8 @@ def get_relevant_providers_data(
     fallback behavior (require_signal=False) since a model-initiated tool call is
     already an explicit signal that some data is wanted.
     """
+    from core.services.ai.providers.registry import _DATA_PROVIDER_REGISTRY, autodiscover_providers
+
     if not _DATA_PROVIDER_REGISTRY:
         autodiscover_providers()
 
@@ -165,7 +123,7 @@ def get_relevant_providers_data(
     # Filter out weak trailing noise scores relative to top-scoring provider
     positive_scores = [s for s in scores.values() if s > 0.0]
     max_score = max(positive_scores) if positive_scores else 0.0
-    
+
     if max_score >= 3.0:
         rel_threshold = max(3.0, max_score * 0.60)
         selected_keys = [k for k, s in scores.items() if scores[k] >= rel_threshold]
@@ -201,4 +159,3 @@ def get_all_providers_data(user: Any, focus_area: str = "", limit: int | None = 
     Queries data providers for user. Delegates to get_relevant_providers_data for intent-driven retrieval.
     """
     return get_relevant_providers_data(user, search_query=focus_area, limit=limit)
-

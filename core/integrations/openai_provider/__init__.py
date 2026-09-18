@@ -3,26 +3,34 @@ OpenAI Provider Implementation.
 
 Interacts with OpenAI's Chat Completions API (/v1/chat/completions) via stdlib urllib.request.
 Supports function/tool calling, model listing, token usage tracking, and secret redaction.
+
+Split into a package (200-line rule):
+  - config.py : OpenAIConfigMixin (from_settings, get_config_schema, capabilities)
+  - __init__.py (this file) : OpenAIProvider class with __init__, generate,
+    check_connection, list_models, check_model_available — kept together
+    here (not in config.py) because these call make_json_http_request,
+    imported at module level right below, and existing tests patch
+    "core.integrations.openai_provider.make_json_http_request" — that
+    patch only takes effect on calls made from code defined in this
+    module's own namespace.
 """
 
 from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
 from core.integrations.ai_provider import BaseAIProvider
 from core.integrations.provider_utils import make_json_http_request
-from core.services.ai.credential_encryption import (
-    decrypt_credential,
-    redact_secrets,
-)
+from core.integrations.openai_provider.config import OpenAIConfigMixin
+from core.services.ai.credential_encryption import redact_secrets
 
 
 logger = logging.getLogger(__name__)
 
 
-class OpenAIProvider(BaseAIProvider):
+class OpenAIProvider(OpenAIConfigMixin, BaseAIProvider):
     PROVIDER_NAME = "openai"
     supports_tools: bool = True
 
@@ -37,64 +45,6 @@ class OpenAIProvider(BaseAIProvider):
         self.model = model or ""
         self.base_url = (base_url or "https://api.openai.com/v1").rstrip("/")
         self.timeout = max(1, int(timeout))
-
-    @classmethod
-    def from_settings(cls) -> Optional[OpenAIProvider]:
-        from core.models import AppSettings
-
-        raw_key = AppSettings.get("ai_openai_api_key", "").strip()
-        api_key = decrypt_credential(raw_key)
-        model = AppSettings.get("ai_openai_model", "").strip()
-        base_url = AppSettings.get("ai_openai_base_url", "https://api.openai.com/v1").strip()
-        try:
-            timeout = int(AppSettings.get("ai_timeout", "60"))
-        except (ValueError, TypeError):
-            timeout = 60
-
-        return cls(api_key=api_key, model=model, base_url=base_url, timeout=timeout)
-
-    @classmethod
-    def get_config_schema(cls) -> dict[str, Any]:
-        return {
-            "key": cls.PROVIDER_NAME,
-            "label_key": "ai_provider_openai",
-            "capabilities": {
-                "supports_tools": True,
-                "max_context_tokens": 128000,
-            },
-            "fields": [
-                {
-                    "name": "ai_openai_api_key",
-                    "type": "password",
-                    "is_secret": True,
-                    "label_key": "ai_openai_api_key",
-                    "required": False,
-                },
-                {
-                    "name": "ai_openai_model",
-                    "type": "text",
-                    "is_secret": False,
-                    "label_key": "ai_model",
-                    "placeholder": "e.g. gpt-4o, gpt-4o-mini",
-                    "required": False,
-                },
-                {
-                    "name": "ai_openai_base_url",
-                    "type": "text",
-                    "is_secret": False,
-                    "label_key": "ai_base_url",
-                    "placeholder": "https://api.openai.com/v1",
-                    "required": False,
-                },
-            ],
-        }
-
-    @property
-    def capabilities(self) -> dict[str, Any]:
-        return {
-            "supports_tools": self.supports_tools,
-            "max_context_tokens": 128000,
-        }
 
     def generate(
         self,
