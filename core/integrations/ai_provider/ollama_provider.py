@@ -36,6 +36,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
         self.model = model or ""
         self.timeout = max(1, int(timeout))
         self.user_agent = user_agent
+        self.user_options: dict[str, Any] = {}
 
     @classmethod
     def from_settings(cls, user=None) -> Optional["OllamaProvider"]:
@@ -48,7 +49,15 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
         except (ValueError, TypeError):
             timeout = 60
 
-        return cls(base_url=base_url, model=model, timeout=timeout)
+        inst = cls(base_url=base_url, model=model, timeout=timeout)
+        # Per-user generation options (the Settings page saves these with owner=user;
+        # generate() previously read only the global owner=None row and ignored them).
+        inst.user_options = {
+            "context_size": AppSettings.get("ai_context_size", None, user=user),
+            "temperature": AppSettings.get("ai_temperature", None, user=user),
+            "max_tokens": AppSettings.get("ai_max_tokens", None, user=user),
+        }
+        return inst
 
     @classmethod
     def get_config_schema(cls) -> dict[str, Any]:
@@ -101,15 +110,15 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
 
         options: dict[str, Any] = {}
         try:
-            options["num_predict"] = int(kwargs.get("max_tokens") or AppSettings.get("ai_max_tokens", "2048"))
+            options["num_predict"] = int(kwargs.get("max_tokens") or self.user_options.get("max_tokens") or AppSettings.get("ai_max_tokens", "2048"))
         except (ValueError, TypeError):
             pass
         try:
-            options["temperature"] = float(kwargs.get("temperature") or AppSettings.get("ai_temperature", "0.7"))
+            options["temperature"] = float(kwargs.get("temperature") or self.user_options.get("temperature") or AppSettings.get("ai_temperature", "0.7"))
         except (ValueError, TypeError):
             pass
         try:
-            options["num_ctx"] = int(kwargs.get("context_size") or AppSettings.get("ai_context_size", "4096"))
+            options["num_ctx"] = int(kwargs.get("context_size") or self.user_options.get("context_size") or AppSettings.get("ai_context_size", "4096"))
         except (ValueError, TypeError):
             pass
 

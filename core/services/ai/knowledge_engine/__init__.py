@@ -18,11 +18,12 @@ import logging
 from typing import Any
 from core.models import AIKnowledgeEntry
 from core.services.ai.knowledge_engine.conversation_signals import ConversationSignalsMixin
+from core.services.ai.knowledge_engine.user_notes import UserNotesMixin
 
 logger = logging.getLogger(__name__)
 
 
-class AIKnowledgeEngine(ConversationSignalsMixin):
+class AIKnowledgeEngine(ConversationSignalsMixin, UserNotesMixin):
     """
     Central engine for reading, storing, and summarizing distilled long-term knowledge entries.
     """
@@ -76,5 +77,9 @@ class AIKnowledgeEngine(ConversationSignalsMixin):
             for entry in entries[:15]:  # Top 15 knowledge entries
                 lines.append(f"- [{entry.category.upper()}] {entry.title}: {entry.content}")
             parts.append("\n".join(lines))
+
+        user_notes = cls.build_user_notes_context(user)
+        if user_notes:
+            parts.append(user_notes)
 
         return "".join(parts)

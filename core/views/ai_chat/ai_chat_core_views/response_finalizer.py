@@ -46,6 +46,26 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
     except Exception:
         pass  # Knowledge extraction is non-critical — never fail a chat response
 
+    try:
+        # Per-user learned notes (teach / correction), scoped to this user only
+        from core.services.ai.knowledge_engine import AIKnowledgeEngine
+        prev_assistant = (
+            conversation.messages.filter(role="assistant", is_deleted=False)
+            .exclude(id=ai_msg.id).order_by("-id").first()
+        )
+        prev_user = (
+            conversation.messages.filter(role="user", is_deleted=False)
+            .exclude(id=user_msg.id).order_by("-id").first()
+        )
+        AIKnowledgeEngine.record_user_notes_from_turn(
+            user=request.user,
+            user_text=user_text,
+            previous_question=prev_user.content if prev_user else "",
+            previous_used_tools=bool(prev_assistant and prev_assistant.tool_calls),
+        )
+    except Exception:
+        pass  # Knowledge extraction is non-critical — never fail a chat response
+
     # Update conversation title if default
     if conversation.title in ("New Conversation", ""):
         conversation.title = user_text[:30] + ("..." if len(user_text) > 30 else "")

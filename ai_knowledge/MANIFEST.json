@@ -163,10 +163,38 @@
         "claude"
       ],
       "description": "Complete operational manual for combining static system knowledge with dynamic user context payloads to deliver financially sound, user-centric insights across any AI provider."
+    },
+    {
+      "id": "answer_field_guide",
+      "file": "09_answer_field_guide.md",
+      "title": "Answer Field Guide - Which Tool Field Answers Which Question",
+      "category": "operating_manual",
+      "keywords": [
+        "latest",
+        "last",
+        "most recent",
+        "paid",
+        "salary",
+        "expense",
+        "balance",
+        "certificate",
+        "fixed asset",
+        "gold",
+        "exchange rate",
+        "july",
+        "month",
+        "year",
+        "total",
+        "how much",
+        "what was",
+        "field",
+        "query_application_data"
+      ],
+      "description": "Per-module rules for picking the right field in query_application_data results: latest vs specific month vs yearly totals, capped windows, and list ordering."
     }
   ],
   "knowledge_version": "1.1.0",
   "schema_version": "2.0.0",
-  "generated_at": "2026-09-19T04:58:48.270971+00:00",
+  "generated_at": "2026-09-19T10:57:04.540499+00:00",
   "application_version": "1.0.0"
 }

@@ -39,6 +39,41 @@ def _handle_read_live_app_structure(user: Any, params: dict[str, Any]) -> dict[s
     return res
 
 
+# Appended to the tool instructions only when the response contains the 'salary' key.
+# The salary domain has no newest-first 'recent_*' list (recent_monthly_timeline is
+# oldest-first), so the generic "index 0" rule above does not apply to it.
+_SALARY_INSTRUCTIONS = (
+    " SALARY RULE: for 'latest'/'last'/'most recent' paid salary, use ONLY "
+    "salary.latest_paid_salary_answer when present (quote it verbatim), otherwise "
+    "salary.latest_salary_entry (report its 'paid_formatted', year, month and company). "
+    "The 'salary' key has no 'recent_salary' list and the generic list-index-0 rule does not "
+    "apply to it; never treat a missing 'recent_salary' as 'no salary data'. Do not use "
+    "recent_monthly_timeline (oldest-first) or latest_active_year_summary (yearly aggregate) "
+    "for this; a yearly total is never a single paid salary. Only say no salary data exists if latest_salary_entry is null/absent."
+)
+
+
+def _add_latest_salary_answer(res: dict[str, Any], search_query: str) -> None:
+    """
+    For 'latest/last paid salary' queries, put a ready-made sentence FIRST inside the
+    'salary' dict so the model quotes it instead of scanning yearly_summary (whose
+    yearly totals were being misread as a single salary). Copies the dict, so any
+    provider-side cached object is never mutated.
+    """
+    salary = res.get("salary")
+    latest = salary.get("latest_salary_entry") if isinstance(salary, dict) else None
+    q = search_query.lower()
+    if not latest or not any(w in q for w in ("last", "latest", "recent", "newest", "current")):
+        return
+    res["salary"] = {
+        "latest_paid_salary_answer": (
+            f"Latest paid salary: {latest.get('paid_formatted')} for "
+            f"{latest.get('month')} {latest.get('year')} from {latest.get('company')}."
+        ),
+        **salary,
+    }
+
+
 def _handle_query_application_data(user: Any, params: dict[str, Any]) -> dict[str, Any]:
     """
     Read-only multi-module business data query service via AIContextBuilder and Data Provider Layer.
@@ -84,6 +119,9 @@ def _handle_query_application_data(user: Any, params: dict[str, Any]) -> dict[st
             "from this response, say plainly that no expense data was found rather than using another "
             "domain's data as a stand-in."
         )
+        if isinstance(res.get("salary"), dict):
+            _add_latest_salary_answer(res, search_query)
+            res["instructions"] += _SALARY_INSTRUCTIONS
     return res
 
 
