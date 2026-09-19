@@ -2,7 +2,7 @@
 // i18n: language loading
 // This file is part of the i18n module. Do not edit directly.
 
-async function loadLanguage(code) {
+async function loadLanguage(code, persist = true) {
   try {
     // Added cache buster to force the browser to download the newly injected translations
     const res = await fetch(`/static/i18n/${code}.json?v=${Date.now()}`);
@@ -40,12 +40,19 @@ async function loadLanguage(code) {
 
     applyTranslations();
 
-    // Persist active language to server
-    await fetch("/api/settings/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: "active_language", value: code }),
-    });
+    // Persist active language to server — only for an explicit user
+    // action (language switcher), never on automatic page-load restore.
+    // Persisting unconditionally here was the cause of a real cross-account
+    // bug: on a shared browser, loading a page under User B's session
+    // would silently overwrite User B's own preferred_language with
+    // whatever localStorage last held from User A's earlier session.
+    if (persist) {
+      await fetch("/api/settings/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "active_language", value: code }),
+      });
+    }
 
     // Re-render active route so runtime-computed labels update immediately.
     if (window.__wfRouterReady && typeof window.route === "function") {

@@ -23,13 +23,31 @@ window.translations = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
   applyStoredTheme();
-  await loadLanguage(localStorage.getItem("lang") || "en");
+  await loadLanguage(await _resolveInitialLang(), false);
   await initApp();
   _appInitialized = true;
   window.__wfRouterReady = true;
   window.addEventListener("hashchange", route);
   route();
 });
+
+async function _resolveInitialLang() {
+  // The authenticated user's own preferred_language (server-side) always
+  // wins over this browser's localStorage — localStorage is per-browser,
+  // not per-account, and trusting it here on a shared browser previously
+  // caused one account's language choice to bleed into another's.
+  try {
+    const res = await fetch("/api/auth/profile/");
+    if (res.ok) {
+      const data = await res.json();
+      const preferred = data?.profile?.preferred_language;
+      if (preferred) return preferred;
+    }
+  } catch (e) {
+    // Not authenticated yet, or request failed — fall through to local default.
+  }
+  return localStorage.getItem("lang") || "en";
+}
 
 document.addEventListener("languageChanged", () => {
   if (_appInitialized && typeof route === "function") {

@@ -9,8 +9,6 @@ from tests.core.data_generator import get_unique_reminder_rule_data
 from tests.core.crud_verifier import CrudVerifier
 
 def test_reminders_module(context, reporter, screenshot_logger):
-    # Registered persistently: delete uses a native confirm() dialog.
-    context.page.on("dialog", lambda dialog: dialog.accept())
 
     context.goto_route("#reminders")
     reporter.pages_visited.add("Reminders Engine")

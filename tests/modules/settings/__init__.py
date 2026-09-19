@@ -27,8 +27,6 @@ from tests.modules.settings.backup_and_docs import test_backup_and_docs
 
 
 def test_settings_module(context, reporter, screenshot_logger):
-    # Registered persistently: several deletes below use a native confirm() dialog.
-    context.page.on("dialog", lambda dialog: dialog.accept())
 
     context.goto_route("#settings")
     reporter.pages_visited.add("Settings & Administration")

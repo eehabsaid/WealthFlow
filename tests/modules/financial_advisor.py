@@ -20,8 +20,6 @@ from tests.core.data_generator import get_unique_goal_data
 from tests.core.crud_verifier import CrudVerifier
 
 def test_financial_advisor_module(context, reporter, screenshot_logger):
-    # Registered persistently: goal delete uses a native confirm() dialog.
-    context.page.on("dialog", lambda dialog: dialog.accept())
 
     context.goto_route("#financial-advisor")
     reporter.pages_visited.add("Financial Advisor")

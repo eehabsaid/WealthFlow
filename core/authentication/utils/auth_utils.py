@@ -70,16 +70,21 @@ def get_user_allowed_pages(user):
     return list(effective_permission_keys(user))
 
 def request_lang(request):
-    """Extracts active language: explicit request param/cookie first, then
-    the authenticated user's own preferred_language, then the platform
-    default (AppSettings), then "en"."""
-    explicit = (
-        request.POST.get("lang", "").strip()
-        or request.GET.get("lang", "").strip()
-        or request.COOKIES.get("wf_lang", "").strip()
-    )
+    """Extracts active language. Priority: explicit POST/GET param (a
+    genuine one-off request override) > the authenticated user's own
+    preferred_language > the wf_lang cookie (browser-scoped, so only
+    trustworthy pre-auth) > the platform default > "en".
+
+    The cookie is deliberately ranked below the authenticated profile:
+    it's set on the anonymous login page and is per-browser, not
+    per-account, so on a shared browser it must never outrank a known
+    user's own stored preference — that ordering previously caused a
+    flash of the wrong language on the very pages meant to reflect the
+    account you just logged into."""
+    explicit = request.POST.get("lang", "").strip() or request.GET.get("lang", "").strip()
     if explicit:
         return explicit
+
     user = getattr(request, "user", None)
     if user is not None and getattr(user, "is_authenticated", False):
         from core.authentication.services import AuthWorkflowService
@@ -87,6 +92,11 @@ def request_lang(request):
         profile = AuthWorkflowService.get_profile(user)
         if profile.preferred_language:
             return profile.preferred_language
+
+    cookie_lang = request.COOKIES.get("wf_lang", "").strip()
+    if cookie_lang:
+        return cookie_lang
+
     return AppSettings.get("active_language", "en") or "en"
 
 def record_audit(user, event_type: str, actor=None, details: str = "") -> None:

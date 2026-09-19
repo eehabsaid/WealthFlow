@@ -12,8 +12,6 @@ from tests.core.assertions import verify_downstream_impact
 from tests.core.crud_verifier import CrudVerifier
 
 def test_salary_module(context, reporter, screenshot_logger):
-    # Registered persistently: several deletes below use a native confirm() dialog.
-    context.page.on("dialog", lambda dialog: dialog.accept())
 
     context.goto_route("#employment")
     reporter.pages_visited.add("Employment & Salary")

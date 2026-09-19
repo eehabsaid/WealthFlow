@@ -11,8 +11,6 @@ from tests.core.assertions import verify_downstream_impact
 from tests.core.crud_verifier import CrudVerifier
 
 def test_certificates_module(context, reporter, screenshot_logger):
-    # Registered persistently: delete uses a native confirm() dialog.
-    context.page.on("dialog", lambda dialog: dialog.accept())
 
     context.goto_route("#bank-certificates")
     reporter.pages_visited.add("Bank Certificates")

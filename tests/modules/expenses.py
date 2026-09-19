@@ -12,8 +12,6 @@ from tests.core.assertions import verify_downstream_impact
 from tests.core.crud_verifier import CrudVerifier
 
 def test_expenses_module(context, reporter, screenshot_logger):
-    # Registered persistently: delete uses a native confirm() dialog.
-    context.page.on("dialog", lambda dialog: dialog.accept())
 
     context.goto_route("#expenses")
     reporter.pages_visited.add("Expenses & Reports")

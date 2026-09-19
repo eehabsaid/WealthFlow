@@ -32,7 +32,6 @@ def test_balance_module(context, reporter, screenshot_logger):
     # and attaching one right before the triggering call can race with a
     # dialog fired synchronously from inside page.evaluate() — registering
     # early avoids that.
-    context.page.on("dialog", lambda dialog: dialog.accept())
 
     context.goto_route("#balance")
     reporter.pages_visited.add("Balance & Net Worth")

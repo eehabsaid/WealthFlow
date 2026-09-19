@@ -74,3 +74,46 @@ class PerUserSettingsIsolationTests(TestCase):
         for Model in (GoldTypeSetting, GoldPuritySetting, CertificateStatus):
             self.assertTrue(Model.objects.filter(owner=self.alice).exists())
             self.assertTrue(Model.objects.filter(owner=self.bob).exists())
+
+    def test_request_lang_prefers_own_profile_over_stale_browser_cookie(self):
+        """Regression: a shared-browser wf_lang cookie (set while a
+        different account was last active, or on the anonymous login page)
+        must never outrank the authenticated user's own stored preference —
+        this was the root cause of one account's language bleeding into
+        another's on the same browser."""
+        from core.authentication.services import AuthWorkflowService
+        from core.authentication.utils.auth_utils import request_lang
+        from django.test import RequestFactory
+
+        profile = AuthWorkflowService.get_profile(self.bob)
+        profile.preferred_language = "en"
+        profile.save(update_fields=["preferred_language"])
+
+        rf = RequestFactory()
+        request = rf.get("/", HTTP_COOKIE="wf_lang=ar")
+        request.user = self.bob
+
+        self.assertEqual(request_lang(request), "en")
+
+    def test_settings_post_never_overwrites_active_language_without_persist_intent(self):
+        """The frontend only sends this POST on an explicit language
+        switch now (persist=true); this test locks in that the backend
+        side of the contract — writing to the caller's own profile, not
+        some other row — still holds regardless of what a stale client
+        sends."""
+        self.client.force_login(self.bob)
+        res = self.client.post(
+            "/api/settings/",
+            data='{"key": "active_language", "value": "ar"}',
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 200)
+
+        from core.authentication.services import AuthWorkflowService
+
+        self.assertEqual(
+            AuthWorkflowService.get_profile(self.bob).preferred_language, "ar"
+        )
+        self.assertNotEqual(
+            AuthWorkflowService.get_profile(self.alice).preferred_language, "ar"
+        )

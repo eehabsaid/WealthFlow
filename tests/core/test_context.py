@@ -92,6 +92,17 @@ class TestContext:
         self.page.on("pageerror", on_page_error)
         self.page.on("response", on_response)
 
+        # Registered exactly once, here, for the page's whole lifetime
+        # (shared across every module in a run_full_e2e.py run). Each
+        # tests/modules/*.py file used to register its own "dialog"
+        # handler; since Playwright stacks listeners rather than
+        # replacing them, by the Nth module N handlers all raced to
+        # .accept() the same dialog and every one after the first threw
+        # "Cannot accept dialog which is already handled". Do not add
+        # another page.on("dialog", ...) in a module file — this handler
+        # already covers the whole run.
+        self.page.on("dialog", lambda dialog: dialog.accept())
+
     def login(self, username=None, password=None, base_url="http://127.0.0.1:8000"):
         username = username or os.environ.get("WF_USERNAME")
         password = password or os.environ.get("WF_PASSWORD")

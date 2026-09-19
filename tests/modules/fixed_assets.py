@@ -13,12 +13,6 @@ from tests.core.assertions import verify_downstream_impact
 from tests.core.crud_verifier import CrudVerifier
 
 def test_fixed_assets_module(context, reporter, screenshot_logger):
-    # Registered once, persistently: delete triggers a native confirm()
-    # dialog. Registering early avoids a possible race between the dialog
-    # firing synchronously inside page.evaluate() and Playwright attaching
-    # a listener registered right before the triggering call.
-    context.page.on("dialog", lambda dialog: dialog.accept())
-
     context.goto_route("#fixed-assets")
     reporter.pages_visited.add("Fixed Assets")
 
