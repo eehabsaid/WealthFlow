@@ -12,7 +12,7 @@ Applies to `query_application_data`. Each top-level key is a separate module. Re
 
 ## Salary (`salary`)
 - Latest / last paid salary -> `latest_paid_salary_answer` if present, else `latest_salary_entry.paid_formatted`.
-- Salary of a specific month (e.g. July 2026) -> the row in `recent_monthly_timeline` with that `year` and `month`; report its `paid_formatted`.
+- Salary of a specific month (e.g. July 2026) -> `requested_period_answer` (quote it verbatim; it also covers old months outside the timeline window). Fallback: the row in `recent_monthly_timeline` with that `year` and `month`.
 - Yearly total -> the matching row in `yearly_summary` (`total_paid`). `latest_active_year_summary` is a yearly total, not a salary.
 - `summary.total_paid_all_time` and `company_breakdown` are lifetime totals.
 
