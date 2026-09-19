@@ -1,0 +1,130 @@
+/* Overview dashboard: AI summary layout, alerts list, alert badge colors.
+   Split from the former monolithic overview_dashboard.css (200-line rule). */
+
+/* AI Summary layout */
+.overview-ai-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: calc(100% - 70px);
+}
+
+.overview-ai-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.overview-ai-graphic {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 10px rgb(0 0 0 / 10%);
+  background: var(--bg-primary);
+}
+
+.overview-ai-footer {
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.overview-ai-footer button {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  padding: 6px 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.overview-ai-footer button:hover {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #fff;
+}
+
+/* Alerts scrollable list */
+.overview-alerts-list {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+[dir="rtl"] .overview-alerts-list {
+  padding-right: 0;
+  padding-left: 4px;
+}
+
+.overview-alert-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.overview-alert-item:last-child {
+  border-bottom: none;
+}
+
+.overview-alert-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.overview-alert-details {
+  flex: 1;
+}
+
+.overview-alert-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.overview-alert-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* Badge colors for alerts */
+.alert-success-badge {
+  background: rgb(0 214 143 / 15%);
+  color: var(--accent-green);
+}
+
+.alert-warning-badge {
+  background: rgb(255 209 102 / 15%);
+  color: var(--accent-yellow);
+}
+
+.alert-danger-badge {
+  background: rgb(255 77 109 / 15%);
+  color: var(--accent-red);
+}
+
+.alert-info-badge {
+  background: rgb(26 110 245 / 15%);
+  color: var(--accent-primary);
+}

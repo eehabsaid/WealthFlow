@@ -1,0 +1,12 @@
+/* ═══════════════════════════════════════════════════════════════════
+   WealthFlow Modals & Overlays
+   Split from the former monolithic modals.css (200-line rule). Sibling
+   files are imported below in original cascade order:
+   - base.css                   Backdrop, content, header/title/body/footer, dark-mode
+   - goal_editor.css            Goal editor modal styles
+   - inputs_and_asset_modal.css Input/textarea overrides, asset-detail modal sizing
+   ═══════════════════════════════════════════════════════════════════ */
+
+@import url("base.css");
+@import url("goal_editor.css");
+@import url("inputs_and_asset_modal.css");

@@ -14,55 +14,24 @@ Usage Examples:
 
   # Targeted Viewport Test
   .\\venv\\Scripts\\python.exe test_ui_human_full_e2e.py --mode=device --device=mobile
+
+Split into flat siblings (200-line rule):
+  - e2e_backup_utils.py    : setup_django, create_pre_test_backup, restore_pre_test_backup
+  - e2e_module_dispatch.py : MODULE_DISPATCH, run_module
+  - test_ui_human_full_e2e.py (this file) : argparse + suite orchestration
 """
 
-import os
 import sys
 import argparse
 import time
 
-def setup_django():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wealthflow.settings')
-    import django
-    django.setup()
-
-def create_pre_test_backup():
-    from django.core.management import call_command
-    backup_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backups")
-    os.makedirs(backup_dir, exist_ok=True)
-    filename = "e2e_pre_test_auto_backup.wfbackup"
-    filepath = os.path.join(backup_dir, filename)
-    print(f"\n[BACKUP] Creating pre-test database backup: {filepath}")
-    call_command("backup_data", output=backup_dir, filename=filename)
-    return filepath
-
-def restore_pre_test_backup(filepath):
-    if filepath and os.path.exists(filepath):
-        from django.core.management import call_command
-        print(f"\n[RESTORE] Restoring database backup to clean state: {filepath}")
-        call_command("restore_data", filepath, overwrite=True)
-        print("[RESTORE OK] Database successfully restored to pre-test state!")
+from e2e_backup_utils import setup_django, create_pre_test_backup, restore_pre_test_backup
 
 from playwright.sync_api import sync_playwright
 from tests.core.test_context import TestContext
 from tests.core.reporter import QAReporter
 from tests.core.screenshot_logger import ScreenshotLogger
-
-# Module Imports
-from tests.modules.authentication import test_authentication_module
-from tests.modules.dashboard import test_dashboard_module
-from tests.modules.balance import test_balance_module
-from tests.modules.salary import test_salary_module
-from tests.modules.expenses import test_expenses_module
-from tests.modules.certificates import test_certificates_module
-from tests.modules.fixed_assets import test_fixed_assets_module
-from tests.modules.reports import test_reports_module
-from tests.modules.reminders import test_reminders_module
-from tests.modules.financial_advisor import test_financial_advisor_module
-from tests.modules.ai import test_ai_module
-from tests.modules.settings import test_settings_module
-from tests.modules.translations import test_translations_module
-from tests.modules.billing import test_billing_module
+from e2e_module_dispatch import run_module
 
 def main():
     parser = argparse.ArgumentParser(description="WealthFlow Human QA End-to-End Regression Suite")
@@ -149,34 +118,7 @@ def main():
                     )
                     break
                 print(f"\n[RUNNING MODULE] Executing '{mod.upper()}' module test suite...")
-                if mod == "auth":
-                    test_authentication_module(ctx, reporter, screenshot_logger)
-                elif mod == "dashboard":
-                    test_dashboard_module(ctx, reporter, screenshot_logger)
-                elif mod == "ai":
-                    test_ai_module(ctx, reporter, screenshot_logger)
-                elif mod == "balance":
-                    test_balance_module(ctx, reporter, screenshot_logger)
-                elif mod == "salary":
-                    test_salary_module(ctx, reporter, screenshot_logger)
-                elif mod == "certificates":
-                    test_certificates_module(ctx, reporter, screenshot_logger)
-                elif mod == "fixed_assets":
-                    test_fixed_assets_module(ctx, reporter, screenshot_logger)
-                elif mod == "expenses":
-                    test_expenses_module(ctx, reporter, screenshot_logger)
-                elif mod == "reports":
-                    test_reports_module(ctx, reporter, screenshot_logger)
-                elif mod == "reminders":
-                    test_reminders_module(ctx, reporter, screenshot_logger)
-                elif mod == "financial_advisor":
-                    test_financial_advisor_module(ctx, reporter, screenshot_logger)
-                elif mod == "settings":
-                    test_settings_module(ctx, reporter, screenshot_logger)
-                elif mod == "translations":
-                    test_translations_module(ctx, reporter, screenshot_logger)
-                elif mod == "billing":
-                    test_billing_module(ctx, reporter, screenshot_logger)
+                run_module(mod, ctx, reporter, screenshot_logger)
 
             ctx.close()
 

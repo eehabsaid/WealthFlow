@@ -1,0 +1,51 @@
+/* AI Workspace left panel: future-section disabled placeholder cards.
+   Split from the former monolithic left_panel.css (200-line rule). */
+
+/* ── Left Panel Future Section Placeholders (Disabled Cards) ── */
+.ai-ws-left-future {
+  padding: 8px 10px 12px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ai-ws-future-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 8px);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  opacity: 0.55;
+  cursor: not-allowed;
+  user-select: none;
+  transition: opacity var(--transition-fast);
+}
+
+.ai-ws-future-card-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-ws-future-card i {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.ai-ws-future-badge {
+  font-size: 0.62rem;
+  padding: 1px 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

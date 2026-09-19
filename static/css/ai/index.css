@@ -18,11 +18,11 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @import url("workspace_header.css");
-@import url("left_panel.css");
+@import url("left_panel/index.css");
 @import url("center_empty_state.css");
 @import url("message_bubbles.css");
 @import url("code_tables_badges.css");
 @import url("input_area.css");
 @import url("right_panel.css");
 @import url("responsive_misc.css");
-@import url("mobile_fixes.css");
+@import url("mobile_fixes/index.css");

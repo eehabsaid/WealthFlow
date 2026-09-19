@@ -1,0 +1,24 @@
+/* Modals: input/textarea color overrides, asset-detail modal sizing.
+   Split from the former monolithic modals.css (200-line rule). */
+
+.modal-content input::placeholder,
+.modal-content textarea::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 1;
+}
+
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+  color: var(--text-primary) !important;
+}
+
+.asset-modal-dialog {
+  width: min(100% - 24px, 1200px);
+  max-width: 1200px;
+}
+
+.asset-modal-body {
+  height: 70vh;
+  overflow: hidden auto;
+}

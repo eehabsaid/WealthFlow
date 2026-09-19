@@ -1,0 +1,10 @@
+/* ═══════════════════════════════════════════════════════════════════
+   WealthFlow Financial Advisor — KPI Cards & Summaries
+   Split from the former monolithic kpi_and_summaries.css (200-line
+   rule). Sibling files are imported below in original cascade order:
+   - kpi_cards_and_summary_stats.css KPI cards (row 2), summary cards (row 3)
+   - opportunities_and_theming.css Opportunities list, row 4 layout, theming, responsive
+   ═══════════════════════════════════════════════════════════════════ */
+
+@import url("kpi_cards_and_summary_stats.css");
+@import url("opportunities_and_theming.css");

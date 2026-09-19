@@ -1,0 +1,12 @@
+/* ═══════════════════════════════════════════════════════════════════
+   WealthFlow AI Workspace — Left Panel
+   Split from the former monolithic left_panel.css (200-line rule).
+   Sibling files are imported below in original cascade order:
+   - shell_and_new_chat.css Three-panel body shell, left panel container, new chat button
+   - conversation_list.css  Conversation groups, items, delete button
+   - future_cards.css       Future-section disabled placeholder cards
+   ═══════════════════════════════════════════════════════════════════ */
+
+@import url("shell_and_new_chat.css");
+@import url("conversation_list.css");
+@import url("future_cards.css");

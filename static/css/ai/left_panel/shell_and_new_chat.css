@@ -1,0 +1,61 @@
+/* AI Workspace left panel: three-panel body shell, left panel container, new chat button.
+   Split from the former monolithic left_panel.css (200-line rule). */
+
+/* ── Three-Panel Body ── */
+.ai-ws-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Left Panel ── */
+.ai-ws-left {
+  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+[dir="rtl"] .ai-ws-left {
+  border-right: none;
+  border-left: 1px solid var(--border-color);
+}
+
+.ai-ws-left-actions {
+  padding: 14px 12px;
+  flex-shrink: 0;
+}
+
+.ai-ws-new-chat-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.86rem;
+  font-weight: 600;
+  font-family: var(--font-family-body);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  box-shadow: 0 2px 8px rgb(26 110 245 / 25%);
+}
+
+.ai-ws-new-chat-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgb(26 110 245 / 35%);
+}

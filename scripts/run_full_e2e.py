@@ -48,13 +48,17 @@ from __future__ import annotations
 
 import os
 import shutil
-import signal
 import subprocess
 import sys
-import time
-import urllib.request
-import urllib.error
 from datetime import datetime
+
+from e2e_process_utils import (
+    log,
+    err,
+    files_identical,
+    wait_for_server,
+    install_signal_handlers,
+)
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROD_DB = os.path.join(ROOT_DIR, "db.sqlite3")
@@ -64,53 +68,8 @@ READY_URL = f"http://{SERVER_HOST}:{SERVER_PORT}/accounts/login/"
 READY_TIMEOUT_SECONDS = 30
 
 
-def log(msg: str) -> None:
-    print(f"[e2e] {msg}", flush=True)
-
-
-def err(msg: str) -> None:
-    print(f"[e2e][ERROR] {msg}", file=sys.stderr, flush=True)
-
-
-def files_identical(a: str, b: str) -> bool:
-    if not (os.path.exists(a) and os.path.exists(b)):
-        return False
-    if os.path.getsize(a) != os.path.getsize(b):
-        return False
-    with open(a, "rb") as fa, open(b, "rb") as fb:
-        while True:
-            chunk_a = fa.read(1024 * 1024)
-            chunk_b = fb.read(1024 * 1024)
-            if chunk_a != chunk_b:
-                return False
-            if not chunk_a:
-                return True
-
-
-def wait_for_server(url: str, timeout_seconds: int) -> bool:
-    deadline = time.time() + timeout_seconds
-    while time.time() < deadline:
-        try:
-            with urllib.request.urlopen(url, timeout=2) as resp:
-                if resp.status < 500:
-                    return True
-        except (urllib.error.URLError, ConnectionError, OSError):
-            pass
-        time.sleep(1)
-    return False
-
-
-def _install_signal_handlers() -> None:
-    def _handle(signum, frame):
-        raise KeyboardInterrupt(f"received signal {signum}")
-
-    signal.signal(signal.SIGTERM, _handle)
-    if hasattr(signal, "SIGINT"):
-        signal.signal(signal.SIGINT, _handle)
-
-
 def main() -> int:
-    _install_signal_handlers()
+    install_signal_handlers()
 
     if not os.path.exists(PROD_DB):
         err(f"{PROD_DB} not found — are you running this from the repo root?")

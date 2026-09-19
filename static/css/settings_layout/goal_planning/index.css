@@ -1,0 +1,12 @@
+/* ═══════════════════════════════════════════════════════════════════
+   WealthFlow Settings — Goal Planning
+   Split from the former monolithic goal_planning.css (200-line rule).
+   Sibling files are imported below in original cascade order:
+   - hero_and_toolbar.css      Hero header, toolbar, cards grid
+   - progress_and_chart.css    Type icon, progress bar, actions, chart center label
+   - milestones_and_status.css Milestone list/items, panel head, status badges
+   ═══════════════════════════════════════════════════════════════════ */
+
+@import url("hero_and_toolbar.css");
+@import url("progress_and_chart.css");
+@import url("milestones_and_status.css");

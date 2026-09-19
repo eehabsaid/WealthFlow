@@ -1,0 +1,52 @@
+/* Goal planning: hero header, toolbar, cards grid.
+   Split from the former monolithic goal_planning.css (200-line rule). */
+
+.goal-planning-wrap {
+  display: block;
+}
+
+.goal-planning-hero {
+  border: 1px solid rgb(56 109 220 / 45%);
+  border-radius: 16px;
+  padding: 12px 14px 14px;
+  background: radial-gradient(
+    120% 120% at 20% 0%,
+    rgb(26 110 245 / 22%) 0%,
+    rgb(8 17 42 / 92%) 45%,
+    rgb(5 12 30 / 95%) 100%
+  );
+}
+
+.goal-planning-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.goal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goal-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+
+.goal-toolbar-left {
+  display: grid;
+  grid-template-columns: 1.8fr repeat(5, minmax(110px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.goal-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}

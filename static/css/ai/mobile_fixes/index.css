@@ -1,0 +1,10 @@
+/* ═══════════════════════════════════════════════════════════════════
+   WealthFlow AI Workspace — Mobile Fixes
+   Split from the former monolithic mobile_fixes.css (200-line rule).
+   Sibling files are imported below in original cascade order:
+   - header_and_input_breakpoints.css Header/input overflow breakpoints
+   - context_panel_mobile.css         Context-panel overlay toggle + RTL overrides
+   ═══════════════════════════════════════════════════════════════════ */
+
+@import url("header_and_input_breakpoints.css");
+@import url("context_panel_mobile.css");

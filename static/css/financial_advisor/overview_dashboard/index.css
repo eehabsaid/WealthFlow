@@ -1,0 +1,10 @@
+/* ═══════════════════════════════════════════════════════════════════
+   WealthFlow Financial Advisor — Overview Dashboard
+   Split from the former monolithic overview_dashboard.css (200-line
+   rule). Sibling files are imported below in original cascade order:
+   - card_and_score.css        Card shell, circular health score
+   - ai_summary_and_alerts.css AI summary layout, alerts list, badge colors
+   ═══════════════════════════════════════════════════════════════════ */
+
+@import url("card_and_score.css");
+@import url("ai_summary_and_alerts.css");
