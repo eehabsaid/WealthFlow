@@ -13,7 +13,7 @@ class ExternalApiPropertyValuationProvider(BasePropertyValuationProvider):
     name = "external_api"
 
     def estimate(self, asset: FixedAsset, details: RealEstateDetails) -> Optional[float]:
-        config = self._load_config()
+        config = self._load_config(asset.owner)
         if not config["enabled"]:
             return None
 
@@ -31,14 +31,14 @@ class ExternalApiPropertyValuationProvider(BasePropertyValuationProvider):
 
         return self._extract_estimate(payload, config["result_path"])
 
-    def _load_config(self):
-        enabled_raw = str(AppSettings.get("property_valuation_external_enabled", "false") or "").strip().lower()
-        timeout = self._safe_float(AppSettings.get("property_valuation_external_timeout_secs", "8"), 8.0)
-        url_template = str(AppSettings.get("property_valuation_external_url", "") or "").strip()
-        result_path = str(AppSettings.get("property_valuation_external_result_path", "estimated_price") or "estimated_price").strip()
+    def _load_config(self, owner=None):
+        enabled_raw = str(AppSettings.get("property_valuation_external_enabled", "false", user=owner) or "").strip().lower()
+        timeout = self._safe_float(AppSettings.get("property_valuation_external_timeout_secs", "8", user=owner), 8.0)
+        url_template = str(AppSettings.get("property_valuation_external_url", "", user=owner) or "").strip()
+        result_path = str(AppSettings.get("property_valuation_external_result_path", "estimated_price", user=owner) or "estimated_price").strip()
 
         headers = {}
-        headers_raw = str(AppSettings.get("property_valuation_external_headers", "") or "").strip()
+        headers_raw = str(AppSettings.get("property_valuation_external_headers", "", user=owner) or "").strip()
         if headers_raw:
             try:
                 parsed = json.loads(headers_raw)

@@ -38,13 +38,13 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
         self.user_agent = user_agent
 
     @classmethod
-    def from_settings(cls) -> Optional["OllamaProvider"]:
+    def from_settings(cls, user=None) -> Optional["OllamaProvider"]:
         from core.models import AppSettings
 
-        base_url = AppSettings.get("ai_ollama_url", "http://localhost:11434").strip()
-        model = AppSettings.get("ai_model", DEFAULT_OLLAMA_MODEL).strip()
+        base_url = AppSettings.get("ai_ollama_url", "http://localhost:11434", user=user).strip()
+        model = AppSettings.get("ai_model", DEFAULT_OLLAMA_MODEL, user=user).strip()
         try:
-            timeout = int(AppSettings.get("ai_timeout", "60"))
+            timeout = int(AppSettings.get("ai_timeout", "60", user=user))
         except (ValueError, TypeError):
             timeout = 60
 

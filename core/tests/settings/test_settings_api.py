@@ -41,14 +41,14 @@ class SettingsAPITestCase(TestCase):
         data = res.json()
         self.assertEqual(data["status"], "ok")
         self.assertEqual(
-            AppSettings.get("property_valuation_rate_map"), '{"Cairo": 100}'
+            AppSettings.get("property_valuation_rate_map", user=self.user), '{"Cairo": 100}'
         )
         self.assertEqual(
-            AppSettings.get("property_valuation_provider_order"),
+            AppSettings.get("property_valuation_provider_order", user=self.user),
             "configured_market_rate",
         )
         self.assertEqual(
-            AppSettings.get("property_valuation_external_enabled"), "true"
+            AppSettings.get("property_valuation_external_enabled", user=self.user), "true"
         )
 
     def test_batch_list_setting_save(self):

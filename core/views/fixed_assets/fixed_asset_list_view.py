@@ -90,9 +90,10 @@ class FixedAssetListView(View):
                     purchase_rows_raw,
                     data.get("purchase_price", 0),
                     purchase_currency_id=data.get("purchase_currency_id"),
+                    owner=request.user,
                 )
 
-                usd_rate, price_usd = _resolve_asset_usd_rate_and_price(data)
+                usd_rate, price_usd = _resolve_asset_usd_rate_and_price(data, owner=request.user)
 
                 asset = FixedAsset.objects.create(
                     owner=request.user,

@@ -95,7 +95,9 @@ def build_gold_price_sheet(ws, gold_qs, balance_entries, owner):
 
     grams = 0
     try:
-        gold_cur = Currency.objects.get(code="Gold")
+        gold_cur = Currency.objects.filter(code__iexact="Gold", owner=owner).first()
+        if gold_cur is None:
+            raise Currency.DoesNotExist
         grams = sum(
             float(be.amount)
             for be in balance_entries

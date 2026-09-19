@@ -64,7 +64,7 @@ def billing_upgrade_request(request):
     currency = None
     currency_code = data.get("currency_code")
     if currency_code:
-        currency = Currency.objects.filter(code=currency_code).first()
+        currency = Currency.objects.filter(code=currency_code, owner=None).first()  # platform template — billing/plan currency is global, never per-user
 
     upgrade_request = UpgradeRequestService.submit(request.user, plan, currency)
     return JsonResponse({"upgrade_request": upgrade_request.to_dict()}, status=201)
@@ -84,7 +84,7 @@ def billing_checkout(request):
     if plan is None:
         return JsonResponse({"error": "Plan not found."}, status=404)
 
-    currency = Currency.objects.filter(code=data.get("currency_code")).first()
+    currency = Currency.objects.filter(code=data.get("currency_code"), owner=None).first()  # platform template — billing/plan currency is global, never per-user
     if currency is None:
         return JsonResponse({"error": "Currency not found."}, status=404)
 

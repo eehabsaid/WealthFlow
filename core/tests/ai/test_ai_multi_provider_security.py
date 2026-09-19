@@ -94,7 +94,7 @@ class AIMultiProviderSettingsApiTests(TestCase):
         self.assertEqual(resp.status_code, 200)
 
         # 1. Assert DB stores ciphertext, NOT raw plaintext
-        db_raw_val = AppSettings.get("ai_openai_api_key", "").strip()
+        db_raw_val = AppSettings.get("ai_openai_api_key", "", user=self.admin).strip()
         self.assertTrue(db_raw_val.startswith("enc:"))
         self.assertNotIn(raw_openai_key, db_raw_val)
 
@@ -133,7 +133,7 @@ class AIMultiProviderSettingsApiTests(TestCase):
         self.assertEqual(post_resp.status_code, 200)
 
         # CRITICAL ASSERTION: Ciphertext stored in AppSettings must be BYTE-IDENTICAL to before!
-        db_val_after = AppSettings.get("ai_openai_api_key", "").strip()
+        db_val_after = AppSettings.get("ai_openai_api_key", "", user=self.admin).strip()
         self.assertEqual(db_val_after, enc_val_initial)
         self.assertEqual(decrypt_credential(db_val_after), raw_key)
 

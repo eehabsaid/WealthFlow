@@ -21,15 +21,15 @@ if TYPE_CHECKING:
 
 class OpenAIConfigMixin:
     @classmethod
-    def from_settings(cls) -> Optional["OpenAIProvider"]:
+    def from_settings(cls, user=None) -> Optional["OpenAIProvider"]:
         from core.models import AppSettings
 
-        raw_key = AppSettings.get("ai_openai_api_key", "").strip()
+        raw_key = AppSettings.get("ai_openai_api_key", "", user=user).strip()
         api_key = decrypt_credential(raw_key)
-        model = AppSettings.get("ai_openai_model", "").strip()
-        base_url = AppSettings.get("ai_openai_base_url", "https://api.openai.com/v1").strip()
+        model = AppSettings.get("ai_openai_model", "", user=user).strip()
+        base_url = AppSettings.get("ai_openai_base_url", "https://api.openai.com/v1", user=user).strip()
         try:
-            timeout = int(AppSettings.get("ai_timeout", "60"))
+            timeout = int(AppSettings.get("ai_timeout", "60", user=user))
         except (ValueError, TypeError):
             timeout = 60
 

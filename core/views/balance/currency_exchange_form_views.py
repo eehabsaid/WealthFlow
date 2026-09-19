@@ -21,7 +21,7 @@ class CurrencyExchangeFormOptionsView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        currencies = Currency.objects.exclude(code__iexact="GOLD").exclude(name__icontains="gold")
+        currencies = Currency.objects.filter(owner=request.user).exclude(code__iexact="GOLD").exclude(name__icontains="gold")
 
         entries = BalanceEntry.objects.select_related("bank", "currency").filter(owner=request.user).exclude(
             balance_type__in=[BalanceEntry.BalanceType.GOLD, BalanceEntry.BalanceType.CERTIFICATE]

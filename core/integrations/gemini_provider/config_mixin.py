@@ -11,15 +11,15 @@ from core.services.ai.credential_encryption import decrypt_credential
 
 class GeminiConfigMixin:
     @classmethod
-    def from_settings(cls) -> Optional["GeminiConfigMixin"]:
+    def from_settings(cls, user=None) -> Optional["GeminiConfigMixin"]:
         from core.models import AppSettings
 
-        raw_key = AppSettings.get("ai_gemini_api_key", "").strip()
+        raw_key = AppSettings.get("ai_gemini_api_key", "", user=user).strip()
         api_key = decrypt_credential(raw_key)
-        model = AppSettings.get("ai_gemini_model", "").strip()
-        base_url = AppSettings.get("ai_gemini_base_url", "https://generativelanguage.googleapis.com/v1beta").strip()
+        model = AppSettings.get("ai_gemini_model", "", user=user).strip()
+        base_url = AppSettings.get("ai_gemini_base_url", "https://generativelanguage.googleapis.com/v1beta", user=user).strip()
         try:
-            timeout = int(AppSettings.get("ai_timeout", "60"))
+            timeout = int(AppSettings.get("ai_timeout", "60", user=user))
         except (ValueError, TypeError):
             timeout = 60
 

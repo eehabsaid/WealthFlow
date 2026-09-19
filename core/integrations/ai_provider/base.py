@@ -18,8 +18,9 @@ class BaseAIProvider(ABC):
 
     @classmethod
     @abstractmethod
-    def from_settings(cls) -> Optional["BaseAIProvider"]:
-        """Construct provider instance from AppSettings configuration."""
+    def from_settings(cls, user=None) -> Optional["BaseAIProvider"]:
+        """Construct provider instance from AppSettings configuration
+        (global, or the given user's own BYOK credentials if set)."""
 
     @property
     @abstractmethod

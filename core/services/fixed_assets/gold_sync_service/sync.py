@@ -49,7 +49,7 @@ def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None
     unit_factor = _gold_unit_factor(details.unit)
     details.market_price = sell_price_per_gram * unit_factor
 
-    cashback_per_gram = _gold_cashback_per_gram(details.purity)
+    cashback_per_gram = _gold_cashback_per_gram(details.purity, owner=asset.owner)
     details.cashback_per_gram = cashback_per_gram
     total_weight_grams = _gold_weight_in_grams(details.weight, details.unit)
     asset.current_market_value = total_weight_grams * (sell_price_per_gram + cashback_per_gram)
@@ -70,7 +70,7 @@ def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None
 
 
 def _sync_gold_balance_from_assets(owner):
-    gold_currency = Currency.objects.filter(code__iexact="gold").first()
+    gold_currency = Currency.objects.filter(code__iexact="gold", owner=owner).first()
     if not gold_currency:
         return
 
@@ -168,7 +168,7 @@ def _sync_gold_details(asset, details_data):
             "purity": _normalize_gold_purity(details_data.get("purity", "")),
             "weight": details_data.get("weight", 0),
             "unit": details_data.get("unit", "gram"),
-            "cashback_per_gram": _gold_cashback_per_gram(details_data.get("purity", "")),
+            "cashback_per_gram": _gold_cashback_per_gram(details_data.get("purity", ""), owner=asset.owner),
             "purchase_weight": details_data.get("purchase_weight", 0),
         },
     )

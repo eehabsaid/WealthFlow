@@ -22,7 +22,7 @@ def _clear_non_selected_asset_details(asset):
     if asset.asset_type not in OTHER_ASSET_TYPES and hasattr(asset, "other_asset_details"):
         asset.other_asset_details.delete()
 
-def _resolve_asset_usd_rate_and_price(data, current_usd_rate=0, current_price_usd=0):
+def _resolve_asset_usd_rate_and_price(data, current_usd_rate=0, current_price_usd=0, owner=None):
     from decimal import Decimal
     from core.models import Currency
     from core.services.shared.currency_conversion_service import CurrencyConversionService
@@ -34,7 +34,7 @@ def _resolve_asset_usd_rate_and_price(data, current_usd_rate=0, current_price_us
 
     code = "EGP"
     if purchase_currency_id:
-        c = Currency.objects.filter(id=purchase_currency_id).first()
+        c = Currency.objects.filter(id=purchase_currency_id, owner=owner).first()
         if c:
             code = c.code.upper()
 

@@ -75,7 +75,7 @@ class NewAIToolsDomainTest(TestCase):
             content_type="application/json",
         )
         self.assertEqual(res_post.status_code, 200)
-        self.assertEqual(AppSettings.get("ai_read_only"), "false")
+        self.assertEqual(AppSettings.get("ai_read_only", user=self.user), "false")
 
     def test_read_application_codebase_execution(self):
         audit, res = validate_and_execute_tool(

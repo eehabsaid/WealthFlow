@@ -53,7 +53,7 @@ class AssetSaleView(View):
         try:
             with transaction.atomic():
                 if existing_sale is not None:
-                    previous_row = _sale_payment_row(existing_sale)
+                    previous_row = _sale_payment_row(existing_sale, owner=request.user)
                     _apply_asset_balance_delta(
                         currency_id=previous_row["currency_id"],
                         payment_method=previous_row["payment_method"],
@@ -62,7 +62,7 @@ class AssetSaleView(View):
                         owner=request.user,
                     )
 
-                deposit_values = _resolve_sale_deposit_values(data, existing_sale=existing_sale)
+                deposit_values = _resolve_sale_deposit_values(data, existing_sale=existing_sale, owner=request.user)
 
                 sale, created = AssetSale.objects.update_or_create(
                     asset=asset,
@@ -79,7 +79,7 @@ class AssetSaleView(View):
                     },
                 )
 
-                current_row = _sale_payment_row(sale)
+                current_row = _sale_payment_row(sale, owner=request.user)
                 _apply_asset_balance_delta(
                     currency_id=current_row["currency_id"],
                     payment_method=current_row["payment_method"],
@@ -114,7 +114,7 @@ class AssetSaleView(View):
 
         try:
             with transaction.atomic():
-                sale_row = _sale_payment_row(asset.sale)
+                sale_row = _sale_payment_row(asset.sale, owner=request.user)
                 _apply_asset_balance_delta(
                     currency_id=sale_row["currency_id"],
                     payment_method=sale_row["payment_method"],

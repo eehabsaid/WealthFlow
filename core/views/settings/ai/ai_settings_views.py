@@ -27,7 +27,7 @@ from core.views.settings.ai.ai_settings_save_helpers import (
 class AISettingsView(PermissionRequiredMixin, View):
     required_key = "settings_aiadvisor"
     def get(self, request):
-        return JsonResponse(build_ai_settings_get_payload())
+        return JsonResponse(build_ai_settings_get_payload(user=request.user))
 
     def post(self, request):
         try:
@@ -39,9 +39,9 @@ class AISettingsView(PermissionRequiredMixin, View):
         if error_response:
             return error_response
 
-        persist_ai_settings(data, validated)
+        persist_ai_settings(data, validated, user=request.user)
         connection_ok, test_error = run_ai_settings_connection_test(
-            validated["enabled"], validated["model"]
+            validated["enabled"], validated["model"], user=request.user
         )
         message_key = "ai_save_success" if (not validated["enabled"] or connection_ok) else "ai_save_success_test_failed"
 

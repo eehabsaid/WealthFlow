@@ -49,7 +49,7 @@ class SalaryService:
 
         currency = salary.company.current_salary_currency
         if not currency:
-            currency = Currency.objects.filter(code="EGP").first() or Currency.objects.first()
+            currency = Currency.objects.filter(code="EGP", owner=owner).first() or Currency.objects.filter(owner=owner).first()
 
         if mark_paid and salary.paid == 0:
             # Mark as PAID
@@ -109,7 +109,7 @@ class SalaryService:
         if diff != 0 and entry.company.default_bank:
             currency = entry.company.current_salary_currency
             if not currency:
-                currency = Currency.objects.filter(code="EGP").first() or Currency.objects.first()
+                currency = Currency.objects.filter(code="EGP", owner=owner).first() or Currency.objects.filter(owner=owner).first()
 
             balance_entry = BalanceEntry.objects.filter(
                 owner=owner,
@@ -138,7 +138,7 @@ class SalaryService:
         if entry.paid > 0 and entry.company.default_bank:
             currency = entry.company.current_salary_currency
             if not currency:
-                currency = Currency.objects.filter(code="EGP").first() or Currency.objects.first()
+                currency = Currency.objects.filter(code="EGP", owner=owner).first() or Currency.objects.filter(owner=owner).first()
 
             BalanceEntry.objects.filter(
                 owner=owner,

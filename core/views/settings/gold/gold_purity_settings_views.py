@@ -19,8 +19,8 @@ from core.views.settings.gold.gold_settings_helpers import _seed_gold_settings_d
 @method_decorator(csrf_exempt, name="dispatch")
 class GoldPuritySettingsListView(View):
     def get(self, request):
-        _seed_gold_settings_defaults()
-        rows = GoldPuritySetting.objects.all()
+        _seed_gold_settings_defaults(request.user)
+        rows = GoldPuritySetting.objects.filter(owner=request.user)
         return JsonResponse({"items": [row.to_dict() for row in rows]})
 
     def post(self, request):
@@ -29,6 +29,7 @@ class GoldPuritySettingsListView(View):
         if key and not key.endswith("k"):
             key = f"{key}k"
         item = GoldPuritySetting.objects.create(
+            owner=request.user,
             key=key,
             label=(data.get("label") or "").strip() or key.upper(),
             cashback_per_gram=Decimal(str(data.get("cashback_per_gram", 0) or 0)),
@@ -41,7 +42,7 @@ class GoldPuritySettingsListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class GoldPuritySettingsDetailView(View):
     def put(self, request, pk):
-        item = get_object_or_404(GoldPuritySetting, pk=pk)
+        item = get_object_or_404(GoldPuritySetting, pk=pk, owner=request.user)
         data = json.loads(request.body)
 
         if "key" in data:
@@ -66,7 +67,7 @@ class GoldPuritySettingsDetailView(View):
         return JsonResponse(item.to_dict())
 
     def delete(self, request, pk):
-        item = get_object_or_404(GoldPuritySetting, pk=pk)
+        item = get_object_or_404(GoldPuritySetting, pk=pk, owner=request.user)
         item.is_active = False
         item.save(update_fields=["is_active", "updated_at"])
         return JsonResponse({"disabled": pk})

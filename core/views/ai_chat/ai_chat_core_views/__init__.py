@@ -80,7 +80,7 @@ class AIChatView(View):
         progress_key = init_progress(cache_mgr, request, conversation)
 
         # Check if AI provider is active
-        provider = get_active_ai_provider()
+        provider = get_active_ai_provider(user=request.user)
         if not provider:
             return build_provider_disabled_response(cache_mgr, progress_key, conversation, user_msg)
 

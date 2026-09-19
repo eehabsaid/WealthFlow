@@ -1,7 +1,19 @@
 from django.db import models
+from django.conf import settings
+
 
 class GoldTypeSetting(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    """Per-user gold-type catalog. owner=NULL rows are the internal
+    platform template — see Currency model docstring for the pattern."""
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="gold_types",
+    )
+    name = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
     order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -9,6 +21,7 @@ class GoldTypeSetting(models.Model):
 
     class Meta:
         ordering = ["order", "name"]
+        unique_together = ["owner", "name"]
 
     def to_dict(self):
         return {
@@ -20,7 +33,17 @@ class GoldTypeSetting(models.Model):
 
 
 class GoldPuritySetting(models.Model):
-    key = models.CharField(max_length=20, unique=True)  # canonical: 24k, 22k, ...
+    """Per-user gold-purity catalog. owner=NULL rows are the internal
+    platform template — see Currency model docstring for the pattern."""
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="gold_purities",
+    )
+    key = models.CharField(max_length=20)  # canonical: 24k, 22k, ...
     label = models.CharField(max_length=50)
     cashback_per_gram = models.DecimalField(max_digits=12, decimal_places=4, default=0)
     is_active = models.BooleanField(default=True)
@@ -30,6 +53,7 @@ class GoldPuritySetting(models.Model):
 
     class Meta:
         ordering = ["order", "key"]
+        unique_together = ["owner", "key"]
 
     def to_dict(self):
         return {

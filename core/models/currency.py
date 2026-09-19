@@ -1,7 +1,21 @@
 from django.db import models
+from django.conf import settings
+
 
 class Currency(models.Model):
-    code = models.CharField(max_length=10, unique=True)  # USD, EGP, SAR
+    """Per-user currency catalog. owner=NULL rows are the internal
+    platform template — never shown to any user, cloned into every
+    new/existing user's own copy (see 00xx_per_user_catalogs migration
+    and the signup seeding hook)."""
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="currencies",
+    )
+    code = models.CharField(max_length=10)  # USD, EGP, SAR
     symbol = models.CharField(max_length=10, default="")  # $, ج.م, ﷼
     flag = models.CharField(max_length=10, default="💱")  # 🇺🇸, 🇪🇬, 🇸🇦
     name = models.CharField(max_length=100)  # US Dollar, Egyptian Pound
@@ -10,6 +24,7 @@ class Currency(models.Model):
 
     class Meta:
         ordering = ["order", "code"]
+        unique_together = ["owner", "code"]
 
     def to_dict(self):
         return {

@@ -41,8 +41,17 @@ def restore_table(
             if lookup_value is None:
                 lookup_value = row.get(lookup_field)
 
+            lookup_kwargs = {lookup_field: lookup_value}
+            # Per-user catalogs (Currency, GoldTypeSetting, GoldPuritySetting,
+            # CertificateStatus) have owner_id as part of their natural key
+            # now that the lookup_field alone is no longer globally unique —
+            # without this, .get() raises MultipleObjectsReturned once 2+
+            # users each have their own row with the same natural-key value.
+            if "owner_id" in field_map:
+                lookup_kwargs["owner_id"] = kwargs.get("owner_id")
+
             try:
-                existing_instance = model_class.objects.get(**{lookup_field: lookup_value})
+                existing_instance = model_class.objects.get(**lookup_kwargs)
                 # Update existing instance fields (except the PK id and the lookup field itself)
                 for k, v in kwargs.items():
                     if k != "id" and k != lookup_field:

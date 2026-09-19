@@ -25,11 +25,11 @@ def _asset_payment_requires_bank(method_value):
 def _asset_payment_currency_required(currency_id):
     return currency_id is not None and str(currency_id).strip() != ""
 
-def _default_egp_currency_id():
-    currency = Currency.objects.filter(code__iexact="EGP").order_by("id").first()
+def _default_egp_currency_id(owner=None):
+    currency = Currency.objects.filter(code__iexact="EGP", owner=owner).order_by("id").first()
     return currency.id if currency else None
 
-def _normalize_purchase_payments_payload(rows, purchase_price, purchase_currency_id=None, allow_empty=False):
+def _normalize_purchase_payments_payload(rows, purchase_price, purchase_currency_id=None, allow_empty=False, owner=None):
     normalized_rows = []
     running_total = Decimal("0")
     resolved_currency_id = purchase_currency_id
@@ -72,7 +72,7 @@ def _normalize_purchase_payments_payload(rows, purchase_price, purchase_currency
     if not _asset_payment_currency_required(resolved_currency_id):
         if allow_empty and not normalized_rows:
             return []
-        resolved_currency_id = _default_egp_currency_id()
+        resolved_currency_id = _default_egp_currency_id(owner)
         if not resolved_currency_id:
             raise ValueError("currency_required")
 

@@ -52,7 +52,7 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
         def _load():
             return {
                 str(setting.key or "").lower(): _to_float(setting.cashback_per_gram)
-                for setting in GoldPuritySetting.objects.filter(is_active=True)
+                for setting in GoldPuritySetting.objects.filter(is_active=True, owner=self.owner)
             }
 
         return self._cached("gold_cashback", _load)

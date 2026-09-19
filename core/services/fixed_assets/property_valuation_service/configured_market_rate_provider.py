@@ -17,7 +17,7 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
         if area <= 0:
             return None
 
-        config = self._load_config()
+        config = self._load_config(asset.owner)
         if not config:
             return None
 
@@ -153,8 +153,8 @@ class ConfiguredMarketRateProvider(BasePropertyValuationProvider):
 
         return None
 
-    def _load_config(self):
-        raw = AppSettings.get("property_valuation_rate_map", "")
+    def _load_config(self, owner=None):
+        raw = AppSettings.get("property_valuation_rate_map", "", user=owner)
         if not raw:
             return None
         try:

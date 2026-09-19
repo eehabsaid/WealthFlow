@@ -39,7 +39,7 @@ CURRENCIES = [
 ]
 
 
-def build_exchange_rates_sheet(ws, rates_list, balance_entries):
+def build_exchange_rates_sheet(ws, rates_list, balance_entries, owner=None):
     FILL_BLACK = _fill("FF000000")
     for c, h in enumerate(["العملة", "شراء", "بيع"], 1):
         cell = ws.cell(row=1, column=c, value=h)
@@ -75,8 +75,10 @@ def build_exchange_rates_sheet(ws, rates_list, balance_entries):
     from core.models import Currency
 
     try:
-        usd_cur = Currency.objects.get(code="USD")
-        eur_cur = Currency.objects.get(code="EUR")
+        usd_cur = Currency.objects.filter(code__iexact="USD", owner=owner).first()
+        eur_cur = Currency.objects.filter(code__iexact="EUR", owner=owner).first()
+        if usd_cur is None or eur_cur is None:
+            raise Currency.DoesNotExist
         home_usd = sum(
             float(be.amount)
             for be in balance_entries

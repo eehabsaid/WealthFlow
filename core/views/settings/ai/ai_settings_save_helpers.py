@@ -120,40 +120,40 @@ def validate_ai_settings_post_data(data):
     return validated, None
 
 
-def persist_ai_settings(data, validated):
-    AppSettings.set("ai_enabled", "true" if validated["enabled"] else "false")
-    AppSettings.set("ai_read_only", "true" if validated["read_only"] else "false")
-    AppSettings.set("ai_provider", validated["provider"])
-    AppSettings.set("ai_ollama_url", validated["ollama_url"])
-    AppSettings.set("ai_model", validated["model"])
-    AppSettings.set("ai_temperature", str(validated["temperature"]))
-    AppSettings.set("ai_context_size", str(validated["context_size"]))
-    AppSettings.set("ai_timeout", str(validated["timeout"]))
-    AppSettings.set("ai_system_prompt", validated["system_prompt"])
-    AppSettings.set("ai_max_tokens", str(validated["max_tokens"]))
-    AppSettings.set("ai_top_p", str(validated["top_p"]))
-    AppSettings.set("ai_top_k", str(validated["top_k"]))
-    AppSettings.set("ai_repeat_penalty", str(validated["repeat_penalty"]))
-    AppSettings.set("ai_seed", validated["seed"])
-    AppSettings.set("ai_keep_alive", validated["keep_alive"])
-    AppSettings.set("ai_history_window", str(validated["history_window"]))
-    AppSettings.set("ai_context_token_budget", str(validated["context_token_budget"]))
+def persist_ai_settings(data, validated, user=None):
+    AppSettings.set("ai_enabled", "true" if validated["enabled"] else "false", user=user)
+    AppSettings.set("ai_read_only", "true" if validated["read_only"] else "false", user=user)
+    AppSettings.set("ai_provider", validated["provider"], user=user)
+    AppSettings.set("ai_ollama_url", validated["ollama_url"], user=user)
+    AppSettings.set("ai_model", validated["model"], user=user)
+    AppSettings.set("ai_temperature", str(validated["temperature"]), user=user)
+    AppSettings.set("ai_context_size", str(validated["context_size"]), user=user)
+    AppSettings.set("ai_timeout", str(validated["timeout"]), user=user)
+    AppSettings.set("ai_system_prompt", validated["system_prompt"], user=user)
+    AppSettings.set("ai_max_tokens", str(validated["max_tokens"]), user=user)
+    AppSettings.set("ai_top_p", str(validated["top_p"]), user=user)
+    AppSettings.set("ai_top_k", str(validated["top_k"]), user=user)
+    AppSettings.set("ai_repeat_penalty", str(validated["repeat_penalty"]), user=user)
+    AppSettings.set("ai_seed", validated["seed"], user=user)
+    AppSettings.set("ai_keep_alive", validated["keep_alive"], user=user)
+    AppSettings.set("ai_history_window", str(validated["history_window"]), user=user)
+    AppSettings.set("ai_context_token_budget", str(validated["context_token_budget"]), user=user)
 
     # Save provider specific non-secret fields
     if "ai_openai_model" in data:
-        AppSettings.set("ai_openai_model", str(data["ai_openai_model"] or "").strip())
+        AppSettings.set("ai_openai_model", str(data["ai_openai_model"] or "").strip(), user=user)
     if "ai_openai_base_url" in data:
-        AppSettings.set("ai_openai_base_url", str(data["ai_openai_base_url"] or "").strip())
+        AppSettings.set("ai_openai_base_url", str(data["ai_openai_base_url"] or "").strip(), user=user)
     if "ai_claude_model" in data:
-        AppSettings.set("ai_claude_model", str(data["ai_claude_model"] or "").strip())
+        AppSettings.set("ai_claude_model", str(data["ai_claude_model"] or "").strip(), user=user)
     if "ai_gemini_model" in data:
-        AppSettings.set("ai_gemini_model", str(data["ai_gemini_model"] or "").strip())
+        AppSettings.set("ai_gemini_model", str(data["ai_gemini_model"] or "").strip(), user=user)
     if "ai_azure_endpoint" in data:
-        AppSettings.set("ai_azure_endpoint", str(data["ai_azure_endpoint"] or "").strip())
+        AppSettings.set("ai_azure_endpoint", str(data["ai_azure_endpoint"] or "").strip(), user=user)
     if "ai_azure_deployment" in data:
-        AppSettings.set("ai_azure_deployment", str(data["ai_azure_deployment"] or "").strip())
+        AppSettings.set("ai_azure_deployment", str(data["ai_azure_deployment"] or "").strip(), user=user)
     if "ai_azure_api_version" in data:
-        AppSettings.set("ai_azure_api_version", str(data["ai_azure_api_version"] or "").strip())
+        AppSettings.set("ai_azure_api_version", str(data["ai_azure_api_version"] or "").strip(), user=user)
 
     # Save secret fields securely with Fernet encryption
     # CRITICAL: If user submits a masked string (starts with '••••'), DO NOT re-encrypt or overwrite!
@@ -162,21 +162,21 @@ def persist_ai_settings(data, validated):
         if sk in data:
             val = str(data[sk] or "").strip()
             if not val:
-                AppSettings.set(sk, "")
+                AppSettings.set(sk, "", user=user)
             elif is_masked(val):
                 # Keep existing stored ciphertext untouched
                 pass
             else:
                 enc_val = encrypt_credential(val)
-                AppSettings.set(sk, enc_val)
+                AppSettings.set(sk, enc_val, user=user)
 
 
-def run_ai_settings_connection_test(enabled, model):
+def run_ai_settings_connection_test(enabled, model, user=None):
     """Run connection test post-save to report connection status."""
     connection_ok = False
     test_error = None
     if enabled:
-        active_provider = get_active_ai_provider()
+        active_provider = get_active_ai_provider(user=user)
         if active_provider:
             conn_res = active_provider.check_connection()
             m_name = getattr(active_provider, "model", "") or getattr(active_provider, "deployment", "") or model

@@ -89,11 +89,11 @@ class AIAdvisorViewsTest(TestCase):
         )
         self.assertEqual(res_valid.status_code, 200)
 
-        # Verify saved in AppSettings
-        self.assertEqual(AppSettings.get("ai_enabled"), "true")
-        self.assertEqual(AppSettings.get("ai_temperature"), "0.5")
-        self.assertEqual(AppSettings.get("ai_context_size"), "8192")
-        self.assertEqual(AppSettings.get("ai_timeout"), "20")
+        # Verify saved per-user in AppSettings (AI settings are BYOK / per-user)
+        self.assertEqual(AppSettings.get("ai_enabled", user=self.admin), "true")
+        self.assertEqual(AppSettings.get("ai_temperature", user=self.admin), "0.5")
+        self.assertEqual(AppSettings.get("ai_context_size", user=self.admin), "8192")
+        self.assertEqual(AppSettings.get("ai_timeout", user=self.admin), "20")
 
     @patch("urllib.request.urlopen")
     def test_ai_connection_test_view(self, mock_urlopen):

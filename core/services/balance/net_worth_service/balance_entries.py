@@ -21,7 +21,7 @@ class ProjectedBalanceEntriesMixin:
         def _load():
             entries = list(BalanceEntry.objects.select_related("bank", "currency").filter(owner=self.owner))
             cert_map = self._certificate_projection_map()
-            egp_currency = Currency.objects.filter(code__iexact="EGP").first()
+            egp_currency = Currency.objects.filter(code__iexact="EGP", owner=self.owner).first()
             virtual_entries: List[dict] = []
 
             def _virtual_entry(title: str, amount: float, source_key: str) -> dict:

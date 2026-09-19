@@ -70,14 +70,24 @@ def get_user_allowed_pages(user):
     return list(effective_permission_keys(user))
 
 def request_lang(request):
-    """Extracts active language from request POST/GET parameters, cookies, or AppSettings."""
-    return (
+    """Extracts active language: explicit request param/cookie first, then
+    the authenticated user's own preferred_language, then the platform
+    default (AppSettings), then "en"."""
+    explicit = (
         request.POST.get("lang", "").strip()
         or request.GET.get("lang", "").strip()
         or request.COOKIES.get("wf_lang", "").strip()
-        or AppSettings.get("active_language", "en")
-        or "en"
     )
+    if explicit:
+        return explicit
+    user = getattr(request, "user", None)
+    if user is not None and getattr(user, "is_authenticated", False):
+        from core.authentication.services import AuthWorkflowService
+
+        profile = AuthWorkflowService.get_profile(user)
+        if profile.preferred_language:
+            return profile.preferred_language
+    return AppSettings.get("active_language", "en") or "en"
 
 def record_audit(user, event_type: str, actor=None, details: str = "") -> None:
     """Records an authentication audit log entry."""

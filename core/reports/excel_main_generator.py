@@ -44,7 +44,7 @@ def generate_excel(owner, output_path=None, lang="ar"):
         ).first()
         if r:
             rates.append(r)
-    build_exchange_rates_sheet(ws_ex, rates, balance_entries)
+    build_exchange_rates_sheet(ws_ex, rates, balance_entries, owner=owner)
     auto_adjust_columns(ws_ex)
 
     ws_gold = wb.create_sheet("Gold Price")

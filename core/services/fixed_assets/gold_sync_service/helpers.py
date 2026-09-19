@@ -49,9 +49,9 @@ def _gold_sell_price_per_gram(latest_gold_price, purity_key):
     return price_map.get(purity_key, price_map["24k"])
 
 
-def _gold_cashback_per_gram(purity_value):
+def _gold_cashback_per_gram(purity_value, owner=None):
     key = _normalize_gold_purity(purity_value)
-    setting = GoldPuritySetting.objects.filter(key=key, is_active=True).first()
+    setting = GoldPuritySetting.objects.filter(key=key, is_active=True, owner=owner).first()
     if not setting:
         return Decimal("0")
     return _to_decimal(setting.cashback_per_gram)

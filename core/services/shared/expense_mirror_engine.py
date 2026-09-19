@@ -42,8 +42,8 @@ def normalize_date(value):
     return None
 
 
-def egp_currency():
-    return Currency.objects.filter(code__iexact="EGP").order_by("id").first()
+def egp_currency(owner=None):
+    return Currency.objects.filter(code__iexact="EGP", owner=owner).order_by("id").first()
 
 
 def get_or_create_mirror_subcategory(category_name, category_icon, category_color, subcategory_name, owner):
@@ -92,7 +92,7 @@ def sync_mirror(source_type, source_id, *, date_value, description, amount_egp, 
         "amount": amount,
         "exchange_rate": Decimal("1"),
         "amount_egp": amount,
-        "currency": egp_currency(),
+        "currency": egp_currency(owner),
         "bank_id": bank_id,
         "payment_method": map_payment_method(payment_method),
         "notes": notes,

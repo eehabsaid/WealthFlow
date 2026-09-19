@@ -118,12 +118,12 @@ class BackupRestoreTests(TestCase):
             self.assertEqual(restored_doc.uploaded_by.username, self.username)
 
             # Without --overwrite, existing Currency name shouldn't have changed back
-            restored_curr = Currency.objects.get(code="EGP")
+            restored_curr = Currency.objects.get(code="EGP", owner=None)
             self.assertEqual(restored_curr.name, "Modified Name")
 
             # 4. Restore (With overwrite)
             call_command("restore_data", backup_file, overwrite=True)
-            restored_curr = Currency.objects.get(code="EGP")
+            restored_curr = Currency.objects.get(code="EGP", owner=None)
             self.assertEqual(restored_curr.name, "جنيه مصري") # Restored to original
 
         finally:

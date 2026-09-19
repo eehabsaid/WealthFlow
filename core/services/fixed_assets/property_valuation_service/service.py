@@ -19,29 +19,30 @@ class PropertyValuationService:
     """
 
     def __init__(self, providers=None):
-        self.providers = providers or self._build_default_providers()
-
-    def _build_default_providers(self):
-        provider_map = {
+        self._custom_providers = providers
+        self._provider_map = {
             "external_api": ExternalApiPropertyValuationProvider(),
             "configured_market_rate": ConfiguredMarketRateProvider(),
         }
+        self.providers = providers or self._build_default_providers(None)
 
+    def _build_default_providers(self, owner):
         order_raw = str(
             AppSettings.get(
                 "property_valuation_provider_order",
                 "external_api,configured_market_rate",
+                user=owner,
             )
             or ""
         )
         resolved = []
         for name in [item.strip().lower() for item in order_raw.split(",") if item.strip()]:
-            provider = provider_map.get(name)
+            provider = self._provider_map.get(name)
             if provider and provider not in resolved:
                 resolved.append(provider)
 
         if not resolved:
-            resolved.append(provider_map["configured_market_rate"])
+            resolved.append(self._provider_map["configured_market_rate"])
         return resolved
 
     def refresh_asset(self, asset: FixedAsset, today=None):
@@ -49,7 +50,8 @@ class PropertyValuationService:
         if not details:
             return False, None
 
-        for provider in self.providers:
+        providers = self._custom_providers or self._build_default_providers(asset.owner)
+        for provider in providers:
             estimate = provider.estimate(asset, details)
             if estimate is None:
                 continue

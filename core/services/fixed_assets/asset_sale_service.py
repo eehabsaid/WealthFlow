@@ -7,8 +7,8 @@ from core.utils import _to_decimal
 
 from core.services.fixed_assets.asset_purchase_service import _asset_payment_currency_required, _asset_payment_requires_bank, _default_egp_currency_id, _normalize_asset_payment_method
 
-def _resolve_sale_deposit_values(data, existing_sale=None):
-    fallback_currency_id = _default_egp_currency_id()
+def _resolve_sale_deposit_values(data, existing_sale=None, owner=None):
+    fallback_currency_id = _default_egp_currency_id(owner)
 
     existing_currency_id = existing_sale.deposit_currency_id if existing_sale else None
     currency_id = data.get("deposit_currency_id", existing_currency_id or fallback_currency_id)
@@ -31,8 +31,8 @@ def _resolve_sale_deposit_values(data, existing_sale=None):
         "deposit_bank_id": int(bank_id) if bank_id else None,
     }
 
-def _sale_payment_row(sale):
-    currency_id = sale.deposit_currency_id or _default_egp_currency_id()
+def _sale_payment_row(sale, owner=None):
+    currency_id = sale.deposit_currency_id or _default_egp_currency_id(owner)
     method = _normalize_asset_payment_method(sale.deposit_method or ASSET_PAYMENT_METHOD_CASH)
     bank_id = sale.deposit_bank_id if _asset_payment_requires_bank(method) else None
     return {

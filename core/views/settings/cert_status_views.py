@@ -3,7 +3,9 @@
 """NOTE: single-resource file. If it grows past ~200 lines, split it and
 move the resulting files into a settings/<domain>/ subfolder (see
 settings/ai/ or settings/gold/ for the pattern: an empty __init__.py plus
-one file per concern), then update core/views/settings/__init__.py."""
+one file per concern), then update core/views/settings/__init__.py.
+
+Per-user catalog — see currency_views.py docstring for the pattern."""
 
 import json
 from django.http import JsonResponse
@@ -17,15 +19,18 @@ from core.models import CertificateStatus
 @method_decorator(csrf_exempt, name="dispatch")
 class CertificateStatusListView(View):
     def get(self, request):
-        statuses = CertificateStatus.objects.all()
+        statuses = CertificateStatus.objects.filter(owner=request.user)
         return JsonResponse({"statuses": [s.to_dict() for s in statuses]})
 
     def post(self, request):
         data = json.loads(request.body)
-        # If new status is default, unset any existing default
+        # If new status is default, unset any existing default (this user's only)
         if data.get("is_default"):
-            CertificateStatus.objects.filter(is_default=True).update(is_default=False)
+            CertificateStatus.objects.filter(
+                owner=request.user, is_default=True
+            ).update(is_default=False)
         s = CertificateStatus.objects.create(
+            owner=request.user,
             name=data["name"],
             color_hex=data.get("color_hex", "#1a6ef5"),
             is_default=data.get("is_default", False),
@@ -38,10 +43,12 @@ class CertificateStatusListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class CertificateStatusDetailView(View):
     def put(self, request, pk):
-        s = get_object_or_404(CertificateStatus, pk=pk)
+        s = get_object_or_404(CertificateStatus, pk=pk, owner=request.user)
         data = json.loads(request.body)
         if data.get("is_default") and not s.is_default:
-            CertificateStatus.objects.filter(is_default=True).update(is_default=False)
+            CertificateStatus.objects.filter(
+                owner=request.user, is_default=True
+            ).update(is_default=False)
         s.name = data.get("name", s.name)
         s.color_hex = data.get("color_hex", s.color_hex)
         s.is_default = data.get("is_default", s.is_default)
@@ -51,6 +58,6 @@ class CertificateStatusDetailView(View):
         return JsonResponse({"status": s.to_dict()})
 
     def delete(self, request, pk):
-        s = get_object_or_404(CertificateStatus, pk=pk)
+        s = get_object_or_404(CertificateStatus, pk=pk, owner=request.user)
         s.delete()
         return JsonResponse({"deleted": pk})

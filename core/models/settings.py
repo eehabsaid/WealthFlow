@@ -1,23 +1,53 @@
 from django.db import models
+from django.conf import settings
+
 
 class AppSettings(models.Model):
-    key = models.CharField(max_length=100, unique=True)
+    """Platform-wide OR per-user key/value settings, depending on the key.
+
+    A row with owner=NULL is the global/platform default (and, for the
+    catalog-style settings, also the template new users are seeded from
+    — see the 00xx_per_user_settings migration). Passing `user=` to
+    get()/set() looks up (key, owner=user) first, falling back to the
+    global row. Callers that never pass `user=` get the pre-existing
+    global-only behavior unchanged.
+    """
+
+    key = models.CharField(max_length=100)
     value = models.TextField()
     description = models.CharField(max_length=300, blank=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="app_settings",
+    )
+
+    class Meta:
+        unique_together = ["key", "owner"]
 
     def __str__(self):
-        return self.key
+        return self.key if self.owner_id is None else f"{self.key} ({self.owner_id})"
 
     @classmethod
-    def get(cls, key, default=None):
+    def get(cls, key, default=None, user=None):
+        if user is not None and getattr(user, "is_authenticated", False):
+            try:
+                return cls.objects.get(key=key, owner=user).value
+            except cls.DoesNotExist:
+                pass
         try:
-            return cls.objects.get(key=key).value
+            return cls.objects.get(key=key, owner=None).value
         except cls.DoesNotExist:
             return default
 
     @classmethod
-    def set(cls, key, value):
-        obj, _ = cls.objects.update_or_create(key=key, defaults={"value": value})
+    def set(cls, key, value, user=None):
+        owner = user if (user is not None and getattr(user, "is_authenticated", False)) else None
+        obj, _ = cls.objects.update_or_create(
+            key=key, owner=owner, defaults={"value": value}
+        )
         return obj
 
 

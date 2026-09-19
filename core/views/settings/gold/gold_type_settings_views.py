@@ -2,7 +2,9 @@
 
 """NOTE: part of the settings/gold/ domain package. If this file
 grows past ~200 lines, split it further within this folder and update
-core/views/settings/__init__.py accordingly."""
+core/views/settings/__init__.py accordingly.
+
+Per-user catalog — see currency_views.py docstring for the pattern."""
 
 import json
 from django.http import JsonResponse
@@ -18,13 +20,14 @@ from core.views.settings.gold.gold_settings_helpers import _seed_gold_settings_d
 @method_decorator(csrf_exempt, name="dispatch")
 class GoldTypeSettingsListView(View):
     def get(self, request):
-        _seed_gold_settings_defaults()
-        rows = GoldTypeSetting.objects.all()
+        _seed_gold_settings_defaults(request.user)
+        rows = GoldTypeSetting.objects.filter(owner=request.user)
         return JsonResponse({"items": [row.to_dict() for row in rows]})
 
     def post(self, request):
         data = json.loads(request.body)
         item = GoldTypeSetting.objects.create(
+            owner=request.user,
             name=(data.get("name") or "").strip(),
             is_active=bool(data.get("is_active", True)),
             order=int(data.get("order", 0) or 0),
@@ -35,7 +38,7 @@ class GoldTypeSettingsListView(View):
 @method_decorator(csrf_exempt, name="dispatch")
 class GoldTypeSettingsDetailView(View):
     def put(self, request, pk):
-        item = get_object_or_404(GoldTypeSetting, pk=pk)
+        item = get_object_or_404(GoldTypeSetting, pk=pk, owner=request.user)
         data = json.loads(request.body)
         for field in ["name", "is_active", "order"]:
             if field in data:
@@ -44,7 +47,7 @@ class GoldTypeSettingsDetailView(View):
         return JsonResponse(item.to_dict())
 
     def delete(self, request, pk):
-        item = get_object_or_404(GoldTypeSetting, pk=pk)
+        item = get_object_or_404(GoldTypeSetting, pk=pk, owner=request.user)
         item.is_active = False
         item.save(update_fields=["is_active", "updated_at"])
         return JsonResponse({"disabled": pk})

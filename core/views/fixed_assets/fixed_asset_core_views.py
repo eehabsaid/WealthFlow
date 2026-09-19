@@ -86,6 +86,7 @@ class FixedAssetDetailView(View):
                         data.get("purchase_price", asset.purchase_price),
                         purchase_currency_id=data.get("purchase_currency_id"),
                         allow_empty=allow_empty,
+                        owner=request.user,
                     )
                 else:
                     purchase_rows = previous_rows
@@ -100,7 +101,8 @@ class FixedAssetDetailView(View):
                 usd_rate, price_usd = _resolve_asset_usd_rate_and_price(
                     data,
                     current_usd_rate=asset.purchase_usd_rate,
-                    current_price_usd=asset.purchase_price_usd
+                    current_price_usd=asset.purchase_price_usd,
+                    owner=asset.owner,
                 )
                 asset.purchase_usd_rate = usd_rate
                 asset.purchase_price_usd = price_usd

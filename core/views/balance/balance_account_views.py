@@ -44,7 +44,7 @@ class BalanceListView(View):
 
     def _cashback_per_gram_for_purity(self, purity_value):
         key = self._normalize_purity_key(purity_value)
-        setting = GoldPuritySetting.objects.filter(key=key, is_active=True).first()
+        setting = GoldPuritySetting.objects.filter(key=key, is_active=True, owner=self.request.user).first()
         return float(setting.cashback_per_gram) if setting else 0.0
 
     def _sell_per_gram_for_purity(self, latest_gold, purity_value):

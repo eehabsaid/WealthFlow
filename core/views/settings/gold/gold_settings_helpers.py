@@ -11,7 +11,7 @@ core/views/settings/__init__.py accordingly."""
 from core.models import GoldTypeSetting, GoldPuritySetting
 
 
-def _seed_gold_settings_defaults():
+def _seed_gold_settings_defaults(user):
     default_types = [
         ("Coins", 1),
         ("Bars", 2),
@@ -19,6 +19,7 @@ def _seed_gold_settings_defaults():
     ]
     for name, order in default_types:
         GoldTypeSetting.objects.get_or_create(
+            owner=user,
             name=name,
             defaults={"is_active": True, "order": order},
         )
@@ -31,6 +32,7 @@ def _seed_gold_settings_defaults():
     ]
     for key, label, order in default_purities:
         GoldPuritySetting.objects.get_or_create(
+            owner=user,
             key=key,
             defaults={
                 "label": label,

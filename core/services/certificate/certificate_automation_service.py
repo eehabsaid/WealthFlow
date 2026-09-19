@@ -26,7 +26,6 @@ class CertificateAutomationService:
     def close_matured_certificates(self, today: Optional[date] = None) -> CertificateAutomationResult:
         current_date = today or timezone.localdate()
         result = CertificateAutomationResult()
-        closed_name = self._closed_status_name()
 
         with transaction.atomic():
             certificates = list(
@@ -41,7 +40,7 @@ class CertificateAutomationService:
                     continue
                 if not self._is_active(certificate):
                     continue
-                certificate.status = closed_name
+                certificate.status = self._closed_status_name(certificate.owner_id)
                 certificate.save(update_fields=["status", "updated_at"])
                 result.closed_certificates += 1
                 certificate_pk: Any = getattr(certificate, "pk", None)
@@ -56,8 +55,12 @@ class CertificateAutomationService:
     def _is_closed(self, certificate: BankCertificate) -> bool:
         return str(certificate.status or "").strip().lower() == "closed"
 
-    def _closed_status_name(self) -> str:
-        closed_status = CertificateStatus.objects.filter(name__iexact="closed").order_by("order", "name").first()
+    def _closed_status_name(self, owner_id) -> str:
+        closed_status = (
+            CertificateStatus.objects.filter(owner_id=owner_id, name__iexact="closed")
+            .order_by("order", "name")
+            .first()
+        )
         if closed_status:
             return closed_status.name
         return "Closed"
