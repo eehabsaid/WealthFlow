@@ -19,7 +19,7 @@ async function renderBillingPlansPage() {
     _paintPlansPage(
       plansData.plans || [],
       statusData.subscription,
-      statusData.pending_upgrade_request
+      statusData.pending_upgrade_request,
     );
   } catch (e) {
     document.getElementById("wf-plans-page").innerHTML =
@@ -51,7 +51,9 @@ function _paintPlansPage(plans, subscription, pendingRequest) {
 
 function _plansPageCurrencyOptions(plans) {
   const codes = new Set();
-  plans.forEach((p) => (p.prices || []).forEach((pr) => codes.add(pr.currency_code)));
+  plans.forEach((p) =>
+    (p.prices || []).forEach((pr) => codes.add(pr.currency_code)),
+  );
   return Array.from(codes);
 }
 
@@ -63,7 +65,7 @@ function _currencySelectHtml(currencies) {
                 ${currencies
                   .map(
                     (c) =>
-                      `<option value="${esc(c)}" ${c === _plansPageCurrency ? "selected" : ""}>${esc(c)}</option>`
+                      `<option value="${esc(c)}" ${c === _plansPageCurrency ? "selected" : ""}>${esc(c)}</option>`,
                   )
                   .join("")}
             </select>
@@ -77,9 +79,15 @@ function _onPlansCurrencyChange(code) {
 
 function _planCardHtml(plan, currentPlanId, pendingRequest) {
   const isCurrent = plan.id === currentPlanId;
-  const price = (plan.prices || []).find((p) => p.currency_code === _plansPageCurrency);
+  const price = (plan.prices || []).find(
+    (p) => p.currency_code === _plansPageCurrency,
+  );
+
   const priceHtml = price
-    ? `${esc(price.currency_symbol || price.currency_code)}${fmt(price.amount)} <span>/ ${plan.billing_interval_days}${t("days_suffix", "d")}</span>`
+    ? `<span dir="ltr" style="display: inline-flex; align-items: baseline; gap: 4px;">
+         <span>${esc(price.currency_symbol || price.currency_code)}${fmt(price.amount)}</span>
+         <span style="opacity: 0.8; font-size: 0.85em;">/ ${plan.billing_interval_days} ${t("days_suffix", "d")}</span>
+       </span>`
     : `<span style="font-size:14px;">${t("no_prices_set", "No prices set")}</span>`;
 
   let ctaHtml;
@@ -93,9 +101,14 @@ function _planCardHtml(plan, currentPlanId, pendingRequest) {
     ctaHtml = `<button class="wf-plan-card-cta" onclick="submitUpgradeRequest(${plan.id})">${t("request_upgrade_btn", "Request Upgrade")}</button>`;
   }
 
+  // Ensures uniform vertical alignment across all cards whether they have a badge or not
+  const badgeHtml = isCurrent
+    ? `<span class="wf-plan-card-badge">${t("current_plan_badge", "Current Plan")}</span>`
+    : `<span class="wf-plan-card-badge" style="visibility:hidden; pointer-events:none;">&nbsp;</span>`;
+
   return `
         <div class="wf-plan-card ${isCurrent ? "wf-plan-current" : ""}">
-            ${isCurrent ? `<span class="wf-plan-card-badge">${t("current_plan_badge", "Current Plan")}</span>` : ""}
+            ${badgeHtml}
             <div class="wf-plan-card-name">${esc(plan.name)}</div>
             <div class="wf-plan-card-price">${priceHtml}</div>
             ${ctaHtml}
@@ -106,8 +119,14 @@ async function submitUpgradeRequest(planId) {
   try {
     const res = await fetch("/api/billing/upgrade-request/", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
-      body: JSON.stringify({ plan_id: planId, currency_code: _plansPageCurrency }),
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken(),
+      },
+      body: JSON.stringify({
+        plan_id: planId,
+        currency_code: _plansPageCurrency,
+      }),
     });
     if (!res.ok) throw new Error("failed");
     showToast(t("upgrade_request_sent", "Upgrade request sent ✓"), "success");
@@ -115,8 +134,11 @@ async function submitUpgradeRequest(planId) {
     if (typeof checkBillingStatus === "function") checkBillingStatus();
   } catch (e) {
     showToast(
-      t("error_sending_upgrade_request", "Couldn't send your request. Please try again."),
-      "error"
+      t(
+        "error_sending_upgrade_request",
+        "Couldn't send your request. Please try again.",
+      ),
+      "error",
     );
   }
 }
@@ -125,8 +147,14 @@ async function checkoutPlan(planId) {
   try {
     const res = await fetch("/api/billing/checkout/", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
-      body: JSON.stringify({ plan_id: planId, currency_code: _plansPageCurrency }),
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken(),
+      },
+      body: JSON.stringify({
+        plan_id: planId,
+        currency_code: _plansPageCurrency,
+      }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "checkout failed");
@@ -141,8 +169,8 @@ async function checkoutPlan(planId) {
       !confirm(
         t(
           "fake_payment_confirm",
-          "Test Payment Mode: no payment gateway is configured yet. Simulate a successful payment now?"
-        )
+          "Test Payment Mode: no payment gateway is configured yet. Simulate a successful payment now?",
+        ),
       )
     ) {
       return;
@@ -150,20 +178,32 @@ async function checkoutPlan(planId) {
 
     const completeRes = await fetch("/api/billing/checkout/fake-complete/", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken(),
+      },
       body: JSON.stringify({ invoice_id: data.invoice_id }),
     });
     if (!completeRes.ok) throw new Error("fake payment failed");
 
     showToast(
-      t("fake_payment_success", "Test payment complete ✓ — you're now on this plan."),
-      "success"
+      t(
+        "fake_payment_success",
+        "Test payment complete ✓ — you're now on this plan.",
+      ),
+      "success",
     );
     renderBillingPlansPage();
     if (typeof checkBillingStatus === "function") checkBillingStatus();
     if (typeof renderSidebar === "function") renderSidebar();
   } catch (e) {
-    showToast(t("error_starting_checkout", "Couldn't start checkout. Please try again."), "error");
+    showToast(
+      t(
+        "error_starting_checkout",
+        "Couldn't start checkout. Please try again.",
+      ),
+      "error",
+    );
   }
 }
 

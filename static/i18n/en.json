@@ -2260,7 +2260,7 @@
   "error_starting_checkout": "Couldn't start checkout. Please try again.",
   "no_active_plans": "No plans available yet.",
   "error_loading_plans": "Couldn't load plans. Please try again.",
-  "days_suffix": "d",
+  "days_suffix": "Days",
   "loading_ellipsis": "Loading…",
   "settings_roles": "Roles",
   "btn_add_role": "Add Role",

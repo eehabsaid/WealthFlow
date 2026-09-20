@@ -2260,7 +2260,7 @@
   "error_starting_checkout": "Checkout konnte nicht gestartet werden. Bitte versuchen Sie es erneut.",
   "no_active_plans": "Noch keine Pläne verfügbar.",
   "error_loading_plans": "Pläne konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
-  "days_suffix": "T",
+  "days_suffix": "Tage",
   "loading_ellipsis": "Wird geladen…",
   "settings_roles": "Rollen",
   "btn_add_role": "Rolle hinzufügen",

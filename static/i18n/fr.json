@@ -2260,7 +2260,7 @@
   "error_starting_checkout": "Impossible de démarrer le paiement. Veuillez réessayer.",
   "no_active_plans": "Aucun forfait disponible pour le moment.",
   "error_loading_plans": "Impossible de charger les forfaits. Veuillez réessayer.",
-  "days_suffix": "j",
+  "days_suffix": "Jours",
   "loading_ellipsis": "Chargement…",
   "settings_roles": "Rôles",
   "btn_add_role": "Ajouter un rôle",
