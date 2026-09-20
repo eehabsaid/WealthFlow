@@ -73,7 +73,10 @@ class AuthOnboardingWorkflowTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(User.objects.filter(email="existing@example.com").count(), 1)
-        self.assertContains(response, "auth_error_email_registered")
+        # No enumeration: identical success message as a fresh signup
+        self.assertNotContains(response, "auth_error_email_registered")
+        self.assertContains(response, "auth_signup_success_verify_email")
+        self.assertFalse(User.objects.filter(username="otheruser").exists())
 
     def _sign_up(self, username):
         self.client.post(

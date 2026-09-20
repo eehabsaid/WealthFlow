@@ -3,6 +3,7 @@ Django settings for wealthflow project.
 """
 
 import os
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "axes",
     "core",
 ]
 
@@ -40,6 +42,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "axes.middleware.AxesMiddleware",
     "core.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -89,6 +92,20 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_URL = "/accounts/login/"
+
+# ── Brute-force protection (django-axes) ────────────────────────────────────
+# Lock a username+IP pair after 5 failed logins for 15 minutes. Behind a
+# reverse proxy, also set AXES_IPWARE_PROXY_COUNT / AXES_META_PRECEDENCE_ORDER
+# so the real client IP is used instead of the proxy's.
+AUTHENTICATION_BACKENDS = [
+    "core.authentication.backends.RequestOptionalAxesBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = timedelta(minutes=15)
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_CALLABLE = "core.authentication.lockout.lockout_response"
 LOGIN_REDIRECT_URL = "/"
 
 LANGUAGE_CODE = "en-us"

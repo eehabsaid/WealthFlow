@@ -20,6 +20,7 @@ from django.db import transaction
 
 from core.models import AppSettings
 from core.constants.user_scoped_settings import USER_SCOPED_SETTING_KEYS, ACTIVE_LANGUAGE_KEY
+from core.views.settings.settings_access import SettingsAccess
 
 
 def _resolve_for_user(request):
@@ -43,9 +44,14 @@ def _resolve_for_user(request):
 @method_decorator(csrf_exempt, name="dispatch")
 class SettingsView(View):
     def get(self, request):
-        return JsonResponse({"settings": _resolve_for_user(request)})
+        if not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        access = SettingsAccess(request.user)
+        return JsonResponse({"settings": access.filter_for_read(_resolve_for_user(request))})
 
     def post(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
         data = json.loads(request.body or "{}")
         items = []
 
@@ -72,7 +78,11 @@ class SettingsView(View):
         if not items:
             return JsonResponse({"error": "No settings provided"}, status=400)
 
-        user = request.user if request.user.is_authenticated else None
+        access = SettingsAccess(request.user)
+        if not all(access.can_write(key) for key, _ in items):
+            return JsonResponse({"error": "Permission denied"}, status=403)
+
+        user = request.user
         saved = {}
         with transaction.atomic():
             for key, val in items:

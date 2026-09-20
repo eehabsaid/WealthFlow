@@ -47,6 +47,9 @@ class PerUserSettingsIsolationTests(TestCase):
 
     def test_smtp_style_global_key_stays_shared_across_users(self):
         # smtp_host is NOT in USER_SCOPED_SETTING_KEYS -> always global
+        from core.tests.settings.test_settings_api import make_sysadmin
+
+        make_sysadmin(self.alice)
         self.client.force_login(self.alice)
         self.client.post(
             "/api/settings/",

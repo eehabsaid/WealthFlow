@@ -6,6 +6,7 @@ from typing import List
 
 from core.services.financial_advisor.cash_flow_forecast_service import CashFlowForecastService
 from core.services.balance.net_worth_service import NetWorthService
+from core.services.financial_advisor.data_presence import has_risk_data
 
 from .breakdown_summary import BreakdownSummaryMixin
 from .gold_growth import GoldGrowthMixin
@@ -62,6 +63,7 @@ class WealthGrowthForecastService(
 
         return {
             "as_of": self.today.isoformat(),
+            "is_empty": not has_risk_data(self.owner),
             "current_net_worth": round(current_net_worth, 2),
             "month_labels": month_labels,
             "series": series,

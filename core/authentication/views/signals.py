@@ -20,6 +20,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 def _seed_catalogs_for_user(user):
     from core.models import Currency, GoldTypeSetting, GoldPuritySetting, CertificateStatus
     from core.views.settings.gold.gold_settings_helpers import _seed_gold_settings_defaults
+    from core.services.onboarding import seed_default_expense_categories
 
     _clone_or_seed(Currency, user, _DEFAULT_CURRENCIES)
     _clone_or_seed(CertificateStatus, user, _DEFAULT_CERT_STATUSES)
@@ -29,6 +30,7 @@ def _seed_catalogs_for_user(user):
     _clone_or_seed(GoldTypeSetting, user, [])
     _clone_or_seed(GoldPuritySetting, user, [])
     _seed_gold_settings_defaults(user)
+    seed_default_expense_categories(user)
 
 
 _DEFAULT_CURRENCIES = [

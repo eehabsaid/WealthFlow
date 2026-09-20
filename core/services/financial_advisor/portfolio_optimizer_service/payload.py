@@ -7,6 +7,8 @@ core/services/financial_advisor/portfolio_optimizer_service.py (659 lines).
 """
 from __future__ import annotations
 
+from core.services.financial_advisor.data_presence import has_portfolio_data
+
 from .shared import _to_float
 
 
@@ -48,6 +50,7 @@ class PayloadMixin:
 
         return {
             "as_of": self.today.isoformat(),
+            "is_empty": not has_portfolio_data(self.owner),
             "health": {
                 "score": ctx.health_score,
                 "label_key": self._health_label_key(ctx.health_score),

@@ -9,6 +9,11 @@ window.RA.renderRiskAnalysis = function (payload) {
   const pane = document.getElementById("fa-pane-risk-analysis");
   if (!pane) return;
 
+  if (payload.is_empty) {
+    renderFinancialAdvisorEmptyState("fa-pane-risk-analysis");
+    return;
+  }
+
   const health = payload.portfolio_health || {};
   const score = payload.risk_score || {};
   const breakdown = payload.breakdown || [];

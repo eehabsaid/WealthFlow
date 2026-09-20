@@ -40,6 +40,11 @@ function _renderWealthGrowthForecast(payload) {
   const pane = document.getElementById("fa-pane-wealth-growth-forecast");
   if (!pane) return;
 
+  if (payload?.is_empty) {
+    renderFinancialAdvisorEmptyState("fa-pane-wealth-growth-forecast");
+    return;
+  }
+
   const { summary, periodCards, scenarioCardsHtml, breakdownHtml, insightKey } =
     _buildWealthGrowthFragments(payload);
 

@@ -16,6 +16,7 @@ from datetime import date, timedelta
 from core.services.certificate.certificate_interest_service import CertificateInterestService
 from core.services.balance.financial_sync_service import FinancialSyncService
 from core.services.balance.net_worth_service import NetWorthService
+from core.services.financial_advisor.data_presence import has_risk_data
 
 from .events_mixin import EventsMixin
 from .helpers import to_float
@@ -68,6 +69,7 @@ class CashFlowForecastService(RatesMixin, RecurringMixin, EventsMixin, TimelineM
 
         return {
             "as_of": self.today.isoformat(),
+            "is_empty": not has_risk_data(self.owner),
             "checkpoints": month_based_checkpoints,
             "day_checkpoints": {
                 "days_30": round(checkpoints.get(30, current_cash), 2),

@@ -81,7 +81,7 @@ async function renderEmailTemplateSettings() {
                 </div>
                 <div class="col-md-6">
                     <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_password">${t("smtp_password", "SMTP Password")}</label>
-                    <input id="smtpPassword" class="form-control" type="password" value="${s.smtp_password || ""}" placeholder="app password or API key">
+                    <input id="smtpPassword" class="form-control" type="password" value="" autocomplete="new-password" placeholder="${s.smtp_password_is_set === "true" ? t("smtp_password_keep", "Saved — leave blank to keep") : t("smtp_password_placeholder", "app password or API key")}">
                 </div>
                 <div class="col-md-6">
                     <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="smtp_test_recipient">${t("smtp_test_recipient", "SMTP Test Recipient")}</label>

@@ -163,3 +163,27 @@ function _portfolioStatusClass(status) {
   if (status === "warning") return "portfolio-status-warning";
   return "portfolio-status-danger";
 }
+
+// Shared empty state for advisor tabs: a brand-new user (no data yet) must not
+// see computed defaults (scores, "Cash", "EGP", ...) that look like real data.
+function renderFinancialAdvisorEmptyState(paneId) {
+  const pane = document.getElementById(paneId);
+  if (!pane) return;
+  pane.innerHTML = `
+    <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
+      <div class="card-body" style="padding:48px; text-align:center;">
+        <div style="font-size:42px; color:var(--text-secondary); opacity:0.3; margin-bottom:16px;">
+          <i class="bi bi-wallet2"></i>
+        </div>
+        <h4 style="color:var(--text-primary); margin-bottom:12px;" data-i18n="overview_empty_state_title">No financial data available yet.</h4>
+        <p style="color:var(--text-secondary); max-width:520px; margin:0 auto 24px auto; line-height:1.6;" data-i18n="overview_empty_state_desc">Start by adding bank accounts, fixed assets, or monthly expenses to receive structured AI financial insights and overview metrics.</p>
+        <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+          <a href="#balance" onclick="sessionStorage.setItem('wf_balance_active_tab', 'accounts');" class="btn btn-sm btn-outline-primary px-3 py-2" style="border-radius:6px; font-weight:600;"><i class="bi bi-bank me-1"></i> <span data-i18n="balance_tab_accounts">Accounts</span></a>
+          <a href="#fixed-assets" class="btn btn-sm btn-outline-primary px-3 py-2" style="border-radius:6px; font-weight:600;"><i class="bi bi-house me-1"></i> <span data-i18n="nav_fixed_assets">Assets</span></a>
+          <a href="#expenses" class="btn btn-sm btn-outline-primary px-3 py-2" style="border-radius:6px; font-weight:600;"><i class="bi bi-cart me-1"></i> <span data-i18n="nav_expenses_reports">Expenses</span></a>
+        </div>
+      </div>
+    </div>
+  `;
+  if (typeof applyTranslations === "function") applyTranslations();
+}

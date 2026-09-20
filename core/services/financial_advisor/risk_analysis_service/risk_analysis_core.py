@@ -10,6 +10,7 @@ from datetime import date
 
 from core.services.balance.net_worth_service import NetWorthService
 from core.services.financial_advisor.portfolio_optimizer_service import PortfolioOptimizerService
+from core.services.financial_advisor.data_presence import has_risk_data
 from core.services.financial_advisor.goal_planning_service import GoalPlanningService
 
 from core.services.financial_advisor.risk_analysis_service.metrics import RiskMetric, _to_float
@@ -128,6 +129,7 @@ class RiskAnalysisService(RiskCalcMixin, RiskFindingsMixin, RiskWhatIfMixin, Ris
 
         return {
             "as_of": self.today.isoformat(),
+            "is_empty": not has_risk_data(self.owner),
             "portfolio_health": {
                 "score": portfolio_health_val,
                 "label_key": optimizer_payload.get("health", {}).get("label_key", ""),

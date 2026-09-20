@@ -115,7 +115,7 @@ class PayloadMetricsMixin:
         )
 
         largest_bank = bank_exposure[0] if bank_exposure else {"bank_name": "-", "value": 0.0}
-        largest_currency = currency_exposure[0] if currency_exposure else {"code": "EGP", "value": 0.0}
+        largest_currency = currency_exposure[0] if currency_exposure else {"code": "", "value": 0.0}
         largest_asset = top_assets[0] if top_assets else {"asset": "-", "value": 0.0}
         highest_appreciating_asset = self._highest_appreciating_asset(top_assets)
 

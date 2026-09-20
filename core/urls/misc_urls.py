@@ -2,6 +2,9 @@ from django.urls import path
 from .. import views
 
 urlpatterns = [
+    # ── First-run wizard ─────────────────────────────────────────────────────
+    path("api/onboarding/status/", views.OnboardingStatusView.as_view()),
+    path("api/onboarding/complete/", views.OnboardingCompleteView.as_view()),
     # ── Reminder Engine ──────────────────────────────────────────────────────
     path("api/reminders/", views.ReminderRuleListView.as_view()),
     path("api/reminders/<int:pk>/", views.ReminderRuleDetailView.as_view()),

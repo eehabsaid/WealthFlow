@@ -63,6 +63,8 @@ from .exports_balance import (
     CurrencyExchangeFormOptionsView,
 )
 
+from .onboarding_views import OnboardingStatusView, OnboardingCompleteView
+
 from .exports_expense_reports import (
     ExpenseCategoryListView, ExpenseCategoryDetailView, ExpenseSubcategoryListView, ExpenseSubcategoryDetailView,
     ExpenseListView, ExpenseDetailView, User, ExpenseSummaryView,
@@ -121,7 +123,7 @@ __all__ = [
     "OverviewView", "ScenarioEventDefinitionsView", "ScenarioListCreateView", "ScenarioDetailView", "ScenarioEventListCreateView",
     "ScenarioEventDetailView", "ScenarioComparisonView", "ScenarioDuplicateView", "BalanceTransferListView", "BalanceTransferDetailView",
     "BankInterestListView", "BankInterestDetailView", "CardRenewalFeeListView", "CardRenewalFeeDetailView", "CreditCardPaymentListView", "CreditCardPaymentDetailView", "CurrencyExchangeListView",
-    "CurrencyExchangeDetailView", "CurrencyExchangeCalculateView", "CurrencyExchangeFormOptionsView", "ExpenseCategoryListView", "ExpenseCategoryDetailView",
+    "CurrencyExchangeDetailView", "CurrencyExchangeCalculateView", "CurrencyExchangeFormOptionsView", "OnboardingStatusView", "OnboardingCompleteView", "ExpenseCategoryListView", "ExpenseCategoryDetailView",
     "ExpenseSubcategoryListView", "ExpenseSubcategoryDetailView", "ExpenseListView", "ExpenseDetailView", "User",
     "ExpenseSummaryView", "ExportExcelWorkbookView", "export_excel", "GenerateReportView", "SalaryReportView",
     "BalanceReportView", "CertificateReportView", "FixedAssetPdfReportView", "FixedAssetExcelReportView", "format_arabic",

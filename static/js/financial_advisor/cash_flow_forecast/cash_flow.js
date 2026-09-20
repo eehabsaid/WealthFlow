@@ -64,6 +64,11 @@ function _renderCashFlowForecast(payload) {
   const pane = document.getElementById(_cashFlowPaneId());
   if (!pane) return;
 
+  if (payload?.is_empty) {
+    renderFinancialAdvisorEmptyState(_cashFlowPaneId());
+    return;
+  }
+
   const cp = payload?.checkpoints || {};
   const timeline = payload?.timeline || [];
   const summary = payload?.summary || {};

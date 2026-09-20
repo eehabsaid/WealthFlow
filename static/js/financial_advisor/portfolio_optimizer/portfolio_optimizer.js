@@ -28,6 +28,11 @@ function _renderPortfolioOptimizer(payload) {
   const pane = document.getElementById("fa-pane-portfolio-optimizer");
   if (!pane) return;
 
+  if (payload?.is_empty) {
+    renderFinancialAdvisorEmptyState("fa-pane-portfolio-optimizer");
+    return;
+  }
+
   const {
     health,
     diversification,

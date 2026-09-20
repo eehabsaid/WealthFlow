@@ -11,6 +11,7 @@ class UserProfile(models.Model):
     email_verified = models.BooleanField(default=True)
     account_status = models.CharField(max_length=50, default="active")
     is_sysadmin = models.BooleanField(default=False)
+    onboarding_completed = models.BooleanField(default=False)
     status_reason = models.TextField(blank=True, default="")
     preferred_language = models.CharField(max_length=10, blank=True, default="")
     approved_at = models.DateTimeField(null=True, blank=True)

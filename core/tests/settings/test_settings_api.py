@@ -5,10 +5,20 @@ from core.models import AppSettings
 
 User = get_user_model()
 
+def make_sysadmin(user):
+    from core.authentication.services import AuthWorkflowService
+
+    profile = AuthWorkflowService.get_profile(user)
+    profile.is_sysadmin = True
+    profile.save()
+    return user
+
+
 
 class SettingsAPITestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="admin_testuser", password="pass12345", is_staff=True)
+        make_sysadmin(self.user)
         self.client.force_login(self.user)
 
     def test_single_setting_save(self):

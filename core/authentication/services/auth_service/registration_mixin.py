@@ -13,7 +13,6 @@ from core.authentication.emails import EmailDeliveryError
 from core.authentication.services.member_role import assign_member_role
 from core.services.billing import SubscriptionService
 
-from .constants import PROFILE_STATUS_ERROR_KEYS
 
 User = get_user_model()
 
@@ -36,18 +35,11 @@ class RegistrationMixin:
 
         existing_user = User.objects.filter(email__iexact=email).first()
         if existing_user:
-            existing_profile = cls.get_profile(existing_user)
-            error_key = PROFILE_STATUS_ERROR_KEYS.get(existing_profile.account_status, "auth_error_email_registered")
-            return AuthFlowResult(
-                ok=False,
-                error_key=error_key,
-                user=existing_user,
-                profile=existing_profile,
-                extra={
-                    "show_forgot_password": True,
-                    "prefill_email": email,
-                },
-            )
+            # Same response as a fresh signup so the form cannot be used to
+            # discover which emails are registered; the real owner is told
+            # by email instead.
+            cls._notify_existing_account(request, existing_user, lang)
+            return AuthFlowResult(ok=True, message_key="auth_signup_success_verify_email")
 
         try:
             validate_password(password)
@@ -78,6 +70,21 @@ class RegistrationMixin:
             return AuthFlowResult(ok=False, error_key="auth_email_delivery_failed")
 
         return AuthFlowResult(ok=True, message_key="auth_signup_success_verify_email", user=user, profile=profile)
+
+    @classmethod
+    def _notify_existing_account(cls, request, user, lang):
+        """Email the owner of an already-registered address (never reveals it to the caller)."""
+        profile = cls.get_profile(user)
+        try:
+            if profile.account_status == "pending_email_verification":
+                token = cls.create_token(user, "email_verification")
+                link = request.build_absolute_uri(reverse("verify_email", args=[token]))
+                context = cls._common_context(user, request, {"VerificationLink": link, "PasswordResetLink": ""})
+                cls.send_template_email("email_verification", [user.email], profile.preferred_language or lang, context)
+            elif profile.account_status == "active":
+                cls.request_password_reset(request, identifier=user.email, lang=lang)
+        except EmailDeliveryError:
+            pass
 
     @classmethod
     def get_login_block(cls, user) -> str:

@@ -42,3 +42,40 @@ class PortfolioRiskTenantIsolationTest(TestCase):
     def test_risk_analysis_empty_user_has_no_bank_finding(self):
         payload = RiskAnalysisService(self.owner_b, today=date(2026, 9, 20)).payload()
         self.assertNotIn("QNB", str(payload))
+
+
+class AdvisorEmptyStateFlagTest(TestCase):
+    """New user => is_empty flag so the UI shows an empty state, not defaults."""
+
+    def setUp(self):
+        self.a = User.objects.create_user(username="has_data", password="pass12345")
+        self.b = User.objects.create_user(username="brand_new", password="pass12345")
+        egp = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
+        BalanceEntry.objects.create(
+            owner=self.a, title="Cash", balance_type=BalanceEntry.BalanceType.CASH,
+            currency=egp, amount=500,
+        )
+
+    def _payloads(self, owner):
+        from core.services.financial_advisor.cash_flow_forecast_service import CashFlowForecastService
+        from core.services.financial_advisor.wealth_growth_forecast_service import WealthGrowthForecastService
+
+        today = date(2026, 9, 20)
+        return [
+            PortfolioOptimizerService(owner, today=today).payload(),
+            RiskAnalysisService(owner, today=today).payload(),
+            CashFlowForecastService(owner, today=today).payload(),
+            WealthGrowthForecastService(owner, today=today).payload(),
+        ]
+
+    def test_new_user_is_empty_everywhere(self):
+        for p in self._payloads(self.b):
+            self.assertTrue(p["is_empty"])
+
+    def test_user_with_data_is_not_empty(self):
+        for p in self._payloads(self.a):
+            self.assertFalse(p["is_empty"])
+
+    def test_no_invented_currency_for_empty_portfolio(self):
+        p = PortfolioOptimizerService(self.b, today=date(2026, 9, 20)).payload()
+        self.assertFalse(p["diversification"]["largest_currency_exposure"]["code"])
