@@ -17,7 +17,7 @@ class ExposureMixin:
         rates = comp.get("rates", {})
         bank_totals: dict = {}
 
-        entries = BalanceEntry.objects.select_related("currency", "bank").all()
+        entries = BalanceEntry.objects.select_related("currency", "bank").filter(owner=self.owner)
         for entry in entries:
             if not entry.bank_id:
                 continue
@@ -32,7 +32,7 @@ class ExposureMixin:
                 converted = amount * _to_float(rates.get(code))
             bank_totals[bank_name] = bank_totals.get(bank_name, 0.0) + converted
 
-        for cert in BankCertificate.objects.select_related("bank", "currency").all():
+        for cert in BankCertificate.objects.select_related("bank", "currency").filter(owner=self.owner):
             if not _is_certificate_active(cert):
                 continue
             bank_name = cert.bank.name if cert.bank else "-"
@@ -70,7 +70,7 @@ class ExposureMixin:
     def _largest_balance_entry(self, comp: dict) -> dict:
         rates = comp.get("rates", {})
         largest = {"title": "-", "value": 0.0}
-        rows = BalanceEntry.objects.select_related("currency").all()
+        rows = BalanceEntry.objects.select_related("currency").filter(owner=self.owner)
         for row in rows:
             code = str(row.currency.code if row.currency else "EGP").upper()
             amount = _to_float(row.amount)

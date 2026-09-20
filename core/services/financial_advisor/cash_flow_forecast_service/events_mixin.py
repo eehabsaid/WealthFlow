@@ -113,7 +113,7 @@ class EventsMixin:
     def _asset_sale_events(self) -> List[ForecastEvent]:
         sales = (
             AssetSale.objects.select_related("asset")
-            .filter(sale_date__gt=self.today, sale_date__lte=self.timeline_end_date, net_sale_amount__gt=0)
+            .filter(asset__owner=self.owner, sale_date__gt=self.today, sale_date__lte=self.timeline_end_date, net_sale_amount__gt=0)
             .order_by("sale_date", "id")
         )
         out: List[ForecastEvent] = []
