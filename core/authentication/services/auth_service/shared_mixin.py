@@ -1,9 +1,8 @@
 """Shared helpers: profile lookup, token/audit delegation, email context building."""
 
-from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from core.models import AppSettings, UserProfile
+from core.models import UserProfile
 from core.authentication.tokens import (
     create_token,
     resolve_token,
@@ -12,8 +11,6 @@ from core.authentication.tokens import (
 )
 from core.authentication.emails import send_template_email, send_smtp_test_email, replace_placeholders
 from core.authentication.utils import record_audit
-
-User = get_user_model()
 
 
 class AuthSharedMixin:
@@ -58,14 +55,6 @@ class AuthSharedMixin:
     @classmethod
     def send_smtp_test_email(cls, *, to_email: str) -> tuple[bool, str]:
         return send_smtp_test_email(to_email=to_email)
-
-    @classmethod
-    def _admin_notification_email(cls) -> str:
-        configured = AppSettings.get("administrator_notification_email", "")
-        if configured:
-            return configured
-        admin_user = User.objects.filter(is_staff=True).exclude(email="").order_by("id").first()
-        return admin_user.email if admin_user else ""
 
     @classmethod
     def _common_context(cls, user, request, extra: dict | None = None) -> dict:

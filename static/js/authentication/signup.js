@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const successAlert = document.querySelector(".alert-dark-success");
   if (successAlert) {
     setTimeout(() => {
-      window.location.href = "/accounts/pending-approval/";
+      window.location.href = "/accounts/check-email/";
     }, 1500);
   }
 

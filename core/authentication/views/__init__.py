@@ -5,8 +5,7 @@ Sibling modules:
 - mixins.py       — AdminRequiredMixin, SysadminRequiredMixin, PermissionRequiredMixin
 - helpers.py       — _render_auth, _render_auth_status
 - page_views.py        — template-rendering auth views (login/signup/forgot/reset/verify)
-- page_status_views.py — status-page views (pending/rejected/disabled/admin-approve/
-                           admin-reject) and logout_view
+- page_status_views.py — status-page views (check-email/disabled) and logout_view
 - api_views.py     — JSON API views (LoginAPIView, SignupAPIView, LogoutAPIView,
                        CurrentUserView, UpdateProfileView)
 - signals.py       — create_user_profile (post_save signal handler)
@@ -29,11 +28,8 @@ from core.authentication.views.page_views import (
     verify_email_view,
 )
 from core.authentication.views.page_status_views import (
-    pending_approval_view,
-    account_rejected_view,
+    check_email_view,
     account_disabled_view,
-    admin_approve_account_view,
-    admin_reject_account_view,
     logout_view,
 )
 from core.authentication.views.api_views import (
@@ -64,11 +60,8 @@ __all__ = [
     "forgot_password_view",
     "reset_password_view",
     "verify_email_view",
-    "pending_approval_view",
-    "account_rejected_view",
+    "check_email_view",
     "account_disabled_view",
-    "admin_approve_account_view",
-    "admin_reject_account_view",
     "logout_view",
     "create_user_profile",
     "_build_user_dict",

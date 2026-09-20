@@ -5,10 +5,13 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.urls import reverse
+from django.utils import timezone
 
 from core.models import AppSettings
 from core.authentication.serializers import AuthFlowResult
 from core.authentication.emails import EmailDeliveryError
+from core.authentication.services.member_role import assign_member_role
+from core.services.billing import SubscriptionService
 
 from .constants import PROFILE_STATUS_ERROR_KEYS
 
@@ -74,11 +77,6 @@ class RegistrationMixin:
             user.delete()
             return AuthFlowResult(ok=False, error_key="auth_email_delivery_failed")
 
-        try:
-            cls.send_template_email("welcome_email", [user.email], lang, context)
-        except EmailDeliveryError:
-            cls.record_audit(user, "registration", details="welcome_email_failed")
-
         return AuthFlowResult(ok=True, message_key="auth_signup_success_verify_email", user=user, profile=profile)
 
     @classmethod
@@ -88,8 +86,6 @@ class RegistrationMixin:
         profile = cls.get_profile(user)
         if not profile.email_verified:
             return "auth_status_verify_email"
-        if profile.account_status == "pending_admin_approval":
-            return "auth_status_pending_admin_approval"
         if profile.account_status == "rejected":
             return "auth_status_rejected"
         if profile.account_status == "disabled" or not user.is_active:
@@ -104,35 +100,23 @@ class RegistrationMixin:
 
         user = token.user
         profile = cls.get_profile(user)
-        profile.email_verified = True
-        if profile.account_status == "pending_email_verification":
-            profile.account_status = "pending_admin_approval"
-        profile.preferred_language = profile.preferred_language or AppSettings.get("active_language", "en") or "en"
-        profile.save(update_fields=["email_verified", "account_status", "preferred_language", "updated_at"])
-        cls.mark_token_used(token)
-        cls.record_audit(user, "email_verified", details="pending_admin_approval")
+        with transaction.atomic():
+            profile.email_verified = True
+            profile.account_status = "active"
+            profile.approved_at = timezone.now()
+            profile.preferred_language = profile.preferred_language or AppSettings.get("active_language", "en") or "en"
+            profile.save()
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+            assign_member_role(user)
+            SubscriptionService.start_trial(user)
+            cls.mark_token_used(token)
+            cls.record_audit(user, "email_verified", details="active")
 
-        approve_token = cls.create_token(user, "admin_approve")
-        reject_token = cls.create_token(user, "admin_reject")
-        approve_link = request.build_absolute_uri(reverse("admin_approve_account", args=[approve_token]))
-        reject_link = request.build_absolute_uri(reverse("admin_reject_account", args=[reject_token]))
+        context = cls._common_context(user, request, {"VerificationLink": "", "PasswordResetLink": ""})
+        try:
+            cls.send_template_email("welcome_email", [user.email], profile.preferred_language or "en", context)
+        except EmailDeliveryError:
+            cls.record_audit(user, "email_verified", details="welcome_email_failed")
 
-        admin_email = cls._admin_notification_email()
-        if admin_email:
-            context = cls._common_context(
-                user,
-                request,
-                {
-                    "VerificationLink": approve_link,
-                    "PasswordResetLink": reject_link,
-                    "ApproveLink": approve_link,
-                    "RejectLink": reject_link,
-                    "EmailVerified": "Yes",
-                },
-            )
-            try:
-                cls.send_template_email("admin_approval_request", [admin_email], profile.preferred_language or "en", context)
-            except EmailDeliveryError:
-                cls.record_audit(user, "email_verified", details="pending_admin_approval_admin_notification_failed")
-
-        return AuthFlowResult(ok=True, message_key="auth_verify_success_pending_admin", user=user, profile=profile)
+        return AuthFlowResult(ok=True, message_key="auth_verify_success", user=user, profile=profile)

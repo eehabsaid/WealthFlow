@@ -34,8 +34,7 @@ STRUCTURE / CONVENTION — read this before adding or splitting a file:
 from .exports_auth import (
     AdminRequiredMixin, SysadminRequiredMixin, PermissionRequiredMixin, LoginAPIView, SignupAPIView, LogoutAPIView,
     CurrentUserView, UpdateProfileView, login_view, signup_view,
-    forgot_password_view, reset_password_view, verify_email_view, pending_approval_view,
-    account_rejected_view, account_disabled_view, admin_approve_account_view, admin_reject_account_view,
+    forgot_password_view, reset_password_view, verify_email_view, check_email_view, account_disabled_view,
     logout_view, create_user_profile, _build_user_dict, _get_user_allowed_pages,
     _request_lang, _render_auth, _render_auth_status, UserListView,
     UserDetailView, UserPermissionListView, UserBulkActionView, UserPermissionDetailView,
@@ -108,8 +107,7 @@ from .exports_settings import (
 __all__ = [
     "AdminRequiredMixin", "SysadminRequiredMixin", "PermissionRequiredMixin", "LoginAPIView", "SignupAPIView", "LogoutAPIView", "CurrentUserView",
     "UpdateProfileView", "login_view", "signup_view", "forgot_password_view", "reset_password_view",
-    "verify_email_view", "pending_approval_view", "account_rejected_view", "account_disabled_view", "admin_approve_account_view",
-    "admin_reject_account_view", "logout_view", "create_user_profile", "_build_user_dict", "_get_user_allowed_pages",
+    "verify_email_view", "check_email_view", "account_disabled_view", "logout_view", "create_user_profile", "_build_user_dict", "_get_user_allowed_pages",
     "_request_lang", "_render_auth", "_render_auth_status", "UserListView", "UserDetailView",
     "UserPermissionListView", "UserBulkActionView", "UserPermissionDetailView", "PagePermissionChoicesView", "user_management_page",
     "UserRoleListView", "UserRoleDetailView", "RoleListView", "RoleDetailView",

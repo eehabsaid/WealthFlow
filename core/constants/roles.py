@@ -61,3 +61,34 @@ def grantable_permission_choices():
 
 def grantable_permission_keys():
     return [key for key, _ in grantable_permission_choices()]
+
+
+# Default role granted to every self-registered user when their email is
+# verified. Deliberately excludes platform-wide tabs (users, billing, roles,
+# email templates, translations, backup/restore, documentation, AI provider
+# config, languages) and tabs that write global AppSettings (dashboard,
+# property valuation).
+MEMBER_ROLE_NAME = "Member"
+MEMBER_ROLE_DESCRIPTION = "Default access for self-registered users"
+MEMBER_ROLE_KEYS = [
+    "dashboard",
+    "wealthflow_ai",
+    "financial_advisor",
+    "employment",
+    "balance",
+    "bank_certificates",
+    "fixed_assets",
+    "exchange_rates",
+    "gold_price",
+    "expenses",
+    "expense-categories",
+    "reports",
+    "advanced_reports",
+    "settings",
+    "settings_companies",
+    "settings_banks",
+    "settings_currency",
+    "settings_reminders",
+    "settings_certstatus",
+    "settings_goldsettings",
+]

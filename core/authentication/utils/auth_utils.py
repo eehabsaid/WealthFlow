@@ -66,8 +66,10 @@ def build_user_dict(user, profile=None):
 
 def get_user_allowed_pages(user):
     """Returns the user's effective permission keys (main-app pages AND
-    settings tabs, unified) as a list."""
-    return list(effective_permission_keys(user))
+    settings tabs, unified) as a list in canonical page order, so the
+    first entry (the landing page) is stable across requests."""
+    order = {key: index for index, key in enumerate(grantable_permission_keys())}
+    return sorted(effective_permission_keys(user), key=lambda key: (order.get(key, len(order)), key))
 
 def request_lang(request):
     """Extracts active language. Priority: explicit POST/GET param (a

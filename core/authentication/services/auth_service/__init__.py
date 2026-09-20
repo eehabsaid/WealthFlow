@@ -6,7 +6,7 @@ Sibling modules:
 - shared_mixin.py: AuthSharedMixin (profile lookup, token/audit/email delegation)
 - registration_mixin.py: RegistrationMixin (register_user, get_login_block, verify_email)
 - password_reset_mixin.py: PasswordResetMixin (request_password_reset, reset_password)
-- account_status_mixin.py: AccountStatusMixin (approve_user, reject_user, disable_user, enable_user)
+- account_status_mixin.py: AccountStatusMixin (disable_user, enable_user)
 """
 
 import logging

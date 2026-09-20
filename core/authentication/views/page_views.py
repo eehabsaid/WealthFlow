@@ -127,8 +127,8 @@ def verify_email_view(request, token):
             title_key="auth_verify_email_title",
             message_key=result.message_key,
             tone="success",
-            cta_href="/accounts/pending-approval/",
-            cta_key="auth_pending_approval_cta",
+            cta_href="/accounts/login/",
+            cta_key="auth_login_button",
         )
     return _render_auth_status(
         request,

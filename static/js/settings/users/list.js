@@ -97,7 +97,6 @@ async function loadUsers({ page = 1, pageSize = 10, q = "" } = {}) {
   const statusKeyForUser = (user) => {
     const status = String(user.account_status || "active");
     if (status === "pending_email_verification") return "auth_status_verify_email";
-    if (status === "pending_admin_approval") return "auth_status_pending_admin_approval";
     if (status === "rejected") return "auth_status_rejected";
     if (status === "disabled") return "auth_status_disabled";
     return "auth_status_active_label";

@@ -66,7 +66,6 @@ class UserProfile(models.Model):
 
 AUTH_ACCOUNT_STATUS_CHOICES = [
     ("pending_email_verification", "Pending Email Verification"),
-    ("pending_admin_approval", "Pending Administrator Approval"),
     ("active", "Active"),
     ("rejected", "Rejected"),
     ("disabled", "Disabled"),
@@ -75,8 +74,6 @@ AUTH_ACCOUNT_STATUS_CHOICES = [
 AUTH_TOKEN_PURPOSE_CHOICES = [
     ("email_verification", "Email Verification"),
     ("password_reset", "Password Reset"),
-    ("admin_approve", "Administrator Approval"),
-    ("admin_reject", "Administrator Rejection"),
 ]
 
 AUTH_AUDIT_EVENT_CHOICES = [

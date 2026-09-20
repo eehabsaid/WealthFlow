@@ -32,7 +32,7 @@ class AuthSecurityTokensTest(TestCase):
         user = User.objects.create_user(username="resetuser", email="reset@example.com", password="OldPass123!", is_active=False)
         profile = AuthWorkflowService.get_profile(user)
         profile.email_verified = True
-        profile.account_status = "pending_admin_approval"
+        profile.account_status = "rejected"
         profile.save(update_fields=["email_verified", "account_status", "updated_at"])
 
         request_response = self.client.post("/accounts/forgot-password/", {"email": "reset@example.com", "lang": "en"})
@@ -47,7 +47,7 @@ class AuthSecurityTokensTest(TestCase):
 
         user.refresh_from_db()
         profile.refresh_from_db()
-        self.assertEqual(profile.account_status, "pending_admin_approval")
+        self.assertEqual(profile.account_status, "rejected")
         self.assertFalse(user.is_active)
         self.assertFalse(self.client.login(username="resetuser", password="NewSecure123!"))
 
