@@ -34,7 +34,10 @@ function onboardingCategoryRow(cat) {
 function showOnboardingWizard(status) {
   _onboardingStep = 1;
   const currencyOptions = (status.currencies || [])
-    .map((c) => `<option value="${c.id}">${onboardingEsc(c.code)} ${onboardingEsc(c.symbol)}</option>`)
+    .map(
+      (c) =>
+        `<option value="${c.id}">${onboardingEsc(c.code)} ${onboardingEsc(c.symbol)}</option>`,
+    )
     .join("");
   showModal(`
     <div class="modal-header">
@@ -82,20 +85,30 @@ function onboardingAddCategory() {
   const input = document.getElementById("onbNewCat");
   const name = (input.value || "").trim();
   if (!name) return;
-  document.getElementById("onbCats").insertAdjacentHTML("beforeend", onboardingCategoryRow({ name }));
+  document
+    .getElementById("onbCats")
+    .insertAdjacentHTML("beforeend", onboardingCategoryRow({ name }));
   input.value = "";
 }
 
 function onboardingMove(delta) {
-  if (delta > 0 && _onboardingStep === _ONBOARDING_STEPS) return onboardingFinish();
-  _onboardingStep = Math.min(_ONBOARDING_STEPS, Math.max(1, _onboardingStep + delta));
+  if (delta > 0 && _onboardingStep === _ONBOARDING_STEPS)
+    return onboardingFinish();
+  _onboardingStep = Math.min(
+    _ONBOARDING_STEPS,
+    Math.max(1, _onboardingStep + delta),
+  );
   for (let i = 1; i <= _ONBOARDING_STEPS; i++) {
-    document.getElementById(`onbStep${i}`).style.display = i === _onboardingStep ? "" : "none";
+    document.getElementById(`onbStep${i}`).style.display =
+      i === _onboardingStep ? "" : "none";
   }
-  document.getElementById("onbBack").style.display = _onboardingStep > 1 ? "" : "none";
+  document.getElementById("onbBack").style.display =
+    _onboardingStep > 1 ? "" : "none";
   const isLast = _onboardingStep === _ONBOARDING_STEPS;
   const next = document.getElementById("onbNext");
-  next.textContent = isLast ? t("onboarding_finish", "Finish") : t("onboarding_next", "Next");
+  next.textContent = isLast
+    ? t("onboarding_finish", "Finish")
+    : t("onboarding_next", "Next");
 }
 
 async function _onboardingPost(payload) {
@@ -106,7 +119,10 @@ async function _onboardingPost(payload) {
   });
   if (res.ok) return true;
   const body = await res.json().catch(() => ({}));
-  showToast(t(body.error_key || "settings_save_failed", body.error || "Save failed"), "error");
+  showToast(
+    t(body.error_key || "settings_save_failed", body.error || "Save failed"),
+    "error",
+  );
   return false;
 }
 
@@ -117,13 +133,22 @@ async function onboardingSkip() {
 async function onboardingFinish() {
   const employer = document.getElementById("onbEmployer").value.trim();
   const amountRaw = document.getElementById("onbAccAmount").value;
-  const account = amountRaw === "" ? null : {
-    title: document.getElementById("onbAccTitle").value.trim(),
-    currency_id: Number(document.getElementById("onbAccCurrency").value),
-    amount: amountRaw,
+  const account =
+    amountRaw === ""
+      ? null
+      : {
+          title: document.getElementById("onbAccTitle").value.trim(),
+          currency_id: Number(document.getElementById("onbAccCurrency").value),
+          amount: amountRaw,
+        };
+  const categories = [...document.querySelectorAll(".onb-cat:checked")].map(
+    (el) => el.value,
+  );
+  const payload = {
+    employer: employer ? { name: employer } : null,
+    account,
+    categories,
   };
-  const categories = [...document.querySelectorAll(".onb-cat:checked")].map((el) => el.value);
-  const payload = { employer: employer ? { name: employer } : null, account, categories };
   if (!(await _onboardingPost(payload))) return;
   closeModal();
   showToast(t("onboarding_saved", "You are all set ✓"));
