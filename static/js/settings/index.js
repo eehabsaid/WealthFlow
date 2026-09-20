@@ -35,24 +35,132 @@ async function renderSettings(route) {
   }
 
   const tabs = [
-    { id: "languages", i18n: "settings_languages", fallback: "Languages", route: "settings-languages", key: "settings_languages" },
-    { id: "companies", i18n: "settings_companies", fallback: "Companies", route: "settings-companies", key: "settings_companies" },
-    { id: "banks", i18n: "settings_banks", fallback: "Banks", route: "settings-banks", key: "settings_banks" },
-    { id: "currency", i18n: "settings_currency", fallback: "Currency", route: "settings-currency", key: "settings_currency" },
-    { id: "users", i18n: "settings_users", fallback: "Users", route: "settings-users", key: "settings_users" },
-    { id: "roles", i18n: "settings_roles", fallback: "Roles", route: "settings-roles", key: "settings_roles" },
-    { id: "billing", i18n: "settings_billing", fallback: "Billing Plans", route: "settings-billing", key: "settings_billing" },
-    { id: "emailtemplates", i18n: "settings_email_templates", fallback: "Email Templates", route: "settings-emailtemplates", key: "settings_emailtemplates" },
-    { id: "translations", i18n: "settings_translations", fallback: "Translations", route: "settings-translations", key: "settings_translations" },
-    { id: "translationcoverage", i18n: "settings_translation_coverage", fallback: "Translation Coverage", route: "settings-translationcoverage", key: "settings_translationcoverage" },
-    { id: "reminders", i18n: "tab_reminders", fallback: "Reminders", route: "settings-reminders", key: "settings_reminders" },
-    { id: "certstatus", i18n: "tab_cert_status", fallback: "Certificate Status", route: "settings-certstatus", key: "settings_certstatus" },
-    { id: "goldsettings", i18n: "tab_gold_settings", fallback: "Gold Settings", route: "settings-goldsettings", key: "settings_goldsettings" },
-    { id: "propertyvaluation", i18n: "tab_property_valuation", fallback: "Property Valuation Settings", route: "settings-propertyvaluation", key: "settings_propertyvaluation" },
-    { id: "dashboard", i18n: "tab_dashboard_sett", fallback: "Dashboard", route: "settings-dashboard", key: "settings_dashboard" },
-    { id: "backuprestore", i18n: "settings_backup_restore", fallback: "Backup & Restore", route: "settings-backuprestore", key: "settings_backuprestore" },
-    { id: "documentation", i18n: "settings_documentation", fallback: "Documentation", route: "settings-documentation", key: "settings_documentation" },
-    { id: "aiadvisor", i18n: "settings_ai_advisor", fallback: "AI Advisor", route: "settings-aiadvisor", key: "settings_aiadvisor" },
+    {
+      id: "languages",
+      i18n: "settings_languages",
+      fallback: "Languages",
+      route: "settings-languages",
+      key: "settings_languages",
+    },
+    {
+      id: "companies",
+      i18n: "settings_companies",
+      fallback: "Companies",
+      route: "settings-companies",
+      key: "settings_companies",
+    },
+    {
+      id: "banks",
+      i18n: "settings_banks",
+      fallback: "Banks",
+      route: "settings-banks",
+      key: "settings_banks",
+    },
+    {
+      id: "currency",
+      i18n: "settings_currency",
+      fallback: "Currency",
+      route: "settings-currency",
+      key: "settings_currency",
+    },
+    {
+      id: "users",
+      i18n: "settings_users",
+      fallback: "Users",
+      route: "settings-users",
+      key: "settings_users",
+    },
+    {
+      id: "roles",
+      i18n: "settings_roles",
+      fallback: "Roles",
+      route: "settings-roles",
+      key: "settings_roles",
+    },
+    {
+      id: "billing",
+      i18n: "settings_billing",
+      fallback: "Billing Plans",
+      route: "settings-billing",
+      key: "settings_billing",
+    },
+    {
+      id: "emailtemplates",
+      i18n: "settings_email_templates",
+      fallback: "Email Templates",
+      route: "settings-emailtemplates",
+      key: "settings_emailtemplates",
+    },
+    {
+      id: "translations",
+      i18n: "settings_translations",
+      fallback: "Translations",
+      route: "settings-translations",
+      key: "settings_translations",
+    },
+    {
+      id: "translationcoverage",
+      i18n: "settings_translation_coverage",
+      fallback: "Translation Coverage",
+      route: "settings-translationcoverage",
+      key: "settings_translationcoverage",
+    },
+    {
+      id: "reminders",
+      i18n: "tab_reminders",
+      fallback: "Reminders",
+      route: "settings-reminders",
+      key: "settings_reminders",
+    },
+    {
+      id: "certstatus",
+      i18n: "tab_cert_status",
+      fallback: "Certificate Status",
+      route: "settings-certstatus",
+      key: "settings_certstatus",
+    },
+    {
+      id: "goldsettings",
+      i18n: "tab_gold_settings",
+      fallback: "Gold Settings",
+      route: "settings-goldsettings",
+      key: "settings_goldsettings",
+    },
+    {
+      id: "propertyvaluation",
+      i18n: "tab_property_valuation",
+      fallback: "Property Valuation Settings",
+      route: "settings-propertyvaluation",
+      key: "settings_propertyvaluation",
+    },
+    {
+      id: "dashboard",
+      i18n: "tab_dashboard_sett",
+      fallback: "Dashboard",
+      route: "settings-dashboard",
+      key: "settings_dashboard",
+    },
+    {
+      id: "backuprestore",
+      i18n: "settings_backup_restore",
+      fallback: "Backup & Restore",
+      route: "settings-backuprestore",
+      key: "settings_backuprestore",
+    },
+    {
+      id: "documentation",
+      i18n: "settings_documentation",
+      fallback: "Documentation",
+      route: "settings-documentation",
+      key: "settings_documentation",
+    },
+    {
+      id: "aiadvisor",
+      i18n: "settings_ai_advisor",
+      fallback: "AI Advisor",
+      route: "settings-aiadvisor",
+      key: "settings_aiadvisor",
+    },
   ];
 
   const visibleTabs = tabs.filter((tab) => hasPermission(tab.key));
@@ -72,12 +180,16 @@ async function renderSettings(route) {
     })
     .join("");
 
-  const activeTabObj = visibleTabs.find((tab) => tab.id === activeTab) || visibleTabs[0];
+  const activeTabObj =
+    visibleTabs.find((tab) => tab.id === activeTab) || visibleTabs[0];
   if (!activeTabObj) {
     mc.innerHTML = "";
     return;
   }
-  const activeTabLabel = t(activeTabObj.i18n, activeTabObj.fallback || activeTabObj.id);
+  const activeTabLabel = t(
+    activeTabObj.i18n,
+    activeTabObj.fallback || activeTabObj.id,
+  );
 
   mc.innerHTML = `
         <div class="page-header">
