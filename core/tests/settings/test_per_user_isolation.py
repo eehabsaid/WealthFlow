@@ -75,6 +75,23 @@ class PerUserSettingsIsolationTests(TestCase):
             self.assertTrue(Model.objects.filter(owner=self.alice).exists())
             self.assertTrue(Model.objects.filter(owner=self.bob).exists())
 
+    def test_fresh_signup_gets_a_gold_currency_even_with_no_platform_template(self):
+        """Regression: found via live manual verification (not just code
+        review) that a brand-new install with zero existing Currency rows
+        left new users without a "Gold" currency at all, since the
+        hardcoded fallback list (used when there's no template to clone
+        from) was missing it. Without it, gold balance sync silently does
+        nothing for that user — no error, just an asset that never gets a
+        matching balance entry. self.alice/self.bob here have no template
+        to clone from (this TestCase starts with an empty Currency table),
+        so this exercises exactly that fallback path."""
+        self.assertTrue(
+            Currency.objects.filter(owner=self.alice, code__iexact="gold").exists()
+        )
+        self.assertTrue(
+            Currency.objects.filter(owner=self.bob, code__iexact="gold").exists()
+        )
+
     def test_request_lang_prefers_own_profile_over_stale_browser_cookie(self):
         """Regression: a shared-browser wf_lang cookie (set while a
         different account was last active, or on the anonymous login page)

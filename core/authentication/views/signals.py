@@ -35,6 +35,10 @@ _DEFAULT_CURRENCIES = [
     {"code": "EGP", "symbol": "ج.م", "flag": "🇪🇬", "name": "Egyptian Pound", "order": 1},
     {"code": "USD", "symbol": "$", "flag": "🇺🇸", "name": "US Dollar", "order": 2},
     {"code": "SAR", "symbol": "﷼", "flag": "🇸🇦", "name": "Saudi Riyal", "order": 3},
+    # "Gold" is a pseudo-currency the gold balance sync depends on
+    # (core/services/fixed_assets/gold_sync_service) — without it, a
+    # user's gold assets never get a matching BalanceEntry at all.
+    {"code": "Gold", "symbol": "g", "flag": "🪙", "name": "Gold (grams)", "order": 4},
 ]
 
 _DEFAULT_CERT_STATUSES = [
