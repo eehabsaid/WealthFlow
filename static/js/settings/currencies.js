@@ -14,9 +14,16 @@ async function renderCurrencySettings() {
             <td><code style="color:var(--accent-primary);font-weight:700">${c.code}</code></td>
             <td>${c.symbol || "—"}</td>
             <td>${c.name}</td>
+            <td>${
+              c.is_default
+                ? `<span class="badge bg-success" data-i18n="currency_default_badge">${t("currency_default_badge", "Default")}</span>`
+                : c.can_be_default === false
+                  ? "—"
+                  : `<button class="btn-secondary-custom" style="padding:2px 10px;font-size:12px" onclick="setDefaultCurrency('${c.code}')" data-i18n="currency_default_set">${t("currency_default_set", "Set as default")}</button>`
+            }</td>
             <td>
                 <button class="btn-icon" onclick="showCurrencyModal(${c.id})"><i class="bi bi-pencil"></i></button>
-                <button class="btn-icon del" onclick="deleteCurrency(${c.id})"><i class="bi bi-trash"></i></button>
+                ${c.is_default ? "" : `<button class="btn-icon del" onclick="deleteCurrency(${c.id})"><i class="bi bi-trash"></i></button>`}
             </td>
         </tr>`
     )
@@ -40,6 +47,7 @@ async function renderCurrencySettings() {
                     <th data-i18n="currency_code">Code</th>
                     <th data-i18n="currency_symbol">Symbol</th>
                     <th data-i18n="currency_name">Name</th>
+                    <th data-i18n="currency_default_col">Default</th>
                     <th data-i18n="actions">Actions</th>
                 </tr></thead>
                 <tbody>${rows}</tbody>
@@ -132,6 +140,26 @@ async function deleteCurrency(currencyId) {
     showToast("Deleted");
     renderCurrencySettings();
   } else showToast("Error deleting currency", "error");
+}
+
+async function setDefaultCurrency(code) {
+  const warning = t(
+    "currency_default_confirm",
+    "Changing your default currency recalculates all your totals in the new currency. Continue?",
+  );
+  if (!confirm(warning)) return;
+  const res = await fetch("/api/base-currency/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (res.ok) {
+    showToast(t("currency_default_saved", "Default currency updated ✓"));
+    window.location.reload();
+  } else {
+    showToast(t(body.error_key || "currency_default_invalid", body.error || "Error"), "error");
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════════════

@@ -55,3 +55,22 @@ class OverviewEmptyStatesTest(TestCase):
 
     def test_no_history_hides_net_worth_growth(self):
         self.assertIsNone(self._payload()["kpis"]["net_worth_growth_yoy"])
+
+
+class OverviewNoExpensesTest(TestCase):
+    """Months-of-expenses figures must not appear without recorded expenses."""
+
+    def setUp(self):
+        Currency.objects.get_or_create(code="EGP", defaults={"symbol": "£", "name": "Egyptian Pound"})
+        self.user = User.objects.create_user(username="adv_noexp", password="pass12345")
+
+    def test_no_expenses_shows_neutral_state_everywhere(self):
+        payload = OverviewService(self.user, today=TODAY).payload()
+        keys = _keys(payload)
+        self.assertIn("overview_alert_emergency_fund_no_data_title", keys)
+        self.assertNotIn("overview_alert_emergency_fund_healthy_title", keys)
+        self.assertNotIn("overview_alert_emergency_fund_low_title", keys)
+        self.assertIsNone(payload["kpis"]["emergency_months"])
+        summary = payload["executive_summary"]
+        self.assertIsNone(summary["emergency_months"])
+        self.assertEqual(summary["liquidity_status_key"], "overview_liquidity_no_data")

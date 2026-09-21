@@ -3,6 +3,13 @@ from typing import Optional, Tuple, Dict
 from datetime import date
 from core.models import ExchangeRate
 
+# The stored market rates (ExchangeRate.buy_rate) are quoted against this pivot
+# currency because the rate feed is requested with it as base. It is a data
+# convention only; users never see it. Use get_rates_to_base() for anything
+# that must be expressed in a user's own default currency.
+RATE_PIVOT = "EGP"
+
+
 class CurrencyConversionService:
     """
     Central source of truth for currency conversions across WealthFlow.
@@ -16,7 +23,7 @@ class CurrencyConversionService:
         If target_date is provided, filters for rates fetched on or before target_date.
         """
         code = str(currency_code or "").strip().upper()
-        if code == "EGP" or not code:
+        if code == RATE_PIVOT or not code:
             return Decimal("1.000000")
         
         qs = ExchangeRate.objects.filter(currency_code__iexact=code)
@@ -34,12 +41,27 @@ class CurrencyConversionService:
         """
         Return a dictionary mapping currency_code -> latest buy_rate (Decimal) for all currencies.
         """
-        rates: Dict[str, Decimal] = {"EGP": Decimal("1.000000")}
+        rates: Dict[str, Decimal] = {RATE_PIVOT: Decimal("1.000000")}
         for rate in ExchangeRate.objects.order_by("currency_code", "-fetched_at"):
             code = str(rate.currency_code or "").upper()
             if code and code not in rates:
                 rates[code] = Decimal(str(rate.buy_rate)) if rate.buy_rate and rate.buy_rate > 0 else Decimal("1.000000")
         return rates
+
+    @classmethod
+    def get_rates_to_base(cls, base_code: str) -> Dict[str, Decimal]:
+        """code -> how many units of base_code one unit of `code` is worth.
+        The base itself is always 1. Currencies without a stored rate are
+        left out so callers can detect them instead of silently using 1."""
+        base = str(base_code or "").strip().upper()
+        pivot_rates = cls.get_all_latest_buy_rates()
+        base_in_pivot = pivot_rates.get(base)
+        if not base_in_pivot or base_in_pivot <= 0:
+            return {base: Decimal("1.000000")}
+        return {
+            code: (Decimal("1.000000") if code == base else (rate / base_in_pivot).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP))
+            for code, rate in pivot_rates.items()
+        }
 
     @classmethod
     def calculate_exchange_rate(cls, from_code: str, to_code: str, target_date: Optional[date] = None) -> Decimal:

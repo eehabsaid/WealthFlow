@@ -41,6 +41,8 @@ def extract_wealth_growth_metrics(ctx: OverviewContext) -> None:
     ctx.expected_net_worth_1y = float(ctx.wealth_growth_payload.get("checkpoints", {}).get("month_12", 0.0))
     # A growth % is only meaningful with a positive base and recorded spending.
     ctx.has_growth_basis = ctx.current_nw > 0 and ctx.avg_monthly_expenses > 0
+    # Months-of-expenses figures mean nothing without recorded expenses.
+    ctx.has_expense_baseline = ctx.avg_monthly_expenses > 0
 
 
 def extract_goal_metrics(ctx: OverviewContext) -> None:

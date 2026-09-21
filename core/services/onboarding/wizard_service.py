@@ -7,6 +7,7 @@ from django.db import transaction
 from core.authentication.services import AuthWorkflowService
 from core.models import BalanceEntry, Company, Currency, Expense, ExchangeRate, ExpenseCategory
 from core.services.onboarding.default_categories import DEFAULT_EXPENSE_CATEGORIES
+from core.services.shared.base_currency import get_user_base_code, multi_currency_enabled, set_user_base_currency
 
 
 class OnboardingService:
@@ -16,6 +17,8 @@ class OnboardingService:
         return {
             "needs_wizard": not profile.onboarding_completed,
             "rates_missing": not ExchangeRate.objects.exists(),
+            "default_currency": get_user_base_code(user),
+            "multi_currency_enabled": multi_currency_enabled(),
             "currencies": [
                 {"id": c.id, "code": c.code, "symbol": c.symbol}
                 for c in Currency.objects.filter(owner=user).order_by("order", "code")
@@ -79,6 +82,8 @@ class OnboardingService:
     @transaction.atomic
     def complete(cls, user, data):
         if not data.get("skip"):
+            if data.get("default_currency"):
+                set_user_base_currency(user, data["default_currency"])
             cls._create_employer(user, data.get("employer"))
             cls._create_cash_account(user, data.get("account"))
             if isinstance(data.get("categories"), list):

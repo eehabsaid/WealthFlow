@@ -30,7 +30,10 @@ def build_executive_summary(ctx: OverviewContext) -> None:
 
     # AI Recommendation paragraphs (Concise, strictly actionable advice, limited to 3 items)
     # P1: Action on Liquidity
-    if ctx.emergency_months >= 6.0:
+    if not ctx.has_expense_baseline:
+        p1_key = "overview_rec_liquidity_no_data"
+        p1_fallback = "Add your monthly expenses so the advisor can measure how many months your savings cover."
+    elif ctx.emergency_months >= 6.0:
         p1_key = "overview_rec_liquidity_good"
         p1_fallback = "Your liquidity levels are healthy. You may explore investing surplus cash into yield-generating assets."
     else:
@@ -83,9 +86,16 @@ def build_executive_summary(ctx: OverviewContext) -> None:
         "health_status_key": status_text_key,
         "health_status_fallback": status_text_fallback,
         "yoy_growth": round(ctx.expected_growth_pct, 1),
-        "emergency_months": round(ctx.emergency_months, 1),
-        "liquidity_status_key": "overview_liquidity_sufficient" if ctx.emergency_months >= 6.0 else "overview_liquidity_limited",
-        "liquidity_status_fallback": "sufficient" if ctx.emergency_months >= 6.0 else "limited",
+        "emergency_months": round(ctx.emergency_months, 1) if ctx.has_expense_baseline else None,
+        "liquidity_status_key": (
+            "overview_liquidity_no_data" if not ctx.has_expense_baseline
+            else "overview_liquidity_sufficient" if ctx.emergency_months >= 6.0
+            else "overview_liquidity_limited"
+        ),
+        "liquidity_status_fallback": (
+            "not enough data" if not ctx.has_expense_baseline
+            else "sufficient" if ctx.emergency_months >= 6.0 else "limited"
+        ),
         "diversification_status_key": div_status_key,
         "diversification_status_fallback": div_status_fallback,
         "goals_total": ctx.goals_total,

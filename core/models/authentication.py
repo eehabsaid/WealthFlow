@@ -14,6 +14,8 @@ class UserProfile(models.Model):
     onboarding_completed = models.BooleanField(default=False)
     status_reason = models.TextField(blank=True, default="")
     preferred_language = models.CharField(max_length=10, blank=True, default="")
+    # Default (primary) currency code chosen by the user; blank = platform default.
+    preferred_currency = models.CharField(max_length=10, blank=True, default="")
     approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey(
         User,

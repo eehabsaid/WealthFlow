@@ -62,7 +62,9 @@ function buildOverviewKpiCardsHtml(payload, kpis) {
             <div class="overview-kpi-label" data-i18n="overview_kpi_liquid_assets">Liquid Assets</div>
             <div class="overview-kpi-value">${_money(kpis.liquid_assets)}</div>
             <div class="overview-kpi-trend neutral">
-              ${t("overview_kpi_months_expenses", "{months} months of expenses").replace("{months}", fmt(Math.round(kpis.emergency_months * 10) / 10))}
+              ${kpis.emergency_months == null
+                ? t("overview_kpi_months_expenses_no_data", "Add expenses to measure")
+                : t("overview_kpi_months_expenses", "{months} months of expenses").replace("{months}", fmt(Math.round(kpis.emergency_months * 10) / 10))}
             </div>
           </div>
         </div>

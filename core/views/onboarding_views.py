@@ -6,7 +6,11 @@ from core.validators.json_body import parse_json_body
 from core.services.onboarding import OnboardingService
 from core.validators import _api_auth_required
 
-_ERROR_KEYS = {"invalid_amount": "onboarding_invalid_amount", "invalid_currency": "onboarding_invalid_currency"}
+_ERROR_KEYS = {
+    "invalid_amount": "onboarding_invalid_amount",
+    "invalid_currency": "onboarding_invalid_currency",
+    "multi_currency_disabled": "currency_default_unavailable",
+}
 
 
 class OnboardingStatusView(View):

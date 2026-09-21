@@ -102,7 +102,7 @@ function buildOverviewRow1Html(ctx) {
                   <span style="color: var(--text-secondary);" data-i18n="portfolio_optimizer_liquidity" style="flex-shrink:0;">Liquidity</span>
                   <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4;"></span>
                   <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0;">
-                    ${fmt(payload.executive_summary.emergency_months)} <span data-i18n="portfolio_optimizer_months_short">mo</span> 
+                    ${payload.executive_summary.emergency_months == null ? "" : `${fmt(payload.executive_summary.emergency_months)} <span data-i18n="portfolio_optimizer_months_short">mo</span>`} 
                     <span style="color: var(--text-secondary); font-size:11px; font-weight:normal;">(${t(payload.executive_summary.liquidity_status_key, payload.executive_summary.liquidity_status_fallback)})</span>
                   </span>
                 </div>

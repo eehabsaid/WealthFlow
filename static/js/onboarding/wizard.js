@@ -36,9 +36,20 @@ function showOnboardingWizard(status) {
   const currencyOptions = (status.currencies || [])
     .map(
       (c) =>
-        `<option value="${c.id}">${onboardingEsc(c.code)} ${onboardingEsc(c.symbol)}</option>`,
+        `<option value="${c.id}" ${c.code === status.default_currency ? "selected" : ""}>${onboardingEsc(c.code)} ${onboardingEsc(c.symbol)}</option>`,
     )
     .join("");
+  const defaultOptions = (status.currencies || [])
+    .map(
+      (c) =>
+        `<option value="${onboardingEsc(c.code)}" data-id="${c.id}" ${c.code === status.default_currency ? "selected" : ""}>${onboardingEsc(c.code)} ${onboardingEsc(c.symbol)}</option>`,
+    )
+    .join("");
+  const defaultCurrencyRow = status.multi_currency_enabled
+    ? `<label class="mt-3" data-i18n="onboarding_default_currency">${t("onboarding_default_currency", "Your main currency")}</label>
+        <select id="onbDefaultCurrency" class="form-select" onchange="onboardingSyncCurrency()">${defaultOptions}</select>
+        <div class="mt-1" style="font-size:13px;color:var(--text-muted)" data-i18n="onboarding_default_currency_hint">${t("onboarding_default_currency_hint", "All your totals and reports will be shown in this currency. You can change it later in Settings.")}</div>`
+    : "";
   showModal(`
     <div class="modal-header">
       <h5 class="modal-title" data-i18n="onboarding_title">${t("onboarding_title", "Welcome to WealthFlow")}</h5>
@@ -49,6 +60,7 @@ function showOnboardingWizard(status) {
         <h6 data-i18n="onboarding_employer_title">${t("onboarding_employer_title", "Your employer (optional)")}</h6>
         <label data-i18n="onboarding_employer_name">${t("onboarding_employer_name", "Employer name")}</label>
         <input id="onbEmployer" class="form-control" maxlength="200">
+        ${defaultCurrencyRow}
       </div>
       <div id="onbStep2" style="display:none">
         <h6 data-i18n="onboarding_account_title">${t("onboarding_account_title", "Your first account")}</h6>
@@ -126,6 +138,14 @@ async function _onboardingPost(payload) {
   return false;
 }
 
+function onboardingSyncCurrency() {
+  const main = document.getElementById("onbDefaultCurrency");
+  const account = document.getElementById("onbAccCurrency");
+  if (!main || !account) return;
+  const id = main.options[main.selectedIndex].dataset.id;
+  if (id) account.value = id;
+}
+
 async function onboardingSkip() {
   if (await _onboardingPost({ skip: true })) closeModal();
 }
@@ -144,11 +164,13 @@ async function onboardingFinish() {
   const categories = [...document.querySelectorAll(".onb-cat:checked")].map(
     (el) => el.value,
   );
+  const mainCurrency = document.getElementById("onbDefaultCurrency");
   const payload = {
     employer: employer ? { name: employer } : null,
     account,
     categories,
   };
+  if (mainCurrency) payload.default_currency = mainCurrency.value;
   if (!(await _onboardingPost(payload))) return;
   closeModal();
   showToast(t("onboarding_saved", "You are all set ✓"));
@@ -157,5 +179,6 @@ async function onboardingFinish() {
 
 window.initOnboardingWizard = initOnboardingWizard;
 window.onboardingAddCategory = onboardingAddCategory;
+window.onboardingSyncCurrency = onboardingSyncCurrency;
 window.onboardingMove = onboardingMove;
 window.onboardingSkip = onboardingSkip;

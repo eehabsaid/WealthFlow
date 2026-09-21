@@ -13,6 +13,8 @@ Env vars (all optional except SECRET_KEY when DEBUG is off):
   WEALTHFLOW_PROXY_COUNT         proxies in front of the app (default 1)
   WEALTHFLOW_SSL_REDIRECT        default true when DEBUG is false
   WEALTHFLOW_HSTS_SECONDS        default 2592000 (30 days) when DEBUG is false
+  WEALTHFLOW_MULTI_CURRENCY      true lets users pick a default currency other
+                                 than the platform default (work in progress)
 """
 from django.core.exceptions import ImproperlyConfigured
 
@@ -51,6 +53,7 @@ def build_security_settings(environ) -> dict:
         secret = DEV_SECRET_KEY
 
     cfg = {
+        "MULTI_CURRENCY_ENABLED": _bool(environ, "WEALTHFLOW_MULTI_CURRENCY", False),
         "DEBUG": debug,
         "SECRET_KEY": secret,
         "ALLOWED_HOSTS": _list(environ, "WEALTHFLOW_ALLOWED_HOSTS", DEFAULT_HOSTS),

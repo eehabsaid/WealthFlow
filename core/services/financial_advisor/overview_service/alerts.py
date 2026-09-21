@@ -40,8 +40,19 @@ def build_alerts(ctx: OverviewContext) -> None:
     """Phase 7: Aggregate dynamic Alerts list."""
     alerts = []
 
-    # - Emergency fund
-    if ctx.emergency_months >= 6.0:
+    # - Emergency fund (needs recorded expenses to be measurable)
+    if not ctx.has_expense_baseline:
+        alerts.append({
+            "severity": "info",
+            "icon": "bi-piggy-bank",
+            "class": "alert-info-badge",
+            "title_key": "overview_alert_emergency_fund_no_data_title",
+            "title_fallback": "Emergency fund can't be measured yet",
+            "desc_key": "overview_alert_emergency_fund_no_data_desc",
+            "desc_fallback": "Add your expenses to see how many months your savings cover.",
+            "target_tab": "cash-flow-forecast"
+        })
+    elif ctx.emergency_months >= 6.0:
         alerts.append({
             "severity": "success",
             "icon": "bi-check-circle-fill",

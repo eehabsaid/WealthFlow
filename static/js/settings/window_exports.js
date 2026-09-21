@@ -38,6 +38,7 @@ window.deleteLang = deleteLang;
 window.saveNewLang = saveNewLang;
 window.renderCurrencySettings = renderCurrencySettings;
 window.showCurrencyModal = showCurrencyModal;
+window.setDefaultCurrency = setDefaultCurrency;
 window.saveCurrency = saveCurrency;
 window.deleteCurrency = deleteCurrency;
 window.renderCompanySettings = renderCompanySettings;

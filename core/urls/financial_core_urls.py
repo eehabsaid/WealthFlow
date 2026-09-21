@@ -1,5 +1,6 @@
 from django.urls import path
 from .. import views
+from core.views.settings.currency_views import BaseCurrencyView
 
 urlpatterns = [
     path("api/rates/", views.ExchangeRateListView.as_view()),
@@ -27,6 +28,7 @@ urlpatterns = [
         views.BankCertificateInterestHistoryView.as_view(),
     ),
     path("api/currencies/", views.CurrencyListView.as_view()),
+    path("api/base-currency/", BaseCurrencyView.as_view()),
     path("api/currencies/<int:pk>/", views.CurrencyDetailView.as_view()),
     path("api/balance/", views.BalanceListView.as_view()),
     path("api/balance/<int:pk>/", views.BalanceDetailView.as_view()),
