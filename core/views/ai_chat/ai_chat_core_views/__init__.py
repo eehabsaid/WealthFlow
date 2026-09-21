@@ -23,6 +23,7 @@ from django.views import View
 from core.validators.json_body import parse_json_body
 from core.integrations.ai_provider import get_active_ai_provider
 from core.services.ai.cache_manager import AICacheManager
+from core.services.ai.direct_answers import try_direct_answer
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
 from core.views.ai_chat.ai_chat_loop import run_tool_investigation_loop
 
@@ -81,6 +82,14 @@ class AIChatView(View):
         provider = get_active_ai_provider(user=request.user)
         if not provider:
             return build_provider_disabled_response(cache_mgr, progress_key, conversation, user_msg)
+
+        # Simple deterministic questions (e.g. paid salary for a month) need no LLM call.
+        direct = try_direct_answer(request.user, user_text)
+        if direct:
+            return finalize_success(
+                cache_mgr, progress_key, conversation, user_msg, user_text,
+                direct["content"], direct["tool_calls"], direct["sources"], request,
+            )
 
         # Build context and messages sequence
         messages_seq, sources = build_context(request, conversation, user_msg, user_text)

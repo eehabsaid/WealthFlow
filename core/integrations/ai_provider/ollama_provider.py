@@ -11,7 +11,7 @@ from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.credential_encryption import redact_secrets
 
 from .base import BaseAIProvider
-from .ollama_payload import apply_runtime_flags, is_think_unsupported_error
+from .ollama_payload import apply_runtime_flags, format_timing, is_think_unsupported_error
 from .ollama_connection_mixin import OllamaConnectionMixin
 
 logger = logging.getLogger(__name__)
@@ -171,6 +171,8 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
                 except (json.JSONDecodeError, TypeError, ValueError):
                     pass
 
+        # WARNING level on purpose: the project has no LOGGING config, so INFO is hidden.
+        logger.warning(format_timing(model_name, data))
         prompt_eval = data.get("prompt_eval_count")
         eval_count = data.get("eval_count")
 

@@ -38,3 +38,16 @@ def apply_runtime_flags(payload: dict[str, Any], model: str, keep_alive: Any) ->
 
 def is_think_unsupported_error(err: Any) -> bool:
     return "think" in str(err or "").lower()
+
+
+def format_timing(model: str, data: dict[str, Any]) -> str:
+    """One-line per-call timing from Ollama's own counters (durations are nanoseconds)."""
+    def sec(key: str) -> float:
+        v = data.get(key)
+        return float(v) / 1e9 if isinstance(v, (int, float)) else 0.0
+
+    return (
+        f"[AI-TIMING] model={model} prompt_tokens={data.get('prompt_eval_count')} "
+        f"prompt_eval={sec('prompt_eval_duration'):.1f}s gen_tokens={data.get('eval_count')} "
+        f"gen={sec('eval_duration'):.1f}s load={sec('load_duration'):.1f}s total={sec('total_duration'):.1f}s"
+    )
