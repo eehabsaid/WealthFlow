@@ -1,15 +1,12 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from core.validators.json_body import parse_json_body
 from core.models import Company, SalaryEntry
 from core.validators import _api_auth_required
 from core.utils import month_sort_key
 
-@method_decorator(csrf_exempt, name="dispatch")
 class SalaryListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -30,7 +27,7 @@ class SalaryListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body) if request.body else {}
+        data = parse_json_body(request)
         company_id = data.get("company_id")
         year = data.get("year")
         month = data.get("month")
@@ -52,14 +49,13 @@ class SalaryListView(View):
         )
         return JsonResponse(entry.to_dict(), status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class SalaryDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
         from core.services.salary.salary_service import SalaryService
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         try:
             entry = SalaryService().update_salary(pk, data, request.user)
             return JsonResponse(entry.to_dict())

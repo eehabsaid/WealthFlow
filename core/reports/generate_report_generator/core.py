@@ -8,6 +8,7 @@ phases in order: parse request -> data_phase (period + aggregates) ->
 build reportlab doc/styles -> section builders append to story -> render
 PDF bytes -> HttpResponse.
 """
+from core.validators.json_body import parse_json_body
 from core.reports.report_utils import get_translations, get_text
 from core.validators import _api_auth_required
 from core.reports.generate_report_generator.context import ReportContext
@@ -30,7 +31,6 @@ class GenerateReportGenerator(object):
     """
 
     def post(self, request):
-        import json as _json
         from django.http import HttpResponse, JsonResponse
 
         auth_error = _api_auth_required(request)
@@ -49,7 +49,7 @@ class GenerateReportGenerator(object):
                 status=500,
             )
 
-        data = _json.loads(request.body)
+        data = parse_json_body(request)
         lang = data.get("lang", "en")
         t = get_translations(lang)
 

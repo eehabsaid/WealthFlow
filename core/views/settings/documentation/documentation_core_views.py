@@ -3,8 +3,7 @@ import json
 import threading
 from django.http import JsonResponse
 from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+from core.validators.json_body import parse_json_body
 from core.views.auth_views import PermissionRequiredMixin
 from core.views.settings.documentation.documentation_constants import STATUS_FILE, CANCEL_FILE, read_json_file, write_json_file
 from core.views.settings.documentation.documentation_permutations_runner import run_documentation_permutations
@@ -12,7 +11,6 @@ from core.views.settings.documentation.documentation_permutations_runner import 
 from doc_engine.device_inventory import load_inventory, validate_inventory
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ValidateCaptureView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
     def get(self, request):
@@ -22,7 +20,6 @@ class ValidateCaptureView(PermissionRequiredMixin, View):
             return JsonResponse({"valid": False, "errors": res["errors"]})
         return JsonResponse({"valid": True})
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ValidateGenerationView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
     def get(self, request):
@@ -34,7 +31,6 @@ class ValidateGenerationView(PermissionRequiredMixin, View):
 
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class DocumentationDevicesView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
     def get(self, request):
@@ -50,7 +46,6 @@ class DocumentationStatusView(PermissionRequiredMixin, View):
         status = read_json_file(STATUS_FILE, {})
         return JsonResponse(status)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class DocumentationHistoryView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
     def get(self, request):
@@ -81,12 +76,11 @@ class DocumentationHistoryView(PermissionRequiredMixin, View):
             })
         return JsonResponse({"history": history})
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GenerateDocumentationView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
     def post(self, request):
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             lang_opt = data.get("language", "en")
             theme_opt = data.get("theme", "dark")
             category_opt = data.get("device_category", "Desktop")

@@ -1,15 +1,12 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from core.validators.json_body import parse_json_body
 from core.models import ExpenseCategory, ExpenseSubcategory
 from core.validators import _api_auth_required, _owned_queryset, _owned_object_or_404, _child_owned_object_or_404
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ExpenseCategoryListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -27,7 +24,7 @@ class ExpenseCategoryListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         cat = ExpenseCategory.objects.create(
             owner=request.user,
             name=data["name"],
@@ -37,14 +34,13 @@ class ExpenseCategoryListView(View):
         )
         return JsonResponse(cat.to_dict(), status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ExpenseCategoryDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
         cat = _owned_object_or_404(ExpenseCategory, pk, request)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         for f in ["name", "icon", "color_hex", "order"]:
             if f in data:
                 setattr(cat, f, data[f])
@@ -59,13 +55,12 @@ class ExpenseCategoryDetailView(View):
         cat.delete()
         return JsonResponse({"deleted": pk})
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ExpenseSubcategoryListView(View):
     def post(self, request):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         category = _owned_object_or_404(ExpenseCategory, data["category_id"], request)
         sub = ExpenseSubcategory.objects.create(
             category=category,
@@ -74,14 +69,13 @@ class ExpenseSubcategoryListView(View):
         )
         return JsonResponse(sub.to_dict(), status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ExpenseSubcategoryDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
         sub = _child_owned_object_or_404(ExpenseSubcategory, pk, request, parent_field="category")
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         for f in ["name", "order"]:
             if f in data:
                 setattr(sub, f, data[f])

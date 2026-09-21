@@ -93,7 +93,7 @@ function buildOverviewRow1Html(ctx) {
                   <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4;"></span>
                   <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0; display:inline-flex; align-items:center;">
                     ${_money(kpis.total_net_worth)} 
-                    <span class="ms-2" style="font-size:11px; font-weight:600; color:${nwTrendIsUp ? "var(--accent-green)" : "var(--accent-red)"}; margin-left:6px;">${nwTrendText}</span>
+                    <span class="ms-2" style="font-size:11px; font-weight:600; color:${nwTrendIsUp === null ? "var(--text-secondary)" : nwTrendIsUp ? "var(--accent-green)" : "var(--accent-red)"}; margin-left:6px;">${nwTrendText}</span>
                   </span>
                 </div>
 

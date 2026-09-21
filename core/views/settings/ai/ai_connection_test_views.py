@@ -7,9 +7,8 @@ core/views/settings/__init__.py accordingly."""
 import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
+from core.validators.json_body import parse_json_body
 from core.views.auth_views import PermissionRequiredMixin
 from core.models import AppSettings
 from core.services.ai.credential_encryption import decrypt_credential, is_masked
@@ -23,12 +22,11 @@ from core.integrations.ai_provider import (
 )
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIConnectionTestView(PermissionRequiredMixin, View):
     required_key = "settings_aiadvisor"
     def post(self, request):
         try:
-            data = json.loads(request.body or "{}")
+            data = parse_json_body(request)
         except json.JSONDecodeError:
             data = {}
 

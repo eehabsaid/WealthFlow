@@ -5,8 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render
 from core.models import (
     SalaryEntry,
@@ -42,6 +41,7 @@ def _parse_iso_date(value):
     return value
 
 @login_required(login_url="/accounts/login/")
+@ensure_csrf_cookie
 def index(request):
     return render(request, "index.html")
 
@@ -50,7 +50,6 @@ def _api_auth_required(request):
         return JsonResponse({"error": "Authentication required"}, status=401)
     return None
 
-@method_decorator(csrf_exempt, name="dispatch")
 class DashboardSummaryView(View):
     """Enhanced dashboard summary — salary KPIs + cert maturity + balance."""
 

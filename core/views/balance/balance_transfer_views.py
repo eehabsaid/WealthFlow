@@ -1,14 +1,11 @@
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from core.validators.json_body import parse_json_body
 from core.models import BalanceTransfer, Bank
 from core.validators import _api_auth_required, _owned_object_or_404
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BalanceTransferListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -24,7 +21,7 @@ class BalanceTransferListView(View):
         if auth_error:
             return auth_error
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             transfer_date = data["transfer_date"]
             transfer_type = data["transfer_type"]
             from_bank_id = data.get("from_bank_id")
@@ -55,7 +52,6 @@ class BalanceTransferListView(View):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BalanceTransferDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -63,7 +59,7 @@ class BalanceTransferDetailView(View):
             return auth_error
         try:
             transfer = _owned_object_or_404(BalanceTransfer, pk, request)
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             for key in ("from_bank_id", "to_bank_id"):
                 if data.get(key):
                     get_object_or_404(Bank, pk=data[key], owner=request.user)

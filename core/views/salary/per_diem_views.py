@@ -1,14 +1,11 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from core.validators.json_body import parse_json_body
 from core.models import PerDiem
 from core.validators import _api_auth_required, _child_owned_object_or_404
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PerDiemListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -30,14 +27,13 @@ class PerDiemListView(View):
         if auth_error:
             return auth_error
         from core.services.salary.per_diem_service import PerDiemService
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         try:
             pd = PerDiemService().create_per_diem(data, request.user)
             return JsonResponse(pd.to_dict(), status=201)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PerDiemDetailView(View):
     def get(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -54,7 +50,7 @@ class PerDiemDetailView(View):
         if auth_error:
             return auth_error
         from core.services.salary.per_diem_service import PerDiemService
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         try:
             pd = PerDiemService().update_per_diem(pk, data, request.user)
             return JsonResponse(pd.to_dict())
@@ -72,7 +68,6 @@ class PerDiemDetailView(View):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PerDiemCurrencyListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)

@@ -7,23 +7,20 @@ one file per concern), then update core/views/settings/__init__.py.
 
 Per-user catalog — see currency_views.py docstring for the pattern."""
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
+from core.validators.json_body import parse_json_body
 from core.models import CertificateStatus
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CertificateStatusListView(View):
     def get(self, request):
         statuses = CertificateStatus.objects.filter(owner=request.user)
         return JsonResponse({"statuses": [s.to_dict() for s in statuses]})
 
     def post(self, request):
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         # If new status is default, unset any existing default (this user's only)
         if data.get("is_default"):
             CertificateStatus.objects.filter(
@@ -40,11 +37,10 @@ class CertificateStatusListView(View):
         return JsonResponse({"status": s.to_dict()}, status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CertificateStatusDetailView(View):
     def put(self, request, pk):
         s = get_object_or_404(CertificateStatus, pk=pk, owner=request.user)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         if data.get("is_default") and not s.is_default:
             CertificateStatus.objects.filter(
                 owner=request.user, is_default=True

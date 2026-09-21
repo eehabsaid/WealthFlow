@@ -1,17 +1,14 @@
-import json
 from decimal import Decimal
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
+from core.validators.json_body import parse_json_body
 from core.models import BalanceEntry, Currency
 from core.services.shared.currency_conversion_service import CurrencyConversionService
 from core.validators import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CurrencyExchangeFormOptionsView(View):
     """
     Returns options for the Currency Exchange form.
@@ -35,7 +32,6 @@ class CurrencyExchangeFormOptionsView(View):
         })
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CurrencyExchangeCalculateView(View):
     """
     Backend endpoint for live calculation of exchange rate, converted to_amount,
@@ -46,7 +42,7 @@ class CurrencyExchangeCalculateView(View):
         if auth_error:
             return auth_error
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             from_balance_id = data.get("from_balance_id")
             to_balance_id = data.get("to_balance_id")
             from_amount_raw = data.get("from_amount", 0)

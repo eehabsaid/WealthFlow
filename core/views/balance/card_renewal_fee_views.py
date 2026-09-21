@@ -1,11 +1,9 @@
-import json
 from decimal import Decimal
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from core.validators.json_body import parse_json_body
 from core.models import CardRenewalFee, Bank
 from core.validators import _api_auth_required, _owned_object_or_404
 
@@ -25,7 +23,6 @@ def _balance_error_response(exc):
     raise exc
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CardRenewalFeeListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -39,7 +36,7 @@ class CardRenewalFeeListView(View):
         if auth_error:
             return auth_error
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             fee_date = data["fee_date"]
             bank_id = data["bank_id"]
             get_object_or_404(Bank, pk=bank_id, owner=request.user)
@@ -65,7 +62,6 @@ class CardRenewalFeeListView(View):
             return JsonResponse({"error": str(e)}, status=400)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CardRenewalFeeDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -73,7 +69,7 @@ class CardRenewalFeeDetailView(View):
             return auth_error
         entry = _owned_object_or_404(CardRenewalFee, pk, request)
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             if "bank_id" in data and data["bank_id"]:
                 get_object_or_404(Bank, pk=data["bank_id"], owner=request.user)
 

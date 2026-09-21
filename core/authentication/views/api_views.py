@@ -1,13 +1,11 @@
 import datetime
-import json
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.http import JsonResponse
 from django.utils import timezone
-from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 
+from core.validators.json_body import parse_json_body
 from core.models import UserProfile
 from core.authentication.services import AuthWorkflowService
 from core.authentication.utils import (
@@ -19,16 +17,11 @@ User = get_user_model()
 
 
 class LoginAPIView(View):
-    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request):
-        data = json.loads(
-            request.body.decode("utf-8")
-            if isinstance(request.body, bytes)
-            else request.body
-        )
+        data = parse_json_body(request)
         username = data.get("username", "").strip()
         password = data.get("password", "")
         user_for_status = User.objects.filter(username=username).first()
@@ -52,16 +45,11 @@ class LoginAPIView(View):
 
 
 class SignupAPIView(View):
-    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request):
-        data = json.loads(
-            request.body.decode("utf-8")
-            if isinstance(request.body, bytes)
-            else request.body
-        )
+        data = parse_json_body(request)
         result = AuthWorkflowService.register_user(
             request,
             username=data.get("username", ""),
@@ -80,7 +68,6 @@ class SignupAPIView(View):
 
 
 class LogoutAPIView(View):
-    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -102,7 +89,6 @@ class CurrentUserView(View):
         )
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class UpdateProfileView(View):
     """
     GET  /api/auth/profile/          — get current user profile
@@ -150,7 +136,7 @@ class UpdateProfileView(View):
             )
 
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
         except Exception:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
 

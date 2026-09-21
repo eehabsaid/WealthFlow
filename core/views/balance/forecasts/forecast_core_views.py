@@ -2,8 +2,6 @@ import datetime
 import time
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from core.services.balance.net_worth_service import NetWorthService
 from core.services.financial_advisor.cash_flow_forecast_service import CashFlowForecastService
@@ -15,7 +13,6 @@ from core.views.certificate_views import _run_certificate_interest_sync
 from core.views.balance.forecasts.shared import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CertificateForecastView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -25,7 +22,6 @@ class CertificateForecastView(View):
         return JsonResponse(NetWorthService(request.user).certificate_forecast_payload(today=datetime.date.today()))
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CashFlowForecastView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -36,7 +32,6 @@ class CashFlowForecastView(View):
         return JsonResponse(payload)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CashFlowCustomProjectionView(View):
     """
     Interactive "what-if" cash projection: pick a target date, exclude
@@ -91,7 +86,6 @@ class CashFlowCustomProjectionView(View):
         return JsonResponse(payload)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class WealthGrowthForecastView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -102,7 +96,6 @@ class WealthGrowthForecastView(View):
         return JsonResponse(payload)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PortfolioOptimizerView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -118,7 +111,6 @@ class PortfolioOptimizerView(View):
 _overview_cache: dict = {}
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class OverviewView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)

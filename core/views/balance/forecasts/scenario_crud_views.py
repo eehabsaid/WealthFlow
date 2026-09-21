@@ -1,16 +1,13 @@
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
+from core.validators.json_body import parse_json_body
 from core.models.scenario import Scenario, ScenarioEvent
 from core.services.financial_advisor.scenario_planner_service import create_scenario_record
 from core.views.balance.forecasts.shared import _api_auth_required
 from core.validators import _owned_object_or_404, _owned_queryset
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ScenarioListCreateView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -24,7 +21,7 @@ class ScenarioListCreateView(View):
         if auth_error:
             return auth_error
         try:
-            body = json.loads(request.body.decode("utf-8"))
+            body = parse_json_body(request)
         except Exception:
             return JsonResponse({"error": "Invalid JSON body"}, status=400)
 
@@ -41,7 +38,6 @@ class ScenarioListCreateView(View):
             return JsonResponse({"error": str(err)}, status=400)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ScenarioDetailView(View):
     def get(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -63,7 +59,7 @@ class ScenarioDetailView(View):
             return JsonResponse({"error": "Scenario not found"}, status=404)
 
         try:
-            body = json.loads(request.body.decode("utf-8"))
+            body = parse_json_body(request)
         except Exception:
             return JsonResponse({"error": "Invalid JSON body"}, status=400)
 
@@ -91,7 +87,6 @@ class ScenarioDetailView(View):
             return JsonResponse({"error": "Scenario not found"}, status=404)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ScenarioDuplicateView(View):
     def post(self, request, pk):
         auth_error = _api_auth_required(request)

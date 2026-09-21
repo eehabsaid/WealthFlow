@@ -1,9 +1,7 @@
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
+from core.validators.json_body import parse_json_body
 from core.models.scenario import Scenario, ScenarioEvent
 from core.services.financial_advisor.scenario_planner_service import (
     EVENT_SCHEMA,
@@ -12,7 +10,6 @@ from core.services.financial_advisor.scenario_planner_service import (
 from core.views.balance.forecasts.shared import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ScenarioEventDefinitionsView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -21,7 +18,6 @@ class ScenarioEventDefinitionsView(View):
         return JsonResponse({"schema_version": SCENARIO_EVENT_SCHEMA_VERSION, "event_schema": EVENT_SCHEMA})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ScenarioEventListCreateView(View):
     def get(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -44,7 +40,7 @@ class ScenarioEventListCreateView(View):
             return JsonResponse({"error": "Scenario not found"}, status=404)
 
         try:
-            body = json.loads(request.body.decode("utf-8"))
+            body = parse_json_body(request)
         except Exception:
             return JsonResponse({"error": "Invalid JSON body"}, status=400)
 
@@ -63,7 +59,6 @@ class ScenarioEventListCreateView(View):
         return JsonResponse(ev.to_dict(), status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ScenarioEventDetailView(View):
     def _get_event(self, pk, event_id, owner):
         return ScenarioEvent.objects.filter(scenario_id=pk, id=event_id, scenario__owner=owner).first()
@@ -86,7 +81,7 @@ class ScenarioEventDetailView(View):
             return JsonResponse({"error": "Event not found"}, status=404)
 
         try:
-            body = json.loads(request.body.decode("utf-8"))
+            body = parse_json_body(request)
         except Exception:
             return JsonResponse({"error": "Invalid JSON body"}, status=400)
 

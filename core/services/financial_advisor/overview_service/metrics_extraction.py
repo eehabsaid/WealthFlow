@@ -39,6 +39,8 @@ def extract_wealth_growth_metrics(ctx: OverviewContext) -> None:
     """Phase 4: Extract metrics from Wealth Growth Projections."""
     ctx.expected_growth_pct = float(ctx.wealth_growth_payload.get("summary", {}).get("expected_growth_pct", 0.0))
     ctx.expected_net_worth_1y = float(ctx.wealth_growth_payload.get("checkpoints", {}).get("month_12", 0.0))
+    # A growth % is only meaningful with a positive base and recorded spending.
+    ctx.has_growth_basis = ctx.current_nw > 0 and ctx.avg_monthly_expenses > 0
 
 
 def extract_goal_metrics(ctx: OverviewContext) -> None:

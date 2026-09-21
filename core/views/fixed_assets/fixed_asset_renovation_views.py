@@ -1,13 +1,11 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from decimal import Decimal
 from django.db import transaction
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
+from core.validators.json_body import parse_json_body
 from core.models import (
     AssetRenovation,
     FixedAsset,
@@ -31,7 +29,6 @@ def _balance_error_response(exc):
         return JsonResponse({"error": messages[key], "error_key": key}, status=400)
     raise exc
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AssetRenovationListView(View):
 
     def get(self, request):
@@ -53,7 +50,7 @@ class AssetRenovationListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         asset = get_object_or_404(FixedAsset, pk=data["asset_id"], owner=request.user)
 
         payment_method = data.get("payment_method", "Cash")
@@ -86,7 +83,6 @@ class AssetRenovationListView(View):
 
         return JsonResponse(item.to_dict(), status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AssetRenovationDetailView(View):
 
     def put(self, request, pk):
@@ -95,7 +91,7 @@ class AssetRenovationDetailView(View):
             return auth_error
         item = _child_owned_object_or_404(AssetRenovation, pk, request, parent_field="asset")
 
-        data = json.loads(request.body)
+        data = parse_json_body(request)
 
         old_payment_method = item.payment_method
         old_bank_id = item.bank_id
@@ -159,7 +155,6 @@ class AssetRenovationDetailView(View):
         return JsonResponse({"deleted": pk})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AssetRenovationCategoriesView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)

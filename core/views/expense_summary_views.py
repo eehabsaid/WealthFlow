@@ -3,15 +3,12 @@
 import datetime
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db.models import Sum
 from core.models import SalaryEntry, Expense, BankCertificate
 from core.services.balance.financial_sync_service import FinancialSyncService
 from core.validators import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ExpenseSummaryView(View):
     """Returns monthly totals + category breakdown for charts."""
 

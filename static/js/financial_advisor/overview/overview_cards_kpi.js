@@ -4,18 +4,31 @@
 // backlog). Bare global.
 // ════════════════════════════════════════════════════════════════════════════
 
+// Net-worth trend badge. growth is null when there is no basis for a
+// projection (new user / no recorded spending): show an honest empty state.
+function buildOverviewNwTrend(kpis) {
+  const g = kpis.net_worth_growth_yoy;
+  if (g === null || g === undefined) {
+    return {
+      isUp: null,
+      cls: "neutral",
+      text: t("overview_kpi_trend_no_history", "Not enough history yet"),
+    };
+  }
+  const isUp = Number(g) >= 0;
+  const key = isUp ? "overview_kpi_yoy_trend_up" : "overview_kpi_yoy_trend_down";
+  const fallback = isUp ? "↑ {pct}% projected next 12 months" : "↓ {pct}% projected next 12 months";
+  return {
+    isUp,
+    cls: isUp ? "up" : "down",
+    text: t(key, fallback).replace("{pct}", fmt(Math.abs(g))),
+  };
+}
+
 function buildOverviewKpiCardsHtml(payload, kpis) {
-  const nwTrendIsUp = Number(kpis.net_worth_growth_yoy || 0) >= 0;
-  const nwTrendClass = nwTrendIsUp ? "up" : "down";
-  const nwTrendText = nwTrendIsUp
-    ? t("overview_kpi_yoy_trend_up", `↑ {pct}% vs last year`).replace(
-        "{pct}",
-        fmt(Math.abs(kpis.net_worth_growth_yoy))
-      )
-    : t("overview_kpi_yoy_trend_down", `↓ {pct}% vs last year`).replace(
-        "{pct}",
-        fmt(Math.abs(kpis.net_worth_growth_yoy))
-      );
+  const nwTrend = buildOverviewNwTrend(kpis);
+  const nwTrendClass = nwTrend.cls;
+  const nwTrendText = nwTrend.text;
 
   const healthScore = Number(payload.health_score || 0);
   let healthColor = "var(--accent-green)";

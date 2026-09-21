@@ -1,18 +1,15 @@
-import json
 from decimal import Decimal
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.db import models, transaction
 
+from core.validators.json_body import parse_json_body
 from core.models import CurrencyExchange, BalanceEntry
 from core.services.shared.currency_conversion_service import CurrencyConversionService
 from core.validators import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CurrencyExchangeListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -54,7 +51,7 @@ class CurrencyExchangeListView(View):
         if auth_error:
             return auth_error
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             exchange_date = data["exchange_date"]
             from_balance_id = data["from_balance_id"]
             to_balance_id = data["to_balance_id"]
@@ -103,7 +100,6 @@ class CurrencyExchangeListView(View):
             return JsonResponse({"error": str(e)}, status=400)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CurrencyExchangeDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -114,7 +110,7 @@ class CurrencyExchangeDetailView(View):
             if exchange.status == CurrencyExchange.Status.REVERSED:
                 return JsonResponse({"error": "cannot_edit_reversed_error"}, status=400)
 
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             exchange_date = data.get("exchange_date", str(exchange.exchange_date))
             from_balance_id = data.get("from_balance_id", exchange.from_balance_id)
             to_balance_id = data.get("to_balance_id", exchange.to_balance_id)

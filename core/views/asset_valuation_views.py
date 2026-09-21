@@ -13,8 +13,6 @@ core/views/__init__.py, so not removed as part of this structural move)."""
 
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from core.models import FixedAsset
@@ -23,7 +21,6 @@ from core.services.fixed_assets.property_valuation_service import PropertyValuat
 from core.validators import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetValuationRefreshView(View):
     def post(self, request, pk):
         auth_error = _api_auth_required(request)

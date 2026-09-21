@@ -18,10 +18,9 @@ resolving correctly.
 import json
 
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 
+from core.validators.json_body import parse_json_body
 from core.integrations.ai_provider import get_active_ai_provider
 from core.services.ai.cache_manager import AICacheManager
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
@@ -39,7 +38,6 @@ from .response_finalizer import finalize_success
 __all__ = ["AIChatView"]
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIChatView(View):
     """
     Endpoint for sending messages to AI Financial Advisor.
@@ -62,7 +60,7 @@ class AIChatView(View):
             return auth_error
 
         try:
-            body = json.loads(request.body or "{}")
+            body = parse_json_body(request)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON body"}, status=400)
 

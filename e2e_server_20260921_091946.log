@@ -1,0 +1,24 @@
+[21/Sep/2026 09:19:49] "GET /accounts/login/ HTTP/1.1" 200 5562
+Forbidden (CSRF cookie not set.): /api/auth/login/
+[21/Sep/2026 09:19:51] "POST /api/auth/login/ HTTP/1.1" 403 2855
+[21/Sep/2026 09:19:51] "GET / HTTP/1.1" 302 0
+[21/Sep/2026 09:19:51] "GET /accounts/login/?next=/ HTTP/1.1" 200 5562
+[21/Sep/2026 09:19:52] "GET /static/vendor/bootstrap/css/bootstrap.min.css HTTP/1.1" 200 232111
+[21/Sep/2026 09:19:52] "GET /static/css/authentication/animations.css HTTP/1.1" 200 580
+[21/Sep/2026 09:19:52] "GET /static/js/authentication/shared/theme.js HTTP/1.1" 200 1482
+[21/Sep/2026 09:19:52] "GET /static/css/authentication/auth/index.css HTTP/1.1" 200 462
+[21/Sep/2026 09:19:52] "GET /static/js/authentication/shared/ui_helpers.js HTTP/1.1" 200 1898
+[21/Sep/2026 09:19:52] "GET /static/js/authentication/shared/bootstrap.js HTTP/1.1" 200 1142
+[21/Sep/2026 09:19:52] "GET /static/vendor/bootstrap-icons/bootstrap-icons.css HTTP/1.1" 200 99556
+[21/Sep/2026 09:19:52] "GET /static/css/authentication/forms.css HTTP/1.1" 200 4056
+[21/Sep/2026 09:19:52] "GET /static/js/authentication/login.js HTTP/1.1" 200 564
+[21/Sep/2026 09:19:52] "GET /static/css/authentication/responsive.css HTTP/1.1" 200 1501
+[21/Sep/2026 09:19:52] "GET /static/js/authentication/shared/csrf_lang.js HTTP/1.1" 200 3457
+[21/Sep/2026 09:19:52] "GET /static/css/authentication/auth/core_theme.css HTTP/1.1" 200 2913
+[21/Sep/2026 09:19:52] "GET /static/css/authentication/auth/controls_and_forms.css HTTP/1.1" 200 1988
+[21/Sep/2026 09:19:52] "GET /static/css/authentication/auth/card_and_alerts.css HTTP/1.1" 200 2430
+[21/Sep/2026 09:19:52] "GET /static/i18n/en.json?v=1789971592220 HTTP/1.1" 200 126658
+[21/Sep/2026 09:19:52] "GET /static/vendor/bootstrap-icons/fonts/bootstrap-icons.woff2?e34853135f9e39acf64315236852cd5a HTTP/1.1" 200 134044
+Unauthorized: /api/settings/
+[21/Sep/2026 09:19:52] "GET /api/settings/?v=1789971592278 HTTP/1.1" 401 36
+[21/Sep/2026 09:19:53,886] - Broken pipe from ('127.0.0.1', 52773)

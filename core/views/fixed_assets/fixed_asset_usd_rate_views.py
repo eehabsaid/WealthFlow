@@ -9,13 +9,10 @@ UsdRateService - this view is a thin HTTP wrapper only.
 
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from core.services.fixed_assets.usd_rate_service import UsdRateService, UsdRateError
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetUsdRateView(View):
     def get(self, request):
         currency_id = request.GET.get("currency_id")

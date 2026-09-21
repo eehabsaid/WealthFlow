@@ -6,19 +6,16 @@ settings/ai/ or settings/gold/ for the pattern: an empty __init__.py plus
 one file per concern), then update core/views/settings/__init__.py."""
 
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
+from core.validators.json_body import parse_json_body
 from core.views.auth_views import PermissionRequiredMixin
 from core.models import AppSettings, EmailTemplate
 from core.services.shared.auth_workflow_service import AuthWorkflowService, EmailTemplateService
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class EmailTemplateListView(PermissionRequiredMixin, View):
     required_key = "settings_emailtemplates"
     def get(self, request):
@@ -26,7 +23,6 @@ class EmailTemplateListView(PermissionRequiredMixin, View):
         return JsonResponse({"items": EmailTemplateService.list_templates(lang)})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class EmailTemplateDetailView(PermissionRequiredMixin, View):
     required_key = "settings_emailtemplates"
     def get(self, request, pk):
@@ -37,7 +33,7 @@ class EmailTemplateDetailView(PermissionRequiredMixin, View):
 
     def put(self, request, pk):
         template = get_object_or_404(EmailTemplate, pk=pk)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         lang = str(data.get("lang", "en") or "en")
         updated = EmailTemplateService.update_template(
             template,
@@ -48,11 +44,10 @@ class EmailTemplateDetailView(PermissionRequiredMixin, View):
         return JsonResponse(updated.to_dict(lang))
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class EmailSettingsTestView(PermissionRequiredMixin, View):
     required_key = "settings_emailtemplates"
     def post(self, request):
-        data = json.loads(request.body or "{}")
+        data = parse_json_body(request)
         recipient = (data.get("to_email") or "").strip()
         if not recipient:
             recipient = (

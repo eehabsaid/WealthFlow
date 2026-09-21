@@ -2,8 +2,6 @@
 
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db.utils import OperationalError, ProgrammingError
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
@@ -26,7 +24,6 @@ def _document_database_error_response(exc):
         )
     return JsonResponse({"error": "documents_unavailable"}, status=503)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class DocumentListUploadView(View):
     service = DocumentService()
 
@@ -66,7 +63,6 @@ class DocumentListUploadView(View):
         except (OperationalError, ProgrammingError) as exc:
             return _document_database_error_response(exc)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class DocumentFileView(View):
     service = DocumentService()
 
@@ -132,7 +128,6 @@ class DocumentFileView(View):
             return JsonResponse({"error": "document_not_found"}, status=404)
         return JsonResponse({"deleted": True})
 
-@method_decorator(csrf_exempt, name="dispatch")
 class DocumentCategoriesView(View):
     service = DocumentService()
 

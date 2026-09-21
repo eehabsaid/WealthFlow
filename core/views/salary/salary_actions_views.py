@@ -1,22 +1,19 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db.models import Sum, Count, Q
+from core.validators.json_body import parse_json_body
 from core.models import Company
 from core.validators import _api_auth_required
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GenerateCurrentSalaryView(View):
     def post(self, request):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
         except Exception:
             data = {}
 
@@ -29,14 +26,13 @@ class GenerateCurrentSalaryView(View):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class MarkSalaryPaidView(View):
     def post(self, request, pk):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
         except Exception:
             data = {}
         mark_paid = data.get("mark_paid", False)
@@ -48,7 +44,6 @@ class MarkSalaryPaidView(View):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class SalarySummaryView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)

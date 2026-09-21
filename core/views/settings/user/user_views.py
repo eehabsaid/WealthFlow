@@ -4,17 +4,15 @@
 past ~200 lines, split it further within this folder and update
 core/views/settings/__init__.py accordingly."""
 
-import json
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 
+from core.validators.json_body import parse_json_body
 from core.services.shared.auth_workflow_service import AuthWorkflowService
 from core.views.auth_views import AdminRequiredMixin, _build_user_dict
 
@@ -48,16 +46,11 @@ class UserListView(AdminRequiredMixin, View):
             }
         )
 
-    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request):
-        data = json.loads(
-            request.body.decode("utf-8")
-            if isinstance(request.body, bytes)
-            else request.body
-        )
+        data = parse_json_body(request)
         username = data.get("username", "").strip()
         email = data.get("email", "").strip()
         password = data.get("password", "")
@@ -86,7 +79,6 @@ class UserListView(AdminRequiredMixin, View):
 
 
 class UserDetailView(AdminRequiredMixin, View):
-    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -97,11 +89,7 @@ class UserDetailView(AdminRequiredMixin, View):
     def put(self, request, pk):
         user = get_object_or_404(User, pk=pk)
         original_is_active = user.is_active
-        data = json.loads(
-            request.body.decode("utf-8")
-            if isinstance(request.body, bytes)
-            else request.body
-        )
+        data = parse_json_body(request)
         for field in ["email", "is_active", "is_staff", "is_superuser"]:
             if field in data:
                 setattr(user, field, data[field])
@@ -126,16 +114,11 @@ class UserDetailView(AdminRequiredMixin, View):
 
 
 class UserBulkActionView(AdminRequiredMixin, View):
-    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request):
-        data = json.loads(
-            request.body.decode("utf-8")
-            if isinstance(request.body, bytes)
-            else request.body
-        )
+        data = parse_json_body(request)
         action = data.get("action")
         ids = data.get("ids") or []
         if not action or not isinstance(ids, list):

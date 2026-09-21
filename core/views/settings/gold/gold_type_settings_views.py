@@ -6,18 +6,15 @@ core/views/settings/__init__.py accordingly.
 
 Per-user catalog — see currency_views.py docstring for the pattern."""
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
+from core.validators.json_body import parse_json_body
 from core.models import GoldTypeSetting
 from core.views.settings.gold.gold_settings_helpers import _seed_gold_settings_defaults
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GoldTypeSettingsListView(View):
     def get(self, request):
         _seed_gold_settings_defaults(request.user)
@@ -25,7 +22,7 @@ class GoldTypeSettingsListView(View):
         return JsonResponse({"items": [row.to_dict() for row in rows]})
 
     def post(self, request):
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         item = GoldTypeSetting.objects.create(
             owner=request.user,
             name=(data.get("name") or "").strip(),
@@ -35,11 +32,10 @@ class GoldTypeSettingsListView(View):
         return JsonResponse(item.to_dict(), status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GoldTypeSettingsDetailView(View):
     def put(self, request, pk):
         item = get_object_or_404(GoldTypeSetting, pk=pk, owner=request.user)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         for field in ["name", "is_active", "order"]:
             if field in data:
                 setattr(item, field, data[field])

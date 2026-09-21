@@ -1,17 +1,14 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from core.validators.json_body import parse_json_body
 from core.models import Expense
 from core.validators import _api_auth_required
 
 User = get_user_model()
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ExpenseListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -54,7 +51,7 @@ class ExpenseListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         from core.services import ExpenseService
         try:
             exp = ExpenseService.create_expense(data, request.user)
@@ -100,13 +97,12 @@ class ExpenseListView(View):
 
         return JsonResponse(exp.to_dict(), status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ExpenseDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         from core.services import ExpenseService
         try:
             exp = ExpenseService.update_expense(pk, data, request.user)

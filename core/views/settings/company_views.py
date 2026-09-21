@@ -6,12 +6,10 @@ settings/ai/ or settings/gold/ for the pattern: an empty __init__.py plus
 one file per concern), then update core/views/settings/__init__.py."""
 
 
-import json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from core.validators.json_body import parse_json_body
 from core.models import (
     Company,
 
@@ -20,7 +18,6 @@ from core.validators import _api_auth_required, _owned_queryset, _owned_object_o
 
 User = get_user_model()
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CompanyListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -33,7 +30,7 @@ class CompanyListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body) if request.body else {}
+        data = parse_json_body(request)
         name = data.get("name")
         if not name:
             return JsonResponse({"error": "name is required"}, status=400)
@@ -57,7 +54,6 @@ class CompanyListView(View):
         )
         return JsonResponse(company.to_dict(), status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CompanyDetailView(View):
     def get(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -77,7 +73,7 @@ class CompanyDetailView(View):
         if auth_error:
             return auth_error
         c = _owned_object_or_404(Company, pk, request)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         for field in [
             "name",
             "display_name",

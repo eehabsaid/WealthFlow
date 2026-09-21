@@ -12,9 +12,8 @@ import json
 
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
+from core.validators.json_body import parse_json_body
 from core.models import AppSettings
 from core.views.auth_views import AdminRequiredMixin
 from core.services.ai.credential_encryption import (
@@ -56,14 +55,13 @@ def _build_get_payload():
     }
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PaymobGatewaySettingsView(AdminRequiredMixin, View):
     def get(self, request):
         return JsonResponse(_build_get_payload())
 
     def post(self, request):
         try:
-            data = json.loads(request.body or "{}")
+            data = parse_json_body(request)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON body"}, status=400)
 

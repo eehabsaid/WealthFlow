@@ -1,14 +1,11 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false, reportRedeclaration=false, reportAssignmentType=false
 from django.views import View
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db.models import Sum, Count
 from core.models import BankCertificate
 from core.validators import _api_auth_required
 from datetime import date, timedelta
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CertificateReportView(View):
     """Certificate maturity and analytics report."""
 

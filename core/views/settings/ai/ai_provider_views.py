@@ -6,14 +6,11 @@ core/views/settings/__init__.py accordingly."""
 
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from core.views.auth_views import PermissionRequiredMixin
 from core.integrations.ai_provider import AVAILABLE_AI_PROVIDERS
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIProviderListView(PermissionRequiredMixin, View):
     required_key = "settings_aiadvisor"
     def get(self, request):

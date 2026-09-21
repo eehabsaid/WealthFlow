@@ -2,7 +2,38 @@ from __future__ import annotations
 
 import datetime
 
+from core.models import AssetInsurance
 from core.services.financial_advisor.overview_service.context import OverviewContext
+
+
+
+def _insurance_alert(ctx: OverviewContext) -> dict:
+    """Success only when policies exist and none expired; neutral when none."""
+    policies = AssetInsurance.objects.filter(asset__owner=ctx.service.owner)
+    total = policies.count()
+    expired = policies.filter(expiry_date__lt=ctx.service.today).count()
+    base = {"target_tab": "portfolio-optimizer"}
+    if total == 0:
+        return {**base, "severity": "info", "icon": "bi-shield",
+                "class": "alert-info-badge",
+                "title_key": "overview_alert_insurance_none_title",
+                "title_fallback": "No insurance policies added yet",
+                "desc_key": "overview_alert_insurance_none_desc",
+                "desc_fallback": "Add policies to your fixed assets to track their expiry."}
+    if expired:
+        return {**base, "severity": "warning", "icon": "bi-shield-exclamation",
+                "class": "alert-warning-badge",
+                "title_key": "overview_alert_insurance_expired_title",
+                "title_fallback": "Insurance policies have expired",
+                "desc_key": "overview_alert_insurance_expired_desc",
+                "desc_fallback": "{count} of your insurance policies have expired.",
+                "params": {"count": expired}}
+    return {**base, "severity": "success", "icon": "bi-shield-fill-check",
+            "class": "alert-success-badge",
+            "title_key": "overview_alert_insurance_up_to_date_title",
+            "title_fallback": "Insurance payments are up to date",
+            "desc_key": "overview_alert_insurance_up_to_date_desc",
+            "desc_fallback": "All your insurance policies are active."}
 
 
 def build_alerts(ctx: OverviewContext) -> None:
@@ -88,17 +119,8 @@ def build_alerts(ctx: OverviewContext) -> None:
             "target_tab": "cash-flow-forecast"
         })
 
-    # - Insurance policy check
-    alerts.append({
-        "severity": "success",
-        "icon": "bi-shield-fill-check",
-        "class": "alert-success-badge",
-        "title_key": "overview_alert_insurance_up_to_date_title",
-        "title_fallback": "Insurance payments are up to date",
-        "desc_key": "overview_alert_insurance_up_to_date_desc",
-        "desc_fallback": "All your insurance policies are active.",
-        "target_tab": "portfolio-optimizer"
-    })
+    # - Insurance policy check (honest about brand-new users with no policies)
+    alerts.append(_insurance_alert(ctx))
 
     # Sorting alerts automatically by severity, then by due date
     def _alert_sort_key(a):

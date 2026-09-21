@@ -4,18 +4,15 @@
 grows past ~200 lines, split it further within this folder and update
 core/views/settings/__init__.py accordingly."""
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
+from core.validators.json_body import parse_json_body
 from core.models import Currency, Plan, PlanPrice
 from core.views.auth_views import AdminRequiredMixin
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PlanPriceAdminListView(AdminRequiredMixin, View):
     """Prices for one plan. `currency` in the POST body must be the id of an
     app-configured Currency (Settings > Currency) — never a raw code string,
@@ -28,7 +25,7 @@ class PlanPriceAdminListView(AdminRequiredMixin, View):
 
     def post(self, request, plan_id):
         plan = get_object_or_404(Plan, pk=plan_id)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         currency = get_object_or_404(Currency, pk=data.get("currency"))
         if PlanPrice.objects.filter(plan=plan, currency=currency).exists():
             return JsonResponse(
@@ -38,11 +35,10 @@ class PlanPriceAdminListView(AdminRequiredMixin, View):
         return JsonResponse(price.to_dict(), status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PlanPriceAdminDetailView(AdminRequiredMixin, View):
     def put(self, request, plan_id, price_id):
         price = get_object_or_404(PlanPrice, pk=price_id, plan_id=plan_id)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         if "amount" in data:
             price.amount = data["amount"]
         price.save()

@@ -7,6 +7,8 @@ from datetime import timedelta
 
 from dotenv import load_dotenv
 
+from wealthflow.env_settings import build_security_settings
+
 # Build paths inside the project
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -16,13 +18,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # see .env.example for the expected keys.
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-8pg_zmp_cy^rl+p7=hb3ournneiqklid=m4z1x-69j6-u+#77g"
-
-# FIX 1: Set DEBUG to True for development
-DEBUG = True
-
-ALLOWED_HOSTS = ["wealthflow.pythonanywhere.com", "localhost", "127.0.0.1"]
+# DEBUG, SECRET_KEY, ALLOWED_HOSTS, CSRF origins and HTTPS hardening come from
+# the environment (see wealthflow/env_settings.py). Defaults keep local
+# development unchanged; WEALTHFLOW_DEBUG=false turns on production settings.
+globals().update(build_security_settings(os.environ))
 
 # Application definition
 INSTALLED_APPS = [
@@ -44,6 +43,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "axes.middleware.AxesMiddleware",
     "core.middleware.LoginRequiredMiddleware",
+    "core.middleware.JsonBodyErrorMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -95,8 +95,8 @@ LOGIN_URL = "/accounts/login/"
 
 # ── Brute-force protection (django-axes) ────────────────────────────────────
 # Lock a username+IP pair after 5 failed logins for 15 minutes. Behind a
-# reverse proxy, also set AXES_IPWARE_PROXY_COUNT / AXES_META_PRECEDENCE_ORDER
-# so the real client IP is used instead of the proxy's.
+# reverse proxy, set WEALTHFLOW_BEHIND_PROXY=true (and WEALTHFLOW_PROXY_COUNT)
+# so the real client IP is used instead of the proxy's; see env_settings.py.
 AUTHENTICATION_BACKENDS = [
     "core.authentication.backends.RequestOptionalAxesBackend",
     "django.contrib.auth.backends.ModelBackend",

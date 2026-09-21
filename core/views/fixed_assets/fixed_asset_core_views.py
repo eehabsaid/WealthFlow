@@ -1,12 +1,10 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from core.validators.json_body import parse_json_body
 from core.models import (
     FixedAsset,
     AssetPurchasePayment,
@@ -35,7 +33,6 @@ __all__ = [
 ]
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetDetailView(View):
 
     def get(self, request, pk):
@@ -51,7 +48,7 @@ class FixedAssetDetailView(View):
             return auth_error
         asset = get_object_or_404(FixedAsset, pk=pk, owner=request.user)
 
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         vehicle_details = data.get("vehicle_details")
         gold_details = data.get("gold_details")
         other_asset_details = data.get("other_asset_details")

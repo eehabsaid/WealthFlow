@@ -6,12 +6,10 @@ settings/ai/ or settings/gold/ for the pattern: an empty __init__.py plus
 one file per concern), then update core/views/settings/__init__.py."""
 
 
-import json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from core.validators.json_body import parse_json_body
 from core.models import (
     Bank,
     BalanceEntry,
@@ -21,7 +19,6 @@ from core.validators import _api_auth_required, _owned_queryset
 
 User = get_user_model()
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BankListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -33,12 +30,11 @@ class BankListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         from core.services import BankService
         bank = BankService.create_bank(data, request.user)
         return JsonResponse(bank.to_dict(), status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BankWithBalanceListView(View):
     """
     Returns only banks that have at least one active, non-Gold/Certificate
@@ -62,13 +58,12 @@ class BankWithBalanceListView(View):
         banks = _owned_queryset(Bank, request).filter(id__in=bank_ids).order_by("order", "name")
         return JsonResponse({"banks": [b.to_dict() for b in banks]})
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BankDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         from core.services import BankService
         bank = BankService.update_bank(pk, data, request.user)
         return JsonResponse(bank.to_dict())

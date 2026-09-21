@@ -1,11 +1,9 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db import transaction
+from core.validators.json_body import parse_json_body
 from core.models import (
     FixedAsset,
     RealEstateDetails,
@@ -24,7 +22,6 @@ from core.views.fixed_assets.fixed_asset_helpers import (
 )
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetListView(View):
 
     def get(self, request):
@@ -76,7 +73,7 @@ class FixedAssetListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         re = data.get("real_estate_details")
         vehicle_details = data.get("vehicle_details")
         gold_details = data.get("gold_details")

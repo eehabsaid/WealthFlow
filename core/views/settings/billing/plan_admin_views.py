@@ -4,15 +4,13 @@
 grows past ~200 lines, split it further within this folder and update
 core/views/settings/__init__.py accordingly."""
 
-import json
 from django.db.models import ProtectedError
 from django.http import JsonResponse
 from django.utils.text import slugify
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
+from core.validators.json_body import parse_json_body
 from core.models import Plan
 from core.views.auth_views import AdminRequiredMixin
 
@@ -36,7 +34,6 @@ def _unique_code_from_name(name: str) -> str:
     return code
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PlanAdminListView(AdminRequiredMixin, View):
     """Lists every plan, including inactive ones — unlike the public
     /api/billing/plans/ endpoint, which only returns active plans."""
@@ -46,7 +43,7 @@ class PlanAdminListView(AdminRequiredMixin, View):
         return JsonResponse({"plans": [p.to_dict() for p in plans]})
 
     def post(self, request):
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         name = (data.get("name") or "").strip()
         if not name:
             return JsonResponse({"error": "Plan name is required."}, status=400)
@@ -60,7 +57,6 @@ class PlanAdminListView(AdminRequiredMixin, View):
         return JsonResponse(plan.to_dict(), status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PlanAdminDetailView(AdminRequiredMixin, View):
     def get(self, request, pk):
         plan = get_object_or_404(Plan, pk=pk)
@@ -68,7 +64,7 @@ class PlanAdminDetailView(AdminRequiredMixin, View):
 
     def put(self, request, pk):
         plan = get_object_or_404(Plan, pk=pk)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         for field in EDITABLE_FIELDS:
             if field in data:
                 setattr(plan, field, data[field])

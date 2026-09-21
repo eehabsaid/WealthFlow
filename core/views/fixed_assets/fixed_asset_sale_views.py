@@ -1,12 +1,10 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from core.validators.json_body import parse_json_body
 from core.models import (
     FixedAsset,
     AssetSale,
@@ -20,7 +18,6 @@ from core.services.fixed_assets.asset_purchase_service import _apply_asset_balan
 from core.services.fixed_assets.gold_sync_service import _sync_gold_balance_from_assets
 from core.validators import _api_auth_required
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AssetSaleView(View):
 
     def get(self, request, asset_id):
@@ -40,7 +37,7 @@ class AssetSaleView(View):
             return auth_error
         asset = get_object_or_404(FixedAsset, pk=asset_id, owner=request.user)
 
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         sale_date_value = data.get("sale_date")
         if isinstance(sale_date_value, str):
             try:

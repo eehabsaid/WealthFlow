@@ -6,24 +6,21 @@ settings/ai/ or settings/gold/ for the pattern: an empty __init__.py plus
 one file per concern), then update core/views/settings/__init__.py."""
 
 
-import json
 import tempfile
 import os
 from datetime import datetime
 from django.http import JsonResponse, FileResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.conf import settings
 from django.core.management import call_command
 
+from core.validators.json_body import parse_json_body
 from core.views.auth_views import PermissionRequiredMixin
 
 # ══════════════════════════════════════════════════════════════
 # BACKUP & RESTORE VIEWS
 # ══════════════════════════════════════════════════════════════
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BackupCreateView(PermissionRequiredMixin, View):
     required_key = "settings_backuprestore"
     def get(self, request):
@@ -55,7 +52,6 @@ class BackupCreateView(PermissionRequiredMixin, View):
             except Exception as e:
                 return JsonResponse({"error": str(e)}, status=500)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BackupListView(PermissionRequiredMixin, View):
     required_key = "settings_backuprestore"
     def get(self, request):
@@ -75,12 +71,11 @@ class BackupListView(PermissionRequiredMixin, View):
         files.sort(key=lambda x: x["created_at"], reverse=True)
         return JsonResponse({"backups": files})
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BackupDeleteView(PermissionRequiredMixin, View):
     required_key = "settings_backuprestore"
     def post(self, request):
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             filename = data.get("filename")
             if not filename or ".." in filename or "/" in filename or "\\" in filename:
                 return JsonResponse({"error": "Invalid filename"}, status=400)
@@ -95,7 +90,6 @@ class BackupDeleteView(PermissionRequiredMixin, View):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BackupRestoreView(PermissionRequiredMixin, View):
     required_key = "settings_backuprestore"
     def post(self, request):
@@ -126,7 +120,7 @@ class BackupRestoreView(PermissionRequiredMixin, View):
         else:
             # Server-side file restore
             try:
-                data = json.loads(request.body)
+                data = parse_json_body(request)
                 filename = data.get("filename")
                 if not filename or ".." in filename or "/" in filename or "\\" in filename:
                     return JsonResponse({"error": "Invalid filename"}, status=400)

@@ -1,9 +1,8 @@
 import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
+from core.validators.json_body import parse_json_body
 from core.services.ai import AIPromptService
 
 
@@ -13,7 +12,6 @@ def _api_auth_required(request):
     return None
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPromptListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -46,7 +44,7 @@ class AIPromptListView(View):
             return auth_error
 
         try:
-            body = json.loads(request.body or "{}")
+            body = parse_json_body(request)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON payload"}, status=400)
 
@@ -57,7 +55,6 @@ class AIPromptListView(View):
         return JsonResponse({"prompt": prompt}, status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPromptDetailView(View):
     def get(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -76,7 +73,7 @@ class AIPromptDetailView(View):
             return auth_error
 
         try:
-            body = json.loads(request.body or "{}")
+            body = parse_json_body(request)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON payload"}, status=400)
 
@@ -99,7 +96,6 @@ class AIPromptDetailView(View):
         return JsonResponse({"ok": True, "id": pk})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPromptFavoriteView(View):
     def post(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -113,7 +109,6 @@ class AIPromptFavoriteView(View):
         return JsonResponse({"ok": True, "prompt": prompt})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPromptUseView(View):
     def post(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -127,7 +122,6 @@ class AIPromptUseView(View):
         return JsonResponse({"ok": True, "prompt": prompt})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPromptDuplicateView(View):
     def post(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -141,7 +135,6 @@ class AIPromptDuplicateView(View):
         return JsonResponse({"ok": True, "prompt": prompt}, status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPromptCategoryListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)

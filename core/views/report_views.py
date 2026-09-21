@@ -1,6 +1,4 @@
 from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 
@@ -14,7 +12,6 @@ from core.reports.report_generators import (
 
 User = get_user_model()
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ExportExcelWorkbookView(View):
     def get(self, request):
         return self.post(request)
@@ -26,12 +23,10 @@ class ExportExcelWorkbookView(View):
 def export_excel(request):
     return ExportExcelWorkbookGenerator().post(request)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GenerateReportView(View):
     def post(self, request):
         return GenerateReportGenerator().post(request)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class SalaryReportView(View):
     def get(self, request):
         from core.reports.report_generators import SalaryReportView as SalaryReportGeneratorView
@@ -41,13 +36,11 @@ class SalaryReportView(View):
         from core.reports.report_generators import SalaryReportView as SalaryReportGeneratorView
         return SalaryReportGeneratorView().post(request)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BalanceReportView(View):
     def get(self, request):
         from core.reports.report_generators import BalanceReportView as BalanceReportGeneratorView
         return BalanceReportGeneratorView().get(request)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CertificateReportView(View):
     def get(self, request):
         from core.reports.report_generators import CertificateReportView as CertificateReportGeneratorView
@@ -57,7 +50,6 @@ class FixedAssetPdfReportView(View):
     def get(self, request):
         return FixedAssetPdfReportGenerator().get(request)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetExcelReportView(View):
     def get(self, request):
         return FixedAssetExcelReportGenerator().get(request)

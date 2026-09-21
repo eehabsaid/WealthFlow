@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from core.validators.json_body import parse_json_body
 from core.models import Currency, Plan
 from core.services.billing import (
     CheckoutError,
@@ -46,7 +47,6 @@ def billing_plans(request):
     return JsonResponse({"plans": [p.to_dict() for p in plans]})
 
 
-@csrf_exempt
 @login_required(login_url="/accounts/login/")
 def billing_upgrade_request(request):
     """Customer-submitted "I want to upgrade" intent. There's no live
@@ -55,7 +55,7 @@ def billing_upgrade_request(request):
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
-    data = json.loads(request.body or "{}")
+    data = parse_json_body(request)
     plan_id = data.get("plan_id")
     plan = Plan.objects.filter(id=plan_id, is_active=True).first()
     if plan is None:
@@ -70,7 +70,6 @@ def billing_upgrade_request(request):
     return JsonResponse({"upgrade_request": upgrade_request.to_dict()}, status=201)
 
 
-@csrf_exempt
 @login_required(login_url="/accounts/login/")
 def billing_checkout(request):
     """Starts a real checkout for a priced plan. Returns either a Paymob
@@ -79,7 +78,7 @@ def billing_checkout(request):
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
-    data = json.loads(request.body or "{}")
+    data = parse_json_body(request)
     plan = Plan.objects.filter(id=data.get("plan_id"), is_active=True).first()
     if plan is None:
         return JsonResponse({"error": "Plan not found."}, status=404)
@@ -96,7 +95,6 @@ def billing_checkout(request):
     return JsonResponse(result, status=201)
 
 
-@csrf_exempt
 @login_required(login_url="/accounts/login/")
 def billing_checkout_fake_complete(request):
     """Test-mode only: instantly completes a pending Invoice created while
@@ -105,7 +103,7 @@ def billing_checkout_fake_complete(request):
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
-    data = json.loads(request.body or "{}")
+    data = parse_json_body(request)
     try:
         invoice = CheckoutService.complete_fake_payment(request.user, data.get("invoice_id"))
     except CheckoutError as exc:
@@ -122,7 +120,7 @@ def paymob_webhook(request):
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
     try:
-        payload = json.loads(request.body or "{}")
+        payload = parse_json_body(request)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON body"}, status=400)
 

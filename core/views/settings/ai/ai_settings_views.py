@@ -7,9 +7,8 @@ core/views/settings/__init__.py accordingly."""
 import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
+from core.validators.json_body import parse_json_body
 from core.views.auth_views import PermissionRequiredMixin
 from core.views.settings.ai.ai_settings_get_helpers import build_ai_settings_get_payload
 from core.views.settings.ai.ai_settings_save_helpers import (
@@ -23,7 +22,6 @@ from core.views.settings.ai.ai_settings_save_helpers import (
 # ══════════════════════════════════════════════════════════════
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AISettingsView(PermissionRequiredMixin, View):
     required_key = "settings_aiadvisor"
     def get(self, request):
@@ -31,7 +29,7 @@ class AISettingsView(PermissionRequiredMixin, View):
 
     def post(self, request):
         try:
-            data = json.loads(request.body or "{}")
+            data = parse_json_body(request)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON body"}, status=400)
 

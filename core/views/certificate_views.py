@@ -1,12 +1,10 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
+from core.validators.json_body import parse_json_body
 from core.models import (
     BankCertificate,
     BankCertificateInterestHistory,
@@ -71,7 +69,6 @@ def _certificate_balance_error_response(exc):
     )
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BankCertificateListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -84,7 +81,7 @@ class BankCertificateListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         bank_id = data.get("bank_id")
         if bank_id:
             from core.models import Bank
@@ -107,7 +104,6 @@ class BankCertificateListView(View):
             return _certificate_balance_error_response(exc)
         return JsonResponse(certificate.to_dict(), status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BankCertificateDetailView(View):
     def get(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -121,7 +117,7 @@ class BankCertificateDetailView(View):
         if auth_error:
             return auth_error
         certificate = _owned_object_or_404(BankCertificate, pk, request)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         if data.get("bank_id"):
             from core.models import Bank
             get_object_or_404(Bank, pk=data["bank_id"], owner=request.user)
@@ -153,7 +149,6 @@ class BankCertificateDetailView(View):
         certificate.delete()
         return JsonResponse({"deleted": pk})
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BankCertificateInterestHistoryView(View):
     def get(self, request, certificate_id):
         auth_error = _api_auth_required(request)

@@ -15,11 +15,11 @@ now that these views live inside core, which is already initialized by
 the time any view runs."""
 
 import json
+from core.validators.json_body import parse_json_body
 import re
 from pathlib import Path
 from django.conf import settings
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 
 I18N_DIR = Path(settings.BASE_DIR) / "static" / "i18n"
 
@@ -113,12 +113,11 @@ def scan_translations(request):
     })
 
 
-@csrf_exempt
 def save_translations(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST required"}, status=400)
 
-    data = json.loads(request.body)
+    data = parse_json_body(request)
     for lang_code, content in data.items():
         with open(I18N_DIR / f"{lang_code}.json", "w", encoding="utf-8") as f:
             json.dump(content, f, ensure_ascii=False, indent=2)

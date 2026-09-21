@@ -7,10 +7,9 @@ Split out of the former monolithic ai_platform_views.py (200-line rule).
 import json
 
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 
+from core.validators.json_body import parse_json_body
 from core.models import AppSettings
 from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.dataset_engine import AIDatasetEngine
@@ -19,7 +18,6 @@ from core.services.ai.training_backends import get_available_training_backends
 from core.views.ai_platform_views.auth import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPlatformDatasetView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -38,7 +36,6 @@ class AIPlatformDatasetView(View):
         return JsonResponse(res)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPlatformModelView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -66,7 +63,7 @@ class AIPlatformModelView(View):
             return auth_error
 
         try:
-            body = json.loads(request.body or "{}")
+            body = parse_json_body(request)
         except json.JSONDecodeError:
             body = {}
 

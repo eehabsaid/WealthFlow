@@ -1,15 +1,12 @@
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from core.validators.json_body import parse_json_body
 from core.models import BankInterest, Bank
 from core.validators import _api_auth_required, _owned_object_or_404
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BankInterestListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -23,7 +20,7 @@ class BankInterestListView(View):
         if auth_error:
             return auth_error
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             interest_date = data["interest_date"]
             bank_id = data.get("bank_id")
             if bank_id:
@@ -48,7 +45,6 @@ class BankInterestListView(View):
             return JsonResponse({"error": str(e)}, status=400)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BankInterestDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -56,7 +52,7 @@ class BankInterestDetailView(View):
             return auth_error
         try:
             entry = _owned_object_or_404(BankInterest, pk, request)
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             if data.get("bank_id"):
                 get_object_or_404(Bank, pk=data["bank_id"], owner=request.user)
 

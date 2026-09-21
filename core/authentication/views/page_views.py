@@ -1,9 +1,9 @@
-import json
 
 from django.contrib.auth import authenticate, get_user_model, login
 from django.http import JsonResponse
 from django.shortcuts import redirect
 
+from core.validators.json_body import parse_json_body
 from core.authentication.services import AuthWorkflowService
 from core.authentication.utils import request_lang as _request_lang
 from core.authentication.views.helpers import _render_auth, _render_auth_status
@@ -65,7 +65,7 @@ def signup_view(request):
 def forgot_password_view(request):
     if request.method == "POST":
         if request.content_type == "application/json":
-            data = json.loads(request.body.decode("utf-8") if isinstance(request.body, bytes) else request.body)
+            data = parse_json_body(request)
             identifier = data.get("email", "") or data.get("identifier", "")
         else:
             identifier = request.POST.get("email", "") or request.POST.get("identifier", "")

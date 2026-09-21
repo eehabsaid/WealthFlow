@@ -3,8 +3,7 @@ import json
 import threading
 from django.http import JsonResponse
 from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+from core.validators.json_body import parse_json_body
 from core.views.auth_views import PermissionRequiredMixin
 from core.views.settings.documentation.documentation_constants import (
     STATUS_FILE,
@@ -16,13 +15,12 @@ from core.views.settings.documentation.documentation_permutations_runner import 
 from doc_engine.device_inventory import load_inventory, validate_inventory
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CaptureScreenshotsView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
 
     def post(self, request):
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             lang_opt = data.get("language", "en")
             theme_opt = data.get("theme", "dark")
             category_opt = data.get("device_category", "Desktop")
@@ -81,13 +79,12 @@ class CaptureScreenshotsView(PermissionRequiredMixin, View):
             return JsonResponse({"error": str(e)}, status=500)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GenerateDocumentsView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
 
     def post(self, request):
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             doc_type = data.get("docs", "all")
             if os.path.exists(CANCEL_FILE):
                 os.remove(CANCEL_FILE)

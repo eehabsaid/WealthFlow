@@ -13,24 +13,21 @@ those must stay against the owner=None platform template (see
 core/views/billing_views.py)."""
 
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
+from core.validators.json_body import parse_json_body
 from core.models import Currency
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CurrencyListView(View):
     def get(self, request):
         currencies = Currency.objects.filter(owner=request.user).order_by("order")
         return JsonResponse({"currencies": [c.to_dict() for c in currencies]})
 
     def post(self, request):
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         currency = Currency.objects.create(
             owner=request.user,
             code=data["code"],
@@ -42,7 +39,6 @@ class CurrencyListView(View):
         return JsonResponse(currency.to_dict(), status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CurrencyDetailView(View):
     def get(self, request, pk):
         c = get_object_or_404(Currency, pk=pk, owner=request.user)
@@ -50,7 +46,7 @@ class CurrencyDetailView(View):
 
     def put(self, request, pk):
         c = get_object_or_404(Currency, pk=pk, owner=request.user)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         for field in ["code", "symbol", "flag", "name", "order"]:
             if field in data:
                 setattr(c, field, data[field])

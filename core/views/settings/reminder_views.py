@@ -5,12 +5,10 @@ move the resulting files into a settings/<domain>/ subfolder (see
 settings/ai/ or settings/gold/ for the pattern: an empty __init__.py plus
 one file per concern), then update core/views/settings/__init__.py."""
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.utils import timezone
+from core.validators.json_body import parse_json_body
 from core.models import (
     ReminderRule,
     ReminderLog,
@@ -22,7 +20,6 @@ from core.services.shared.reminder_automation_service import ReminderAutomationS
 from core.validators import _api_auth_required, _owned_queryset, _owned_object_or_404
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ReminderRuleListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -45,7 +42,7 @@ class ReminderRuleListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         rule = ReminderRule.objects.create(
             owner=request.user,
             name=data["name"],
@@ -59,14 +56,13 @@ class ReminderRuleListView(View):
         return JsonResponse({"rule": rule.to_dict()}, status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ReminderRuleDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
         rule = _owned_object_or_404(ReminderRule, pk, request)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         rule.name = data.get("name", rule.name)
         rule.rule_type = data.get("rule_type", rule.rule_type)
         rule.is_active = data.get("is_active", rule.is_active)
@@ -86,7 +82,6 @@ class ReminderRuleDetailView(View):
         return JsonResponse({"deleted": pk})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ReminderCheckView(View):
     """Called on page load — evaluates all active rules and returns due reminders."""
 
@@ -98,7 +93,6 @@ class ReminderCheckView(View):
         return JsonResponse(result)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ReminderLogListView(View):
     """Return recent reminder log entries."""
 

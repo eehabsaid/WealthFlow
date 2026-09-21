@@ -1,8 +1,6 @@
 import datetime
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from core.services.financial_advisor.risk_analysis_service import RiskAnalysisService
 from core.services.financial_advisor.spending_intelligence_service import SpendingIntelligenceService
@@ -13,7 +11,6 @@ from core.views.certificate_views import _run_certificate_interest_sync
 from core.views.balance.forecasts.shared import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class RiskAnalysisView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)

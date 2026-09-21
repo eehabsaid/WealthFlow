@@ -1,12 +1,10 @@
+from core.validators.json_body import parse_json_body
 from core.views.certificate_views import _run_certificate_interest_sync
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from core.models import (
     Goal,
@@ -23,7 +21,6 @@ from core.utils import (
 )
 from core.validators import _api_auth_required
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GoalPlanningView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -34,7 +31,6 @@ class GoalPlanningView(View):
         payload = GoalPlanningService(request.user, today=datetime.date.today()).payload()
         return JsonResponse(payload)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GoalListView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -49,7 +45,7 @@ class GoalListView(View):
         if auth_error:
             return auth_error
 
-        data = json.loads(request.body or "{}")
+        data = parse_json_body(request)
         goal = Goal.objects.create(
             owner=request.user,
             name=data.get("name", "").strip(),
@@ -64,7 +60,6 @@ class GoalListView(View):
         )
         return JsonResponse(goal.to_dict(), status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GoalDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
@@ -72,7 +67,7 @@ class GoalDetailView(View):
             return auth_error
 
         goal = get_object_or_404(Goal, pk=pk, owner=request.user)
-        data = json.loads(request.body or "{}")
+        data = parse_json_body(request)
 
         for field in ["name", "goal_type", "target_amount", "current_saved_amount", "priority", "notes"]:
             if field in data:

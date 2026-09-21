@@ -5,9 +5,7 @@ Split out of the former monolithic ai_platform_views.py (200-line rule).
 """
 
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 
 from core.models import AIBenchmarkReport
 from core.services.ai.benchmark_engine import AIBenchmarkEngine
@@ -15,7 +13,6 @@ from core.services.ai.model_manager import AIModelManager
 from core.views.ai_platform_views.auth import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPlatformBenchmarkView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)

@@ -1,8 +1,6 @@
 # pyright: reportMissingTypeStubs=false, reportAssignmentType=false, reportRedeclaration=false
 from django.views import View
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db.models import Sum
 from core.models import BalanceEntry, Bank
 from core.services.balance.net_worth_service import NetWorthService
@@ -14,7 +12,6 @@ except (ImportError, ValueError):
     def _run_certificate_interest_sync(force: bool = False):
         return None
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BalanceReportView(View):
     """Balance summary across banks and currencies."""
 

@@ -4,19 +4,16 @@
 grows past ~200 lines, split it further within this folder and update
 core/views/settings/__init__.py accordingly."""
 
-import json
 from decimal import Decimal
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
+from core.validators.json_body import parse_json_body
 from core.models import GoldPuritySetting
 from core.views.settings.gold.gold_settings_helpers import _seed_gold_settings_defaults
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GoldPuritySettingsListView(View):
     def get(self, request):
         _seed_gold_settings_defaults(request.user)
@@ -24,7 +21,7 @@ class GoldPuritySettingsListView(View):
         return JsonResponse({"items": [row.to_dict() for row in rows]})
 
     def post(self, request):
-        data = json.loads(request.body)
+        data = parse_json_body(request)
         key = str(data.get("key") or "").strip().lower()
         if key and not key.endswith("k"):
             key = f"{key}k"
@@ -39,11 +36,10 @@ class GoldPuritySettingsListView(View):
         return JsonResponse(item.to_dict(), status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GoldPuritySettingsDetailView(View):
     def put(self, request, pk):
         item = get_object_or_404(GoldPuritySetting, pk=pk, owner=request.user)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
 
         if "key" in data:
             key = str(data.get("key") or "").strip().lower()

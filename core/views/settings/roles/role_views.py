@@ -5,14 +5,12 @@ system: an admin-defined bundle of grantable keys (see
 core/constants/roles.py) assigned to users via UserRole. Managing Roles
 itself is intentionally NOT delegable (SYSADMIN_ONLY_SETTINGS_TABS)."""
 
-import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 
+from core.validators.json_body import parse_json_body
 from core.models.permissions import Role, RolePermission
 from core.constants.roles import grantable_permission_choices, grantable_permission_keys
 from core.views.auth_views import AdminRequiredMixin
@@ -29,7 +27,6 @@ def _set_role_keys(role, keys):
 
 
 class RoleListView(AdminRequiredMixin, View):
-    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -43,11 +40,7 @@ class RoleListView(AdminRequiredMixin, View):
         )
 
     def post(self, request):
-        data = json.loads(
-            request.body.decode("utf-8")
-            if isinstance(request.body, bytes)
-            else request.body
-        )
+        data = parse_json_body(request)
         name = (data.get("name") or "").strip()
         if not name:
             return JsonResponse({"error": "Role name is required"}, status=400)
@@ -62,17 +55,12 @@ class RoleListView(AdminRequiredMixin, View):
 
 
 class RoleDetailView(AdminRequiredMixin, View):
-    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
     def put(self, request, pk):
         role = get_object_or_404(Role, pk=pk)
-        data = json.loads(
-            request.body.decode("utf-8")
-            if isinstance(request.body, bytes)
-            else request.body
-        )
+        data = parse_json_body(request)
         if "name" in data:
             name = (data.get("name") or "").strip()
             if not name:

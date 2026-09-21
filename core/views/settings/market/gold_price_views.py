@@ -6,14 +6,11 @@ core/views/settings/__init__.py accordingly."""
 
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from core.models import GoldPrice
 from core.services.fixed_assets.gold_valuation_service import GoldValuationService
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GoldPriceListView(View):
     """GET /api/gold/ → latest gold price"""
 
@@ -26,7 +23,6 @@ class GoldPriceListView(View):
         return JsonResponse({"gold": latest.to_dict()})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class GoldPriceRefreshView(View):
     """Fetches EGP gold prices from goldbullioneg.com and USD/EGP from open.er-api.com."""
 

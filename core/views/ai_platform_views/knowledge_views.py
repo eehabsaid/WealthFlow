@@ -7,17 +7,15 @@ Split out of the former monolithic ai_platform_views.py (200-line rule).
 import json
 
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 
+from core.validators.json_body import parse_json_body
 from core.models import AIKnowledgeEntry
 from core.services.ai.autonomous_learning_engine import AIAutonomousLearningEngine
 from core.services.ai.knowledge_engine import AIKnowledgeEngine
 from core.views.ai_platform_views.auth import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPlatformKnowledgeView(View):
     def get(self, request):
         auth_error = _api_auth_required(request)
@@ -44,7 +42,7 @@ class AIPlatformKnowledgeView(View):
             return auth_error
 
         try:
-            body = json.loads(request.body or "{}")
+            body = parse_json_body(request)
         except json.JSONDecodeError:
             body = {}
 
@@ -71,7 +69,6 @@ class AIPlatformKnowledgeView(View):
         return JsonResponse({"entry": entry.to_dict()}, status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIPlatformKnowledgeDetailView(View):
     """
     Per-entry knowledge operations.
@@ -89,7 +86,7 @@ class AIPlatformKnowledgeDetailView(View):
             return JsonResponse({"error": "Not found"}, status=404)
 
         try:
-            body = json.loads(request.body or "{}")
+            body = parse_json_body(request)
         except json.JSONDecodeError:
             body = {}
 

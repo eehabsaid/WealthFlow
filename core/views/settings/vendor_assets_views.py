@@ -7,8 +7,6 @@ one file per concern), then update core/views/settings/__init__.py."""
 
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from core.views.auth_views import PermissionRequiredMixin
 from core.services.shared.vendor_assets_updater_service import update_vendor_assets
@@ -18,7 +16,6 @@ from core.services.shared.vendor_assets_updater_service import update_vendor_ass
 # ══════════════════════════════════════════════════════════════
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class VendorAssetsUpdateView(PermissionRequiredMixin, View):
     required_key = "settings_backuprestore"
     def post(self, request):

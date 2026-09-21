@@ -2,8 +2,6 @@
 
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from core.models import (
     FixedAsset,
@@ -13,7 +11,6 @@ from core.models import (
 from django.http import HttpResponse
 from core.validators import _api_auth_required
 
-@method_decorator(csrf_exempt, name="dispatch")
 class FixedAssetPhotoView(View):
 
     def post(self, request, pk):

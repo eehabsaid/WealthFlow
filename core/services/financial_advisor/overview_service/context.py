@@ -37,6 +37,7 @@ class OverviewContext:
     # Phase 4: Wealth Growth Projections metrics
     expected_growth_pct: float = 0.0
     expected_net_worth_1y: float = 0.0
+    has_growth_basis: bool = False
 
     # Phase 5: Goal Planning metrics
     goal_summary: Dict[str, Any] = field(default_factory=dict)

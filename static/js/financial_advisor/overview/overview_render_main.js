@@ -65,17 +65,8 @@ function _renderOverview(payload) {
   // Alerts list with severity badge and empty state fallback
   const alertsHtml = buildOverviewAlertsHtml(payload);
 
-  // Net Worth trend calculations
-  const nwTrendIsUp = Number(kpis.net_worth_growth_yoy || 0) >= 0;
-  const nwTrendText = nwTrendIsUp
-    ? t("overview_kpi_yoy_trend_up", `↑ {pct}% vs last year`).replace(
-        "{pct}",
-        fmt(Math.abs(kpis.net_worth_growth_yoy))
-      )
-    : t("overview_kpi_yoy_trend_down", `↓ {pct}% vs last year`).replace(
-        "{pct}",
-        fmt(Math.abs(kpis.net_worth_growth_yoy))
-      );
+  // Net Worth trend (shared helper in overview_cards_kpi.js)
+  const { isUp: nwTrendIsUp, text: nwTrendText } = buildOverviewNwTrend(kpis);
 
   // Cash Flow expected change
   const cfChangeVal = Number(cashFlow.expected_change_30d || 0);

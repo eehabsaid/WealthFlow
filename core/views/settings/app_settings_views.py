@@ -14,10 +14,9 @@ UserProfile.preferred_language rather than a per-user AppSettings row."""
 import json
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db import transaction
 
+from core.validators.json_body import parse_json_body
 from core.models import AppSettings
 from core.constants.user_scoped_settings import USER_SCOPED_SETTING_KEYS, ACTIVE_LANGUAGE_KEY
 from core.views.settings.settings_access import SettingsAccess
@@ -41,7 +40,6 @@ def _resolve_for_user(request):
     return resolved
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class SettingsView(View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -52,7 +50,7 @@ class SettingsView(View):
     def post(self, request):
         if not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        data = json.loads(request.body or "{}")
+        data = parse_json_body(request, allow_list=True)
         items = []
 
         if isinstance(data, list):

@@ -1,12 +1,10 @@
+from core.validators.json_body import parse_json_body
 from core.views.certificate_views import _run_certificate_interest_sync
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
-import json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from core.models import (
     BalanceEntry,
@@ -28,7 +26,6 @@ if not __name__.endswith('.auth_views') and not __name__ == 'core.views.auth_vie
     except (ImportError, ValueError):
         pass
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BalanceListView(View):
     def _normalize_purity_key(self, purity_value):
         text = str(purity_value or "").strip().lower()
@@ -70,7 +67,7 @@ class BalanceListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        data = json.loads(request.body) if request.body else {}
+        data = parse_json_body(request)
         balance_type = data.get("balance_type")
         title = data.get("title")
         if not balance_type or not title:
@@ -99,14 +96,13 @@ class BalanceListView(View):
         )
         return JsonResponse(entry.to_dict(), status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class BalanceDetailView(View):
     def put(self, request, pk):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
         entry = get_object_or_404(BalanceEntry, pk=pk, owner=request.user)
-        data = json.loads(request.body)
+        data = parse_json_body(request)
 
         if "bank_id" in data and data["bank_id"]:
             from core.models import Bank

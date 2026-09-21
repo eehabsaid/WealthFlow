@@ -8,14 +8,11 @@ one file per concern), then update core/views/settings/__init__.py."""
 
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from core.views.auth_views import PermissionRequiredMixin
 from core.models import AppSettings
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class ScrapePropertyRatesView(PermissionRequiredMixin, View):
     """
     POST /api/settings/scrape-property-rates/

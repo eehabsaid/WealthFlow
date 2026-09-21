@@ -1,10 +1,8 @@
 import os
-import json
 import subprocess
 from django.http import JsonResponse
 from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+from core.validators.json_body import parse_json_body
 from core.views.auth_views import PermissionRequiredMixin
 from core.views.settings.documentation.documentation_constants import (
     BASE_DIR,
@@ -19,7 +17,6 @@ from core.views.settings.documentation.documentation_constants import (
 )
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class CancelDocumentationView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
 
@@ -77,13 +74,12 @@ class CancelDocumentationView(PermissionRequiredMixin, View):
         return JsonResponse({"success": True, "status": "CANCELLED"})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class OpenFolderView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
 
     def post(self, request):
         try:
-            data = json.loads(request.body)
+            data = parse_json_body(request)
             target = data.get("target")
 
             target_path = None

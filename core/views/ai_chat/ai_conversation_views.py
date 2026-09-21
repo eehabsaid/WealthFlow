@@ -2,16 +2,14 @@ import json
 import time
 
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 
+from core.validators.json_body import parse_json_body
 from core.models import AIConversation
 from core.services.ai.cache_manager import AICacheManager
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIProgressView(View):
     """
     Lightweight progress polling endpoint for the multi-step investigation loop.
@@ -57,7 +55,6 @@ class AIProgressView(View):
 
         return JsonResponse({"status": "idle"})
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIConversationListView(View):
     """
     View for listing and creating conversations.
@@ -91,7 +88,7 @@ class AIConversationListView(View):
             return auth_error
 
         try:
-            body = json.loads(request.body or "{}")
+            body = parse_json_body(request)
         except json.JSONDecodeError:
             body = {}
 
@@ -99,7 +96,6 @@ class AIConversationListView(View):
         conversation = AIConversation.objects.create(user=request.user, title=title)
         return JsonResponse({"conversation": conversation.to_dict()}, status=201)
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AIConversationDetailView(View):
     """
     View for viewing or soft-deleting a conversation.
@@ -159,7 +155,7 @@ class AIConversationDetailView(View):
             return JsonResponse({"error": "Conversation not found"}, status=404)
 
         try:
-            body = json.loads(request.body or "{}")
+            body = parse_json_body(request)
         except json.JSONDecodeError:
             body = {}
 
