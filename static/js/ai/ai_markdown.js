@@ -77,18 +77,31 @@ function _renderMarkdown(text) {
   html = html.replace(/^\s*\d+\.\s+(.*)$/gim, "<ol><li>$1</li></ol>");
   html = html.replace(/<\/ol>\n<ol>/g, "\n");
 
-  // 11. Tables
-  html = html.replace(/^\|(.+)\|$/gim, function (match, content) {
-    const cells = content
-      .split("|")
-      .map((c) => `<td>${c.trim()}</td>`)
-      .join("");
-    return `<tr>${cells}</tr>`;
+  // 11. Tables: header row, optional |---| separator row, body rows.
+  // Emitted on ONE line so step 12's \n -> <br> never lands inside <table>.
+  html = html.replace(/(?:^\|.+\|[ \t]*(?:\n|$))+/gm, function (block) {
+    const isSep = (cells) => cells.every((c) => /^:?-{3,}:?$/.test(c));
+    let rows = block
+      .trim()
+      .split("\n")
+      .map((line) =>
+        line
+          .trim()
+          .replace(/^\||\|$/g, "")
+          .split("|")
+          .map((c) => c.trim())
+      );
+    let head = null;
+    if (rows.length > 1 && isSep(rows[1])) {
+      head = rows[0];
+      rows = rows.slice(2);
+    } else {
+      rows = rows.filter((r) => !isSep(r));
+    }
+    const thead = head ? `<thead><tr>${head.map((c) => `<th>${c}</th>`).join("")}</tr></thead>` : "";
+    const tbody = rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("");
+    return `<div class="ai-table-wrap"><table>${thead}<tbody>${tbody}</tbody></table></div>`;
   });
-  html = html.replace(
-    /(<tr>.*?<\/tr>[\n\r]*)+/g,
-    '<div class="ai-table-wrap"><table>$&</table></div>'
-  );
 
   // 12. Line breaks
   html = html.replace(/\n/g, "<br>");
