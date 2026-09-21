@@ -41,7 +41,7 @@
     }
 
     const headers = new Headers(options.headers || (isRequest ? input.headers : undefined));
-    if (!headers.has("X-CSRFToken")) {
+    if (!headers.get("X-CSRFToken")) {
       headers.set("X-CSRFToken", token);
     }
     return nativeFetch(input, Object.assign({}, options, { headers }));

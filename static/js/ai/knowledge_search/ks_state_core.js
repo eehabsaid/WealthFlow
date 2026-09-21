@@ -34,7 +34,7 @@ window.KS.escapeHtml = function (str) {
 };
 
 window.KS.csrfToken = function () {
-  return document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
+  return window.wfGetCsrfToken?.() || "";
 };
 
 window.KS.search = function (query) {

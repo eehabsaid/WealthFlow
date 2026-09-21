@@ -11,6 +11,7 @@ from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.credential_encryption import redact_secrets
 
 from .base import BaseAIProvider
+from .ollama_payload import apply_runtime_flags, is_think_unsupported_error
 from .ollama_connection_mixin import OllamaConnectionMixin
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
             "context_size": AppSettings.get("ai_context_size", None, user=user),
             "temperature": AppSettings.get("ai_temperature", None, user=user),
             "max_tokens": AppSettings.get("ai_max_tokens", None, user=user),
+            "keep_alive": AppSettings.get("ai_keep_alive", None, user=user),
         }
         return inst
 
@@ -131,13 +133,18 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
             payload["options"] = options
         if tools:
             payload["tools"] = tools
+        keep_alive = self.user_options.get("keep_alive") or AppSettings.get("ai_keep_alive", None)
+        apply_runtime_flags(payload, model_name, keep_alive)
 
         data, status, err = make_json_http_request(
-            url=chat_url,
-            method="POST",
-            payload=payload,
-            timeout=timeout,
+            url=chat_url, method="POST", payload=payload, timeout=timeout,
         )
+        if err and "think" in payload and is_think_unsupported_error(err):
+            # Older Ollama / model variant without a thinking toggle: retry once without it.
+            payload.pop("think", None)
+            data, status, err = make_json_http_request(
+                url=chat_url, method="POST", payload=payload, timeout=timeout,
+            )
 
         if err:
             safe_err = redact_secrets(err)

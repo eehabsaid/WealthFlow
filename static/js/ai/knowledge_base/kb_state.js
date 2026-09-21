@@ -48,7 +48,7 @@ window.KB.escapeHtml = function (str) {
 };
 
 window.KB.csrfToken = function () {
-  return document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
+  return window.wfGetCsrfToken?.() || "";
 };
 
 window.KB.loadEntries = async function () {

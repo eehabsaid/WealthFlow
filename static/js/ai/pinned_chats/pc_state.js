@@ -51,7 +51,7 @@ window.PC.unpin = function (convId) {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")?.value || "",
+      "X-CSRFToken": window.wfGetCsrfToken?.() || "",
     },
     body: JSON.stringify({ is_pinned: false }),
   })

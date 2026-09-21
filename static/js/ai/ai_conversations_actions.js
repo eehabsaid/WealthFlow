@@ -111,7 +111,7 @@ async function _deleteAIChatConversation(convId) {
     const res = await fetch(`/api/financial-advisor/ai/conversations/${convId}/`, {
       method: "DELETE",
       headers: {
-        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")?.value || "",
+        "X-CSRFToken": window.wfGetCsrfToken?.() || "",
       },
     });
 

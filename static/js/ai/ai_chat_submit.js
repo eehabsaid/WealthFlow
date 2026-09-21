@@ -27,7 +27,7 @@ async function _handleAIChatSubmit() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")?.value || "",
+          "X-CSRFToken": window.wfGetCsrfToken?.() || "",
         },
         body: JSON.stringify({
           title: message.length > 30 ? message.slice(0, 30) + "..." : message,
@@ -59,7 +59,7 @@ async function _handleAIChatSubmit() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")?.value || "",
+        "X-CSRFToken": window.wfGetCsrfToken?.() || "",
       },
       body: JSON.stringify({
         message: message,

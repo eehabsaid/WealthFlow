@@ -10,7 +10,7 @@
 window.PromptLib = window.PromptLib || {};
 
 function _csrfToken() {
-  return document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
+  return window.wfGetCsrfToken?.() || "";
 }
 
 // Optimistic UI for Favorite Toggle
