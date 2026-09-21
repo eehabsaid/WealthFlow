@@ -2,9 +2,12 @@
 
 Local models spend minutes re-reading ~10K tokens of context just to quote a
 value the backend already computed. When a question is a single, unambiguous
-fact (currently: paid salary for one month, or the latest paid salary), the
-answer comes from the same deterministic tool payload the LLM would have been
-told to quote verbatim (see tools/salary_answers.py).
+fact, the answer is computed from the same deterministic data the LLM would
+have been told to quote verbatim:
+  - salary: paid salary for one month, or the latest paid salary
+    (see tools/salary_answers.py)
+  - expenses: total, daily list, or category breakdown for one month
+    (see expense_direct.py)
 
 Anything ambiguous, multi-part, comparative or non-English returns None and the
 normal LLM pipeline runs unchanged. Kill-switch: AppSettings ai_direct_answers=false.
@@ -13,9 +16,10 @@ normal LLM pipeline runs unchanged. Kill-switch: AppSettings ai_direct_answers=f
 from __future__ import annotations
 
 import re
+import time
 from typing import Any
 
-from core.services.ai.tools.salary_answers import _MONTH_RE
+from core.services.ai.period_parser import find_periods
 
 _MAX_LEN = 120
 _SALARY_RE = re.compile(r"\b(salary|salaries|paid|payslip)\b")
@@ -39,7 +43,7 @@ def _match_salary(text: str) -> str | None:
         return None
     if not _SALARY_RE.search(q) or _NOT_SIMPLE_RE.search(q):
         return None
-    periods = _MONTH_RE.findall(q)
+    periods = find_periods(q)
     if len(periods) == 1:
         return "requested_period_answer"
     if not periods and _LATEST_RE.search(q):
@@ -55,6 +59,31 @@ def try_direct_answer(user: Any, text: str) -> dict[str, Any] | None:
 
     if str(AppSettings.get("ai_direct_answers", "true", user=user)).strip().lower() == "false":
         return None
+    return _try_salary(user, text) or _try_expenses(user, text)
+
+
+def _audit(tool: str, text: str, started: float) -> dict[str, Any]:
+    from datetime import datetime, timezone
+
+    return {
+        "tool": tool, "timestamp": datetime.now(timezone.utc).isoformat(), "status": "success",
+        "duration_ms": int((time.monotonic() - started) * 1000),
+        "arguments": {"search_query": text}, "step": 1, "direct_answer": True,
+    }
+
+
+def _try_expenses(user: Any, text: str) -> dict[str, Any] | None:
+    from core.services.ai.expense_direct import answer_expenses, match_expense_intent
+
+    intent = match_expense_intent(text)
+    if not intent:
+        return None
+    started = time.monotonic()
+    answer = answer_expenses(user, *intent)
+    return {"content": answer, "tool_calls": [_audit("direct_answer_expenses", text, started)], "sources": ["expenses"]}
+
+
+def _try_salary(user: Any, text: str) -> dict[str, Any] | None:
     key = _match_salary(text)
     if not key:
         return None

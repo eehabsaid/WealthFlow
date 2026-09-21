@@ -11,7 +11,6 @@ NOTE (200-line file convention): part of the core/services/ai/tools/ package.
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 SALARY_INSTRUCTIONS = (
@@ -28,15 +27,13 @@ SALARY_INSTRUCTIONS = (
 _LATEST_WORDS = ("last", "latest", "recent", "newest", "current")
 _MONTHS = ["january", "february", "march", "april", "may", "june", "july",
            "august", "september", "october", "november", "december"]
-_MONTH_RE = re.compile(r"\b(" + "|".join(m[:3] + (r"(?:" + m[3:] + r")?") for m in _MONTHS) + r")\b[\s\-/,]*(\d{4})")
-_MONTH_INT = {m[:3]: i + 1 for i, m in enumerate(_MONTHS)}
 
 
 def _parse_month_year(query: str) -> tuple[int, int] | None:
-    match = _MONTH_RE.search(query.lower())
-    if not match:
-        return None
-    return _MONTH_INT[match.group(1)[:3]], int(match.group(2))
+    from core.services.ai.period_parser import find_periods
+
+    periods = find_periods(query)
+    return (periods[0][1], periods[0][0]) if periods else None  # (month, year)
 
 
 def _month_answer(user: Any, month: int, year: int) -> str:

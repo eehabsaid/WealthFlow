@@ -20,6 +20,11 @@ class MatchSalaryTests(SimpleTestCase):
                   "How much was my salary in March 2025?"):
             self.assertEqual(_match_salary(q), "requested_period_answer", q)
 
+    def test_sept_spelling_and_relative_month(self):
+        self.assertEqual(_match_salary("salary for Sept 2026"), "requested_period_answer")
+        self.assertEqual(_match_salary("paid salary 2026-09"), "requested_period_answer")
+        self.assertEqual(_match_salary("what was my paid salary last month"), "requested_period_answer")
+
     def test_latest_question(self):
         self.assertEqual(_match_salary("What is my latest paid salary?"), "latest_paid_salary_answer")
         self.assertEqual(_match_salary("last salary"), "latest_paid_salary_answer")
