@@ -111,10 +111,16 @@ class TestContext:
                 "No credentials provided for TestContext.login(). Pass username/password "
                 "explicitly, or set the WF_USERNAME and WF_PASSWORD environment variables."
             )
+        # The API enforces CSRF: load a page that sets the csrftoken cookie
+        # first, then send it back in the X-CSRFToken header.
+        self.context.request.get(f"{base_url}/accounts/login/")
+        token = next(
+            (c["value"] for c in self.context.cookies() if c["name"] == "csrftoken"), ""
+        )
         res = self.context.request.post(
             f"{base_url}/api/auth/login/",
             data=json.dumps({"username": username, "password": password}),
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json", "X-CSRFToken": token},
         )
         self.page.goto(f"{base_url}/")
         self.page.wait_for_timeout(1000)
