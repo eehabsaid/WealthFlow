@@ -15,7 +15,11 @@ from core.models import AppSettings, AIMessage
 from core.services.financial_advisor.registry import get_financial_advisor_payload
 
 from core.services.ai.context_builder_service.business_data import fetch_grounding_business_data
-from core.services.ai.context_builder_service.constants import DEFAULT_CORE_SERVICES, TOPIC_KEYWORD_MAP
+from core.services.ai.context_builder_service.constants import (
+    DEFAULT_CORE_SERVICES,
+    TOPIC_KEYWORD_MAP,
+    match_advisor_services_by_name,
+)
 from core.services.ai.context_builder_service.formatting import split_payload_blocks, summarize_payload
 from core.services.ai.context_builder_service.prompt import build_system_prompt
 
@@ -57,11 +61,9 @@ class ContextBuilderService:
         from core.services.financial_advisor.registry import get_available_advisor_services
         available_services = get_available_advisor_services()
 
-        for service_key in available_services:
-            clean_key = service_key.replace("_", " ").lower()
-            if any(term in q for term in clean_key.split()):
-                if service_key not in selected:
-                    selected.append(service_key)
+        for service_key in match_advisor_services_by_name(q, available_services):
+            if service_key not in selected:
+                selected.append(service_key)
 
         for service_key, keywords in TOPIC_KEYWORD_MAP.items():
             if any(kw in q for kw in keywords):

@@ -5,16 +5,47 @@ Enforces multi-tenant scoping, yield calculations, maturity dates, and home curr
 
 from __future__ import annotations
 
+import calendar
 from typing import Any
 from datetime import date
 from core.models import BankCertificate
 from core.services.ai.providers.base import BaseContextProvider
+from core.services.certificate.certificate_interest_service import CertificateInterestService
 # Caps how many certificates are included in the AI-facing 'items' list when the
 # caller does not pass an explicit `limit`. Aggregates (summary) are always computed
 # over ALL active certificates regardless of this cap — only the per-row list is
 # capped, to keep the JSON payload small enough to reliably fit in the model's
 # context window without truncation.
 MAX_CERTIFICATES_FOR_AI = 20
+
+
+def _add_months(base_date: date, months: int) -> date:
+    """Pure date-math, identical to DateCalculationMixin._add_months — kept as
+    a standalone function here rather than importing that mixin, since it also
+    carries write-locking DB helpers (select_for_update) that have no place in
+    a provider under the 100%-read-only AI tool constraint."""
+    month_index = base_date.month - 1 + months
+    year = base_date.year + month_index // 12
+    month = month_index % 12 + 1
+    day = min(base_date.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
+
+
+def _next_interest_date(cert: "BankCertificate") -> date | None:
+    """Deterministic next scheduled interest-posting date, reusing the same
+    FREQUENCY_MONTHS table the real posting engine (CertificateInterestService)
+    uses — so the AI quotes the same schedule the app actually posts on,
+    instead of guessing or conflating it with the maturity/expiry date."""
+    interval = CertificateInterestService.FREQUENCY_MONTHS.get(
+        str(cert.frequency or "").strip().lower()
+    )
+    if not interval:
+        return None
+    anchor = cert.last_interest_posted_date or cert.issue_date
+    if not anchor:
+        return None
+    return _add_months(anchor, interval)
+
 
 class BankCertificatesDataProvider(BaseContextProvider):
     @property
@@ -53,6 +84,7 @@ class BankCertificatesDataProvider(BaseContextProvider):
         weighted_rate_sum = 0.0
         items = []
         today = date.today()
+        soonest_next_interest: dict[str, Any] | None = None
 
         for cert in certs_raw:
             c_code = cert.currency.code if cert.currency else home_currency
@@ -71,6 +103,21 @@ class BankCertificatesDataProvider(BaseContextProvider):
             if cert.expiry_date:
                 days_to_maturity = (cert.expiry_date - today).days
 
+            next_interest_dt = _next_interest_date(cert)
+            next_interest_date_str = next_interest_dt.isoformat() if next_interest_dt else None
+            if next_interest_dt and (
+                soonest_next_interest is None
+                or next_interest_dt < date.fromisoformat(soonest_next_interest["next_interest_date"])
+            ):
+                soonest_next_interest = {
+                    "certificate_id": cert.id,
+                    "bank_name": cert.bank.name if cert.bank else "",
+                    "next_interest_date": next_interest_date_str,
+                    "next_interest_value": interest_val,
+                    "next_interest_value_formatted": self.format_currency(interest_val, c_code),
+                    "currency": c_code,
+                }
+
             items.append({
                 "id": cert.id,
                 "bank_name": cert.bank.name if cert.bank else "",
@@ -83,8 +130,14 @@ class BankCertificatesDataProvider(BaseContextProvider):
                 "interest_rate_formatted": f"{rate_pct:.2f}%",
                 "interest_value_monthly": interest_val,
                 "interest_value_monthly_formatted": self.format_currency(interest_val, c_code),
+                "frequency": cert.frequency,
                 "issue_date": cert.issue_date.isoformat() if cert.issue_date else "",
                 "expiry_date": cert.expiry_date.isoformat() if cert.expiry_date else "",
+                "last_interest_posted_date": (
+                    cert.last_interest_posted_date.isoformat() if cert.last_interest_posted_date else None
+                ),
+                "next_interest_date": next_interest_date_str,
+                "next_interest_date_note": "The next scheduled interest posting date — NOT the maturity/expiry_date.",
                 "days_to_maturity": days_to_maturity,
                 "status": cert.status,
             })
@@ -105,6 +158,12 @@ class BankCertificatesDataProvider(BaseContextProvider):
                 "average_weighted_interest_rate_pct": avg_weighted_rate,
                 "active_certificates_count": len(items),
                 "home_currency": home_currency,
+                "next_upcoming_interest": soonest_next_interest,
+                "next_upcoming_interest_note": (
+                    "The single soonest next interest posting across all active certificates — "
+                    "use this directly for 'next interest date/value' questions instead of "
+                    "scanning items or using any certificate's expiry_date."
+                ),
             },
             "items": items[:effective_limit],
             "items_note": (

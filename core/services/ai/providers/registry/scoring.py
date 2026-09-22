@@ -53,7 +53,11 @@ def _score_provider_relevance(provider: Any, search_query: str) -> float:
         "report", "data", "list", "show", "get", "view"
     }
     raw_terms = [t.strip(",.?!;:()\"'") for t in q_str.split()]
-    query_terms = [t for t in raw_terms if len(t) > 1 and t not in stop_words]
+    # len > 3, not > 1: short common words ("hi", "who", "fee") were matching
+    # as substrings almost anywhere in provider metadata (e.g. "hi" inside
+    # "achieve", "history"). Longer terms still match as substrings on
+    # purpose, to catch plurals/stems ("certificate" in "certificates").
+    query_terms = [t for t in raw_terms if len(t) > 3 and t not in stop_words]
 
     if not query_terms:
         return 1.0
