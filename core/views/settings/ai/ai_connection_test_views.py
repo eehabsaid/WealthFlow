@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.views import View
 
 from core.validators.json_body import parse_json_body
-from core.views.auth_views import PermissionRequiredMixin
+from core.views.auth_views import AdminRequiredMixin
 from core.models import AppSettings
 from core.services.ai.credential_encryption import decrypt_credential, is_masked
 from core.integrations.ai_provider import (
@@ -22,8 +22,7 @@ from core.integrations.ai_provider import (
 )
 
 
-class AIConnectionTestView(PermissionRequiredMixin, View):
-    required_key = "settings_aiadvisor"
+class AIConnectionTestView(AdminRequiredMixin, View):
     def post(self, request):
         try:
             data = parse_json_body(request)

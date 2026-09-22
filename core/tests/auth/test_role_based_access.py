@@ -30,7 +30,6 @@ class RoleBasedAccessTests(TestCase):
         self.assertTrue(user_is_sysadmin(self.user))
         keys = effective_permission_keys(self.user)
         self.assertIn("dashboard", keys)
-        self.assertIn("settings_aiadvisor", keys)
         # Sysadmin-locked tabs are never part of the grantable key set at
         # all — sysadmin access to them is checked directly via
         # user_is_sysadmin(), not via this key set (see the locked-view
@@ -38,6 +37,7 @@ class RoleBasedAccessTests(TestCase):
         self.assertNotIn("settings_users", keys)
         self.assertNotIn("settings_billing", keys)
         self.assertNotIn("settings_roles", keys)
+        self.assertNotIn("settings_aiadvisor", keys)
 
     def test_role_grants_are_unioned_across_multiple_roles(self):
         role_a = Role.objects.create(name="Finance")
@@ -89,11 +89,16 @@ class RoleBasedAccessTests(TestCase):
         res = self.client.get("/api/users/")
         self.assertEqual(res.status_code, 200)
 
-    def test_delegable_settings_tab_honors_role_grant(self):
-        role = Role.objects.create(name="AIOps")
-        RolePermission.objects.create(role=role, key="settings_aiadvisor")
-        UserRole.objects.create(user=self.user, role=role)
+    def test_ai_advisor_tab_rejects_role_grant_but_allows_sysadmin(self):
+        # AI Advisor is app-wide config, sysadmin-only — not delegable via
+        # a role, even one that (invalidly) claims the key.
+        Role.objects.create(name="AIOps")
+        PagePermission.objects.create(user=self.user, page="settings_aiadvisor", granted=True)
         self.client.force_login(self.user)
+        res = self.client.get("/api/settings/ai/")
+        self.assertEqual(res.status_code, 403)
+
+        self._make_sysadmin(self.user)
         res = self.client.get("/api/settings/ai/")
         self.assertEqual(res.status_code, 200)
 

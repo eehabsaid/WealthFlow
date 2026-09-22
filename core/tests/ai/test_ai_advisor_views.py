@@ -89,11 +89,22 @@ class AIAdvisorViewsTest(TestCase):
         )
         self.assertEqual(res_valid.status_code, 200)
 
-        # Verify saved per-user in AppSettings (AI settings are BYOK / per-user)
-        self.assertEqual(AppSettings.get("ai_enabled", user=self.admin), "true")
-        self.assertEqual(AppSettings.get("ai_temperature", user=self.admin), "0.5")
-        self.assertEqual(AppSettings.get("ai_context_size", user=self.admin), "8192")
-        self.assertEqual(AppSettings.get("ai_timeout", user=self.admin), "20")
+        # Verify saved as the single global (owner=NULL) row, not per-user
+        self.assertEqual(AppSettings.get("ai_enabled"), "true")
+        self.assertEqual(AppSettings.get("ai_temperature"), "0.5")
+        self.assertEqual(AppSettings.get("ai_context_size"), "8192")
+        self.assertEqual(AppSettings.get("ai_timeout"), "20")
+        self.assertFalse(AppSettings.objects.filter(key="ai_enabled", owner=self.admin).exists())
+
+    def test_ai_settings_view_rejects_non_sysadmin_role_grant(self):
+        from core.models.permissions import Role, RolePermission, UserRole
+
+        role = Role.objects.create(name="AIOps")
+        RolePermission.objects.create(role=role, key="settings_aiadvisor")
+        UserRole.objects.create(user=self.user, role=role)
+        self.client.force_login(self.user)
+        res = self.client.get("/api/settings/ai/")
+        self.assertEqual(res.status_code, 403)
 
     @patch("urllib.request.urlopen")
     def test_ai_connection_test_view(self, mock_urlopen):

@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.views import View
 
 from core.validators.json_body import parse_json_body
-from core.views.auth_views import PermissionRequiredMixin
+from core.views.auth_views import AdminRequiredMixin
 from core.views.settings.ai.ai_settings_get_helpers import build_ai_settings_get_payload
 from core.views.settings.ai.ai_settings_save_helpers import (
     validate_ai_settings_post_data,
@@ -18,14 +18,14 @@ from core.views.settings.ai.ai_settings_save_helpers import (
 )
 
 # ══════════════════════════════════════════════════════════════
-# AI ADVISOR SETTINGS VIEW (Phase 1 Infrastructure)
+# AI ADVISOR SETTINGS VIEW — single app-wide configuration
+# (owner=NULL rows only; sysadmin-only, see SYSADMIN_ONLY_SETTINGS_TABS)
 # ══════════════════════════════════════════════════════════════
 
 
-class AISettingsView(PermissionRequiredMixin, View):
-    required_key = "settings_aiadvisor"
+class AISettingsView(AdminRequiredMixin, View):
     def get(self, request):
-        return JsonResponse(build_ai_settings_get_payload(user=request.user))
+        return JsonResponse(build_ai_settings_get_payload(user=None))
 
     def post(self, request):
         try:
@@ -37,9 +37,9 @@ class AISettingsView(PermissionRequiredMixin, View):
         if error_response:
             return error_response
 
-        persist_ai_settings(data, validated, user=request.user)
+        persist_ai_settings(data, validated, user=None)
         connection_ok, test_error = run_ai_settings_connection_test(
-            validated["enabled"], validated["model"], user=request.user
+            validated["enabled"], validated["model"], user=None
         )
         message_key = "ai_save_success" if (not validated["enabled"] or connection_ok) else "ai_save_success_test_failed"
 

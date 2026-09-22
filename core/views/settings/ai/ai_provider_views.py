@@ -7,12 +7,11 @@ core/views/settings/__init__.py accordingly."""
 from django.http import JsonResponse
 from django.views import View
 
-from core.views.auth_views import PermissionRequiredMixin
+from core.views.auth_views import AdminRequiredMixin
 from core.integrations.ai_provider import AVAILABLE_AI_PROVIDERS
 
 
-class AIProviderListView(PermissionRequiredMixin, View):
-    required_key = "settings_aiadvisor"
+class AIProviderListView(AdminRequiredMixin, View):
     def get(self, request):
         providers = [
             cls.get_config_schema() for cls in AVAILABLE_AI_PROVIDERS.values()
