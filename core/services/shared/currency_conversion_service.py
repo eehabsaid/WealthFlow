@@ -64,6 +64,24 @@ class CurrencyConversionService:
         }
 
     @classmethod
+    def strict_rate(cls, from_code: str, to_code: str, target_date: Optional[date] = None) -> Decimal:
+        """Like calculate_exchange_rate but refuses to guess: raises
+        ValueError('exchange_rate_missing') when a needed market rate is not stored."""
+        from_c = str(from_code or "").strip().upper()
+        to_c = str(to_code or "").strip().upper()
+        if from_c == to_c:
+            return Decimal("1.000000")
+        for code in (from_c, to_c):
+            if code == RATE_PIVOT:
+                continue
+            qs = ExchangeRate.objects.filter(currency_code__iexact=code)
+            if target_date:
+                qs = qs.filter(fetched_at__date__lte=target_date)
+            if not qs.exists():
+                raise ValueError("exchange_rate_missing")
+        return cls.calculate_exchange_rate(from_c, to_c, target_date=target_date)
+
+    @classmethod
     def calculate_exchange_rate(cls, from_code: str, to_code: str, target_date: Optional[date] = None) -> Decimal:
         """
         Calculate exchange rate from from_code to to_code:

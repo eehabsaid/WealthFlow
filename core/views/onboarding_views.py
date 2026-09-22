@@ -10,6 +10,8 @@ _ERROR_KEYS = {
     "invalid_amount": "onboarding_invalid_amount",
     "invalid_currency": "onboarding_invalid_currency",
     "multi_currency_disabled": "currency_default_unavailable",
+    "no_rate_for_currency": "currency_default_no_rate",
+    "exchange_rate_missing": "currency_default_no_rate",
 }
 
 

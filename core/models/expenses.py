@@ -18,6 +18,11 @@ class ExpenseCategory(models.Model):
         ordering = ["order", "name"]
         unique_together = ["owner", "name"]
 
+    def _default_currency_code(self) -> str:
+        from core.services.shared.base_currency import get_user_base_code
+
+        return get_user_base_code(self.owner)
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -160,7 +165,7 @@ class Expense(models.Model):
             "description": self.description,
             "amount": float(self.amount),
             "amount_egp": float(self.amount_egp),
-            "currency_code": self.currency.code if self.currency else "EGP",
+            "currency_code": self.currency.code if self.currency else self._default_currency_code(),
             "currency_symbol": self.currency.symbol if self.currency else "ج.م",
             "bank_id": self.bank_id,
             "bank_name": self.bank.name if self.bank else "",

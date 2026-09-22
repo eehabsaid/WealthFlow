@@ -11,7 +11,7 @@ async function _renderBalanceReport() {
       (b) => `
         <tr>
             <td><strong>${esc(b.bank_name)}</strong></td>
-            <td class="text-end">${_fmt(b.total_egp)} <span data-i18n="EGP"></span></td>
+            <td class="text-end">${_fmt(b.total_egp)} <span data-i18n="base_currency_code"></span></td>
             <td>${b.entries.map((e) => `<span style="font-size:11px;color:var(--text-muted)">${_fmt(e.amount)} ${e.currency_code || ""}</span>`).join(", ")}</td>
         </tr>`
     )
@@ -30,9 +30,9 @@ async function _renderBalanceReport() {
 
   document.getElementById("reportContent").innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
-            ${_kpi("🏛️", "bank_balance", _fmt(banks.reduce((s, b) => s + b.total_egp, 0)) + ' <span data-i18n="EGP"></span>', "")}
-            ${_kpi("🏦", "cert_balance", _fmt(d.cert_total) + ' <span data-i18n="EGP"></span>', "")}
-            ${_kpi("💹", "total_monthly_interest", _fmt(d.cert_interest) + ' <span data-i18n="EGP"></span>', '<span data-i18n="per_month">per month</span>')}
+            ${_kpi("🏛️", "bank_balance", _fmt(banks.reduce((s, b) => s + b.total_egp, 0)) + ' <span data-i18n="base_currency_code"></span>', "")}
+            ${_kpi("🏦", "cert_balance", _fmt(d.cert_total) + ' <span data-i18n="base_currency_code"></span>', "")}
+            ${_kpi("💹", "total_monthly_interest", _fmt(d.cert_interest) + ' <span data-i18n="base_currency_code"></span>', '<span data-i18n="per_month">per month</span>')}
         </div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;overflow:visible;margin-bottom:16px">
             <div style="padding:14px 20px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border-color)" data-i18n="bank_accounts">Bank Accounts</div>

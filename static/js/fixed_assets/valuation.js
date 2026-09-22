@@ -38,7 +38,7 @@ function updateValuationSummary() {
       </div>
       <div class="stat">
         <span class="stat-label" data-i18n="latest_value">Latest Value</span>
-        <span class="stat-value">${latestDate ? "EGP " + fmt(latestEGP) : "-"}</span>
+        <span class="stat-value">${latestDate ? baseCurrencyCode() + " " + fmt(latestEGP) : "-"}</span>
       </div>
     `;
     if (typeof applyTranslations === "function") {
@@ -61,7 +61,9 @@ function addValuationRow(data = {}, expand = false) {
 
   const fmt = (n) =>
     Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const initialAmountPreview = marketVal ? `EGP ${fmt(parseFloat(marketVal) || 0)}` : "EGP 0.00";
+  const initialAmountPreview = marketVal
+    ? `${baseCurrencyCode()} ${fmt(parseFloat(marketVal) || 0)}`
+    : `${baseCurrencyCode()} 0.00`;
 
   row.innerHTML = `
     <div class="item-header card-header">
@@ -139,7 +141,7 @@ function addValuationRow(data = {}, expand = false) {
   const marketInput = row.querySelector(".valuation-market-value");
   const amountPreview = row.querySelector(".item-amount-preview");
   marketInput.addEventListener("input", () => {
-    amountPreview.textContent = `EGP ${fmt(parseFloat(marketInput.value) || 0)}`;
+    amountPreview.textContent = `${baseCurrencyCode()} ${fmt(parseFloat(marketInput.value) || 0)}`;
     updateValuationSummary();
   });
 

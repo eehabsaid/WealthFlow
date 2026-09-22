@@ -15,6 +15,9 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.get_or_create(user=instance)
         _seed_catalogs_for_user(instance)
+        from core.services.shared.base_currency import pin_user_base_currency
+
+        pin_user_base_currency(instance)
 
 
 def _seed_catalogs_for_user(user):

@@ -28,7 +28,7 @@ function drawIncomeExpenseChart(income, expense) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          callbacks: { label: (ctx) => " " + fmt(ctx.parsed.y) + " EGP" },
+          callbacks: { label: (ctx) => " " + fmt(ctx.parsed.y) + " " + baseCurrencyCode() },
           padding: 10,
           cornerRadius: 8,
         },
@@ -78,7 +78,7 @@ function drawCategoryChart(byCat) {
           labels: { color: "#7b97cc", font: { size: 11 } },
         },
         tooltip: {
-          callbacks: { label: (ctx) => " " + fmt(ctx.parsed) + " EGP" },
+          callbacks: { label: (ctx) => " " + fmt(ctx.parsed) + " " + baseCurrencyCode() },
         },
       },
     },
@@ -113,7 +113,7 @@ function drawTrendChart(monthly) {
       plugins: {
         legend: { labels: { color: "#94a3b8", font: { family: "Inter, sans-serif" } } },
         tooltip: {
-          callbacks: { label: (ctx) => " " + fmt(ctx.parsed.y) + " EGP" },
+          callbacks: { label: (ctx) => " " + fmt(ctx.parsed.y) + " " + baseCurrencyCode() },
           padding: 10,
           cornerRadius: 8,
         },

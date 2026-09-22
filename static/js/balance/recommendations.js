@@ -91,9 +91,9 @@ function renderBalanceRecommendations(data) {
                     <div class="fi-section-title">${labelFinancialHealth}</div>
                     <div class="fi-badge-row"><span class="fi-status-badge ${financialHealth.cls}">${financialHealth.icon} ${financialHealth.label}</span></div>
                     <div class="fi-metric-grid">
-                        <div class="fi-metric-row"><span class="fi-metric-label">${labelNetWorth}</span><span class="fi-metric-value fi-accent fi-value-inline"><span class="num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)}</span><span class="fi-value-unit" data-i18n="EGP">${labelEgp}</span></span></div>
+                        <div class="fi-metric-row"><span class="fi-metric-label">${labelNetWorth}</span><span class="fi-metric-value fi-accent fi-value-inline"><span class="num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)}</span><span class="fi-value-unit" data-i18n="base_currency_code">${labelEgp}</span></span></div>
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelLiquidityCoverage}</span><span class="fi-metric-value fi-value-inline"><span class="num-fmt" data-value="${forecastData.cash_coverage_months || 0}">${fmt(forecastData.cash_coverage_months || 0)}</span><span class="fi-value-unit" data-i18n="months">${labelMonths}</span></span></div>
-                        <div class="fi-metric-row"><span class="fi-metric-label">${labelMonthlySurplus}</span><span class="fi-metric-value ${netMonthlySurplus >= 0 ? "fi-positive" : "fi-negative"} fi-value-inline"><span class="num-fmtpresent" data-value="${netMonthlySurplus}">${fmtpresent(netMonthlySurplus)}</span><span class="fi-value-unit" data-i18n="EGP">${labelEgp}</span></span></div>
+                        <div class="fi-metric-row"><span class="fi-metric-label">${labelMonthlySurplus}</span><span class="fi-metric-value ${netMonthlySurplus >= 0 ? "fi-positive" : "fi-negative"} fi-value-inline"><span class="num-fmtpresent" data-value="${netMonthlySurplus}">${fmtpresent(netMonthlySurplus)}</span><span class="fi-value-unit" data-i18n="base_currency_code">${labelEgp}</span></span></div>
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelDiversification}</span><span class="fi-metric-value">${diversificationLabel}</span></div>
                     </div>
                     <div class="fi-section-title">${labelRecommendation}</div>
@@ -140,7 +140,7 @@ function renderBalanceRecommendations(data) {
                                             <div class="fi-metric-label fi-label-with-icon"><span>${row.icon}</span><span>${row.label}</span></div>
                                             <div class="fi-metric-value fi-accent fi-value-inline">
                                                 <span class="num-fmtpresent" data-value="${row.value}">${fmtpresent(row.value)}</span>
-                                                <span class="fi-value-unit" data-i18n="EGP">${labelEgp}</span>
+                                                <span class="fi-value-unit" data-i18n="base_currency_code">${labelEgp}</span>
                                             </div>
                                         </div>`
                                       )

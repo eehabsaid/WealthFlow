@@ -8,7 +8,7 @@
 function deriveBalanceSummary(bData) {
   const summary = bData.summary || {};
   const totals = summary.totals_by_currency || {};
-  const totalEGP = totals.EGP || 0;
+  const totalEGP = totals[baseCurrencyCode()] || 0; // amount held in the default currency
   const cashEGP = summary.liquid_egp_cash ?? summary.cash_egp ?? 0;
   const usdAmount = totals.USD || 0;
   const eurAmount = totals.EUR || 0;
@@ -16,6 +16,19 @@ function deriveBalanceSummary(bData) {
   const usdRate = summary.usd_rate || 0;
   const eurRate = summary.eur_rate || 0;
   const sarRate = summary.sar_rate || 0;
+  // Every currency held, valued in the default currency (the default itself = 1).
+  const base = baseCurrencyCode();
+  const rates = summary.rates_to_base || {};
+  const terms = Object.keys(totals)
+    .filter((code) => !/^gold$/i.test(code))
+    .map((code) => ({
+      code,
+      amount: totals[code] || 0,
+      rate: code === base ? 1 : rates[code] || 0,
+    }));
+  const foreignValue = terms
+    .filter((term) => term.code !== base)
+    .reduce((sum, term) => sum + term.amount * term.rate, 0);
   const goldValue = summary.gold_value || 0;
   const grandTotal = summary.grand_total || 0;
   const netWorth = summary.net_worth || grandTotal || 0;
@@ -24,6 +37,8 @@ function deriveBalanceSummary(bData) {
 
   return {
     totals,
+    terms,
+    foreignValue,
     totalEGP,
     cashEGP,
     usdAmount,

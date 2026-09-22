@@ -30,7 +30,7 @@ function buildOpportunityCardHtml(item) {
               <table class="opp-signals-table">
                 <tr>
                   <td class="opp-signal-label" data-i18n="signal_idle_cash"></td>
-                  <td class="opp-signal-val">${_fmtIntValue(s.idle_cash)} EGP</td>
+                  <td class="opp-signal-val">${_fmtIntValue(s.idle_cash)} ${baseCurrencyCode()}</td>
                 </tr>
                 <tr>
                   <td class="opp-signal-label" data-i18n="signal_gold_trend_7d"></td>
@@ -63,7 +63,7 @@ function buildOpportunityCardHtml(item) {
                 </tr>
                 <tr>
                   <td class="opp-signal-label" data-i18n="signal_maturity_amount"></td>
-                  <td class="opp-signal-val">${_fmtMoneyValue(s.maturity_value)} EGP</td>
+                  <td class="opp-signal-val">${_fmtMoneyValue(s.maturity_value)} ${baseCurrencyCode()}</td>
                 </tr>
                 <tr>
                   <td class="opp-signal-label" data-i18n="signal_bank"></td>
@@ -79,7 +79,7 @@ function buildOpportunityCardHtml(item) {
   if (item.highlighted_amount != null && item.highlighted_amount > 0) {
     highlightedHtml = `
           <div class="opp-highlighted-amount">
-            ${_fmtIntValue(item.highlighted_amount)} EGP
+            ${_fmtIntValue(item.highlighted_amount)} ${baseCurrencyCode()}
           </div>
         `;
   }

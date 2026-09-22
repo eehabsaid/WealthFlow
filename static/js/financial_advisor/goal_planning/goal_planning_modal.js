@@ -19,7 +19,7 @@ function setupGoalModal() {
     currencySelect.innerHTML = (meta.currencies || [])
       .map(
         (item) => `
-      <option value="${item.id}">${_escapeHtml(item.code || "EGP")}${item.symbol ? ` (${_escapeHtml(item.symbol)})` : ""}</option>
+      <option value="${item.id}">${_escapeHtml(item.code || baseCurrencyCode())}${item.symbol ? ` (${_escapeHtml(item.symbol)})` : ""}</option>
     `
       )
       .join("");

@@ -118,13 +118,8 @@ function recalcPerDiemEgp() {
   }
 
   const code = selectedOpt.getAttribute("data-code");
-  let rate = 1.0;
-
-  if (code !== "EGP") {
-    const rates = window._currentRates || [];
-    const rateObj = rates.find((r) => r.currency_code === code);
-    rate = rateObj ? rateObj.buy_rate : 0;
-  }
+  // Value of one unit of the chosen currency in the user's default currency.
+  const rate = code === baseCurrencyCode() ? 1.0 : wfRateToBase(code, window._currentRates || []);
 
   const amountEgp = amountVal * rate;
   document.getElementById("pdAmountEgp").value = fmt(amountEgp);

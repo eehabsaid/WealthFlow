@@ -22,7 +22,7 @@ async function showExpenseModal(expId) {
   const curOpts = curs
     .map(
       (c) =>
-        `<option value="${c.id}" ${exp && exp.currency_code === c.code ? "selected" : c.code === "EGP" ? "selected" : ""}>${c.flag} ${c.code}</option>`
+        `<option value="${c.id}" ${exp && exp.currency_code === c.code ? "selected" : c.code === baseCurrencyCode() ? "selected" : ""}>${c.flag} ${c.code}</option>`
     )
     .join("");
   const methOpts = PAYMENT_METHODS.map(
@@ -129,7 +129,7 @@ function showReadonlyExpenseModal(exp) {
         </div>
         <div class="col-sm-6">
           <label class="form-label" data-i18n="amount">Amount</label>
-          <div class="form-control-plaintext">${fmt(exp.amount)} ${exp.currency_code || "EGP"}</div>
+          <div class="form-control-plaintext">${fmt(exp.amount)} ${exp.currency_code || baseCurrencyCode()}</div>
         </div>
         <div class="col-sm-6">
           <label class="form-label" data-i18n="category">Category</label>

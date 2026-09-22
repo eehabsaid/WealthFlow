@@ -145,7 +145,7 @@ async function deleteCurrency(currencyId) {
 async function setDefaultCurrency(code) {
   const warning = t(
     "currency_default_confirm",
-    "Changing your default currency recalculates all your totals in the new currency. Continue?",
+    "Changing your default currency recalculates all your totals in the new currency. Continue?"
   );
   if (!confirm(warning)) return;
   const res = await fetch("/api/base-currency/", {

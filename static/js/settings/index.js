@@ -34,16 +34,12 @@ async function renderSettings(route) {
     })
     .join("");
 
-  const activeTabObj =
-    visibleTabs.find((tab) => tab.id === activeTab) || visibleTabs[0];
+  const activeTabObj = visibleTabs.find((tab) => tab.id === activeTab) || visibleTabs[0];
   if (!activeTabObj) {
     mc.innerHTML = "";
     return;
   }
-  const activeTabLabel = t(
-    activeTabObj.i18n,
-    activeTabObj.fallback || activeTabObj.id,
-  );
+  const activeTabLabel = t(activeTabObj.i18n, activeTabObj.fallback || activeTabObj.id);
 
   mc.innerHTML = `
         <div class="page-header">

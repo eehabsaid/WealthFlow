@@ -15,13 +15,9 @@ def build_system_prompt(user: Any = None, query: str = "") -> str:
         "You are the WealthFlow AI Financial Advisor. Answer financial questions strictly using provided data.",
     ).strip()
 
-    home_currency = AppSettings.get("home_currency", "EGP")
-    if user and hasattr(user, "profile") and getattr(user.profile, "preferred_currency", None):
-        pref_curr = getattr(user.profile, "preferred_currency")
-        if hasattr(pref_curr, "code"):
-            home_currency = str(pref_curr.code).strip()
-        elif pref_curr:
-            home_currency = str(pref_curr).strip()
+    from core.services.shared.base_currency import get_user_base_code
+
+    home_currency = get_user_base_code(user)
 
     guardrails = (
         "\n\nCRITICAL DIRECTIVES:\n"

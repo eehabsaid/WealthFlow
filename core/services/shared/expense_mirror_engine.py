@@ -43,7 +43,11 @@ def normalize_date(value):
 
 
 def egp_currency(owner=None):
-    return Currency.objects.filter(code__iexact="EGP", owner=owner).order_by("id").first()
+    """The owner's default-currency row (legacy name; mirrored amounts are
+    stored in the default currency)."""
+    from core.services.shared.base_currency import get_user_base_code
+
+    return Currency.objects.filter(code__iexact=get_user_base_code(owner), owner=owner).order_by("id").first()
 
 
 def get_or_create_mirror_subcategory(category_name, category_icon, category_color, subcategory_name, owner):

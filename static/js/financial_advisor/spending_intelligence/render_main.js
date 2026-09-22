@@ -133,7 +133,7 @@ function _renderSpendingIntelligence(payload) {
                   let label = context.label || "";
                   if (label) label += ": ";
                   if (context.parsed !== null)
-                    label += fmt(Number(context.parsed).toFixed(2)) + " EGP";
+                    label += fmt(Number(context.parsed).toFixed(2)) + " " + baseCurrencyCode();
                   return label;
                 },
               },

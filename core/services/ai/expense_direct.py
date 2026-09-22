@@ -60,8 +60,7 @@ def _load(user: Any, year: int, month: int):
     qs = Expense.objects.filter(owner=user, year=year, month=month).select_related("category").order_by("date", "id")
     rows = []
     for e in qs:
-        egp = float(e.amount_egp or 0)
-        rows.append((e, egp if home == "EGP" else provider.convert_to_home_currency(egp, "EGP", home)))
+        rows.append((e, float(e.amount_egp or 0)))  # stored in the user's default (home) currency
     return provider, home, rows
 
 

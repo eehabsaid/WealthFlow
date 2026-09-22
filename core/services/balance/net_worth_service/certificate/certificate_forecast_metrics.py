@@ -30,7 +30,7 @@ def build_forecast_metrics(service, today: date | None = None) -> ForecastContex
     rental_service = FinancialSyncService()
     monthly_rental_income = _to_float(rental_service.period_rental_income_total("month", service.owner))
 
-    # Liquidity is calibrated from BalanceEntry cash rows only and converted to EGP via BUY rates.
+    # Liquidity is calibrated from BalanceEntry cash rows only and converted to the default currency via BUY rates.
     cash_balance = service._strict_liquid_assets_egp()
     certificate_balance = _to_float(comp["certificate_total_egp"])
 
@@ -48,7 +48,7 @@ def build_forecast_metrics(service, today: date | None = None) -> ForecastContex
         if days_left < 0:
             continue
 
-        code = str(getattr(cert.currency, "code", "EGP") or "EGP").upper()
+        code = str(getattr(cert.currency, "code", service._base_code()) or service._base_code()).upper()
         amount_egp = service._converted_egp(_to_float(cert.amount), code, comp["rates"])
         interest_egp = service._converted_egp(_to_float(cert.interest_value), code, comp["rates"])
 
@@ -128,6 +128,7 @@ def build_forecast_metrics(service, today: date | None = None) -> ForecastContex
     return ForecastContext(
         today=today,
         comp=comp,
+        base_code=service._base_code(),
         cash_balance=cash_balance,
         certificate_balance=certificate_balance,
         forecast_30=forecast_30,

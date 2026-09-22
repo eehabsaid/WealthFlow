@@ -39,18 +39,15 @@ class ExpenseService(object):
             exchange_rate_val = Decimal("1")
             currency_id = data.get("currency_id")
             if currency_id:
-                from core.models import Currency, ExchangeRate
+                from core.models import Currency
+                from core.services.shared.base_currency import get_user_base_code
                 from core.services.shared.currency_conversion_service import CurrencyConversionService
                 try:
                     curr = Currency.objects.get(id=currency_id)
-                    if curr.code.upper() != "EGP":
-                        has_rate = ExchangeRate.objects.filter(
-                            currency_code__iexact=curr.code,
-                            fetched_at__date__lte=d
-                        ).exists()
-                        if not has_rate:
-                            raise ValueError("exchange_rate_missing")
-                        exchange_rate_val = CurrencyConversionService.get_latest_buy_rate(curr.code, target_date=d)
+                    # Rate into the user's default currency (raises exchange_rate_missing).
+                    exchange_rate_val = CurrencyConversionService.strict_rate(
+                        curr.code, get_user_base_code(owner), target_date=d
+                    )
                 except Currency.DoesNotExist:
                     pass
             amount_egp_val = amount_value * exchange_rate_val
@@ -137,18 +134,14 @@ class ExpenseService(object):
             if recalc_needed:
                 exchange_rate_val = Decimal("1")
                 if exp.currency_id:
-                    from core.models import Currency, ExchangeRate
+                    from core.models import Currency
+                    from core.services.shared.base_currency import get_user_base_code
                     from core.services.shared.currency_conversion_service import CurrencyConversionService
                     try:
                         curr = Currency.objects.get(id=exp.currency_id)
-                        if curr.code.upper() != "EGP":
-                            has_rate = ExchangeRate.objects.filter(
-                                currency_code__iexact=curr.code,
-                                fetched_at__date__lte=exp.date
-                            ).exists()
-                            if not has_rate:
-                                raise ValueError("exchange_rate_missing")
-                            exchange_rate_val = CurrencyConversionService.get_latest_buy_rate(curr.code, target_date=exp.date)
+                        exchange_rate_val = CurrencyConversionService.strict_rate(
+                            curr.code, get_user_base_code(owner), target_date=exp.date
+                        )
                     except Currency.DoesNotExist:
                         pass
                 exp.exchange_rate = exchange_rate_val

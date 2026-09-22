@@ -26,8 +26,10 @@ def _get_target_cash_balance_entry(payment_method, bank_id, owner, currency_id=N
     if currency_id:
         qs = qs.filter(currency_id=currency_id)
     else:
+        from core.services.shared.base_currency import get_user_base_code
+
         egp_or_cash_qs = qs.filter(
-            Q(currency__code__iexact="EGP")
+            Q(currency__code__iexact=get_user_base_code(owner))
             | Q(currency__code__iexact="CASH")
             | Q(currency__name__iexact="Cash")
         )

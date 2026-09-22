@@ -39,14 +39,14 @@ function buildSpendingCategoryDonutHtml(ctx) {
         <div class="flex-grow-1">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <span style="font-weight:700; font-size:15px; color:var(--text-primary);">${cat.name}</span>
-            <span style="font-weight:800; font-size:15px; color:var(--text-primary); text-align:right;">${fmt(Number(cat.amount_egp).toFixed(2))} EGP</span>
+            <span style="font-weight:800; font-size:15px; color:var(--text-primary); text-align:right;">${fmt(Number(cat.amount_egp).toFixed(2))} ${baseCurrencyCode()}</span>
           </div>
           <div style="width:100%; height:6px; background:rgba(123,147,201,0.1); border-radius:3px; margin-bottom:10px; overflow:hidden;">
             <div class="cat-progress-bar" style="height:100%; width:0%; background:${barColor}; border-radius:3px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);" data-target-width="${cat.percentage}%"></div>
           </div>
           <div class="d-flex justify-content-between align-items-center">
             <div style="font-size:14px; font-weight:800; color:var(--text-secondary); opacity:1;">${cat.percentage.toFixed(1)}% <span style="font-weight:600; font-size:13px; color:var(--text-secondary); opacity:0.9; margin-left:8px;">&bull; ${cat.count} <span data-i18n="spending_intelligence_tx"></span></span></div>
-            <div style="font-size:13px; font-weight:500; color:var(--text-secondary); opacity:1;"><span data-i18n="spending_intelligence_avg_per_tx"></span>: ${fmt(Number(catAvg).toFixed(2))} EGP</div>
+            <div style="font-size:13px; font-weight:500; color:var(--text-secondary); opacity:1;"><span data-i18n="spending_intelligence_avg_per_tx"></span>: ${fmt(Number(catAvg).toFixed(2))} ${baseCurrencyCode()}</div>
           </div>
         </div>
       </div>
@@ -63,7 +63,7 @@ function buildSpendingCategoryDonutHtml(ctx) {
           <canvas id="spendingDonutChart" aria-label="Spending Distribution Chart" role="img"></canvas>
           <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; pointer-events:none;">
             <div style="font-size:14px; font-weight:600; color:var(--text-secondary); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;" data-i18n="spending_intelligence_total_spending"></div>
-            <div style="font-size:24px; font-weight:800; color:var(--text-primary);">${fmt(Number(totalExpenses).toFixed(2))} <span style="font-size:16px;">EGP</span></div>
+            <div style="font-size:24px; font-weight:800; color:var(--text-primary);">${fmt(Number(totalExpenses).toFixed(2))} <span style="font-size:16px;">${baseCurrencyCode()}</span></div>
           </div>
         </div>
         <div class="row" style="margin-top:auto;">

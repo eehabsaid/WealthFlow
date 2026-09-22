@@ -58,9 +58,9 @@ class ExpensesDataProvider(BaseContextProvider):
         for exp in expenses_raw:
             c_code = exp.currency.code if exp.currency else home_currency
             amt = float(exp.amount or 0)
-            # amount_egp is pre-calculated at save time (amount * exchange_rate -> EGP).
-            amt_egp = float(exp.amount_egp or 0)
-            amt_home = amt_egp if home_currency == "EGP" else self.convert_to_home_currency(amt_egp, "EGP", home_currency)
+            # amount_egp is pre-calculated at save time in the user's default
+            # currency (amount * exchange_rate), which is also the AI's home currency.
+            amt_home = float(exp.amount_egp or 0)
 
             cat_name = exp.category.name if exp.category else "Uncategorized"
 

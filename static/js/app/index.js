@@ -56,6 +56,7 @@ document.addEventListener("languageChanged", () => {
 });
 
 async function initApp() {
+  await loadBaseCurrency();
   const [cRes, bRes, meRes, profileRes] = await Promise.all([
     fetch("/api/companies/"),
     fetch("/api/banks/"),

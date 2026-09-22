@@ -3,7 +3,9 @@ import json
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 
-from core.models import AppSettings, Currency
+from decimal import Decimal
+
+from core.models import AppSettings, Currency, ExchangeRate, UserProfile
 from core.services.onboarding import OnboardingService
 from core.services.shared.base_currency import (
     PLATFORM_FALLBACK_CURRENCY,
@@ -26,9 +28,11 @@ class DefaultCurrencyResolutionTests(TestCase):
         self.user = User.objects.create_user(username="cur_user", password="pw12345")
 
     def test_falls_back_to_platform_default(self):
+        UserProfile.objects.filter(user=self.user).update(preferred_currency="")  # un-pin
         self.assertEqual(get_user_base_code(self.user), PLATFORM_FALLBACK_CURRENCY)
 
     def test_platform_setting_is_used_before_the_constant(self):
+        UserProfile.objects.filter(user=self.user).update(preferred_currency="")  # un-pin
         AppSettings.set("home_currency", "SAR")
         self.assertEqual(get_user_base_code(self.user), "SAR")
 
@@ -52,6 +56,7 @@ class DefaultCurrencyApiTests(TestCase):
         self.other = User.objects.create_user(username="cur_other", password="pw12345")
         _catalog(self.user, "EGP", "SAR")
         _catalog(self.other, "EGP", "JPY")
+        ExchangeRate.objects.create(currency_code="SAR", buy_rate=Decimal("13"), sell_rate=Decimal("13"), mid_rate=Decimal("13"))
         self.client = Client()
         self.client.force_login(self.user)
 
@@ -93,6 +98,20 @@ class DefaultCurrencyApiTests(TestCase):
         rows = {r["code"]: r["can_be_default"] for r in self.client.get("/api/currencies/").json()["currencies"]}
         self.assertFalse(rows["Gold"])
         self.assertTrue(rows["SAR"])
+
+    @override_settings(MULTI_CURRENCY_ENABLED=True)
+    def test_currency_without_a_market_rate_is_refused(self):
+        _catalog(self.user, "AED")
+        response = self._set("AED")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error_key"], "currency_default_no_rate")
+
+    def test_new_users_are_pinned_to_the_platform_default(self):
+        AppSettings.set("home_currency", "SAR")
+        fresh = User.objects.create_user(username="cur_fresh", password="pw12345")
+        AppSettings.set("home_currency", "USD")
+        self.assertEqual(UserProfile.objects.get(user=fresh).preferred_currency, "SAR")
+        self.assertEqual(get_user_base_code(fresh), "SAR")
 
     def test_default_currency_cannot_be_deleted_or_renamed(self):
         egp = Currency.objects.get(owner=self.user, code="EGP")

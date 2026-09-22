@@ -32,20 +32,20 @@ function _buildSpendingIntelligenceHeaderFragments(payload) {
           
           <div class="col-6 col-md-3 mb-4 mb-md-0 border-end border-md-end-0 border-bottom-md-0 d-flex flex-column justify-content-center" style="border-color:var(--border-color) !important;" tabindex="0" title="Average amount spent per month">
             <div style="font-size:12px; font-weight:600; color:rgba(123,147,201,0.8); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;" data-i18n="spending_intelligence_avg_monthly"></div>
-            <div style="font-size:32px; font-weight:800; color:var(--text-primary); margin-bottom:4px; letter-spacing:-0.5px;">${fmt(Number(payload?.avg_monthly_expenses || 0).toFixed(2))} <span style="font-size:14px; font-weight:600; color:var(--text-secondary);">EGP</span></div>
+            <div style="font-size:32px; font-weight:800; color:var(--text-primary); margin-bottom:4px; letter-spacing:-0.5px;">${fmt(Number(payload?.avg_monthly_expenses || 0).toFixed(2))} <span style="font-size:14px; font-weight:600; color:var(--text-secondary);">${baseCurrencyCode()}</span></div>
           </div>
           
           <div class="col-6 col-md-3 mb-4 mb-md-0 border-end border-md-end-0 border-bottom-md-0 d-none d-md-flex flex-column justify-content-center" style="border-color:var(--border-color) !important; border-left: 1px solid var(--border-color);" tabindex="0" title="Total accumulated expenses recorded">
             <div style="padding-left:16px;">
               <div style="font-size:12px; font-weight:600; color:rgba(123,147,201,0.8); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;" data-i18n="spending_intelligence_total_expenses"></div>
-              <div style="font-size:28px; font-weight:700; color:var(--text-primary); margin-bottom:4px; letter-spacing:-0.5px;">${fmt(Number(totalExpenses).toFixed(2))} <span style="font-size:14px; font-weight:600; color:var(--text-secondary);">EGP</span></div>
+              <div style="font-size:28px; font-weight:700; color:var(--text-primary); margin-bottom:4px; letter-spacing:-0.5px;">${fmt(Number(totalExpenses).toFixed(2))} <span style="font-size:14px; font-weight:600; color:var(--text-secondary);">${baseCurrencyCode()}</span></div>
             </div>
           </div>
           
           <!-- Mobile layout alternative -->
           <div class="col-6 d-md-none mb-4 d-flex flex-column justify-content-center" style="border-color:var(--border-color) !important;" tabindex="0" title="Total accumulated expenses recorded">
             <div style="font-size:12px; font-weight:600; color:rgba(123,147,201,0.8); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;" data-i18n="spending_intelligence_total_expenses"></div>
-            <div style="font-size:24px; font-weight:700; color:var(--text-primary); margin-bottom:4px; letter-spacing:-0.5px;">${fmt(Number(totalExpenses).toFixed(2))} <span style="font-size:14px; font-weight:600; color:var(--text-secondary);">EGP</span></div>
+            <div style="font-size:24px; font-weight:700; color:var(--text-primary); margin-bottom:4px; letter-spacing:-0.5px;">${fmt(Number(totalExpenses).toFixed(2))} <span style="font-size:14px; font-weight:600; color:var(--text-secondary);">${baseCurrencyCode()}</span></div>
           </div>
 
           <div class="col-6 col-md-3 border-end border-md-end-0 d-flex flex-column justify-content-center" style="border-color:var(--border-color) !important; border-left: 1px solid var(--border-color);" tabindex="0" title="Total number of recorded transactions">

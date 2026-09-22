@@ -25,6 +25,7 @@ from typing import Any, Dict, List, Optional
 class ForecastContext:
     today: date
     comp: Dict[str, Any]
+    base_code: str = ""
 
     cash_balance: float = 0.0
     certificate_balance: float = 0.0

@@ -19,7 +19,7 @@ async function renderBillingPlansPage() {
     _paintPlansPage(
       plansData.plans || [],
       statusData.subscription,
-      statusData.pending_upgrade_request,
+      statusData.pending_upgrade_request
     );
   } catch (e) {
     document.getElementById("wf-plans-page").innerHTML =
@@ -51,9 +51,7 @@ function _paintPlansPage(plans, subscription, pendingRequest) {
 
 function _plansPageCurrencyOptions(plans) {
   const codes = new Set();
-  plans.forEach((p) =>
-    (p.prices || []).forEach((pr) => codes.add(pr.currency_code)),
-  );
+  plans.forEach((p) => (p.prices || []).forEach((pr) => codes.add(pr.currency_code)));
   return Array.from(codes);
 }
 
@@ -65,7 +63,7 @@ function _currencySelectHtml(currencies) {
                 ${currencies
                   .map(
                     (c) =>
-                      `<option value="${esc(c)}" ${c === _plansPageCurrency ? "selected" : ""}>${esc(c)}</option>`,
+                      `<option value="${esc(c)}" ${c === _plansPageCurrency ? "selected" : ""}>${esc(c)}</option>`
                   )
                   .join("")}
             </select>
@@ -79,9 +77,7 @@ function _onPlansCurrencyChange(code) {
 
 function _planCardHtml(plan, currentPlanId, pendingRequest) {
   const isCurrent = plan.id === currentPlanId;
-  const price = (plan.prices || []).find(
-    (p) => p.currency_code === _plansPageCurrency,
-  );
+  const price = (plan.prices || []).find((p) => p.currency_code === _plansPageCurrency);
 
   const priceHtml = price
     ? `<span dir="ltr" style="display: inline-flex; align-items: baseline; gap: 4px;">
@@ -134,11 +130,8 @@ async function submitUpgradeRequest(planId) {
     if (typeof checkBillingStatus === "function") checkBillingStatus();
   } catch (e) {
     showToast(
-      t(
-        "error_sending_upgrade_request",
-        "Couldn't send your request. Please try again.",
-      ),
-      "error",
+      t("error_sending_upgrade_request", "Couldn't send your request. Please try again."),
+      "error"
     );
   }
 }
@@ -169,8 +162,8 @@ async function checkoutPlan(planId) {
       !confirm(
         t(
           "fake_payment_confirm",
-          "Test Payment Mode: no payment gateway is configured yet. Simulate a successful payment now?",
-        ),
+          "Test Payment Mode: no payment gateway is configured yet. Simulate a successful payment now?"
+        )
       )
     ) {
       return;
@@ -187,23 +180,14 @@ async function checkoutPlan(planId) {
     if (!completeRes.ok) throw new Error("fake payment failed");
 
     showToast(
-      t(
-        "fake_payment_success",
-        "Test payment complete ✓ — you're now on this plan.",
-      ),
-      "success",
+      t("fake_payment_success", "Test payment complete ✓ — you're now on this plan."),
+      "success"
     );
     renderBillingPlansPage();
     if (typeof checkBillingStatus === "function") checkBillingStatus();
     if (typeof renderSidebar === "function") renderSidebar();
   } catch (e) {
-    showToast(
-      t(
-        "error_starting_checkout",
-        "Couldn't start checkout. Please try again.",
-      ),
-      "error",
-    );
+    showToast(t("error_starting_checkout", "Couldn't start checkout. Please try again."), "error");
   }
 }
 

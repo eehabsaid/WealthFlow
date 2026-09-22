@@ -74,7 +74,7 @@ function _renderWhatIfView(pane) {
                 <input type="range" class="form-range" id="whatif-salary-slider" min="-100" max="100" step="5" value="${_salaryChangePct}">
                 <div class="d-flex justify-content-between extra-small" style="color:var(--text-muted);">
                   <span>-100% (Resign)</span>
-                  <span>Current: ${salaryValStr} EGP/mo</span>
+                  <span>Current: ${salaryValStr} ${baseCurrencyCode()}/mo</span>
                   <span>+100%</span>
                 </div>
               </div>
@@ -88,7 +88,7 @@ function _renderWhatIfView(pane) {
                 <input type="range" class="form-range" id="whatif-expenses-slider" min="-50" max="100" step="5" value="${_expensesChangePct}">
                 <div class="d-flex justify-content-between extra-small" style="color:var(--text-muted);">
                   <span>-50%</span>
-                  <span>Current: ${expValStr} EGP/mo</span>
+                  <span>Current: ${expValStr} ${baseCurrencyCode()}/mo</span>
                   <span>+100%</span>
                 </div>
               </div>

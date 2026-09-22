@@ -20,7 +20,7 @@ function _attachEventListeners(pane) {
     const resignNote = _salaryChangePct === -100 ? " (Resigned)" : "";
     const tooltipText =
       baseSalary > 0
-        ? `${pctStr}${resignNote} (EGP ${_money(actualSalary)}${perMonthText})`
+        ? `${pctStr}${resignNote} (${baseCurrencyCode()} ${_money(actualSalary)}${perMonthText})`
         : `${pctStr}${resignNote}`;
     _showSliderTooltip(salarySlider, tooltipText);
   }
@@ -31,7 +31,9 @@ function _attachEventListeners(pane) {
     const actualExpenses = baseExpenses * (1 + _expensesChangePct / 100);
     const pctStr = _expensesChangePct >= 0 ? `+${_expensesChangePct}%` : `${_expensesChangePct}%`;
     const tooltipText =
-      baseExpenses > 0 ? `${pctStr} (EGP ${_money(actualExpenses)}${perMonthText})` : `${pctStr}`;
+      baseExpenses > 0
+        ? `${pctStr} (${baseCurrencyCode()} ${_money(actualExpenses)}${perMonthText})`
+        : `${pctStr}`;
     _showSliderTooltip(expSlider, tooltipText);
   }
 

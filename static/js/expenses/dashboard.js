@@ -103,7 +103,7 @@ async function renderExpenses() {
           <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
           <div class="kpi-label" data-i18n="this_month">This Month</div>
           <div class="kpi-value">${fmt(totalExp)}</div>
-          <div class="kpi-sub"><span data-i18n="EGP">EGP</span> <span data-i18n="total">total</span></div>
+          <div class="kpi-sub"><span data-i18n="base_currency_code">${baseCurrencyCode()}</span> <span data-i18n="total">total</span></div>
         </div>
       </div>
       <div class="col-6 col-md-3">
@@ -111,7 +111,7 @@ async function renderExpenses() {
           <div class="kpi-icon"><i class="bi bi-calendar-day"></i></div>
           <div class="kpi-label" data-i18n="daily_average">Daily Average</div>
           <div class="kpi-value">${fmt(avgDaily)}</div>
-          <div class="kpi-sub"><span data-i18n="EGP">EGP</span> / <span data-i18n="day">day</span></div>
+          <div class="kpi-sub"><span data-i18n="base_currency_code">${baseCurrencyCode()}</span> / <span data-i18n="day">day</span></div>
         </div>
       </div>
       <div class="col-6 col-md-3">
@@ -119,7 +119,7 @@ async function renderExpenses() {
           <div class="kpi-icon"><i class="bi bi-tag"></i></div>
           <div class="kpi-label" data-i18n="top_category">Top Category</div>
           <div class="kpi-value" style="font-size:16px">${topCat.icon} ${topCat.name}</div>
-          <div class="kpi-sub">${fmt(topCat.total)} <span data-i18n="EGP">EGP</span></div>
+          <div class="kpi-sub">${fmt(topCat.total)} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span></div>
         </div>
       </div>
       <div class="col-6 col-md-3">

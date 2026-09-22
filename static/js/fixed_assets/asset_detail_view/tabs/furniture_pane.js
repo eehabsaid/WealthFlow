@@ -65,7 +65,7 @@ function buildFurniturePaneHtml(furniture, asset) {
                                     <div class="d-flex justify-content-between align-items-center w-100">
                                         <div class="fw-semibold" data-i18n="amount_egp">Amount</div>
                                         <div class="text-end fw-semibold">
-                                            ${fmt(furniture.reduce((sum, item) => sum + (parseFloat(item.amount_egp) || 0) * (parseInt(item.quantity) || 1), 0))} <span data-i18n="EGP">EGP</span>
+                                            ${fmt(furniture.reduce((sum, item) => sum + (parseFloat(item.amount_egp) || 0) * (parseInt(item.quantity) || 1), 0))} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
                                         </div>
                                     </div>
 

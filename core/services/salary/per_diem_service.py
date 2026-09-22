@@ -6,11 +6,14 @@ from core.models import PerDiem, Company, Currency, Bank, BalanceEntry
 from core.services.shared.currency_conversion_service import CurrencyConversionService
 
 class PerDiemService:
-    def get_latest_buy_rate(self, currency_code: str) -> Decimal:
+    def get_latest_buy_rate(self, currency_code: str, owner=None) -> Decimal:
         """
-        Retrieves the latest buy rate for a given currency code via CurrencyConversionService.
+        Rate of one unit of `currency_code` in the owner's default currency
+        (via CurrencyConversionService).
         """
-        return CurrencyConversionService.get_latest_buy_rate(currency_code)
+        from core.services.shared.base_currency import get_user_base_code
+
+        return CurrencyConversionService.calculate_exchange_rate(currency_code, get_user_base_code(owner))
 
     def apply_balance_posting(self, owner, bank: Bank | None, currency: Currency, amount: Decimal):
         """
@@ -61,7 +64,7 @@ class PerDiemService:
         bank_id = data.get("bank_id")
         bank = Bank.objects.get(id=bank_id, owner=owner) if bank_id else None
 
-        buy_rate = self.get_latest_buy_rate(currency.code)
+        buy_rate = self.get_latest_buy_rate(currency.code, owner)
         amount_egp = amount * buy_rate
 
         from django.utils.dateparse import parse_date
@@ -114,8 +117,8 @@ class PerDiemService:
         elif "bank" in data:  # fallback
             pd.bank = data["bank"]
 
-        # Recalculate EGP amount using current latest buy rate
-        buy_rate = self.get_latest_buy_rate(pd.currency.code)
+        # Recalculate the default-currency amount using the current buy rate
+        buy_rate = self.get_latest_buy_rate(pd.currency.code, owner)
         pd.amount_egp = pd.amount * buy_rate
 
         pd.save()

@@ -10,8 +10,11 @@ def _to_float(value) -> float:
         return 0.0
 
 def converted_egp(amount: float, currency_code: str, rates: Dict[str, float]) -> float:
-    code = str(currency_code or "EGP").upper()
-    if code in ("", "EGP"):
+    """Amount in the user's default currency. `rates` maps code -> value of one
+    unit in that default currency (the default itself is 1); a blank code is
+    treated as already being in the default currency."""
+    code = str(currency_code or "").upper()
+    if not code:
         return amount
     return amount * _to_float(rates.get(code))
 

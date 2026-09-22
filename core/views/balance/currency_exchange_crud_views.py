@@ -4,6 +4,7 @@ from django.views import View
 from django.shortcuts import get_object_or_404
 from django.db import models, transaction
 
+from core.services.shared.base_currency import get_user_base_code
 from core.validators.json_body import parse_json_body
 from core.models import CurrencyExchange, BalanceEntry
 from core.services.shared.currency_conversion_service import CurrencyConversionService
@@ -71,8 +72,8 @@ class CurrencyExchangeListView(View):
                 return JsonResponse({"error": "same_currency_error"}, status=400)
 
             custom_rate = Decimal(str(custom_rate_raw)) if custom_rate_raw and float(custom_rate_raw) > 0 else None
-            from_code = from_balance.currency.code if from_balance.currency else "EGP"
-            to_code = to_balance.currency.code if to_balance.currency else "EGP"
+            from_code = from_balance.currency.code if from_balance.currency else get_user_base_code(request.user)
+            to_code = to_balance.currency.code if to_balance.currency else get_user_base_code(request.user)
 
             applied_rate, to_amount = CurrencyConversionService.convert_amount(
                 from_amount, from_code, to_code, custom_rate
@@ -127,8 +128,8 @@ class CurrencyExchangeDetailView(View):
             to_balance = get_object_or_404(BalanceEntry, pk=to_balance_id, owner=request.user)
 
             custom_rate = Decimal(str(custom_rate_raw)) if custom_rate_raw and float(custom_rate_raw) > 0 else None
-            from_code = from_balance.currency.code if from_balance.currency else "EGP"
-            to_code = to_balance.currency.code if to_balance.currency else "EGP"
+            from_code = from_balance.currency.code if from_balance.currency else get_user_base_code(request.user)
+            to_code = to_balance.currency.code if to_balance.currency else get_user_base_code(request.user)
 
             applied_rate, to_amount = CurrencyConversionService.convert_amount(
                 from_amount, from_code, to_code, custom_rate

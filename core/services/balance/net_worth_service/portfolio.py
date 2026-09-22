@@ -22,6 +22,8 @@ class NetWorthPortfolioMixin:
     def portfolio_components(self) -> dict:
         def _build():
             rates = self._latest_rates()
+            base = self._base_code()
+            gold_rate = self._gold_rate()
             entries = self._projected_balance_entries()
             totals_by_currency: Dict[str, float] = {}
 
@@ -42,7 +44,7 @@ class NetWorthPortfolioMixin:
                 totals_by_currency[code] = totals_by_currency.get(code, 0.0) + amount
 
                 if balance_type == BalanceEntry.BalanceType.CERTIFICATE:
-                    if code == "EGP":
+                    if code == base:
                         cert_legacy_egp += amount
                     continue
 
@@ -51,11 +53,11 @@ class NetWorthPortfolioMixin:
                     sell_price = self._sell_price_per_gram(purity_key)
                     cashback = _to_float(cashback_map.get(purity_key, 0.0))
                     gold_grams += amount
-                    gold_value += amount * (sell_price + cashback)
+                    gold_value += amount * (sell_price + cashback) * gold_rate
                     continue
 
                 converted = self._converted_egp(amount, code, rates)
-                if code != "EGP":
+                if code != base:
                     foreign_value += converted
                 else:
                     cash_egp_legacy += amount
@@ -68,7 +70,7 @@ class NetWorthPortfolioMixin:
             cert_total_egp = 0.0
             cert_interest_total_egp = 0.0
             for cert in self._active_certificates():
-                code = str(getattr(cert.currency, "code", "EGP") or "EGP").upper()
+                code = str(getattr(cert.currency, "code", base) or base).upper()
                 cert_total_egp += self._converted_egp(_to_float(cert.amount), code, rates)
                 cert_interest_total_egp += self._converted_egp(_to_float(cert.interest_value), code, rates)
 
@@ -127,16 +129,15 @@ class NetWorthPortfolioMixin:
         eur_rate = _to_float(rates.get("EUR"))
         sar_rate = _to_float(rates.get("SAR"))
 
-        egp_amount = _to_float(totals_by_currency.get("EGP"))
         usd_value = usd_amount * usd_rate
         eur_value = eur_amount * eur_rate
         sar_value = sar_amount * sar_rate
-        balance_only_grand_total = (
-            egp_amount
-            + usd_value
-            + eur_value
-            + sar_value
-            + _to_float(comp["gold_value_egp"])
+        # Balance-only grand total: every currency held, converted into the
+        # user's default currency (rates.get is 0 for gold, whose value is added
+        # separately), plus the gold value.
+        balance_only_grand_total = _to_float(comp["gold_value_egp"]) + sum(
+            _to_float(amount) * _to_float(rates.get(code))
+            for code, amount in totals_by_currency.items()
         )
 
         return {
@@ -146,6 +147,7 @@ class NetWorthPortfolioMixin:
                 "cash_egp": round(comp["cash_egp_legacy"], 2),
                 "liquid_egp_cash": round(liquid_egp_cash, 2),
                 "certificate_egp": round(comp["certificate_egp_legacy"], 2),
+                "rates_to_base": {code: rates[code] for code in totals_by_currency if code in rates},
                 "usd_rate": usd_rate,
                 "eur_rate": eur_rate,
                 "sar_rate": sar_rate,

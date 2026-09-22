@@ -50,17 +50,11 @@ class BaseContextProvider(ABC):
         pass
 
     def get_user_primary_currency(self, user: Any) -> str:
-        """Resolves active user's primary/preferred currency code."""
-        from core.models import AppSettings
-        if user and hasattr(user, "profile") and getattr(user.profile, "preferred_currency", None):
-            pref_curr = getattr(user.profile, "preferred_currency")
-            if hasattr(pref_curr, "code"):
-                return str(pref_curr.code).strip().upper()
-            elif pref_curr:
-                return str(pref_curr).strip().upper()
-        return AppSettings.get("home_currency", "EGP").strip().upper()
+        """Resolves active user's default (primary) currency code."""
+        from core.services.shared.base_currency import get_user_base_code
+        return get_user_base_code(user)
 
-    def convert_to_home_currency(self, amount: float, from_code: str, home_code: str = "EGP") -> float:
+    def convert_to_home_currency(self, amount: float, from_code: str, home_code: str = "") -> float:
         """
         Deterministically converts an amount from `from_code` to `home_code` using ExchangeRate model.
         Returns amount converted or float(amount) if codes match or rate unavailable.
@@ -69,22 +63,26 @@ class BaseContextProvider(ABC):
             return 0.0
         val = float(amount)
         f_code = str(from_code or home_code).strip().upper()
-        h_code = str(home_code or "EGP").strip().upper()
+        from core.services.shared.base_currency import platform_default_code
+        h_code = str(home_code or platform_default_code()).strip().upper()
 
         if f_code == h_code:
             return val
 
         try:
             from core.models import ExchangeRate
-            # ExchangeRate maps currency_code -> EGP rate (mid_rate)
-            rate_obj = ExchangeRate.objects.filter(
-                currency_code__iexact=f_code
-            ).order_by("-fetched_at").first()
+            from core.services.shared.currency_conversion_service import RATE_PIVOT
 
-            if rate_obj:
-                rate_val = float(rate_obj.mid_rate or rate_obj.buy_rate or rate_obj.sell_rate or 0)
-                if rate_val > 0:
-                    return round(val * rate_val, 2)
+            def _mid(code: str) -> float:
+                # ExchangeRate maps currency_code -> pivot-currency rate (mid_rate)
+                if code == RATE_PIVOT:
+                    return 1.0
+                row = ExchangeRate.objects.filter(currency_code__iexact=code).order_by("-fetched_at").first()
+                return float((row.mid_rate or row.buy_rate or row.sell_rate or 0) if row else 0)
+
+            from_mid, home_mid = _mid(f_code), _mid(h_code)
+            if from_mid > 0 and home_mid > 0:
+                return round(val * from_mid / home_mid, 2)
         except Exception as exc:
             logger.warning("Currency conversion failed for %s -> %s: %s", f_code, h_code, exc)
 

@@ -98,7 +98,9 @@ function _renderMarkdown(text) {
     } else {
       rows = rows.filter((r) => !isSep(r));
     }
-    const thead = head ? `<thead><tr>${head.map((c) => `<th>${c}</th>`).join("")}</tr></thead>` : "";
+    const thead = head
+      ? `<thead><tr>${head.map((c) => `<th>${c}</th>`).join("")}</tr></thead>`
+      : "";
     const tbody = rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("");
     return `<div class="ai-table-wrap"><table>${thead}<tbody>${tbody}</tbody></table></div>`;
   });

@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404
 
+from core.services.shared.base_currency import get_user_base_code
 from core.validators.json_body import parse_json_body
 from core.models import BalanceEntry, Currency
 from core.services.shared.currency_conversion_service import CurrencyConversionService
@@ -60,7 +61,7 @@ class CurrencyExchangeCalculateView(View):
             from_amount = Decimal(str(from_amount_raw or 0))
             custom_rate = Decimal(str(custom_rate_raw)) if custom_rate_raw and float(custom_rate_raw) > 0 else None
 
-            from_code = from_balance.currency.code if from_balance.currency else "EGP"
+            from_code = from_balance.currency.code if from_balance.currency else get_user_base_code(request.user)
             to_code = to_balance.currency.code if (to_balance and to_balance.currency) else from_code
 
             applied_rate, to_amount = CurrencyConversionService.convert_amount(

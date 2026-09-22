@@ -10,6 +10,7 @@ async function loadLanguage(code, persist = true) {
 
     _t = await res.json();
     _lang = code;
+    if (typeof applyBaseCurrencyToTranslations === "function") applyBaseCurrencyToTranslations();
     localStorage.setItem("lang", code);
 
     // RTL detection — read from available_languages setting, fallback to _t.__rtl

@@ -90,7 +90,7 @@ def build_action_plan(ctx: ForecastContext) -> dict:
     elif ctx.low_liquidity_flag:
         action_reason_text += (
             f"Liquidity protection takes priority because cash coverage is {_fmt_pct(ctx.cash_coverage_months or 0, 1)} months "
-            f"with near-term projected cash {_fmt_money(ctx.future_cash_30)} EGP (30d)."
+            f"with near-term projected cash {_fmt_money(ctx.future_cash_30)} {ctx.base_code} (30d)."
         )
     elif ctx.gold_trend_state in {"Strong Uptrend", "Moderate Uptrend", "Strong Downtrend", "Moderate Downtrend", "High Volatility"}:
         action_reason_text += (

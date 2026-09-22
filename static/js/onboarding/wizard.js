@@ -36,13 +36,13 @@ function showOnboardingWizard(status) {
   const currencyOptions = (status.currencies || [])
     .map(
       (c) =>
-        `<option value="${c.id}" ${c.code === status.default_currency ? "selected" : ""}>${onboardingEsc(c.code)} ${onboardingEsc(c.symbol)}</option>`,
+        `<option value="${c.id}" ${c.code === status.default_currency ? "selected" : ""}>${onboardingEsc(c.code)} ${onboardingEsc(c.symbol)}</option>`
     )
     .join("");
   const defaultOptions = (status.currencies || [])
     .map(
       (c) =>
-        `<option value="${onboardingEsc(c.code)}" data-id="${c.id}" ${c.code === status.default_currency ? "selected" : ""}>${onboardingEsc(c.code)} ${onboardingEsc(c.symbol)}</option>`,
+        `<option value="${onboardingEsc(c.code)}" data-id="${c.id}" ${c.code === status.default_currency ? "selected" : ""}>${onboardingEsc(c.code)} ${onboardingEsc(c.symbol)}</option>`
     )
     .join("");
   const defaultCurrencyRow = status.multi_currency_enabled
@@ -104,23 +104,15 @@ function onboardingAddCategory() {
 }
 
 function onboardingMove(delta) {
-  if (delta > 0 && _onboardingStep === _ONBOARDING_STEPS)
-    return onboardingFinish();
-  _onboardingStep = Math.min(
-    _ONBOARDING_STEPS,
-    Math.max(1, _onboardingStep + delta),
-  );
+  if (delta > 0 && _onboardingStep === _ONBOARDING_STEPS) return onboardingFinish();
+  _onboardingStep = Math.min(_ONBOARDING_STEPS, Math.max(1, _onboardingStep + delta));
   for (let i = 1; i <= _ONBOARDING_STEPS; i++) {
-    document.getElementById(`onbStep${i}`).style.display =
-      i === _onboardingStep ? "" : "none";
+    document.getElementById(`onbStep${i}`).style.display = i === _onboardingStep ? "" : "none";
   }
-  document.getElementById("onbBack").style.display =
-    _onboardingStep > 1 ? "" : "none";
+  document.getElementById("onbBack").style.display = _onboardingStep > 1 ? "" : "none";
   const isLast = _onboardingStep === _ONBOARDING_STEPS;
   const next = document.getElementById("onbNext");
-  next.textContent = isLast
-    ? t("onboarding_finish", "Finish")
-    : t("onboarding_next", "Next");
+  next.textContent = isLast ? t("onboarding_finish", "Finish") : t("onboarding_next", "Next");
 }
 
 async function _onboardingPost(payload) {
@@ -131,10 +123,7 @@ async function _onboardingPost(payload) {
   });
   if (res.ok) return true;
   const body = await res.json().catch(() => ({}));
-  showToast(
-    t(body.error_key || "settings_save_failed", body.error || "Save failed"),
-    "error",
-  );
+  showToast(t(body.error_key || "settings_save_failed", body.error || "Save failed"), "error");
   return false;
 }
 
@@ -161,9 +150,7 @@ async function onboardingFinish() {
           currency_id: Number(document.getElementById("onbAccCurrency").value),
           amount: amountRaw,
         };
-  const categories = [...document.querySelectorAll(".onb-cat:checked")].map(
-    (el) => el.value,
-  );
+  const categories = [...document.querySelectorAll(".onb-cat:checked")].map((el) => el.value);
   const mainCurrency = document.getElementById("onbDefaultCurrency");
   const payload = {
     employer: employer ? { name: employer } : null,

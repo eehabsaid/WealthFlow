@@ -26,6 +26,8 @@ from core.services.shared.base_currency import (
 _BASE_ERROR_KEYS = {
     "invalid_currency": "currency_default_invalid",
     "multi_currency_disabled": "currency_default_unavailable",
+    "no_rate_for_currency": "currency_default_no_rate",
+    "exchange_rate_missing": "currency_default_no_rate",
 }
 
 

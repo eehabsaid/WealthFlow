@@ -28,7 +28,7 @@ async function renderRoleSettings() {
                 <button class="btn-icon" onclick="showRoleModal(${r.id})"><i class="bi bi-pencil"></i></button>
                 <button class="btn-icon del" onclick="deleteRole(${r.id})"><i class="bi bi-trash"></i></button>
             </td>
-        </tr>`,
+        </tr>`
     )
     .join("");
 
@@ -58,12 +58,8 @@ async function renderRoleSettings() {
 
 function _roleKeyCheckboxes(selectedKeys) {
   const selected = new Set(selectedKeys || []);
-  const mainKeys = _rolesAvailableKeys.filter(
-    (k) => !k[0].startsWith("settings_"),
-  );
-  const settingsKeys = _rolesAvailableKeys.filter((k) =>
-    k[0].startsWith("settings_"),
-  );
+  const mainKeys = _rolesAvailableKeys.filter((k) => !k[0].startsWith("settings_"));
+  const settingsKeys = _rolesAvailableKeys.filter((k) => k[0].startsWith("settings_"));
 
   const group = (title, keys) => `
         <div style="margin-bottom:8px"><strong>${title}</strong></div>
@@ -74,14 +70,12 @@ function _roleKeyCheckboxes(selectedKeys) {
                 <label style="font-weight:400">
                     <input type="checkbox" class="role-key-cb" value="${k[0]}" ${selected.has(k[0]) ? "checked" : ""}>
                     ${k[1]}
-                </label>`,
+                </label>`
               )
               .join("")}
         </div>`;
 
-  return (
-    group("Main App Pages", mainKeys) + group("Settings Tabs", settingsKeys)
-  );
+  return group("Main App Pages", mainKeys) + group("Settings Tabs", settingsKeys);
 }
 
 async function showRoleModal(roleId) {
@@ -122,9 +116,7 @@ async function showRoleModal(roleId) {
 async function saveRole(roleId) {
   const name = document.getElementById("roleName").value.trim();
   const description = document.getElementById("roleDescription").value.trim();
-  const keys = Array.from(
-    document.querySelectorAll(".role-key-cb:checked"),
-  ).map((cb) => cb.value);
+  const keys = Array.from(document.querySelectorAll(".role-key-cb:checked")).map((cb) => cb.value);
   if (!name) {
     showToast("Role name is required", "error");
     return;
@@ -145,11 +137,7 @@ async function saveRole(roleId) {
 }
 
 async function deleteRole(roleId) {
-  if (
-    !confirm(
-      "Delete this role? Users assigned to it will lose whatever it granted them.",
-    )
-  )
+  if (!confirm("Delete this role? Users assigned to it will lose whatever it granted them."))
     return;
   const res = await fetch(`/api/roles/${roleId}/`, { method: "DELETE" });
   if (res.ok) {

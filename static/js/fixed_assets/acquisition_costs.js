@@ -75,8 +75,8 @@ function addAcquisitionRow(data = {}, expand = false) {
   const fmt = (n) =>
     Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const initialAmountPreview = amountEgpVal
-    ? `EGP ${fmt(parseFloat(amountEgpVal) || 0)}`
-    : "EGP 0.00";
+    ? `${baseCurrencyCode()} ${fmt(parseFloat(amountEgpVal) || 0)}`
+    : `${baseCurrencyCode()} 0.00`;
 
   row.innerHTML = `
     <div class="item-header card-header">
@@ -171,7 +171,7 @@ function addAcquisitionRow(data = {}, expand = false) {
   const amountPreview = row.querySelector(".item-amount-preview");
   egpInput.addEventListener("input", () => {
     updateAcquisitionUSD(egpInput);
-    amountPreview.textContent = `EGP ${fmt(parseFloat(egpInput.value) || 0)}`;
+    amountPreview.textContent = `${baseCurrencyCode()} ${fmt(parseFloat(egpInput.value) || 0)}`;
     updateAcquisitionSummary();
   });
 

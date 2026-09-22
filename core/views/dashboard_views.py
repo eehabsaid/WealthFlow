@@ -1,3 +1,4 @@
+from core.services.shared.base_currency import get_user_base_code
 from core.views.certificate_views import _run_certificate_interest_sync
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
@@ -103,8 +104,9 @@ class DashboardSummaryView(View):
 
         # Balance
         bal_entries = BalanceEntry.objects.select_related("currency").filter(owner=owner)
-        egp_balance = float(
-            bal_entries.filter(currency__code="EGP").aggregate(s=Sum("amount"))["s"]
+        base_code = get_user_base_code(owner)
+        egp_balance = float(  # balance held in the user's default currency
+            bal_entries.filter(currency__code__iexact=base_code).aggregate(s=Sum("amount"))["s"]
             or 0
         )
 
@@ -127,6 +129,7 @@ class DashboardSummaryView(View):
                 "expiring_soon": expiring_soon,
                 "active_reminders": active_reminders,
                 "egp_balance": egp_balance,
+                "base_currency": base_code,
                 "expiry_warning_days": expiring_soon_days,
                 "net_worth": {
                     "total": float(net_worth["net_worth_egp"]),

@@ -64,7 +64,7 @@ async function syncValuationRow(buttonEl) {
           maximumFractionDigits: 2,
         });
       row.querySelector(".item-amount-preview").textContent =
-        `EGP ${fmt(parseFloat(latestEntry.market_value) || 0)}`;
+        `${baseCurrencyCode()} ${fmt(parseFloat(latestEntry.market_value) || 0)}`;
       row.querySelector(".item-name-preview").textContent =
         latestEntry.valuation_date || t("unnamed_item", "(Unnamed item)");
     }

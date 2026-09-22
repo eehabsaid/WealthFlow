@@ -20,17 +20,17 @@ function renderBalanceForecasts(data) {
                         <div class="fi-amount-tile ${Number(forecastData.forecast_30 || 0) > 0 ? "fi-up" : ""}">
                             <div class="fi-amount-caption" data-i18n="next_30_days">Next 30 Days</div>
                             <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.forecast_30 || 0}">${fmtpresent(forecastData.forecast_30 || 0)}</div>
-                            <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                            <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                         </div>
                         <div class="fi-amount-tile ${Number(forecastData.forecast_90 || 0) > 0 ? "fi-up" : ""}">
                             <div class="fi-amount-caption" data-i18n="next_90_days">Next 90 Days</div>
                             <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.forecast_90 || 0}">${fmtpresent(forecastData.forecast_90 || 0)}</div>
-                            <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                            <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                         </div>
                         <div class="fi-amount-tile ${Number(forecastData.forecast_180 || 0) > 0 ? "fi-up" : ""}">
                             <div class="fi-amount-caption" data-i18n="next_180_days">Next 180 Days</div>
                             <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.forecast_180 || 0}">${fmtpresent(forecastData.forecast_180 || 0)}</div>
-                            <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                            <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                         </div>
                     </div>
                 </div>
@@ -42,22 +42,22 @@ function renderBalanceForecasts(data) {
                         <div class="fi-amount-tile">
                             <div class="fi-amount-caption" data-i18n="current_cash">Current Cash</div>
                             <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.cash_balance || 0}">${fmtpresent(forecastData.cash_balance || 0)}</div>
-                            <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                            <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                         </div>
                         <div class="fi-amount-tile">
                             <div class="fi-amount-caption" data-i18n="cash_after_30_days">Cash After 30 Days</div>
                             <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.future_cash_30 || 0}">${fmtpresent(forecastData.future_cash_30 || 0)}</div>
-                            <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                            <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                         </div>
                         <div class="fi-amount-tile">
                             <div class="fi-amount-caption" data-i18n="cash_after_90_days">Cash After 90 Days</div>
                             <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.future_cash_90 || 0}">${fmtpresent(forecastData.future_cash_90 || 0)}</div>
-                            <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                            <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                         </div>
                         <div class="fi-amount-tile">
                             <div class="fi-amount-caption" data-i18n="cash_after_180_days">Cash After 180 Days</div>
                             <div class="fi-amount-value num-fmtpresent" data-value="${forecastData.future_cash_180 || 0}">${fmtpresent(forecastData.future_cash_180 || 0)}</div>
-                            <div class="fi-metric-sub" data-i18n="EGP">EGP</div>
+                            <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                         </div>
                     </div>
                 </div>

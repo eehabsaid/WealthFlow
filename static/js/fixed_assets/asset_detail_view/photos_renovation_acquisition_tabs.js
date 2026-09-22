@@ -89,7 +89,7 @@ function buildPhotosRenovationAcquisitionTabsHtml(ctx) {
                                     <div class="d-flex justify-content-between align-items-center w-100">
                                         <div class="fw-semibold" data-i18n="amount_egp">Amount</div>
                                         <div class="text-end fw-semibold">
-                                            ${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_egp) || 0), 0))} <span data-i18n="EGP">EGP</span>
+                                            ${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_egp) || 0), 0))} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
                                         </div>
                                     </div>
 
@@ -161,7 +161,7 @@ function buildPhotosRenovationAcquisitionTabsHtml(ctx) {
                                     <div class="d-flex justify-content-between align-items-center w-100">
                                         <div class="fw-semibold" data-i18n="amount_egp">Amount</div>
                                         <div class="text-end fw-semibold">
-                                            ${fmt(asset.acquisition_costs.reduce((sum, c) => sum + (parseFloat(c.amount_egp) || 0), 0))} <span data-i18n="EGP">EGP</span>
+                                            ${fmt(asset.acquisition_costs.reduce((sum, c) => sum + (parseFloat(c.amount_egp) || 0), 0))} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
                                         </div>
                                     </div>
                                 </div>

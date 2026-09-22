@@ -38,12 +38,22 @@ from core.services.balance.net_worth_service.balance_entries import ProjectedBal
 class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
     """Cached DB loaders shared by portfolio and forecast computations."""
 
+    def _base_code(self) -> str:
+        from core.services.shared.base_currency import get_user_base_code
+        return self._cached("base_code", lambda: get_user_base_code(self.owner))
+
     def _latest_rates(self) -> Dict[str, float]:
+        """code -> value of one unit in the user's default currency."""
         def _load():
-            from core.services.shared.currency_conversion_service import CurrencyConversionService
-            return {code: float(rate) for code, rate in CurrencyConversionService.get_all_latest_buy_rates().items()}
+            from core.services.shared.base_currency import base_rates
+            return base_rates(self.owner)
 
         return self._cached("latest_rates", _load)
+
+    def _gold_rate(self) -> float:
+        """Value of one unit of the gold-price currency in the default currency."""
+        from core.services.shared.base_currency import GOLD_PRICE_CURRENCY
+        return _to_float(self._latest_rates().get(GOLD_PRICE_CURRENCY, 1.0))
 
     def _latest_gold_price(self):
         return self._cached("latest_gold", lambda: GoldPrice.objects.order_by("-fetched_at").first())
@@ -112,7 +122,7 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
         Liquidity definition for recommendation calibration:
         - Source: BalanceEntry only
         - Filter: balance_type = Cash and currency != Gold (case-insensitive)
-        - Conversion: latest BUY rate only for non-EGP rows
+        - Conversion: latest BUY rate into the user's default currency
         """
         rates = self._latest_rates()
         total = 0.0
@@ -126,25 +136,23 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
         for row in rows:
             code = str(getattr(row.currency, "code", "") or "").upper()
             amount = _to_float(row.amount)
-            if code == "EGP":
-                total += amount
-            elif code:
+            if code:
                 total += amount * _to_float(rates.get(code))
 
         return total
 
     def _strict_egp_cash_balance(self) -> float:
         """
-        Strict EGP cash for Financial Intelligence card:
+        Strict default-currency cash for Financial Intelligence card:
         - Source: BalanceEntry only
-        - Filter: balance_type = cash AND currency = EGP (case-insensitive)
+        - Filter: balance_type = cash AND currency = the user's default (case-insensitive)
         - Includes both bank and non-bank rows
         """
         agg = (
             BalanceEntry.objects.filter(
                 owner=self.owner,
                 balance_type__iexact=BalanceEntry.BalanceType.CASH,
-                currency__code__iexact="EGP",
+                currency__code__iexact=self._base_code(),
             ).aggregate(total=Sum("amount"))
         )
         return _to_float(agg.get("total"))

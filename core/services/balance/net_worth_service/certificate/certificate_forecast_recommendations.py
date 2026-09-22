@@ -32,11 +32,11 @@ def append_forecast_recommendations(service, ctx: ForecastContext) -> None:
                 },
                 text=(
                     f"A certificate matures in {ctx.nearest_maturity} days. "
-                    f"Expected inflow: {_fmt_money(ctx.forecast_30)} EGP (30d), {_fmt_money(ctx.forecast_90)} EGP (90d)."
+                    f"Expected inflow: {_fmt_money(ctx.forecast_30)} {ctx.base_code} (30d), {_fmt_money(ctx.forecast_90)} {ctx.base_code} (90d)."
                 ),
                 reason_text=(
                     f"Short maturity window improves near-term liquidity planning with a visible 90-day inflow pipeline "
-                    f"of {_fmt_money(ctx.forecast_90)} EGP."
+                    f"of {_fmt_money(ctx.forecast_90)} {ctx.base_code}."
                 ),
                 priority="high",
             )
@@ -52,7 +52,7 @@ def append_forecast_recommendations(service, ctx: ForecastContext) -> None:
                 },
                 text=(
                     f"A certificate matures in {ctx.nearest_maturity} days. "
-                    f"Expected inflow: {_fmt_money(ctx.forecast_30)} EGP (30d), {_fmt_money(ctx.forecast_90)} EGP (90d)."
+                    f"Expected inflow: {_fmt_money(ctx.forecast_30)} {ctx.base_code} (30d), {_fmt_money(ctx.forecast_90)} {ctx.base_code} (90d)."
                 ),
                 reason_text=(
                     "The maturity profile supports liquidity and optional reinvestment decisions over the next quarter."
@@ -73,7 +73,7 @@ def append_forecast_recommendations(service, ctx: ForecastContext) -> None:
             },
             text=(
                 f"Maturity inflows are front-loaded to the coming quarter: "
-                f"30d {_fmt_money(ctx.forecast_30)} EGP, 90d {_fmt_money(ctx.forecast_90)} EGP, 180d {_fmt_money(ctx.forecast_180)} EGP."
+                f"30d {_fmt_money(ctx.forecast_30)} {ctx.base_code}, 90d {_fmt_money(ctx.forecast_90)} {ctx.base_code}, 180d {_fmt_money(ctx.forecast_180)} {ctx.base_code}."
             ),
             reason_text=(
                 "You can stage renewals and diversification gradually instead of concentrating decisions on a single date."
@@ -95,12 +95,12 @@ def append_forecast_recommendations(service, ctx: ForecastContext) -> None:
                 "future_cash_90": round(ctx.future_cash_90, 2),
             },
             text=(
-                f"Liquidity is tight: liquid assets {_fmt_money(ctx.cash_balance)} EGP cover about "
+                f"Liquidity is tight: liquid assets {_fmt_money(ctx.cash_balance)} {ctx.base_code} cover about "
                 f"{_fmt_pct(ctx.cash_coverage_months or 0, 1)} months of expenses."
             ),
             reason_text=(
-                f"Monthly expenses are {_fmt_money(ctx.avg_monthly_expenses)} EGP, while projected cash is "
-                f"{_fmt_money(ctx.future_cash_30)} EGP (30d) and {_fmt_money(ctx.future_cash_90)} EGP (90d)."
+                f"Monthly expenses are {_fmt_money(ctx.avg_monthly_expenses)} {ctx.base_code}, while projected cash is "
+                f"{_fmt_money(ctx.future_cash_30)} {ctx.base_code} (30d) and {_fmt_money(ctx.future_cash_90)} {ctx.base_code} (90d)."
             ),
             priority="high",
         )

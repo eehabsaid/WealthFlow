@@ -2,12 +2,11 @@ from datetime import datetime
 from decimal import Decimal
 from django.db import transaction
 from django.db.models import F
+from core.services.shared.base_currency import get_user_base_code
 from core.models import Company, SalaryEntry, BalanceEntry, Currency
 
-MONTH_ORDER = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-]
+MONTH_ORDER = ["January", "February", "March", "April", "May", "June",
+               "July", "August", "September", "October", "November", "December"]
 
 class SalaryService:
     @transaction.atomic
@@ -49,7 +48,7 @@ class SalaryService:
 
         currency = salary.company.current_salary_currency
         if not currency:
-            currency = Currency.objects.filter(code="EGP", owner=owner).first() or Currency.objects.filter(owner=owner).first()
+            currency = Currency.objects.filter(code__iexact=get_user_base_code(owner), owner=owner).first() or Currency.objects.filter(owner=owner).first()
 
         if mark_paid and salary.paid == 0:
             # Mark as PAID
@@ -109,7 +108,7 @@ class SalaryService:
         if diff != 0 and entry.company.default_bank:
             currency = entry.company.current_salary_currency
             if not currency:
-                currency = Currency.objects.filter(code="EGP", owner=owner).first() or Currency.objects.filter(owner=owner).first()
+                currency = Currency.objects.filter(code__iexact=get_user_base_code(owner), owner=owner).first() or Currency.objects.filter(owner=owner).first()
 
             balance_entry = BalanceEntry.objects.filter(
                 owner=owner,
@@ -138,7 +137,7 @@ class SalaryService:
         if entry.paid > 0 and entry.company.default_bank:
             currency = entry.company.current_salary_currency
             if not currency:
-                currency = Currency.objects.filter(code="EGP", owner=owner).first() or Currency.objects.filter(owner=owner).first()
+                currency = Currency.objects.filter(code__iexact=get_user_base_code(owner), owner=owner).first() or Currency.objects.filter(owner=owner).first()
 
             BalanceEntry.objects.filter(
                 owner=owner,

@@ -25,7 +25,7 @@ async function _renderCertReport() {
                     ${bl.key ? `data-i18n="${bl.key}"` : ""}>${bl.key ? "" : bl.label}</div>
                 <div style="font-size:22px;font-weight:800;color:var(--text-primary)">${certs.length}</div>
                 <div style="font-size:12px;color:var(--text-muted);margin-top:2px">
-                    ${_fmt(certs.reduce((s, c) => s + parseFloat(c.amount || 0), 0))} <span data-i18n="EGP"></span>
+                    ${_fmt(certs.reduce((s, c) => s + parseFloat(c.amount || 0), 0))} <span data-i18n="base_currency_code"></span>
                 </div>
             </div>`;
     })
@@ -40,7 +40,7 @@ async function _renderCertReport() {
         <tr>
             <td>${esc(status)}</td>
             <td class="text-end">${info.count}</td>
-            <td class="text-end">${_fmt(info.total)} EGP</td>
+            <td class="text-end">${_fmt(info.total)} ${baseCurrencyCode()}</td>
         </tr>`
     )
     .join("");
@@ -48,8 +48,8 @@ async function _renderCertReport() {
   document.getElementById("reportContent").innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
             ${_kpi("🏦", "total_certificates", s.total_count || 0, "")}
-            ${_kpi("💵", "total_amount", `<span>${_fmt(s.total_amount)}</span> <span data-i18n="EGP">EGP</span>`, "")}
-            ${_kpi("💹", "total_monthly_interest", `<span>${_fmt(s.monthly_interest)}</span> <span data-i18n="EGP">EGP</span>`, '<span data-i18n="per_month">per month</span>')}
+            ${_kpi("💵", "total_amount", `<span>${_fmt(s.total_amount)}</span> <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>`, "")}
+            ${_kpi("💹", "total_monthly_interest", `<span>${_fmt(s.monthly_interest)}</span> <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>`, '<span data-i18n="per_month">per month</span>')}
         </div>
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">
             ${bucketCards}
