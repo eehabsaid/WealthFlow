@@ -19,7 +19,9 @@ def summarize_payload(service_key: str, payload: dict[str, Any]) -> str:
 
     lines = [f"### {service_key.replace('_', ' ').title()} Payload Data:"]
     try:
-        compact_json = json.dumps(payload, default=str, ensure_ascii=False, indent=2)
+        # Compact (no indent) — pretty-printing wastes tokens on whitespace/
+        # newlines the model doesn't need to parse a JSON block it's just quoting.
+        compact_json = json.dumps(payload, default=str, ensure_ascii=False, separators=(",", ":"))
         lines.append(compact_json)
     except Exception:
         lines.append(str(payload))

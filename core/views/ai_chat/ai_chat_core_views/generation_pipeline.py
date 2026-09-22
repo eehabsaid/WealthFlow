@@ -13,6 +13,24 @@ from core.services.ai.tools.defs import AI_TOOL_REGISTRY
 from core.views.ai_chat.ai_chat_helpers import _aiT_fallback_no_answer
 from core.views.ai_chat.fake_tool_call_recovery import extract_fake_tool_call
 
+# Words that signal an app-structure/codebase question rather than a
+# financial-data one. Real usage (core_aimessage.sources history) is almost
+# entirely financial, so when the frontend doesn't send an explicit
+# question_domain, default to "business_data_analysis" only (6 tools) and
+# drop the 3 app_features_architecture tools, instead of sending all 9 on
+# every call. Only switch domains when the query clearly isn't financial.
+_APP_STRUCTURE_TERMS = (
+    "feature", "codebase", "architecture", "route", "routes", "page", "pages",
+    "screen", "tab", "modal", "ui", "app structure", "class", "endpoint",
+)
+
+
+def _infer_question_domain(user_text: str) -> str | None:
+    q = (user_text or "").lower()
+    if any(term in q for term in _APP_STRUCTURE_TERMS):
+        return "app_features_architecture"
+    return "business_data_analysis"
+
 
 def build_context(request, conversation, user_msg, user_text):
     """Fetch prior messages and assemble the provider message sequence."""

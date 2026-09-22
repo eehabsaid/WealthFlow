@@ -83,12 +83,28 @@ class AIChatProvidersContextTest(TestCase):
         services_spending = builder.determine_relevant_services("What are my highest expense categories?")
         self.assertIn("spending_intelligence", services_spending)
 
-        # Assemble messages
+        # Assemble messages — a query with real topical matches must NOT also
+        # pull in the unrelated default advisor services (overview/cash_flow/
+        # goal_planning/risk_analysis), or they crowd out the actual answer
+        # under the token budget. This used to assert "overview" was always
+        # present, which was the bug: DEFAULT_CORE_SERVICES was unconditional.
         messages, sources = builder.assemble_messages("What is my net worth?")
         self.assertGreater(len(messages), 0)
         self.assertEqual(messages[0]["role"], "system")
         self.assertIn("CRITICAL DIRECTIVES", messages[0]["content"])
-        self.assertIn("overview", sources)
+        self.assertNotIn("overview", sources)
+        self.assertNotIn("goal_planning", sources)
+
+        # A genuinely generic query with no topical/business-data match at all
+        # should still fall back to the broad default advisor services.
+        # (Nonsense tokens, not "hi there" — short 2-letter words like "hi"
+        # spuriously substring-match provider metadata in
+        # providers/registry/scoring.py, a separate pre-existing bug not
+        # covered by this fix.)
+        messages_generic, sources_generic = builder.assemble_messages("qzxjklm vwplotg")
+        self.assertGreater(len(messages_generic), 0)
+        self.assertIn("overview", sources_generic)
+        self.assertIn("cash_flow", sources_generic)
 
     def test_ai_conversation_and_message_models_soft_delete(self):
         conv = AIConversation.objects.create(user=self.user, title="Financial Chat")

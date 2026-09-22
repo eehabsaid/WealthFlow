@@ -42,8 +42,17 @@ class ContextBuilderService:
         return max(1, len(text) // 4)
 
     def determine_relevant_services(self, query: str) -> list[str]:
+        """Returns ONLY the advisor services whose name or topic keywords actually
+        match the query. DEFAULT_CORE_SERVICES is no longer unconditionally
+        prepended here — see assemble_messages, which falls back to it only when
+        nothing (neither this nor business-data grounding) matched at all. An
+        unconditional default here previously meant 4-5 unrelated advisor
+        payloads (overview/cash_flow/goal_planning/risk_analysis/...) got
+        dumped into every single query, crowding out the real, topically-matched
+        answer under the token budget (confirmed via core_aimessage.sources on
+        a real "list daily expenses" query pulling in 5 unrelated sources)."""
         q = (query or "").lower().strip()
-        selected = list(DEFAULT_CORE_SERVICES)
+        selected: list[str] = []
 
         from core.services.financial_advisor.registry import get_available_advisor_services
         available_services = get_available_advisor_services()
@@ -62,7 +71,11 @@ class ContextBuilderService:
         return selected
 
     def build_system_prompt(self, user: Any = None, query: str = "") -> str:
-        return build_system_prompt(user=user, query=query)
+        # Cap the system-knowledge-manifest section as a fraction of the real
+        # configured budget instead of a hardcoded 1500-token limit that
+        # ignored ai_context_token_budget entirely.
+        knowledge_token_limit = min(1500, max(300, self.get_token_budget() // 4))
+        return build_system_prompt(user=user, query=query, knowledge_token_limit=knowledge_token_limit)
 
     def summarize_payload(self, service_key: str, payload: dict[str, Any]) -> str:
         return summarize_payload(service_key, payload)
@@ -114,6 +127,14 @@ class ContextBuilderService:
         sources.extend(biz_sources)
         high_priority_blocks.extend(biz_high)
         low_priority_blocks.extend(biz_low)
+
+        # Only fall back to the broad default advisor services when NOTHING
+        # topically matched anywhere (no business-data provider, no advisor
+        # keyword) — a genuinely generic/open-ended question. Otherwise the
+        # matched data is exactly what the user asked for and must not have
+        # to compete with 4-5 unrelated payloads for the same token budget.
+        if not service_keys and not biz_sources:
+            service_keys = list(DEFAULT_CORE_SERVICES)
 
         for key in service_keys:
             payload = get_financial_advisor_payload(key, user)

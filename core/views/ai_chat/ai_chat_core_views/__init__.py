@@ -33,7 +33,12 @@ from .conversation_setup import (
     resolve_conversation,
     save_user_message,
 )
-from .generation_pipeline import build_context, build_provider_error_response, initial_generate
+from .generation_pipeline import (
+    _infer_question_domain,
+    build_context,
+    build_provider_error_response,
+    initial_generate,
+)
 from .response_finalizer import finalize_success
 
 __all__ = ["AIChatView"]
@@ -94,7 +99,7 @@ class AIChatView(View):
         # Build context and messages sequence
         messages_seq, sources = build_context(request, conversation, user_msg, user_text)
 
-        question_domain = str(body.get("question_domain", "")).strip() or None
+        question_domain = str(body.get("question_domain", "")).strip() or _infer_question_domain(user_text)
 
         tools_param, error_str, content_str, tool_calls_req = initial_generate(
             provider, messages_seq, question_domain

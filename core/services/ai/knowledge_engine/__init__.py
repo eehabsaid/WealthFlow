@@ -60,14 +60,14 @@ class AIKnowledgeEngine(ConversationSignalsMixin, UserNotesMixin):
         return entry
 
     @classmethod
-    def build_knowledge_context(cls, user: Any = None, query: str = "") -> str:
+    def build_knowledge_context(cls, user: Any = None, query: str = "", token_limit: int = 1500) -> str:
         """
         Formats system knowledge manifest and active database knowledge entries into concise system directives.
         """
         from core.services.ai.system_knowledge_engine import SystemKnowledgeEngine
 
         parts = []
-        system_knowledge = SystemKnowledgeEngine.build_system_knowledge_context(query=query)
+        system_knowledge = SystemKnowledgeEngine.build_system_knowledge_context(query=query, token_limit=token_limit)
         if system_knowledge:
             parts.append(system_knowledge)
 

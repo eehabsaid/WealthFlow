@@ -9,7 +9,7 @@ from typing import Any
 from core.models import AppSettings
 
 
-def build_system_prompt(user: Any = None, query: str = "") -> str:
+def build_system_prompt(user: Any = None, query: str = "", knowledge_token_limit: int = 1500) -> str:
     base_prompt = AppSettings.get(
         "ai_system_prompt",
         "You are the WealthFlow AI Financial Advisor. Answer financial questions strictly using provided data.",
@@ -54,6 +54,8 @@ def build_system_prompt(user: Any = None, query: str = "") -> str:
     )
 
     from core.services.ai.knowledge_engine import AIKnowledgeEngine
-    knowledge_context = AIKnowledgeEngine.build_knowledge_context(user=user, query=query)
+    knowledge_context = AIKnowledgeEngine.build_knowledge_context(
+        user=user, query=query, token_limit=knowledge_token_limit
+    )
 
     return f"{base_prompt}{guardrails}{knowledge_context}"
