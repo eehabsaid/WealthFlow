@@ -53,7 +53,7 @@ def build_security_settings(environ) -> dict:
         secret = DEV_SECRET_KEY
 
     cfg = {
-        "MULTI_CURRENCY_ENABLED": _bool(environ, "WEALTHFLOW_MULTI_CURRENCY", False),
+        "MULTI_CURRENCY_ENABLED": _bool(environ, "WEALTHFLOW_MULTI_CURRENCY", True),
         "DEBUG": debug,
         "SECRET_KEY": secret,
         "ALLOWED_HOSTS": _list(environ, "WEALTHFLOW_ALLOWED_HOSTS", DEFAULT_HOSTS),
