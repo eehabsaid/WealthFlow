@@ -2,7 +2,7 @@
 Mocked provider only — see core/services/ai/orchestration/__init__.py:
 this package is never exercised against a live model, by design."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
