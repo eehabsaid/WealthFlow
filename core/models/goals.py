@@ -43,13 +43,15 @@ class Goal(models.Model):
         ordering = ["target_date", "id"]
 
     def to_dict(self):
+        from core.services.shared.base_currency import get_user_base_code
+
         return {
             "id": self.id,
             "name": self.name,
             "goal_type": self.goal_type,
             "target_amount": float(self.target_amount or 0),
             "currency_id": self.currency_id,
-            "currency_code": self.currency.code if self.currency else "EGP",
+            "currency_code": self.currency.code if self.currency else get_user_base_code(self.owner),
             "currency_symbol": self.currency.symbol if self.currency else "",
             "target_date": _date_to_iso(self.target_date),
             "current_saved_amount": float(self.current_saved_amount or 0),

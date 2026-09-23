@@ -30,9 +30,12 @@ class UsdRateResult:
 
 
 class UsdRateService:
-    def get_rate_for_currency(self, currency_id) -> UsdRateResult:
+    def get_rate_for_currency(self, currency_id, owner=None) -> UsdRateResult:
+        from core.services.shared.base_currency import get_user_base_code
+
         currency = Currency.objects.filter(pk=currency_id).first()
         currency_code = (currency.code if currency else "").upper()
+        base_code = get_user_base_code(owner)
 
         if currency_code == "USD":
             return UsdRateResult(rate=1.0)
@@ -43,7 +46,7 @@ class UsdRateService:
         if not usd_buy_rate:
             raise UsdRateError("Error loading exchange rates.")
 
-        if currency_code == "EGP" or not currency_code:
+        if currency_code == base_code or not currency_code:
             # Base currency is not stored in exchange-rate table; use
             # implicit buy_rate = 1.00 (same comment as the original JS).
             rate = usd_buy_rate

@@ -85,7 +85,10 @@ class AssetSale(models.Model):
     def to_dict(self):
         currency = self.deposit_currency
         if currency is None:
-            currency = Currency.objects.filter(code__iexact="EGP", owner=self.asset.owner).order_by("id").first()
+            from core.services.shared.base_currency import get_user_base_code
+
+            base_code = get_user_base_code(self.asset.owner)
+            currency = Currency.objects.filter(code__iexact=base_code, owner=self.asset.owner).order_by("id").first()
 
         method = str(self.deposit_method or "").strip() or "Cash"
         if method.lower() == "cash":

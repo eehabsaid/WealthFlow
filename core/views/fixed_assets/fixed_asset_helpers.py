@@ -25,6 +25,7 @@ def _clear_non_selected_asset_details(asset):
 def _resolve_asset_usd_rate_and_price(data, current_usd_rate=0, current_price_usd=0, owner=None):
     from decimal import Decimal
     from core.models import Currency
+    from core.services.shared.base_currency import get_user_base_code
     from core.services.shared.currency_conversion_service import CurrencyConversionService
 
     purchase_price = Decimal(str(data.get("purchase_price", 0) or 0))
@@ -32,7 +33,7 @@ def _resolve_asset_usd_rate_and_price(data, current_usd_rate=0, current_price_us
     price_usd = Decimal(str(data.get("purchase_price_usd", current_price_usd) or 0))
     purchase_currency_id = data.get("purchase_currency_id")
 
-    code = "EGP"
+    code = get_user_base_code(owner)
     if purchase_currency_id:
         c = Currency.objects.filter(id=purchase_currency_id, owner=owner).first()
         if c:
@@ -47,8 +48,6 @@ def _resolve_asset_usd_rate_and_price(data, current_usd_rate=0, current_price_us
     if price_usd <= 0 and purchase_price > 0 and usd_rate > 0:
         if code == "USD":
             price_usd = purchase_price
-        elif code == "EGP":
-            price_usd = (purchase_price * usd_rate).quantize(Decimal("0.01"))
         else:
             price_usd = (purchase_price * usd_rate).quantize(Decimal("0.01"))
 
