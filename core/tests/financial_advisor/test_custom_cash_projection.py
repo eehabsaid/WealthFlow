@@ -32,20 +32,20 @@ class CustomCashProjectionTest(TestCase):
             amount=100,
         )
 
-    def test_egp_only_scope_excludes_other_currencies(self):
+    def test_base_only_scope_excludes_other_currencies(self):
         result = compute_custom_cash_projection(
             self.user,
             today=date(2026, 1, 1),
             target_date=date(2026, 1, 31),
             exclude_event_types=[],
-            currency_scope="egp_only",
+            currency_scope="base_only",
         )
         # With no recurring salary/expenses set up, starting balance should be
         # exactly the EGP-only cash total (1000), unaffected by the USD wallet.
         self.assertEqual(result["starting_balance"], 1000.0)
-        self.assertEqual(result["currency_scope"], "egp_only")
+        self.assertEqual(result["currency_scope"], "base_only")
 
-    def test_invalid_currency_scope_falls_back_to_egp_only(self):
+    def test_invalid_currency_scope_falls_back_to_base_only(self):
         result = compute_custom_cash_projection(
             self.user,
             today=date(2026, 1, 1),
@@ -53,7 +53,7 @@ class CustomCashProjectionTest(TestCase):
             exclude_event_types=[],
             currency_scope="not_a_real_scope",
         )
-        self.assertEqual(result["currency_scope"], "egp_only")
+        self.assertEqual(result["currency_scope"], "base_only")
 
     def test_unknown_exclude_types_are_ignored_not_errored(self):
         result = compute_custom_cash_projection(
@@ -61,7 +61,7 @@ class CustomCashProjectionTest(TestCase):
             today=date(2026, 1, 1),
             target_date=date(2026, 1, 31),
             exclude_event_types=["not_a_real_type", "salary"],
-            currency_scope="egp_only",
+            currency_scope="base_only",
         )
         self.assertEqual(result["excluded_event_types"], ["salary"])
 
@@ -71,7 +71,7 @@ class CustomCashProjectionTest(TestCase):
             today=date(2026, 1, 1),
             target_date=date(2026, 1, 5),
             exclude_event_types=[],
-            currency_scope="egp_only",
+            currency_scope="base_only",
         )
         for event in result["included_events"]:
             self.assertLessEqual(event["date"], "2026-01-05")

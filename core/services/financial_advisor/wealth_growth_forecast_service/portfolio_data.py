@@ -50,12 +50,12 @@ class PortfolioDataMixin:
                 continue
             if cert.expiry_date <= month_end:
                 continue
-            total += _to_float(cert.amount) * self._convert_rate(cert.currency.code if cert.currency else "EGP")
+            total += _to_float(cert.amount) * self._convert_rate(cert.currency.code if cert.currency else "")
         return total
 
     def _convert_rate(self, currency_code: str) -> float:
+        from core.services.shared.base_currency import get_user_base_code
+
         rates = self._net_worth_service.portfolio_components()["rates"]
-        code = str(currency_code or "EGP").upper()
-        if code in ("", "EGP"):
-            return 1.0
+        code = str(currency_code or "").upper() or get_user_base_code(self.owner)
         return _to_float(rates.get(code)) or 0.0

@@ -19,9 +19,9 @@ class GoalCalculationMixin:
         return {str(code or "").upper(): _to_float(value) for code, value in rates.items()}
 
     def _egp_rate(self, currency_code: str, rates: Dict[str, float]) -> float:
-        code = str(currency_code or "EGP").upper()
-        if code in ("", "EGP"):
-            return 1.0
+        from core.services.shared.base_currency import get_user_base_code
+
+        code = str(currency_code or "").upper() or get_user_base_code(self.owner)
         return _to_float(rates.get(code)) or 0.0
 
     def _months_left(self, target: date | None) -> int:
@@ -51,7 +51,9 @@ class GoalCalculationMixin:
         return 1
 
     def _goal_calc(self, goal: Goal, rates: Dict[str, float], monthly_capacity_egp: float) -> GoalCalc:
-        currency_code = getattr(goal.currency, "code", "EGP") or "EGP"
+        from core.services.shared.base_currency import get_user_base_code
+
+        currency_code = getattr(goal.currency, "code", "") or get_user_base_code(self.owner)
         rate = self._egp_rate(currency_code, rates)
 
         target_amount_egp = _to_float(goal.target_amount) * rate

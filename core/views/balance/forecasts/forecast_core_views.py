@@ -74,7 +74,7 @@ class CashFlowCustomProjectionView(View):
         exclude_param = request.GET.get("exclude", "")
         exclude_types = [t.strip() for t in exclude_param.split(",") if t.strip()]
 
-        currency_scope = request.GET.get("currency_scope", "egp_only")
+        currency_scope = request.GET.get("currency_scope", "base_only")
 
         payload = compute_custom_cash_projection(
             request.user,

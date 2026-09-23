@@ -7,7 +7,7 @@ if it grows past that.
 
 Sibling files:
 - helpers.py         shared to_decimal/to_float coercion + ForecastEvent dataclass
-- rates_mixin.py      RatesMixin: exchange-rate lookup and EGP conversion
+- rates_mixin.py      RatesMixin: exchange-rate lookup and base-currency conversion
 - recurring_mixin.py  RecurringMixin: monthly expense/salary/rental/mortgage figures
 - events_mixin.py     EventsMixin: month walking + certificate/asset-sale event generation
 - timeline_mixin.py   TimelineMixin: checkpoints, month-grouped timeline, flattened events

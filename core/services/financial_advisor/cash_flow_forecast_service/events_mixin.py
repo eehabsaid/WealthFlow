@@ -65,7 +65,7 @@ class EventsMixin:
                 continue
 
             interval = self._interest_service._frequency_interval_months(cert.frequency)
-            currency_code = str(getattr(cert.currency, "code", "EGP") or "EGP").upper()
+            currency_code = str(getattr(cert.currency, "code", "") or "").upper()
             principal_egp = self._convert_egp(to_float(cert.amount), currency_code, rates)
             interest_period_egp = self._convert_egp(to_float(cert.interest_value), currency_code, rates)
             if interest_period_egp <= 0:

@@ -356,7 +356,7 @@
   "cash_flow_custom_preset_365": "365 Tage",
   "cash_flow_custom_preset_custom": "Benutzerdefiniertes Datum...",
   "cash_flow_custom_currency_label": "Währungsbereich",
-  "cash_flow_custom_currency_egp_only": "Nur {base}-Bargeld",
+  "cash_flow_custom_currency_base_only": "Nur {base}-Bargeld",
   "cash_flow_custom_currency_total_liquid": "Gesamte Liquidität (alle Währungen)",
   "cash_flow_custom_load_btn": "Ereignisse laden",
   "cash_flow_custom_events_label": "Deaktivieren Sie ein Ereignis, um es von der Prognose auszuschließen",

@@ -356,7 +356,7 @@
   "cash_flow_custom_preset_365": "365 jours",
   "cash_flow_custom_preset_custom": "Date personnalisée...",
   "cash_flow_custom_currency_label": "Portée de la devise",
-  "cash_flow_custom_currency_egp_only": "Liquidités {base} uniquement",
+  "cash_flow_custom_currency_base_only": "Liquidités {base} uniquement",
   "cash_flow_custom_currency_total_liquid": "Total liquide (toutes devises)",
   "cash_flow_custom_load_btn": "Charger les événements",
   "cash_flow_custom_events_label": "Décochez un événement pour l'exclure de la projection",

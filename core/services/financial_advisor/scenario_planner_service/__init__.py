@@ -96,12 +96,15 @@ class ScenarioPlannerService(OverridesMixin, RetirementMixin, InsightsMixin, Pay
 
     def _get_current_real_debt(self) -> float:
         """Fetch total real debt from AssetMortgage model."""
+        from core.services.shared.base_currency import get_user_base_code
+
         mortgages = AssetMortgage.objects.filter(asset__owner=self.user)
         rates = self._net_worth_service.portfolio_components().get("rates", {})
+        base_code = get_user_base_code(self.user)
         total_debt = 0.0
         for m in mortgages:
             rem = _to_float(m.remaining_balance)
-            code = str(m.currency.code if m.currency else "EGP").upper()
-            rate = 1.0 if code in ("", "EGP") else _to_float(rates.get(code)) or 1.0
+            code = str(m.currency.code if m.currency else "").upper() or base_code
+            rate = 1.0 if code == base_code else _to_float(rates.get(code)) or 1.0
             total_debt += rem * rate
         return total_debt

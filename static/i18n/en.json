@@ -356,7 +356,7 @@
   "cash_flow_custom_preset_365": "365 days",
   "cash_flow_custom_preset_custom": "Custom date...",
   "cash_flow_custom_currency_label": "Currency scope",
-  "cash_flow_custom_currency_egp_only": "{base} cash only",
+  "cash_flow_custom_currency_base_only": "{base} cash only",
   "cash_flow_custom_currency_total_liquid": "Total liquid (all currencies)",
   "cash_flow_custom_load_btn": "Load events",
   "cash_flow_custom_events_label": "Uncheck any event to exclude it from the projection",

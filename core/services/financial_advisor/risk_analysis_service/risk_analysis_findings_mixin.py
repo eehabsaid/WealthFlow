@@ -86,6 +86,8 @@ class RiskFindingsMixin:
         return findings[:5]
 
     def _stress_tests(self, comp: dict) -> List[dict]:
+        from core.services.shared.base_currency import get_user_base_code
+
         total_nw = _to_float(comp.get("net_worth_egp"))
         if total_nw <= 0:
             return []
@@ -95,10 +97,11 @@ class RiskFindingsMixin:
         real_estate_val = _to_float(alloc_vals.get("type_real_estate"))
 
         rates = comp.get("rates", {})
+        base_code = get_user_base_code(self.owner)
         foreign_val = 0.0
         totals_by_currency = comp.get("totals_by_currency", {})
         for code, amount in totals_by_currency.items():
-            if str(code).upper() not in ("EGP", "GOLD"):
+            if str(code).upper() not in (base_code, "GOLD"):
                 foreign_val += _to_float(amount) * _to_float(rates.get(str(code).upper(), 1.0))
 
         scenarios = [

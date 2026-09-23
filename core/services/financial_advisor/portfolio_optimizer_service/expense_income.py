@@ -40,6 +40,8 @@ class ExpenseIncomeMixin:
         return salary_value + certificate_income
 
     def _upcoming_certificate_maturity_egp(self, comp: dict, days: int = 90) -> float:
+        from core.services.shared.base_currency import get_user_base_code
+
         rates = comp.get("rates", {})
         end_date = self.today + timedelta(days=days)
         total = 0.0
@@ -51,11 +53,8 @@ class ExpenseIncomeMixin:
             if cert.expiry_date < self.today or cert.expiry_date > end_date:
                 continue
 
-            code = str(cert.currency.code if cert.currency else "EGP").upper()
+            code = str(cert.currency.code if cert.currency else "").upper() or get_user_base_code(self.owner)
             amount = _to_float(cert.amount)
-            if code == "EGP":
-                total += amount
-            else:
-                total += amount * _to_float(rates.get(code))
+            total += amount * (_to_float(rates.get(code)) or 0.0)
 
         return total

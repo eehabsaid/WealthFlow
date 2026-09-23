@@ -2,7 +2,7 @@
 NOTE: Part of the cash_flow_forecast_service package split (see helpers.py
 docstring for the 200-line-per-file convention this package follows).
 
-RatesMixin: exchange-rate lookup and EGP conversion. Composed onto
+RatesMixin: exchange-rate lookup and base-currency conversion. Composed onto
 CashFlowForecastService in core.py.
 """
 
@@ -20,7 +20,7 @@ class RatesMixin:
         return {str(code or "").upper(): to_float(value) for code, value in raw_rates.items()}
 
     def _convert_egp(self, amount: float, currency_code: str, rates: Dict[str, float]) -> float:
-        code = str(currency_code or "EGP").upper()
-        if code in ("", "EGP"):
-            return amount
-        return amount * to_float(rates.get(code))
+        from core.services.shared.base_currency import get_user_base_code
+
+        code = str(currency_code or "").upper() or get_user_base_code(self.owner)
+        return amount * (to_float(rates.get(code)) or 0.0)

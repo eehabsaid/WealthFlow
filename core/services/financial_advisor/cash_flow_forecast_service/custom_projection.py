@@ -2,7 +2,7 @@
 Custom Cash Projection — powers the interactive "what-if" card in the Cash
 Flow tab. Lets the user pick a target date, exclude specific recurring
 event types (salary, rental, mortgage, certificate interest/maturity, asset
-sales), and choose EGP-only vs total-liquid currency scope.
+sales), and choose base-currency-only vs total-liquid currency scope.
 
 Deliberately reuses CashFlowForecastService's own event-generation
 (_build_events) rather than duplicating the recurring-schedule logic, so
@@ -27,12 +27,14 @@ VALID_EVENT_TYPES = {
 }
 
 
-def _strict_egp_cash_balance(owner) -> float:
-    """Literal EGP-currency cash only — excludes other-currency cash and gold."""
+def _strict_base_currency_cash_balance(owner) -> float:
+    """Literal base-currency cash only — excludes other-currency cash and gold."""
+    from core.services.shared.base_currency import get_user_base_code
+
     agg = BalanceEntry.objects.filter(
         owner=owner,
         balance_type__iexact=BalanceEntry.BalanceType.CASH,
-        currency__code__iexact="EGP",
+        currency__code__iexact=get_user_base_code(owner),
     ).aggregate(total=Sum("amount"))
     return float(agg.get("total") or 0)
 
@@ -42,7 +44,7 @@ def compute_custom_cash_projection(
     today: date,
     target_date: date,
     exclude_event_types: list[str] | None = None,
-    currency_scope: str = "egp_only",
+    currency_scope: str = "base_only",
 ) -> dict[str, Any]:
     exclude_set = {e for e in (exclude_event_types or []) if e in VALID_EVENT_TYPES}
 
@@ -60,8 +62,8 @@ def compute_custom_cash_projection(
         baseline = svc._net_worth_service.certificate_forecast_payload(today=today)
         starting_balance = float(baseline.get("cash_balance") or 0)
     else:
-        currency_scope = "egp_only"
-        starting_balance = _strict_egp_cash_balance(owner)
+        currency_scope = "base_only"
+        starting_balance = _strict_base_currency_cash_balance(owner)
 
     included_events: list[dict[str, Any]] = []
     excluded_events: list[dict[str, Any]] = []

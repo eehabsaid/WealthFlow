@@ -21,6 +21,8 @@ class InsightsMixin:
 
         Uses SCENARIO_PLANNER_CONFIG threshold constants for warnings/good news.
         """
+        from core.services.shared.base_currency import get_user_base_code
+
         insights: List[dict] = []
 
         emer_min = _to_float(self.config.get("EMERGENCY_FUND_MIN_MONTHS", 3.0))
@@ -90,7 +92,7 @@ class InsightsMixin:
                 "title_key": "scenario_planner_insight_debt_added_title",
                 "body_key": "scenario_planner_insight_debt_added_body",
                 "params": {"added_debt": str(round(debt_diff, 2))},
-                "impact_text": f"New liabilities of +{round(debt_diff, 2):,} EGP added to your balance sheet.",
+                "impact_text": f"New liabilities of +{round(debt_diff, 2):,} {get_user_base_code(self.user)} added to your balance sheet.",
                 "action_text": "Ensure your debt-to-income ratio remains under 40% to maintain financial flexibility.",
                 "alternative_text": "Alternative: Increase initial down payment to lower total interest expenses over time.",
             })
@@ -105,7 +107,7 @@ class InsightsMixin:
                 "title_key": "scenario_planner_insight_nw_growth_title",
                 "body_key": "scenario_planner_insight_nw_growth_body",
                 "params": {"diff": str(round(nw_diff, 2))},
-                "impact_text": f"Net worth projects an additional +{round(nw_diff, 2):,} EGP growth over baseline at 12 months.",
+                "impact_text": f"Net worth projects an additional +{round(nw_diff, 2):,} {get_user_base_code(self.user)} growth over baseline at 12 months.",
                 "action_text": "Re-invest projected surplus into diversified yield assets.",
                 "alternative_text": "Alternative: Accelerate debt payoff or contribute to long-term goals ahead of schedule.",
             })

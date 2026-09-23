@@ -88,7 +88,7 @@ def build_alerts(ctx: OverviewContext) -> None:
                 "title_key": "overview_alert_cert_maturing_title",
                 "title_fallback": "Certificate matures in {days} days",
                 "desc_key": "overview_alert_cert_maturing_desc",
-                "desc_fallback": "A certificate for {amount} EGP will mature on {date}.",
+                "desc_fallback": "A certificate for {amount} will mature on {date}.",
                 "params": {
                     "days": days_left,
                     "amount": float(ctx.nearest_maturity.get("amount", 0.0)),
@@ -122,7 +122,7 @@ def build_alerts(ctx: OverviewContext) -> None:
             "title_key": "overview_alert_mortgage_due_title",
             "title_fallback": "Mortgage payment due soon",
             "desc_key": "overview_alert_mortgage_due_desc",
-            "desc_fallback": "Amount: {amount} EGP. Due date: {date}.",
+            "desc_fallback": "Amount: {amount}. Due date: {date}.",
             "params": {
                 "amount": float(mortgage_event.get("amount", 0.0)),
                 "date": mortgage_event.get("date", "")

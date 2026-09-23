@@ -17,6 +17,7 @@ class TopAssetsMixin:
     def _top_assets(self, comp: dict, total_portfolio: float) -> List[dict]:
         rows: List[dict] = []
         rates = comp.get("rates", {})
+        from core.services.shared.base_currency import get_user_base_code
 
         fixed_assets = list(FixedAsset.objects.filter(owner=self.owner, status="Owned").order_by("name"))
         by_type: Dict[str, List[FixedAsset]] = {
@@ -65,9 +66,9 @@ class TopAssetsMixin:
             cert_value = 0.0
             cert_gain = 0.0
             for cert in active_certs:
-                code = str(cert.currency.code if cert.currency else "EGP").upper()
+                code = str(cert.currency.code if cert.currency else "").upper() or get_user_base_code(self.owner)
                 amount = _to_float(cert.amount)
-                converted = amount if code == "EGP" else amount * _to_float(rates.get(code))
+                converted = amount * (_to_float(rates.get(code)) or 0.0)
                 cert_value += converted
                 cert_gain += _to_float(cert.interest_value)
             rows.append(

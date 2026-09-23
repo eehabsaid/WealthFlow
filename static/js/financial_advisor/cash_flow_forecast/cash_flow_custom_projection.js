@@ -36,7 +36,7 @@ function _renderCashFlowCustomProjectionCard() {
           <div class="col-12 col-md-6">
             <label style="color:var(--text-secondary); font-size:12px; margin-bottom:4px; display:block;" data-i18n="cash_flow_custom_currency_label"></label>
             <select id="custom_projection_currency_scope" class="form-select form-select-sm" style="background:var(--bg-primary); color:var(--text-primary); border-color:var(--border-color);">
-              <option value="egp_only" data-i18n="cash_flow_custom_currency_egp_only"></option>
+              <option value="base_only" data-i18n="cash_flow_custom_currency_base_only"></option>
               <option value="total_liquid" data-i18n="cash_flow_custom_currency_total_liquid"></option>
             </select>
           </div>

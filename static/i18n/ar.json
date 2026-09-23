@@ -356,7 +356,7 @@
   "cash_flow_custom_preset_365": "365 يومًا",
   "cash_flow_custom_preset_custom": "تاريخ مخصص...",
   "cash_flow_custom_currency_label": "نطاق العملة",
-  "cash_flow_custom_currency_egp_only": "النقد بـ{base} فقط",
+  "cash_flow_custom_currency_base_only": "النقد بـ{base} فقط",
   "cash_flow_custom_currency_total_liquid": "إجمالي السيولة (كل العملات)",
   "cash_flow_custom_load_btn": "تحميل الأحداث",
   "cash_flow_custom_events_label": "ألغِ تحديد أي حدث لاستبعاده من التوقع",

@@ -29,6 +29,8 @@ class RetirementMixin:
 
         This is strictly a display metric — it does NOT alter net worth or forecast.
         """
+        from core.services.shared.base_currency import get_user_base_code
+
         nest_egg_multiplier = _to_float(self.config.get("NEST_EGG_MULTIPLIER", 25.0))
         annual_expenses = max(1.0, avg_monthly_expenses * 12.0)
         required_nest_egg = annual_expenses * nest_egg_multiplier
@@ -45,6 +47,7 @@ class RetirementMixin:
             "readiness_pct": round(readiness_pct, 1),
             "assumption_note": (
                 f"Based on safe withdrawal rate of {int(self.config['DEFAULT_WITHDRAWAL_RATE']*100)}% "
-                f"({int(self.config['NEST_EGG_MULTIPLIER'])}x annual expenses of {round(annual_expenses, 2):,} EGP)."
+                f"({int(self.config['NEST_EGG_MULTIPLIER'])}x annual expenses of {round(annual_expenses, 2):,} "
+                f"{get_user_base_code(self.user)})."
             ),
         }

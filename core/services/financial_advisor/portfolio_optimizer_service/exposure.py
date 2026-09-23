@@ -14,6 +14,8 @@ from .shared import _to_float
 
 class ExposureMixin:
     def _bank_exposure(self, comp: dict) -> List[dict]:
+        from core.services.shared.base_currency import get_user_base_code
+
         rates = comp.get("rates", {})
         bank_totals: dict = {}
 
@@ -22,26 +24,21 @@ class ExposureMixin:
             if not entry.bank_id:
                 continue
             bank_name = entry.bank.name if entry.bank else "-"
-            code = str(entry.currency.code if entry.currency else "EGP").upper()
+            code = str(entry.currency.code if entry.currency else "").upper() or get_user_base_code(self.owner)
             amount = _to_float(entry.amount)
-            if code == "EGP":
-                converted = amount
-            elif code == "GOLD":
+            if code == "GOLD":
                 converted = 0.0
             else:
-                converted = amount * _to_float(rates.get(code))
+                converted = amount * (_to_float(rates.get(code)) or 0.0)
             bank_totals[bank_name] = bank_totals.get(bank_name, 0.0) + converted
 
         for cert in BankCertificate.objects.select_related("bank", "currency").filter(owner=self.owner):
             if not _is_certificate_active(cert):
                 continue
             bank_name = cert.bank.name if cert.bank else "-"
-            code = str(cert.currency.code if cert.currency else "EGP").upper()
+            code = str(cert.currency.code if cert.currency else "").upper() or get_user_base_code(self.owner)
             amount = _to_float(cert.amount)
-            if code == "EGP":
-                converted = amount
-            else:
-                converted = amount * _to_float(rates.get(code))
+            converted = amount * (_to_float(rates.get(code)) or 0.0)
             bank_totals[bank_name] = bank_totals.get(bank_name, 0.0) + converted
 
         result = [
@@ -53,33 +50,36 @@ class ExposureMixin:
         return result
 
     def _currency_exposure(self, comp: dict) -> List[dict]:
+        from core.services.shared.base_currency import get_user_base_code
+
         rates = comp.get("rates", {})
         totals = comp.get("totals_by_currency", {})
+        base_code = get_user_base_code(self.owner)
         rows: List[dict] = []
         for code, amount in totals.items():
-            upper_code = str(code or "").upper()
+            upper_code = str(code or "").upper() or base_code
             value = _to_float(amount)
             if upper_code == "GOLD":
                 value = _to_float(comp.get("gold_value_egp"))
-            elif upper_code != "EGP":
+            elif upper_code != base_code:
                 value = value * _to_float(rates.get(upper_code))
-            rows.append({"code": upper_code or "EGP", "value": round(value, 2)})
+            rows.append({"code": upper_code, "value": round(value, 2)})
         rows.sort(key=lambda item: item["value"], reverse=True)
         return rows
 
     def _largest_balance_entry(self, comp: dict) -> dict:
+        from core.services.shared.base_currency import get_user_base_code
+
         rates = comp.get("rates", {})
         largest = {"title": "-", "value": 0.0}
         rows = BalanceEntry.objects.select_related("currency").filter(owner=self.owner)
         for row in rows:
-            code = str(row.currency.code if row.currency else "EGP").upper()
+            code = str(row.currency.code if row.currency else "").upper() or get_user_base_code(self.owner)
             amount = _to_float(row.amount)
-            if code == "EGP":
-                converted = amount
-            elif code == "GOLD":
+            if code == "GOLD":
                 continue
             else:
-                converted = amount * _to_float(rates.get(code))
+                converted = amount * (_to_float(rates.get(code)) or 0.0)
             if converted > largest["value"]:
                 largest = {"title": row.title or "-", "value": round(converted, 2)}
         return largest
