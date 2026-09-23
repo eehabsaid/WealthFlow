@@ -19,7 +19,6 @@ from typing import Any
 
 from core.services.ai.orchestration.agents import AdvisorAgent, DataAgent, ScenarioAgent
 from core.services.ai.orchestration.state import TaskState
-from core.views.ai_chat.fake_tool_call_recovery import _extract_balanced_json
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +64,12 @@ class Orchestrator:
         ]
 
     def _parse_decision(self, content: str) -> dict[str, Any] | None:
+        # Deferred import: fake_tool_call_recovery sits under core.views.ai_chat,
+        # which imports AIChatView, which imports this package — a module-level
+        # import here creates a circular import. Safe to import lazily since
+        # this only runs inside a call, after both modules have finished loading.
+        from core.views.ai_chat.fake_tool_call_recovery import _extract_balanced_json
+
         if not content:
             return None
         for i, ch in enumerate(content):

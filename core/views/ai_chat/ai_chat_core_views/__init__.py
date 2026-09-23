@@ -22,8 +22,10 @@ from django.views import View
 
 from core.validators.json_body import parse_json_body
 from core.integrations.ai_provider import get_active_ai_provider
+from core.models import AppSettings
 from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.direct_answers import try_direct_answer
+from core.services.ai.orchestration import Orchestrator
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
 from core.views.ai_chat.ai_chat_loop import run_tool_investigation_loop
 
@@ -94,6 +96,17 @@ class AIChatView(View):
             return finalize_success(
                 cache_mgr, progress_key, conversation, user_msg, user_text,
                 direct["content"], direct["tool_calls"], direct["sources"], request,
+            )
+
+        multi_agent_str = AppSettings.get("ai_multi_agent_enabled", "false", user=request.user).strip().lower()
+        if multi_agent_str in ("true", "1", "yes"):
+            orchestrator = Orchestrator(provider)
+            state = orchestrator.run(user_text, request.user)
+            content_str = state.final_answer or "The orchestrator could not complete this task."
+            sources = sorted({step["agent"] for step in state.steps})
+            return finalize_success(
+                cache_mgr, progress_key, conversation, user_msg, user_text,
+                content_str, state.steps, sources, request,
             )
 
         # Build context and messages sequence

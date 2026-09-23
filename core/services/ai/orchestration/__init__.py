@@ -2,17 +2,18 @@
 Multi-agent orchestration engine (Decide -> Act -> Observe across DataAgent,
 AdvisorAgent, ScenarioAgent, with shared TaskState).
 
-REACHABILITY: intentionally NOT wired into any view, URL, setting, or the
-normal chat pipeline (generation_pipeline.py). Nothing in the app currently
-constructs Orchestrator or calls run() — built ahead of the hardware needed
-to run it well (see chat history: measured local decode speed makes
-multi-round-trip loops impractical on this deployment today). Exists so the
-engine can be wired in later with a settings flag + a call site, not another
-build. Covered by core/tests/ai/test_orchestration.py with a mocked provider
-only — never exercised against a live model.
+REACHABILITY: gated behind AppSettings "ai_multi_agent_enabled" (default
+"false"), toggled from the AI Settings page. When on, AIChatView routes each
+chat message through Orchestrator.run() instead of the normal single-shot
+pipeline — see core/views/ai_chat/ai_chat_core_views/__init__.py. Bounded to
+Orchestrator.MAX_STEPS (5) round trips per request. On this deployment's
+measured local decode speed, each round trip costs real wall-clock minutes —
+that cost is now the user's explicit choice via the toggle, not a hidden
+default.
 """
 
 from core.services.ai.orchestration.orchestrator import Orchestrator
 from core.services.ai.orchestration.state import TaskState
 
 __all__ = ["Orchestrator", "TaskState"]
+

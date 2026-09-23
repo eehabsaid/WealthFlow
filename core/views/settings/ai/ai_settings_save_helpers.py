@@ -92,6 +92,7 @@ def validate_ai_settings_post_data(data):
 
     enabled = bool(data.get("ai_enabled", False))
     read_only = bool(data.get("ai_read_only", True))
+    multi_agent_enabled = bool(data.get("ai_multi_agent_enabled", False))
     ollama_url = str(data.get("ai_ollama_url", "http://localhost:11434")).strip()
     model = str(data.get("ai_model", DEFAULT_OLLAMA_MODEL)).strip()
     system_prompt = str(data.get("ai_system_prompt", "You are a helpful financial advisor assistant.")).strip()
@@ -111,6 +112,7 @@ def validate_ai_settings_post_data(data):
         "context_token_budget": context_token_budget,
         "enabled": enabled,
         "read_only": read_only,
+        "multi_agent_enabled": multi_agent_enabled,
         "ollama_url": ollama_url,
         "model": model,
         "system_prompt": system_prompt,
@@ -123,6 +125,7 @@ def validate_ai_settings_post_data(data):
 def persist_ai_settings(data, validated, user=None):
     AppSettings.set("ai_enabled", "true" if validated["enabled"] else "false", user=user)
     AppSettings.set("ai_read_only", "true" if validated["read_only"] else "false", user=user)
+    AppSettings.set("ai_multi_agent_enabled", "true" if validated["multi_agent_enabled"] else "false", user=user)
     AppSettings.set("ai_provider", validated["provider"], user=user)
     AppSettings.set("ai_ollama_url", validated["ollama_url"], user=user)
     AppSettings.set("ai_model", validated["model"], user=user)

@@ -59,12 +59,16 @@ window.AIA.renderAIAdvisorSettings = async function () {
   const enabledChecked = window.AIA.state.currentAISettings.ai_enabled ? "checked" : "";
   const readOnlyChecked =
     (window.AIA.state.currentAISettings.ai_read_only ?? true) ? "checked" : "";
+  const multiAgentChecked = window.AIA.state.currentAISettings.ai_multi_agent_enabled
+    ? "checked"
+    : "";
 
   const html = window.AIA.buildAISettingsFormHtml({
     activeProviderKey,
     providerOptions,
     enabledChecked,
     readOnlyChecked,
+    multiAgentChecked,
   });
   container.innerHTML = html;
 

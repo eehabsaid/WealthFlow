@@ -7,6 +7,7 @@ window.AIA.saveAISettingsFromGui = async function () {
   const btn = document.getElementById("aiSaveBtn");
   const enabled = document.getElementById("aiEnabledToggle")?.checked || false;
   const readOnly = document.getElementById("aiReadOnlyToggle")?.checked ?? true;
+  const multiAgentEnabled = document.getElementById("aiMultiAgentToggle")?.checked || false;
   const provider = document.getElementById("aiProviderSelect")?.value || "ollama";
   const model = (document.getElementById("aiModelInput")?.value || "").trim();
   const temperature = parseFloat(document.getElementById("aiTemperatureInput")?.value || "0.7");
@@ -24,6 +25,7 @@ window.AIA.saveAISettingsFromGui = async function () {
   const payload = {
     ai_enabled: enabled,
     ai_read_only: readOnly,
+    ai_multi_agent_enabled: multiAgentEnabled,
     ai_provider: provider,
     ai_model: model,
     ai_temperature: temperature,

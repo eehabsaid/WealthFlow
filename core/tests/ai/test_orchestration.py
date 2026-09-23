@@ -1,6 +1,8 @@
-"""Tests for the (currently unreachable) multi-agent orchestration engine.
-Mocked provider only — see core/services/ai/orchestration/__init__.py:
-this package is never exercised against a live model, by design."""
+"""Tests for the multi-agent orchestration engine. Reachable via the
+ai_multi_agent_enabled setting (AI Settings page) — see
+core/services/ai/orchestration/__init__.py and
+core/views/ai_chat/ai_chat_core_views/__init__.py. Uses a mocked/fake
+provider throughout — never a live model call."""
 
 from unittest.mock import patch
 
@@ -9,6 +11,7 @@ from django.test import TestCase
 
 from core.services.ai.orchestration import Orchestrator, TaskState
 from core.services.ai.orchestration.agents import AdvisorAgent, DataAgent, ScenarioAgent
+from core.tests.billing.test_support import grant_ai_workspace_access
 
 User = get_user_model()
 
@@ -115,3 +118,42 @@ class AgentActionAllowlistTest(TestCase):
         actions = AdvisorAgent().available_actions()
         self.assertIn("overview", actions)
         self.assertIn("risk_analysis", actions)
+
+
+class AIChatViewMultiAgentToggleTest(TestCase):
+    """Confirms the chat endpoint actually routes to Orchestrator when the
+    setting is on, and does NOT when it's off (default)."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="chat_user", password="password123")
+        grant_ai_workspace_access(self.user)
+        self.client.force_login(self.user)
+
+    def test_disabled_by_default(self):
+        from core.models import AppSettings
+
+        self.assertEqual(AppSettings.get("ai_multi_agent_enabled", "false"), "false")
+
+    def test_enabled_setting_routes_to_orchestrator(self):
+        from core.models import AppSettings
+        from core.views.ai_chat.ai_chat_core_views import AIChatView  # noqa: F401
+
+        AppSettings.set("ai_multi_agent_enabled", "true")
+        fake_provider = FakeProvider(['{"goal_met": true, "final_answer": "orchestrated answer"}'])
+
+        with patch(
+            "core.views.ai_chat.ai_chat_core_views.get_active_ai_provider",
+            return_value=fake_provider,
+        ), patch(
+            "core.views.ai_chat.ai_chat_core_views.try_direct_answer",
+            return_value=None,
+        ):
+            response = self.client.post(
+                "/api/financial-advisor/ai/chat/",
+                data='{"message": "orchestrated test question"}',
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["message"]["content"], "orchestrated answer")

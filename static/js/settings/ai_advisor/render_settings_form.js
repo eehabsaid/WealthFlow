@@ -3,7 +3,8 @@ window.AIA = window.AIA || {};
 // AI Advisor settings form HTML builder (the main settings form markup).
 
 window.AIA.buildAISettingsFormHtml = function (ctx) {
-  const { activeProviderKey, providerOptions, enabledChecked, readOnlyChecked } = ctx;
+  const { activeProviderKey, providerOptions, enabledChecked, readOnlyChecked, multiAgentChecked } =
+    ctx;
   return `
         <div class="si-modern-card p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
@@ -14,6 +15,10 @@ window.AIA.buildAISettingsFormHtml = function (ctx) {
                     <div class="form-check form-switch fs-5 mb-0">
                         <input class="form-check-input" type="checkbox" id="aiReadOnlyToggle" ${readOnlyChecked}>
                         <label class="form-check-label fs-6 fw-semibold ms-2" for="aiReadOnlyToggle" data-i18n="ai_read_only_label">${t("ai_read_only_label", "Enforce Read-Only Tools")}</label>
+                    </div>
+                    <div class="form-check form-switch fs-5 mb-0">
+                        <input class="form-check-input" type="checkbox" id="aiMultiAgentToggle" ${multiAgentChecked}>
+                        <label class="form-check-label fs-6 fw-semibold ms-2" for="aiMultiAgentToggle" data-i18n="ai_multi_agent_label">${t("ai_multi_agent_label", "Multi-Agent Orchestration (Experimental)")}</label>
                     </div>
                     <div class="form-check form-switch fs-5 mb-0">
                         <input class="form-check-input" type="checkbox" id="aiEnabledToggle" ${enabledChecked}>

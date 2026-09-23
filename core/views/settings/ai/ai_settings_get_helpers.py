@@ -79,6 +79,10 @@ def build_ai_settings_get_payload(user=None):
     read_only_str = get("ai_read_only", "true").strip().lower()
     read_only = read_only_str in ("true", "1", "yes")
 
+    multi_agent_str = get("ai_multi_agent_enabled", "false").strip().lower()
+    multi_agent_enabled = multi_agent_str in ("true", "1", "yes")
+
+
     # Decrypt secret API keys to generate masked UI display values
     openai_key_dec = decrypt_credential(get("ai_openai_api_key", "").strip())
     claude_key_dec = decrypt_credential(get("ai_claude_api_key", "").strip())
@@ -92,6 +96,7 @@ def build_ai_settings_get_payload(user=None):
     return {
         "ai_enabled": enabled,
         "ai_read_only": read_only,
+        "ai_multi_agent_enabled": multi_agent_enabled,
         "ai_provider": provider,
         "ai_ollama_url": ollama_url,
         "ai_model": model,
