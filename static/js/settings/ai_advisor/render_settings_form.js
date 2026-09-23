@@ -18,7 +18,7 @@ window.AIA.buildAISettingsFormHtml = function (ctx) {
                     </div>
                     <div class="form-check form-switch fs-5 mb-0">
                         <input class="form-check-input" type="checkbox" id="aiMultiAgentToggle" ${multiAgentChecked}>
-                        <label class="form-check-label fs-6 fw-semibold ms-2" for="aiMultiAgentToggle" data-i18n="ai_multi_agent_label">${t("ai_multi_agent_label", "Multi-Agent Orchestration (Experimental)")}</label>
+                        <label class="form-check-label fs-6 fw-semibold ms-2" for="aiMultiAgentToggle" data-i18n="ai_multi_agent_label">${t("ai_multi_agent_label", "Multi-Agent Orchestration")}</label>
                     </div>
                     <div class="form-check form-switch fs-5 mb-0">
                         <input class="form-check-input" type="checkbox" id="aiEnabledToggle" ${enabledChecked}>

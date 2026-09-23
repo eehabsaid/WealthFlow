@@ -107,7 +107,7 @@
   "ai_ws_coming_soon": "Bientôt disponible",
   "ai_ws_delete_confirm": "Supprimer cette conversation ?",
   "ai_read_only_label": "Appliquer les outils en lecture seule",
-  "ai_multi_agent_label": "Orchestration multi-agents (expérimental)",
+  "ai_multi_agent_label": "Orchestration multi-agents",
   "ai_tool_activity_read_live_app_structure": "Découverte de la structure de l'application...",
   "ai_tool_activity_suggest_app_feature": "Rédaction du document de spécification...",
   "ai_tool_activity_query_application_data": "Interrogation des données commerciales...",

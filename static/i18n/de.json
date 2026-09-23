@@ -107,7 +107,7 @@
   "ai_ws_coming_soon": "Demnächst verfügbar",
   "ai_ws_delete_confirm": "Diese Konversation löschen?",
   "ai_read_only_label": "Nur-Lese-Tools erzwingen",
-  "ai_multi_agent_label": "Multi-Agenten-Orchestrierung (experimentell)",
+  "ai_multi_agent_label": "Multi-Agenten-Orchestrierung",
   "ai_tool_activity_read_live_app_structure": "Live-App-Struktur entdecken...",
   "ai_tool_activity_suggest_app_feature": "Anforderungsdokument entwerfen...",
   "ai_tool_activity_query_application_data": "Geschäftsdaten modulübergreifend abfragen...",

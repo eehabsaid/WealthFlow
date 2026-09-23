@@ -107,7 +107,7 @@
   "ai_ws_coming_soon": "Coming Soon",
   "ai_ws_delete_confirm": "Delete this conversation?",
   "ai_read_only_label": "Enforce Read-Only Tools",
-  "ai_multi_agent_label": "Multi-Agent Orchestration (Experimental)",
+  "ai_multi_agent_label": "Multi-Agent Orchestration",
   "ai_tool_activity_read_live_app_structure": "Discovering live app structure...",
   "ai_tool_activity_suggest_app_feature": "Drafting feature requirement document...",
   "ai_tool_activity_query_application_data": "Querying business data across modules...",
