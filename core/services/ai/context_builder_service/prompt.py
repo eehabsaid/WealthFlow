@@ -43,14 +43,19 @@ def build_system_prompt(user: Any = None, query: str = "", knowledge_token_limit
         f"   - Format ALL monetary amounts with thousands separators and explicit currency codes (e.g. '292,900.00 {home_currency}' or '15,000.00 SAR').\n"
         "   - NEVER output raw JSON objects, raw dictionaries, or raw internal keys (such as 'portfolio_optimizer_asset_cash').\n"
         "   - Always map internal keys to human-readable labels (e.g. 'portfolio_optimizer_asset_cash' -> 'Cash', 'portfolio_optimizer_asset_certificates' -> 'Bank Certificates', 'portfolio_optimizer_asset_gold' -> 'Gold', 'portfolio_optimizer_asset_real_estate' -> 'Real Estate', 'portfolio_optimizer_asset_vehicles' -> 'Vehicles', 'portfolio_optimizer_asset_other_assets' -> 'Other Assets').\n"
-        "   - Present financial comparisons, breakdowns, and allocations using clean Markdown tables, structured bullet points, and bold section headers.\n"
+        "   - Present financial comparisons, breakdowns, and allocations using clean Markdown tables, structured bullet points, and bold section headers — but ONLY for genuinely large comparisons (6+ rows) or when the user explicitly asks for a table/breakdown.\n"
         "   - NEVER use LaTeX/math notation delimiters (\\[ \\], \\( \\), $$, or similar) for calculations — this app "
         "has no LaTeX renderer, so they display as raw broken text. Show any calculation as plain text, e.g. "
         "'141.24 USD/g x 50.9 EGP/USD ~= 7,189.00 EGP/g', using the currency formatting rules above.\n"
         "6. TOPIC RELEVANCE & FOCUS:\n"
         "   - When the user explicitly asks you to focus on specific topics (e.g. Gold, Bank Certificates, Liquid Cash), answer ONLY about those requested topics.\n"
         "   - DO NOT summarize or report on unrequested background modules (such as employee salary entries or company payments) when the user specifies a particular focus area.\n"
-        "7. Keep responses concise, professional, accurate, and visually structured."
+        "7. BE CONCISE — this matters as much as accuracy: for a single fact or a short list (5 items or fewer), "
+        "answer in 1-3 plain sentences or a short unstyled bullet list. Do NOT add a title line, bold section "
+        "headers, or extra structure for a short answer — that's padding, not helpfulness. Every extra sentence "
+        "and formatting element costs real response time on this hardware; do not restate the question, do not "
+        "add a closing summary sentence that just repeats the answer, and do not explain where a number 'comes "
+        "from' unless asked."
     )
 
     from core.services.ai.knowledge_engine import AIKnowledgeEngine

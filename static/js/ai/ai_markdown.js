@@ -48,11 +48,17 @@ function _renderMarkdown(text) {
   // 4. Inline code
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
 
-  // 5. Bold & Italic
-  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  // 5. Bold & Italic — [^*\n] (not [^*]) so emphasis never spans a newline.
+  // Without this, a run of bullet lines like "* Cash...\n* Gold...\n* QNB..."
+  // gets pairwise-consumed as emphasis (line 1's "*" opens, line 2's "*"
+  // closes an <em> spanning both lines), corrupting every other bullet
+  // marker before step 10 (Lists) ever runs. Confirmed by reproducing the
+  // exact garbled-bullets output seen in production with this input shape.
+  html = html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
 
   // 6. Headings
+  html = html.replace(/^#### (.*$)/gim, "<h6>$1</h6>");
   html = html.replace(/^### (.*$)/gim, "<h5>$1</h5>");
   html = html.replace(/^## (.*$)/gim, "<h4>$1</h4>");
   html = html.replace(/^# (.*$)/gim, "<h3>$1</h3>");
