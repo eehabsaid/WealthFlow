@@ -52,6 +52,9 @@ class AIChatViewsInvestigationTest(TestCase):
         AppSettings.set("ai_enabled", "true")
         AppSettings.set("ai_provider", "ollama")
         AppSettings.set("ai_history_window", "10")
+        # This test canned-mocks an invented figure (5,000) that isn't in the user's data;
+        # figure validation is covered in test_chat_pipeline.py.
+        AppSettings.set("ai_validate_mode", "off")
 
         res = self.client.post(
             "/api/financial-advisor/ai/chat/",

@@ -63,11 +63,13 @@ class DefaultCurrencyApiTests(TestCase):
     def _set(self, code):
         return self.client.post("/api/base-currency/", data=json.dumps({"code": code}), content_type="application/json")
 
+    @override_settings(MULTI_CURRENCY_ENABLED=False)
     def test_get_returns_default(self):
         body = self.client.get("/api/base-currency/").json()
         self.assertEqual(body["code"], "EGP")
         self.assertFalse(body["multi_currency_enabled"])
 
+    @override_settings(MULTI_CURRENCY_ENABLED=False)
     def test_other_currency_is_locked_until_enabled(self):
         response = self._set("SAR")
         self.assertEqual(response.status_code, 400)
@@ -131,6 +133,7 @@ class DefaultCurrencyApiTests(TestCase):
         OnboardingService.complete(self.user, {"default_currency": "SAR", "categories": []})
         self.assertEqual(get_user_base_code(self.user), "SAR")
 
+    @override_settings(MULTI_CURRENCY_ENABLED=False)
     def test_wizard_cannot_pick_locked_currency(self):
         with self.assertRaises(ValueError):
             OnboardingService.complete(self.user, {"default_currency": "SAR", "categories": []})

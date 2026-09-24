@@ -12,7 +12,7 @@ from core.views.ai_chat.response_sanitizer import strip_latex, strip_leaked_cont
 
 
 def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
-                      content_str, executed_tool_calls, sources, request):
+                      content_str, executed_tool_calls, sources, request, extra=None):
     """Persist the assistant reply, extract knowledge, and build the response."""
     # Save successful assistant response with full tool execution audit trail
     content_str = strip_leaked_control_tokens(content_str, set(AI_TOOL_REGISTRY.keys()))
@@ -71,12 +71,13 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
         conversation.title = user_text[:30] + ("..." if len(user_text) > 30 else "")
         conversation.save(update_fields=["title", "updated_at"])
 
-    return JsonResponse(
-        {
-            "ok": True,
-            "conversation_id": conversation.id,
-            "user_message": user_msg.to_dict(),
-            "message": ai_msg.to_dict(),
-            "sources": sources,
-        }
-    )
+    payload = {
+        "ok": True,
+        "conversation_id": conversation.id,
+        "user_message": user_msg.to_dict(),
+        "message": ai_msg.to_dict(),
+        "sources": sources,
+    }
+    if extra:
+        payload.update(extra)  # e.g. {"pipeline": trace} when ai_pipeline_debug is on
+    return JsonResponse(payload)

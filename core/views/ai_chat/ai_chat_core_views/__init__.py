@@ -9,6 +9,9 @@ Split into a package (was a single >200-line module) per the project's
 - generation_pipeline.py   context assembly, provider-generation + retry
 - response_finalizer.py    persistence, knowledge extraction, response build
 
+The default path runs through the staged pipeline in core/views/ai_chat/chat_pipeline/
+(Understand -> Retrieve -> Reason -> Tool -> Validate -> Respond).
+
 `get_active_ai_provider` is imported and invoked directly in this module
 (not delegated to a sibling) so that the existing test-suite patch target
 `core.views.ai_chat.ai_chat_core_views.get_active_ai_provider` keeps
@@ -27,7 +30,7 @@ from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.direct_answers import try_direct_answer
 from core.services.ai.orchestration import Orchestrator
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
-from core.views.ai_chat.ai_chat_loop import run_tool_investigation_loop
+from core.views.ai_chat.chat_pipeline import PipelineTrace, run_default_pipeline, understand
 
 from .conversation_setup import (
     build_provider_disabled_response,
@@ -35,12 +38,7 @@ from .conversation_setup import (
     resolve_conversation,
     save_user_message,
 )
-from .generation_pipeline import (
-    _infer_question_domain,
-    build_context,
-    build_provider_error_response,
-    initial_generate,
-)
+from .generation_pipeline import build_provider_error_response
 from .response_finalizer import finalize_success
 
 __all__ = ["AIChatView"]
@@ -85,14 +83,24 @@ class AIChatView(View):
         cache_mgr = AICacheManager()
         progress_key = init_progress(cache_mgr, request, conversation)
 
+        # Stage 1 — Understand (deterministic, no LLM): runs before anything else
+        trace = PipelineTrace(request.user.id, conversation.id)
+        with trace.stage("understand") as rec:
+            understanding = understand(user_text, str(body.get("question_domain", "")))
+            rec.detail.update(understanding.to_dict())
+
         # Check if AI provider is active
         provider = get_active_ai_provider(user=request.user)
         if not provider:
+            trace.skip_remaining("provider_disabled")
+            trace.log_summary()
             return build_provider_disabled_response(cache_mgr, progress_key, conversation, user_msg)
 
         # Simple deterministic questions (e.g. paid salary for a month) need no LLM call.
         direct = try_direct_answer(request.user, user_text)
         if direct:
+            trace.skip_remaining("direct_answer")
+            trace.log_summary()
             return finalize_success(
                 cache_mgr, progress_key, conversation, user_msg, user_text,
                 direct["content"], direct["tool_calls"], direct["sources"], request,
@@ -100,6 +108,8 @@ class AIChatView(View):
 
         multi_agent_str = AppSettings.get("ai_multi_agent_enabled", "false", user=request.user).strip().lower()
         if multi_agent_str in ("true", "1", "yes"):
+            trace.skip_remaining("multi_agent_orchestrator")
+            trace.log_summary()
             orchestrator = Orchestrator(provider)
             state = orchestrator.run(user_text, request.user)
             content_str = state.final_answer or "The orchestrator could not complete this task."
@@ -109,27 +119,15 @@ class AIChatView(View):
                 content_str, state.steps, sources, request,
             )
 
-        # Build context and messages sequence
-        messages_seq, sources = build_context(request, conversation, user_msg, user_text)
-
-        question_domain = str(body.get("question_domain", "")).strip() or _infer_question_domain(user_text)
-
-        tools_param, error_str, content_str, tool_calls_req = initial_generate(
-            provider, messages_seq, question_domain
-        )
-
-        if error_str:
-            return build_provider_error_response(
-                cache_mgr, progress_key, conversation, sources, user_msg, error_str
-            )
-
-        # ── Bounded multi-step investigation loop ─────────────────────────────
-        content_str, executed_tool_calls = run_tool_investigation_loop(
-            provider, messages_seq, tools_param, tool_calls_req, content_str,
-            user_text, request.user, conversation.id,
-        )
-
-        return finalize_success(
-            cache_mgr, progress_key, conversation, user_msg, user_text,
-            content_str, executed_tool_calls, sources, request,
+        # Stages 2-6 — Retrieve -> Reason -> Tool -> Validate -> Respond
+        return run_default_pipeline(
+            trace=trace, understanding=understanding, provider=provider, request=request,
+            conversation=conversation, user_msg=user_msg, user_text=user_text,
+            respond=lambda content, calls, sources, extra=None: finalize_success(
+                cache_mgr, progress_key, conversation, user_msg, user_text,
+                content, calls, sources, request, extra=extra,
+            ),
+            on_error=lambda sources, err: build_provider_error_response(
+                cache_mgr, progress_key, conversation, sources, user_msg, err
+            ),
         )
