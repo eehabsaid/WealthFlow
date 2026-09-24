@@ -16,22 +16,11 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-def _score_provider_relevance(provider: Any, search_query: str) -> float:
-    """
-    Implementation-agnostic capability matcher.
-    Evaluates query intent against provider metadata (key, name, get_capabilities()).
-    Returns relevance score >= 0.0.
-    """
-    q_str = str(search_query or "").strip().lower()
-    if not q_str:
-        return 1.0  # Return all when no query specified
-
-    # Collect metadata fields into a unified capability text index
-    meta_tokens: list[str] = [
-        provider.key.lower(),
-        provider.name.lower(),
-    ]
-
+def _build_meta_text(provider: Any) -> str:
+    """Collect provider metadata (key, name, capabilities) into one text
+    blob — used both for keyword scoring and as the semantic-retrieval
+    candidate description (see core/services/ai/retrieval/embeddings.py)."""
+    meta_tokens: list[str] = [provider.key.lower(), provider.name.lower()]
     capabilities = provider.get_capabilities() or []
     for cap in capabilities:
         if isinstance(cap, dict):
@@ -43,8 +32,20 @@ def _score_provider_relevance(provider: Any, search_query: str) -> float:
                 meta_tokens.append(str(item).lower())
             for item in cap.get("used_by", []):
                 meta_tokens.append(str(item).lower())
+    return " ".join(meta_tokens)
 
-    full_meta_text = " ".join(meta_tokens)
+
+def _score_provider_relevance(provider: Any, search_query: str) -> float:
+    """
+    Implementation-agnostic capability matcher.
+    Evaluates query intent against provider metadata (key, name, get_capabilities()).
+    Returns relevance score >= 0.0.
+    """
+    q_str = str(search_query or "").strip().lower()
+    if not q_str:
+        return 1.0  # Return all when no query specified
+
+    full_meta_text = _build_meta_text(provider)
 
     # Tokenize query, stripping common noise & meta-intent words
     stop_words = {
@@ -123,6 +124,32 @@ def get_relevant_providers_data(
         except Exception as exc:
             logger.warning("Error scoring provider '%s': %s", key, exc)
             scores[key] = 1.0
+
+    # Semantic bonus: catches real matches keyword scoring misses entirely
+    # (different vocabulary — e.g. "how much do I owe" vs an "expense"
+    # provider). Additive, not a replacement: if the embedding service is
+    # down, semantic_scores() returns None and behavior is identical to the
+    # keyword-only scoring above — never a regression, never blocks a
+    # response on an outage.
+    if query_str:
+        from core.services.ai.retrieval import semantic_scores
+
+        candidates = {key: _build_meta_text(p) for key, p in _DATA_PROVIDER_REGISTRY.items()}
+        try:
+            sem_scores = semantic_scores(query_str, candidates)
+        except Exception as exc:
+            logger.info("Semantic scoring skipped for providers: %s", exc)
+            sem_scores = None
+        if sem_scores:
+            # Only a real semantic match counts as a signal — a raw cosine
+            # score is rarely exactly 0.0 even for unrelated text, so adding
+            # it unconditionally would defeat the require_signal=True path
+            # below (every provider would show weak positive "signal" again,
+            # the exact over-inclusion bug this thread has been fixing).
+            SEMANTIC_MATCH_THRESHOLD = 0.45
+            for key, sim in sem_scores.items():
+                if sim >= SEMANTIC_MATCH_THRESHOLD:
+                    scores[key] = scores.get(key, 0.0) + sim * 3.0
 
     # Filter out weak trailing noise scores relative to top-scoring provider
     positive_scores = [s for s in scores.values() if s > 0.0]
