@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import Any
 
 from core.integrations.provider_utils import make_json_http_request
 from core.models import AppSettings

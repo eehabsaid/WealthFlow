@@ -136,7 +136,6 @@ class AIChatViewMultiAgentToggleTest(TestCase):
 
     def test_enabled_setting_routes_to_orchestrator(self):
         from core.models import AppSettings
-        from core.views.ai_chat.ai_chat_core_views import AIChatView  # noqa: F401
 
         AppSettings.set("ai_multi_agent_enabled", "true")
         fake_provider = FakeProvider(['{"goal_met": true, "final_answer": "orchestrated answer"}'])
