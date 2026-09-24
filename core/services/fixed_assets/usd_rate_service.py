@@ -3,11 +3,18 @@
 """Single source of truth for the "USD Exchange Rate" shown on Fixed Asset
 General / Renovation / Acquisition Cost / Furniture tabs.
 
-This is a straight port of the existing frontend logic that used to live in
-static/js/fixed_assets/currency.js (applyPurchaseUsdRateByCurrency). The
-formula itself is UNCHANGED - only its location moved, so every "Now"
-button across all Fixed Asset tabs now calls this one function instead of
-each tab re-implementing the same math in JS.
+The rate is always expressed as "how many units of the purchase currency
+equal 1 USD" (e.g. ~48.5 for EGP, ~3.75 for SAR, 1.0 for USD) — so
+converting to USD is always `amount / rate`, uniformly, for every
+currency. This was ported from the original frontend logic in
+static/js/fixed_assets/currency.js (applyPurchaseUsdRateByCurrency),
+which only got this right for EGP and returned the opposite convention
+("1 unit of currency is worth this many USD") for every other currency —
+that inconsistency meant Acquisition Cost / Furniture / Renovation rows
+(which always divide by this rate, see acquisition_costs_collect.js,
+furniture_row.js, renovations_collect.js) silently produced wildly wrong
+USD totals for any purchase currency other than EGP or USD. Fixed here so
+every consumer of this rate can divide uniformly.
 """
 
 from __future__ import annotations
@@ -30,12 +37,11 @@ class UsdRateResult:
 
 
 class UsdRateService:
-    def get_rate_for_currency(self, currency_id, owner=None) -> UsdRateResult:
-        from core.services.shared.base_currency import get_user_base_code
+    def get_rate_for_currency(self, currency_id) -> UsdRateResult:
+        from core.services.shared.currency_conversion_service import RATE_PIVOT
 
         currency = Currency.objects.filter(pk=currency_id).first()
         currency_code = (currency.code if currency else "").upper()
-        base_code = get_user_base_code(owner)
 
         if currency_code == "USD":
             return UsdRateResult(rate=1.0)
@@ -46,17 +52,22 @@ class UsdRateService:
         if not usd_buy_rate:
             raise UsdRateError("Error loading exchange rates.")
 
-        if currency_code == base_code or not currency_code:
-            # Base currency is not stored in exchange-rate table; use
-            # implicit buy_rate = 1.00 (same comment as the original JS).
-            rate = usd_buy_rate
-            return UsdRateResult(rate=round(rate, 5))
+        if currency_code == RATE_PIVOT or not currency_code:
+            # The exchange-rate table is always pivoted through RATE_PIVOT
+            # ("EGP") and never stores a row for it (see
+            # ExchangeRateService.CURRENCY_NAMES) — this is a structural
+            # fact about the table, independent of any user's own base
+            # currency. usd_buy_rate IS already "EGP per 1 USD", which is
+            # exactly this function's target convention, so use it as-is.
+            return UsdRateResult(rate=round(usd_buy_rate, 5))
 
         currency_buy_rate = self._get_buy_rate(latest_rates, currency_code)
         if not currency_buy_rate:
             raise UsdRateError("Error loading exchange rates.")
 
-        rate = currency_buy_rate / usd_buy_rate
+        # currency_buy_rate = "EGP per 1 unit of currency", usd_buy_rate =
+        # "EGP per 1 USD" -> (EGP/USD) / (EGP/currency) = currency per USD.
+        rate = usd_buy_rate / currency_buy_rate
         return UsdRateResult(rate=round(rate, 5))
 
     def _latest_rate_by_code(self):

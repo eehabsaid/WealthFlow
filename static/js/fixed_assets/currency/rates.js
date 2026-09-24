@@ -15,17 +15,12 @@ function updatePurchasePriceUSD() {
     return;
   }
 
-  if (purchaseCurrencyCode === "EGP") {
-    if (rate > 0) {
-      usdField.value = (purchasePrice / rate).toFixed(2);
-    } else {
-      usdField.value = "";
-    }
-    return;
-  }
-
+  // "USD Exchange Rate" is always "units of the purchase currency per 1
+  // USD" (see UsdRateService), so converting to USD is always a division,
+  // for every currency — same math the Acquisition Cost / Furniture /
+  // Renovation rows already use.
   if (rate > 0) {
-    usdField.value = (purchasePrice * rate).toFixed(2);
+    usdField.value = (purchasePrice / rate).toFixed(2);
   } else {
     usdField.value = "";
   }

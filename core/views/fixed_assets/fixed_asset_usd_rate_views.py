@@ -20,7 +20,7 @@ class FixedAssetUsdRateView(View):
             return JsonResponse({"error": "currency_id is required"}, status=400)
 
         try:
-            result = UsdRateService().get_rate_for_currency(currency_id, owner=request.user)
+            result = UsdRateService().get_rate_for_currency(currency_id)
             return JsonResponse(result.to_dict())
         except UsdRateError as e:
             return JsonResponse({"error": str(e)}, status=502)

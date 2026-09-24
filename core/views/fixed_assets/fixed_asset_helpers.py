@@ -39,17 +39,23 @@ def _resolve_asset_usd_rate_and_price(data, current_usd_rate=0, current_price_us
         if c:
             code = c.code.upper()
 
+    # "USD Exchange Rate" is always "units of the purchase currency per 1
+    # USD" (see UsdRateService, the same convention the frontend's "Now"
+    # button and this field's own value use) — so USD conversion is
+    # always a division, uniformly, for every currency.
     if usd_rate <= 0:
         if code == "USD":
             usd_rate = Decimal("1.000000")
         else:
-            usd_rate = CurrencyConversionService.calculate_exchange_rate(code, "USD")
+            egp_per_code = CurrencyConversionService.get_latest_buy_rate(code)
+            egp_per_usd = CurrencyConversionService.get_latest_buy_rate("USD")
+            usd_rate = (egp_per_usd / egp_per_code).quantize(Decimal("0.00001")) if egp_per_code > 0 else Decimal("0")
 
     if price_usd <= 0 and purchase_price > 0 and usd_rate > 0:
         if code == "USD":
             price_usd = purchase_price
         else:
-            price_usd = (purchase_price * usd_rate).quantize(Decimal("0.01"))
+            price_usd = (purchase_price / usd_rate).quantize(Decimal("0.01"))
 
     return usd_rate, price_usd
 
