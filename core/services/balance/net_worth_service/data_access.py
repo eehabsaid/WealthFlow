@@ -30,6 +30,7 @@ from core.services.balance.net_worth_service.helpers import (
     REAL_ESTATE_ASSET_TYPES,
     VEHICLE_ASSET_TYPES,
     OTHER_ASSET_TYPES,
+    _normalize_gold_purity,
     _to_float,
 )
 from core.services.balance.net_worth_service.balance_entries import ProjectedBalanceEntriesMixin
@@ -79,6 +80,17 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
         if purity_key == "18k":
             return _to_float(latest_gold.carat_18k)
         return _to_float(latest_gold.carat_24k)
+
+    def gold_unit_value(self, purity) -> dict:
+        """Per-gram value of a gold balance entry, same formula as portfolio_components():
+        (sell price for the purity + configured cashback per gram) * gold-price-currency rate."""
+        key = _normalize_gold_purity(purity)
+        sell = self._sell_price_per_gram(key)
+        cashback = _to_float(self._gold_cashback_by_key().get(key, 0.0))
+        return {
+            "purity": key, "sell_price_per_gram": sell, "cashback_per_gram": cashback,
+            "value_per_gram": (sell + cashback) * self._gold_rate(),
+        }
 
     def _active_certificates(self) -> List[BankCertificate]:
         def _load():

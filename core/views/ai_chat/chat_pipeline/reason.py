@@ -8,6 +8,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from core.views.ai_chat.ai_chat_helpers import _parse_tool_call
+
 from .trace import PipelineTrace
 
 
@@ -29,9 +31,7 @@ def run_reason(trace: PipelineTrace, provider, messages_seq, question_domain: st
         rec.detail.update({
             "question_domain": question_domain,
             "tools_offered": len(tools_param or []),
-            "requested_tool_calls": [
-                ((tc or {}).get("function") or {}).get("name") for tc in (tool_calls_req or [])
-            ],
+            "requested_tool_calls": [_parse_tool_call(tc)[0] for tc in (tool_calls_req or [])],
             "content_chars": len(content_str or ""),
             "error": error_str,
         })

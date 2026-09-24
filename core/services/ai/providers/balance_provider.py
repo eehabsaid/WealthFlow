@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Any
 from core.models import BalanceEntry
 from core.services.ai.providers.base import BaseContextProvider
+from core.services.balance.net_worth_service import NetWorthService
 
 # Caps how many accounts are included in the AI-facing 'items' list when the caller
 # does not pass an explicit `limit`. Aggregates (summary) are always computed over
@@ -48,6 +49,11 @@ class BalanceDataProvider(BaseContextProvider):
 
         items_raw = list(qs)
 
+        # GOLD entries are grams, not money: value them like the Balance page does
+        # ((sell price + purity cashback) per gram) instead of a 1:1 currency conversion.
+        net_worth = NetWorthService(user) if user and user.is_authenticated else None
+        gold_grams_total = 0.0
+        gold_value_home = 0.0
         total_liquid_home = 0.0
         balances_by_curr: dict[str, float] = {}
         items = []
@@ -55,7 +61,21 @@ class BalanceDataProvider(BaseContextProvider):
         for entry in items_raw:
             c_code = entry.currency.code if entry.currency else home_currency
             amt = float(entry.amount or 0)
-            amt_home = self.convert_to_home_currency(amt, c_code, home_currency)
+            gold_info: dict[str, Any] = {}
+            if c_code.upper() == "GOLD" and net_worth is not None:
+                g = net_worth.gold_unit_value(entry.purity)
+                amt_home = amt * g["value_per_gram"]
+                gold_grams_total += amt
+                gold_value_home += amt_home
+                gold_info = {
+                    "gold_grams": amt,
+                    "gold_purity": g["purity"],
+                    "sell_price_per_gram": g["sell_price_per_gram"],
+                    "cashback_per_gram": g["cashback_per_gram"],
+                    "value_per_gram_in_home_currency": round(g["value_per_gram"], 2),
+                }
+            else:
+                amt_home = self.convert_to_home_currency(amt, c_code, home_currency)
 
             total_liquid_home += amt_home
             balances_by_curr[c_code] = balances_by_curr.get(c_code, 0.0) + amt
@@ -71,6 +91,7 @@ class BalanceDataProvider(BaseContextProvider):
                 "amount_in_home_currency": amt_home,
                 "amount_in_home_currency_formatted": self.format_currency(amt_home, home_currency),
                 "notes": entry.notes or "",
+                **gold_info,
             })
 
         by_curr_formatted = {
@@ -87,6 +108,17 @@ class BalanceDataProvider(BaseContextProvider):
                 "home_currency": home_currency,
                 "total_accounts_count": len(items),
                 "balances_by_currency": by_curr_formatted,
+                **(
+                    {
+                        "gold_grams_total": round(gold_grams_total, 2),
+                        "gold_value_in_home_currency": round(gold_value_home, 2),
+                        "gold_value_in_home_currency_formatted": self.format_currency(round(gold_value_home, 2), home_currency),
+                        "gold_valuation_note": (
+                            "Gold entries are grams. Their home-currency value = grams x (sell price per gram "
+                            "for the purity + cashback per gram), matching the Balance page."
+                        ),
+                    } if gold_grams_total else {}
+                ),
             },
             "items": items[:effective_limit],
             "items_note": (
