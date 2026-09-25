@@ -20,6 +20,7 @@ window.AIA.buildAISettingsFormHtml = function (ctx) {
                         <input class="form-check-input" type="checkbox" id="aiMultiAgentToggle" ${multiAgentChecked}>
                         <label class="form-check-label fs-6 fw-semibold ms-2" for="aiMultiAgentToggle" data-i18n="ai_multi_agent_label">${t("ai_multi_agent_label", "Multi-Agent Orchestration")}</label>
                     </div>
+${window.AIA.buildPipelineControlsHtml()}
                     <div class="form-check form-switch fs-5 mb-0">
                         <input class="form-check-input" type="checkbox" id="aiEnabledToggle" ${enabledChecked}>
                         <label class="form-check-label fs-6 fw-semibold ms-2" for="aiEnabledToggle" data-i18n="ai_enabled">${t("ai_enabled", "Enable AI Advisor")}</label>

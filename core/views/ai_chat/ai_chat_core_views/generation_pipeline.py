@@ -52,10 +52,13 @@ def build_context(request, conversation, user_msg, user_text):
     return messages_seq, sources
 
 
-def initial_generate(provider, messages_seq, question_domain):
-    """Run the first provider call, retrying once if the reply is silently empty."""
+def initial_generate(provider, messages_seq, question_domain, offer_tools=True):
+    """Run the first provider call, retrying once if the reply is silently empty.
+
+    offer_tools=False (retrieval already grounded the answer) sends no tool schemas:
+    smaller prompt and no forced tool round trip."""
     tools_param = None
-    if getattr(provider, "supports_tools", False):
+    if offer_tools and getattr(provider, "supports_tools", False):
         tools_param = get_registered_tool_schemas(domain=question_domain)
 
     # ── Initial provider call ─────────────────────────────────────────────
@@ -90,6 +93,9 @@ def initial_generate(provider, messages_seq, question_domain):
                 "Your previous reply was empty. You must either call one of the "
                 "available tools to investigate the user's question, or provide a "
                 "direct text answer. Do not return an empty response."
+                if tools_param else
+                "Your previous reply was empty. Answer the user's question directly "
+                "from the FINANCIAL CONTEXT DATA above. Do not return an empty response."
             ),
         })
         retry_res = provider.generate(messages_seq, tools=tools_param)

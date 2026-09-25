@@ -12,6 +12,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from core.services.ai.retrieval import embeddings as _embeddings
+
 from .trace import PipelineTrace
 
 CONTEXT_MARKER = "=== FINANCIAL CONTEXT DATA ==="
@@ -35,6 +37,7 @@ def run_retrieve(trace: PipelineTrace, request, conversation, user_msg, user_tex
     from core.views.ai_chat.ai_chat_core_views import generation_pipeline as gp  # lazy: avoids import cycle
 
     with trace.stage("retrieve") as rec:
+        emb_before = _embeddings.stats_snapshot()
         messages, sources = gp.build_context(request, conversation, user_msg, user_text)
         first = messages[0].get("content", "") if messages else ""
         context_text = split_context(first) if messages and messages[0].get("role") == "system" else ""
@@ -45,5 +48,6 @@ def run_retrieve(trace: PipelineTrace, request, conversation, user_msg, user_tex
             "context_tokens_est": len(context_text) // 4,
             "history_messages": max(0, len(messages) - 2),
             "empty_context": not context_text,
+            "embedding": _embeddings.stats_delta(emb_before),  # calls/failures/ms/skipped_*
         })
         return Retrieval(messages=messages, sources=list(sources), context_text=context_text)

@@ -28,7 +28,8 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
     provider = TracedProvider(provider, trace)
     try:
         retrieval = run_retrieve(trace, request, conversation, user_msg, user_text)
-        reasoning = run_reason(trace, provider, retrieval.messages, understanding.question_domain)
+        reasoning = run_reason(trace, provider, retrieval.messages, understanding.question_domain,
+                               retrieval, understanding)
 
         if reasoning.error:
             trace.skip("tool", "provider_error")

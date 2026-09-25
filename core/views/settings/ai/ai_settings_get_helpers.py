@@ -11,6 +11,7 @@ from core.models import AppSettings
 from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.credential_encryption import decrypt_credential, mask_credential
 from core.integrations.ai_provider import AVAILABLE_AI_PROVIDERS
+from core.views.settings.ai.ai_pipeline_settings import get_pipeline_settings
 
 
 def build_ai_settings_get_payload(user=None):
@@ -129,5 +130,6 @@ def build_ai_settings_get_payload(user=None):
         "ai_azure_deployment": get("ai_azure_deployment", "").strip(),
         "ai_azure_api_version": get("ai_azure_api_version", "2024-06-01").strip(),
         "providers_schema": providers_schema,
+        **get_pipeline_settings(user=user),
     }
 

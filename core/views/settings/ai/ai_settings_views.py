@@ -10,6 +10,10 @@ from django.views import View
 
 from core.validators.json_body import parse_json_body
 from core.views.auth_views import AdminRequiredMixin
+from core.views.settings.ai.ai_pipeline_settings import (
+    persist_pipeline_settings,
+    validate_pipeline_settings,
+)
 from core.views.settings.ai.ai_settings_get_helpers import build_ai_settings_get_payload
 from core.views.settings.ai.ai_settings_save_helpers import (
     validate_ai_settings_post_data,
@@ -37,7 +41,12 @@ class AISettingsView(AdminRequiredMixin, View):
         if error_response:
             return error_response
 
+        pipeline_validated, pipeline_error = validate_pipeline_settings(data)
+        if pipeline_error:
+            return pipeline_error
+
         persist_ai_settings(data, validated, user=None)
+        persist_pipeline_settings(pipeline_validated, user=None)
         connection_ok, test_error = run_ai_settings_connection_test(
             validated["enabled"], validated["model"], user=None
         )
