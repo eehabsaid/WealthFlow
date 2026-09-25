@@ -16,6 +16,15 @@ from core.services.ai.providers.base import BaseContextProvider
 # context window without truncation.
 MAX_RECENT_EXPENSES_FOR_AI = 20
 
+# Caps how many (year, month) entries are included in the AI-facing
+# 'monthly_summary' list. monthly_summary lives in the HIGH-priority summary
+# block (never trimmed by the token-budget degrader — see split_payload_blocks
+# / _DETAIL_KEYS in context_builder_service/formatting.py), so on an account
+# with many months of history this array alone could consume most of the data
+# budget and squeeze the LOW-priority recent_expenses block out entirely.
+# Capped the same way recent_expenses already is, for the same reason.
+MAX_MONTHLY_SUMMARY_MONTHS_FOR_AI = 24
+
 class ExpensesDataProvider(BaseContextProvider):
     @property
     def key(self) -> str:
@@ -114,7 +123,13 @@ class ExpensesDataProvider(BaseContextProvider):
                 "transactions_count": int(bucket["count"]),
                 "currency": home_currency,
             })
+        # latest_month_summary and last_expense are derived from the FULL
+        # (uncapped) monthly_summary / recent_expenses lists computed above,
+        # before either is capped for the AI payload below — so they're
+        # always correct even when the capped lists get degraded/dropped
+        # under token budget pressure.
         latest_month_summary = monthly_summary[0] if monthly_summary else None
+        last_expense = recent_expenses[0] if recent_expenses else None
 
         return {
             "summary": {
@@ -124,23 +139,38 @@ class ExpensesDataProvider(BaseContextProvider):
                 "top_category_spending_formatted": self.format_currency(round(top_category_amount, 2), home_currency),
                 "total_transactions_count": len(recent_expenses),
                 "home_currency": home_currency,
+                # Single most-recent transaction, promoted into the HIGH-priority
+                # (never-trimmed) summary block so "what's my last/most recent
+                # expense" is answered correctly even if the LOW-priority
+                # recent_expenses/expenses_details block gets dropped under
+                # token budget pressure. Same object as recent_expenses[0].
+                "last_expense": last_expense,
             },
+            "last_expense_note": (
+                "summary.last_expense is the single most recent individual expense "
+                "transaction (by date). For 'what is my last/most recent expense' "
+                "questions, use this field directly — do not use monthly_summary or "
+                "the all-time summary total, which are aggregates, not a single "
+                "transaction."
+            ),
             "summary_note": (
                 "summary.total_spending_in_home_currency is an ALL-TIME total across every expense "
                 "on record. For any request scoped to a specific month or year (e.g. 'this month', "
                 "'September 2026'), do NOT use this field — use monthly_summary instead."
             ),
             "category_breakdown": category_breakdown,
-            "monthly_summary": monthly_summary,
+            "monthly_summary": monthly_summary[:MAX_MONTHLY_SUMMARY_MONTHS_FOR_AI],
             "latest_month_summary": latest_month_summary,
             "monthly_summary_note": (
                 "monthly_summary is the authoritative, pre-aggregated list of total spending per "
-                "(year, month), newest-first, computed over ALL transactions (not just recent_expenses). "
-                "For any 'total expenses for <month/year>' question, find the entry matching that "
-                "year+month and quote its total_spending_formatted exactly — do not sum recent_expenses "
-                "or use the all-time summary total. latest_month_summary is the same object as index 0 "
-                "of this list. If no entry matches the requested year+month, there are zero expenses "
-                "for that period."
+                "(year, month), newest-first, computed over ALL transactions (not just recent_expenses), "
+                f"but capped here to the most recent {MAX_MONTHLY_SUMMARY_MONTHS_FOR_AI} months out of "
+                f"{len(monthly_summary)} total on record. For any 'total expenses for <month/year>' "
+                "question, find the entry matching that year+month and quote its total_spending_formatted "
+                "exactly — do not sum recent_expenses or use the all-time summary total. latest_month_summary "
+                "is the same object as index 0 of this list and is always present even if the requested "
+                "month falls outside the cap. If no entry matches the requested year+month within this list, "
+                "and the month is not older than the cap suggests, there are zero expenses for that period."
             ),
             "recent_expenses": recent_expenses[:MAX_RECENT_EXPENSES_FOR_AI],
             "recent_expenses_note": (
