@@ -35,3 +35,19 @@ class BalanceGoldValuationTest(TestCase):
         self.assertAlmostEqual(item["amount_in_home_currency"], 10 * (6000 + 50), places=2)
         self.assertAlmostEqual(data["summary"]["gold_value_in_home_currency"], 60500.0, places=2)
         self.assertAlmostEqual(data["summary"]["total_liquid_in_home_currency"], 61500.0, places=2)
+
+    def test_gold_already_included_in_total_not_addable_again(self):
+        """Regression: the AI chat previously added gold_value_in_home_currency to
+        total_liquid_in_home_currency a second time, overstating the grand total."""
+        summary = BalanceDataProvider().get_data(self.user)["summary"]
+        # total = non-gold + gold, i.e. gold is already inside the total exactly once.
+        self.assertAlmostEqual(
+            summary["non_gold_liquid_in_home_currency"] + summary["gold_value_in_home_currency"],
+            summary["total_liquid_in_home_currency"], places=2,
+        )
+        self.assertAlmostEqual(summary["non_gold_liquid_in_home_currency"], 1000.0, places=2)
+        # The wrong, double-counted figure a model previously produced must not equal the total.
+        wrong_total = summary["total_liquid_in_home_currency"] + summary["gold_value_in_home_currency"]
+        self.assertNotAlmostEqual(wrong_total, summary["total_liquid_in_home_currency"], places=2)
+        self.assertIn("double-count", summary["total_liquid_in_home_currency_note"])
+        self.assertIn("ALREADY INCLUDED", summary["gold_valuation_note"])

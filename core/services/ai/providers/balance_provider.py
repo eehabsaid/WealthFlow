@@ -103,8 +103,16 @@ class BalanceDataProvider(BaseContextProvider):
 
         return {
             "summary": {
+                # This TOTAL already includes gold's home-currency value (see gold_value_in_home_currency
+                # below) — it is the grand total. Do NOT add gold_value_in_home_currency to this figure
+                # again; that double-counts gold. gold_value_in_home_currency is shown only as a
+                # breakdown of what is already inside this total.
                 "total_liquid_in_home_currency": round(total_liquid_home, 2),
                 "total_liquid_in_home_currency_formatted": self.format_currency(round(total_liquid_home, 2), home_currency),
+                "total_liquid_in_home_currency_note": (
+                    "This is the GRAND TOTAL, gold already included. Never add gold_value_in_home_currency "
+                    "to it — that would double-count gold."
+                ),
                 "home_currency": home_currency,
                 "total_accounts_count": len(items),
                 "balances_by_currency": by_curr_formatted,
@@ -113,9 +121,14 @@ class BalanceDataProvider(BaseContextProvider):
                         "gold_grams_total": round(gold_grams_total, 2),
                         "gold_value_in_home_currency": round(gold_value_home, 2),
                         "gold_value_in_home_currency_formatted": self.format_currency(round(gold_value_home, 2), home_currency),
+                        "non_gold_liquid_in_home_currency": round(total_liquid_home - gold_value_home, 2),
+                        "non_gold_liquid_in_home_currency_formatted": self.format_currency(round(total_liquid_home - gold_value_home, 2), home_currency),
                         "gold_valuation_note": (
                             "Gold entries are grams. Their home-currency value = grams x (sell price per gram "
-                            "for the purity + cashback per gram), matching the Balance page."
+                            "for the purity + cashback per gram), matching the Balance page. This value is "
+                            "ALREADY INCLUDED in total_liquid_in_home_currency above (total_liquid_in_home_currency "
+                            "= non_gold_liquid_in_home_currency + gold_value_in_home_currency). It is shown here "
+                            "only as a breakdown — do not add it to the total again."
                         ),
                     } if gold_grams_total else {}
                 ),
