@@ -30,7 +30,7 @@ class CurrencyConversionService:
         if target_date:
             qs = qs.filter(fetched_at__date__lte=target_date)
             
-        rate = qs.order_by("-fetched_at").first()
+        rate = qs.order_by("-fetched_at", "-id").first()
         if rate and rate.buy_rate and rate.buy_rate > 0:
             return Decimal(str(rate.buy_rate))
         
