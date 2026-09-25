@@ -4,14 +4,14 @@ from django.test import TestCase
 
 from core.models import ExchangeRate
 from core.services.shared.currency_conversion_service import (
-    RATE_PIVOT,
+    get_rate_pivot_code,
     CurrencyConversionService,
 )
 
 
 class LatestBuyRateTests(TestCase):
     def test_pivot_currency_is_always_one(self):
-        self.assertEqual(CurrencyConversionService.get_latest_buy_rate(RATE_PIVOT), Decimal("1.000000"))
+        self.assertEqual(CurrencyConversionService.get_latest_buy_rate(get_rate_pivot_code()), Decimal("1.000000"))
 
     def test_unknown_currency_falls_back_to_one(self):
         self.assertEqual(CurrencyConversionService.get_latest_buy_rate("XYZ"), Decimal("1.000000"))
@@ -54,7 +54,7 @@ class RatesToBaseTests(TestCase):
 
     def test_pivot_is_included_when_base_is_not_the_pivot(self):
         rates = CurrencyConversionService.get_rates_to_base("SAR")
-        self.assertIn(RATE_PIVOT, rates)
+        self.assertIn(get_rate_pivot_code(), rates)
 
     def test_base_without_a_stored_rate_returns_itself_only(self):
         rates = CurrencyConversionService.get_rates_to_base("XYZ")
@@ -67,12 +67,12 @@ class StrictRateTests(TestCase):
 
     def test_missing_rate_raises(self):
         with self.assertRaises(ValueError):
-            CurrencyConversionService.strict_rate("SAR", RATE_PIVOT)
+            CurrencyConversionService.strict_rate("SAR", get_rate_pivot_code())
 
     def test_pivot_never_needs_a_stored_rate(self):
         ExchangeRate.objects.create(currency_code="SAR", buy_rate=Decimal("13.00"), sell_rate=Decimal("13.00"), mid_rate=Decimal("13.00"))
-        expected = CurrencyConversionService.calculate_exchange_rate(RATE_PIVOT, "SAR")
-        self.assertEqual(CurrencyConversionService.strict_rate(RATE_PIVOT, "SAR"), expected)
+        expected = CurrencyConversionService.calculate_exchange_rate(get_rate_pivot_code(), "SAR")
+        self.assertEqual(CurrencyConversionService.strict_rate(get_rate_pivot_code(), "SAR"), expected)
 
 
 class ConvertAmountTests(TestCase):
@@ -80,14 +80,14 @@ class ConvertAmountTests(TestCase):
         ExchangeRate.objects.create(currency_code="SAR", buy_rate=Decimal("13.00"), sell_rate=Decimal("13.00"), mid_rate=Decimal("13.00"))
 
     def test_converts_using_the_system_rate(self):
-        rate, converted = CurrencyConversionService.convert_amount(Decimal("100"), RATE_PIVOT, "SAR")
+        rate, converted = CurrencyConversionService.convert_amount(Decimal("100"), get_rate_pivot_code(), "SAR")
         self.assertEqual(converted, Decimal("7.69"))  # 100 / 13, rounded to cents
 
     def test_custom_rate_overrides_the_system_rate(self):
-        rate, converted = CurrencyConversionService.convert_amount(Decimal("100"), RATE_PIVOT, "SAR", custom_rate=Decimal("10"))
+        rate, converted = CurrencyConversionService.convert_amount(Decimal("100"), get_rate_pivot_code(), "SAR", custom_rate=Decimal("10"))
         self.assertEqual(rate, Decimal("10.000000"))
         self.assertEqual(converted, Decimal("1000.00"))
 
     def test_zero_or_none_amount_converts_to_zero(self):
-        _, converted = CurrencyConversionService.convert_amount(None, RATE_PIVOT, "SAR")
+        _, converted = CurrencyConversionService.convert_amount(None, get_rate_pivot_code(), "SAR")
         self.assertEqual(converted, Decimal("0.00"))

@@ -38,7 +38,7 @@ class UsdRateResult:
 
 class UsdRateService:
     def get_rate_for_currency(self, currency_id) -> UsdRateResult:
-        from core.services.shared.currency_conversion_service import RATE_PIVOT
+        from core.services.shared.currency_conversion_service import get_rate_pivot_code
 
         currency = Currency.objects.filter(pk=currency_id).first()
         currency_code = (currency.code if currency else "").upper()
@@ -52,21 +52,21 @@ class UsdRateService:
         if not usd_buy_rate:
             raise UsdRateError("Error loading exchange rates.")
 
-        if currency_code == RATE_PIVOT or not currency_code:
-            # The exchange-rate table is always pivoted through RATE_PIVOT
-            # ("EGP") and never stores a row for it (see
-            # ExchangeRateService.CURRENCY_NAMES) — this is a structural
-            # fact about the table, independent of any user's own base
-            # currency. usd_buy_rate IS already "EGP per 1 USD", which is
-            # exactly this function's target convention, so use it as-is.
+        if currency_code == get_rate_pivot_code() or not currency_code:
+            # The exchange-rate table is always pivoted through whichever
+            # code core_exchangerate is currently pivoted on (dynamic — see
+            # ExchangeRateService.refresh_latest_rates) and never stores a
+            # row for that pivot currency itself. usd_buy_rate IS already
+            # "pivot per 1 USD", which is exactly this function's target
+            # convention, so use it as-is.
             return UsdRateResult(rate=round(usd_buy_rate, 5))
 
         currency_buy_rate = self._get_buy_rate(latest_rates, currency_code)
         if not currency_buy_rate:
             raise UsdRateError("Error loading exchange rates.")
 
-        # currency_buy_rate = "EGP per 1 unit of currency", usd_buy_rate =
-        # "EGP per 1 USD" -> (EGP/USD) / (EGP/currency) = currency per USD.
+        # currency_buy_rate = "pivot per 1 unit of currency", usd_buy_rate =
+        # "pivot per 1 USD" -> (pivot/USD) / (pivot/currency) = currency per USD.
         rate = usd_buy_rate / currency_buy_rate
         return UsdRateResult(rate=round(rate, 5))
 

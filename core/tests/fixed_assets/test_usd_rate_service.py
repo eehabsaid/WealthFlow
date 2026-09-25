@@ -11,9 +11,12 @@ class UsdRateServiceTests(TestCase):
     """Regression coverage for get_rate_for_currency().
 
     The rate is always "units of the purchase currency per 1 USD" —
-    uniform across every currency, including EGP (the fixed pivot the
-    exchange-rate table is stored against; see RATE_PIVOT /
-    ExchangeRateService.CURRENCY_NAMES, which never has its own row).
+    uniform across every currency, including whichever currency the
+    exchange-rate table currently happens to be pivoted on (dynamic since
+    A6 batch 4 — see currency_conversion_service.get_rate_pivot_code() /
+    ExchangeRateService.CURRENCY_NAMES; the pivot currency never has its
+    own row). In these tests that's still EGP by default (no AppSettings
+    override), so the historical examples below are unaffected.
     Two real bugs this guards against:
       1. EGP used to be compared against the user's own base currency
          instead of the fixed pivot, which crashed for any user whose

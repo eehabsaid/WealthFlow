@@ -3,11 +3,29 @@ from typing import Optional, Tuple, Dict
 from datetime import date
 from core.models import ExchangeRate
 
-# The stored market rates (ExchangeRate.buy_rate) are quoted against this pivot
-# currency because the rate feed is requested with it as base. It is a data
-# convention only; users never see it. Use get_rates_to_base() for anything
-# that must be expressed in a user's own default currency.
-RATE_PIVOT = "EGP"
+# The stored market rates (ExchangeRate.buy_rate) are quoted against a pivot
+# currency because the rate feed is requested with it as base. The pivot is
+# NOT fixed to EGP: each refresh fetches open.er-api.com/v6/latest/{base_code}
+# using whoever triggered it own default currency (see ExchangeRateService),
+# and the code actually used is remembered here. It is a data convention
+# only; users never see it. Use get_rates_to_base() for anything that must
+# be expressed in a user's own default currency.
+_PIVOT_SETTINGS_KEY = "exchange_rate_pivot_code"
+_LEGACY_PIVOT_DEFAULT = "EGP"  # what every install had before the pivot became dynamic
+
+
+def get_rate_pivot_code() -> str:
+    """The currency code the current core_exchangerate rows are pivoted on."""
+    from core.models import AppSettings
+
+    value = AppSettings.get(_PIVOT_SETTINGS_KEY, _LEGACY_PIVOT_DEFAULT)
+    return str(value or _LEGACY_PIVOT_DEFAULT).strip().upper()
+
+
+def set_rate_pivot_code(code: str) -> None:
+    from core.models import AppSettings
+
+    AppSettings.set(_PIVOT_SETTINGS_KEY, str(code or _LEGACY_PIVOT_DEFAULT).strip().upper())
 
 
 class CurrencyConversionService:
@@ -19,11 +37,12 @@ class CurrencyConversionService:
     @classmethod
     def get_latest_buy_rate(cls, currency_code: str, target_date: Optional[date] = None) -> Decimal:
         """
-        Get the latest buy_rate for a currency code against EGP (base currency = 1.0).
+        Get the latest buy_rate for a currency code against the current pivot
+        currency (get_rate_pivot_code(); the pivot itself is always 1.0).
         If target_date is provided, filters for rates fetched on or before target_date.
         """
         code = str(currency_code or "").strip().upper()
-        if code == RATE_PIVOT or not code:
+        if code == get_rate_pivot_code() or not code:
             return Decimal("1.000000")
         
         qs = ExchangeRate.objects.filter(currency_code__iexact=code)
@@ -41,7 +60,7 @@ class CurrencyConversionService:
         """
         Return a dictionary mapping currency_code -> latest buy_rate (Decimal) for all currencies.
         """
-        rates: Dict[str, Decimal] = {RATE_PIVOT: Decimal("1.000000")}
+        rates: Dict[str, Decimal] = {get_rate_pivot_code(): Decimal("1.000000")}
         for rate in ExchangeRate.objects.order_by("currency_code", "-fetched_at"):
             code = str(rate.currency_code or "").upper()
             if code and code not in rates:
@@ -71,8 +90,9 @@ class CurrencyConversionService:
         to_c = str(to_code or "").strip().upper()
         if from_c == to_c:
             return Decimal("1.000000")
+        pivot = get_rate_pivot_code()
         for code in (from_c, to_c):
-            if code == RATE_PIVOT:
+            if code == pivot:
                 continue
             qs = ExchangeRate.objects.filter(currency_code__iexact=code)
             if target_date:
@@ -85,7 +105,7 @@ class CurrencyConversionService:
     def calculate_exchange_rate(cls, from_code: str, to_code: str, target_date: Optional[date] = None) -> Decimal:
         """
         Calculate exchange rate from from_code to to_code:
-        Rate = (Buy Rate of From Currency in EGP) / (Buy Rate of To Currency in EGP)
+        Rate = (Buy Rate of From Currency vs pivot) / (Buy Rate of To Currency vs pivot)
         """
         from_c = str(from_code or "").strip().upper()
         to_c = str(to_code or "").strip().upper()

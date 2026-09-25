@@ -37,11 +37,15 @@ class ExchangeRateListView(View):
 
 
 class ExchangeRateRefreshView(View):
-    """Calls open.er-api.com and saves latest rates to DB."""
+    """Calls open.er-api.com and saves latest rates to DB, pivoted on the
+    requesting user's own default currency (no static EGP/USD pivot)."""
 
     def post(self, request):
+        from core.services.shared.base_currency import get_user_base_code
+
         try:
-            result = ExchangeRateService().refresh_latest_rates().to_dict()
+            pivot_code = get_user_base_code(request.user) if request.user.is_authenticated else None
+            result = ExchangeRateService().refresh_latest_rates(pivot_code).to_dict()
             return JsonResponse({**result, "message": f"Fetched {result['saved']} currencies"})
 
         except Exception as e:

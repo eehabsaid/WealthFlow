@@ -29,4 +29,6 @@ class ExchangeRate(models.Model):
         }
 
     def __str__(self):
-        return f"{self.currency_code} → EGP  mid={self.mid_rate}"
+        from core.services.shared.currency_conversion_service import get_rate_pivot_code
+
+        return f"{self.currency_code} → {get_rate_pivot_code()}  mid={self.mid_rate}"

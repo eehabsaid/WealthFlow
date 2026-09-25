@@ -28,6 +28,21 @@ async function renderExchangeRates() {
   const fetchedAt = data.fetched_at;
   const hasData = rates.length > 0;
   const sortedRates = sortRatesByPriority(rates);
+  const baseCode = baseCurrencyCode() || (window.WF_BASE && window.WF_BASE.pivot_currency) || "";
+
+  // rates are stored pivot-relative (see core_exchangerate); re-express each
+  // field in the viewer's own default currency. `field` is "buy_rate",
+  // "mid_rate" or "sell_rate".
+  function rateInBase(code, field) {
+    const pivot = window.WF_BASE.pivot_currency;
+    const quote = (c) => {
+      if (c === pivot) return 1;
+      const row = rates.find((r) => r.currency_code === c);
+      return row ? Number(row[field]) || 0 : 0;
+    };
+    const base = quote(baseCode);
+    return base > 0 ? quote(code) / base : 0;
+  }
 
   const featuredRates = TOP_CURRENCY_ORDER.map((code) =>
     sortedRates.find((r) => r.currency_code === code)
@@ -35,7 +50,7 @@ async function renderExchangeRates() {
 
   const buyText = t("buy", "Buy");
   const sellText = t("sell", "Sell");
-  const egpPerText = t("egp_per_1", "EGP per 1");
+  const perOneText = t("rate_per_1", "{base} per 1");
 
   const featuredCards = featuredRates
     .map((r) => {
@@ -48,16 +63,16 @@ async function renderExchangeRates() {
                 <div class="kpi-card" style="--kpi-accent:var(--accent-primary);text-align:center">
                     <div style="font-size:28px;margin-bottom:6px">${meta.flag}</div>
                     <div class="kpi-label">${r.currency_code}</div>
-                    <div class="kpi-value" style="font-size:18px">${fmtRate(r.mid_rate)}</div>
-                    <div class="kpi-sub" data-i18n="egp_per_1">${egpPerText} ${r.currency_code}</div>
+                    <div class="kpi-value" style="font-size:18px">${fmtRate(rateInBase(r.currency_code, "mid_rate"))}</div>
+                    <div class="kpi-sub" data-i18n="rate_per_1">${perOneText} ${r.currency_code}</div>
                     <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text-muted)">
                         <span style="display:flex; gap:4px;">
                             <span data-i18n="buy">${buyText}</span>
-                            <span>${fmtRate(r.buy_rate)}</span>
+                            <span>${fmtRate(rateInBase(r.currency_code, "buy_rate"))}</span>
                         </span>
                         <span style="display:flex; gap:4px;">
                             <span data-i18n="sell">${sellText}</span>
-                            <span>${fmtRate(r.sell_rate)}</span>
+                            <span>${fmtRate(rateInBase(r.currency_code, "sell_rate"))}</span>
                         </span>
                     </div>
                 </div>
@@ -74,9 +89,9 @@ async function renderExchangeRates() {
       return `<tr>
                 <td><span style="font-size:18px;margin-right:8px">${meta.flag}</span><strong>${r.currency_code}</strong></td>
                 <td>${meta.name || r.currency_name}</td>
-                <td class="text-end num-col">${fmtRate(r.buy_rate)}</td>
-                <td class="text-end num-col" style="color:var(--accent-green)">${fmtRate(r.mid_rate)}</td>
-                <td class="text-end num-col">${fmtRate(r.sell_rate)}</td>
+                <td class="text-end num-col">${fmtRate(rateInBase(r.currency_code, "buy_rate"))}</td>
+                <td class="text-end num-col" style="color:var(--accent-green)">${fmtRate(rateInBase(r.currency_code, "mid_rate"))}</td>
+                <td class="text-end num-col">${fmtRate(rateInBase(r.currency_code, "sell_rate"))}</td>
             </tr>`;
     })
     .join("");
@@ -86,14 +101,14 @@ async function renderExchangeRates() {
   const refreshText = t("refresh_internet", "Refresh from Internet");
   const noRatesText = t("no_rates_data", "No exchange rate data yet.");
   const fetchNowText = t("fetch_now", "Fetch Rates Now");
-  const ratesVsText = t("rates_vs_egp", "Rates are vs Egyptian Pound (EGP).");
+  const ratesVsText = t("rates_vs_base", "Rates are vs your default currency ({base}).");
   const disclaimerText = t("rate_disclaimer", "Buy/Sell reflect a typical bank spread.");
   const cbeText = t("cbe_disclaimer", "For official CBE rates visit:");
   const currencyHeader = t("currency", "Currency");
   const nameHeader = t("name", "Name");
-  const buyEgpHeader = t("buy_egp", "Buy (EGP)");
+  const buyBaseHeader = t("buy_base", "Buy ({base})");
   const midRateHeader = t("mid_rate", "Mid Rate");
-  const sellEgpHeader = t("sell_egp", "Sell (EGP)");
+  const sellBaseHeader = t("sell_base", "Sell ({base})");
 
   mc.innerHTML = `
         <div class="page-header">
@@ -129,7 +144,7 @@ async function renderExchangeRates() {
 
                 <div style="background:var(--accent-blue-dim);border:1px solid rgba(26,110,245,0.3);border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:13px;color:var(--text-secondary)">
                     <i class="bi bi-info-circle" style="color:var(--accent-primary)"></i>
-                    <strong data-i18n="rates_vs_egp">${ratesVsText}</strong>
+                    <strong data-i18n="rates_vs_base">${ratesVsText}</strong>
                     <span data-i18n="rate_disclaimer">${disclaimerText}</span>
                 </div>
 
@@ -139,9 +154,9 @@ async function renderExchangeRates() {
                             <tr>
                                 <th data-i18n="currency">${currencyHeader}</th>
                                 <th data-i18n="name">${nameHeader}</th>
-                                <th class="text-end" data-i18n="buy_egp">${buyEgpHeader}</th>
+                                <th class="text-end" data-i18n="buy_base">${buyBaseHeader}</th>
                                 <th class="text-end" data-i18n="mid_rate">${midRateHeader}</th>
-                                <th class="text-end" data-i18n="sell_egp">${sellEgpHeader}</th>
+                                <th class="text-end" data-i18n="sell_base">${sellBaseHeader}</th>
                             </tr>
                         </thead>
                         <tbody>${rows}</tbody>

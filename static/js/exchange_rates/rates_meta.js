@@ -10,6 +10,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 const CURRENCY_META = {
+  EGP: { flag: "🇪🇬", name: "Egyptian Pound" },
   USD: { flag: "🇺🇸", name: "US Dollar" },
   EUR: { flag: "🇪🇺", name: "Euro" },
   GBP: { flag: "🇬🇧", name: "Pound Sterling" },

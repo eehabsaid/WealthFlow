@@ -56,10 +56,7 @@ class BaseContextProvider(ABC):
 
     def convert_to_home_currency(self, amount: float, from_code: str, home_code: str = "") -> float:
         """
-        Deterministically converts an amount from `from_code` to `home_code`.
-        Delegates to CurrencyConversionService (the app-wide source of truth, which uses
-        buy_rate only — see its docstring) so AI answers match the Balance page and every
-        other view instead of computing their own mid-rate conversion.
+        Deterministically converts an amount from `from_code` to `home_code` using ExchangeRate model.
         Returns amount converted or float(amount) if codes match or rate unavailable.
         """
         if not amount:
@@ -73,11 +70,19 @@ class BaseContextProvider(ABC):
             return val
 
         try:
-            from core.services.shared.currency_conversion_service import CurrencyConversionService
+            from core.models import ExchangeRate
+            from core.services.shared.currency_conversion_service import get_rate_pivot_code
 
-            rate = CurrencyConversionService.calculate_exchange_rate(f_code, h_code)
-            if rate and rate > 0:
-                return round(val * float(rate), 2)
+            def _mid(code: str) -> float:
+                # ExchangeRate maps currency_code -> pivot-currency rate (mid_rate)
+                if code == get_rate_pivot_code():
+                    return 1.0
+                row = ExchangeRate.objects.filter(currency_code__iexact=code).order_by("-fetched_at").first()
+                return float((row.mid_rate or row.buy_rate or row.sell_rate or 0) if row else 0)
+
+            from_mid, home_mid = _mid(f_code), _mid(h_code)
+            if from_mid > 0 and home_mid > 0:
+                return round(val * from_mid / home_mid, 2)
         except Exception as exc:
             logger.warning("Currency conversion failed for %s -> %s: %s", f_code, h_code, exc)
 

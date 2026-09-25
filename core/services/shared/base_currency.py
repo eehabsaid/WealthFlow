@@ -11,7 +11,7 @@ from django.conf import settings
 from django.db import transaction
 
 from core.models import AppSettings, Currency, ExchangeRate, UserProfile
-from core.services.shared.currency_conversion_service import RATE_PIVOT
+from core.services.shared.currency_conversion_service import get_rate_pivot_code
 
 PLATFORM_FALLBACK_CURRENCY = "EGP"
 # Currency the stored gold prices are quoted in (the current source is Egyptian).
@@ -50,7 +50,7 @@ def get_user_base_info(user) -> dict:
         "code": code,
         "symbol": (currency.symbol if currency and currency.symbol else code),
         "flag": currency.flag if currency else "",
-        "pivot_currency": RATE_PIVOT,
+        "pivot_currency": get_rate_pivot_code(),
         "name": currency.name if currency else code,
         "multi_currency_enabled": multi_currency_enabled(),
     }
@@ -75,9 +75,7 @@ def pin_user_base_currency(user) -> str:
 
 
 def _has_market_rate(code: str) -> bool:
-    from core.services.shared.currency_conversion_service import RATE_PIVOT
-
-    return code == RATE_PIVOT or ExchangeRate.objects.filter(currency_code__iexact=code).exists()
+    return code == get_rate_pivot_code() or ExchangeRate.objects.filter(currency_code__iexact=code).exists()
 
 
 def set_user_base_currency(user, code) -> str:
