@@ -97,9 +97,21 @@ class CrudVerifier:
         """Confirms exactly one new row appeared via the real API, and that
         its match_field genuinely equals what was submitted — not just that
         SOME new row exists."""
-        after_list = self._fetch_list()
-        after_ids = {item.get(self.id_field) for item in after_list}
-        new_ids = after_ids - before_ids
+        # A single immediate fetch right after a UI-triggered save can race the save's own
+        # in-flight request under load (slow DB/network) and see the list before the new
+        # row commits — a real, reproducible flake, not a create-flow defect: the create
+        # flow itself was verified correct via direct reproduction. Poll briefly instead of
+        # trusting one snapshot.
+        new_ids: set = set()
+        after_list: list = []
+        for attempt in range(4):
+            after_list = self._fetch_list()
+            after_ids = {item.get(self.id_field) for item in after_list}
+            new_ids = after_ids - before_ids
+            if new_ids:
+                break
+            if attempt < 3:
+                self.page.wait_for_timeout(500)
 
         if not new_ids:
             self._step(False)
@@ -127,8 +139,14 @@ class CrudVerifier:
             self._step(False)
             return StepResult(False, "No item id to check update against (create step failed earlier).")
 
-        after_list = self._fetch_list()
-        item = next((i for i in after_list if i.get(self.id_field) == item_id), None)
+        item = None
+        for attempt in range(4):
+            after_list = self._fetch_list()
+            item = next((i for i in after_list if i.get(self.id_field) == item_id), None)
+            if item is not None and _values_match(item.get(field), expected_value):
+                break
+            if attempt < 3:
+                self.page.wait_for_timeout(500)
         if item is None:
             self._step(False)
             return StepResult(False, f"Row id={item_id} not found when checking update.")

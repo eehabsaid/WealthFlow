@@ -31,7 +31,7 @@ function _showReminderBanner(reminders) {
                     <div style="font-size:12px;opacity:0.85">${esc(r.message)}</div>
                 </div>
                 ${r.link ? `<button onclick="navigate('${r.link}');dismissReminderBanner()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer" data-i18n="view">${viewText}</button>` : ""}
-            </div>`
+            </div>`,
     )
     .join("");
 
@@ -61,3 +61,10 @@ function dismissReminderBanner() {
   const b = document.getElementById("reminder-banner");
   if (b) b.remove();
 }
+
+// The banner is deliberately drawn above regular page content (z-index:1100) so it's
+// visible from any tab, but that puts it above Bootstrap's modal (#globalModal, reused
+// across ~29 files) too. When it happens to sit over a modal's close/cancel/save button
+// it silently intercepts the click. Modal interaction always wins: drop the banner the
+// moment any modal starts showing, same lifecycle-protection pattern as app/modals.js.
+document.addEventListener("show.bs.modal", dismissReminderBanner);
