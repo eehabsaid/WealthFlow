@@ -52,7 +52,23 @@ def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None
     cashback_per_gram = _gold_cashback_per_gram(details.purity, owner=asset.owner)
     details.cashback_per_gram = cashback_per_gram
     total_weight_grams = _gold_weight_in_grams(details.weight, details.unit)
-    asset.current_market_value = total_weight_grams * (sell_price_per_gram + cashback_per_gram)
+    value_in_gold_currency = total_weight_grams * (sell_price_per_gram + cashback_per_gram)
+
+    # Gold prices are always sourced in GOLD_PRICE_CURRENCY (EGP, see
+    # base_currency.py). current_market_value must be expressed in the
+    # asset owner's own base currency like every other asset's value, so
+    # convert here. For an EGP-base owner this is rate=1.000000, i.e. a
+    # no-op that reproduces the previous value exactly.
+    from core.services.shared.base_currency import get_user_base_code, GOLD_PRICE_CURRENCY
+    from core.services.shared.currency_conversion_service import CurrencyConversionService
+
+    base_code = get_user_base_code(asset.owner)
+    if base_code == GOLD_PRICE_CURRENCY:
+        asset.current_market_value = value_in_gold_currency
+    else:
+        _, asset.current_market_value = CurrencyConversionService.convert_amount(
+            value_in_gold_currency, GOLD_PRICE_CURRENCY, base_code
+        )
     asset.valuation_source = "Automatic"
     asset.last_valuation_date = timezone.now().date()
 

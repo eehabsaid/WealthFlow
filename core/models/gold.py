@@ -91,8 +91,11 @@ class GoldPrice(models.Model):
         ordering = ["-fetched_at"]
 
     def to_dict(self):
+        from core.services.shared.base_currency import GOLD_PRICE_CURRENCY
+
         return {
             "id": self.id,
+            "currency": GOLD_PRICE_CURRENCY,
             "carat_24k": float(self.carat_24k),
             "carat_22k": float(self.carat_22k),
             "carat_21k": float(self.carat_21k),

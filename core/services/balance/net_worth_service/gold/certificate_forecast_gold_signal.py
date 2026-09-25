@@ -141,7 +141,7 @@ def compute_gold_signal(
     gold_text = (
         f"Gold trend: {gold_trend_state}. "
         f"7d {gold_trend_7:.2f}%, 30d {gold_trend_30:.2f}%, 90d {gold_trend_90:.2f}%, "
-        f"MA(7) {gold_ma_short:,.2f}, MA(30) {gold_ma_long:,.2f}, gap {gold_ma_gap_pct:.2f}%."
+        f"MA(7) {gold_ma_short:,.2f} EGP, MA(30) {gold_ma_long:,.2f} EGP, gap {gold_ma_gap_pct:.2f}%."
     )
     if gold_trend_state == "Strong Uptrend":
         gold_text += (
