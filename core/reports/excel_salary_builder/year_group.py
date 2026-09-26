@@ -7,7 +7,7 @@ operations, only relocated for file-size compliance.
 
 from openpyxl.styles import Font, Border, Side
 
-from core.reports.excel_formatting_helpers import FMT_EGP, _thin, _fill, _align
+from core.reports.excel_formatting_helpers import fmt_base, _thin, _fill, _align
 from .constants import YEAR_ROW_HT
 
 
@@ -47,21 +47,21 @@ def build_year_group(ws, row, year, year_entries, name, cols, last_col, has_bonu
         ws.cell(row=row, column=1, value=int(entry.year))
         ws.cell(row=row, column=2, value=str(entry.month))
         ws.cell(row=row, column=3, value=float(entry.expected))
-        ws.cell(row=row, column=3).number_format = FMT_EGP
+        ws.cell(row=row, column=3).number_format = fmt_base()
         ws.cell(row=row, column=4, value=float(entry.paid))
-        ws.cell(row=row, column=4).number_format = FMT_EGP
+        ws.cell(row=row, column=4).number_format = fmt_base()
 
         if name in ("NTG", "Giza Systems", "Giza Systems (2)"):
             rem = f"=D{row}-C{row}"
         else:
             rem = f"=IF(C{row}>D{row},C{row}-D{row},0)"
         ws.cell(row=row, column=5, value=rem)
-        ws.cell(row=row, column=5).number_format = FMT_EGP
+        ws.cell(row=row, column=5).number_format = fmt_base()
 
         if has_bonus:
             bonus_val = float(getattr(entry, "bonus", 0) or 0)
             ws.cell(row=row, column=6, value=bonus_val)
-            ws.cell(row=row, column=6).number_format = FMT_EGP
+            ws.cell(row=row, column=6).number_format = fmt_base()
         row += 1
 
     data_end = row - 1
@@ -85,19 +85,19 @@ def build_year_group(ws, row, year, year_entries, name, cols, last_col, has_bonu
             value=f'=COUNTIF(D{data_start}:D{data_end}, "<> 0.00")',
         )
     ws.cell(row=row, column=3, value=f"=SUM(C{data_start}:C{data_end})")
-    ws.cell(row=row, column=3).number_format = FMT_EGP
+    ws.cell(row=row, column=3).number_format = fmt_base()
     ws.cell(row=row, column=4, value=f"=SUM(D{data_start}:D{data_end})")
-    ws.cell(row=row, column=4).number_format = FMT_EGP
+    ws.cell(row=row, column=4).number_format = fmt_base()
 
     if name == "NTG":
         ws.cell(row=row, column=5, value=f"=D{row}-C{row}")
     else:
         ws.cell(row=row, column=5, value=f"=SUM(E{data_start}:E{data_end})")
-    ws.cell(row=row, column=5).number_format = FMT_EGP
+    ws.cell(row=row, column=5).number_format = fmt_base()
 
     if has_bonus:
         ws.cell(row=row, column=6, value=f"=SUM(F{data_start}:F{data_end})")
-        ws.cell(row=row, column=6).number_format = FMT_EGP
+        ws.cell(row=row, column=6).number_format = fmt_base()
 
     total_row = row
     row += 1

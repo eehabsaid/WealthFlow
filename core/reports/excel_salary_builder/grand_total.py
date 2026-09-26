@@ -7,7 +7,7 @@ operations, only relocated for file-size compliance.
 
 from openpyxl.styles import Font
 
-from core.reports.excel_formatting_helpers import FMT_EGP, _thin, _fill
+from core.reports.excel_formatting_helpers import fmt_base, _thin, _fill
 
 LABEL_MAP = {
     "NTG": "Total",
@@ -39,16 +39,16 @@ def build_grand_total(ws, row, total_rows, name, cols, has_bonus):
     c_ref = "+".join(f"C{r}" for r in total_rows)
     d_ref = "+".join(f"D{r}" for r in total_rows)
     ws.cell(row=sr, column=3, value=f"={c_ref}")
-    ws.cell(row=sr, column=3).number_format = FMT_EGP
+    ws.cell(row=sr, column=3).number_format = fmt_base()
     ws.cell(row=sr, column=4, value=f"={d_ref}")
-    ws.cell(row=sr, column=4).number_format = FMT_EGP
+    ws.cell(row=sr, column=4).number_format = fmt_base()
     ws.cell(row=sr, column=5, value=f"=D{sr}-C{sr}")
-    ws.cell(row=sr, column=5).number_format = FMT_EGP
+    ws.cell(row=sr, column=5).number_format = fmt_base()
 
     if has_bonus:
         f_ref = "+".join(f"F{r}" for r in total_rows)
         ws.cell(row=sr, column=6, value=f"={f_ref}")
-        ws.cell(row=sr, column=6).number_format = FMT_EGP
+        ws.cell(row=sr, column=6).number_format = fmt_base()
 
     ws.row_dimensions[sr].height = 21.0 if name == "NTG" else None
 

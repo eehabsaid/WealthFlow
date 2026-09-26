@@ -4,6 +4,8 @@ from openpyxl import Workbook
 from django.db.models import Max
 
 from core.reports.excel_formatting_helpers import auto_adjust_columns
+from core.reports.report_context import set_report_base_code
+from core.services.shared.base_currency import get_user_base_code
 from core.reports.excel_salary_builder import build_salary_sheet
 from core.reports.excel_sheets_builder import (
     build_exchange_rates_sheet,
@@ -24,6 +26,8 @@ def generate_excel(owner, output_path=None, lang="ar"):
         Expense,
         CurrencyExchange,
     )
+
+    set_report_base_code(get_user_base_code(owner))
 
     wb = Workbook()
     wb.remove(wb.active)

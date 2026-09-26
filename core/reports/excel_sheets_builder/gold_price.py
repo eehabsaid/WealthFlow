@@ -6,7 +6,7 @@ the "Gold Price" sheet builder only.
 from openpyxl.styles import Font
 
 from core.reports.excel_formatting_helpers import (
-    FMT_EGP_RED,
+    fmt_for_code,
     WHITE,
     _f,
     _thin,
@@ -139,4 +139,11 @@ def build_gold_price_sheet(ws, gold_qs, balance_entries, owner):
         c_val.font = _f(name="Arial")
         c_val.alignment = _center()
         c_val.border = _thin()
-        c_val.number_format = FMT_EGP_RED
+        # Unlike every other cell in this batch, this one stays a literal
+        # EGP format on purpose: gold price/making-charge here is sourced
+        # from the Egyptian gold market (per the A6 batch 3 decision that
+        # gold stays EGP-priced regardless of the viewer's own base
+        # currency), so making this dynamic-base like the rest of the
+        # reports would show a genuinely-EGP-denominated number under a
+        # different currency's symbol.
+        c_val.number_format = fmt_for_code("EGP")

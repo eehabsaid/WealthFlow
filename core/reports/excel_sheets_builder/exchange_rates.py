@@ -6,7 +6,7 @@ the "Exchange Rates" sheet builder only.
 from openpyxl.styles import Font
 
 from core.reports.excel_formatting_helpers import (
-    FMT_EGP_RED,
+    fmt_base_red,
     FMT_USD,
     FMT_EUR,
     WHITE,
@@ -16,6 +16,7 @@ from core.reports.excel_formatting_helpers import (
     _center,
     _apply_zebra_striping,
 )
+from core.reports.report_context import get_report_base_code
 
 CURRENCIES = [
     ("USD", "دولار أمريكى"),
@@ -49,7 +50,6 @@ def build_exchange_rates_sheet(ws, rates_list, balance_entries, owner=None):
         cell.border = _thin()
 
     rate_map = {r.currency_code: r for r in rates_list}
-    eur_row = 0
 
     for i, (code, arabic) in enumerate(CURRENCIES, 2):
         _apply_zebra_striping(ws, i, 3)
@@ -68,9 +68,6 @@ def build_exchange_rates_sheet(ws, rates_list, balance_entries, owner=None):
             )
             ws.cell(row=i, column=2, value=val_buy)
             ws.cell(row=i, column=3, value=val_sell)
-
-        if code == "EUR":
-            eur_row = i
 
     from core.models import Currency
 
@@ -105,6 +102,20 @@ def build_exchange_rates_sheet(ws, rates_list, balance_entries, owner=None):
     _style_side(5, 7, home_usd, FMT_USD)
     _style_side(5, 8, "Total")
 
-    _style_side(6, 6, f"=F5*B{eur_row}", FMT_EGP_RED)
-    _style_side(6, 7, "=G5*B2", FMT_EGP_RED)
-    _style_side(6, 8, "=F6+G6", FMT_EGP_RED)
+    # Convert home EUR/USD cash to the report owner's own base currency
+    # directly (not a raw ExchangeRate.buy_rate cross-sheet cell formula,
+    # which was quoted against whichever pivot core_exchangerate happened
+    # to be refreshed on — see A6 batch 4a — and could silently mismatch
+    # the report's actual base currency).
+    from core.services.shared.currency_conversion_service import CurrencyConversionService
+
+    base_code = get_report_base_code()
+    rates_to_base = CurrencyConversionService.get_rates_to_base(base_code)
+    eur_in_base = float(rates_to_base.get("EUR", 0))
+    usd_in_base = float(rates_to_base.get("USD", 0))
+    eur_total = home_eur * eur_in_base
+    usd_total = home_usd * usd_in_base
+
+    _style_side(6, 6, eur_total, fmt_base_red())
+    _style_side(6, 7, usd_total, fmt_base_red())
+    _style_side(6, 8, eur_total + usd_total, fmt_base_red())

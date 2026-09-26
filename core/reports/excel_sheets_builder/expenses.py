@@ -8,7 +8,7 @@ from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 
 from core.reports.excel_formatting_helpers import (
-    FMT_EGP_CERT,
+    fmt_base_cert,
     FMT_DATE,
     WHITE,
     EXP_BG,
@@ -19,6 +19,7 @@ from core.reports.excel_formatting_helpers import (
     _fill,
     _center,
 )
+from core.reports.report_context import get_report_base_code
 
 
 def build_expenses_sheet(ws, expenses_qs):
@@ -72,13 +73,22 @@ def build_expenses_sheet(ws, expenses_qs):
                     value=exp.subcategory.name if exp.subcategory else "",
                 )
                 ws.cell(row=row, column=6, value=exp.description or "")
-                ws.cell(row=row, column=7, value=float(exp.amount)).number_format = (
-                    FMT_EGP_CERT
+                # amount_egp is the amount already converted to the user's
+                # own base currency at save time (see expense_service.py) —
+                # unlike raw exp.amount, which is in whatever currency that
+                # specific expense was entered in (shown separately in the
+                # Currency column below). Using amount_egp here means this
+                # column's SUM()/SUMIF() totals below are a correct sum
+                # across possibly-mixed-currency expenses, and its format
+                # (fmt_base_cert(), the report's own base currency) actually
+                # matches what the cell holds.
+                ws.cell(row=row, column=7, value=float(exp.amount_egp)).number_format = (
+                    fmt_base_cert()
                 )
                 ws.cell(
                     row=row,
                     column=8,
-                    value=exp.currency.code if exp.currency else "EGP",
+                    value=exp.currency.code if exp.currency else get_report_base_code(),
                 )
                 ws.cell(row=row, column=9, value=exp.payment_method or "")
                 ws.cell(row=row, column=10, value=exp.notes or "")

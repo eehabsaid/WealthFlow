@@ -5,7 +5,7 @@ on its own, per WealthFlow refactoring convention). This file holds the
 home-balance row phase (row 2: cash/gold held outside any bank).
 """
 from core.reports.excel_formatting_helpers import (
-    FMT_EGP_RED,
+    fmt_base_red,
     FMT_USD,
     FMT_EUR,
     FMT_SAR,
@@ -13,6 +13,7 @@ from core.reports.excel_formatting_helpers import (
     _f,
     _thin,
 )
+from core.reports.report_context import get_report_base_code
 
 
 def apply_home_row(ctx):
@@ -37,10 +38,10 @@ def apply_home_row(ctx):
     ws.cell(row=2, column=1, value=home_title).font = _f(bold=True, name="Arial")
     ws.cell(row=2, column=1).border = _thin()
 
-    b2 = ws.cell(row=2, column=2, value=home.get("EGP", 0))
+    b2 = ws.cell(row=2, column=2, value=home.get(get_report_base_code(), 0))
     b2.font = _f(bold=True, name="Arial")
     b2.border = _thin()
-    b2.number_format = FMT_EGP_RED
+    b2.number_format = fmt_base_red()
 
     c2 = ws.cell(row=2, column=3, value=home.get("USD", 0))
     c2.font = _f(bold=True, name="Arial")

@@ -39,7 +39,12 @@ def format_arabic(text):
     return process_pdf_text(text)
 
 def get_text(key, lang, t, default=""):
-    return t.get(key, default) if t and key in t else default
+    text = t.get(key, default) if t and key in t else default
+    if text and "{base}" in str(text):
+        from core.reports.report_context import get_report_base_code
+
+        text = str(text).replace("{base}", get_report_base_code())
+    return text
 
 def parse_iso_date(value):
     if not value or str(value).strip() in ("", "None"):

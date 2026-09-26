@@ -7,8 +7,8 @@ def build_sale_sheet(wb, lang, t, assets, header_font):
     sale_headers = [
         _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
         _fixed_asset_report_label(t, lang, "sale_date", "Sale Date"),
-        _fixed_asset_report_label(t, lang, "sale_price_egp", "Sale Price (EGP)"),
-        _fixed_asset_report_label(t, lang, "selling_expenses_egp", "Selling Expenses (EGP)"),
+        _fixed_asset_report_label(t, lang, "sale_price_egp", "Sale Price ({base})"),
+        _fixed_asset_report_label(t, lang, "selling_expenses_egp", "Selling Expenses ({base})"),
         _fixed_asset_report_label(t, lang, "net_sale_amount", "Net Sale Amount"),
         _fixed_asset_report_label(t, lang, "deposit_balance", "Deposit Balance"),
         _fixed_asset_report_label(t, lang, "notes", "Notes"),

@@ -11,7 +11,9 @@ from core.models import FixedAsset
 from core.services.balance.net_worth_service import NetWorthService
 from core.utils.date_formatter import format_date
 from core.reports.report_utils import get_translations, get_text
+from core.reports.report_context import set_report_base_code
 from core.reports.pdf_font_utils import process_pdf_text
+from core.services.shared.base_currency import get_user_base_code
 
 
 def fixed_asset_report_queryset(owner):
@@ -37,6 +39,7 @@ def fixed_asset_report_queryset(owner):
 
 
 def fixed_asset_report_context(request):
+    set_report_base_code(get_user_base_code(request.user))
     lang = request.GET.get("lang", "en")
     t = get_translations(lang)
     asset_id = request.GET.get("asset_id")

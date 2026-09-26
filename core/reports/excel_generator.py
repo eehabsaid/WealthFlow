@@ -6,14 +6,14 @@ is matched to the original file as inspected cell-by-cell.
 """
 
 from core.reports.excel_formatting_helpers import (
-    FMT_EGP,
-    FMT_EGP_RED,
+    fmt_base,
+    fmt_base_red,
     FMT_USD,
     FMT_EUR,
     FMT_SAR,
     FMT_GOLD,
-    FMT_EGP_CERT,
-    FMT_EGP_CERT_R,
+    fmt_base_cert,
+    fmt_base_cert_red,
     FMT_PCT,
     FMT_DATE,
     FMT_INT,
@@ -56,14 +56,14 @@ from core.reports.excel_sheets_builder import (
 from core.reports.excel_main_generator import generate_excel
 
 __all__ = [
-    "FMT_EGP",
-    "FMT_EGP_RED",
+    "fmt_base",
+    "fmt_base_red",
     "FMT_USD",
     "FMT_EUR",
     "FMT_SAR",
     "FMT_GOLD",
-    "FMT_EGP_CERT",
-    "FMT_EGP_CERT_R",
+    "fmt_base_cert",
+    "fmt_base_cert_red",
     "FMT_PCT",
     "FMT_DATE",
     "FMT_INT",

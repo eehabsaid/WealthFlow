@@ -2,9 +2,11 @@
 """NOTE: Part of the excel_sheets_builder/build_balance_sheet subfolder
 (promoted because the original build_balance_sheet function was >200 lines
 on its own, per WealthFlow refactoring convention). This file holds the
-per-bank EGP balance rows phase (starting at row 3), advancing ctx.excel_row.
+per-bank home-currency balance rows phase (starting at row 3), advancing
+ctx.excel_row.
 """
-from core.reports.excel_formatting_helpers import FMT_EGP_RED, FMT_INT, _f, _thin
+from core.reports.excel_formatting_helpers import fmt_base_red, FMT_INT, _f, _thin
+from core.reports.report_context import get_report_base_code
 
 
 def apply_bank_rows(ctx):
@@ -19,7 +21,7 @@ def apply_bank_rows(ctx):
             "gold",
         ):
             continue
-        if cur_map.get(be.currency_id) != "EGP":
+        if cur_map.get(be.currency_id) != get_report_base_code():
             continue
 
         a = ws.cell(row=excel_row, column=1, value=be.title)
@@ -28,7 +30,7 @@ def apply_bank_rows(ctx):
         b = ws.cell(row=excel_row, column=2, value=float(be.amount))
         b.font = _f(bold=True, name="Arial")
         b.border = _thin()
-        b.number_format = FMT_EGP_RED
+        b.number_format = fmt_base_red()
 
         bank = bank_map.get(be.bank_id)
         if bank:

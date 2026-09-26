@@ -2,12 +2,14 @@
 """NOTE: Part of the excel_sheets_builder/build_balance_sheet subfolder
 (promoted because the original build_balance_sheet function was >200 lines
 on its own, per WealthFlow refactoring convention). This file holds the
-totals phase: certificate total row, EGP total row, all-balances total row,
-and the company pay/work-months totals, continuing from ctx.excel_row.
+totals phase: certificate total row, home-currency total row, all-balances
+total row, and the company pay/work-months totals, continuing from
+ctx.excel_row.
 """
 from openpyxl.styles import Alignment, Border, Side
 
-from core.reports.excel_formatting_helpers import FMT_EGP_RED, _f, _thin
+from core.reports.excel_formatting_helpers import fmt_base_red, _f, _thin
+from core.reports.report_context import get_report_base_code
 
 
 def apply_totals(ctx):
@@ -32,18 +34,18 @@ def apply_totals(ctx):
     )
     bc.font = _f(bold=True, name="Arial")
     bc.border = _thin()
-    bc.number_format = FMT_EGP_RED
+    bc.number_format = fmt_base_red()
     excel_row += 1
 
     ter = excel_row
-    ws.cell(row=ter, column=1, value="Total EGP Balance").font = _f(
+    ws.cell(row=ter, column=1, value=f"Total {get_report_base_code()} Balance").font = _f(
         bold=True, name="Arial"
     )
     ws.cell(row=ter, column=1).border = _thin()
     te = ws.cell(row=ter, column=2, value=f"=SUM(B2:B{cr})")
     te.font = _f(bold=True, name="Arial")
     te.border = _thin()
-    te.number_format = FMT_EGP_RED
+    te.number_format = fmt_base_red()
     excel_row += 1
 
     tar = excel_row
@@ -77,7 +79,7 @@ def apply_totals(ctx):
         ws.cell(row=tar, column=col).border = thin_border
 
     ta.font = _f(bold=True, name="Arial")
-    ta.number_format = FMT_EGP_RED
+    ta.number_format = fmt_base_red()
     excel_row += 1
 
     tpr = excel_row + 3
@@ -101,7 +103,7 @@ def apply_totals(ctx):
     tp = ws.cell(row=tpr, column=2, value="=" + "+".join(pay_parts) if pay_parts else 0)
     tp.font = _f(bold=True, name="Arial")
     tp.border = _thin()
-    tp.number_format = FMT_EGP_RED
+    tp.number_format = fmt_base_red()
 
     label_tm = ws.cell(row=tmr, column=1, value="Total Work Months")
     label_tm.font = _f(bold=True, name="Arial")

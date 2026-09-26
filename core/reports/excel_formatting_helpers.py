@@ -3,14 +3,65 @@ import datetime
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 # ── Exact formats from original ───────────────────────────────────────────────
-FMT_EGP = "[$EGP]\\ #,##0.00_-"
-FMT_EGP_RED = "[$EGP]\\ #,##0.00;[Red][$EGP]\\ #,##0.00"
+# FMT_EGP / FMT_EGP_RED / FMT_EGP_CERT / FMT_EGP_CERT_R used to be fixed
+# "[$EGP]..." strings, applied to cells that hold a "total"/"in your own
+# currency" value (as opposed to FMT_USD/FMT_EUR/FMT_SAR below, which are
+# for cells that legitimately hold an amount actually HELD in that specific
+# currency, and correctly stay fixed regardless of the viewer's own base).
+# They are now functions reading report_context.get_report_base_code() —
+# see core/reports/report_context.py for why (100+ call sites across the
+# reports package, no owner/base_code parameter to thread through cleanly).
+# Old callers just need `FMT_EGP` -> `fmt_base()` etc. at the point they set
+# cell.number_format; nothing else about them changes.
+#
+# fmt_for_code(code)/fmt_for_code_red(code)/fmt_for_code_cert(code) are the
+# more general form, for a cell whose amount is in a currency that isn't
+# necessarily the viewer's own base — e.g. a bank certificate has its own
+# `currency` field, independent of the report owner's default currency
+# (found while fixing bank_certificates.py: it was hardcoding "[$EGP]" for
+# EVERY certificate regardless of which currency it actually holds). Pass
+# None/falsy to fall back to the report's own base code.
+def _report_base_code() -> str:
+    from core.reports.report_context import get_report_base_code
+
+    return get_report_base_code()
+
+
+def fmt_for_code(code=None) -> str:
+    c = str(code or _report_base_code()).strip().upper()
+    return f"[${c}]\\ #,##0.00_-"
+
+
+def fmt_for_code_red(code=None) -> str:
+    c = str(code or _report_base_code()).strip().upper()
+    return f"[${c}]\\ #,##0.00;[Red][${c}]\\ #,##0.00"
+
+
+def fmt_for_code_cert(code=None) -> str:
+    c = str(code or _report_base_code()).strip().upper()
+    return f"[${c}]\\ #,##0.00"
+
+
+def fmt_base() -> str:
+    return fmt_for_code(None)
+
+
+def fmt_base_red() -> str:
+    return fmt_for_code_red(None)
+
+
+def fmt_base_cert() -> str:
+    return fmt_for_code_cert(None)
+
+
+def fmt_base_cert_red() -> str:
+    return fmt_for_code_red(None)
+
+
 FMT_USD = '"$"#,##0.00;[Red]"$"#,##0.00'
 FMT_EUR = "[$EUR]\\ #,##0.00;[Red][$EUR]\\ #,##0.00"
 FMT_SAR = "[$SAR]\\ #,##0.00;[Red][$SAR]\\ #,##0.00"
 FMT_GOLD = '0\\ "Grams"'
-FMT_EGP_CERT = "[$EGP]\\ #,##0.00"
-FMT_EGP_CERT_R = "[$EGP]\\ #,##0.00;[Red][$EGP]\\ #,##0.00"
 FMT_PCT = "0.00%"
 FMT_DATE = "dd-mmm-yyyy"
 FMT_INT = "0"

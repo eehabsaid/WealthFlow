@@ -5,6 +5,7 @@ on its own, per WealthFlow refactoring convention). This file holds the
 setup phase: column widths, header row, and Currency/Bank lookup maps.
 """
 from core.reports.excel_formatting_helpers import _f, _thin, _thin_lr
+from core.reports.report_context import get_report_base_code
 
 
 def apply_setup(ctx):
@@ -25,7 +26,7 @@ def apply_setup(ctx):
 
     hdrs = [
         "Title",
-        "EGP",
+        get_report_base_code(),
         "USD",
         "EUR",
         "SAR",

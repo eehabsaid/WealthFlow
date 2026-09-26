@@ -10,6 +10,8 @@ PDF bytes -> HttpResponse.
 """
 from core.validators.json_body import parse_json_body
 from core.reports.report_utils import get_translations, get_text
+from core.reports.report_context import set_report_base_code
+from core.services.shared.base_currency import get_user_base_code
 from core.validators import _api_auth_required
 from core.reports.generate_report_generator.context import ReportContext
 from core.reports.generate_report_generator.data_phase import build_report_data
@@ -36,6 +38,8 @@ class GenerateReportGenerator(object):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
+
+        set_report_base_code(get_user_base_code(request.user))
 
         try:
             from reportlab.lib.pagesizes import A4

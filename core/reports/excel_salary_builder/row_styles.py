@@ -6,7 +6,7 @@ only relocated for file-size compliance.
 
 from openpyxl.styles import Font
 
-from core.reports.excel_formatting_helpers import FMT_EGP, _thin, _center
+from core.reports.excel_formatting_helpers import fmt_base, _thin, _center
 
 
 def _apply_data_row(ws, row, has_bonus=False):
@@ -16,9 +16,9 @@ def _apply_data_row(ws, row, has_bonus=False):
         cell.font = Font(name="Arial")
         cell.border = _thin()
         if c in (3, 4, 5):
-            cell.number_format = FMT_EGP
+            cell.number_format = fmt_base()
         if has_bonus and c == 6:
-            cell.number_format = FMT_EGP
+            cell.number_format = fmt_base()
 
 
 def _apply_total_row(ws, row, has_bonus=False):
@@ -29,8 +29,8 @@ def _apply_total_row(ws, row, has_bonus=False):
         cell.border = _thin()
         cell.alignment = _center()
         if c in (3, 4):
-            cell.number_format = FMT_EGP
+            cell.number_format = fmt_base()
         if c == 5:
-            cell.number_format = FMT_EGP
+            cell.number_format = fmt_base()
         if has_bonus and c == 6:
-            cell.number_format = FMT_EGP
+            cell.number_format = fmt_base()

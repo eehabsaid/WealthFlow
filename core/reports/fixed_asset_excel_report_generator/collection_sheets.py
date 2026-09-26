@@ -16,7 +16,7 @@ def get_collection_definitions(t, lang):
                 _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
                 _fixed_asset_report_label(t, lang, "date", "Date"),
                 _fixed_asset_report_label(t, lang, "category", "Category"),
-                _fixed_asset_report_label(t, lang, "amount_egp", "Amount EGP"),
+                _fixed_asset_report_label(t, lang, "amount_egp", "Amount ({base})"),
                 _fixed_asset_report_label(t, lang, "notes", "Notes"),
             ],
             lambda asset_data, item: [
@@ -35,7 +35,7 @@ def get_collection_definitions(t, lang):
                 _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
                 _fixed_asset_report_label(t, lang, "date", "Date"),
                 _fixed_asset_report_label(t, lang, "category", "Category"),
-                _fixed_asset_report_label(t, lang, "amount_egp", "Amount EGP"),
+                _fixed_asset_report_label(t, lang, "amount_egp", "Amount ({base})"),
                 _fixed_asset_report_label(t, lang, "notes", "Notes"),
             ],
             lambda asset_data, item: [
@@ -54,7 +54,7 @@ def get_collection_definitions(t, lang):
                 _fixed_asset_report_label(t, lang, "asset_name", "Asset Name"),
                 _fixed_asset_report_label(t, lang, "category", "Category"),
                 _fixed_asset_report_label(t, lang, "purchase_date", "Purchase Date"),
-                _fixed_asset_report_label(t, lang, "amount_egp", "Amount EGP"),
+                _fixed_asset_report_label(t, lang, "amount_egp", "Amount ({base})"),
                 _fixed_asset_report_label(t, lang, "notes", "Notes"),
             ],
             lambda asset_data, item: [

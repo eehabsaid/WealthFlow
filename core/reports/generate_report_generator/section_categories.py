@@ -25,7 +25,7 @@ def append_category_section(ctx, pdf_t):
     cat_data = [
         [
             Paragraph(pdf_t("category", "Category"), cell["HL"]),
-            Paragraph(pdf_t("amount", "Amount (EGP)"), cell["HR"]),
+            Paragraph(pdf_t("amount", "Amount"), cell["HR"]),
             Paragraph(pdf_t("pct", "% of Total"), cell["HR"]),
         ]
     ]

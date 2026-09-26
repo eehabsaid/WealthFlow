@@ -6,8 +6,7 @@ the "Bank-Certificates" sheet builder only.
 from openpyxl.styles import Font
 
 from core.reports.excel_formatting_helpers import (
-    FMT_EGP_CERT,
-    FMT_EGP_CERT_R,
+    fmt_for_code_cert,
     FMT_PCT,
     FMT_DATE,
     WHITE,
@@ -36,14 +35,22 @@ def build_bank_certificates_sheet(ws, certs_qs):
         cell.alignment = _center()
         cell.border = _thin()
 
-    for i, cert in enumerate(certs_qs.filter(status__iexact="active").order_by("issue_date"), 2):
+    for i, cert in enumerate(
+        certs_qs.select_related("currency").filter(status__iexact="active").order_by("issue_date"), 2
+    ):
         _apply_zebra_striping(ws, i, 6)
-        ws.cell(row=i, column=1, value=float(cert.amount)).number_format = FMT_EGP_CERT
+        # A certificate has its own `currency` field — it isn't necessarily
+        # the report owner's own base currency, so format each row by the
+        # currency that specific certificate actually holds (was always
+        # "[$EGP]..." regardless, so a USD/SAR-denominated certificate's
+        # amount was shown with the wrong currency symbol).
+        cert_code = cert.currency.code if cert.currency else None
+        ws.cell(row=i, column=1, value=float(cert.amount)).number_format = fmt_for_code_cert(cert_code)
         ws.cell(row=i, column=2, value=float(cert.interest_rate) / 100).number_format = (
             FMT_PCT
         )
         ws.cell(row=i, column=3, value=f"=(A{i}*B{i})/12").number_format = (
-            FMT_EGP_CERT_R
+            fmt_for_code_cert(cert_code)
         )
         ws.cell(row=i, column=4, value=cert.frequency)
         ws.cell(row=i, column=5, value=cert.issue_date).number_format = FMT_DATE

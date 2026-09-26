@@ -32,7 +32,7 @@ def append_cover_and_summary(ctx, pdf_t):
     )
 
     kpi_data = [
-        [Paragraph(pdf_t("metric", "Metric"), cell["HL"]), Paragraph(pdf_t("amount", "Amount (EGP)"), cell["HR"])],
+        [Paragraph(pdf_t("metric", "Metric"), cell["HL"]), Paragraph(pdf_t("amount", "Amount"), cell["HR"])],
         [Paragraph(pdf_t("total_income", "Total Income"), cell["L"]), Paragraph(f"{ctx.total_inc:,.2f}", cell["R"])],
         [Paragraph(pdf_t("total_expenses", "Total Expenses"), cell["L"]), Paragraph(f"{ctx.total_exp:,.2f}", cell["R"])],
         [Paragraph(pdf_t("net_savings", "Net Savings"), cell["L"]), Paragraph(f"{ctx.net_sav:,.2f}", net_sav_style)],

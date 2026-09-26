@@ -1,9 +1,10 @@
 # pyright: reportMissingTypeStubs=false, reportAssignmentType=false, reportRedeclaration=false
 from django.views import View
 from django.http import JsonResponse
-from django.db.models import Sum
 from core.models import BalanceEntry, Bank
 from core.services.balance.net_worth_service import NetWorthService
+from core.services.shared.base_currency import get_user_base_code
+from core.services.shared.currency_conversion_service import CurrencyConversionService
 from core.validators import _api_auth_required
 
 try:
@@ -24,21 +25,29 @@ class BalanceReportView(View):
         entries = BalanceEntry.objects.select_related("bank", "currency").filter(owner=request.user)
         banks = Bank.objects.filter(owner=request.user)
 
+        base_code = get_user_base_code(request.user)
+        rates_to_base = CurrencyConversionService.get_rates_to_base(base_code)
+
         # Group by bank
         by_bank = []
         for bank in banks:
-            bank_entries = entries.filter(bank=bank)
-            total_egp = float(
-                bank_entries.filter(currency__code="EGP").aggregate(s=Sum("amount"))[
-                    "s"
-                ]
-                or 0
+            bank_entries = list(entries.filter(bank=bank))
+            # Was: filtered to currency__code="EGP" only, so any bank entry
+            # held in a different currency silently never counted toward the
+            # bank's total (and always showed 0 for a non-EGP-base account
+            # holding no literal EGP). Now converts every entry to the
+            # user's own base currency, matching what the frontend
+            # (static/js/advanced_reports/balance.js) already labels this
+            # field as: the bank's total in the base currency.
+            total_base = sum(
+                float(e.amount) * float(rates_to_base.get(e.currency.code, 0) if e.currency else 0)
+                for e in bank_entries
             )
             by_bank.append(
                 {
                     "bank_id": bank.id,
                     "bank_name": bank.name,
-                    "total_egp": total_egp,
+                    "total_egp": total_base,
                     "entries": [e.to_dict() for e in bank_entries],
                 }
             )
