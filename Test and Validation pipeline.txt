@@ -1,0 +1,17 @@
+frontend:
+npm run validate
+npm run format
+
+backend:
+python manage.py check
+python -m pyflakes core tests wealthflow doc_engine manage.py
+
+
+python manage.py test
+
+python scripts/run_full_e2e.py
+
+Get-ChildItem -Path . -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+Get-ChildItem -Path . -Recurse -File -Filter "*.pyc" | Remove-Item -Force
+
+python manage.py runserver 8000
