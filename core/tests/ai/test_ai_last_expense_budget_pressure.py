@@ -10,6 +10,12 @@ budget pressure. On an account with many months of history, the unbounded
 monthly_summary array alone can consume the whole data budget and squeeze
 recent_expenses out entirely, leaving the model with only monthly aggregates.
 
+Fix has two parts: (1) monthly_summary is capped
+(MAX_MONTHLY_SUMMARY_MONTHS_FOR_AI), and (2) a small last_expense field is
+promoted into its own separate small HIGH-priority block (split_payload_blocks'
+_LARGE_SUMMARY_KEYS split in formatting.py) so it survives even when the capped
+monthly_summary block is itself still too large to fit and gets dropped whole.
+
 This only reproduces with a LARGE monthly_summary (many months of history) that
 actually forces budget pressure — a small fixture doesn't trigger it.
 """
@@ -41,10 +47,11 @@ class LastExpenseBudgetPressureTest(TestCase):
         )[0]
         self.category = ExpenseCategory.objects.get_or_create(owner=self.user, name="Groceries")[0]
 
-        # Force real budget pressure: many months of history (monthly_summary is
-        # unbounded pre-fix) with several transactions per month so the payload
-        # is actually large, not just many months with one row each.
-        self.months_of_history = 60  # 5 years — far beyond a small fixture
+        # Force real budget pressure: many months of history, well beyond the
+        # (now-raised, per Ehab) cap itself, with several transactions per
+        # month so the payload is actually large, not just many months with
+        # one row each.
+        self.months_of_history = 300  # 25 years — comfortably beyond the 240-month cap
         self.last_expense_amount = Decimal("123.45")
         self.last_expense_notes = "THE_ACTUAL_LAST_EXPENSE"
 
@@ -102,7 +109,8 @@ class LastExpenseBudgetPressureTest(TestCase):
         """The actual regression: assemble real AI context messages under the
         default token budget and confirm the marker for the true last expense
         is present in what gets sent to the model — even if the low-priority
-        recent_expenses/expenses_details block itself gets dropped."""
+        recent_expenses/expenses_details block, or even the large capped
+        monthly_summary block itself, gets dropped."""
         messages, sources = ContextBuilderService().assemble_messages(
             user_query="what is my last expense value?",
             history_messages=[],
@@ -111,8 +119,15 @@ class LastExpenseBudgetPressureTest(TestCase):
         system_content = messages[0]["content"]
 
         self.assertIn("expenses", sources)
-        # The single-transaction marker (from summary.last_expense, HIGH priority)
-        # must be present in the assembled context.
+        # With 25 years of history even the capped (240-month) monthly_summary
+        # is large enough that its own block (expenses_summary_detail) doesn't
+        # fit the data budget and gets dropped entirely — confirming this test
+        # is actually under real pressure, not accidentally passing because
+        # everything fit.
+        self.assertNotIn('"monthly_summary"', system_content)
+        # The single-transaction marker (from summary.last_expense — a separate,
+        # small, HIGH-priority block per the formatting.py split) must still be
+        # present, since it doesn't share a block with the dropped large array.
         self.assertIn(self.last_expense_notes, system_content)
         self.assertIn("123.45", system_content)
 

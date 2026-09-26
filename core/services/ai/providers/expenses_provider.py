@@ -23,7 +23,7 @@ MAX_RECENT_EXPENSES_FOR_AI = 20
 # with many months of history this array alone could consume most of the data
 # budget and squeeze the LOW-priority recent_expenses block out entirely.
 # Capped the same way recent_expenses already is, for the same reason.
-MAX_MONTHLY_SUMMARY_MONTHS_FOR_AI = 24
+MAX_MONTHLY_SUMMARY_MONTHS_FOR_AI = 240
 
 class ExpensesDataProvider(BaseContextProvider):
     @property

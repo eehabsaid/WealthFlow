@@ -66,6 +66,16 @@ ${window.AIA.buildPipelineControlsHtml()}
                 </div>
             </div>
 
+            <!-- Runtime capability inspection (hardware + Ollama /api/show + a live timing
+                 benchmark) -> recommended context/max-tokens/timeout/keep-alive. Preview only:
+                 fills the fields above, doesn't save anything until "Save Settings" is clicked. -->
+            <div class="mb-4">
+                <button type="button" class="btn btn-outline-warning d-flex align-items-center" id="aiRuntimeCapabilitiesBtn" onclick="window.AIA.detectRuntimeCapabilities(this)">
+                    <i class="bi bi-speedometer2 me-1"></i> <span data-i18n="ai_detect_capabilities">${t("ai_detect_capabilities", "Detect Capabilities & Recommend Config")}</span>
+                </button>
+                <div id="aiRuntimeCapabilitiesResult" class="mt-3" style="display:none;"></div>
+            </div>
+
             <!-- Diagnostics Card / Result -->
             <div id="aiTestDiagnosticResult" class="mb-4" style="display: none;"></div>
 

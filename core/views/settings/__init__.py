@@ -83,6 +83,7 @@ from core.views.settings.market.gold_price_views import GoldPriceListView, GoldP
 from core.views.settings.ai.ai_settings_views import AISettingsView
 from core.views.settings.ai.ai_connection_test_views import AIConnectionTestView
 from core.views.settings.ai.ai_provider_views import AIProviderListView
+from core.views.settings.ai.ai_runtime_capabilities_views import AIRuntimeCapabilitiesView
 
 from core.views.settings.user.user_views import (
     UserListView,
@@ -162,6 +163,7 @@ __all__ = [
     "AISettingsView",
     "AIConnectionTestView",
     "AIProviderListView",
+    "AIRuntimeCapabilitiesView",
     "UserListView",
     "UserDetailView",
     "UserBulkActionView",

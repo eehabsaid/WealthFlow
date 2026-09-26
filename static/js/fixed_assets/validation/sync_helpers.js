@@ -27,9 +27,7 @@ async function loadFixedAssetSyncDropdownData() {
   const withBalanceRes = await fetch("/api/banks/with-balance/");
   if (withBalanceRes.ok) {
     const withBalanceData = await withBalanceRes.json();
-    fixedAssetBanksWithBalance = Array.isArray(withBalanceData.banks)
-      ? withBalanceData.banks
-      : [];
+    fixedAssetBanksWithBalance = Array.isArray(withBalanceData.banks) ? withBalanceData.banks : [];
   }
 
   const saleCurrency = document.getElementById("fa_deposit_currency");

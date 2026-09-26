@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/settings/ai/", views.AISettingsView.as_view()),
     path("api/settings/ai/providers/", views.AIProviderListView.as_view()),
     path("api/settings/ai/test-connection/", views.AIConnectionTestView.as_view()),
+    path("api/settings/ai/runtime-capabilities/", views.AIRuntimeCapabilitiesView.as_view()),
     path("api/settings/gold-types/", views.GoldTypeSettingsListView.as_view()),
     path("api/settings/gold-types/<int:pk>/", views.GoldTypeSettingsDetailView.as_view()),
     path("api/settings/gold-purities/", views.GoldPuritySettingsListView.as_view()),
