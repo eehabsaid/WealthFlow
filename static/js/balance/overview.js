@@ -16,7 +16,7 @@ function renderBalanceOverview(data) {
     goldValue,
     grandTotal,
     netWorth,
-    cashEGP,
+    cashBase,
     forecastData,
     formulaDesc,
     grandTotalLabel,
@@ -97,8 +97,8 @@ function renderBalanceOverview(data) {
                 </div>
                 <div class="fi-metric-tile">
                     <div class="fi-metric-icon">💵</div>
-                    <div class="fi-metric-title" data-i18n="liquid_egp_cash">Liquid EGP CASH</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${cashEGP}">${fmtpresent(cashEGP)}</div>
+                    <div class="fi-metric-title" data-i18n="liquid_base_cash">Liquid Cash</div>
+                    <div class="fi-metric-main num-fmtpresent" data-value="${cashBase}">${fmtpresent(cashBase)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile">

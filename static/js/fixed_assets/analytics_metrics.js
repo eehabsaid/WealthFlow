@@ -13,7 +13,7 @@ function getFixedAssetsAnalyticsMetrics(assets) {
       asset.total_renovation_costs !== undefined
         ? asset.total_renovation_costs
         : (asset.renovations || []).reduce(
-            (sum, item) => sum + (parseFloat(item.amount_egp) || 0),
+            (sum, item) => sum + (parseFloat(item.amount_base) || 0),
             0
           );
     const acquisitionCost =

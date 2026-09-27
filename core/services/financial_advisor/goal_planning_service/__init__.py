@@ -42,22 +42,22 @@ class GoalPlanningService(
 
     def payload(self) -> dict:
         rates = self._rates()
-        monthly_capacity_egp = self._monthly_capacity_egp()
+        monthly_capacity_base = self._monthly_capacity_base()
 
         goal_rows = list(
             Goal.objects.select_related("currency", "linked_asset").filter(owner=self.owner).order_by("target_date", "id")
         )
-        goals = [self._goal_calc(goal, rates, monthly_capacity_egp) for goal in goal_rows]
+        goals = [self._goal_calc(goal, rates, monthly_capacity_base) for goal in goal_rows]
         goals_sorted = sorted(
             goals,
             key=lambda g: (
                 0 if g.priority == "High" else 1 if g.priority == "Medium" else 2,
                 g.months_left if g.target_date else 9999,
-                -g.remaining_amount_egp,
+                -g.remaining_amount_base,
             ),
         )
 
-        summary = self._summary(goals, monthly_capacity_egp)
+        summary = self._summary(goals, monthly_capacity_base)
         distribution = self._distribution(goals)
         milestones = self._milestones(goals)
         insights = self._insights(goals, summary)
@@ -71,13 +71,13 @@ class GoalPlanningService(
                 "priority": g.priority,
                 "priority_key": f"goal_planning_priority_{g.priority.lower()}",
                 "target_date": g.target_date,
-                "target_amount_egp": g.target_amount_egp,
-                "current_saved_egp": g.current_saved_egp,
+                "target_amount_base": g.target_amount_base,
+                "current_saved_base": g.current_saved_base,
                 "progress_pct": g.progress_pct,
-                "remaining_amount_egp": g.remaining_amount_egp,
+                "remaining_amount_base": g.remaining_amount_base,
                 "months_left": g.months_left,
-                "monthly_required_egp": g.monthly_required_egp,
-                "monthly_surplus_egp": g.monthly_surplus_egp,
+                "monthly_required_base": g.monthly_required_base,
+                "monthly_surplus_base": g.monthly_surplus_base,
                 "status": g.status,
                 "status_key": g.status_key,
                 "linked_asset_name": g.linked_asset_name,

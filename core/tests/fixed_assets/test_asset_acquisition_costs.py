@@ -58,7 +58,7 @@ class FixedAssetAcquisitionCostsTest(TestCase):
                 "date": "2025-01-02",
                 "category": "Lawyer Fees",
                 "description": "Fee for legal consultation",
-                "amount_egp": 25000,
+                "amount_base": 25000,
                 "usd_rate": 50.0,
                 "amount_usd": 500,
                 "notes": "Some notes",
@@ -78,13 +78,13 @@ class FixedAssetAcquisitionCostsTest(TestCase):
             f"/api/asset-acquisition-costs/{cost_id}/",
             data=json.dumps({
                 "category": "Government Fees",
-                "amount_egp": 30000,
+                "amount_base": 30000,
             }),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["category"], "Government Fees")
-        self.assertEqual(response.json()["amount_egp"], 30000.0)
+        self.assertEqual(response.json()["amount_base"], 30000.0)
 
         # Delete
         response = self.client.delete(f"/api/asset-acquisition-costs/{cost_id}/")
@@ -96,13 +96,13 @@ class FixedAssetAcquisitionCostsTest(TestCase):
             asset=self.asset,
             date=date(2025, 1, 2),
             category="Lawyer Fees",
-            amount_egp=50000,
+            amount_base=50000,
         )
         AssetAcquisitionCost.objects.create(
             asset=self.asset,
             date=date(2025, 1, 3),
             category="Registration Fees",
-            amount_egp=30000,
+            amount_base=30000,
         )
 
         self.assertEqual(self.asset.get_total_acquisition_costs(), Decimal("80000"))

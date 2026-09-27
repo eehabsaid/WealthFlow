@@ -16,8 +16,8 @@ function buildSalePaneAndFooterHtml(sale) {
                               sale
                                 ? `
                               <div class="row mb-2"><div class="col-5" data-i18n="sale_date">Sale Date</div><div class="col-7">${formatDate(sale.sale_date) || "-"}</div></div>
-                              <div class="row mb-2"><div class="col-5" data-i18n="sale_price_egp">Sale Price</div><div class="col-7 fw-bold">${fmt(sale.sale_price)}</div></div>
-                              <div class="row mb-2"><div class="col-5" data-i18n="selling_expenses_egp">Selling Expenses</div><div class="col-7">${fmt(sale.selling_expenses)}</div></div>
+                              <div class="row mb-2"><div class="col-5" data-i18n="sale_price_base">Sale Price</div><div class="col-7 fw-bold">${fmt(sale.sale_price)}</div></div>
+                              <div class="row mb-2"><div class="col-5" data-i18n="selling_expenses_base">Selling Expenses</div><div class="col-7">${fmt(sale.selling_expenses)}</div></div>
                               <div class="row"><div class="col-5" data-i18n="net_sale_amount">Net Sale Amount</div><div class="col-7 fw-bold">${fmt(sale.net_sale_amount)}</div></div>
                             `
                                 : `<div class="text-center py-4" style="color:var(--text-secondary);" data-i18n="no_data">No data available</div>`

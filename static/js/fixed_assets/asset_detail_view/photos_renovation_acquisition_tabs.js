@@ -49,8 +49,8 @@ function buildPhotosRenovationAcquisitionTabsHtml(ctx) {
                                         <div class="text-end">
                                             <div class="small mb-2" data-i18n="amount_usd">Amount USD</div>
                                             <div class="fw-semibold">${fmt(r.amount_usd)}</div>
-                                            <div class="small mt-3" data-i18n="amount_egp">Amount</div>
-                                            <div class="fw-semibold">${fmt(r.amount_egp)}</div>
+                                            <div class="small mt-3" data-i18n="amount_base">Amount</div>
+                                            <div class="fw-semibold">${fmt(r.amount_base)}</div>
                                         </div>
                                     </div>
                                     <div class="mt-3">
@@ -87,9 +87,9 @@ function buildPhotosRenovationAcquisitionTabsHtml(ctx) {
                                     </div>
 
                                     <div class="d-flex justify-content-between align-items-center w-100">
-                                        <div class="fw-semibold" data-i18n="amount_egp">Amount</div>
+                                        <div class="fw-semibold" data-i18n="amount_base">Amount</div>
                                         <div class="text-end fw-semibold">
-                                            ${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_egp) || 0), 0))} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
+                                            ${fmt(renovations.reduce((sum, r) => sum + (parseFloat(r.amount_base) || 0), 0))} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
                                         </div>
                                     </div>
 
@@ -123,8 +123,8 @@ function buildPhotosRenovationAcquisitionTabsHtml(ctx) {
                                         <div class="text-end">
                                             <div class="small mb-2" data-i18n="amount_usd">Amount USD</div>
                                             <div class="fw-semibold">${fmt(c.amount_usd)}</div>
-                                            <div class="small mt-3" data-i18n="amount_egp">Amount</div>
-                                            <div class="fw-semibold">${fmt(c.amount_egp)}</div>
+                                            <div class="small mt-3" data-i18n="amount_base">Amount</div>
+                                            <div class="fw-semibold">${fmt(c.amount_base)}</div>
                                         </div>
                                     </div>
                                     <div class="mt-3">
@@ -159,9 +159,9 @@ function buildPhotosRenovationAcquisitionTabsHtml(ctx) {
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center w-100">
-                                        <div class="fw-semibold" data-i18n="amount_egp">Amount</div>
+                                        <div class="fw-semibold" data-i18n="amount_base">Amount</div>
                                         <div class="text-end fw-semibold">
-                                            ${fmt(asset.acquisition_costs.reduce((sum, c) => sum + (parseFloat(c.amount_egp) || 0), 0))} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
+                                            ${fmt(asset.acquisition_costs.reduce((sum, c) => sum + (parseFloat(c.amount_base) || 0), 0))} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
                                         </div>
                                     </div>
                                 </div>

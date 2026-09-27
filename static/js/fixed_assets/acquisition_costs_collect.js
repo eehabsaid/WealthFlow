@@ -11,7 +11,7 @@ function collectAcquisitionCosts() {
       date: row.querySelector(".acquisition-date").value,
       category: row.querySelector(".acquisition-category").value,
       description: row.querySelector(".acquisition-description").value,
-      amount_egp: parseFloat(row.querySelector(".acquisition-egp").value) || 0,
+      amount_base: parseFloat(row.querySelector(".acquisition-base").value) || 0,
       usd_rate: parseFloat(row.querySelector(".acquisition-usd-rate")?.value) || 0,
       amount_usd: parseFloat(row.querySelector(".acquisition-usd").value) || 0,
       payment_method: row.querySelector(".acquisition-payment-method")?.value || "Cash",
@@ -25,12 +25,12 @@ function collectAcquisitionCosts() {
 
 function updateAcquisitionUSD(input) {
   const row = input.closest(".acquisition-row");
-  const egp = parseFloat(row.querySelector(".acquisition-egp").value) || 0;
+  const baseAmount = parseFloat(row.querySelector(".acquisition-base").value) || 0;
   const rate = parseFloat(row.querySelector(".acquisition-usd-rate")?.value) || 0;
   const usdInput = row.querySelector(".acquisition-usd");
 
   if (rate > 0) {
-    usdInput.value = (egp / rate).toFixed(2);
+    usdInput.value = (baseAmount / rate).toFixed(2);
   } else {
     usdInput.value = "";
   }

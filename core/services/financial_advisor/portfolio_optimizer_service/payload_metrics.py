@@ -43,7 +43,7 @@ class PortfolioContext:
 class PayloadMetricsMixin:
     def _build_portfolio_context(self) -> PortfolioContext:
         comp = self.net_worth.portfolio_components()
-        total_portfolio = _to_float(comp.get("net_worth_egp"))
+        total_portfolio = _to_float(comp.get("net_worth_base"))
         allocation_values = self._allocation_values(comp)
         allocation_percentages = self._allocation_percentages(allocation_values, total_portfolio)
 

@@ -40,7 +40,7 @@ class CreditCardPaymentBalanceAndMirrorTest(TestCase):
             bank=self.bank,
             payment_method="Card",
             card_label="Visa 1234",
-            amount_egp=Decimal("250.00"),
+            amount_base=Decimal("250.00"),
         )
         payment.apply_and_mirror()
 
@@ -50,7 +50,7 @@ class CreditCardPaymentBalanceAndMirrorTest(TestCase):
         category = self._credit_card_category()
         self.assertIsNotNone(category)
         mirror = Expense.objects.get(source_type="credit_card_payment", source_id=payment.id)
-        self.assertEqual(mirror.amount_egp, Decimal("250.00"))
+        self.assertEqual(mirror.amount_base, Decimal("250.00"))
         self.assertEqual(mirror.category_id, category.id)
         self.assertTrue(mirror.is_readonly_mirror)
 
@@ -59,7 +59,7 @@ class CreditCardPaymentBalanceAndMirrorTest(TestCase):
             payment_date=date(2026, 8, 31),
             bank=self.bank,
             payment_method="Bank Transfer",
-            amount_egp=Decimal("400.00"),
+            amount_base=Decimal("400.00"),
         )
         payment.apply_and_mirror()
         payment.reverse_and_unmirror()
@@ -78,7 +78,7 @@ class CreditCardPaymentBalanceAndMirrorTest(TestCase):
             payment_date=date(2026, 8, 31),
             bank=self.bank,
             payment_method="Card",
-            amount_egp=Decimal("500.00"),
+            amount_base=Decimal("500.00"),
         )
         with self.assertRaises(ValueError):
             payment.apply_and_mirror()
@@ -94,19 +94,19 @@ class CreditCardPaymentBalanceAndMirrorTest(TestCase):
             payment_date=date(2026, 8, 31),
             bank=self.bank,
             payment_method="Card",
-            amount_egp=Decimal("100.00"),
+            amount_base=Decimal("100.00"),
         )
         payment.apply_and_mirror()
 
         payment.reverse_and_unmirror()
-        payment.amount_egp = Decimal("300.00")
+        payment.amount_base = Decimal("300.00")
         payment.save()
         payment.apply_and_mirror()
 
         self.entry.refresh_from_db()
         self.assertEqual(self.entry.amount, Decimal("700.00"))
         mirror = Expense.objects.get(source_type="credit_card_payment", source_id=payment.id)
-        self.assertEqual(mirror.amount_egp, Decimal("300.00"))
+        self.assertEqual(mirror.amount_base, Decimal("300.00"))
 
 
 class CreditCardPaymentEndpointTest(TestCase):
@@ -140,7 +140,7 @@ class CreditCardPaymentEndpointTest(TestCase):
                 "bank_id": self.bank.id,
                 "payment_method": "Card",
                 "card_label": "Visa 1234",
-                "amount_egp": 150,
+                "amount_base": 150,
                 "notes": "Groceries",
             },
             content_type="application/json",
@@ -151,13 +151,13 @@ class CreditCardPaymentEndpointTest(TestCase):
 
     def test_update_via_api_reapplies_delta(self):
         payment = CreditCardPayment.objects.create(
-            owner=self.user, payment_date=date(2026, 8, 31), bank=self.bank, payment_method="Card", amount_egp=Decimal("100.00")
+            owner=self.user, payment_date=date(2026, 8, 31), bank=self.bank, payment_method="Card", amount_base=Decimal("100.00")
         )
         payment.apply_and_mirror()
 
         res = self.client.put(
             f"/api/credit-card-payments/{payment.id}/",
-            data={"amount_egp": 300},
+            data={"amount_base": 300},
             content_type="application/json",
         )
         self.assertEqual(res.status_code, 200)
@@ -166,7 +166,7 @@ class CreditCardPaymentEndpointTest(TestCase):
 
     def test_delete_via_api_reverses_and_removes_mirror(self):
         payment = CreditCardPayment.objects.create(
-            owner=self.user, payment_date=date(2026, 8, 31), bank=self.bank, payment_method="Card", amount_egp=Decimal("200.00")
+            owner=self.user, payment_date=date(2026, 8, 31), bank=self.bank, payment_method="Card", amount_base=Decimal("200.00")
         )
         payment.apply_and_mirror()
 
@@ -188,7 +188,7 @@ class CreditCardPaymentEndpointTest(TestCase):
                 "payment_date": "2026-08-31",
                 "bank_id": self.bank.id,
                 "payment_method": "Card",
-                "amount_egp": 999,
+                "amount_base": 999,
             },
             content_type="application/json",
         )

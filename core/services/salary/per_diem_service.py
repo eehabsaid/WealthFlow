@@ -65,7 +65,7 @@ class PerDiemService:
         bank = Bank.objects.get(id=bank_id, owner=owner) if bank_id else None
 
         buy_rate = self.get_latest_buy_rate(currency.code, owner)
-        amount_egp = amount * buy_rate
+        amount_base = amount * buy_rate
 
         from django.utils.dateparse import parse_date
         date_val = parse_date(data["date"]) if isinstance(data["date"], str) else data["date"]
@@ -76,7 +76,7 @@ class PerDiemService:
             date=date_val,
             currency=currency,
             amount=amount,
-            amount_egp=amount_egp,
+            amount_base=amount_base,
             bank=bank,
             notes=data.get("notes", "")
         )
@@ -119,7 +119,7 @@ class PerDiemService:
 
         # Recalculate the default-currency amount using the current buy rate
         buy_rate = self.get_latest_buy_rate(pd.currency.code, owner)
-        pd.amount_egp = pd.amount * buy_rate
+        pd.amount_base = pd.amount * buy_rate
 
         pd.save()
 

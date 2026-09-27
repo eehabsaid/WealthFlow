@@ -66,12 +66,12 @@ class EventsMixin:
 
             interval = self._interest_service._frequency_interval_months(cert.frequency)
             currency_code = str(getattr(cert.currency, "code", "") or "").upper()
-            principal_egp = self._convert_egp(to_float(cert.amount), currency_code, rates)
-            interest_period_egp = self._convert_egp(to_float(cert.interest_value), currency_code, rates)
-            if interest_period_egp <= 0:
+            principal_base = self._convert_base(to_float(cert.amount), currency_code, rates)
+            interest_period_base = self._convert_base(to_float(cert.interest_value), currency_code, rates)
+            if interest_period_base <= 0:
                 continue
 
-            maturity_interest_egp = 0.0
+            maturity_interest_base = 0.0
             if interval:
                 last_posted = cert.last_interest_posted_date
                 history_last = history_map.get(cert.id)
@@ -89,12 +89,12 @@ class EventsMixin:
                                 ForecastEvent(
                                     event_date=due_date,
                                     event_type="certificate_interest",
-                                    amount_egp=interest_period_egp,
+                                    amount_base=interest_period_base,
                                     meta={"certificate_id": cert.id},
                                 )
                             )
                         else:
-                            maturity_interest_egp += interest_period_egp
+                            maturity_interest_base += interest_period_base
                     period_index += 1
                     due_date = self._interest_service._scheduled_due_date(cert.issue_date, interval, period_index)
 
@@ -103,7 +103,7 @@ class EventsMixin:
                     ForecastEvent(
                         event_date=cert.expiry_date,
                         event_type="certificate_maturity",
-                        amount_egp=principal_egp + maturity_interest_egp,
+                        amount_base=principal_base + maturity_interest_base,
                         meta={"certificate_id": cert.id},
                     )
                 )
@@ -122,7 +122,7 @@ class EventsMixin:
                 ForecastEvent(
                     event_date=sale.sale_date,
                     event_type="asset_sale",
-                    amount_egp=to_float(sale.net_sale_amount),
+                    amount_base=to_float(sale.net_sale_amount),
                     meta={"asset_id": sale.asset_id},
                 )
             )
@@ -131,15 +131,15 @@ class EventsMixin:
     def _build_events(self) -> tuple[List[ForecastEvent], Dict[str, float]]:
         from core.services.salary.salary_service import MONTH_ORDER
         rates = self._rates()
-        current_monthly_salary = self._monthly_salary_egp()
-        monthly_rental = self._monthly_rental_egp()
-        monthly_expense = self._monthly_expense_egp(rates)
-        monthly_mortgage = self._monthly_mortgage_installment_egp()
+        current_monthly_salary = self._monthly_salary_base()
+        monthly_rental = self._monthly_rental_base()
+        monthly_expense = self._monthly_expense_base(rates)
+        monthly_mortgage = self._monthly_mortgage_installment_base()
 
         events: List[ForecastEvent] = []
         for month_end in self._month_end_dates():
             month_name = MONTH_ORDER[month_end.month - 1]
-            m_salary = self._monthly_salary_egp(year=month_end.year, month=month_name)
+            m_salary = self._monthly_salary_base(year=month_end.year, month=month_name)
             salary_day = self._salary_payment_day(month_end.year, month_end.month)
             salary_date = date(month_end.year, month_end.month, salary_day)
             if m_salary > 0 and self.today < salary_date <= self.timeline_end_date:

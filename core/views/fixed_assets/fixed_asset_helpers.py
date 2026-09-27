@@ -47,9 +47,9 @@ def _resolve_asset_usd_rate_and_price(data, current_usd_rate=0, current_price_us
         if code == "USD":
             usd_rate = Decimal("1.000000")
         else:
-            egp_per_code = CurrencyConversionService.get_latest_buy_rate(code)
-            egp_per_usd = CurrencyConversionService.get_latest_buy_rate("USD")
-            usd_rate = (egp_per_usd / egp_per_code).quantize(Decimal("0.00001")) if egp_per_code > 0 else Decimal("0")
+            pivot_per_code = CurrencyConversionService.get_latest_buy_rate(code)
+            pivot_per_usd = CurrencyConversionService.get_latest_buy_rate("USD")
+            usd_rate = (pivot_per_usd / pivot_per_code).quantize(Decimal("0.00001")) if pivot_per_code > 0 else Decimal("0")
 
     if price_usd <= 0 and purchase_price > 0 and usd_rate > 0:
         if code == "USD":

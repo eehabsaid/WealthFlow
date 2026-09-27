@@ -52,8 +52,8 @@ def build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_sty
         [fixed_asset_report_label(t, lang, "asset_type", "Asset Type"), fixed_asset_report_label(t, lang, data.get("asset_type"), data.get("asset_type"))],
         [fixed_asset_report_label(t, lang, "status", "Status"), fixed_asset_report_label(t, lang, data.get("status"), data.get("status"))],
         [fixed_asset_report_label(t, lang, "purchase_date", "Purchase Date"), fixed_asset_display_value(data.get("purchase_date"), lang)],
-        [fixed_asset_report_label(t, lang, "purchase_price_egp", "Purchase Price ({base})"), f"{float(data.get('purchase_price') or 0):,.2f}"],
-        [fixed_asset_report_label(t, lang, "total_investment_egp", "Total Investment ({base})"), f"{float(data.get('total_investment') or data.get('purchase_price') or 0):,.2f}"],
+        [fixed_asset_report_label(t, lang, "purchase_price_base", "Purchase Price ({base})"), f"{float(data.get('purchase_price') or 0):,.2f}"],
+        [fixed_asset_report_label(t, lang, "total_investment_base", "Total Investment ({base})"), f"{float(data.get('total_investment') or data.get('purchase_price') or 0):,.2f}"],
         [fixed_asset_report_label(t, lang, "current_market_value", "Current Market Value"), f"{float(data.get('current_market_value') or 0):,.2f}"],
         [fixed_asset_report_label(t, lang, "gain_loss", "Gain / Loss"), f"{float(data.get('gain_loss') or 0):,.2f}"],
         [fixed_asset_report_label(t, lang, "notes", "Notes"), fixed_asset_user_text(data.get("notes"), lang)],
@@ -76,11 +76,11 @@ def build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_sty
     append_collection(
         fixed_asset_report_label(t, lang, "acquisition_costs", "Acquisition Costs"),
         data.get("acquisition_costs") or [],
-        [("date", fixed_asset_report_label(t, lang, "date", "Date")), ("category", fixed_asset_report_label(t, lang, "category", "Category")), ("amount_egp", fixed_asset_report_label(t, lang, "amount_egp", "Amount ({base})")), ("notes", fixed_asset_report_label(t, lang, "notes", "Notes"))],
+        [("date", fixed_asset_report_label(t, lang, "date", "Date")), ("category", fixed_asset_report_label(t, lang, "category", "Category")), ("amount_base", fixed_asset_report_label(t, lang, "amount_base", "Amount ({base})")), ("notes", fixed_asset_report_label(t, lang, "notes", "Notes"))],
         lambda item: [
             fixed_asset_display_value(item.get("date")),
             fixed_asset_user_text(item.get("category"), lang),
-            f"{float(item.get('amount_egp') or 0):,.2f}",
+            f"{float(item.get('amount_base') or 0):,.2f}",
             fixed_asset_user_text(item.get("notes"), lang),
         ],
     )
@@ -88,11 +88,11 @@ def build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_sty
     append_collection(
         fixed_asset_report_label(t, lang, "renovations", "Renovations"),
         data.get("renovations") or [],
-        [("date", fixed_asset_report_label(t, lang, "date", "Date")), ("category", fixed_asset_report_label(t, lang, "category", "Category")), ("amount_egp", fixed_asset_report_label(t, lang, "amount_egp", "Amount ({base})")), ("notes", fixed_asset_report_label(t, lang, "notes", "Notes"))],
+        [("date", fixed_asset_report_label(t, lang, "date", "Date")), ("category", fixed_asset_report_label(t, lang, "category", "Category")), ("amount_base", fixed_asset_report_label(t, lang, "amount_base", "Amount ({base})")), ("notes", fixed_asset_report_label(t, lang, "notes", "Notes"))],
         lambda item: [
             fixed_asset_display_value(item.get("date")),
             fixed_asset_user_text(item.get("category"), lang),
-            f"{float(item.get('amount_egp') or 0):,.2f}",
+            f"{float(item.get('amount_base') or 0):,.2f}",
             fixed_asset_user_text(item.get("notes"), lang),
         ],
     )
@@ -100,12 +100,12 @@ def build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_sty
     append_collection(
         fixed_asset_report_label(t, lang, "furniture", "Furniture"),
         data.get("furniture") or [],
-        [("name", fixed_asset_report_label(t, lang, "asset_name", "Item")), ("category", fixed_asset_report_label(t, lang, "category", "Category")), ("purchase_date", fixed_asset_report_label(t, lang, "purchase_date", "Purchase Date")), ("amount_egp", fixed_asset_report_label(t, lang, "amount_egp", "Amount ({base})")), ("notes", fixed_asset_report_label(t, lang, "notes", "Notes"))],
+        [("name", fixed_asset_report_label(t, lang, "asset_name", "Item")), ("category", fixed_asset_report_label(t, lang, "category", "Category")), ("purchase_date", fixed_asset_report_label(t, lang, "purchase_date", "Purchase Date")), ("amount_base", fixed_asset_report_label(t, lang, "amount_base", "Amount ({base})")), ("notes", fixed_asset_report_label(t, lang, "notes", "Notes"))],
         lambda item: [
             fixed_asset_user_text(item.get("name"), lang),
             fixed_asset_user_text(item.get("category"), lang),
             fixed_asset_display_value(item.get("purchase_date")),
-            f"{float(item.get('amount_egp') or 0):,.2f}",
+            f"{float(item.get('amount_base') or 0):,.2f}",
             fixed_asset_user_text(item.get("notes"), lang),
         ],
     )
@@ -126,8 +126,8 @@ def build_fixed_asset_pdf_story(asset, lang, t, styles, title_style, heading_sty
     if sale:
         sale_rows = [
             [fixed_asset_report_label(t, lang, "sale_date", "Sale Date"), fixed_asset_display_value(sale.get("sale_date"))],
-            [fixed_asset_report_label(t, lang, "sale_price_egp", "Sale Price ({base})"), f"{float(sale.get('sale_price') or 0):,.2f}"],
-            [fixed_asset_report_label(t, lang, "selling_expenses_egp", "Selling Expenses ({base})"), f"{float(sale.get('selling_expenses') or 0):,.2f}"],
+            [fixed_asset_report_label(t, lang, "sale_price_base", "Sale Price ({base})"), f"{float(sale.get('sale_price') or 0):,.2f}"],
+            [fixed_asset_report_label(t, lang, "selling_expenses_base", "Selling Expenses ({base})"), f"{float(sale.get('selling_expenses') or 0):,.2f}"],
             [fixed_asset_report_label(t, lang, "net_sale_amount", "Net Sale Amount"), f"{float(sale.get('net_sale_amount') or 0):,.2f}"],
             [fixed_asset_report_label(t, lang, "deposit_balance", "Deposit Balance"), fixed_asset_display_value(sale.get("deposit_balance_id"))],
             [fixed_asset_report_label(t, lang, "notes", "Notes"), fixed_asset_user_text(sale.get("notes"), lang)],

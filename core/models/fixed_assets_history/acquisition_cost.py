@@ -37,7 +37,7 @@ class AssetAcquisitionCost(models.Model):
         blank=True,
     )
 
-    amount_egp = models.DecimalField(
+    amount_base = models.DecimalField(
         max_digits=16,
         decimal_places=2,
     )
@@ -90,7 +90,7 @@ class AssetAcquisitionCost(models.Model):
             "date": self.date.isoformat() if hasattr(self.date, "isoformat") else (self.date or ""),
             "category": self.category,
             "description": self.description,
-            "amount_egp": float(self.amount_egp),
+            "amount_base": float(self.amount_base),
             "usd_rate": float(self.usd_rate),
             "amount_usd": float(self.amount_usd),
             "payment_method": self.payment_method,

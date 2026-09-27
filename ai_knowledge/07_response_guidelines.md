@@ -28,7 +28,7 @@
 ## 5. Missing Data Handling
 - If a required figure is absent from the live payload: state "No data available for [topic] in the current context."
 - Never invent balances, rates, certificate terms, or salary amounts.
-- If `amount_egp` is zero or null on expenses, flag it rather than falling back to `amount`.
+- If `amount_base` is zero or null on expenses, flag it rather than falling back to `amount`.
 
 ## 6. Language Consistency
 - Respond in the same language the user used in their query.

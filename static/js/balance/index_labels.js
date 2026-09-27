@@ -29,7 +29,7 @@ function buildBalanceLabels() {
     labelGold: t("label_gold", "Gold"),
     labelFixedAssets: t("label_fixed_assets", "Fixed Assets"),
     labelMonths: t("months", "months"),
-    labelEgp: t("base_currency_code", baseCurrencyCode()),
+    labelBase: t("base_currency_code", baseCurrencyCode()),
     grandTotalLabel: t("grand_total", `Total All Balances (${baseCurrencyCode()} equiv.)`),
     formulaDesc: t(
       "balance_formula_desc",

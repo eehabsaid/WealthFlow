@@ -8,8 +8,8 @@
 function deriveBalanceSummary(bData) {
   const summary = bData.summary || {};
   const totals = summary.totals_by_currency || {};
-  const totalEGP = totals[baseCurrencyCode()] || 0; // amount held in the default currency
-  const cashEGP = summary.liquid_egp_cash ?? summary.cash_egp ?? 0;
+  const totalBase = totals[baseCurrencyCode()] || 0; // amount held in the default currency
+  const cashBase = summary.liquid_base_cash ?? summary.cash_base ?? 0;
   const usdAmount = totals.USD || 0;
   const eurAmount = totals.EUR || 0;
   const sarAmount = totals.SAR || 0;
@@ -39,8 +39,8 @@ function deriveBalanceSummary(bData) {
     totals,
     terms,
     foreignValue,
-    totalEGP,
-    cashEGP,
+    totalBase,
+    cashBase,
     usdAmount,
     eurAmount,
     sarAmount,

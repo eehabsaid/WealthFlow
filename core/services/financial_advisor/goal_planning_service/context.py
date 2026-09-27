@@ -19,13 +19,13 @@ class GoalCalc:
     goal_type: str
     priority: str
     target_date: str
-    target_amount_egp: float
-    current_saved_egp: float
+    target_amount_base: float
+    current_saved_base: float
     progress_pct: float
-    remaining_amount_egp: float
+    remaining_amount_base: float
     months_left: int
-    monthly_required_egp: float
-    monthly_surplus_egp: float
+    monthly_required_base: float
+    monthly_surplus_base: float
     status: str
     status_key: str
     linked_asset_name: str

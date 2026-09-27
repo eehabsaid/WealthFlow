@@ -109,9 +109,9 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
 
         return self._cached("cert_projection", _load)
 
-    def _converted_egp(self, amount: float, currency_code: str, rates: Dict[str, float]) -> float:
-        from core.services.balance.net_worth_calculations import converted_egp
-        return converted_egp(amount, currency_code, rates)
+    def _converted_base(self, amount: float, currency_code: str, rates: Dict[str, float]) -> float:
+        from core.services.balance.net_worth_calculations import converted_base
+        return converted_base(amount, currency_code, rates)
 
     def _fixed_assets_breakdown(self) -> Dict[str, float]:
         def _load():
@@ -129,7 +129,7 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
 
         return self._cached("fixed_assets_breakdown", _load)
 
-    def _strict_liquid_assets_egp(self) -> float:
+    def _strict_liquid_assets_base(self) -> float:
         """
         Liquidity definition for recommendation calibration:
         - Source: BalanceEntry only
@@ -153,7 +153,7 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
 
         return total
 
-    def _strict_egp_cash_balance(self) -> float:
+    def _strict_base_cash_balance(self) -> float:
         """
         Strict default-currency cash for Financial Intelligence card:
         - Source: BalanceEntry only

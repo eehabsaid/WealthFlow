@@ -11,6 +11,7 @@ from core.services.shared.base_currency import (
     PLATFORM_FALLBACK_CURRENCY,
     get_user_base_code,
     get_user_base_info,
+    multi_currency_enabled,
 )
 
 User = get_user_model()
@@ -137,3 +138,51 @@ class DefaultCurrencyApiTests(TestCase):
     def test_wizard_cannot_pick_locked_currency(self):
         with self.assertRaises(ValueError):
             OnboardingService.complete(self.user, {"default_currency": "SAR", "categories": []})
+
+
+class MultiCurrencyAppSettingsToggleTests(TestCase):
+    """A6 batch 6: the lock is now a live AppSettings row (Settings > Currency),
+    not just the startup-time env var. See core/services/shared/base_currency.py."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="mc_toggle_user", password="pw12345")
+
+    @override_settings(MULTI_CURRENCY_ENABLED=True)
+    def test_falls_back_to_the_django_setting_when_never_configured(self):
+        self.assertTrue(multi_currency_enabled())
+
+    @override_settings(MULTI_CURRENCY_ENABLED=False)
+    def test_appsettings_row_overrides_the_django_setting_when_on(self):
+        AppSettings.set("multi_currency_enabled", "true")
+        self.assertTrue(multi_currency_enabled())
+
+    @override_settings(MULTI_CURRENCY_ENABLED=True)
+    def test_appsettings_row_overrides_the_django_setting_when_off(self):
+        AppSettings.set("multi_currency_enabled", "false")
+        self.assertFalse(multi_currency_enabled())
+
+    def test_toggle_is_writable_via_the_settings_api_by_a_permitted_user(self):
+        from core.models.permissions import Role, RolePermission, UserRole
+
+        role = Role.objects.create(name="Currency Admin")
+        RolePermission.objects.create(role=role, key="settings_currency")
+        UserRole.objects.create(user=self.user, role=role)
+        client = Client()
+        client.force_login(self.user)
+        res = client.post(
+            "/api/settings/",
+            data=json.dumps({"settings": {"multi_currency_enabled": "false"}}),
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(AppSettings.get("multi_currency_enabled"), "false")
+
+    def test_toggle_is_forbidden_via_the_settings_api_without_permission(self):
+        client = Client()
+        client.force_login(self.user)
+        res = client.post(
+            "/api/settings/",
+            data=json.dumps({"settings": {"multi_currency_enabled": "false"}}),
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 403)

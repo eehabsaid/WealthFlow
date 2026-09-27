@@ -58,7 +58,7 @@ function showGoldPurityGroupDetails(purityKey) {
               <th data-i18n="asset_name">${t("asset_name", "Asset Name")}</th>
               <th data-i18n="purchase_date">${t("purchase_date", "Purchase Date")}</th>
               <th data-i18n="weight">${t("weight", "Weight")}</th>
-              <th class="text-end" data-i18n="purchase_price_egp">${t("purchase_price_egp", "Purchase Price")}</th>
+              <th class="text-end" data-i18n="purchase_price_base">${t("purchase_price_base", "Purchase Price")}</th>
               <th class="text-end" data-i18n="current_market_value">${t("current_market_value", "Current Market Value")}</th>
               <th data-i18n="actions">${t("actions", "Actions")}</th>
             </tr>

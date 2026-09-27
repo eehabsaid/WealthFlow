@@ -29,8 +29,8 @@ class NetWorthPortfolioMixin:
 
             cash_total = 0.0
             banks_total = 0.0
-            cash_egp_legacy = 0.0
-            cert_legacy_egp = 0.0
+            cash_base_legacy = 0.0
+            cert_legacy_base = 0.0
             foreign_value = 0.0
             gold_value = 0.0
             gold_grams = 0.0
@@ -45,7 +45,7 @@ class NetWorthPortfolioMixin:
 
                 if balance_type == BalanceEntry.BalanceType.CERTIFICATE:
                     if code == base:
-                        cert_legacy_egp += amount
+                        cert_legacy_base += amount
                     continue
 
                 if code == "GOLD":
@@ -56,32 +56,32 @@ class NetWorthPortfolioMixin:
                     gold_value += amount * (sell_price + cashback) * gold_rate
                     continue
 
-                converted = self._converted_egp(amount, code, rates)
+                converted = self._converted_base(amount, code, rates)
                 if code != base:
                     foreign_value += converted
                 else:
-                    cash_egp_legacy += amount
+                    cash_base_legacy += amount
 
                 if balance_type == BalanceEntry.BalanceType.BANK:
                     banks_total += converted
                 else:
                     cash_total += converted
 
-            cert_total_egp = 0.0
-            cert_interest_total_egp = 0.0
+            cert_total_base = 0.0
+            cert_interest_total_base = 0.0
             for cert in self._active_certificates():
                 code = str(getattr(cert.currency, "code", base) or base).upper()
-                cert_total_egp += self._converted_egp(_to_float(cert.amount), code, rates)
-                cert_interest_total_egp += self._converted_egp(_to_float(cert.interest_value), code, rates)
+                cert_total_base += self._converted_base(_to_float(cert.amount), code, rates)
+                cert_interest_total_base += self._converted_base(_to_float(cert.interest_value), code, rates)
 
             fixed_breakdown = self._fixed_assets_breakdown()
             fixed_total = fixed_breakdown["real_estate"] + fixed_breakdown["vehicles"] + fixed_breakdown["other_assets"]
-            liquid_total = cash_total + banks_total + cert_total_egp + gold_value
+            liquid_total = cash_total + banks_total + cert_total_base + gold_value
             net_worth = liquid_total + fixed_total
 
             allocation_values = {
                 "type_cash": cash_total + banks_total,
-                "bank_certificates": cert_total_egp,
+                "bank_certificates": cert_total_base,
                 "type_gold": gold_value,
                 "type_real_estate": fixed_breakdown["real_estate"],
                 "type_vehicles": fixed_breakdown["vehicles"],
@@ -96,19 +96,19 @@ class NetWorthPortfolioMixin:
                 "entries": entries,
                 "totals_by_currency": totals_by_currency,
                 "rates": rates,
-                "cash_egp_legacy": cash_egp_legacy - cert_legacy_egp,
-                "certificate_egp_legacy": cert_legacy_egp,
-                "cash_total_egp": cash_total,
-                "banks_total_egp": banks_total,
-                "foreign_currency_egp": foreign_value,
-                "certificate_total_egp": cert_total_egp,
-                "certificate_interest_total_egp": cert_interest_total_egp,
-                "gold_value_egp": gold_value,
+                "cash_base_legacy": cash_base_legacy - cert_legacy_base,
+                "certificate_base_legacy": cert_legacy_base,
+                "cash_total_base": cash_total,
+                "banks_total_base": banks_total,
+                "foreign_currency_base": foreign_value,
+                "certificate_total_base": cert_total_base,
+                "certificate_interest_total_base": cert_interest_total_base,
+                "gold_value_base": gold_value,
                 "gold_grams": gold_grams,
                 "fixed_assets": fixed_breakdown,
-                "fixed_assets_total_egp": fixed_total,
-                "liquid_assets_total_egp": liquid_total,
-                "net_worth_egp": net_worth,
+                "fixed_assets_total_base": fixed_total,
+                "liquid_assets_total_base": liquid_total,
+                "net_worth_base": net_worth,
                 "allocation_values": allocation_values,
                 "allocation_percentages": allocation_pct,
             }
@@ -119,7 +119,7 @@ class NetWorthPortfolioMixin:
         comp = self.portfolio_components()
         rates = comp["rates"]
         totals_by_currency = comp["totals_by_currency"]
-        liquid_egp_cash = self._strict_egp_cash_balance()
+        liquid_base_cash = self._strict_base_cash_balance()
 
         usd_amount = _to_float(totals_by_currency.get("USD"))
         eur_amount = _to_float(totals_by_currency.get("EUR"))
@@ -135,7 +135,7 @@ class NetWorthPortfolioMixin:
         # Balance-only grand total: every currency held, converted into the
         # user's default currency (rates.get is 0 for gold, whose value is added
         # separately), plus the gold value.
-        balance_only_grand_total = _to_float(comp["gold_value_egp"]) + sum(
+        balance_only_grand_total = _to_float(comp["gold_value_base"]) + sum(
             _to_float(amount) * _to_float(rates.get(code))
             for code, amount in totals_by_currency.items()
         )
@@ -144,9 +144,9 @@ class NetWorthPortfolioMixin:
             "entries": comp["entries"],
             "summary": {
                 "totals_by_currency": totals_by_currency,
-                "cash_egp": round(comp["cash_egp_legacy"], 2),
-                "liquid_egp_cash": round(liquid_egp_cash, 2),
-                "certificate_egp": round(comp["certificate_egp_legacy"], 2),
+                "cash_base": round(comp["cash_base_legacy"], 2),
+                "liquid_base_cash": round(liquid_base_cash, 2),
+                "certificate_base": round(comp["certificate_base_legacy"], 2),
                 "rates_to_base": {code: rates[code] for code in totals_by_currency if code in rates},
                 "usd_rate": usd_rate,
                 "eur_rate": eur_rate,
@@ -154,13 +154,13 @@ class NetWorthPortfolioMixin:
                 "usd_value": round(usd_value, 2),
                 "eur_value": round(eur_value, 2),
                 "sar_value": round(sar_value, 2),
-                "gold_value": round(comp["gold_value_egp"], 2),
-                "liquid_total": round(comp["liquid_assets_total_egp"], 2),
-                "fixed_assets_total": round(comp["fixed_assets_total_egp"], 2),
+                "gold_value": round(comp["gold_value_base"], 2),
+                "liquid_total": round(comp["liquid_assets_total_base"], 2),
+                "fixed_assets_total": round(comp["fixed_assets_total_base"], 2),
                 "real_estate_value": round(comp["fixed_assets"]["real_estate"], 2),
                 "vehicles_value": round(comp["fixed_assets"]["vehicles"], 2),
                 "other_assets_value": round(comp["fixed_assets"]["other_assets"], 2),
-                "net_worth": round(comp["net_worth_egp"], 2),
+                "net_worth": round(comp["net_worth_base"], 2),
                 "grand_total": round(balance_only_grand_total, 2),
                 "allocation_values": comp["allocation_values"],
                 "allocation_percentages": comp["allocation_percentages"],

@@ -11,6 +11,7 @@ function buildCurrencyChartAnalysisRow(ctx) {
     selectedCurrency,
     currencyTimeframe,
     currRate,
+    pivotCode,
     currTrend7,
     currTrend30,
     currTrend90,
@@ -97,7 +98,7 @@ function buildCurrencyChartAnalysisRow(ctx) {
                 <div class="p-3 rounded mb-3" style="background:var(--bg-tertiary); border:1px solid var(--border-color);">
                   <div class="d-flex justify-content-between align-items-baseline mb-2">
                     <div class="small" style="color:var(--text-secondary);" data-i18n="performance_current_rate_label">Current Rate</div>
-                    <div class="fs-4 fw-bold text-primary">${formatRateEgp(currRate)}</div>
+                    <div class="fs-4 fw-bold text-primary">${hasCurrHistory ? formatRatePivot(currRate, pivotCode) : formatRateBase(currRate)}</div>
                   </div>
 
                   ${
@@ -132,7 +133,7 @@ function buildCurrencyChartAnalysisRow(ctx) {
               <div class="alert alert-secondary m-0 extra-small py-2 px-3 d-flex align-items-start gap-2" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-secondary);">
                 <i class="bi bi-info-circle text-primary mt-1"></i>
                 <span data-i18n="${hasCurrHistory ? "performance_currency_disclaimer_history" : "performance_currency_disclaimer_snapshot"}">
-                  ${hasCurrHistory ? "Exchange rate performance against EGP based on historical data." : "Historical rate data is unavailable yet. Showing current exchange rate snapshot."}
+                  ${hasCurrHistory ? "Exchange rate performance based on historical data." : "Historical rate data is unavailable yet. Showing current exchange rate snapshot."}
                 </span>
               </div>
             </div>

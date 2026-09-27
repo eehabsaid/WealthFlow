@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 from core.models import GoldPriceHistory
 from core.services.balance.net_worth_service import NetWorthService
 from core.services.exchange_rate_history_service import ExchangeRateHistoryService
+from core.services.shared.currency_conversion_service import get_rate_pivot_code
 from core.utils import format_date
 
 
@@ -179,6 +180,15 @@ class PerformanceService:
             },
             "currencies": {
                 "rate_history_available": rate_history_available,
+                # The historical mid_rate archive (ExchangeRateHistory) is
+                # captured against the platform's shared rate pivot, not
+                # each viewer's own base currency (a single archive can't
+                # be per-user) — surfaced here so the UI labels "Current
+                # Rate" and the trend history accurately instead of
+                # claiming they're vs the viewer's base (batch 5 fix;
+                # true per-viewer-base triangulation of history is a
+                # separate, larger product decision, flagged not built).
+                "pivot_code": get_rate_pivot_code(),
                 "data": currencies_data,
             },
         }

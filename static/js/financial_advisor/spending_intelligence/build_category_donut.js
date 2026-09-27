@@ -16,7 +16,7 @@ function buildSpendingCategoryDonutHtml(ctx) {
 
   categories.forEach((cat, index) => {
     catLabels.push(cat.name); // Not translating category names in chart
-    catValues.push(cat.amount_egp);
+    catValues.push(cat.amount_base);
     catPercentages.push(cat.percentage.toFixed(1));
 
     const isLast = index === categories.length - 1;
@@ -24,7 +24,7 @@ function buildSpendingCategoryDonutHtml(ctx) {
     const biIcon = _getIconClass(cat.icon);
 
     // Calculate average
-    const catAvg = cat.count > 0 ? cat.amount_egp / cat.count : 0;
+    const catAvg = cat.count > 0 ? cat.amount_base / cat.count : 0;
 
     // Dynamic color for progress bar
     let barColor = "var(--bs-primary)";
@@ -39,7 +39,7 @@ function buildSpendingCategoryDonutHtml(ctx) {
         <div class="flex-grow-1">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <span style="font-weight:700; font-size:15px; color:var(--text-primary);">${cat.name}</span>
-            <span style="font-weight:800; font-size:15px; color:var(--text-primary); text-align:right;">${fmt(Number(cat.amount_egp).toFixed(2))} ${baseCurrencyCode()}</span>
+            <span style="font-weight:800; font-size:15px; color:var(--text-primary); text-align:right;">${fmt(Number(cat.amount_base).toFixed(2))} ${baseCurrencyCode()}</span>
           </div>
           <div style="width:100%; height:6px; background:rgba(123,147,201,0.1); border-radius:3px; margin-bottom:10px; overflow:hidden;">
             <div class="cat-progress-bar" style="height:100%; width:0%; background:${barColor}; border-radius:3px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);" data-target-width="${cat.percentage}%"></div>

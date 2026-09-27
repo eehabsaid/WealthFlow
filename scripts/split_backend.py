@@ -60,7 +60,7 @@ file_map = {
         "_normalize_purchase_payments_payload", "_apply_asset_purchase_rows_delta", 
         "_purchase_rows_from_instances", "_sync_asset_purchase_payments",
         "_normalize_asset_payment_method", "_asset_payment_requires_bank",
-        "_asset_payment_currency_required", "_default_egp_currency_id",
+        "_asset_payment_currency_required", "_default_base_currency_id",
         "_get_asset_cash_balance_entry", "_apply_asset_balance_delta"
     ],
     "core/services/fixed_assets/asset_sale_service.py": [

@@ -37,7 +37,7 @@ function wireGoalModalEvents(cardsContainer, goals, els) {
 
       if (action === "view") {
         showToast(
-          `${t("goal_planning_target_amount")}: ${fmt(Number(goals.find((goal) => Number(goal.id) === goalId)?.target_amount_egp || 0))}`
+          `${t("goal_planning_target_amount")}: ${fmt(Number(goals.find((goal) => Number(goal.id) === goalId)?.target_amount_base || 0))}`
         );
         return;
       }

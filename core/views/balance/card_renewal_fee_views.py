@@ -41,7 +41,7 @@ class CardRenewalFeeListView(View):
             bank_id = data["bank_id"]
             get_object_or_404(Bank, pk=bank_id, owner=request.user)
             card_label = data.get("card_label", "")
-            amount_egp = Decimal(str(data.get("amount_egp", 0) or 0))
+            amount_base = Decimal(str(data.get("amount_base", 0) or 0))
             notes = data.get("notes", "")
 
             with transaction.atomic():
@@ -50,7 +50,7 @@ class CardRenewalFeeListView(View):
                     fee_date=fee_date,
                     bank_id=bank_id,
                     card_label=card_label,
-                    amount_egp=amount_egp,
+                    amount_base=amount_base,
                     notes=notes,
                 )
                 entry.apply_and_mirror()
@@ -84,8 +84,8 @@ class CardRenewalFeeDetailView(View):
                     entry.bank_id = data["bank_id"]
                 if "card_label" in data:
                     entry.card_label = data["card_label"]
-                if "amount_egp" in data:
-                    entry.amount_egp = Decimal(str(data["amount_egp"] or 0))
+                if "amount_base" in data:
+                    entry.amount_base = Decimal(str(data["amount_base"] or 0))
                 if "notes" in data:
                     entry.notes = data["notes"]
 

@@ -37,7 +37,7 @@ class OpportunityDetectionService:
         gold_trend_30 = float(cert_forecast.get("gold_trend_30", 0.0) or 0.0)
 
         total_net_worth = float(cert_forecast.get("net_worth", 0.0) or 0.0)
-        current_gold_value_egp = float(cert_forecast.get("gold_value", 0.0) or 0.0)
+        current_gold_value_base = float(cert_forecast.get("gold_value", 0.0) or 0.0)
 
         alloc_pcts = cert_forecast.get("allocation_percentages", {})
         current_gold_pct = float(alloc_pcts.get("type_gold", 0.0) or 0.0)
@@ -46,8 +46,8 @@ class OpportunityDetectionService:
         gold_band = PortfolioOptimizerService.RECOMMENDED_BANDS.get("gold")
         target_gold_min_pct = gold_band.min_pct if gold_band else 10.0
 
-        target_gold_value_egp = (target_gold_min_pct / 100.0) * total_net_worth
-        gold_shortfall_egp = max(0.0, target_gold_value_egp - current_gold_value_egp)
+        target_gold_value_base = (target_gold_min_pct / 100.0) * total_net_worth
+        gold_shortfall_base = max(0.0, target_gold_value_base - current_gold_value_base)
 
         upcoming_certs = cert_forecast.get("upcoming", [])
         nearest_cert = upcoming_certs[0] if upcoming_certs else None
@@ -66,7 +66,7 @@ class OpportunityDetectionService:
                     "gold_trend_30d": round(gold_trend_30, 2),
                     "current_gold_allocation_pct": round(current_gold_pct, 1),
                     "target_gold_min_pct": round(target_gold_min_pct, 1),
-                    "shortfall_egp": round(gold_shortfall_egp, 2),
+                    "shortfall_base": round(gold_shortfall_base, 2),
                 }
                 enriched_opportunities.append({
                     "key": key,
@@ -75,10 +75,10 @@ class OpportunityDetectionService:
                     "severity_key": severity_key,
                     "impact_key": impact_key,
                     "signals": signals,
-                    "highlighted_amount": round(gold_shortfall_egp, 2),
+                    "highlighted_amount": round(gold_shortfall_base, 2),
                     "action_template_key": "opp_gold_action",
                     "action_params": {
-                        "amount": round(gold_shortfall_egp, 2),
+                        "amount": round(gold_shortfall_base, 2),
                         "target_pct": round(target_gold_min_pct, 1),
                     },
                 })

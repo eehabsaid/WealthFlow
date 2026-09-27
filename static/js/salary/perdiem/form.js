@@ -67,19 +67,19 @@ async function showPerDiemFormModal(perDiemId, companyId, year) {
                         
                         <div class="col-6">
                             <label class="form-label" data-i18n="amount_label">Amount</label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="pdAmount" required value="${pd ? pd.amount : ""}" oninput="recalcPerDiemEgp()">
+                            <input type="number" step="0.01" min="0" class="form-control" id="pdAmount" required value="${pd ? pd.amount : ""}" oninput="recalcPerDiemBase()">
                         </div>
                         <div class="col-6">
                             <label class="form-label" data-i18n="currency">Currency</label>
-                            <select class="form-select" id="pdCurrency" required onchange="recalcPerDiemEgp()">
+                            <select class="form-select" id="pdCurrency" required onchange="recalcPerDiemBase()">
                                 <option value="">${selectCurText}</option>
                                 ${currencyOpts}
                             </select>
                         </div>
                         
                         <div class="col-12">
-                            <label class="form-label" data-i18n="amount_egp">Amount (EGP)</label>
-                            <input type="text" class="form-control" id="pdAmountEgp" readonly value="${pd ? fmt(pd.amount_egp) : "0.00"}">
+                            <label class="form-label" data-i18n="amount_base">Amount</label>
+                            <input type="text" class="form-control" id="pdAmountBase" readonly value="${pd ? fmt(pd.amount_base) : "0.00"}">
                         </div>
                         
                         <div class="col-12">
@@ -100,20 +100,20 @@ async function showPerDiemFormModal(perDiemId, companyId, year) {
 
     window._currentRates = rates;
     if (pd) {
-      recalcPerDiemEgp();
+      recalcPerDiemBase();
     }
   } catch (e) {
     showToast("Failed to initialize Per Diem form", "error");
   }
 }
 
-function recalcPerDiemEgp() {
+function recalcPerDiemBase() {
   const amountVal = parseFloat(document.getElementById("pdAmount").value) || 0;
   const currencySelect = document.getElementById("pdCurrency");
   const selectedOpt = currencySelect.options[currencySelect.selectedIndex];
 
   if (!selectedOpt || !selectedOpt.value) {
-    document.getElementById("pdAmountEgp").value = "0.00";
+    document.getElementById("pdAmountBase").value = "0.00";
     return;
   }
 
@@ -121,8 +121,8 @@ function recalcPerDiemEgp() {
   // Value of one unit of the chosen currency in the user's default currency.
   const rate = code === baseCurrencyCode() ? 1.0 : wfRateToBase(code, window._currentRates || []);
 
-  const amountEgp = amountVal * rate;
-  document.getElementById("pdAmountEgp").value = fmt(amountEgp);
+  const amountBase = amountVal * rate;
+  document.getElementById("pdAmountBase").value = fmt(amountBase);
 }
 
 async function savePerDiem(perDiemId, companyId, year) {

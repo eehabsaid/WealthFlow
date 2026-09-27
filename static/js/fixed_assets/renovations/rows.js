@@ -26,7 +26,7 @@ function addRenovationRow(data = {}, expand = false) {
 
   const category = data.category || "Finishing";
   const normVal = category.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
-  const amountEgpVal = data.amount_egp || "";
+  const amountBaseVal = data.amount_base || "";
   const descVal = data.description || "";
   const paymentMethodVal = data.payment_method || "Cash";
   const bankIdVal = data.bank_id || "";
@@ -34,8 +34,8 @@ function addRenovationRow(data = {}, expand = false) {
 
   const fmt = (n) =>
     Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const initialAmountPreview = amountEgpVal
-    ? `${baseCurrencyCode()} ${fmt(parseFloat(amountEgpVal) || 0)}`
+  const initialAmountPreview = amountBaseVal
+    ? `${baseCurrencyCode()} ${fmt(parseFloat(amountBaseVal) || 0)}`
     : `${baseCurrencyCode()} 0.00`;
 
   row.innerHTML = `
@@ -79,7 +79,7 @@ function addRenovationRow(data = {}, expand = false) {
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="amount">Amount</label>
-          <input type="number" step="0.01" class="form-control renovation-egp" value="${amountEgpVal}" oninput="updateRenovationUSD(this)">
+          <input type="number" step="0.01" class="form-control renovation-base" value="${amountBaseVal}" oninput="updateRenovationUSD(this)">
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
@@ -131,11 +131,11 @@ function addRenovationRow(data = {}, expand = false) {
     }
   });
 
-  const egpInput = row.querySelector(".renovation-egp");
+  const baseInput = row.querySelector(".renovation-base");
   const amountPreview = row.querySelector(".item-amount-preview");
-  egpInput.addEventListener("input", () => {
-    updateRenovationUSD(egpInput);
-    amountPreview.textContent = `${baseCurrencyCode()} ${fmt(parseFloat(egpInput.value) || 0)}`;
+  baseInput.addEventListener("input", () => {
+    updateRenovationUSD(baseInput);
+    amountPreview.textContent = `${baseCurrencyCode()} ${fmt(parseFloat(baseInput.value) || 0)}`;
     updateRenovationSummary();
   });
 
@@ -148,9 +148,9 @@ function addRenovationRow(data = {}, expand = false) {
   const shouldExpand = expand;
   toggleCollapsibleCard(row, "#renovationContainer", shouldExpand);
 
-  // Auto-calc USD amount if input has initial EGP amount
-  if (amountEgpVal) {
-    updateRenovationUSD(egpInput);
+  // Auto-calc USD amount if input has an initial base-currency amount
+  if (amountBaseVal) {
+    updateRenovationUSD(baseInput);
   }
 
   // Translate labels inside the new row

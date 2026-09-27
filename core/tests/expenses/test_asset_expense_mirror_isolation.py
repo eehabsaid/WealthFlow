@@ -51,7 +51,7 @@ class AssetExpenseMirrorIsolationTest(TestCase):
                 "asset_id": self.asset.id,
                 "date": "2025-01-02",
                 "category": "Lawyer Fees",
-                "amount_egp": 25000,
+                "amount_base": 25000,
             }),
             content_type="application/json",
         )
@@ -59,7 +59,7 @@ class AssetExpenseMirrorIsolationTest(TestCase):
         cost_id = response.json()["id"]
         mirror = Expense.objects.get(source_type="asset_acquisition_cost", source_id=cost_id)
         self.assertEqual(mirror.date, date(2025, 1, 2))
-        self.assertEqual(mirror.amount_egp, Decimal("25000"))
+        self.assertEqual(mirror.amount_base, Decimal("25000"))
 
     def test_mirror_via_renovation_endpoint_with_string_date(self):
         BalanceEntry.objects.create(
@@ -76,7 +76,7 @@ class AssetExpenseMirrorIsolationTest(TestCase):
                 "asset_id": self.asset.id,
                 "date": "2025-02-15",
                 "category": "Painting",
-                "amount_egp": 4000,
+                "amount_base": 4000,
             }),
             content_type="application/json",
         )
@@ -87,22 +87,22 @@ class AssetExpenseMirrorIsolationTest(TestCase):
 
     def test_mirrors_accumulate_across_months_like_manual_expenses(self):
         AssetRenovation.objects.create(
-            asset=self.asset, date=date(2025, 1, 15), category="Painting", amount_egp=5000
+            asset=self.asset, date=date(2025, 1, 15), category="Painting", amount_base=5000
         )
         AssetRenovation.objects.create(
-            asset=self.asset, date=date(2025, 2, 10), category="Flooring", amount_egp=9000
+            asset=self.asset, date=date(2025, 2, 10), category="Flooring", amount_base=9000
         )
         AssetFurniture.objects.create(
-            asset=self.asset, name="Sofa", purchase_date=date(2025, 2, 20), amount_egp=8000
+            asset=self.asset, name="Sofa", purchase_date=date(2025, 2, 20), amount_base=8000
         )
 
         category = self._fixed_assets_category()
         jan_total = sum(
-            float(e.amount_egp)
+            float(e.amount_base)
             for e in Expense.objects.filter(category=category, year=2025, month=1)
         )
         feb_total = sum(
-            float(e.amount_egp)
+            float(e.amount_base)
             for e in Expense.objects.filter(category=category, year=2025, month=2)
         )
         self.assertEqual(jan_total, 5000)
@@ -112,7 +112,7 @@ class AssetExpenseMirrorIsolationTest(TestCase):
         from core.services import ExpenseService
 
         renovation = AssetRenovation.objects.create(
-            asset=self.asset, date=date(2025, 3, 10), category="Painting", amount_egp=5000
+            asset=self.asset, date=date(2025, 3, 10), category="Painting", amount_base=5000
         )
         mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
 
@@ -126,11 +126,11 @@ class AssetExpenseMirrorIsolationTest(TestCase):
 
         # Untouched
         mirror.refresh_from_db()
-        self.assertEqual(mirror.amount_egp, Decimal("5000"))
+        self.assertEqual(mirror.amount_base, Decimal("5000"))
 
     def test_mirrored_expense_endpoints_reject_edit_and_delete(self):
         renovation = AssetRenovation.objects.create(
-            asset=self.asset, date=date(2025, 3, 10), category="Painting", amount_egp=5000
+            asset=self.asset, date=date(2025, 3, 10), category="Painting", amount_base=5000
         )
         mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
 

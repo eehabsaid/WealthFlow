@@ -321,7 +321,7 @@
     ]
   },
   "financial-advisor::performance": {
-    "purpose": "Analyze historical gold prices, exchange rate trends, and your total gold exposure impact in EGP over time.",
+    "purpose": "Analyze historical gold prices, exchange rate trends, and your total gold exposure impact in your default currency over time.",
     "steps": [
       "Navigate to Performance.",
       "Review 24K gold historical prices, moving averages, and exposure impacts.",

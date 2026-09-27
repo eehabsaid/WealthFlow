@@ -16,7 +16,7 @@ class CategoriesMixin:
         max_count = -1
 
         cat_qs = Expense.objects.filter(owner=self.owner).values('category__name', 'category__icon').annotate(
-            amount=Coalesce(Sum('amount_egp'), Decimal('0.0')),
+            amount=Coalesce(Sum('amount_base'), Decimal('0.0')),
             count=Count('id')
         ).order_by('-amount')
 
@@ -31,7 +31,7 @@ class CategoriesMixin:
             categories.append({
                 "name": name,
                 "icon": icon,
-                "amount_egp": round(amount, 2),
+                "amount_base": round(amount, 2),
                 "count": count,
                 "percentage": round(pct, 1)
             })
@@ -58,14 +58,14 @@ class CategoriesMixin:
         return categories, most_frequent
 
     def _largest_expense(self):
-        largest_expense_obj = Expense.objects.filter(owner=self.owner).select_related('category').order_by('-amount_egp', '-id').first()
+        largest_expense_obj = Expense.objects.filter(owner=self.owner).select_related('category').order_by('-amount_base', '-id').first()
         if not largest_expense_obj:
             return None
 
         cat_name = largest_expense_obj.category.name if largest_expense_obj.category else "spending_intelligence_uncategorized"
         desc = largest_expense_obj.description.strip() if largest_expense_obj.description else (largest_expense_obj.notes.strip() if largest_expense_obj.notes else "")
         return {
-            "amount_egp": self._to_float(largest_expense_obj.amount_egp),
+            "amount_base": self._to_float(largest_expense_obj.amount_base),
             "category": cat_name,
             "description": desc,
             "date": largest_expense_obj.date.isoformat() if largest_expense_obj.date else ""

@@ -13,7 +13,7 @@ function updateValuationSummary() {
     badge.textContent = count > 0 ? `(${count})` : "";
   }
 
-  let latestEGP = 0;
+  let latestBase = 0;
   let latestDate = null;
 
   rows.forEach((row) => {
@@ -22,7 +22,7 @@ function updateValuationSummary() {
     if (valDate) {
       if (!latestDate || valDate > latestDate) {
         latestDate = valDate;
-        latestEGP = valMarket;
+        latestBase = valMarket;
       }
     }
   });
@@ -38,7 +38,7 @@ function updateValuationSummary() {
       </div>
       <div class="stat">
         <span class="stat-label" data-i18n="latest_value">Latest Value</span>
-        <span class="stat-value">${latestDate ? baseCurrencyCode() + " " + fmt(latestEGP) : "-"}</span>
+        <span class="stat-value">${latestDate ? baseCurrencyCode() + " " + fmt(latestBase) : "-"}</span>
       </div>
     `;
     if (typeof applyTranslations === "function") {

@@ -12,7 +12,7 @@ function showCardRenewalFeeModal(id = null) {
     fee_date: new Date().toISOString().split("T")[0],
     bank_id: "",
     card_label: "",
-    amount_egp: "",
+    amount_base: "",
     notes: "",
   };
 
@@ -82,7 +82,7 @@ function showCardRenewalFeeModal(id = null) {
   showModal(html);
 
   document.getElementById("crf_date").value = crf.fee_date;
-  document.getElementById("crf_amount").value = crf.amount_egp;
+  document.getElementById("crf_amount").value = crf.amount_base;
   document.getElementById("crf_card_label").value = crf.card_label;
   document.getElementById("crf_notes").value = crf.notes;
   if (crf.bank_id) document.getElementById("crf_bank").value = crf.bank_id;

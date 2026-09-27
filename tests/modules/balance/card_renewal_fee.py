@@ -38,7 +38,7 @@ def test_card_renewal_fee(context, reporter, screenshot_logger):
         crf_checker.add_manual_step(filled)
 
         if filled:
-            create_result = crf_checker.verify_created(before_ids, match_field="amount_egp", expected_value=crf_amount)
+            create_result = crf_checker.verify_created(before_ids, match_field="amount_base", expected_value=crf_amount)
             new_id = create_result.new_id
 
             if new_id is not None:
@@ -52,7 +52,7 @@ def test_card_renewal_fee(context, reporter, screenshot_logger):
                         save_btn.click()
                         context.page.wait_for_timeout(800)
                 context.page.evaluate("if (typeof closeModal === 'function') closeModal();")
-                edit_result = crf_checker.verify_field_updated(new_id, "amount_egp", new_amount)
+                edit_result = crf_checker.verify_field_updated(new_id, "amount_base", new_amount)
 
                 context.page.evaluate(f"(async () => {{ if (typeof deleteCardRenewalFee === 'function') {{ await deleteCardRenewalFee({new_id}); }} }})()")
                 context.page.wait_for_timeout(1200)

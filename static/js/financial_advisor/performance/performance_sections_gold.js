@@ -130,7 +130,7 @@ function buildGoldChartExposureRow(ctx) {
                   <div class="small" style="color:var(--text-secondary);" data-i18n="performance_impact_7d">7-Day Impact</div>
                   <div class="d-flex justify-content-between align-items-center mt-1">
                     <div class="fs-5 fw-bold ${impact7d >= 0 ? "text-success" : "text-danger"}">
-                      ${formatImpactEgp(impact7d)}
+                      ${formatImpactBase(impact7d)}
                     </div>
                     <div class="rounded p-2" style="background:${impact7d >= 0 ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)"};">
                       <i class="bi ${impact7d >= 0 ? "bi-arrow-up-right text-success" : "bi-arrow-down-right text-danger"} fs-5"></i>
@@ -143,7 +143,7 @@ function buildGoldChartExposureRow(ctx) {
                   <div class="small" style="color:var(--text-secondary);" data-i18n="performance_impact_30d">30-Day Impact</div>
                   <div class="d-flex justify-content-between align-items-center mt-1">
                     <div class="fs-5 fw-bold ${impact30d >= 0 ? "text-success" : "text-danger"}">
-                      ${formatImpactEgp(impact30d)}
+                      ${formatImpactBase(impact30d)}
                     </div>
                     <div class="rounded p-2" style="background:${impact30d >= 0 ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)"};">
                       <i class="bi ${impact30d >= 0 ? "bi-arrow-up-right text-success" : "bi-arrow-down-right text-danger"} fs-5"></i>

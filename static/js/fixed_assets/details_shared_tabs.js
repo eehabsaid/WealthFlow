@@ -39,7 +39,7 @@ function renderGeneralTab() {
                             <select class="form-select" id="fa_purchase_currency" onchange="handlePurchaseCurrencyChange()" required></select>
                           </div>
                           <div class="col-md-3">
-                            <label class="form-label text-light" data-i18n="purchase_price_egp">Purchase Price</label>
+                            <label class="form-label text-light" data-i18n="purchase_price_base">Purchase Price</label>
                                 <input type="number" step="0.01" class="form-control" oninput="updatePurchasePriceUSD()" id="fa_purchase_price" required>
                             </div>
                           <div class="col-md-3">

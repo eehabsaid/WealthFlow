@@ -21,7 +21,7 @@ class CertificateBalanceDeductionApiErrorTest(TestCase):
         self.egp = Currency.objects.create(code="EGP", symbol="ج.م", name="Egyptian Pound")
         self.enbd = Bank.objects.create(name="ENBD", owner=self.user)
         self.qnb = Bank.objects.create(name="QNB", owner=self.user)
-        self.cash_egp = BalanceEntry.objects.create(
+        self.cash_base = BalanceEntry.objects.create(
             owner=self.user,
             title="ENBD Bank Account Balance",
             balance_type="cash",

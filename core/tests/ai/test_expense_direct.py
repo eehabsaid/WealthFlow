@@ -56,9 +56,9 @@ class ExpenseDirectChatTests(TestCase):
             c = ExpenseCategory.objects.create(owner=owner, name=cat) if _has_owner() else ExpenseCategory.objects.create(name=cat)
             for d, amt, desc in ((1, "100.00", "Rice"), (1, "50.50", "Milk"), (3, "20.00", "Tea")):
                 Expense.objects.create(owner=owner, category=c, date=date(2026, 9, d), year=2026, month=9,
-                                       amount=amt, amount_egp=amt, description=desc)
+                                       amount=amt, amount_base=amt, description=desc)
         Expense.objects.create(owner=self.user, category=Expense.objects.filter(owner=self.user).first().category,
-                               date=date(2026, 8, 5), year=2026, month=8, amount="999.00", amount_egp="999.00")
+                               date=date(2026, 8, 5), year=2026, month=8, amount="999.00", amount_base="999.00")
         AppSettings.set("ai_enabled", "true")
         AppSettings.set("ai_provider", "ollama")
         self.client.force_login(self.user)

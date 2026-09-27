@@ -35,14 +35,14 @@ function renderSaleTab() {
                               <input type="date" class="form-control" id="fa_sale_date">
                             </div>
                             <div class="col-md-6">
-                              <label class="form-label text-light" data-i18n="sale_price_egp">Sale Price (EGP)</label>
+                              <label class="form-label text-light" data-i18n="sale_price_base">Sale Price</label>
                               <input type="number" step="0.01" class="form-control" id="fa_sale_price">
                             </div>
                           </div>
 
                           <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                              <label class="form-label text-light" data-i18n="selling_expenses_egp">Selling Expenses (EGP)</label>
+                              <label class="form-label text-light" data-i18n="selling_expenses_base">Selling Expenses</label>
                               <input type="number" step="0.01" class="form-control" id="fa_selling_expenses">
                             </div>
                             <div class="col-md-6">

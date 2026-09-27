@@ -50,7 +50,7 @@ class ExpenseService(object):
                     )
                 except Currency.DoesNotExist:
                     pass
-            amount_egp_val = amount_value * exchange_rate_val
+            amount_base_val = amount_value * exchange_rate_val
 
             if _expense_affects_balance(payment_method):
                 target_entry = _get_target_cash_balance_entry(payment_method, bank_id, owner, currency_id)
@@ -69,7 +69,7 @@ class ExpenseService(object):
                 description=data.get("description", ""),
                 amount=amount_value,
                 exchange_rate=exchange_rate_val,
-                amount_egp=amount_egp_val,
+                amount_base=amount_base_val,
                 currency_id=currency_id,
                 bank_id=bank_id,
                 payment_method=payment_method,
@@ -145,7 +145,7 @@ class ExpenseService(object):
                     except Currency.DoesNotExist:
                         pass
                 exp.exchange_rate = exchange_rate_val
-                exp.amount_egp = Decimal(str(exp.amount or 0)) * exchange_rate_val
+                exp.amount_base = Decimal(str(exp.amount or 0)) * exchange_rate_val
 
             if _normalize_expense_payment_method(exp.payment_method) == "cash":
                 exp.bank_id = None

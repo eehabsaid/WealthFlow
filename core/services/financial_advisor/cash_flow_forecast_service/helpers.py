@@ -36,5 +36,5 @@ def to_float(value) -> float:
 class ForecastEvent:
     event_date: date
     event_type: str
-    amount_egp: float
+    amount_base: float
     meta: Dict[str, float | int | str]

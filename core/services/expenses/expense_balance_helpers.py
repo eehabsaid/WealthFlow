@@ -28,13 +28,13 @@ def _get_target_cash_balance_entry(payment_method, bank_id, owner, currency_id=N
     else:
         from core.services.shared.base_currency import get_user_base_code
 
-        egp_or_cash_qs = qs.filter(
+        base_or_cash_qs = qs.filter(
             Q(currency__code__iexact=get_user_base_code(owner))
             | Q(currency__code__iexact="CASH")
             | Q(currency__name__iexact="Cash")
         )
-        if egp_or_cash_qs.exists():
-            qs = qs.filter(id__in=egp_or_cash_qs.values_list('id', flat=True))
+        if base_or_cash_qs.exists():
+            qs = qs.filter(id__in=base_or_cash_qs.values_list('id', flat=True))
 
     normalized_method = _normalize_expense_payment_method(payment_method)
     if normalized_method == "cash":

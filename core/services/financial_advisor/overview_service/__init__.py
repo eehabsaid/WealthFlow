@@ -78,10 +78,10 @@ class OverviewService:
             "kpis": {
                 "total_net_worth": ctx.current_nw,
                 "net_worth_growth_yoy": ctx.expected_growth_pct if ctx.has_growth_basis else None,
-                "liquid_assets": ctx.portfolio_comp.get("liquid_assets_total_egp", 0.0),
+                "liquid_assets": ctx.portfolio_comp.get("liquid_assets_total_base", 0.0),
                 "emergency_months": ctx.emergency_months if ctx.has_expense_baseline else None,
-                "fixed_assets": ctx.portfolio_comp.get("fixed_assets_total_egp", 0.0),
-                "fixed_assets_pct": round((ctx.portfolio_comp.get("fixed_assets_total_egp", 0.0) / ctx.current_nw * 100.0) if ctx.current_nw > 0 else 0.0, 1),
+                "fixed_assets": ctx.portfolio_comp.get("fixed_assets_total_base", 0.0),
+                "fixed_assets_pct": round((ctx.portfolio_comp.get("fixed_assets_total_base", 0.0) / ctx.current_nw * 100.0) if ctx.current_nw > 0 else 0.0, 1),
                 "portfolio_health": ctx.health_score,
                 "portfolio_health_status_key": ctx.portfolio_health.get("label_key", "portfolio_optimizer_health_good")
             },

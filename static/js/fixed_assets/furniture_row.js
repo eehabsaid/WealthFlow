@@ -8,15 +8,15 @@ function addFurnitureRow(data = {}, expand = false) {
 
   const category = data.category || "Living Room";
   const normVal = category.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
-  const amountEgpVal = data.amount_egp || 0; // Use raw amount
+  const amountBaseVal = data.amount_base || 0; // Use raw amount
   const nameVal = data.name || "";
   const paymentMethodVal = data.payment_method || "Cash";
   const bankIdVal = data.bank_id || "";
 
   const fmt = (n) =>
     Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const initialAmountPreview = amountEgpVal
-    ? `${baseCurrencyCode()} ${fmt(parseFloat(amountEgpVal) || 0)}`
+  const initialAmountPreview = amountBaseVal
+    ? `${baseCurrencyCode()} ${fmt(parseFloat(amountBaseVal) || 0)}`
     : `${baseCurrencyCode()} 0.00`;
 
   row.innerHTML = `
@@ -63,8 +63,8 @@ function addFurnitureRow(data = {}, expand = false) {
           <input type="number" step="1" min="0" class="form-control furniture-quantity" value="${data.quantity || 1}" oninput="updateFurnitureUSD(this)">
         </div>
         <div class="field">
-          <label class="form-label small" data-i18n="amount_egp">Amount</label>
-          <input type="number" step="0.01" min="0" class="form-control furniture-egp" value="${amountEgpVal}" oninput="updateFurnitureUSD(this)">
+          <label class="form-label small" data-i18n="amount_base">Amount</label>
+          <input type="number" step="0.01" min="0" class="form-control furniture-base" value="${amountBaseVal}" oninput="updateFurnitureUSD(this)">
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
@@ -112,11 +112,11 @@ function addFurnitureRow(data = {}, expand = false) {
     }
   });
 
-  const egpInput = row.querySelector(".furniture-egp");
+  const baseInput = row.querySelector(".furniture-base");
   const amountPreview = row.querySelector(".item-amount-preview");
-  egpInput.addEventListener("input", () => {
-    amountPreview.textContent = `${baseCurrencyCode()} ${fmt(parseFloat(egpInput.value) || 0)}`;
-    updateFurnitureUSD(egpInput);
+  baseInput.addEventListener("input", () => {
+    amountPreview.textContent = `${baseCurrencyCode()} ${fmt(parseFloat(baseInput.value) || 0)}`;
+    updateFurnitureUSD(baseInput);
     updateFurnitureSummary();
   });
 
@@ -135,9 +135,9 @@ function addFurnitureRow(data = {}, expand = false) {
   const shouldExpand = expand;
   toggleCollapsibleCard(row, "#furnitureContainer", shouldExpand);
 
-  // Auto-calc USD amount if input has initial EGP amount
-  if (amountEgpVal) {
-    updateFurnitureUSD(egpInput);
+  // Auto-calc USD amount if input has an initial base-currency amount
+  if (amountBaseVal) {
+    updateFurnitureUSD(baseInput);
   }
 
   // Translate labels inside the new row
@@ -153,7 +153,7 @@ function updateFurnitureUSD(input) {
   const row = input.closest(".furniture-row");
   if (!row) return;
 
-  const egpInput = row.querySelector(".furniture-egp");
+  const baseInput = row.querySelector(".furniture-base");
   const rateInput = row.querySelector(".furniture-usd-rate");
   const qtyInput = row.querySelector(".furniture-quantity");
   const usdInput = row.querySelector(".furniture-usd");
@@ -161,7 +161,7 @@ function updateFurnitureUSD(input) {
 
   // --- VALIDATION: SANITIZE INPUTS ---
   // If input is negative, reset to allowed minimum (0 for amount/rate, 1 for quantity)
-  if (parseFloat(egpInput.value) < 0) egpInput.value = 0;
+  if (parseFloat(baseInput.value) < 0) baseInput.value = 0;
   if (parseFloat(rateInput.value) < 0) rateInput.value = 0;
   if (parseInt(qtyInput.value) < 0) qtyInput.value = 1;
   // ------------------------------------
@@ -170,22 +170,22 @@ function updateFurnitureUSD(input) {
     Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // 1. Get live values
-  const egp = parseFloat(egpInput.value) || 0;
+  const baseAmount = parseFloat(baseInput.value) || 0;
   const rate = parseFloat(rateInput.value) || 0;
   const quantity = parseInt(qtyInput.value) || 1;
 
   // 2. Perform the math
-  const totalEgp = egp * quantity;
-  const totalUsd = rate > 0 ? totalEgp / rate : 0;
+  const totalBase = baseAmount * quantity;
+  const totalUsd = rate > 0 ? totalBase / rate : 0;
 
   // 3. Update UI
   usdInput.value = totalUsd.toFixed(2);
-  amountPreview.textContent = `${baseCurrencyCode()} ${fmt(totalEgp)}`;
+  amountPreview.textContent = `${baseCurrencyCode()} ${fmt(totalBase)}`;
 
   // 4. Update Header Badge
   const headerPreview = row.querySelector(".item-header-right .item-amount-preview");
   if (headerPreview) {
-    headerPreview.textContent = `${baseCurrencyCode()} ${fmt(totalEgp)}`;
+    headerPreview.textContent = `${baseCurrencyCode()} ${fmt(totalBase)}`;
   }
 
   updateFurnitureSummary();

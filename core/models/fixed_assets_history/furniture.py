@@ -38,7 +38,7 @@ class AssetFurniture(models.Model):
         blank=True,
     )
 
-    amount_egp = models.DecimalField(
+    amount_base = models.DecimalField(
         max_digits=16,
         decimal_places=2,
     )
@@ -91,7 +91,7 @@ class AssetFurniture(models.Model):
                 if hasattr(self.purchase_date, "isoformat")
                 else (self.purchase_date or "")
             ),
-            "amount_egp": float(self.amount_egp),
+            "amount_base": float(self.amount_base),
             "usd_rate": float(self.usd_rate),
             "amount_usd": float(self.amount_usd),
             "quantity": self.quantity,

@@ -18,7 +18,7 @@ class GoalCalculationMixin:
         rates = comp.get("rates", {})
         return {str(code or "").upper(): _to_float(value) for code, value in rates.items()}
 
-    def _egp_rate(self, currency_code: str, rates: Dict[str, float]) -> float:
+    def _base_rate(self, currency_code: str, rates: Dict[str, float]) -> float:
         from core.services.shared.base_currency import get_user_base_code
 
         code = str(currency_code or "").upper() or get_user_base_code(self.owner)
@@ -50,23 +50,23 @@ class GoalCalculationMixin:
             return 2
         return 1
 
-    def _goal_calc(self, goal: Goal, rates: Dict[str, float], monthly_capacity_egp: float) -> GoalCalc:
+    def _goal_calc(self, goal: Goal, rates: Dict[str, float], monthly_capacity_base: float) -> GoalCalc:
         from core.services.shared.base_currency import get_user_base_code
 
         currency_code = getattr(goal.currency, "code", "") or get_user_base_code(self.owner)
-        rate = self._egp_rate(currency_code, rates)
+        rate = self._base_rate(currency_code, rates)
 
-        target_amount_egp = _to_float(goal.target_amount) * rate
-        current_saved_egp = _to_float(goal.current_saved_amount) * rate
-        remaining = max(0.0, target_amount_egp - current_saved_egp)
-        progress_pct = 100.0 if target_amount_egp <= 0 else min(100.0, (current_saved_egp / target_amount_egp) * 100.0)
+        target_amount_base = _to_float(goal.target_amount) * rate
+        current_saved_base = _to_float(goal.current_saved_amount) * rate
+        remaining = max(0.0, target_amount_base - current_saved_base)
+        progress_pct = 100.0 if target_amount_base <= 0 else min(100.0, (current_saved_base / target_amount_base) * 100.0)
 
         months_left = self._months_left(goal.target_date)
         monthly_required = 0.0
         if remaining > 0:
             monthly_required = remaining if months_left <= 0 else (remaining / months_left)
 
-        monthly_surplus = monthly_capacity_egp - monthly_required
+        monthly_surplus = monthly_capacity_base - monthly_required
         status, status_key = self._status_for_goal(progress_pct, monthly_surplus, months_left, remaining)
 
         return GoalCalc(
@@ -75,19 +75,19 @@ class GoalCalculationMixin:
             goal_type=goal.goal_type,
             priority=goal.priority,
             target_date=goal.target_date.isoformat() if goal.target_date else "",
-            target_amount_egp=round(target_amount_egp, 2),
-            current_saved_egp=round(current_saved_egp, 2),
+            target_amount_base=round(target_amount_base, 2),
+            current_saved_base=round(current_saved_base, 2),
             progress_pct=round(progress_pct, 2),
-            remaining_amount_egp=round(remaining, 2),
+            remaining_amount_base=round(remaining, 2),
             months_left=months_left,
-            monthly_required_egp=round(monthly_required, 2),
-            monthly_surplus_egp=round(monthly_surplus, 2),
+            monthly_required_base=round(monthly_required, 2),
+            monthly_surplus_base=round(monthly_surplus, 2),
             status=status,
             status_key=status_key,
             linked_asset_name=getattr(goal.linked_asset, "name", "") or "",
         )
 
-    def _monthly_capacity_egp(self) -> float:
+    def _monthly_capacity_base(self) -> float:
         if self._capacity_override is not None:
             return self._capacity_override
         payload = self._net_worth_service.certificate_forecast_payload(today=self.today)

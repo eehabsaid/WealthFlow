@@ -25,8 +25,8 @@ def append_allocation_recommendations(service, ctx: ForecastContext) -> None:
         strengths.append(f"liquidity coverage is {_fmt_pct(liquidity_strength, 1)} months")
     if net_income_buffer > 0:
         strengths.append(f"monthly surplus is {_fmt_money(net_income_buffer)} {ctx.base_code}")
-    if ctx.comp["net_worth_egp"] > 0 and ctx.fixed_assets_ratio >= 20:
-        strengths.append(f"net worth is {_fmt_money(ctx.comp['net_worth_egp'])} {ctx.base_code} with diversified fixed assets")
+    if ctx.comp["net_worth_base"] > 0 and ctx.fixed_assets_ratio >= 20:
+        strengths.append(f"net worth is {_fmt_money(ctx.comp['net_worth_base'])} {ctx.base_code} with diversified fixed assets")
     if ctx.future_cash_90 >= ctx.cash_balance:
         strengths.append("future cash projection is stable to improving over 90 days")
 

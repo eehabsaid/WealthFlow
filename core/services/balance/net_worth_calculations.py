@@ -9,7 +9,7 @@ def _to_float(value) -> float:
     except (ValueError, TypeError):
         return 0.0
 
-def converted_egp(amount: float, currency_code: str, rates: Dict[str, float]) -> float:
+def converted_base(amount: float, currency_code: str, rates: Dict[str, float]) -> float:
     """Amount in the user's default currency. `rates` maps code -> value of one
     unit in that default currency (the default itself is 1); a blank code is
     treated as already being in the default currency."""

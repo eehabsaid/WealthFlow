@@ -23,14 +23,14 @@ def run_per_diem_test(ctx):
         date="2026-08-05",
         currency=ctx.usd,
         amount=Decimal("200.00"),
-        amount_egp=Decimal("0.00")
+        amount_base=Decimal("0.00")
     )
-    # Total amount = 200 USD -> amount_egp should be 200 * 50.00 = 10,000.00 EGP
-    expected_egp = pd.amount * per_diem_rate
-    pd.amount_egp = expected_egp
+    # Total amount = 200 USD -> amount_base should be 200 * 50.00 = 10,000.00 EGP
+    expected_base = pd.amount * per_diem_rate
+    pd.amount_base = expected_base
     pd.save()
-    assert pd.amount_egp == Decimal("10000.00"), f"PerDiem EGP calculation failed: {pd.amount_egp}"
-    print(f"  [PASS] PerDiem buy rate delegation & EGP conversion: {pd.amount_egp} EGP for {pd.amount} USD.")
+    assert pd.amount_base == Decimal("10000.00"), f"PerDiem EGP calculation failed: {pd.amount_base}"
+    print(f"  [PASS] PerDiem buy rate delegation & EGP conversion: {pd.amount_base} EGP for {pd.amount} USD.")
 
     ctx.company = company
     ctx.pd = pd

@@ -55,7 +55,7 @@ class AssetRenovationListView(View):
 
         payment_method = data.get("payment_method", "Cash")
         bank_id = data.get("bank_id")
-        amount_egp = data.get("amount_egp", 0)
+        amount_base = data.get("amount_base", 0)
 
         try:
             with transaction.atomic():
@@ -65,7 +65,7 @@ class AssetRenovationListView(View):
                     date=data["date"],
                     category=data["category"],
                     description=data.get("description", ""),
-                    amount_egp=amount_egp,
+                    amount_base=amount_base,
                     usd_rate=data.get("usd_rate", 0),
                     amount_usd=data.get("amount_usd", 0),
                     payment_method=payment_method,
@@ -75,7 +75,7 @@ class AssetRenovationListView(View):
                 _apply_expense_balance_delta(
                     payment_method,
                     bank_id,
-                    -Decimal(str(amount_egp or 0)),
+                    -Decimal(str(amount_base or 0)),
                     owner=asset.owner,
                 )
         except ValueError as exc:
@@ -95,14 +95,14 @@ class AssetRenovationDetailView(View):
 
         old_payment_method = item.payment_method
         old_bank_id = item.bank_id
-        old_amount_egp = item.amount_egp
+        old_amount_base = item.amount_base
 
         fields = [
             "furniture_id",
             "date",
             "category",
             "description",
-            "amount_egp",
+            "amount_base",
             "usd_rate",
             "amount_usd",
             "payment_method",
@@ -120,13 +120,13 @@ class AssetRenovationDetailView(View):
                 _apply_expense_balance_delta(
                     old_payment_method,
                     old_bank_id,
-                    Decimal(str(old_amount_egp or 0)),
+                    Decimal(str(old_amount_base or 0)),
                     owner=item.asset.owner,
                 )
                 _apply_expense_balance_delta(
                     item.payment_method,
                     item.bank_id,
-                    -Decimal(str(item.amount_egp or 0)),
+                    -Decimal(str(item.amount_base or 0)),
                     owner=item.asset.owner,
                 )
         except ValueError as exc:
@@ -145,7 +145,7 @@ class AssetRenovationDetailView(View):
                 _apply_expense_balance_delta(
                     item.payment_method,
                     item.bank_id,
-                    Decimal(str(item.amount_egp or 0)),
+                    Decimal(str(item.amount_base or 0)),
                     owner=item.asset.owner,
                 )
                 item.delete()

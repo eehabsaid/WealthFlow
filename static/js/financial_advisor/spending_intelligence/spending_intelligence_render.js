@@ -52,7 +52,7 @@ function _renderMonthlyTrendBars(payload, selectedCatId = "all") {
       return {
         year: m.year,
         month: m.month,
-        total_egp: match ? match.total_egp : 0.0,
+        total_base: match ? match.total_base : 0.0,
         count: match ? match.count : 0,
       };
     });
@@ -69,11 +69,11 @@ function _renderMonthlyTrendBars(payload, selectedCatId = "all") {
   }
 
   if (barsData.length > 0) {
-    const maxAmount = Math.max(...barsData.map((m) => m.total_egp));
+    const maxAmount = Math.max(...barsData.map((m) => m.total_base));
 
     let barsHtml = "";
     barsData.forEach((m, idx) => {
-      const heightPct = maxAmount > 0 ? (m.total_egp / maxAmount) * 100 : 0;
+      const heightPct = maxAmount > 0 ? (m.total_base / maxAmount) * 100 : 0;
       const monthKey = `month_short_${m.month}`;
       const monthName =
         typeof t === "function"
@@ -82,9 +82,9 @@ function _renderMonthlyTrendBars(payload, selectedCatId = "all") {
 
       let diffHtml = "";
       if (idx > 0 && barsData.length >= 3) {
-        const prevAmount = barsData[idx - 1].total_egp;
+        const prevAmount = barsData[idx - 1].total_base;
         if (prevAmount > 0) {
-          const diffPct = ((m.total_egp - prevAmount) / prevAmount) * 100.0;
+          const diffPct = ((m.total_base - prevAmount) / prevAmount) * 100.0;
           const isIncrease = diffPct > 0;
           const color = isIncrease ? "var(--bs-danger)" : "var(--bs-success)";
           const icon = isIncrease ? "▲" : "▼";
@@ -106,7 +106,7 @@ function _renderMonthlyTrendBars(payload, selectedCatId = "all") {
             <div style="width:100%; height:${heightPct}%; background:var(--bs-primary, #0d6efd); border-radius:8px 8px 0 0; transition:height 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
           </div>
           <div style="font-size:13px; font-weight:600; color:rgba(123,147,201,0.8); margin-bottom:4px; text-align:center;">${monthName} ${m.year}</div>
-          <div style="font-size:15px; font-weight:800; color:var(--text-primary); text-align:center; margin-bottom:2px;">${fmt(Number(m.total_egp).toFixed(2))}</div>
+          <div style="font-size:15px; font-weight:800; color:var(--text-primary); text-align:center; margin-bottom:2px;">${fmt(Number(m.total_base).toFixed(2))}</div>
           <div style="font-size:11px; color:rgba(123,147,201,0.6); text-align:center;">${m.count} <span data-i18n="spending_intelligence_tx"></span></div>
         </div>
       `;
@@ -155,7 +155,7 @@ function _buildKeyFindingsHtml(keyFindings) {
 
   if (keyFindings.largest_expense) {
     const le = keyFindings.largest_expense;
-    const amtStr = `<b>${fmt(Number(le.amount_egp).toFixed(2))}</b>`;
+    const amtStr = `<b>${fmt(Number(le.amount_base).toFixed(2))}</b>`;
     const dateHtml = `<b>${formatDate(le.date)}</b>`;
     if (le.description) {
       const paramsObj = { amount: amtStr, description: le.description, date: dateHtml };

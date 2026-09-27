@@ -84,7 +84,7 @@ class MonthlyCategoryBreakdownTest(TestCase):
                 Expense.objects.create(
                     owner=self.user, date=date(yy, mm, min(10 + i, 28)),
                     year=yy, month=mm, category=cat,
-                    amount=amt, amount_egp=amt, currency=self.egp,
+                    amount=amt, amount_base=amt, currency=self.egp,
                     notes=f"{cat.name} {yy}-{mm}",
                 )
                 if (yy, mm) == (2026, 9):

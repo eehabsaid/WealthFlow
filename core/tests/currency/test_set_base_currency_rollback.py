@@ -13,7 +13,7 @@ User = get_user_model()
 class SetBaseCurrencyRollbackTests(TestCase):
     """A user's own expense can be posted in a currency that has no stored
     market rate (e.g. a one-off historical entry). Switching the user's
-    default must not silently corrupt that expense's amount_egp — the whole
+    default must not silently corrupt that expense's amount_base — the whole
     change rolls back instead."""
 
     def setUp(self):
@@ -25,14 +25,14 @@ class SetBaseCurrencyRollbackTests(TestCase):
         # No ExchangeRate for JPY on purpose.
 
     def test_switch_is_refused_and_nothing_changes_when_an_existing_entry_has_no_rate(self):
-        exp = Expense.objects.create(owner=self.user, date="2026-01-01", year=2026, month=1, currency=self.jpy, amount=Decimal("1000"), amount_egp=Decimal("530"))
+        exp = Expense.objects.create(owner=self.user, date="2026-01-01", year=2026, month=1, currency=self.jpy, amount=Decimal("1000"), amount_base=Decimal("530"))
         with self.assertRaises(ValueError):
             set_user_base_currency(self.user, "SAR")
         exp.refresh_from_db()
-        self.assertEqual(exp.amount_egp, Decimal("530"))  # untouched
+        self.assertEqual(exp.amount_base, Decimal("530"))  # untouched
         self.assertEqual(get_user_base_code(self.user), "EGP")  # profile not switched either
 
     def test_switch_succeeds_and_persists_when_every_entry_has_a_rate(self):
-        Expense.objects.create(owner=self.user, date="2026-01-01", year=2026, month=1, currency=self.egp, amount=Decimal("130"), amount_egp=Decimal("130"))
+        Expense.objects.create(owner=self.user, date="2026-01-01", year=2026, month=1, currency=self.egp, amount=Decimal("130"), amount_base=Decimal("130"))
         set_user_base_currency(self.user, "SAR")
         self.assertEqual(get_user_base_code(self.user), "SAR")

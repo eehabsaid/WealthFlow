@@ -17,7 +17,7 @@ function collectRenovations() {
 
       furniture_id: parseInt(row.querySelector(".renovation-furniture")?.value, 10) || null,
 
-      amount_egp: parseFloat(row.querySelector(".renovation-egp").value) || 0,
+      amount_base: parseFloat(row.querySelector(".renovation-base").value) || 0,
 
       usd_rate: parseFloat(row.querySelector(".renovation-usd-rate")?.value) || 0,
 
@@ -37,14 +37,14 @@ function collectRenovations() {
 function updateRenovationUSD(input) {
   const row = input.closest(".renovation-row");
 
-  const egp = parseFloat(row.querySelector(".renovation-egp").value) || 0;
+  const baseAmount = parseFloat(row.querySelector(".renovation-base").value) || 0;
 
   const rate = parseFloat(row.querySelector(".renovation-usd-rate")?.value) || 0;
 
   const usdInput = row.querySelector(".renovation-usd");
 
   if (rate > 0) {
-    usdInput.value = (egp / rate).toFixed(2);
+    usdInput.value = (baseAmount / rate).toFixed(2);
   } else {
     usdInput.value = "";
   }

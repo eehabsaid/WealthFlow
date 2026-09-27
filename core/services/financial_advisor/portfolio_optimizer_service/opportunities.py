@@ -36,7 +36,7 @@ class OpportunitiesMixin:
             self._monthly_expense_average(),
         )
 
-        maturity_egp_90 = self._upcoming_certificate_maturity_egp(comp, days=90)
+        maturity_base_90 = self._upcoming_certificate_maturity_base(comp, days=90)
         concentration_pct = max((_to_float(value) for value in percentages.values()), default=0.0)
 
         if "portfolio_optimizer_rec_cash_too_high" in recommendation_keys:
@@ -48,7 +48,7 @@ class OpportunitiesMixin:
         if "portfolio_optimizer_rec_vehicles_too_high" in recommendation_keys:
             add("portfolio_optimizer_opp_reduce_vehicle_exposure", "portfolio_optimizer_opp_impact_rebalance_assets", "low")
 
-        if maturity_egp_90 > 0:
+        if maturity_base_90 > 0:
             add("portfolio_optimizer_opp_reinvest_maturities", "portfolio_optimizer_opp_impact_reinvest_maturities", "low")
 
         if emergency_months < 6.0 and cash_pct < 20.0:

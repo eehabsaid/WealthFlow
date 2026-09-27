@@ -11,7 +11,7 @@ async function saveCardRenewalFee() {
     fee_date: document.getElementById("crf_date").value,
     bank_id: document.getElementById("crf_bank").value,
     card_label: document.getElementById("crf_card_label").value,
-    amount_egp: document.getElementById("crf_amount").value,
+    amount_base: document.getElementById("crf_amount").value,
     notes: document.getElementById("crf_notes").value,
   };
 

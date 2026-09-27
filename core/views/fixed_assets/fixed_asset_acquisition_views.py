@@ -46,7 +46,7 @@ class AssetAcquisitionCostListView(View):
         asset = get_object_or_404(FixedAsset, pk=data["asset_id"], owner=request.user)
         payment_method = data.get("payment_method", "Cash")
         bank_id = data.get("bank_id")
-        amount_egp = data.get("amount_egp") or 0
+        amount_base = data.get("amount_base") or 0
 
         try:
             with transaction.atomic():
@@ -55,7 +55,7 @@ class AssetAcquisitionCostListView(View):
                     date=data.get("date") or None,
                     category=data["category"],
                     description=data.get("description", ""),
-                    amount_egp=amount_egp,
+                    amount_base=amount_base,
                     usd_rate=data.get("usd_rate") or 0,
                     amount_usd=data.get("amount_usd") or 0,
                     payment_method=payment_method,
@@ -65,7 +65,7 @@ class AssetAcquisitionCostListView(View):
                 _apply_expense_balance_delta(
                     payment_method,
                     bank_id,
-                    -Decimal(str(amount_egp or 0)),
+                    -Decimal(str(amount_base or 0)),
                     owner=asset.owner,
                 )
         except ValueError as exc:
@@ -83,13 +83,13 @@ class AssetAcquisitionCostDetailView(View):
 
         old_payment_method = item.payment_method
         old_bank_id = item.bank_id
-        old_amount_egp = item.amount_egp
+        old_amount_base = item.amount_base
 
         fields = [
             "date",
             "category",
             "description",
-            "amount_egp",
+            "amount_base",
             "usd_rate",
             "amount_usd",
             "payment_method",
@@ -101,7 +101,7 @@ class AssetAcquisitionCostDetailView(View):
                 val = data[field]
                 if field == "date" and not val:
                     val = None
-                elif field in ["amount_egp", "amount_usd", "usd_rate"]:
+                elif field in ["amount_base", "amount_usd", "usd_rate"]:
                     val = val or 0
                 setattr(item, field, val)
 
@@ -111,13 +111,13 @@ class AssetAcquisitionCostDetailView(View):
                 _apply_expense_balance_delta(
                     old_payment_method,
                     old_bank_id,
-                    Decimal(str(old_amount_egp or 0)),
+                    Decimal(str(old_amount_base or 0)),
                     owner=item.asset.owner,
                 )
                 _apply_expense_balance_delta(
                     item.payment_method,
                     item.bank_id,
-                    -Decimal(str(item.amount_egp or 0)),
+                    -Decimal(str(item.amount_base or 0)),
                     owner=item.asset.owner,
                 )
         except ValueError as exc:
@@ -136,7 +136,7 @@ class AssetAcquisitionCostDetailView(View):
                 _apply_expense_balance_delta(
                     item.payment_method,
                     item.bank_id,
-                    Decimal(str(item.amount_egp or 0)),
+                    Decimal(str(item.amount_base or 0)),
                     owner=item.asset.owner,
                 )
                 item.delete()

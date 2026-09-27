@@ -60,7 +60,7 @@ class ExposureMixin:
             upper_code = str(code or "").upper() or base_code
             value = _to_float(amount)
             if upper_code == "GOLD":
-                value = _to_float(comp.get("gold_value_egp"))
+                value = _to_float(comp.get("gold_value_base"))
             elif upper_code != base_code:
                 value = value * _to_float(rates.get(upper_code))
             rows.append({"code": upper_code, "value": round(value, 2)})

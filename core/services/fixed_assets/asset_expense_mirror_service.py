@@ -42,14 +42,14 @@ def _get_or_create_fixed_assets_subcategory(source_type, owner):
     )
 
 
-def _sync_mirror(source_type, source_id, *, date_value, description, amount_egp, payment_method, bank_id, notes, owner):
+def _sync_mirror(source_type, source_id, *, date_value, description, amount_base, payment_method, bank_id, notes, owner):
     category, subcategory = _get_or_create_fixed_assets_subcategory(source_type, owner)
     return sync_mirror(
         source_type,
         source_id,
         date_value=date_value,
         description=description,
-        amount_egp=amount_egp,
+        amount_base=amount_base,
         payment_method=payment_method,
         bank_id=bank_id,
         notes=notes,
@@ -81,7 +81,7 @@ def sync_renovation_mirror(renovation):
         renovation.id,
         date_value=renovation.date,
         description=description,
-        amount_egp=renovation.amount_egp,
+        amount_base=renovation.amount_base,
         payment_method=renovation.payment_method,
         bank_id=renovation.bank_id,
         notes=notes,
@@ -104,7 +104,7 @@ def sync_acquisition_cost_mirror(acquisition_cost):
         acquisition_cost.id,
         date_value=acquisition_cost.date,
         description=description,
-        amount_egp=acquisition_cost.amount_egp,
+        amount_base=acquisition_cost.amount_base,
         payment_method=acquisition_cost.payment_method,
         bank_id=acquisition_cost.bank_id,
         notes=notes,
@@ -127,7 +127,7 @@ def sync_furniture_mirror(furniture):
         furniture.id,
         date_value=furniture.purchase_date,
         description=description,
-        amount_egp=furniture.amount_egp,
+        amount_base=furniture.amount_base,
         payment_method=furniture.payment_method,
         bank_id=furniture.bank_id,
         notes=notes,

@@ -19,8 +19,8 @@ class ComputationMixin:
         avg_monthly_expenses = _to_float(cert_forecast.get("avg_monthly_expenses"))
         cash_balance = _to_float(cert_forecast.get("cash_balance"))
 
-        total_net_worth = _to_float(comp.get("net_worth_egp"))
-        gold_value = _to_float(comp.get("gold_value_egp"))
+        total_net_worth = _to_float(comp.get("net_worth_base"))
+        gold_value = _to_float(comp.get("gold_value_base"))
         gold_pct = (gold_value / total_net_worth * 100.0) if total_net_worth > 0 else 0.0
 
         gold_band = PortfolioOptimizerService.RECOMMENDED_BANDS.get("gold")

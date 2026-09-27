@@ -44,7 +44,7 @@ def sync_credit_card_payment_mirror(payment):
         payment.id,
         date_value=payment.payment_date,
         description=payment._description(),
-        amount_egp=payment.amount_egp,
+        amount_base=payment.amount_base,
         payment_method=payment.payment_method,
         bank_id=payment.bank_id,
         notes=notes,

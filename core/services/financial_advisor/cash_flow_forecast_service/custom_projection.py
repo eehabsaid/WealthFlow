@@ -75,12 +75,12 @@ def compute_custom_cash_projection(
         entry = {
             "date": event.event_date.isoformat(),
             "type": event.event_type,
-            "amount": round(event.amount_egp, 2),
+            "amount": round(event.amount_base, 2),
         }
         if event.event_type in exclude_set:
             excluded_events.append(entry)
             continue
-        running_total += event.amount_egp
+        running_total += event.amount_base
         included_events.append(entry)
 
     return {

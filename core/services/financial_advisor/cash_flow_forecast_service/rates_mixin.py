@@ -19,7 +19,7 @@ class RatesMixin:
         raw_rates = comp.get("rates", {})
         return {str(code or "").upper(): to_float(value) for code, value in raw_rates.items()}
 
-    def _convert_egp(self, amount: float, currency_code: str, rates: Dict[str, float]) -> float:
+    def _convert_base(self, amount: float, currency_code: str, rates: Dict[str, float]) -> float:
         from core.services.shared.base_currency import get_user_base_code
 
         code = str(currency_code or "").upper() or get_user_base_code(self.owner)

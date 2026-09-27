@@ -26,7 +26,19 @@ def can_be_default(code) -> bool:
 
 
 def multi_currency_enabled() -> bool:
-    return bool(getattr(settings, "MULTI_CURRENCY_ENABLED", False))
+    """Whether a user may pick a default currency other than the platform's.
+
+    Backed by the AppSettings key 'multi_currency_enabled' (editable from
+    Settings > Currency, checked fresh on every request — no restart
+    needed). Installs that have never touched the toggle fall back to the
+    startup-time Django setting (itself seeded from the env var
+    WEALTHFLOW_MULTI_CURRENCY, default True) so existing behavior doesn't
+    change until a sysadmin actually visits the new UI control.
+    """
+    stored = AppSettings.get("multi_currency_enabled")
+    if stored is not None and str(stored).strip() != "":
+        return str(stored).strip().lower() in ("1", "true", "yes", "on")
+    return bool(getattr(settings, "MULTI_CURRENCY_ENABLED", True))
 
 
 def platform_default_code() -> str:

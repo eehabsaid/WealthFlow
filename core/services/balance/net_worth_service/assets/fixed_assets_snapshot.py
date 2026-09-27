@@ -6,9 +6,9 @@ from __future__ import annotations
 
 
 def build_fixed_assets_snapshot(comp: dict) -> dict:
-    net_worth = comp["net_worth_egp"]
-    fixed_total = comp["fixed_assets_total_egp"]
-    liquid_total = comp["liquid_assets_total_egp"]
+    net_worth = comp["net_worth_base"]
+    fixed_total = comp["fixed_assets_total_base"]
+    liquid_total = comp["liquid_assets_total_base"]
 
     fixed_ratio = (fixed_total / net_worth) * 100 if net_worth > 0 else 0
     liquid_ratio = (liquid_total / net_worth) * 100 if net_worth > 0 else 0
@@ -18,7 +18,7 @@ def build_fixed_assets_snapshot(comp: dict) -> dict:
         "type_real_estate": (fixed_breakdown["real_estate"] / fixed_total) * 100 if fixed_total > 0 else 0,
         "type_vehicles": (fixed_breakdown["vehicles"] / fixed_total) * 100 if fixed_total > 0 else 0,
         "type_other_assets": (fixed_breakdown["other_assets"] / fixed_total) * 100 if fixed_total > 0 else 0,
-        "type_gold": (comp["gold_value_egp"] / net_worth) * 100 if net_worth > 0 else 0,
+        "type_gold": (comp["gold_value_base"] / net_worth) * 100 if net_worth > 0 else 0,
     }
 
     return {

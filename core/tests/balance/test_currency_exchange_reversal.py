@@ -36,7 +36,7 @@ class CurrencyExchangeReversalTest(TestCase):
             currency=self.usd,
             amount=Decimal("1000.00")
         )
-        self.bal_egp = BalanceEntry.objects.create(
+        self.bal_base = BalanceEntry.objects.create(
             owner=self.user,
             title="CIB Account Test",
             balance_type=BalanceEntry.BalanceType.BANK,
@@ -57,7 +57,7 @@ class CurrencyExchangeReversalTest(TestCase):
         payload = {
             "exchange_date": "2026-08-05",
             "from_balance_id": self.bal_usd.id,
-            "to_balance_id": self.bal_egp.id,
+            "to_balance_id": self.bal_base.id,
             "from_amount": 100.00,
             "exchange_rate": 50.0
         }
@@ -68,9 +68,9 @@ class CurrencyExchangeReversalTest(TestCase):
         self.assertEqual(del_res.status_code, 200)
 
         self.bal_usd.refresh_from_db()
-        self.bal_egp.refresh_from_db()
+        self.bal_base.refresh_from_db()
         self.assertEqual(self.bal_usd.amount, Decimal("1000.00"))
-        self.assertEqual(self.bal_egp.amount, Decimal("50000.00"))
+        self.assertEqual(self.bal_base.amount, Decimal("50000.00"))
 
         exchange = CurrencyExchange.objects.get(pk=exchange_id)
         self.assertEqual(exchange.status, CurrencyExchange.Status.REVERSED)
@@ -80,7 +80,7 @@ class CurrencyExchangeReversalTest(TestCase):
         payload = {
             "exchange_date": "2026-08-05",
             "from_balance_id": self.bal_usd.id,
-            "to_balance_id": self.bal_egp.id,
+            "to_balance_id": self.bal_base.id,
             "from_amount": 100.00,
             "exchange_rate": 50.0
         }
@@ -90,7 +90,7 @@ class CurrencyExchangeReversalTest(TestCase):
         edit_payload = {
             "exchange_date": "2026-08-05",
             "from_balance_id": self.bal_usd.id,
-            "to_balance_id": self.bal_egp.id,
+            "to_balance_id": self.bal_base.id,
             "from_amount": 200.00,
             "exchange_rate": 50.0
         }
@@ -98,15 +98,15 @@ class CurrencyExchangeReversalTest(TestCase):
         self.assertEqual(edit_res.status_code, 200)
 
         self.bal_usd.refresh_from_db()
-        self.bal_egp.refresh_from_db()
+        self.bal_base.refresh_from_db()
         self.assertEqual(self.bal_usd.amount, Decimal("800.00"))
-        self.assertEqual(self.bal_egp.amount, Decimal("60000.00"))
+        self.assertEqual(self.bal_base.amount, Decimal("60000.00"))
 
     def test_insufficient_balance_validation(self):
         payload = {
             "exchange_date": "2026-08-05",
             "from_balance_id": self.bal_usd.id,
-            "to_balance_id": self.bal_egp.id,
+            "to_balance_id": self.bal_base.id,
             "from_amount": 5000.00,
             "exchange_rate": 50.0
         }

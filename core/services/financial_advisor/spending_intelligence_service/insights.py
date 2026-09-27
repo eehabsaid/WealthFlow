@@ -7,8 +7,8 @@ class InsightsMixin:
         if len(months) >= 2:
             last_month = months[-1]
             prev_month = months[-2]
-            if prev_month["total_egp"] > 0:
-                diff_pct = ((last_month["total_egp"] - prev_month["total_egp"]) / prev_month["total_egp"]) * 100.0
+            if prev_month["total_base"] > 0:
+                diff_pct = ((last_month["total_base"] - prev_month["total_base"]) / prev_month["total_base"]) * 100.0
 
                 if diff_pct > 15:
                     insights.append({
@@ -55,8 +55,8 @@ class InsightsMixin:
         if len(months) >= 2:
             last_month = months[-1]
             prev_month = months[-2]
-            if prev_month["total_egp"] > 0 and last_month["total_egp"] > prev_month["total_egp"]:
-                diff_pct = ((last_month["total_egp"] - prev_month["total_egp"]) / prev_month["total_egp"]) * 100.0
+            if prev_month["total_base"] > 0 and last_month["total_base"] > prev_month["total_base"]:
+                diff_pct = ((last_month["total_base"] - prev_month["total_base"]) / prev_month["total_base"]) * 100.0
                 recommendations.append({
                     "key": "spending_intelligence_rec_transport_increased",
                     "params": {"pct": str(round(diff_pct, 1))},

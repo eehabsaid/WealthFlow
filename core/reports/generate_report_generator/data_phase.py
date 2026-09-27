@@ -60,7 +60,7 @@ def build_report_data(data, lang, t, owner):
         title_str = format_arabic(title_str)
 
     expenses = list(qs)
-    total_exp = sum(float(e.amount_egp) for e in expenses)
+    total_exp = sum(float(e.amount_base) for e in expenses)
 
     # Income for period (salary paid amounts)
     from core.services.reports.report_service import ReportService
@@ -77,7 +77,7 @@ def build_report_data(data, lang, t, owner):
     cat_totals = {}
     for e in expenses:
         cname = e.category.name if e.category else "Uncategorised"
-        cat_totals[cname] = cat_totals.get(cname, 0) + float(e.amount_egp)
+        cat_totals[cname] = cat_totals.get(cname, 0) + float(e.amount_base)
 
     return {
         "rtype": rtype,

@@ -48,7 +48,7 @@ async function showPerDiemListModal(companyId, year) {
                                 <th data-i18n="date">Date</th>
                                 <th data-i18n="currency">Currency</th>
                                 <th class="text-end" data-i18n="amount_label">Amount</th>
-                                <th class="text-end" data-i18n="amount_egp">Amount (EGP)</th>
+                                <th class="text-end" data-i18n="amount_base">Amount</th>
                                 <th data-i18n="received_in">Received In</th>
                                 <th data-i18n="notes">Notes</th>
                                 <th data-i18n="actions">Actions</th>
@@ -110,7 +110,7 @@ function filterPerDiems() {
             <td>${pd.date}</td>
             <td>${pd.currency_flag} ${pd.currency_code}</td>
             <td class="text-end">${fmt(pd.amount)}</td>
-            <td class="text-end amt-positive">${fmt(pd.amount_egp)}</td>
+            <td class="text-end amt-positive">${fmt(pd.amount_base)}</td>
             <td>${pd.bank_name ? pd.bank_name : `<span class="badge bg-secondary" style="font-weight: normal;" data-i18n="cash_option">${t("cash_option", "Cash")}</span>`}</td>
             <td>${pd.notes || ""}</td>
             <td>
@@ -123,10 +123,10 @@ function filterPerDiems() {
     .join("");
 
   let sumAmount = 0;
-  let sumEgp = 0;
+  let sumBase = 0;
   filtered.forEach((pd) => {
     sumAmount += pd.amount;
-    sumEgp += pd.amount_egp;
+    sumBase += pd.amount_base;
   });
 
   const displayAmount = filterVal === "ALL" ? "—" : fmt(sumAmount);
@@ -135,7 +135,7 @@ function filterPerDiems() {
         <tr style="font-weight:bold; background: rgba(13, 110, 253, 0.05)">
             <td colspan="2" data-i18n="totals">Totals</td>
             <td class="text-end">${displayAmount}</td>
-            <td class="text-end amt-positive">${fmt(sumEgp)}</td>
+            <td class="text-end amt-positive">${fmt(sumBase)}</td>
             <td colspan="3"></td>
         </tr>
     `;

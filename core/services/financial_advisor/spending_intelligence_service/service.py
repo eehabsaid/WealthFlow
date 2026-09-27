@@ -32,7 +32,7 @@ class SpendingIntelligenceService(CategoriesMixin, MonthlyComparisonMixin, Insig
         avg_monthly_expenses = self._to_float(nw_payload.get("avg_monthly_expenses", 0.0))
 
         # 2. Get total expenses for the dataset to calculate percentages
-        total_expenses_agg = Expense.objects.filter(owner=self.owner).aggregate(total=Coalesce(Sum('amount_egp'), Decimal('0.0')))
+        total_expenses_agg = Expense.objects.filter(owner=self.owner).aggregate(total=Coalesce(Sum('amount_base'), Decimal('0.0')))
         total_expenses = self._to_float(total_expenses_agg['total'])
 
         # 3. Aggregate categories
@@ -59,7 +59,7 @@ class SpendingIntelligenceService(CategoriesMixin, MonthlyComparisonMixin, Insig
         return {
             "as_of": self.today.isoformat(),
             "avg_monthly_expenses": round(avg_monthly_expenses, 2),
-            "total_expenses_recorded": round(self._to_float(Expense.objects.filter(owner=self.owner).aggregate(t=Coalesce(Sum('amount_egp'), Decimal('0.0')))['t']), 2),
+            "total_expenses_recorded": round(self._to_float(Expense.objects.filter(owner=self.owner).aggregate(t=Coalesce(Sum('amount_base'), Decimal('0.0')))['t']), 2),
             "total_transactions": total_transactions,
             "avg_transactions_per_month": round(avg_transactions_per_month, 1),
             "months_history": len(months),

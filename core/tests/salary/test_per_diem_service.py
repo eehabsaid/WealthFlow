@@ -54,7 +54,7 @@ class PerDiemServiceTest(TestCase):
         # Verify db record
         pd = PerDiem.objects.get(id=response.json()["id"])
         self.assertEqual(pd.amount, Decimal("100.00"))
-        self.assertEqual(pd.amount_egp, Decimal("5000.00")) # 100 * 50
+        self.assertEqual(pd.amount_base, Decimal("5000.00")) # 100 * 50
         
         # Verify balance entry
         bal = BalanceEntry.objects.get(bank=self.bank, currency=self.currency_usd, balance_type="cash")
@@ -88,7 +88,7 @@ class PerDiemServiceTest(TestCase):
         # Check database updated
         pd = PerDiem.objects.get(id=pd_id)
         self.assertEqual(pd.amount, Decimal("150.00"))
-        self.assertEqual(pd.amount_egp, Decimal("7500.00"))
+        self.assertEqual(pd.amount_base, Decimal("7500.00"))
         self.assertIsNone(pd.bank)
         
         # Verify old balance entry reversed (Chase / USD amount should be 0)

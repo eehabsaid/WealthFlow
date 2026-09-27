@@ -68,7 +68,7 @@ class FinancialIntelligenceCalibrationTest(TestCase):
             year=2026,
             month=6,
             amount=1000,
-            amount_egp=1000,
+            amount_base=1000,
         )
 
         healthy = self.client.get("/api/certificate-forecast/")
@@ -86,9 +86,9 @@ class FinancialIntelligenceCalibrationTest(TestCase):
             currency=self.egp,
             amount=1000,
         )
-        Expense.objects.create(owner=self.user, date=date(2026, 5, 1), year=2026, month=5, amount=20000, amount_egp=20000)
-        Expense.objects.create(owner=self.user, date=date(2026, 6, 1), year=2026, month=6, amount=18000, amount_egp=18000)
-        Expense.objects.create(owner=self.user, date=date(2026, 7, 1), year=2026, month=7, amount=22000, amount_egp=22000)
+        Expense.objects.create(owner=self.user, date=date(2026, 5, 1), year=2026, month=5, amount=20000, amount_base=20000)
+        Expense.objects.create(owner=self.user, date=date(2026, 6, 1), year=2026, month=6, amount=18000, amount_base=18000)
+        Expense.objects.create(owner=self.user, date=date(2026, 7, 1), year=2026, month=7, amount=22000, amount_base=22000)
 
         stressed = self.client.get("/api/certificate-forecast/")
         self.assertEqual(stressed.status_code, 200)
@@ -103,7 +103,7 @@ class FinancialIntelligenceCalibrationTest(TestCase):
         self.assertIsInstance(action, dict)
         self.assertTrue(action.get("key"))
 
-    def test_balance_summary_liquid_egp_cash_uses_cash_egp_rows_only(self):
+    def test_balance_summary_liquid_base_cash_uses_cash_base_rows_only(self):
         bank = Bank.objects.create(name="CIB", owner=self.user)
         cash_currency = Currency.objects.create(code="cash", symbol="c", name="Cash")
 
@@ -141,4 +141,4 @@ class FinancialIntelligenceCalibrationTest(TestCase):
         self.assertEqual(response.status_code, 200)
         summary = response.json().get("summary") or {}
 
-        self.assertEqual(summary.get("liquid_egp_cash"), 3500.0)
+        self.assertEqual(summary.get("liquid_base_cash"), 3500.0)

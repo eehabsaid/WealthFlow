@@ -13,7 +13,7 @@ function showCreditCardPaymentModal(id = null) {
     bank_id: "",
     payment_method: "Card",
     card_label: "",
-    amount_egp: "",
+    amount_base: "",
     notes: "",
   };
 
@@ -97,7 +97,7 @@ function showCreditCardPaymentModal(id = null) {
   showModal(html);
 
   document.getElementById("ccp_date").value = cp.payment_date;
-  document.getElementById("ccp_amount").value = cp.amount_egp;
+  document.getElementById("ccp_amount").value = cp.amount_base;
   document.getElementById("ccp_card_label").value = cp.card_label;
   document.getElementById("ccp_notes").value = cp.notes;
   if (cp.bank_id) document.getElementById("ccp_bank").value = cp.bank_id;

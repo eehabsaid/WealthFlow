@@ -3,8 +3,14 @@
 // This file is part of the settings module. Do not edit directly.
 
 async function renderCurrencySettings() {
-  const res = await fetch("/api/currencies/");
+  const [res, settingsRes] = await Promise.all([
+    fetch("/api/currencies/"),
+    fetch("/api/settings/"),
+  ]);
   const { currencies = [] } = await res.json();
+  const settingsData = await settingsRes.json().catch(() => ({}));
+  const multiCurrencyEnabled =
+    (settingsData?.settings?.multi_currency_enabled ?? "true") !== "false";
 
   const rows = currencies
     .map(
@@ -32,6 +38,18 @@ async function renderCurrencySettings() {
   const contentEl = document.getElementById("settingsContent");
   if (!contentEl) return;
   contentEl.innerHTML = `
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);
+                    border-radius:12px;padding:14px;margin-bottom:14px;display:flex;
+                    justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <div>
+                <div style="font-weight:600" data-i18n="multi_currency_toggle_label">${t("multi_currency_toggle_label", "Allow users to choose a non-default currency")}</div>
+                <div style="font-size:12px;color:var(--text-secondary)" data-i18n="multi_currency_toggle_hint">${t("multi_currency_toggle_hint", "When off, every user is locked to the platform's default currency.")}</div>
+            </div>
+            <div class="form-check form-switch" style="margin:0">
+                <input class="form-check-input" type="checkbox" role="switch" id="multiCurrencyToggle"
+                    ${multiCurrencyEnabled ? "checked" : ""} onchange="setMultiCurrencyEnabled(this.checked)">
+            </div>
+        </div>
         <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:14px">
             
             <button class="btn-primary-custom" onclick="showCurrencyModal(null)" data-i18n="add_currency">
@@ -140,6 +158,27 @@ async function deleteCurrency(currencyId) {
     showToast("Deleted");
     renderCurrencySettings();
   } else showToast("Error deleting currency", "error");
+}
+
+async function setMultiCurrencyEnabled(enabled) {
+  const res = await fetch("/api/settings/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ settings: { multi_currency_enabled: enabled ? "true" : "false" } }),
+  });
+  if (res.ok) {
+    showToast(
+      enabled
+        ? t("multi_currency_enabled_saved", "Users can now choose their own default currency ✓")
+        : t(
+            "multi_currency_disabled_saved",
+            "Currency choice is now locked to the platform default ✓"
+          )
+    );
+  } else {
+    showToast(t("error_saving_settings", "Error saving setting"), "error");
+    document.getElementById("multiCurrencyToggle").checked = !enabled;
+  }
 }
 
 async function setDefaultCurrency(code) {

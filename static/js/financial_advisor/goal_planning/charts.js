@@ -15,7 +15,7 @@ function _drawGoalTypeChart(payload) {
 
   const items = payload?.distribution?.by_type || [];
   const labels = items.map((item) => item.label || t("goal_planning_not_available"));
-  const values = items.map((item) => Number(item.value_egp || 0));
+  const values = items.map((item) => Number(item.value_base || 0));
 
   new Chart(canvas, {
     type: "doughnut",

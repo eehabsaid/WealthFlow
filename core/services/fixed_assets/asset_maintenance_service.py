@@ -64,15 +64,15 @@ def _sync_asset_furniture(asset, items):
             continue
         payment_method = item.get("payment_method", "Cash")
         bank_id = item.get("bank_id")
-        amount_egp = item.get("amount_egp", 0)
+        amount_base = item.get("amount_base", 0)
         row = existing.get(item.get("id"))
 
         if row:
-            _apply_expense_balance_delta(row.payment_method, row.bank_id, Decimal(str(row.amount_egp or 0)), owner=asset.owner)
+            _apply_expense_balance_delta(row.payment_method, row.bank_id, Decimal(str(row.amount_base or 0)), owner=asset.owner)
             row.name = item.get("name", "")
             row.category = item.get("category", "")
             row.purchase_date = item.get("purchase_date") or None
-            row.amount_egp = amount_egp
+            row.amount_base = amount_base
             row.usd_rate = item.get("usd_rate", 0)
             row.amount_usd = item.get("amount_usd", 0)
             row.quantity = item.get("quantity", 1)
@@ -86,7 +86,7 @@ def _sync_asset_furniture(asset, items):
                 name=item.get("name", ""),
                 category=item.get("category", ""),
                 purchase_date=item.get("purchase_date") or None,
-                amount_egp=amount_egp,
+                amount_base=amount_base,
                 usd_rate=item.get("usd_rate", 0),
                 amount_usd=item.get("amount_usd", 0),
                 quantity=item.get("quantity", 1),
@@ -94,12 +94,12 @@ def _sync_asset_furniture(asset, items):
                 bank_id=bank_id,
                 notes=item.get("notes", ""),
             )
-        _apply_expense_balance_delta(payment_method, bank_id, -Decimal(str(amount_egp or 0)), owner=asset.owner)
+        _apply_expense_balance_delta(payment_method, bank_id, -Decimal(str(amount_base or 0)), owner=asset.owner)
         keep_ids.add(row.id)
 
     for old_id, old in existing.items():
         if old_id not in keep_ids:
-            _apply_expense_balance_delta(old.payment_method, old.bank_id, Decimal(str(old.amount_egp or 0)), owner=asset.owner)
+            _apply_expense_balance_delta(old.payment_method, old.bank_id, Decimal(str(old.amount_base or 0)), owner=asset.owner)
             old.delete()
 
 def _sync_asset_valuation_history(asset, items):

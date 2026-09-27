@@ -19,8 +19,8 @@ function buildFurniturePaneHtml(furniture, asset) {
                                 <div class="fw-semibold">${item.name || "-"}</div>
                               </div>
                               <div class="text-end">
-                                <div class="small mb-1" data-i18n="amount_egp">Amount</div>
-                                <div class="fw-semibold">${fmt(item.amount_egp * parseInt(item.quantity) || 1)}</div>
+                                <div class="small mb-1" data-i18n="amount_base">Amount</div>
+                                <div class="fw-semibold">${fmt(item.amount_base * parseInt(item.quantity) || 1)}</div>
                               </div>
                             </div>
                             <div class="mt-3 d-flex justify-content-between gap-3">
@@ -51,7 +51,7 @@ function buildFurniturePaneHtml(furniture, asset) {
                                                 if (rate > 0) {
                                                   return (
                                                     sum +
-                                                    ((parseFloat(item.amount_egp) || 0) * qty) /
+                                                    ((parseFloat(item.amount_base) || 0) * qty) /
                                                       rate
                                                   );
                                                 } else {
@@ -63,9 +63,9 @@ function buildFurniturePaneHtml(furniture, asset) {
                                     </div>
 
                                     <div class="d-flex justify-content-between align-items-center w-100">
-                                        <div class="fw-semibold" data-i18n="amount_egp">Amount</div>
+                                        <div class="fw-semibold" data-i18n="amount_base">Amount</div>
                                         <div class="text-end fw-semibold">
-                                            ${fmt(furniture.reduce((sum, item) => sum + (parseFloat(item.amount_egp) || 0) * (parseInt(item.quantity) || 1), 0))} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
+                                            ${fmt(furniture.reduce((sum, item) => sum + (parseFloat(item.amount_base) || 0) * (parseInt(item.quantity) || 1), 0))} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
                                         </div>
                                     </div>
 

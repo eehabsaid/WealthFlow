@@ -12,12 +12,12 @@ def run_currency_exchange_test(ctx):
     # 1. CURRENCY EXCHANGE MODULE TEST
     # ------------------------------------------------------------------
     print("\n--- 1. CURRENCY EXCHANGE E2E TEST ---")
-    bal_egp, _ = BalanceEntry.objects.get_or_create(
+    bal_base, _ = BalanceEntry.objects.get_or_create(
         title="QA CE Source EGP Account",
         defaults={"amount": Decimal("100000.00"), "currency": ctx.egp, "balance_type": BalanceEntry.BalanceType.CASH}
     )
-    bal_egp.amount = Decimal("100000.00")
-    bal_egp.save()
+    bal_base.amount = Decimal("100000.00")
+    bal_base.save()
 
     bal_usd, _ = BalanceEntry.objects.get_or_create(
         title="QA CE Dest USD Account",
@@ -30,7 +30,7 @@ def run_currency_exchange_test(ctx):
     calc_rate, to_amt = CurrencyConversionService.convert_amount(Decimal("5000.00"), "EGP", "USD")
     ce = CurrencyExchange(
         exchange_date="2026-08-05",
-        from_balance=bal_egp,
+        from_balance=bal_base,
         to_balance=bal_usd,
         from_currency=ctx.egp,
         to_currency=ctx.usd,
@@ -42,19 +42,19 @@ def run_currency_exchange_test(ctx):
     )
     ce.apply_exchange()
 
-    bal_egp.refresh_from_db()
+    bal_base.refresh_from_db()
     bal_usd.refresh_from_db()
-    assert bal_egp.amount == Decimal("95000.00"), f"Source balance failed: {bal_egp.amount}"
+    assert bal_base.amount == Decimal("95000.00"), f"Source balance failed: {bal_base.amount}"
     assert bal_usd.amount == Decimal("1000.00") + to_amt, f"Dest balance failed: {bal_usd.amount}"
-    print(f"  [PASS] Currency Exchange Creation: EGP balance {bal_egp.amount}, USD balance {bal_usd.amount}")
+    print(f"  [PASS] Currency Exchange Creation: EGP balance {bal_base.amount}, USD balance {bal_usd.amount}")
 
     ce.reverse_exchange(user=ctx.user)
-    bal_egp.refresh_from_db()
+    bal_base.refresh_from_db()
     bal_usd.refresh_from_db()
-    assert bal_egp.amount == Decimal("100000.00"), "Reversal EGP failed"
+    assert bal_base.amount == Decimal("100000.00"), "Reversal EGP failed"
     assert bal_usd.amount == Decimal("1000.00"), "Reversal USD failed"
     print("  [PASS] Currency Exchange Reversal restored exact balances.")
 
-    ctx.bal_egp = bal_egp
+    ctx.bal_base = bal_base
     ctx.bal_usd = bal_usd
     ctx.ce = ce

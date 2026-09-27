@@ -17,14 +17,14 @@ class PayloadMixin:
         ctx = self._build_portfolio_context()
 
         recommendations = self._recommendations(ctx.allocation_percentages, ctx.emergency_months)
-        maturity_egp_90 = self._upcoming_certificate_maturity_egp(ctx.comp, days=90)
-        if maturity_egp_90 > 0:
+        maturity_base_90 = self._upcoming_certificate_maturity_base(ctx.comp, days=90)
+        if maturity_base_90 > 0:
             recommendations.append(
                 {
                     "key": "portfolio_optimizer_rec_upcoming_maturities_boost_liquidity",
                     "severity": "info",
                     "severity_key": "portfolio_optimizer_severity_info",
-                    "metric_value": round(maturity_egp_90, 2),
+                    "metric_value": round(maturity_base_90, 2),
                 }
             )
         priority_rank = {"high": 0, "medium": 1, "low": 2, "info": 3}

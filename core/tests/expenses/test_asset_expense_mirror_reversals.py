@@ -48,7 +48,7 @@ class AssetExpenseMirrorReversalsTest(TestCase):
             asset=self.asset,
             date=date(2025, 3, 10),
             category="Painting",
-            amount_egp=5000,
+            amount_base=5000,
             payment_method="Cash",
         )
         cash_entry.refresh_from_db()
@@ -98,7 +98,7 @@ class AssetExpenseMirrorReversalsTest(TestCase):
             amount=1000000,
         )
         _sync_asset_renovations(self.asset, [
-            {"date": "2025-01-10", "category": "Painting", "amount_egp": 5000},
+            {"date": "2025-01-10", "category": "Painting", "amount_base": 5000},
         ])
         existing_renovation = AssetRenovation.objects.get(asset=self.asset)
         mirror_before = Expense.objects.get(source_type="asset_renovation", source_id=existing_renovation.id)
@@ -110,9 +110,9 @@ class AssetExpenseMirrorReversalsTest(TestCase):
                 "id": existing_renovation.id,
                 "date": "2025-01-10",
                 "category": "Painting",
-                "amount_egp": 5000,
+                "amount_base": 5000,
             },
-            {"date": "2025-02-05", "category": "Flooring", "amount_egp": 9000},
+            {"date": "2025-02-05", "category": "Flooring", "amount_base": 9000},
         ])
 
         self.assertEqual(AssetRenovation.objects.filter(asset=self.asset).count(), 2)
@@ -133,7 +133,7 @@ class AssetExpenseMirrorReversalsTest(TestCase):
             amount=1000000,
         )
         _sync_asset_acquisition_costs(self.asset, [
-            {"date": "2025-01-05", "category": "Lawyer Fees", "amount_egp": 25000},
+            {"date": "2025-01-05", "category": "Lawyer Fees", "amount_base": 25000},
         ])
         existing_cost = AssetAcquisitionCost.objects.get(asset=self.asset)
         mirror_before = Expense.objects.get(source_type="asset_acquisition_cost", source_id=existing_cost.id)
@@ -143,9 +143,9 @@ class AssetExpenseMirrorReversalsTest(TestCase):
                 "id": existing_cost.id,
                 "date": "2025-01-05",
                 "category": "Lawyer Fees",
-                "amount_egp": 25000,
+                "amount_base": 25000,
             },
-            {"date": "2025-02-01", "category": "Registration Fees", "amount_egp": 3000},
+            {"date": "2025-02-01", "category": "Registration Fees", "amount_base": 3000},
         ])
 
         self.assertEqual(AssetAcquisitionCost.objects.filter(asset=self.asset).count(), 2)
@@ -165,8 +165,8 @@ class AssetExpenseMirrorReversalsTest(TestCase):
             amount=1000000,
         )
         _sync_asset_renovations(self.asset, [
-            {"date": "2025-01-10", "category": "Painting", "amount_egp": 5000},
-            {"date": "2025-02-05", "category": "Flooring", "amount_egp": 9000},
+            {"date": "2025-01-10", "category": "Painting", "amount_base": 5000},
+            {"date": "2025-02-05", "category": "Flooring", "amount_base": 9000},
         ])
         renovations = list(AssetRenovation.objects.filter(asset=self.asset).order_by("id"))
         keep_id = renovations[1].id
@@ -177,7 +177,7 @@ class AssetExpenseMirrorReversalsTest(TestCase):
                 "id": keep_id,
                 "date": "2025-02-05",
                 "category": "Flooring",
-                "amount_egp": 9000,
+                "amount_base": 9000,
             },
         ])
 

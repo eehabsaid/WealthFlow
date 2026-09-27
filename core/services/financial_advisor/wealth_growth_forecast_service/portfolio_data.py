@@ -16,13 +16,13 @@ class PortfolioDataMixin:
         forecast = self._net_worth_service.certificate_forecast_payload(today=self.today)
         cash_payload = self._cash_flow_service.payload()
         return {
-            "current_net_worth": _to_float(comp["net_worth_egp"]),
+            "current_net_worth": _to_float(comp["net_worth_base"]),
             "current_cash": _to_float(cash_payload["checkpoints"]["current"]),
-            "bank_balances": _to_float(comp["banks_total_egp"]),
-            "fixed_assets": _to_float(comp["fixed_assets_total_egp"]),
-            "gold_value": _to_float(comp["gold_value_egp"]),
-            "certificate_value": _to_float(comp["certificate_total_egp"]),
-            "certificate_interest_monthly": _to_float(comp["certificate_interest_total_egp"]),
+            "bank_balances": _to_float(comp["banks_total_base"]),
+            "fixed_assets": _to_float(comp["fixed_assets_total_base"]),
+            "gold_value": _to_float(comp["gold_value_base"]),
+            "certificate_value": _to_float(comp["certificate_total_base"]),
+            "certificate_interest_monthly": _to_float(comp["certificate_interest_total_base"]),
             "cash_checkpoints": cash_payload["checkpoints"],
             "cash_timeline": cash_payload["timeline"],
             "gold_trend_30": _to_float(forecast["gold_trend_30"]),

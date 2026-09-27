@@ -41,7 +41,7 @@ class GetTextBaseSubstitutionTests(TestCase):
     def test_substitutes_base_token_from_report_context(self):
         set_report_base_code("SAR")
         try:
-            text = get_text("amount_egp", "en", {"amount_egp": "Amount ({base})"})
+            text = get_text("amount_base", "en", {"amount_base": "Amount ({base})"})
             self.assertEqual(text, "Amount (SAR)")
         finally:
             set_report_base_code("EGP")
@@ -89,7 +89,7 @@ class DynamicFormatHelperTests(TestCase):
 
 
 class BalanceReportViewCurrencyNeutralTests(TestCase):
-    """Regression test for the real bug: total_egp used to filter
+    """Regression test for the real bug: total_base used to filter
     currency__code="EGP" only, so a bank holding non-EGP balances (or any
     balance at all for a non-EGP-base user) reported an incomplete/zero
     total, even though the frontend already labels this as "total in your
@@ -126,7 +126,7 @@ class BalanceReportViewCurrencyNeutralTests(TestCase):
         bank_row = next(b for b in data["by_bank"] if b["bank_id"] == self.bank.id)
         # 100 SAR (already base) + 10 USD * (50 EGP/USD / 13 EGP/SAR) = 100 + 38.46...
         expected = 100 + 10 * (50 / 13)
-        self.assertAlmostEqual(bank_row["total_egp"], expected, places=2)
+        self.assertAlmostEqual(bank_row["total_base"], expected, places=2)
 
     def test_egp_only_filter_bug_is_gone(self):
         # Before the fix this would have been 0, since neither entry above
@@ -135,7 +135,7 @@ class BalanceReportViewCurrencyNeutralTests(TestCase):
         resp = self.client.get("/api/reports/balance/")
         data = resp.json()
         bank_row = next(b for b in data["by_bank"] if b["bank_id"] == self.bank.id)
-        self.assertGreater(bank_row["total_egp"], 0)
+        self.assertGreater(bank_row["total_base"], 0)
 
 
 class GenerateExcelCurrencyNeutralTests(TestCase):

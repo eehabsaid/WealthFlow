@@ -11,6 +11,7 @@ function renderPerformanceView(container) {
   const currencies = _performanceData.currencies || {};
   const currData = currencies.data || {};
   const hasCurrHistory = currencies.rate_history_available;
+  const pivotCode = currencies.pivot_code || "";
 
   const goldTrend7 = gold.trend_7d || 0;
   const goldTrend30 = gold.trend_30d || 0;
@@ -52,6 +53,7 @@ function renderPerformanceView(container) {
     impact7d,
     impact30d,
     currRate,
+    pivotCode,
     currTrend7,
     currTrend30,
     currTrend90,
@@ -71,7 +73,7 @@ function renderPerformanceView(container) {
           <div class="d-flex align-items-center gap-3">
             <span class="small d-flex align-items-center gap-1" style="color:var(--text-secondary);">
               <i class="bi bi-info-circle"></i>
-              <span data-i18n="performance_all_values_egp">All values in EGP unless otherwise stated</span>
+              <span data-i18n="performance_all_values_base">All values in your default currency unless otherwise stated</span>
             </span>
           </div>
         </div>

@@ -11,6 +11,6 @@ window.getCurrentEmploymentCompanyId = getCurrentEmploymentCompanyId;
 window.showPerDiemListModal = showPerDiemListModal;
 window.filterPerDiems = filterPerDiems;
 window.showPerDiemFormModal = showPerDiemFormModal;
-window.recalcPerDiemEgp = recalcPerDiemEgp;
+window.recalcPerDiemBase = recalcPerDiemBase;
 window.savePerDiem = savePerDiem;
 window.deletePerDiem = deletePerDiem;

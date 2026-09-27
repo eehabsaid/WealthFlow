@@ -42,7 +42,7 @@ def normalize_date(value):
     return None
 
 
-def egp_currency(owner=None):
+def base_currency(owner=None):
     """The owner's default-currency row (legacy name; mirrored amounts are
     stored in the default currency)."""
     from core.services.shared.base_currency import get_user_base_code
@@ -69,7 +69,7 @@ def delete_mirror(source_type, source_id):
     Expense.objects.filter(source_type=source_type, source_id=source_id).delete()
 
 
-def sync_mirror(source_type, source_id, *, date_value, description, amount_egp, payment_method, bank_id, notes,
+def sync_mirror(source_type, source_id, *, date_value, description, amount_base, payment_method, bank_id, notes,
                  category, subcategory, owner):
     """Create/update/delete the mirrored Expense row for one source
     record. A zero/blank amount deletes any existing mirror instead of
@@ -78,7 +78,7 @@ def sync_mirror(source_type, source_id, *, date_value, description, amount_egp, 
     if not source_id:
         return None
 
-    amount = Decimal(str(amount_egp or 0))
+    amount = Decimal(str(amount_base or 0))
     if amount <= 0:
         delete_mirror(source_type, source_id)
         return None
@@ -95,8 +95,8 @@ def sync_mirror(source_type, source_id, *, date_value, description, amount_egp, 
         "description": (description or subcategory.name)[:300],
         "amount": amount,
         "exchange_rate": Decimal("1"),
-        "amount_egp": amount,
-        "currency": egp_currency(owner),
+        "amount_base": amount,
+        "currency": base_currency(owner),
         "bank_id": bank_id,
         "payment_method": map_payment_method(payment_method),
         "notes": notes,

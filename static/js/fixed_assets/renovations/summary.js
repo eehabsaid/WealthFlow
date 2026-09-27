@@ -14,13 +14,13 @@ function updateRenovationSummary() {
     badge.textContent = count > 0 ? `(${count})` : "";
   }
 
-  let totalEGP = 0;
+  let totalBase = 0;
   let totalUSD = 0;
 
   rows.forEach((row) => {
-    const egp = parseFloat(row.querySelector(".renovation-egp").value) || 0;
+    const baseAmount = parseFloat(row.querySelector(".renovation-base").value) || 0;
     const usd = parseFloat(row.querySelector(".renovation-usd").value) || 0;
-    totalEGP += egp;
+    totalBase += baseAmount;
     totalUSD += usd;
   });
 
@@ -34,8 +34,8 @@ function updateRenovationSummary() {
         <span class="stat-value">${count}</span>
       </div>
       <div class="stat">
-        <span class="stat-label" data-i18n="total_egp">Total (EGP)</span>
-        <span class="stat-value">${fmt(totalEGP)}</span>
+        <span class="stat-label" data-i18n="total_base">Total</span>
+        <span class="stat-value">${fmt(totalBase)}</span>
       </div>
       <div class="stat">
         <span class="stat-label" data-i18n="total_usd">Total (USD)</span>

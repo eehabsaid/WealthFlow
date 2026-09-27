@@ -12,7 +12,7 @@ class MonthlyComparisonMixin:
     def _monthly_comparison(self):
         months = []
         monthly_qs = Expense.objects.filter(owner=self.owner).values('year', 'month').annotate(
-            total_egp=Coalesce(Sum('amount_egp'), Decimal('0.0')),
+            total_base=Coalesce(Sum('amount_base'), Decimal('0.0')),
             count=Count('id')
         ).order_by('year', 'month')
 
@@ -20,13 +20,13 @@ class MonthlyComparisonMixin:
             months.append({
                 "year": item['year'],
                 "month": item['month'],
-                "total_egp": round(self._to_float(item['total_egp']), 2),
+                "total_base": round(self._to_float(item['total_base']), 2),
                 "count": int(item['count'])
             })
 
         by_category = {}
         monthly_cat_qs = Expense.objects.filter(owner=self.owner).values('year', 'month', 'category_id').annotate(
-            total_egp=Coalesce(Sum('amount_egp'), Decimal('0.0')),
+            total_base=Coalesce(Sum('amount_base'), Decimal('0.0')),
             count=Count('id')
         ).order_by('year', 'month')
 
@@ -37,7 +37,7 @@ class MonthlyComparisonMixin:
             by_category[cat_key].append({
                 "year": item['year'],
                 "month": item['month'],
-                "total_egp": round(self._to_float(item['total_egp']), 2),
+                "total_base": round(self._to_float(item['total_base']), 2),
                 "count": int(item['count'])
             })
 

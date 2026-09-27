@@ -19,7 +19,7 @@ class ExpenseIncomeMixin:
     def _month_expense_baseline(self) -> Tuple[float, int]:
         start_date = self.today - timedelta(days=180)
         qs = Expense.objects.filter(owner=self.owner, date__gte=start_date)
-        total = _to_float(qs.aggregate(total=Sum("amount_egp")).get("total"))
+        total = _to_float(qs.aggregate(total=Sum("amount_base")).get("total"))
         active_months = len(set(qs.values_list("year", "month")))
         return total, active_months
 
@@ -36,10 +36,10 @@ class ExpenseIncomeMixin:
     def _latest_monthly_income(self) -> float:
         from core.services.salary.salary_service import get_current_monthly_salary
         salary_value = get_current_monthly_salary(self.owner)
-        certificate_income = _to_float(self.net_worth.portfolio_components().get("certificate_interest_total_egp"))
+        certificate_income = _to_float(self.net_worth.portfolio_components().get("certificate_interest_total_base"))
         return salary_value + certificate_income
 
-    def _upcoming_certificate_maturity_egp(self, comp: dict, days: int = 90) -> float:
+    def _upcoming_certificate_maturity_base(self, comp: dict, days: int = 90) -> float:
         from core.services.shared.base_currency import get_user_base_code
 
         rates = comp.get("rates", {})

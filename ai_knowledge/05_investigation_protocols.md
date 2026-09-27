@@ -32,7 +32,7 @@
 **Trigger**: "expenses", "spending", "budget", "category breakdown"
 **Required data providers**: spending_intelligence, expenses
 **Steps**:
-1. Rank expense categories by total (using `amount_egp` field only).
+1. Rank expense categories by total (using `amount_base` field only).
 2. Separate fixed vs discretionary.
 3. Flag spikes vs prior period.
 **Output**: Categorical breakdown table, savings opportunities, budget thresholds.
@@ -49,4 +49,4 @@
 ## 6. Missing Data Protocol
 - If a required signal is absent: state "No data available for [module] in the current context."
 - Never invent balances, rates, or certificate terms.
-- If `amount_egp` is zero or missing on expenses, flag it rather than using `amount`.
+- If `amount_base` is zero or missing on expenses, flag it rather than using `amount`.

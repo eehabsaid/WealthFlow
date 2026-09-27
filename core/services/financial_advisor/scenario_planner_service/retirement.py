@@ -42,8 +42,8 @@ class RetirementMixin:
 
         return {
             "target_age": target_age,
-            "required_nest_egg_egp": round(required_nest_egg, 2),
-            "projected_net_worth_egp": round(projected_net_worth_12m, 2),
+            "required_nest_egg_base": round(required_nest_egg, 2),
+            "projected_net_worth_base": round(projected_net_worth_12m, 2),
             "readiness_pct": round(readiness_pct, 1),
             "assumption_note": (
                 f"Based on safe withdrawal rate of {int(self.config['DEFAULT_WITHDRAWAL_RATE']*100)}% "

@@ -39,7 +39,7 @@ class CardRenewalFeeBalanceAndMirrorTest(TestCase):
             fee_date=date(2026, 8, 31),
             bank=self.bank,
             card_label="Visa Debit 1234",
-            amount_egp=Decimal("50.00"),
+            amount_base=Decimal("50.00"),
         )
         fee.apply_and_mirror()
 
@@ -49,7 +49,7 @@ class CardRenewalFeeBalanceAndMirrorTest(TestCase):
         category = self._card_fee_category()
         self.assertIsNotNone(category)
         mirror = Expense.objects.get(source_type="card_renewal_fee", source_id=fee.id)
-        self.assertEqual(mirror.amount_egp, Decimal("50.00"))
+        self.assertEqual(mirror.amount_base, Decimal("50.00"))
         self.assertEqual(mirror.category_id, category.id)
         self.assertTrue(mirror.is_readonly_mirror)
 
@@ -57,7 +57,7 @@ class CardRenewalFeeBalanceAndMirrorTest(TestCase):
         fee = CardRenewalFee.objects.create(
             fee_date=date(2026, 8, 31),
             bank=self.bank,
-            amount_egp=Decimal("75.00"),
+            amount_base=Decimal("75.00"),
         )
         fee.apply_and_mirror()
         fee.reverse_and_unmirror()
@@ -75,7 +75,7 @@ class CardRenewalFeeBalanceAndMirrorTest(TestCase):
         fee = CardRenewalFee.objects.create(
             fee_date=date(2026, 8, 31),
             bank=self.bank,
-            amount_egp=Decimal("100.00"),
+            amount_base=Decimal("100.00"),
         )
         with self.assertRaises(ValueError):
             fee.apply_and_mirror()
@@ -90,19 +90,19 @@ class CardRenewalFeeBalanceAndMirrorTest(TestCase):
         fee = CardRenewalFee.objects.create(
             fee_date=date(2026, 8, 31),
             bank=self.bank,
-            amount_egp=Decimal("20.00"),
+            amount_base=Decimal("20.00"),
         )
         fee.apply_and_mirror()
 
         fee.reverse_and_unmirror()
-        fee.amount_egp = Decimal("60.00")
+        fee.amount_base = Decimal("60.00")
         fee.save()
         fee.apply_and_mirror()
 
         self.entry.refresh_from_db()
         self.assertEqual(self.entry.amount, Decimal("940.00"))
         mirror = Expense.objects.get(source_type="card_renewal_fee", source_id=fee.id)
-        self.assertEqual(mirror.amount_egp, Decimal("60.00"))
+        self.assertEqual(mirror.amount_base, Decimal("60.00"))
 
 
 class CardRenewalFeeEndpointTest(TestCase):
@@ -135,7 +135,7 @@ class CardRenewalFeeEndpointTest(TestCase):
                 "fee_date": "2026-08-31",
                 "bank_id": self.bank.id,
                 "card_label": "Visa Debit 1234",
-                "amount_egp": 40,
+                "amount_base": 40,
                 "notes": "Annual renewal",
             },
             content_type="application/json",
@@ -146,13 +146,13 @@ class CardRenewalFeeEndpointTest(TestCase):
 
     def test_update_via_api_reapplies_delta(self):
         fee = CardRenewalFee.objects.create(
-            owner=self.user, fee_date=date(2026, 8, 31), bank=self.bank, amount_egp=Decimal("25.00")
+            owner=self.user, fee_date=date(2026, 8, 31), bank=self.bank, amount_base=Decimal("25.00")
         )
         fee.apply_and_mirror()
 
         res = self.client.put(
             f"/api/card-renewal-fees/{fee.id}/",
-            data={"amount_egp": 55},
+            data={"amount_base": 55},
             content_type="application/json",
         )
         self.assertEqual(res.status_code, 200)
@@ -161,7 +161,7 @@ class CardRenewalFeeEndpointTest(TestCase):
 
     def test_delete_via_api_reverses_and_removes_mirror(self):
         fee = CardRenewalFee.objects.create(
-            owner=self.user, fee_date=date(2026, 8, 31), bank=self.bank, amount_egp=Decimal("30.00")
+            owner=self.user, fee_date=date(2026, 8, 31), bank=self.bank, amount_base=Decimal("30.00")
         )
         fee.apply_and_mirror()
 
@@ -182,7 +182,7 @@ class CardRenewalFeeEndpointTest(TestCase):
             data={
                 "fee_date": "2026-08-31",
                 "bank_id": self.bank.id,
-                "amount_egp": 999,
+                "amount_base": 999,
             },
             content_type="application/json",
         )

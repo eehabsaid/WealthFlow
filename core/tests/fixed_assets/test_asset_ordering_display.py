@@ -43,20 +43,20 @@ class FixedAssetListOrderingTest(TestCase):
 
     def test_furniture_ordered_newest_first(self):
         older = AssetFurniture.objects.create(
-            asset=self.re_asset, name="Sofa", purchase_date=date(2025, 1, 5), amount_egp=1000
+            asset=self.re_asset, name="Sofa", purchase_date=date(2025, 1, 5), amount_base=1000
         )
         newer = AssetFurniture.objects.create(
-            asset=self.re_asset, name="Chair", purchase_date=date(2025, 6, 1), amount_egp=500
+            asset=self.re_asset, name="Chair", purchase_date=date(2025, 6, 1), amount_base=500
         )
         ordered = list(AssetFurniture.objects.filter(asset=self.re_asset))
         self.assertEqual([f.id for f in ordered], [newer.id, older.id])
 
     def test_acquisition_costs_ordered_newest_first(self):
         older = AssetAcquisitionCost.objects.create(
-            asset=self.re_asset, date=date(2025, 1, 5), category="Lawyer Fees", amount_egp=1000
+            asset=self.re_asset, date=date(2025, 1, 5), category="Lawyer Fees", amount_base=1000
         )
         newer = AssetAcquisitionCost.objects.create(
-            asset=self.re_asset, date=date(2025, 6, 1), category="Registration", amount_egp=500
+            asset=self.re_asset, date=date(2025, 6, 1), category="Registration", amount_base=500
         )
         ordered = list(AssetAcquisitionCost.objects.filter(asset=self.re_asset))
         self.assertEqual([c.id for c in ordered], [newer.id, older.id])
@@ -113,10 +113,10 @@ class FixedAssetListOrderingTest(TestCase):
 
     def test_furniture_endpoint_returns_newest_first(self):
         older = AssetFurniture.objects.create(
-            asset=self.re_asset, name="Sofa", purchase_date=date(2025, 1, 5), amount_egp=1000
+            asset=self.re_asset, name="Sofa", purchase_date=date(2025, 1, 5), amount_base=1000
         )
         newer = AssetFurniture.objects.create(
-            asset=self.re_asset, name="Chair", purchase_date=date(2025, 6, 1), amount_egp=500
+            asset=self.re_asset, name="Chair", purchase_date=date(2025, 6, 1), amount_base=500
         )
         response = self.client.get(f"/api/asset-furniture/?asset={self.re_asset.id}")
         self.assertEqual(response.status_code, 200)
@@ -125,10 +125,10 @@ class FixedAssetListOrderingTest(TestCase):
 
     def test_acquisition_costs_endpoint_returns_newest_first(self):
         older = AssetAcquisitionCost.objects.create(
-            asset=self.re_asset, date=date(2025, 1, 5), category="Lawyer Fees", amount_egp=1000
+            asset=self.re_asset, date=date(2025, 1, 5), category="Lawyer Fees", amount_base=1000
         )
         newer = AssetAcquisitionCost.objects.create(
-            asset=self.re_asset, date=date(2025, 6, 1), category="Registration", amount_egp=500
+            asset=self.re_asset, date=date(2025, 6, 1), category="Registration", amount_base=500
         )
         response = self.client.get(f"/api/asset-acquisition-costs/?asset={self.re_asset.id}")
         self.assertEqual(response.status_code, 200)

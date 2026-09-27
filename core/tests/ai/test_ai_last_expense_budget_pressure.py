@@ -68,7 +68,7 @@ class LastExpenseBudgetPressureTest(TestCase):
                     year=yy, month=mm,
                     category=self.category,
                     amount=Decimal("50.00"),
-                    amount_egp=Decimal("50.00"),
+                    amount_base=Decimal("50.00"),
                     currency=self.egp,
                     notes=f"filler {yy}-{mm}-{day}",
                 )
@@ -81,7 +81,7 @@ class LastExpenseBudgetPressureTest(TestCase):
             year=2026, month=9,
             category=self.category,
             amount=self.last_expense_amount,
-            amount_egp=self.last_expense_amount,
+            amount_base=self.last_expense_amount,
             currency=self.egp,
             notes=self.last_expense_notes,
         )

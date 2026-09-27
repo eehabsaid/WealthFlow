@@ -30,9 +30,9 @@ $$\text{Savings Rate} = \left( \frac{\text{Net Cash Flow}}{\text{Monthly Net Inc
 $$E_{t} = E_0 \times (1 + i)^t$$
 
 ## 6. Expense Amount Field Rule — CRITICAL
-- Always use `amount_egp` for all expense calculations, totals, and AI context payloads.
-- `amount` stores the original currency value; `amount_egp` stores the EGP-converted value.
-- Using `amount` instead of `amount_egp` produces wrong totals for multi-currency expense data.
+- Always use `amount_base` for all expense calculations, totals, and AI context payloads.
+- `amount` stores the original currency value; `amount_base` stores the base-currency-converted value.
+- Using `amount` instead of `amount_base` produces wrong totals for multi-currency expense data.
 
 ## 7. Net Worth Formula (Plain Text Reference)
 Net Worth = Liquid Cash (all currencies → home) + Certificates Principal (→ home) + Gold Market Value + Real Estate Value + Vehicles & Other Assets − Active Liabilities

@@ -71,7 +71,7 @@ class RiskAnalysisService(RiskCalcMixin, RiskFindingsMixin, RiskWhatIfMixin, Ris
             sources.append({"id": "salary", "label_key": "risk_analysis_income_salary", "value": salary_value})
 
         comp = self._net_worth_service.portfolio_components()
-        cert_interest = _to_float(comp.get("certificate_interest_total_egp"))
+        cert_interest = _to_float(comp.get("certificate_interest_total_base"))
         if cert_interest > 0:
             sources.append({"id": "certificate", "label_key": "risk_analysis_income_certificates", "value": cert_interest})
 

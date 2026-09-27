@@ -47,7 +47,7 @@ class BalanceReportView(View):
                 {
                     "bank_id": bank.id,
                     "bank_name": bank.name,
-                    "total_egp": total_base,
+                    "total_base": total_base,
                     "entries": [e.to_dict() for e in bank_entries],
                 }
             )
@@ -59,8 +59,8 @@ class BalanceReportView(View):
             by_currency.append(e.to_dict())
 
         net_worth_data = NetWorthService(request.user).portfolio_components()
-        cert_total = float(net_worth_data["certificate_total_egp"])
-        cert_interest_total = float(net_worth_data["certificate_interest_total_egp"])
+        cert_total = float(net_worth_data["certificate_total_base"])
+        cert_interest_total = float(net_worth_data["certificate_interest_total_base"])
 
         cert_monthly_interest = cert_interest_total if cert_interest_total else 0.0
 
@@ -71,7 +71,7 @@ class BalanceReportView(View):
                 "cert_total": cert_total,
                 "cert_interest": cert_monthly_interest,
                 "cert_interest_total": cert_interest_total,
-                "fixed_assets_total": float(net_worth_data["fixed_assets_total_egp"]),
-                "net_worth": float(net_worth_data["net_worth_egp"]),
+                "fixed_assets_total": float(net_worth_data["fixed_assets_total_base"]),
+                "net_worth": float(net_worth_data["net_worth_base"]),
             }
         )

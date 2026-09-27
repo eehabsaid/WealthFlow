@@ -12,7 +12,7 @@ async function saveCreditCardPayment() {
     bank_id: document.getElementById("ccp_bank").value,
     payment_method: document.getElementById("ccp_method").value,
     card_label: document.getElementById("ccp_card_label").value,
-    amount_egp: document.getElementById("ccp_amount").value,
+    amount_base: document.getElementById("ccp_amount").value,
     notes: document.getElementById("ccp_notes").value,
   };
 

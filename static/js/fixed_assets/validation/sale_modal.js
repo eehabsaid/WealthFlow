@@ -70,7 +70,7 @@ function showSaleModal(assetId, assetName, currentMarketValue) {
                             </h6>
 
                             <div class="d-grid gap-2">
-                              <div class="d-flex justify-content-between"><span data-i18n="purchase_price_egp">Purchase Price</span><span id="details_purchase_price" class="fw-bold"></span></div>
+                              <div class="d-flex justify-content-between"><span data-i18n="purchase_price_base">Purchase Price</span><span id="details_purchase_price" class="fw-bold"></span></div>
                               <div class="d-flex justify-content-between"><span data-i18n="purchase_price_usd">Purchase USD</span><span id="details_purchase_usd"></span></div>
                               <div class="d-flex justify-content-between"><span data-i18n="last_valuation_date">Last Valuation</span><span id="details_last_valuation"></span></div>
                             </div>

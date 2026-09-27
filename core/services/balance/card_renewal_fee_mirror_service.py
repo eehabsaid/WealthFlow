@@ -45,7 +45,7 @@ def sync_card_renewal_fee_mirror(fee):
         fee.id,
         date_value=fee.fee_date,
         description=fee._description(),
-        amount_egp=fee.amount_egp,
+        amount_base=fee.amount_base,
         payment_method=fee._PAYMENT_METHOD,
         bank_id=fee.bank_id,
         notes=notes,

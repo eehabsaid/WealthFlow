@@ -20,7 +20,7 @@ from .helpers import to_float
 
 
 class RecurringMixin:
-    def _monthly_expense_egp(self, rates: Dict[str, float]) -> float:
+    def _monthly_expense_base(self, rates: Dict[str, float]) -> float:
         last_90 = self.today - timedelta(days=90)
         expenses = list(
             Expense.objects.select_related("currency")
@@ -33,13 +33,13 @@ class RecurringMixin:
         total = 0.0
         active_months = set()
         for expense in expenses:
-            total += to_float(expense.amount_egp)
+            total += to_float(expense.amount_base)
             active_months.add((expense.year, expense.month))
 
         month_count = len(active_months) or 1
         return total / month_count
 
-    def _monthly_salary_egp(self, year: int = None, month: str = None) -> float:
+    def _monthly_salary_base(self, year: int = None, month: str = None) -> float:
         from core.services.salary.salary_service import get_current_monthly_salary
         return get_current_monthly_salary(self.owner, year=year, month=month)
 
@@ -75,10 +75,10 @@ class RecurringMixin:
 
         return min(max(1, trigger_value), last_day)
 
-    def _monthly_rental_egp(self) -> float:
+    def _monthly_rental_base(self) -> float:
         return to_float(self._financial_sync_service.period_rental_income_total("month", self.owner))
 
-    def _monthly_mortgage_installment_egp(self) -> float:
+    def _monthly_mortgage_installment_base(self) -> float:
         mortgages = (
             AssetMortgage.objects.select_related("asset")
             .filter(asset__owner=self.owner, asset__status="Owned", remaining_balance__gt=0)

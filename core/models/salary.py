@@ -49,7 +49,7 @@ class PerDiem(models.Model):
     date = models.DateField()
     currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name="per_diems")
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    amount_egp = models.DecimalField(max_digits=12, decimal_places=2)
+    amount_base = models.DecimalField(max_digits=12, decimal_places=2)
     bank = models.ForeignKey(Bank, on_delete=models.SET_NULL, null=True, blank=True, related_name="per_diems")
     notes = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -69,7 +69,7 @@ class PerDiem(models.Model):
             "currency_code": self.currency.code,
             "currency_flag": self.currency.flag,
             "amount": float(self.amount),
-            "amount_egp": float(self.amount_egp),
+            "amount_base": float(self.amount_base),
             "bank_id": self.bank_id,
             "bank_name": self.bank.name if self.bank else "",
             "notes": self.notes,

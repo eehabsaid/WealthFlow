@@ -41,7 +41,7 @@ class CreditCardPayment(models.Model):
         blank=True,
         help_text="Free-text identifier for the untracked credit card, e.g. 'Visa ****1234'.",
     )
-    amount_egp = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    amount_base = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -57,7 +57,7 @@ class CreditCardPayment(models.Model):
             "bank_name": self.bank.name if self.bank else "",
             "payment_method": self.payment_method,
             "card_label": self.card_label,
-            "amount_egp": float(self.amount_egp),
+            "amount_base": float(self.amount_base),
             "notes": self.notes or "",
         }
 
@@ -75,7 +75,7 @@ class CreditCardPayment(models.Model):
         )
 
         _apply_expense_balance_delta(
-            self.payment_method, self.bank_id, -abs(self.amount_egp or 0), owner=self.owner
+            self.payment_method, self.bank_id, -abs(self.amount_base or 0), owner=self.owner
         )
         sync_credit_card_payment_mirror(self)
 
@@ -87,9 +87,9 @@ class CreditCardPayment(models.Model):
         )
 
         _apply_expense_balance_delta(
-            self.payment_method, self.bank_id, abs(self.amount_egp or 0), owner=self.owner
+            self.payment_method, self.bank_id, abs(self.amount_base or 0), owner=self.owner
         )
         delete_credit_card_payment_mirror(self.id)
 
     def __str__(self):
-        return f"{self.bank.name if self.bank else 'Unknown'} card payment ({self.amount_egp})"
+        return f"{self.bank.name if self.bank else 'Unknown'} card payment ({self.amount_base})"

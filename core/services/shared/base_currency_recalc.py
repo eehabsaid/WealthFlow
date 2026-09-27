@@ -26,8 +26,8 @@ def _recalc_expenses(user, old_code: str, new_code: str) -> int:
     for row in rows:
         source = row.currency.code if row.currency_id else old_code
         row.exchange_rate = _rate(source, new_code, row.date)
-        row.amount_egp = (row.amount * row.exchange_rate).quantize(CENT, rounding=ROUND_HALF_UP)
-    Expense.objects.bulk_update(rows, ["exchange_rate", "amount_egp"])
+        row.amount_base = (row.amount * row.exchange_rate).quantize(CENT, rounding=ROUND_HALF_UP)
+    Expense.objects.bulk_update(rows, ["exchange_rate", "amount_base"])
     return len(rows)
 
 
@@ -35,8 +35,8 @@ def _recalc_per_diems(user, old_code: str, new_code: str) -> int:
     rows = list(PerDiem.objects.filter(company__owner=user).select_related("currency"))
     for row in rows:
         rate = _rate(row.currency.code, new_code, row.date)
-        row.amount_egp = (row.amount * rate).quantize(CENT, rounding=ROUND_HALF_UP)
-    PerDiem.objects.bulk_update(rows, ["amount_egp"])
+        row.amount_base = (row.amount * rate).quantize(CENT, rounding=ROUND_HALF_UP)
+    PerDiem.objects.bulk_update(rows, ["amount_base"])
     return len(rows)
 
 

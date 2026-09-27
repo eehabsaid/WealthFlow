@@ -36,7 +36,7 @@ class CurrencyExchangeCoreTest(TestCase):
             currency=self.usd,
             amount=Decimal("1000.00")
         )
-        self.bal_egp = BalanceEntry.objects.create(
+        self.bal_base = BalanceEntry.objects.create(
             owner=self.user,
             title="CIB Account Test",
             balance_type=BalanceEntry.BalanceType.BANK,
@@ -70,7 +70,7 @@ class CurrencyExchangeCoreTest(TestCase):
     def test_calculate_backend_endpoint(self):
         payload = {
             "from_balance_id": self.bal_usd.id,
-            "to_balance_id": self.bal_egp.id,
+            "to_balance_id": self.bal_base.id,
             "from_amount": 200.00
         }
         res = self.client.post("/api/currency-exchanges/calculate/", json.dumps(payload), content_type="application/json")
@@ -85,7 +85,7 @@ class CurrencyExchangeCoreTest(TestCase):
         payload = {
             "exchange_date": "2026-08-05",
             "from_balance_id": self.bal_usd.id,
-            "to_balance_id": self.bal_egp.id,
+            "to_balance_id": self.bal_base.id,
             "from_amount": 100.00,
             "exchange_rate": 50.0,
             "notes": "Exchange test USD to EGP"
@@ -94,9 +94,9 @@ class CurrencyExchangeCoreTest(TestCase):
         self.assertEqual(res.status_code, 201)
 
         self.bal_usd.refresh_from_db()
-        self.bal_egp.refresh_from_db()
+        self.bal_base.refresh_from_db()
         self.assertEqual(self.bal_usd.amount, Decimal("900.00"))
-        self.assertEqual(self.bal_egp.amount, Decimal("55000.00"))
+        self.assertEqual(self.bal_base.amount, Decimal("55000.00"))
 
         exchange_id = res.json()["id"]
         exchange = CurrencyExchange.objects.get(pk=exchange_id)
@@ -108,7 +108,7 @@ class CurrencyExchangeCoreTest(TestCase):
         payload = {
             "exchange_date": "2026-08-05",
             "from_balance_id": self.bal_usd.id,
-            "to_balance_id": self.bal_egp.id,
+            "to_balance_id": self.bal_base.id,
             "from_amount": 100.00,
             "exchange_rate": 50.0,
             "notes": "USD-EGP filter test"
@@ -136,7 +136,7 @@ class CurrencyExchangeCoreTest(TestCase):
         payload = {
             "exchange_date": "2026-08-05",
             "from_balance_id": self.bal_usd.id,
-            "to_balance_id": self.bal_egp.id,
+            "to_balance_id": self.bal_base.id,
             "from_amount": 100.00,
             "exchange_rate": 50.0,
         }
@@ -166,7 +166,7 @@ class CurrencyExchangeCoreTest(TestCase):
         payload = {
             "exchange_date": "2026-08-05",
             "from_balance_id": self.bal_usd.id,
-            "to_balance_id": self.bal_egp.id,
+            "to_balance_id": self.bal_base.id,
             "from_amount": 100.00,
             "exchange_rate": 50.0,
         }

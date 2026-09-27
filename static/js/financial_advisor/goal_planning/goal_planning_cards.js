@@ -34,7 +34,7 @@ function filterAndSortGoals(goals, opts) {
       return Number(b.progress_pct || 0) - Number(a.progress_pct || 0);
     }
     if (sort === "remaining") {
-      return Number(b.remaining_amount_egp || 0) - Number(a.remaining_amount_egp || 0);
+      return Number(b.remaining_amount_base || 0) - Number(a.remaining_amount_base || 0);
     }
     const aRank = _goalPriorityRank(a.priority);
     const bRank = _goalPriorityRank(b.priority);
@@ -64,19 +64,19 @@ function buildGoalCardsHtml(filtered) {
 
           <div class="goal-card-meta">
             <span data-i18n="goal_planning_target_amount"></span>
-            <strong>${fmt(Number(goal.target_amount_egp || 0))}</strong>
+            <strong>${fmt(Number(goal.target_amount_base || 0))}</strong>
           </div>
           <div class="goal-card-meta goal-card-meta-strong">
             <span data-i18n="goal_planning_saved_amount"></span>
-            <strong>${fmt(Number(goal.current_saved_egp || 0))}</strong>
+            <strong>${fmt(Number(goal.current_saved_base || 0))}</strong>
           </div>
           <div class="goal-card-meta goal-card-meta-strong">
             <span data-i18n="goal_planning_remaining_amount"></span>
-            <strong>${fmt(Number(goal.remaining_amount_egp || 0))}</strong>
+            <strong>${fmt(Number(goal.remaining_amount_base || 0))}</strong>
           </div>
           <div class="goal-card-meta goal-card-meta-strong">
             <span data-i18n="goal_planning_monthly_required"></span>
-            <strong>${fmt(Number(goal.monthly_required_egp || 0))}</strong>
+            <strong>${fmt(Number(goal.monthly_required_base || 0))}</strong>
           </div>
           <div class="goal-card-meta">
             <span data-i18n="goal_planning_time_left"></span>

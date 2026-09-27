@@ -42,7 +42,7 @@ function renderExpenseTableHTML(entries) {
     )
     .join("");
 
-  const total = entries.reduce((s, e) => s + (e.amount_egp || 0), 0);
+  const total = entries.reduce((s, e) => s + (e.amount_base || 0), 0);
   return `<table class="data-table">
     <thead><tr>
       <th data-i18n="date">Date</th><th data-i18n="category">Category</th><th data-i18n="subcategory">Subcategory</th>

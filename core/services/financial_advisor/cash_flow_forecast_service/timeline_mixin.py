@@ -26,7 +26,7 @@ class TimelineMixin:
         for days in sorted(checkpoint_dates.keys()):
             target = checkpoint_dates[days]
             while idx < len(events) and events[idx].event_date <= target:
-                running_cash += events[idx].amount_egp
+                running_cash += events[idx].amount_base
                 idx += 1
             result[days] = running_cash
         return result
@@ -61,7 +61,7 @@ class TimelineMixin:
 
             item = grouped[month_key]
             if event.event_type == "certificate_interest":
-                monthly_interest_sum[month_key] = monthly_interest_sum.get(month_key, 0.0) + event.amount_egp
+                monthly_interest_sum[month_key] = monthly_interest_sum.get(month_key, 0.0) + event.amount_base
                 prev_date = monthly_interest_date.get(month_key)
                 monthly_interest_date[month_key] = max(prev_date, event.event_date) if prev_date else event.event_date
                 continue
@@ -69,7 +69,7 @@ class TimelineMixin:
             event_payload = {
                 "date": event.event_date.isoformat(),
                 "type": event.event_type,
-                "amount": round(event.amount_egp, 2),
+                "amount": round(event.amount_base, 2),
             }
             item["events"].append(event_payload)
 

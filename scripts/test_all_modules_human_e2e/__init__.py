@@ -67,7 +67,7 @@ def run_all_modules_human_e2e_tests():
     ctx.ce.delete()
     ctx.pd.delete()
     ctx.exp.delete()
-    ctx.bal_egp.delete()
+    ctx.bal_base.delete()
     ctx.bal_usd.delete()
     ctx.company.delete()
     ctx.cat.delete()

@@ -36,14 +36,14 @@ class ExpenseSummaryView(View):
             key = name
             if key not in by_cat:
                 by_cat[key] = {"name": name, "icon": icon, "color": color, "total": 0}
-            by_cat[key]["total"] += float(e.amount_egp)
+            by_cat[key]["total"] += float(e.amount_base)
 
         # Monthly trend (last 12 months)
         monthly = []
         for m in range(1, 13):
             y = int(year) if year else datetime.date.today().year
             total = (
-                Expense.objects.filter(owner=owner, year=y, month=m).aggregate(t=Sum("amount_egp"))["t"]
+                Expense.objects.filter(owner=owner, year=y, month=m).aggregate(t=Sum("amount_base"))["t"]
                 or 0
             )
             monthly.append({"month": m, "total": float(total)})

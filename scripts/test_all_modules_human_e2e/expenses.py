@@ -23,17 +23,17 @@ def run_expenses_test(ctx):
     }
     exp = ExpenseService.create_expense(expense_data)
     exp.refresh_from_db()
-    # CurrencyConversionService uses buy_rate (50.0) -> amount_egp = 150 * 50 = 7500.00 EGP
+    # CurrencyConversionService uses buy_rate (50.0) -> amount_base = 150 * 50 = 7500.00 EGP
     assert exp.exchange_rate == Decimal("50.000000"), f"Expense rate failed: {exp.exchange_rate}"
-    assert exp.amount_egp == Decimal("7500.00"), f"Expense amount_egp failed: {exp.amount_egp}"
-    print(f"  [PASS] Expense Creation with Buy Rate: {exp.amount} USD -> {exp.amount_egp} EGP (rate={exp.exchange_rate}).")
+    assert exp.amount_base == Decimal("7500.00"), f"Expense amount_base failed: {exp.amount_base}"
+    print(f"  [PASS] Expense Creation with Buy Rate: {exp.amount} USD -> {exp.amount_base} EGP (rate={exp.exchange_rate}).")
 
     # Update Expense
     update_data = {"amount": 200.00}
     exp = ExpenseService.update_expense(exp.id, update_data)
     exp.refresh_from_db()
-    assert exp.amount_egp == Decimal("10000.00"), f"Expense edit amount_egp failed: {exp.amount_egp}"
-    print(f"  [PASS] Expense Edit with Buy Rate: updated to {exp.amount} USD -> {exp.amount_egp} EGP.")
+    assert exp.amount_base == Decimal("10000.00"), f"Expense edit amount_base failed: {exp.amount_base}"
+    print(f"  [PASS] Expense Edit with Buy Rate: updated to {exp.amount} USD -> {exp.amount_base} EGP.")
 
     ctx.cat = cat
     ctx.exp = exp

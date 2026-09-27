@@ -88,7 +88,7 @@ class RiskFindingsMixin:
     def _stress_tests(self, comp: dict) -> List[dict]:
         from core.services.shared.base_currency import get_user_base_code
 
-        total_nw = _to_float(comp.get("net_worth_egp"))
+        total_nw = _to_float(comp.get("net_worth_base"))
         if total_nw <= 0:
             return []
 

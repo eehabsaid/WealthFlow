@@ -56,7 +56,7 @@ class SpendingIntelligenceTest(TestCase):
             month=6,
             category=self.cat1,
             amount=Decimal("500.00"),
-            amount_egp=Decimal("500.00")
+            amount_base=Decimal("500.00")
         )
         Expense.objects.create(
             owner=self.user,
@@ -65,7 +65,7 @@ class SpendingIntelligenceTest(TestCase):
             month=6,
             category=self.cat2,
             amount=Decimal("300.00"),
-            amount_egp=Decimal("300.00")
+            amount_base=Decimal("300.00")
         )
         Expense.objects.create(
             owner=self.user,
@@ -74,7 +74,7 @@ class SpendingIntelligenceTest(TestCase):
             month=7,
             category=self.cat1,
             amount=Decimal("800.00"),
-            amount_egp=Decimal("800.00")
+            amount_base=Decimal("800.00")
         )
 
     def test_spending_intelligence_registered_categories_and_by_category(self):
@@ -102,7 +102,7 @@ class SpendingIntelligenceTest(TestCase):
         cat1_months = by_category[cat1_key]
         self.assertEqual(len(cat1_months), 2)
         jun_cat1 = next(m for m in cat1_months if m["month"] == 6)
-        self.assertEqual(jun_cat1["total_egp"], 500.0)
+        self.assertEqual(jun_cat1["total_base"], 500.0)
 
     def test_spending_intelligence_view(self):
         self.client.login(username="spending_user", password="password123")

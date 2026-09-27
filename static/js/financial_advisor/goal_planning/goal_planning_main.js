@@ -15,8 +15,8 @@ function _renderGoalPlanning(payload) {
   const milestones = payload?.milestones || [];
   const insights = payload?.insights || [];
   const recommendations = payload?.recommendations || [];
-  const totalTarget = Number(summary.total_target_egp || 0);
-  const totalSaved = Number(summary.total_saved_egp || 0);
+  const totalTarget = Number(summary.total_target_base || 0);
+  const totalSaved = Number(summary.total_saved_base || 0);
   const completedCount = goals.filter((goal) => goal.status === "achieved").length;
   const onTrackCount = goals.filter((goal) => goal.status === "on_track").length;
   const atRiskCount = goals.filter(

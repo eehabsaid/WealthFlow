@@ -23,13 +23,13 @@ function updateAcquisitionSummary() {
     badge.textContent = count > 0 ? `(${count})` : "";
   }
 
-  let totalEGP = 0;
+  let totalBase = 0;
   let totalUSD = 0;
 
   rows.forEach((row) => {
-    const egp = parseFloat(row.querySelector(".acquisition-egp").value) || 0;
+    const baseAmount = parseFloat(row.querySelector(".acquisition-base").value) || 0;
     const usd = parseFloat(row.querySelector(".acquisition-usd").value) || 0;
-    totalEGP += egp;
+    totalBase += baseAmount;
     totalUSD += usd;
   });
 
@@ -43,8 +43,8 @@ function updateAcquisitionSummary() {
         <span class="stat-value">${count}</span>
       </div>
       <div class="stat">
-        <span class="stat-label" data-i18n="total_egp">Total (EGP)</span>
-        <span class="stat-value">${fmt(totalEGP)}</span>
+        <span class="stat-label" data-i18n="total_base">Total</span>
+        <span class="stat-value">${fmt(totalBase)}</span>
       </div>
       <div class="stat">
         <span class="stat-label" data-i18n="total_usd">Total (USD)</span>
@@ -67,15 +67,15 @@ function addAcquisitionRow(data = {}, expand = false) {
 
   const category = data.category || "Lawyer Fees";
   const normVal = category.toLowerCase().replace(/ & /g, "_").replace(/ /g, "_");
-  const amountEgpVal = data.amount_egp || "";
+  const amountBaseVal = data.amount_base || "";
   const descVal = data.description || "";
   const paymentMethodVal = data.payment_method || "Cash";
   const bankIdVal = data.bank_id || "";
 
   const fmt = (n) =>
     Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const initialAmountPreview = amountEgpVal
-    ? `${baseCurrencyCode()} ${fmt(parseFloat(amountEgpVal) || 0)}`
+  const initialAmountPreview = amountBaseVal
+    ? `${baseCurrencyCode()} ${fmt(parseFloat(amountBaseVal) || 0)}`
     : `${baseCurrencyCode()} 0.00`;
 
   row.innerHTML = `
@@ -119,7 +119,7 @@ function addAcquisitionRow(data = {}, expand = false) {
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="amount">Amount</label>
-          <input type="number" step="0.01" class="form-control acquisition-egp" value="${amountEgpVal}" oninput="updateAcquisitionUSD(this)">
+          <input type="number" step="0.01" class="form-control acquisition-base" value="${amountBaseVal}" oninput="updateAcquisitionUSD(this)">
         </div>
         <div class="field">
           <label class="form-label small" data-i18n="purchase_usd_rate">USD Exchange Rate</label>
@@ -167,11 +167,11 @@ function addAcquisitionRow(data = {}, expand = false) {
     }
   });
 
-  const egpInput = row.querySelector(".acquisition-egp");
+  const baseInput = row.querySelector(".acquisition-base");
   const amountPreview = row.querySelector(".item-amount-preview");
-  egpInput.addEventListener("input", () => {
-    updateAcquisitionUSD(egpInput);
-    amountPreview.textContent = `${baseCurrencyCode()} ${fmt(parseFloat(egpInput.value) || 0)}`;
+  baseInput.addEventListener("input", () => {
+    updateAcquisitionUSD(baseInput);
+    amountPreview.textContent = `${baseCurrencyCode()} ${fmt(parseFloat(baseInput.value) || 0)}`;
     updateAcquisitionSummary();
   });
 
@@ -184,9 +184,9 @@ function addAcquisitionRow(data = {}, expand = false) {
   const shouldExpand = expand;
   toggleCollapsibleCard(row, "#acquisitionContainer", shouldExpand);
 
-  // Auto-calc USD amount if input has initial EGP amount
-  if (amountEgpVal) {
-    updateAcquisitionUSD(egpInput);
+  // Auto-calc USD amount if input has an initial base-currency amount
+  if (amountBaseVal) {
+    updateAcquisitionUSD(baseInput);
   }
 
   // Translate labels inside the new row

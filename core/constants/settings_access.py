@@ -25,6 +25,7 @@ GLOBAL_KEY_PERMISSIONS = (
     ("paymob_", "settings_billing"),
     ("property_tax_", "settings_propertyvaluation"),
     ("home_currency", "settings_currency"),
+    ("multi_currency_enabled", "settings_currency"),
 )
 
 SECRET_KEY_MARKERS = ("password", "api_key", "secret", "token")

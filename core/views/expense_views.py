@@ -43,7 +43,7 @@ class ExpenseListView(View):
 
         entries = [e.to_dict() for e in qs]
 
-        total = sum(float(e.amount_egp or 0) for e in qs)
+        total = sum(float(e.amount_base or 0) for e in qs)
 
         return JsonResponse({"entries": entries, "total": total})
 

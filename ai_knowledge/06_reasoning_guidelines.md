@@ -12,7 +12,7 @@
 - Cross-domain mixing prevention: answer only about the domains present in the query-matched payload.
 
 ## 3. Field Correctness
-- Expenses: use `amount_egp`, never `amount`.
+- Expenses: use `amount_base`, never `amount`.
 - Gold: value = weight_grams × (karat/24) × spot_price_per_gram_24k.
 - Certificates: interest = principal × annual_rate (as decimal, e.g. 0.225 for 22.5%).
 - Net worth: always convert non-home-currency assets using live `ExchangeRate` records.

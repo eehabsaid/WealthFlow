@@ -13,7 +13,7 @@ class InsightsAndRecommendationsMixin:
     def _insights(self, goals: List[GoalCalc], summary: dict) -> List[dict]:
         insights: List[dict] = []
 
-        if summary["capacity_slack_egp"] < 0:
+        if summary["capacity_slack_base"] < 0:
             insights.append({
                 "key": "goal_planning_insight_capacity_gap",
                 "severity": "high",
@@ -55,7 +55,7 @@ class InsightsAndRecommendationsMixin:
     def _recommendations(self, goals: List[GoalCalc], summary: dict) -> List[dict]:
         items: List[dict] = []
 
-        if summary["capacity_slack_egp"] < 0:
+        if summary["capacity_slack_base"] < 0:
             items.append({
                 "key": "goal_planning_rec_increase_savings",
                 "severity": "high",
@@ -69,7 +69,7 @@ class InsightsAndRecommendationsMixin:
                 "severity_key": "goal_planning_severity_medium",
             })
 
-        if any(g.priority == "Low" and g.monthly_required_egp > 0 for g in goals):
+        if any(g.priority == "Low" and g.monthly_required_base > 0 for g in goals):
             items.append({
                 "key": "goal_planning_rec_reprioritize",
                 "severity": "info",

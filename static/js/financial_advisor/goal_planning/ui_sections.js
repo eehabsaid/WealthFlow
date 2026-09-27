@@ -37,7 +37,7 @@ function _renderGoalPlanningMilestonesSection(milestones) {
                   </div>
                   <div class="goal-milestone-side">
                     <span class="portfolio-severity-badge portfolio-badge-info" data-i18n="${item.priority_key || "goal_planning_priority_medium"}"></span>
-                    <small><span data-i18n="goal_planning_monthly_required"></span>: ${fmt(Number(item.monthly_required_egp || 0))} / <span data-i18n="goal_planning_months_short"></span></small>
+                    <small><span data-i18n="goal_planning_monthly_required"></span>: ${fmt(Number(item.monthly_required_base || 0))} / <span data-i18n="goal_planning_months_short"></span></small>
                   </div>
                 </div>
               `

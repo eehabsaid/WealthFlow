@@ -81,7 +81,7 @@ async function renderExpenses() {
   window._expBanks = banks;
 
   // KPI cards
-  const totalExp = entries.reduce((s, e) => s + (e.amount_egp || 0), 0);
+  const totalExp = entries.reduce((s, e) => s + (e.amount_base || 0), 0);
   const avgDaily = totalExp / today.getDate();
   const topCat = getTopCategory(entries);
 

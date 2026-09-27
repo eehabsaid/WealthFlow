@@ -40,7 +40,7 @@ class AssetExpenseMirrorCoreTest(TestCase):
             asset=self.asset,
             date=date(2025, 3, 10),
             category="Painting",
-            amount_egp=5000,
+            amount_base=5000,
         )
 
         category = self._fixed_assets_category()
@@ -58,7 +58,7 @@ class AssetExpenseMirrorCoreTest(TestCase):
             asset=self.asset,
             name="Sofa",
             purchase_date=date(2025, 4, 1),
-            amount_egp=8000,
+            amount_base=8000,
         )
 
         mirror = Expense.objects.get(source_type="asset_furniture", source_id=furniture.id)
@@ -72,21 +72,21 @@ class AssetExpenseMirrorCoreTest(TestCase):
             date=date(2025, 3, 10),
             category="Painting",
             description="Living room paint job",
-            amount_egp=5000,
+            amount_base=5000,
             payment_method="Cash",
         )
         mirror = Expense.objects.get(source_type="asset_renovation", source_id=renovation.id)
-        self.assertEqual(mirror.amount_egp, Decimal("5000"))
+        self.assertEqual(mirror.amount_base, Decimal("5000"))
         self.assertEqual(mirror.description, "Renovation: Painting — Living room paint job")
         self.assertTrue(mirror.is_readonly_mirror)
         self.assertEqual(mirror.year, 2025)
         self.assertEqual(mirror.month, 3)
 
-        renovation.amount_egp = 7500
+        renovation.amount_base = 7500
         renovation.description = "Living room + hallway paint job"
         renovation.save()
         mirror.refresh_from_db()
-        self.assertEqual(mirror.amount_egp, Decimal("7500"))
+        self.assertEqual(mirror.amount_base, Decimal("7500"))
         self.assertEqual(mirror.description, "Renovation: Painting — Living room + hallway paint job")
         # still exactly one mirror row for this renovation
         self.assertEqual(
@@ -105,7 +105,7 @@ class AssetExpenseMirrorCoreTest(TestCase):
             asset=self.asset,
             date=date(2025, 3, 10),
             category="Plumbing",
-            amount_egp=3000,
+            amount_base=3000,
             payment_method="Bank",
             bank=bank,
         )
@@ -118,7 +118,7 @@ class AssetExpenseMirrorCoreTest(TestCase):
             asset=self.asset,
             date=date(2025, 3, 10),
             category="Painting",
-            amount_egp=0,
+            amount_base=0,
         )
         self.assertFalse(
             Expense.objects.filter(source_type="asset_renovation", source_id=renovation.id).exists()
@@ -129,13 +129,13 @@ class AssetExpenseMirrorCoreTest(TestCase):
             asset=self.asset,
             date=date(2025, 3, 10),
             category="Painting",
-            amount_egp=5000,
+            amount_base=5000,
         )
         self.assertTrue(
             Expense.objects.filter(source_type="asset_renovation", source_id=renovation.id).exists()
         )
 
-        renovation.amount_egp = 0
+        renovation.amount_base = 0
         renovation.save()
         self.assertFalse(
             Expense.objects.filter(source_type="asset_renovation", source_id=renovation.id).exists()

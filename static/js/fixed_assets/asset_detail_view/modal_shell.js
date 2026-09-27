@@ -43,7 +43,7 @@ function buildRealEstateModalHtml(ctx) {
             <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 mb-4">
                 <div class="col">
                     <div class="asset-summary-card h-100">
-                        <div class="asset-summary-label" data-i18n="purchase_price_egp">Purchase Price</div>
+                        <div class="asset-summary-label" data-i18n="purchase_price_base">Purchase Price</div>
                         <div class="asset-summary-value">${fmt(asset.purchase_price)}</div>
                     </div>
                 </div>

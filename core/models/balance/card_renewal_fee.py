@@ -35,7 +35,7 @@ class CardRenewalFee(models.Model):
         blank=True,
         help_text="Free-text identifier for the renewed card, e.g. 'Visa Debit ****1234'.",
     )
-    amount_egp = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    amount_base = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -50,7 +50,7 @@ class CardRenewalFee(models.Model):
             "bank_id": self.bank_id,
             "bank_name": self.bank.name if self.bank else "",
             "card_label": self.card_label,
-            "amount_egp": float(self.amount_egp),
+            "amount_base": float(self.amount_base),
             "notes": self.notes or "",
         }
 
@@ -68,7 +68,7 @@ class CardRenewalFee(models.Model):
         )
 
         _apply_expense_balance_delta(
-            self._PAYMENT_METHOD, self.bank_id, -abs(self.amount_egp or 0), owner=self.owner
+            self._PAYMENT_METHOD, self.bank_id, -abs(self.amount_base or 0), owner=self.owner
         )
         sync_card_renewal_fee_mirror(self)
 
@@ -80,9 +80,9 @@ class CardRenewalFee(models.Model):
         )
 
         _apply_expense_balance_delta(
-            self._PAYMENT_METHOD, self.bank_id, abs(self.amount_egp or 0), owner=self.owner
+            self._PAYMENT_METHOD, self.bank_id, abs(self.amount_base or 0), owner=self.owner
         )
         delete_card_renewal_fee_mirror(self.id)
 
     def __str__(self):
-        return f"{self.bank.name if self.bank else 'Unknown'} card renewal fee ({self.amount_egp})"
+        return f"{self.bank.name if self.bank else 'Unknown'} card renewal fee ({self.amount_base})"

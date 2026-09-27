@@ -32,12 +32,12 @@ class FixedAssetCalculationsMixin:
 
     def get_total_acquisition_costs(self):
         if self.asset_type == "Real Estate":
-            return sum(item.amount_egp for item in self.acquisition_costs.all())
+            return sum(item.amount_base for item in self.acquisition_costs.all())
         return Decimal("0")
 
     def get_total_renovation_costs(self):
         if self.asset_type == "Real Estate":
-            return sum(item.amount_egp for item in self.renovations.all())
+            return sum(item.amount_base for item in self.renovations.all())
         return Decimal("0")
 
     def get_total_investment(self):

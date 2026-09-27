@@ -23,11 +23,11 @@ function buildGeneralPropertyTabsHtml(ctx) {
                             <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                                 <div class="card-body p-4">
                                     <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="valuation_summary">Valuation Summary</h6>
-                                    <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_egp">Purchase Price</div><div class="col-7 fw-bold">${fmt(asset.purchase_price)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_base">Purchase Price</div><div class="col-7 fw-bold">${fmt(asset.purchase_price)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="purchase_price_usd">Purchase Price (USD)</div><div class="col-7 fw-bold">${fmt(asset.purchase_price_usd)}</div></div>
-                                    <div class="row mb-2"><div class="col-5" data-i18n="acquisition_costs_egp">Acquisition Costs</div><div class="col-7 fw-bold">${fmt(asset.total_acquisition_costs || 0)}</div></div>
-                                    <div class="row mb-2"><div class="col-5" data-i18n="renovation_costs_egp">Renovation Costs</div><div class="col-7 fw-bold">${fmt(asset.total_renovation_costs || 0)}</div></div>
-                                    <div class="row mb-2"><div class="col-5" data-i18n="total_investment_egp">Total Investment</div><div class="col-7 fw-bold">${fmt(asset.total_investment || asset.purchase_price)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="acquisition_costs_base">Acquisition Costs</div><div class="col-7 fw-bold">${fmt(asset.total_acquisition_costs || 0)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="renovation_costs_base">Renovation Costs</div><div class="col-7 fw-bold">${fmt(asset.total_renovation_costs || 0)}</div></div>
+                                    <div class="row mb-2"><div class="col-5" data-i18n="total_investment_base">Total Investment</div><div class="col-7 fw-bold">${fmt(asset.total_investment || asset.purchase_price)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="current_market_value">Current Market Value</div><div class="col-7 fw-bold">${fmt(asset.current_market_value)}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="last_valuation_date">Last Valuation Date</div><div class="col-7">${formatDate(asset.last_valuation_date) || "-"}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="gain_loss">Gain / Loss</div><div class="col-7 fw-bold ${gainClass}">${fmt(gainValue)}</div></div>
