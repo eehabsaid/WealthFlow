@@ -28,20 +28,8 @@ function formatImpactBase(val) {
 }
 
 function formatRateBase(val) {
-  // Used only when no historical archive exists yet for this currency —
-  // in that fallback branch, current_rate really is the live snapshot
-  // value vs the viewer's own base currency (see performance_service.py).
+  // current_rate is already expressed in the viewer's own default currency
+  // (history is re-based server-side; see performance_service.py).
   const num = Number(val) || 0;
   return `${num.toFixed(2)} ${baseCurrencyCode()}`;
-}
-
-function formatRatePivot(val, pivotCode) {
-  // Used when historical data exists — the ExchangeRateHistory archive is
-  // captured against the platform's shared rate pivot, not the viewer's
-  // own base currency (one archive can't be per-viewer), so this must be
-  // labeled with the pivot code, not baseCurrencyCode() (batch 5 fix —
-  // fixes mislabeling as base as well as fixes an originally-hardcoded
-  // "EGP" label that would go stale if the pivot ever changes).
-  const num = Number(val) || 0;
-  return `${num.toFixed(2)} ${pivotCode || baseCurrencyCode()}`;
 }

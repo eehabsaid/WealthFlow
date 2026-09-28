@@ -10,7 +10,7 @@ async function renderRoleSettings() {
   const mc = document.getElementById("settingsContent");
   const res = await fetch("/api/roles/");
   if (!res.ok) {
-    mc.innerHTML = `<div class="p-4" data-i18n="no_permission">You do not have permission to manage roles.</div>`;
+    mc.innerHTML = `<div class="p-4" data-i18n="no_permission_roles">You do not have permission to manage roles.</div>`;
     applyTranslations();
     return;
   }

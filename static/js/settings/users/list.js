@@ -9,7 +9,7 @@ async function renderUserSettings() {
   const canManage = !!me.user?.is_sysadmin;
 
   if (!canManage) {
-    mc.innerHTML = `<div class="p-4" data-i18n="no_permission">You do not have permission to manage users.</div>`;
+    mc.innerHTML = `<div class="p-4" data-i18n="no_permission_users">You do not have permission to manage users.</div>`;
     applyTranslations();
     return;
   }

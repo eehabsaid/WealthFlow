@@ -5,13 +5,16 @@
 // pre-computed context object built by renderPerformanceView.
 // ════════════════════════════════════════════════════════════════════════════
 
+const _PERF_CURRENCY_FLAGS = { USD: "🇺🇸", EUR: "🇪🇺", SAR: "🇸🇦", EGP: "🇪🇬" };
+
 function buildCurrencyChartAnalysisRow(ctx) {
   const {
     hasCurrHistory,
     selectedCurrency,
     currencyTimeframe,
     currRate,
-    pivotCode,
+    currencyCodes,
+    skippedDays,
     currTrend7,
     currTrend30,
     currTrend90,
@@ -28,9 +31,7 @@ function buildCurrencyChartAnalysisRow(ctx) {
                   <h6 class="m-0 fw-bold" style="color:var(--text-primary);" data-i18n="performance_exchange_rate_chart_title">Exchange Rate Performance</h6>
                   <!-- Currency Selector Dropdown -->
                   <select class="form-select form-select-sm ms-2" id="fa-curr-select" style="width:auto; background:var(--bg-tertiary); color:var(--text-primary); border-color:var(--border-color);">
-                    <option value="USD" ${selectedCurrency === "USD" ? "selected" : ""}>🇺🇸 USD</option>
-                    <option value="EUR" ${selectedCurrency === "EUR" ? "selected" : ""}>🇪🇺 EUR</option>
-                    <option value="SAR" ${selectedCurrency === "SAR" ? "selected" : ""}>🇸🇦 SAR</option>
+                    ${currencyCodes.map((c) => `<option value="${c}" ${selectedCurrency === c ? "selected" : ""}>${_PERF_CURRENCY_FLAGS[c] || ""} ${c}</option>`).join("")}
                   </select>
                 </div>
                 <div class="btn-group btn-group-sm" role="group" id="fa-curr-tf-group">
@@ -83,22 +84,14 @@ function buildCurrencyChartAnalysisRow(ctx) {
 
                 <!-- Currency Tab Switcher -->
                 <ul class="nav nav-pills nav-fill mb-3" id="fa-curr-analysis-tabs" style="background:var(--bg-tertiary); padding:4px; border-radius:8px;">
-                  <li class="nav-item">
-                    <button class="nav-link btn-sm py-1 ${selectedCurrency === "USD" ? "active" : ""}" data-curr="USD">USD</button>
-                  </li>
-                  <li class="nav-item">
-                    <button class="nav-link btn-sm py-1 ${selectedCurrency === "EUR" ? "active" : ""}" data-curr="EUR">EUR</button>
-                  </li>
-                  <li class="nav-item">
-                    <button class="nav-link btn-sm py-1 ${selectedCurrency === "SAR" ? "active" : ""}" data-curr="SAR">SAR</button>
-                  </li>
+                  ${currencyCodes.map((c) => `<li class="nav-item"><button class="nav-link btn-sm py-1 ${selectedCurrency === c ? "active" : ""}" data-curr="${c}">${c}</button></li>`).join("")}
                 </ul>
 
                 <!-- Details Panel -->
                 <div class="p-3 rounded mb-3" style="background:var(--bg-tertiary); border:1px solid var(--border-color);">
                   <div class="d-flex justify-content-between align-items-baseline mb-2">
                     <div class="small" style="color:var(--text-secondary);" data-i18n="performance_current_rate_label">Current Rate</div>
-                    <div class="fs-4 fw-bold text-primary">${hasCurrHistory ? formatRatePivot(currRate, pivotCode) : formatRateBase(currRate)}</div>
+                    <div class="fs-4 fw-bold text-primary">${formatRateBase(currRate)}</div>
                   </div>
 
                   ${
@@ -136,6 +129,7 @@ function buildCurrencyChartAnalysisRow(ctx) {
                   ${hasCurrHistory ? "Exchange rate performance based on historical data." : "Historical rate data is unavailable yet. Showing current exchange rate snapshot."}
                 </span>
               </div>
+              ${skippedDays > 0 ? `<div class="extra-small mt-2" style="color:var(--text-secondary);"><i class="bi bi-exclamation-circle me-1"></i>${t("performance_currency_skipped_days", "{n} day(s) left out: no {base} rate was archived for those dates.").replace("{n}", skippedDays)}</div>` : ""}
             </div>
           </div>
         </div>`;

@@ -11,7 +11,8 @@ function renderPerformanceView(container) {
   const currencies = _performanceData.currencies || {};
   const currData = currencies.data || {};
   const hasCurrHistory = currencies.rate_history_available;
-  const pivotCode = currencies.pivot_code || "";
+  const currencyCodes = currencies.codes || ["USD", "EUR", "SAR"];
+  if (!currencyCodes.includes(_selectedCurrency)) _selectedCurrency = currencyCodes[0];
 
   const goldTrend7 = gold.trend_7d || 0;
   const goldTrend30 = gold.trend_30d || 0;
@@ -30,7 +31,8 @@ function renderPerformanceView(container) {
   const impact7d = exposure.impact_7d || 0;
   const impact30d = exposure.impact_30d || 0;
 
-  const activeCurrencyObj = currData[_selectedCurrency] || currData["USD"] || {};
+  const activeCurrencyObj = currData[_selectedCurrency] || {};
+  const skippedDays = activeCurrencyObj.skipped_days || 0;
   const currRate = activeCurrencyObj.current_rate || 0;
   const currTrend7 = activeCurrencyObj.trend_7d || 0;
   const currTrend30 = activeCurrencyObj.trend_30d || 0;
@@ -53,7 +55,8 @@ function renderPerformanceView(container) {
     impact7d,
     impact30d,
     currRate,
-    pivotCode,
+    currencyCodes,
+    skippedDays,
     currTrend7,
     currTrend30,
     currTrend90,

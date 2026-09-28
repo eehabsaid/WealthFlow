@@ -10,10 +10,6 @@ function baseCurrencyCode() {
   return window.WF_BASE.code || "";
 }
 
-function basePivotCode() {
-  return window.WF_BASE.pivot_currency || "";
-}
-
 function baseCurrencySymbol() {
   return window.WF_BASE.symbol || window.WF_BASE.code || "";
 }
@@ -33,12 +29,11 @@ function wfRateToBase(code, rates) {
 
 function applyBaseCurrencyToTranslations() {
   const code = baseCurrencyCode();
-  const pivot = basePivotCode();
   if (!code || typeof _t === "undefined" || !_t) return;
   Object.keys(_t).forEach((key) => {
-    if (typeof _t[key] !== "string") return;
-    if (_t[key].includes("{base}")) _t[key] = _t[key].split("{base}").join(code);
-    if (pivot && _t[key].includes("{pivot}")) _t[key] = _t[key].split("{pivot}").join(pivot);
+    if (typeof _t[key] === "string" && _t[key].includes("{base}")) {
+      _t[key] = _t[key].split("{base}").join(code);
+    }
   });
 }
 

@@ -138,7 +138,7 @@ function renderCurrencyChart(currObj, currencyTimeframe, selectedCurrency) {
   const filtered = filterTimeseries(rawList, currencyTimeframe);
   return buildPerformanceChart({
     canvasId: "fa-currency-performance-chart",
-    label: `${selectedCurrency}/EGP`,
+    label: `${selectedCurrency}/${baseCurrencyCode()}`,
     timeseries: filtered,
     valueKey: "mid_rate",
     labelKey: "date",

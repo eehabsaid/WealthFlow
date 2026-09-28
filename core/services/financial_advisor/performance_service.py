@@ -6,8 +6,14 @@ from typing import Any, Dict, List
 from core.models import GoldPriceHistory
 from core.services.balance.net_worth_service import NetWorthService
 from core.services.exchange_rate_history_service import ExchangeRateHistoryService
-from core.services.shared.currency_conversion_service import get_rate_pivot_code
+from core.services.shared.base_currency import base_rates, get_user_base_code
 from core.utils import format_date
+
+
+# Currencies offered in Currency Analysis, in display order. The viewer's own
+# default currency is dropped and the next candidate fills its slot, so a
+# pivot-base (EGP) user still sees exactly USD / EUR / SAR.
+_CURRENCY_CANDIDATES = ["USD", "EUR", "SAR", "EGP"]
 
 
 def _calc_rolling_ma(values: List[float], window: int, decimals: int = 2) -> List[float]:
@@ -36,7 +42,6 @@ class PerformanceService:
 
     def payload(self) -> Dict[str, Any]:
         cert_forecast = self._net_worth_service.certificate_forecast_payload(today=self.today)
-        balance_summary = self._net_worth_service.balance_payload().get("summary", {})
 
         # Gold trend %, summary moving averages, and holding value from NetWorthService
         gold_trend_7 = float(cert_forecast.get("gold_trend_7", 0.0) or 0.0)
@@ -73,35 +78,31 @@ class PerformanceService:
                 }
             )
 
-        # Exposure EGP Impact
+        # Exposure impact (base currency)
         gold_impact_7d = gold_value * (gold_trend_7 / 100.0)
         gold_impact_30d = gold_value * (gold_trend_30 / 100.0)
 
-        # Currency Snapshot from NetWorthService balance_payload
-        usd_snapshot_rate = float(balance_summary.get("usd_rate", 0.0) or 0.0)
-        eur_snapshot_rate = float(balance_summary.get("eur_rate", 0.0) or 0.0)
-        sar_snapshot_rate = float(balance_summary.get("sar_rate", 0.0) or 0.0)
-
-        currency_snapshots = {
-            "USD": usd_snapshot_rate,
-            "EUR": eur_snapshot_rate,
-            "SAR": sar_snapshot_rate,
-        }
-
-        # Historical Exchange Rate Analytics via ExchangeRateHistoryService
-        currencies = ["USD", "EUR", "SAR"]
+        # Historical rates are archived against the platform rate pivot, so
+        # they are re-expressed in the viewer's own default currency here
+        # (see ExchangeRateHistoryService.get_rate_series_in_base). The base
+        # itself would be a flat line of 1, so it is never offered as a tab.
+        base_code = get_user_base_code(self.owner)
+        currencies = [c for c in _CURRENCY_CANDIDATES if c != base_code][:3]
+        live_rates = base_rates(self.owner)
         start_date = self.today - timedelta(days=90)
         rate_history_available = False
         currencies_data: Dict[str, Dict[str, Any]] = {}
 
         for code in currencies:
-            current_rate = currency_snapshots.get(code, 0.0)
-            qs = self._exchange_rate_history_service.get_rate_range(
-                currency_code=code,
-                start=start_date,
-                end=self.today,
+            current_rate = float(live_rates.get(code, 0.0) or 0.0)
+            history_rows, skipped_days = (
+                self._exchange_rate_history_service.get_rate_series_in_base(
+                    currency_code=code,
+                    base_code=base_code,
+                    start=start_date,
+                    end=self.today,
+                )
             )
-            history_rows = list(qs)
 
             if history_rows:
                 rate_history_available = True
@@ -154,6 +155,7 @@ class PerformanceService:
             currencies_data[code] = {
                 "currency_code": code,
                 "current_rate": round(rate_to_use, 4),
+                "skipped_days": skipped_days,
                 "trend_7d": round(trend_7d, 2),
                 "trend_30d": round(trend_30d, 2),
                 "trend_90d": round(trend_90d, 2),
@@ -180,15 +182,8 @@ class PerformanceService:
             },
             "currencies": {
                 "rate_history_available": rate_history_available,
-                # The historical mid_rate archive (ExchangeRateHistory) is
-                # captured against the platform's shared rate pivot, not
-                # each viewer's own base currency (a single archive can't
-                # be per-user) — surfaced here so the UI labels "Current
-                # Rate" and the trend history accurately instead of
-                # claiming they're vs the viewer's base (batch 5 fix;
-                # true per-viewer-base triangulation of history is a
-                # separate, larger product decision, flagged not built).
-                "pivot_code": get_rate_pivot_code(),
+                "base_code": base_code,
+                "codes": currencies,
                 "data": currencies_data,
             },
         }
