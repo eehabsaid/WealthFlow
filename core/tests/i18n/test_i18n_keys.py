@@ -50,3 +50,20 @@ class I18nKeyTests(SimpleTestCase):
             keys = set(_load(lang))
             self.assertEqual(sorted(base - keys), [], f"{lang} is missing keys")
             self.assertEqual(sorted(keys - base), [], f"{lang} has extra keys")
+
+
+class I18nPlaceholderTests(SimpleTestCase):
+    def test_every_language_uses_the_same_placeholders_as_english(self):
+        token = re.compile(r"\{[a-z_0-9]+\}")
+        en = _load("en")
+        problems = []
+        for lang in LANGS[1:]:
+            data = _load(lang)
+            for key, value in en.items():
+                if isinstance(value, str) and sorted(token.findall(value)) != sorted(token.findall(str(data.get(key, "")))):
+                    problems.append(f"{lang}: {key}")
+        self.assertEqual(problems, [], "Placeholder mismatch vs en:\n" + "\n".join(problems))
+
+    def test_no_language_uses_the_retired_pivot_placeholder(self):
+        for lang in LANGS:
+            self.assertFalse([k for k, v in _load(lang).items() if isinstance(v, str) and "{pivot}" in v], lang)
