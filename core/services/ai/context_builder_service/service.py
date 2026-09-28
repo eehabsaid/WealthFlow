@@ -14,13 +14,16 @@ from typing import Any, Sequence
 from core.models import AppSettings, AIMessage
 from core.services.financial_advisor.registry import get_financial_advisor_payload
 
+from core.services.ai.context_builder_service.advisor_semantic import semantic_advisor_matches
 from core.services.ai.context_builder_service.business_data import fetch_grounding_business_data
+from core.services.ai.context_builder_service.codebase_context import build_codebase_block, is_codebase_question
 from core.services.ai.context_builder_service.constants import (
     DEFAULT_CORE_SERVICES,
     TOPIC_KEYWORD_MAP,
     match_advisor_services_by_name,
 )
 from core.services.ai.context_builder_service.formatting import split_payload_blocks, summarize_payload
+from core.services.ai.context_builder_service.history import select_history
 from core.services.ai.context_builder_service.prompt import build_system_prompt
 
 logger = logging.getLogger(__name__)
@@ -130,13 +133,20 @@ class ContextBuilderService:
         high_priority_blocks.extend(biz_high)
         low_priority_blocks.extend(biz_low)
 
-        # Only fall back to the broad default advisor services when NOTHING
-        # topically matched anywhere (no business-data provider, no advisor
-        # keyword) — a genuinely generic/open-ended question. Otherwise the
-        # matched data is exactly what the user asked for and must not have
-        # to compete with 4-5 unrelated payloads for the same token budget.
-        if not service_keys and not biz_sources:
-            service_keys = list(DEFAULT_CORE_SERVICES)
+        # 2b. Codebase retrieval, only for clearly code/architecture questions.
+        if is_codebase_question(user_query):
+            code_block = build_codebase_block(user_query)
+            if code_block:
+                sources.append("codebase_index")
+                high_priority_blocks.append(code_block)
+
+        # Nothing matched lexically or via business data: try semantic advisor matching
+        # (one cached query embedding; [] on any failure) before the broad default set.
+        if not service_keys and not sources:
+            from core.services.financial_advisor.registry import get_available_advisor_services
+            service_keys = semantic_advisor_matches(user_query, get_available_advisor_services())
+            if not service_keys:
+                service_keys = list(DEFAULT_CORE_SERVICES)
 
         for key in service_keys:
             payload = get_financial_advisor_payload(key, user)
@@ -176,17 +186,7 @@ class ContextBuilderService:
         user_q_tokens = self.estimate_tokens(user_query)
         available_history_budget = token_budget - current_tokens - user_q_tokens
 
-        formatted_history: list[dict[str, str]] = []
-        if history_messages and available_history_budget > 100:
-            history_list = list(history_messages)
-            accumulated_tokens = 0
-            for msg in reversed(history_list):
-                msg_str = f"{msg.role}: {msg.content}"
-                msg_tokens = self.estimate_tokens(msg_str)
-                if accumulated_tokens + msg_tokens > available_history_budget:
-                    break
-                accumulated_tokens += msg_tokens
-                formatted_history.insert(0, {"role": msg.role, "content": msg.content})
+        formatted_history = select_history(history_messages, available_history_budget, self.estimate_tokens)
 
         messages.extend(formatted_history)
         messages.append({"role": "user", "content": user_query})

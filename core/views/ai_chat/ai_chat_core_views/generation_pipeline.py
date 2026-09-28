@@ -4,6 +4,8 @@ Pure code motion from the original ai_chat_core_views.py — same logic, same
 order of operations, only relocated for file-size compliance.
 """
 
+import re
+
 from django.http import JsonResponse
 
 from core.models import AIMessage, AppSettings
@@ -25,9 +27,14 @@ _APP_STRUCTURE_TERMS = (
 )
 
 
+# Word-boundary match: the old substring check let "ui" hit "building"/"guide" and "tab"
+# hit "table", flipping ordinary financial questions to the app-structure tool domain.
+_APP_STRUCTURE_RE = re.compile(
+    r"\b(" + "|".join(re.escape(t) for t in _APP_STRUCTURE_TERMS) + r")s?\b", re.I)
+
+
 def _infer_question_domain(user_text: str) -> str | None:
-    q = (user_text or "").lower()
-    if any(term in q for term in _APP_STRUCTURE_TERMS):
+    if _APP_STRUCTURE_RE.search(user_text or ""):
         return "app_features_architecture"
     return "business_data_analysis"
 

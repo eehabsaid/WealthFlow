@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 import math
 import time
+from collections import OrderedDict
 
 from core.integrations.provider_utils import make_json_http_request
 from core.models import AppSettings
@@ -25,13 +26,18 @@ _EMBED_TIMEOUT_SECONDS = 5
 
 _candidate_cache: dict[str, list[float]] = {}
 
+# Small LRU of query embeddings: provider scoring and advisor-service scoring embed the
+# same user query in one turn; the second lookup must not cost another Ollama call.
+_QUERY_CACHE_MAX = 32
+_query_cache: OrderedDict[str, list[float]] = OrderedDict()
+
 # Circuit breaker: after a failed embedding call (Ollama down, model not pulled, timeout)
 # skip further calls for a while instead of paying the timeout on every candidate/turn.
 _FAILURE_COOLDOWN_SECONDS = 120
 _failed_until = 0.0
 
 # Per-process counters so the pipeline trace can report what retrieval spent here.
-stats = {"calls": 0, "failures": 0, "ms": 0, "skipped_lexical": 0, "skipped_cooldown": 0}
+stats = {"query_cache_hits": 0, "calls": 0, "failures": 0, "ms": 0, "skipped_lexical": 0, "skipped_cooldown": 0}
 
 
 def stats_snapshot() -> dict[str, int]:
@@ -74,6 +80,24 @@ def _embed(text: str) -> list[float] | None:
     return None
 
 
+def _embed_query(text: str) -> list[float] | None:
+    text = (text or "").strip()
+    key = text.lower()  # cache key only; the original text is what gets embedded
+    if not key:
+        return None
+    hit = _query_cache.get(key)
+    if hit is not None:
+        _query_cache.move_to_end(key)
+        stats["query_cache_hits"] += 1
+        return hit
+    vec = _embed(text)
+    if vec is not None:
+        _query_cache[key] = vec
+        while len(_query_cache) > _QUERY_CACHE_MAX:
+            _query_cache.popitem(last=False)
+    return vec
+
+
 def _cosine(a: list[float], b: list[float]) -> float:
     if not a or not b or len(a) != len(b):
         return 0.0
@@ -89,7 +113,7 @@ def semantic_scores(query: str, candidates: dict[str, str]) -> dict[str, float] 
     """candidates: {key: description_text}. Returns {key: similarity in
     [0,1]} or None if the embedding service is unavailable (caller should
     fall back to keyword-only scoring in that case)."""
-    q_vec = _embed(query)
+    q_vec = _embed_query(query)
     if q_vec is None:
         return None
 

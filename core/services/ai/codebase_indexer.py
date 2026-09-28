@@ -14,6 +14,8 @@ import time
 from typing import Any
 from django.conf import settings
 
+from core.services.ai.codebase_search import rank_entries
+
 _CODEBASE_INDEX_CACHE: dict[str, Any] = {}
 _CACHE_TTL_SECONDS = 600.0
 
@@ -54,19 +56,10 @@ class CodebaseIndexer:
             filtered = [i for i in filtered if c_name in i.get("class_name", "").lower()]
 
         if term:
-            matched = []
-            for i in filtered:
-                match_txt = (
-                    f"{i.get('class_name', '')} {i.get('location', '')} "
-                    f"{i.get('docstring', '')} {' '.join(i.get('methods', []))} "
-                    f"{' '.join(i.get('dependencies', []))}"
-                ).lower()
-                if term in match_txt:
-                    matched.append(i)
-            filtered = matched
+            filtered = rank_entries(filtered, term)
 
         return {
-            "total_indexed_classes": len(items),
+            "total_indexed_classes": sum(1 for i in items if i.get("kind") != "module"),
             "matching_results_count": len(filtered),
             "search_term": term,
             "module_type_filter": m_type,
@@ -109,6 +102,10 @@ class CodebaseIndexer:
                     tree = ast.parse(source_code, filename=rel_path)
                     file_imports = cls._extract_imports(tree)
 
+                    module_fn = cls._module_entry(tree, rel_path, m_type)
+                    if module_fn:
+                        indexed.append(module_fn)
+
                     for node in ast.walk(tree):
                         if isinstance(node, ast.ClassDef):
                             class_doc = ast.get_docstring(node) or ""
@@ -132,6 +129,24 @@ class CodebaseIndexer:
                     pass
 
         return indexed
+
+    @staticmethod
+    def _module_entry(tree: ast.AST, rel_path: str, m_type: str) -> dict[str, Any] | None:
+        """Function-only modules (e.g. expense_mirror_engine.py) define no class, so they were
+        invisible to the class-only index. One entry per module with public functions."""
+        if "/migrations/" in rel_path or rel_path.endswith("__init__.py"):
+            return None
+        fns = [n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+               and not n.name.startswith("_")]
+        if not fns:
+            return None
+        doc = (ast.get_docstring(tree) or "").strip()
+        stem = os.path.splitext(os.path.basename(rel_path))[0]
+        return {
+            "class_name": stem, "kind": "module", "module_type": m_type, "location": rel_path,
+            "base_classes": [], "docstring": doc.split("\n")[0] if doc else "",
+            "full_docstring": doc[:300], "methods": fns[:12], "dependencies": [],
+        }
 
     @staticmethod
     def _extract_imports(tree: ast.AST) -> list[str]:

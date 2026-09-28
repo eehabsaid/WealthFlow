@@ -27,6 +27,16 @@ SEMANTIC_MATCH_THRESHOLD = 0.45
 SEMANTIC_MARGIN_OVER_MEAN = 0.08
 
 
+def select_semantic_matches(sem_scores: dict[str, float]) -> dict[str, float]:
+    """Absolute floor AND margin over the pack mean (see SEMANTIC_MARGIN_OVER_MEAN).
+    Shared by provider scoring and advisor-service matching."""
+    if not sem_scores:
+        return {}
+    mean_sim = sum(sem_scores.values()) / len(sem_scores)
+    return {k: v for k, v in sem_scores.items()
+            if v >= SEMANTIC_MATCH_THRESHOLD and v >= mean_sim + SEMANTIC_MARGIN_OVER_MEAN}
+
+
 def apply_semantic_bonus(scores: dict[str, float], registry: dict[str, Any], query_str: str,
                          build_meta_text: Callable[[Any], str]) -> None:
     """Adds the semantic bonus to `scores` in place.
@@ -53,8 +63,5 @@ def apply_semantic_bonus(scores: dict[str, float], registry: dict[str, Any], que
     # require_signal=True path (every provider would show weak positive "signal" again).
     # Also require separation from the pack (see SEMANTIC_MARGIN_OVER_MEAN above): an
     # absolute floor alone still lets a uniformly-noisy score set through.
-    values = list(sem_scores.values())
-    mean_sim = sum(values) / len(values)
-    for key, sim in sem_scores.items():
-        if sim >= SEMANTIC_MATCH_THRESHOLD and sim >= mean_sim + SEMANTIC_MARGIN_OVER_MEAN:
-            scores[key] = scores.get(key, 0.0) + sim * 3.0
+    for key, sim in select_semantic_matches(sem_scores).items():
+        scores[key] = scores.get(key, 0.0) + sim * 3.0
