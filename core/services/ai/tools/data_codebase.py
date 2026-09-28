@@ -12,6 +12,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
+from core.services.ai.tools.schema_validation import as_bool
 from core.services.ai.tools.salary_answers import SALARY_INSTRUCTIONS, add_salary_answers
 
 
@@ -21,8 +22,8 @@ def _handle_read_live_app_structure(user: Any, params: dict[str, Any]) -> dict[s
     """
     from core.services.ai.context_builder import AIContextBuilder
 
-    force_refresh = bool(params.get("force_refresh", False))
-    include_playwright = bool(params.get("include_playwright", False))
+    force_refresh = as_bool(params.get("force_refresh"))
+    include_playwright = as_bool(params.get("include_playwright"))
 
     res = AIContextBuilder.build_structure_context(
         user=user,
@@ -120,7 +121,7 @@ def _handle_read_application_codebase(user: Any, params: dict[str, Any]) -> dict
     search_term = str(params.get("search_term", "")).strip()
     module_type = str(params.get("module_type", "")).strip()
     class_name = str(params.get("class_name", "")).strip()
-    force_refresh = bool(params.get("force_refresh", False))
+    force_refresh = as_bool(params.get("force_refresh"))
 
     res = AIContextBuilder.build_codebase_context(
         user=user,

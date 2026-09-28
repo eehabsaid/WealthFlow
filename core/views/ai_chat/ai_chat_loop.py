@@ -1,8 +1,8 @@
-import json
 import time
 
 from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.tools import validate_and_execute_tool
+from core.services.ai.tools.result_budget import compact_tool_result
 from core.views.ai_chat.ai_chat_helpers import (MAX_TOOL_ITERATIONS,
                                                 _fingerprint,
                                                 _get_loop_timeout,
@@ -109,7 +109,7 @@ def run_tool_investigation_loop(provider, messages_seq, tools_param, tool_calls_
         executed_tool_calls.append(audit_rec)
 
         # Append tool result to messages for the next model call
-        tool_summary_str = json.dumps(tool_res, default=str)
+        tool_summary_str = compact_tool_result(tool_res)
         messages_seq.append(
             {
                 "role": "system",

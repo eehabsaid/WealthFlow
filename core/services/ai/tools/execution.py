@@ -14,6 +14,8 @@ import time
 from typing import Any
 
 from core.services.ai.tools.defs import AI_TOOL_REGISTRY
+from core.services.ai.tools.rejections import make_rejection
+from core.services.ai.tools.schema_validation import coerce_and_validate
 from core.services.ai.tools.permissions import resolve_granted_tier, tool_allowed_at_tier, tool_tier
 from core.services.ai.tools.validation_rules import _validate_tool_specific_params
 
@@ -49,34 +51,22 @@ def validate_and_execute_tool(
 
     # Rule 1: Tool Registry Name Check
     if clean_name not in AI_TOOL_REGISTRY:
-        audit = {
-            "tool": clean_name or "unknown",
-            "timestamp": timestamp,
-            "status": "rejected",
-            "duration_ms": 0,
-            "rejection_reason": f"Unknown tool '{clean_name}'",
-            "arguments": clean_params,
-        }
-        return audit, {"ok": False, "error": f"Unknown tool '{clean_name}'"}
+        return make_rejection(clean_name or "unknown", timestamp, clean_params, f"Unknown tool '{clean_name}'")
 
     tool_def = AI_TOOL_REGISTRY[clean_name]
 
     fn_schema = tool_def["schema"]["function"]["parameters"]
     required_fields = fn_schema.get("required", [])
 
-    # Rule 2: Parameters Schema Validation
+    # Rule 2: Parameters Schema Validation (required fields, then declared types/enums;
+    # unambiguous string->bool/int/list coercion happens here, see schema_validation.py)
     for field in required_fields:
         if field not in clean_params or clean_params[field] is None:
-            audit = {
-                "tool": clean_name,
-                "timestamp": timestamp,
-                "status": "rejected",
-                "duration_ms": 0,
-                "rejection_reason": f"Missing required parameter '{field}'",
-                "arguments": clean_params,
-            }
-            return audit, {"ok": False, "error": f"Missing required parameter '{field}'"}
+            return make_rejection(clean_name, timestamp, clean_params, f"Missing required parameter '{field}'")
 
+    clean_params, type_error = coerce_and_validate(fn_schema, clean_params)
+    if type_error:
+        return make_rejection(clean_name, timestamp, clean_params, type_error)
 
     tool_specific_rejection = _validate_tool_specific_params(clean_name, clean_params, timestamp)
     if tool_specific_rejection is not None:
@@ -84,54 +74,21 @@ def validate_and_execute_tool(
 
     # Rule 3: Authenticated User Check
     if not user or not getattr(user, "is_authenticated", False):
-        audit = {
-            "tool": clean_name,
-            "timestamp": timestamp,
-            "status": "rejected",
-            "duration_ms": 0,
-            "rejection_reason": "User authentication required",
-            "arguments": clean_params,
-        }
-        return audit, {"ok": False, "error": "User authentication required"}
+        return make_rejection(clean_name, timestamp, clean_params, "User authentication required")
 
     # Rule 4: Authorization Check
     if not getattr(user, "is_active", True):
-        audit = {
-            "tool": clean_name,
-            "timestamp": timestamp,
-            "status": "rejected",
-            "duration_ms": 0,
-            "rejection_reason": "User account is inactive",
-            "arguments": clean_params,
-        }
-        return audit, {"ok": False, "error": "User account is inactive"}
+        return make_rejection(clean_name, timestamp, clean_params, "User account is inactive")
 
     # Rule 5: Business Rules Validation (e.g. event schema inside create_scenario)
     if clean_name == "create_scenario":
-        events = clean_params.get("events") or []
-        for idx, ev in enumerate(events):
+        for idx, ev in enumerate(clean_params.get("events") or []):
             if not isinstance(ev, dict):
-                audit = {
-                    "tool": clean_name,
-                    "timestamp": timestamp,
-                    "status": "rejected",
-                    "duration_ms": 0,
-                    "rejection_reason": f"Event at index {idx} must be an object",
-                    "arguments": clean_params,
-                }
-                return audit, {"ok": False, "error": f"Event at index {idx} must be an object"}
-            etype = str(ev.get("event_type", "")).strip()
-            edate = ev.get("event_date")
-            if not etype or not edate:
-                audit = {
-                    "tool": clean_name,
-                    "timestamp": timestamp,
-                    "status": "rejected",
-                    "duration_ms": 0,
-                    "rejection_reason": f"Event at index {idx} missing event_type or event_date",
-                    "arguments": clean_params,
-                }
-                return audit, {"ok": False, "error": f"Event at index {idx} missing event_type or event_date"}
+                return make_rejection(clean_name, timestamp, clean_params, f"Event at index {idx} must be an object")
+            if not str(ev.get("event_type", "")).strip() or not ev.get("event_date"):
+                return make_rejection(
+                    clean_name, timestamp, clean_params, f"Event at index {idx} missing event_type or event_date"
+                )
 
     # Global permission-tier enforcement (evaluated after parameters & auth checks).
     # See permissions.py: read/execute/modify, each including the tiers below it.
@@ -142,15 +99,7 @@ def validate_and_execute_tool(
         if granted_tier == "read":
             # Preserve the exact legacy wording anything already matching on it expects.
             reason += " Global AI settings enforce read-only mode."
-        audit = {
-            "tool": clean_name,
-            "timestamp": timestamp,
-            "status": "rejected",
-            "duration_ms": 0,
-            "rejection_reason": reason,
-            "arguments": clean_params,
-        }
-        return audit, {"ok": False, "error": reason}
+        return make_rejection(clean_name, timestamp, clean_params, reason)
 
     # Validation passed -> Execute handler with duration tracking
     start_time = time.perf_counter()
