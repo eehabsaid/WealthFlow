@@ -23,6 +23,7 @@ APP_TOOL_DEFS: dict[str, dict[str, Any]] = {
         "name": "read_live_app_structure",
         "description": "Inspect real, live Django routes and DOM rendered tabs/modals to answer what pages and features currently exist.",
         "is_read_only": True,
+        "tier": "read",  # backlog item 7: explicit read/execute/modify tier
         "domain": "app_features_architecture",
         "handler": _handle_read_live_app_structure,
         "schema": {
@@ -47,6 +48,7 @@ APP_TOOL_DEFS: dict[str, dict[str, Any]] = {
         "name": "suggest_app_feature",
         "description": "Assemble live app structure and business data signals to produce a structured Business Requirement Document for a proposed feature.",
         "is_read_only": True,
+        "tier": "read",  # backlog item 7: explicit read/execute/modify tier
         "domain": "app_features_architecture",
         "handler": _handle_suggest_app_feature,
         "schema": {
@@ -83,6 +85,7 @@ APP_TOOL_DEFS: dict[str, dict[str, Any]] = {
             "such a figure from general knowledge."
         ),
         "is_read_only": True,
+        "tier": "read",  # backlog item 7: explicit read/execute/modify tier
         "domain": "business_data_analysis",
         "handler": _handle_query_application_data,
         "schema": {
@@ -115,6 +118,7 @@ APP_TOOL_DEFS: dict[str, dict[str, Any]] = {
         "name": "read_application_codebase",
         "description": "Inspect structural AST index of codebase classes, services, models, views, docstrings, methods, and dependencies to answer architectural reuse questions.",
         "is_read_only": True,
+        "tier": "read",  # backlog item 7: explicit read/execute/modify tier
         "domain": "app_features_architecture",
         "handler": _handle_read_application_codebase,
         "schema": {

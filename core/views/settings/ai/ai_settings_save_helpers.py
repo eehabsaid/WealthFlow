@@ -13,6 +13,7 @@ from django.http import JsonResponse
 from core.models import AppSettings
 from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.credential_encryption import encrypt_credential, is_masked
+from core.services.ai.tools.permissions import resolve_tier_and_read_only_from_post
 from core.integrations.ai_provider import AVAILABLE_AI_PROVIDERS, get_active_ai_provider
 
 
@@ -91,7 +92,13 @@ def validate_ai_settings_post_data(data):
         return None, JsonResponse({"error": "ai_context_token_budget must be a positive integer"}, status=400)
 
     enabled = bool(data.get("ai_enabled", False))
-    read_only = bool(data.get("ai_read_only", True))
+
+    # backlog item 7: explicit read/execute/modify tier, kept consistent with
+    # the legacy ai_read_only boolean — see permissions.py module docstring.
+    permission_tier, read_only, tier_error = resolve_tier_and_read_only_from_post(data)
+    if tier_error:
+        return None, JsonResponse({"error": tier_error}, status=400)
+
     multi_agent_enabled = bool(data.get("ai_multi_agent_enabled", False))
     ollama_url = str(data.get("ai_ollama_url", "http://localhost:11434")).strip()
     model = str(data.get("ai_model", DEFAULT_OLLAMA_MODEL)).strip()
@@ -112,6 +119,7 @@ def validate_ai_settings_post_data(data):
         "context_token_budget": context_token_budget,
         "enabled": enabled,
         "read_only": read_only,
+        "permission_tier": permission_tier,
         "multi_agent_enabled": multi_agent_enabled,
         "ollama_url": ollama_url,
         "model": model,
@@ -125,6 +133,7 @@ def validate_ai_settings_post_data(data):
 def persist_ai_settings(data, validated, user=None):
     AppSettings.set("ai_enabled", "true" if validated["enabled"] else "false", user=user)
     AppSettings.set("ai_read_only", "true" if validated["read_only"] else "false", user=user)
+    AppSettings.set("ai_permission_tier", validated["permission_tier"], user=user)
     AppSettings.set("ai_multi_agent_enabled", "true" if validated["multi_agent_enabled"] else "false", user=user)
     AppSettings.set("ai_provider", validated["provider"], user=user)
     AppSettings.set("ai_ollama_url", validated["ollama_url"], user=user)

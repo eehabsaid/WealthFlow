@@ -24,6 +24,7 @@ SCENARIO_TOOL_DEFS: dict[str, dict[str, Any]] = {
         "name": "create_scenario",
         "description": "Create a new financial scenario with optional events to project future wealth and cash flow impact.",
         "is_read_only": False,
+        "tier": "modify",  # backlog item 7: explicit read/execute/modify tier
         "domain": "business_data_analysis",
         "handler": _handle_create_scenario,
         "schema": {
@@ -61,6 +62,7 @@ SCENARIO_TOOL_DEFS: dict[str, dict[str, Any]] = {
         "name": "compare_scenarios",
         "description": "Compare financial performance, debt, cash flow, and net worth projections across multiple scenarios by ID.",
         "is_read_only": True,
+        "tier": "read",  # backlog item 7: explicit read/execute/modify tier
         "domain": "business_data_analysis",
         "handler": _handle_compare_scenarios,
         "schema": {
@@ -86,6 +88,7 @@ SCENARIO_TOOL_DEFS: dict[str, dict[str, Any]] = {
         "name": "summarize_report",
         "description": "Fetch real data payload for a financial advisor service (e.g. overview, cash_flow, spending_intelligence, risk_analysis) to summarize.",
         "is_read_only": True,
+        "tier": "read",  # backlog item 7: explicit read/execute/modify tier
         "domain": "business_data_analysis",
         "handler": _handle_summarize_report,
         "schema": {
@@ -110,6 +113,7 @@ SCENARIO_TOOL_DEFS: dict[str, dict[str, Any]] = {
         "name": "explain_chart",
         "description": "Fetch real chart/forecast payload data for a service key to explain what the figures and trends mean.",
         "is_read_only": True,
+        "tier": "read",  # backlog item 7: explicit read/execute/modify tier
         "domain": "business_data_analysis",
         "handler": _handle_explain_chart,
         "schema": {
@@ -134,6 +138,7 @@ SCENARIO_TOOL_DEFS: dict[str, dict[str, Any]] = {
         "name": "suggest_optimizations",
         "description": "Fetch real optimization recommendations from Portfolio Optimizer and Opportunity Detection services.",
         "is_read_only": True,
+        "tier": "read",  # backlog item 7: explicit read/execute/modify tier
         "domain": "business_data_analysis",
         "handler": _handle_suggest_optimizations,
         "schema": {

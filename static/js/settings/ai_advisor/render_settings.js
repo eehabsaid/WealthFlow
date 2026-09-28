@@ -57,8 +57,7 @@ window.AIA.renderAIAdvisorSettings = async function () {
     .join("");
 
   const enabledChecked = window.AIA.state.currentAISettings.ai_enabled ? "checked" : "";
-  const readOnlyChecked =
-    (window.AIA.state.currentAISettings.ai_read_only ?? true) ? "checked" : "";
+  const permissionTier = window.AIA.state.currentAISettings.ai_permission_tier || "read";
   const multiAgentChecked = window.AIA.state.currentAISettings.ai_multi_agent_enabled
     ? "checked"
     : "";
@@ -67,7 +66,7 @@ window.AIA.renderAIAdvisorSettings = async function () {
     activeProviderKey,
     providerOptions,
     enabledChecked,
-    readOnlyChecked,
+    permissionTier,
     multiAgentChecked,
   });
   container.innerHTML = html;

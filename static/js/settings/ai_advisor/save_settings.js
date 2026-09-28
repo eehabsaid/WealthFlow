@@ -6,7 +6,7 @@ window.AIA = window.AIA || {};
 window.AIA.saveAISettingsFromGui = async function () {
   const btn = document.getElementById("aiSaveBtn");
   const enabled = document.getElementById("aiEnabledToggle")?.checked || false;
-  const readOnly = document.getElementById("aiReadOnlyToggle")?.checked ?? true;
+  const permissionTier = document.getElementById("aiPermissionTierSelect")?.value || "read";
   const multiAgentEnabled = document.getElementById("aiMultiAgentToggle")?.checked || false;
   const provider = document.getElementById("aiProviderSelect")?.value || "ollama";
   const model = (document.getElementById("aiModelInput")?.value || "").trim();
@@ -24,7 +24,7 @@ window.AIA.saveAISettingsFromGui = async function () {
 
   const payload = {
     ai_enabled: enabled,
-    ai_read_only: readOnly,
+    ai_permission_tier: permissionTier,
     ai_multi_agent_enabled: multiAgentEnabled,
     ai_validate_mode: document.getElementById("aiValidateModeSelect")?.value || "flag",
     ai_pipeline_debug: document.getElementById("aiPipelineDebugToggle")?.checked || false,

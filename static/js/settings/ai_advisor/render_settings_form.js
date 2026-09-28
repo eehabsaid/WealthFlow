@@ -3,8 +3,10 @@ window.AIA = window.AIA || {};
 // AI Advisor settings form HTML builder (the main settings form markup).
 
 window.AIA.buildAISettingsFormHtml = function (ctx) {
-  const { activeProviderKey, providerOptions, enabledChecked, readOnlyChecked, multiAgentChecked } =
+  const { activeProviderKey, providerOptions, enabledChecked, permissionTier, multiAgentChecked } =
     ctx;
+  const tierOption = (value, labelKey, fallback) =>
+    `<option value="${value}" ${permissionTier === value ? "selected" : ""}>${t(labelKey, fallback)}</option>`;
   return `
         <div class="si-modern-card p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
@@ -12,9 +14,13 @@ window.AIA.buildAISettingsFormHtml = function (ctx) {
                     <p class="text-muted small mb-0" data-i18n="ai_settings_desc">${t("ai_settings_desc", "Configure AI provider integration, API endpoints, model selection, and security parameters.")}</p>
                 </div>
                 <div class="d-flex align-items-center gap-4 flex-wrap">
-                    <div class="form-check form-switch fs-5 mb-0">
-                        <input class="form-check-input" type="checkbox" id="aiReadOnlyToggle" ${readOnlyChecked}>
-                        <label class="form-check-label fs-6 fw-semibold ms-2" for="aiReadOnlyToggle" data-i18n="ai_read_only_label">${t("ai_read_only_label", "Enforce Read-Only Tools")}</label>
+                    <div class="d-flex align-items-center gap-2 mb-0">
+                        <label class="fs-6 fw-semibold mb-0" for="aiPermissionTierSelect" data-i18n="ai_permission_tier_label">${t("ai_permission_tier_label", "AI Tool Permissions")}</label>
+                        <select class="form-select form-select-sm" id="aiPermissionTierSelect" style="width:auto;">
+                            ${tierOption("read", "ai_permission_tier_read", "Read Only")}
+                            ${tierOption("execute", "ai_permission_tier_execute", "Read + Execute")}
+                            ${tierOption("modify", "ai_permission_tier_modify", "Read + Execute + Modify")}
+                        </select>
                     </div>
                     <div class="form-check form-switch fs-5 mb-0">
                         <input class="form-check-input" type="checkbox" id="aiMultiAgentToggle" ${multiAgentChecked}>

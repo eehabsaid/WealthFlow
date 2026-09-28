@@ -10,6 +10,7 @@ core/views/settings/__init__.py accordingly."""
 from core.models import AppSettings
 from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.credential_encryption import decrypt_credential, mask_credential
+from core.services.ai.tools.permissions import resolve_granted_tier
 from core.integrations.ai_provider import AVAILABLE_AI_PROVIDERS
 from core.views.settings.ai.ai_pipeline_settings import get_pipeline_settings
 
@@ -80,6 +81,10 @@ def build_ai_settings_get_payload(user=None):
     read_only_str = get("ai_read_only", "true").strip().lower()
     read_only = read_only_str in ("true", "1", "yes")
 
+    # backlog item 7: explicit read/execute/modify tier, layered on top of
+    # (and kept consistent with) the older ai_read_only boolean above.
+    permission_tier = resolve_granted_tier(user=user)
+
     multi_agent_str = get("ai_multi_agent_enabled", "false").strip().lower()
     multi_agent_enabled = multi_agent_str in ("true", "1", "yes")
 
@@ -97,6 +102,7 @@ def build_ai_settings_get_payload(user=None):
     return {
         "ai_enabled": enabled,
         "ai_read_only": read_only,
+        "ai_permission_tier": permission_tier,
         "ai_multi_agent_enabled": multi_agent_enabled,
         "ai_provider": provider,
         "ai_ollama_url": ollama_url,

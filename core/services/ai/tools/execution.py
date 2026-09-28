@@ -13,8 +13,8 @@ import logging
 import time
 from typing import Any
 
-from core.models import AppSettings
 from core.services.ai.tools.defs import AI_TOOL_REGISTRY
+from core.services.ai.tools.permissions import resolve_granted_tier, tool_allowed_at_tier, tool_tier
 from core.services.ai.tools.validation_rules import _validate_tool_specific_params
 
 logger = logging.getLogger(__name__)
@@ -133,18 +133,24 @@ def validate_and_execute_tool(
                 }
                 return audit, {"ok": False, "error": f"Event at index {idx} missing event_type or event_date"}
 
-    # Global read-only configuration enforcement (evaluated after parameters & auth checks)
-    ai_read_only_setting = AppSettings.get("ai_read_only", "true").strip().lower() in ("true", "1", "yes")
-    if ai_read_only_setting and not tool_def.get("is_read_only", False):
+    # Global permission-tier enforcement (evaluated after parameters & auth checks).
+    # See permissions.py: read/execute/modify, each including the tiers below it.
+    granted_tier = resolve_granted_tier(user=user)
+    required_tier = tool_tier(tool_def)
+    if not tool_allowed_at_tier(required_tier, granted_tier):
+        reason = f"Requires '{required_tier}' permission; AI is currently granted '{granted_tier}'."
+        if granted_tier == "read":
+            # Preserve the exact legacy wording anything already matching on it expects.
+            reason += " Global AI settings enforce read-only mode."
         audit = {
             "tool": clean_name,
             "timestamp": timestamp,
             "status": "rejected",
             "duration_ms": 0,
-            "rejection_reason": "Global AI settings enforce read-only mode.",
+            "rejection_reason": reason,
             "arguments": clean_params,
         }
-        return audit, {"ok": False, "error": "Global AI settings enforce read-only mode."}
+        return audit, {"ok": False, "error": reason}
 
     # Validation passed -> Execute handler with duration tracking
     start_time = time.perf_counter()
