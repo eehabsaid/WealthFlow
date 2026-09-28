@@ -23,6 +23,9 @@ class RiskCalcMixin:
             monthly_expenses = max(0.0, self._monthly_expenses_override)
         else:
             monthly_expenses = self._optimizer_service._monthly_expense_average()
+        if monthly_expenses <= 0:
+            # No recorded expenses: coverage can't be measured, so stay neutral.
+            return 30.0, "risk_analysis_reason_liq_no_data", {}
         cash_val = _to_float(comp.get("allocation_values", {}).get("type_cash"))
         cert_val = _to_float(comp.get("allocation_values", {}).get("bank_certificates"))
         liquid_value = cash_val + cert_val

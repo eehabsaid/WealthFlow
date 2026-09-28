@@ -2419,5 +2419,8 @@
     "ai_permission_tier_label": "Permissions des outils IA",
     "ai_permission_tier_read": "Lecture seule",
     "ai_permission_tier_execute": "Lecture + Exécution",
-    "ai_permission_tier_modify": "Lecture + Exécution + Modification"
+    "ai_permission_tier_modify": "Lecture + Exécution + Modification",
+    "risk_analysis_reason_liq_no_data": "Ajoutez vos dépenses pour mesurer la couverture du fonds d'urgence.",
+    "risk_analysis_finding_liquidity_no_data_title": "Le fonds d'urgence ne peut pas encore être mesuré",
+    "risk_analysis_finding_liquidity_no_data_desc": "Enregistrez vos dépenses mensuelles pour que le conseiller indique combien de mois votre épargne couvre."
 }

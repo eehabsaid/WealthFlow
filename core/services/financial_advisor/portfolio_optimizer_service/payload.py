@@ -110,6 +110,9 @@ class PayloadMixin:
             },
             "expense_baseline": {
                 "avg_monthly_expenses": round(ctx.monthly_expenses, 2),
-                "emergency_fund_months": round(ctx.emergency_months, 2),
+                # Months-of-expenses is unmeasurable without recorded expenses.
+                "emergency_fund_months": (
+                    round(ctx.emergency_months, 2) if ctx.monthly_expenses > 0 else None
+                ),
             },
         }

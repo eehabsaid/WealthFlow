@@ -2419,5 +2419,8 @@
     "ai_permission_tier_label": "صلاحيات أدوات الذكاء الاصطناعي",
     "ai_permission_tier_read": "قراءة فقط",
     "ai_permission_tier_execute": "قراءة + تنفيذ",
-    "ai_permission_tier_modify": "قراءة + تنفيذ + تعديل"
+    "ai_permission_tier_modify": "قراءة + تنفيذ + تعديل",
+    "risk_analysis_reason_liq_no_data": "أضف مصروفاتك لقياس تغطية صندوق الطوارئ.",
+    "risk_analysis_finding_liquidity_no_data_title": "لا يمكن قياس صندوق الطوارئ بعد",
+    "risk_analysis_finding_liquidity_no_data_desc": "سجّل مصروفاتك الشهرية ليتمكن المستشار من عرض عدد الأشهر التي تغطيها مدخراتك."
 }

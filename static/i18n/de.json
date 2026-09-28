@@ -2419,5 +2419,8 @@
     "ai_permission_tier_label": "KI-Tool-Berechtigungen",
     "ai_permission_tier_read": "Nur Lesen",
     "ai_permission_tier_execute": "Lesen + Ausführen",
-    "ai_permission_tier_modify": "Lesen + Ausführen + Ändern"
+    "ai_permission_tier_modify": "Lesen + Ausführen + Ändern",
+    "risk_analysis_reason_liq_no_data": "Erfassen Sie Ihre Ausgaben, um die Notfallreserve zu messen.",
+    "risk_analysis_finding_liquidity_no_data_title": "Notfallreserve noch nicht messbar",
+    "risk_analysis_finding_liquidity_no_data_desc": "Erfassen Sie Ihre monatlichen Ausgaben, damit der Berater zeigt, wie viele Monate Ihre Ersparnisse abdecken."
 }

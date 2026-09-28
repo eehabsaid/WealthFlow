@@ -155,7 +155,7 @@ function _renderPortfolioOptimizer(payload) {
             <div class="portfolio-opp-list">${opportunitiesHtml}</div>
             <div class="portfolio-baseline-row">
               <span><span data-i18n="portfolio_optimizer_avg_monthly_expenses"></span>: <strong>${fmt(Number(expenseBaseline.avg_monthly_expenses || 0))}</strong></span>
-              <span><span data-i18n="portfolio_optimizer_emergency_months"></span>: <strong>${fmtpresent(Number(expenseBaseline.emergency_fund_months || 0))}</strong></span>
+              <span><span data-i18n="portfolio_optimizer_emergency_months"></span>: <strong>${expenseBaseline.emergency_fund_months == null ? "-" : fmtpresent(Number(expenseBaseline.emergency_fund_months))}</strong></span>
             </div>
           </div>
         </div>

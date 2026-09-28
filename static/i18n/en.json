@@ -2419,5 +2419,8 @@
     "unknown_error": "Unknown error",
     "upload": "Upload",
     "upload_date": "Uploaded",
-    "validation_company_name_required": "Please enter a company name"
+    "validation_company_name_required": "Please enter a company name",
+    "risk_analysis_reason_liq_no_data": "Add your expenses to measure emergency coverage.",
+    "risk_analysis_finding_liquidity_no_data_title": "Emergency Fund Can't Be Measured Yet",
+    "risk_analysis_finding_liquidity_no_data_desc": "Record your monthly expenses so the advisor can show how many months your savings cover."
 }

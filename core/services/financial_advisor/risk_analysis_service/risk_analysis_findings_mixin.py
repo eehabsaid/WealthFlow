@@ -30,7 +30,14 @@ class RiskFindingsMixin:
         monthly_expenses = self._optimizer_service._monthly_expense_average()
         liquid_value = _to_float(comp.get("allocation_values", {}).get("type_cash")) + _to_float(comp.get("allocation_values", {}).get("bank_certificates"))
         months = self._optimizer_service._emergency_fund_months(liquid_value, monthly_expenses)
-        if months < self.EMERGENCY_FUND_TARGET_MONTHS:
+        if monthly_expenses <= 0:
+            findings.append({
+                "severity": "info",
+                "severity_key": "risk_analysis_severity_info",
+                "title_key": "risk_analysis_finding_liquidity_no_data_title",
+                "desc_key": "risk_analysis_finding_liquidity_no_data_desc"
+            })
+        elif months < self.EMERGENCY_FUND_TARGET_MONTHS:
             findings.append({
                 "severity": "medium",
                 "severity_key": "risk_analysis_severity_medium",

@@ -21,7 +21,7 @@ def extract_portfolio_metrics(ctx: OverviewContext) -> None:
     ctx.health_score = float(ctx.portfolio_health.get("score", 0.0))
     ctx.expense_baseline = ctx.portfolio_payload.get("expense_baseline", {})
     ctx.avg_monthly_expenses = float(ctx.expense_baseline.get("avg_monthly_expenses", 0.0))
-    ctx.emergency_months = float(ctx.expense_baseline.get("emergency_fund_months", 0.0))
+    ctx.emergency_months = float(ctx.expense_baseline.get("emergency_fund_months") or 0.0)
     ctx.diversification = ctx.portfolio_payload.get("diversification", {})
     ctx.diversification_rating = ctx.diversification.get("portfolio_diversification_rating", "")
     ctx.largest_asset_concentration = ctx.diversification.get("largest_asset_concentration", {})
