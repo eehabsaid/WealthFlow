@@ -6,7 +6,7 @@ schemas (~810 tok prefill) and waited for the model to *decide* to call one (~30
 (query_application_data, unbudgeted providers) is run by code, its result is token-capped by
 result_budget and appended as a "STEP 0" system message (Validate's evidence collector already
 reads "STEP " messages), and Reason then answers without tool schemas or a tool round trip.
-Cost: only the result tokens' prefill. Any failure/empty result -> falls back to the old path.
+Cost: only the (capped, ~1000 tok) result prefill. Any failure/empty result -> falls back to the old path.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ from .trace import PipelineTrace
 
 _TOOL = "query_application_data"
 _REASONS = ("specific_period",)  # uncovered month(s) only; other "not grounded" reasons keep tools
+_MAX_CHARS = 4000  # ~1000 tok ≈ 27 s prefill at 36.9 tok/s; the tool schemas it replaces cost ~22 s
 
 
 @dataclass
@@ -45,7 +46,7 @@ def run_prefetch(trace: PipelineTrace, retrieval, understanding, user_text: str,
             rec.status = "skipped"
             rec.detail["reason"] = "prefetch_failed_fallback_to_tools"
             return Prefetch(executed=[audit])
-        summary = compact_tool_result(result)
+        summary = compact_tool_result(result, max_chars=_MAX_CHARS)
         retrieval.messages.append({
             "role": "system",
             "content": f"STEP 0 — DATA FETCHED FOR THIS QUESTION: '{_TOOL}'\nTOOL EXECUTION RESULT: {summary}\n\n"

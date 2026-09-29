@@ -7,7 +7,8 @@ have been told to quote verbatim:
   - salary: paid salary for one month, or the latest paid salary
     (see tools/salary_answers.py)
   - expenses: total, daily list, or category breakdown for one month
-    (see expense_direct.py)
+    (see expense_direct.py); multi-month detailed table with month + grand totals
+    (see expense_table_direct.py)
 
 Anything ambiguous, multi-part, comparative or non-English returns None and the
 normal LLM pipeline runs unchanged. Kill-switch: AppSettings ai_direct_answers=false.
@@ -75,10 +76,16 @@ def _audit(tool: str, text: str, started: float) -> dict[str, Any]:
 def _try_expenses(user: Any, text: str) -> dict[str, Any] | None:
     from core.services.ai.expense_direct import answer_expenses, match_expense_intent
 
+    from core.services.ai.expense_table_direct import answer_expense_table, match_expense_table_intent
+
+    started = time.monotonic()
+    table = match_expense_table_intent(text)
+    if table:
+        return {"content": answer_expense_table(user, *table),
+                "tool_calls": [_audit("direct_answer_expense_table", text, started)], "sources": ["expenses"]}
     intent = match_expense_intent(text)
     if not intent:
         return None
-    started = time.monotonic()
     answer = answer_expenses(user, *intent)
     return {"content": answer, "tool_calls": [_audit("direct_answer_expenses", text, started)], "sources": ["expenses"]}
 
