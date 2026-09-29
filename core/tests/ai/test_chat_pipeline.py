@@ -72,7 +72,7 @@ class TraceTest(SimpleTestCase):
                 rec.detail["x"] = 1
             t.skip_remaining("test")
             t.log_summary()
-        self.assertEqual(len([m for m in cm.output if "stage=" in m]), 6)
+        self.assertEqual(len([m for m in cm.output if "stage=" in m]), len(STAGES))
         self.assertIn("summary", cm.output[-1])
         self.assertEqual([s["stage"] for s in t.to_dict()["stages"]], list(STAGES))
 
@@ -131,7 +131,7 @@ class PipelineViewTest(TestCase):
     def test_debug_flag_returns_trace(self):
         AppSettings.set("ai_pipeline_debug", "true")
         res, _, _ = self.ask("what is my balance?", ["You have 12,345.67 EGP."])
-        self.assertEqual(len(res.json()["pipeline"]["stages"]), 5)  # respond still in progress
+        self.assertEqual(len(res.json()["pipeline"]["stages"]), len(STAGES) - 1)  # respond still in progress
 
     def test_direct_answer_path_skips_stages(self):
         prov = MagicMock()

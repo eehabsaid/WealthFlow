@@ -11,6 +11,7 @@ from typing import Any, Callable
 
 from core.models import AppSettings
 
+from .prefetch import run_prefetch
 from .reason import run_reason
 from .respond import run_respond
 from .retrieve import run_retrieve
@@ -28,8 +29,9 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
     provider = TracedProvider(provider, trace)
     try:
         retrieval = run_retrieve(trace, request, conversation, user_msg, user_text)
+        pre = run_prefetch(trace, retrieval, understanding, user_text, request.user)
         reasoning = run_reason(trace, provider, retrieval.messages, understanding.question_domain,
-                               retrieval, understanding)
+                               retrieval, understanding, prefetched=pre.used)
 
         if reasoning.error:
             trace.skip("tool", "provider_error")
@@ -39,6 +41,7 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
                 return on_error(retrieval.sources, reasoning.error)
 
         tool = run_tool(trace, provider, retrieval.messages, reasoning, user_text, request.user, conversation.id)
+        tool.executed = pre.executed + tool.executed
         validation = run_validate(
             trace, provider, retrieval.messages, retrieval, tool, understanding, user_text,
             request.user, conversation.id,

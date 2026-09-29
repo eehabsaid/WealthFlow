@@ -49,11 +49,13 @@ def answer_from_context(retrieval: Retrieval | None, question_domain: str, under
 
 
 def run_reason(trace: PipelineTrace, provider, messages_seq, question_domain: str,
-               retrieval: Retrieval | None = None, understanding=None) -> Reasoning:
+               retrieval: Retrieval | None = None, understanding=None, prefetched: bool = False) -> Reasoning:
     from core.views.ai_chat.ai_chat_core_views import generation_pipeline as gp  # lazy: avoids import cycle
 
     with trace.stage("reason") as rec:
         grounded, why = answer_from_context(retrieval, question_domain, understanding)
+        if prefetched:
+            grounded, why = True, "prefetched_tool_data"
         tools_param, error_str, content_str, tool_calls_req = gp.initial_generate(
             provider, messages_seq, question_domain, offer_tools=not grounded
         )

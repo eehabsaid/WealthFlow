@@ -20,6 +20,7 @@ from core.models import AppSettings
 from core.services.ai.cache_manager import AICacheManager
 from core.views.ai_chat.ai_chat_helpers import MAX_TOOL_ITERATIONS, _aiT_fallback_no_answer, _get_loop_timeout
 
+from .entity_check import check_entities
 from .grounding import GroundingReport, ground_answer
 from .retrieve import Retrieval
 from .tool import ToolOutcome
@@ -88,13 +89,21 @@ def _publish_progress(user: Any, conversation_id: Any, steps: int, trace: Pipeli
         pass  # progress is cosmetic
 
 
+def _full_report(answer: str, question: str, evidence: str) -> GroundingReport:
+    """Numeric grounding + entity grounding (months / currency codes) merged into one report."""
+    num = ground_answer(answer, question, evidence)
+    n_ent, bad_ent = check_entities(answer, question, evidence)
+    return GroundingReport(checked=num.checked + n_ent, ungrounded=num.ungrounded + tuple(bad_ent),
+                           methods={**num.methods, **({"entities": n_ent} if n_ent else {})})
+
+
 def _regenerate(provider, messages_seq, report: GroundingReport, user_text: str, evidence: str):
     msgs = list(messages_seq) + [{"role": "system", "content": _CORRECTION.format(figs="; ".join(report.ungrounded[:8]))}]
     res = provider.generate(msgs, tools=None)
     text = str((res or {}).get("content", "") or "").strip() if isinstance(res, dict) else ""
     if not text or (isinstance(res, dict) and res.get("error")):
         return None, None
-    return text, ground_answer(text, user_text, evidence)
+    return text, _full_report(text, user_text, evidence)
 
 
 def run_validate(trace: PipelineTrace, provider, messages_seq: list[dict], retrieval: Retrieval,
@@ -114,7 +123,7 @@ def run_validate(trace: PipelineTrace, provider, messages_seq: list[dict], retri
         if not evidence.strip() or (not retrieval.context_text and not tool.executed):
             return _skip(rec, "no_evidence_to_check_against", content)
 
-        report = ground_answer(content, user_text, evidence)
+        report = _full_report(content, user_text, evidence)
         rec.detail.update({"checked_figures": report.checked, "methods": report.methods,
                            "evidence_chars": len(evidence)})
         if report.checked == 0:
