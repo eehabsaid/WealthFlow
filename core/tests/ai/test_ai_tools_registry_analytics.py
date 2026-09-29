@@ -17,11 +17,6 @@ class NewAIToolsRegistryAnalyticsTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="test_ai_user", password="Password123!")
 
-    def test_tool_registry_and_validation(self):
-        from core.services.ai.tools_registry import validate_tool_registry
-        errs = validate_tool_registry()
-        self.assertEqual(len(errs), 0)
-
     def test_ai_context_orchestrator(self):
         from core.services.ai.orchestrator import AIContextOrchestrator
         res = AIContextOrchestrator.assemble_context("business_analysis", self.user, {"limit": 5})

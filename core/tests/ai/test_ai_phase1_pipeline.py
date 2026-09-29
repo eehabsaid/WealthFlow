@@ -66,8 +66,8 @@ class AnswerFromContextTest(SimpleTestCase):
     def r(self, sources, ctx="data"):
         return Retrieval(messages=[], sources=sources, context_text=ctx)
 
-    def u(self, intent="data_lookup", periods=()):
-        return SimpleNamespace(intent=intent, entities={"periods": list(periods)})
+    def u(self, intent="data_lookup", periods=(), topics=("expenses",)):
+        return SimpleNamespace(intent=intent, entities={"periods": list(periods)}, topics=list(topics))
 
     def test_topical_provider_match_answers_from_context(self):
         self.assertEqual(answer_from_context(self.r(["balance"]), "business_data_analysis", self.u()), (True, "topical_data_provider_match"))
@@ -82,6 +82,31 @@ class AnswerFromContextTest(SimpleTestCase):
         self.assertFalse(answer_from_context(self.r(["balance"]), d, self.u("action_request"))[0])
         self.assertFalse(answer_from_context(self.r(["expenses"]), d, self.u(periods=["2026-01"]))[0])
         self.assertFalse(answer_from_context(None, d)[0])
+
+    def test_period_covered_in_context_skips_tools(self):
+        d = "business_data_analysis"
+        ctx = '{"expenses":{"monthly_category_breakdown":[{"year":2026,"month":9,"categories":{}}]}}'
+        self.assertEqual(answer_from_context(self.r(["expenses"], ctx), d, self.u(periods=["2026-09"])),
+                         (True, "period_covered_in_context"))
+        spaced = '{"year": 2026, "month": 9}'
+        self.assertTrue(answer_from_context(self.r(["expenses"], spaced), d, self.u(periods=["2026-09"]))[0])
+
+    def test_period_not_covered_keeps_tools(self):
+        d = "business_data_analysis"
+        ctx = '{"year":2026,"month":9}'
+        self.assertEqual(answer_from_context(self.r(["expenses"], ctx), d, self.u(periods=["2026-08"])), (False, "specific_period"))
+        self.assertFalse(answer_from_context(self.r(["expenses"], ctx), d, self.u(periods=["2026-09", "2026-08"]))[0])
+        self.assertFalse(answer_from_context(self.r(["expenses"], '{"year":2026,"month":12}'), d, self.u(periods=["2026-1"]))[0])
+        # "month":1 must not match "month":12 or "month":10
+        self.assertFalse(answer_from_context(self.r(["expenses"], '{"year":2026,"month":12}'), d, self.u(periods=["2026-01"]))[0])
+
+    def test_period_coverage_requires_expenses_only_topic(self):
+        d = "business_data_analysis"
+        ctx = '{"year":2026,"month":9}'
+        self.assertFalse(answer_from_context(self.r(["salary"], ctx), d, self.u(periods=["2026-09"], topics=["salary"]))[0])
+        self.assertFalse(answer_from_context(self.r(["expenses"], ctx), d, self.u(periods=["2026-09"], topics=["expenses", "salary"]))[0])
+        self.assertFalse(answer_from_context(self.r(["expenses"], ctx), d, self.u(periods=["2026-09"], topics=[]))[0])
+        self.assertTrue(answer_from_context(self.r(["expenses"], ctx), d, self.u(periods=["2026-09"], topics=["expenses", "advisor:cash_flow"]))[0])
 
 
 class ContextPathViewTest(TestCase):

@@ -11,6 +11,7 @@ from typing import Any
 from core.services.ai.context_builder_service.constants import DEFAULT_CORE_SERVICES
 from core.views.ai_chat.ai_chat_helpers import _aiT_fallback_no_answer, _parse_tool_call
 
+from .coverage import periods_covered
 from .retrieve import Retrieval
 from .trace import PipelineTrace
 
@@ -39,7 +40,10 @@ def answer_from_context(retrieval: Retrieval | None, question_domain: str, under
     if understanding is not None:
         if understanding.intent in _TOOL_INTENTS:
             return False, f"intent_{understanding.intent}"
-        if understanding.entities.get("periods"):
+        periods = understanding.entities.get("periods")
+        if periods:
+            if periods_covered(retrieval.context_text, periods, getattr(understanding, "topics", [])):
+                return True, "period_covered_in_context"  # month rows already in snapshot: tools add nothing
             return False, "specific_period"  # month-level detail may not be in the snapshot
     return True, "topical_data_provider_match"
 
