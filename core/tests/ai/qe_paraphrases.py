@@ -32,7 +32,7 @@ BALANCE = [
     "what is my balance", "how much money do I have", "total balance", "my total liquid balance", "how much do I have in my accounts",
     "what's in my bank accounts", "show my account balances", "balances by currency", "balance per bank", "list all my accounts",
     "how much cash do I have", "my balance in USD", "how much USD do I have", "balance in euros", "what is my current balance",
-    "total funds across all banks", "bank balance summary", "how much gold do I have in my balances", "balance by account type",
+    "total funds across all banks", "bank balance summary", "balance by account type",
     "show balances for each account", "what are my balances", "how much is in my wallet", "my liquid cash total", "account balance",
     "how much money is in my accounts right now", "cash balance", "what do I have in the bank", "total of all my accounts",
     "how many accounts do I have and total balance", "balances per currency",
@@ -75,8 +75,17 @@ FX = [
     "currency exchange rates now", "the dollar exchange rate now", "eur to usd rate", "latest usd rate", "fx rates",
     "سعر الدولار", "سعر الدولار اليوم", "كام الدولار", "سعر اليورو", "اسعار الصرف", "سعر الريال السعودي", "سعر الصرف الان", "اسعار العملات",
 ]
+GOLD_HOLDINGS = [
+    "how much gold do I have", "how much gold do I hold", "how much gold do I own", "my gold holdings", "gold holdings",
+    "how many grams of gold do I have", "how many grams of gold do I own", "what is my gold worth", "how much is my gold worth",
+    "my gold", "show my gold", "gold I own", "gold I hold", "total gold I have", "how much gold do I have in my balances",
+    "what gold do I hold", "my gold weight", "gold grams I have", "value of the gold I own", "how much gold do I have in grams",
+    "do I own any gold", "what is the total weight of my gold", "my gold portfolio", "how many grams do I own in gold", "how much gold is in my accounts",
+    "what is the value of my gold holdings", "gold I have in grams", "tell me how much gold I hold", "my gold grams and value", "total gold holdings",
+    "كم عندي ذهب", "كم معي ذهب", "كم املك من ذهب", "ذهبي", "مقتنيات الذهب", "جرامات الذهب عندي", "كم جرام ذهب معي",
+]
 CORPUS = {"expenses": EXPENSES, "salary": SALARY, "balance": BALANCE, "certificates": CERTIFICATES,
-          "fixed_assets": FIXED_ASSETS, "gold_price": GOLD, "exchange_rates": FX}
+          "fixed_assets": FIXED_ASSETS, "gold_holdings": GOLD_HOLDINGS, "gold_price": GOLD, "exchange_rates": FX}
 
 # Must NOT be answered by the engine (advice / why / compare / forecast / actions / not data).
 FALL_THROUGH = [

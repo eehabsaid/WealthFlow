@@ -52,5 +52,5 @@ def run(user: Any, req: QueryRequest) -> QueryResult:
 
 CAPABILITIES = (Capability(
     key="fixed_assets", provider_key="fixed_assets", label="Fixed assets", terms=_TERMS, metrics=_METRICS, default_metric="total",
-    dimensions=_DIMS, filters=("asset_type",), time="none", executor=run, sources=("fixed_assets",),
+    dimensions=_DIMS, filters=("asset_type",), time="none", follow_subject="fixed assets", executor=run, sources=("fixed_assets",),
 ),)

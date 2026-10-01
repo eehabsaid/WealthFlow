@@ -43,6 +43,12 @@ def build(test):
     test.client.force_login(test.user)
 
 
-def ask(test, text):
-    res = test.client.post(CHAT_URL, json.dumps({"message": text}), content_type="application/json")
-    return res.json()
+def ask(test, text, conversation=True):
+    """Posts like the UI: after the first message the same conversation_id is sent (kept on `test`)."""
+    body = {"message": text}
+    if conversation and getattr(test, "_conversation_id", None):
+        body["conversation_id"] = test._conversation_id
+    data = test.client.post(CHAT_URL, json.dumps(body), content_type="application/json").json()
+    if conversation:
+        test._conversation_id = data.get("conversation_id") or getattr(test, "_conversation_id", None)
+    return data

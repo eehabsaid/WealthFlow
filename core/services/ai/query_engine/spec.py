@@ -32,6 +32,7 @@ class Capability:
     filters: tuple[str, ...] = ()                # currency | karat | side | category | bank | asset_type
     time: str = "none"                           # required | optional | none
     sources: tuple[str, ...] = ()
+    follow_subject: str = ""                    # words appended to a short follow-up ("and how much I hold?") after this capability
     latest_metrics: tuple[str, ...] = ()        # metrics that make sense with no period ("last expense")
 
     def metric_names(self) -> list[str]:

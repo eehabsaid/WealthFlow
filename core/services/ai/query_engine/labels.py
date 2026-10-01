@@ -49,6 +49,9 @@ _EN = {
     "fx_none": "No exchange rate is stored for {code}.", "fx_one": "1 {code} = {mid} {home} (buy {buy}, sell {sell}; updated {when}).",
     "fx_side": "1 {code} = {price} {home} ({side}; updated {when}).", "fx_all": "Exchange rates against {home} (updated {when}):",
     "fx_empty": "No exchange rates are stored yet.", "side_mid": "mid",
+    "gh_none": "No gold holdings are recorded.", "gh_total": "Gold holdings: {grams} g in total, worth {value}.",
+    "gh_by": "Gold holdings by source (amounts in {cur}):", "col_source": "Source", "col_purity": "Purity", "col_grams": "Grams",
+    "src_balance": "Balance", "src_asset": "Fixed asset", "gh_unvalued": "Value not available for {n} item(s) (no gold price stored).",
 }
 _AR = {
     "uncategorized": "بدون تصنيف", "no_date": "بدون تاريخ", "grand": "الإجمالي الكلي", "total_of": "إجمالي {label}",
@@ -93,6 +96,9 @@ _AR = {
     "fx_none": "لا يوجد سعر صرف مسجل لـ {code}.", "fx_one": "1 {code} = {mid} {home} (شراء {buy}، بيع {sell}؛ آخر تحديث {when}).",
     "fx_side": "1 {code} = {price} {home} ({side}؛ آخر تحديث {when}).", "fx_all": "أسعار الصرف مقابل {home} (آخر تحديث {when}):",
     "fx_empty": "لا توجد أسعار صرف مسجلة بعد.", "side_mid": "المتوسط",
+    "gh_none": "لا توجد مقتنيات ذهب مسجلة.", "gh_total": "مقتنيات الذهب: {grams} جم إجمالاً بقيمة {value}.",
+    "gh_by": "مقتنيات الذهب حسب المصدر (المبالغ بـ {cur}):", "col_source": "المصدر", "col_purity": "العيار", "col_grams": "الجرامات",
+    "src_balance": "الرصيد", "src_asset": "أصل ثابت", "gh_unvalued": "القيمة غير متاحة لـ {n} عنصر (لا يوجد سعر ذهب مسجل).",
 }
 _TABLES = {"en": _EN, "ar": _AR}
 

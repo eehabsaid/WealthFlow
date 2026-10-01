@@ -101,8 +101,11 @@ class AIChatView(View):
         # never hijack a fast question. Every decision is traced on the `route` stage.
         info = {}
         with trace.stage("route") as rec:
+            # the previous user message lets a short follow-up ("and how much do I hold?") inherit its topic
+            previous = conversation.messages.filter(role="user", is_deleted=False).exclude(id=user_msg.id) \
+                .order_by("-id").values_list("content", flat=True).first() or ""
             direct = try_direct_answer(request.user, user_text, provider=provider, understanding=understanding,
-                                       info=info, elapsed_ms=trace.elapsed_ms())
+                                       info=info, elapsed_ms=trace.elapsed_ms(), previous=previous)
             rec.detail.update(info)
             rec.detail["llm_calls"] = info.get("llm_calls", 0)
         if direct:

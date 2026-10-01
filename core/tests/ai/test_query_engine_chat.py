@@ -163,3 +163,47 @@ class RealisticVolumeTests(TestCase):
         self.assertLess(len(text), 60000)
         total = Decimal("10.25") * self.N + Decimal("1170.50")
         self.assertIn(f"{total:,.2f} EGP", text)
+
+
+class GoldHoldingsFollowUpTests(TestCase):
+    """The real log: "what is the gold price today for 24k?" then "and how much i hold?" took 9m56s on the LLM path."""
+
+    def setUp(self):
+        from core.models import BalanceEntry, Currency, FixedAsset
+        from core.models.fixed_assets_gold import GoldDetails
+
+        fx.build(self)
+        for owner, grams, asset_g in ((self.user, "10.00", "5.0000"), (self.other, "999.00", "888.0000")):
+            gold = Currency.objects.get_or_create(owner=owner, code="GOLD", defaults={"name": "Gold"})[0]
+            BalanceEntry.objects.create(owner=owner, title="Gold bars", balance_type="gold", currency=gold, amount=Decimal(grams), purity="21k")
+            asset = FixedAsset.objects.create(owner=owner, name="Gold set", asset_type="Gold", purchase_date=date(2024, 1, 1),
+                                              purchase_price=Decimal("1000"), current_market_value=Decimal("1000"))
+            GoldDetails.objects.create(asset=asset, purity="21k", weight=Decimal(asset_g))
+
+    def test_follow_up_after_gold_price_is_answered_without_llm(self):
+        with NO_LLM as gen:
+            first = fx.ask(self, "what is the gold price today for 24k?")["message"]["content"]
+            self.assertIn("Gold 24K price per gram", first)
+            data = fx.ask(self, "and how much i hold?")
+            text = data["message"]["content"]
+            gen.assert_not_called()
+        self.assertIn("Gold holdings: 15.00 g in total", text)  # 10 g in Balance + 5 g fixed asset
+        self.assertIn("Balance: Gold bars", text)
+        self.assertIn("Fixed asset: Gold set", text)
+        self.assertNotIn("999", text)
+        self.assertNotIn("888", text)
+        self.assertEqual(data["message"]["tool_calls"][0]["tool"], "direct_answer_gold_holdings")
+
+    def test_follow_up_is_traced_and_standalone_question_works(self):
+        with NO_LLM, self.assertLogs("core.ai.pipeline", level="WARNING") as logs:
+            fx.ask(self, "gold price today")
+            fx.ask(self, "and how much i hold?")
+            text = fx.ask(self, "how much gold do I own")["message"]["content"]
+        self.assertIn("15.00 g", text)
+        self.assertTrue(any("follow_up_of:gold_price" in m for m in logs.output))
+
+    def test_follow_up_without_a_previous_question_still_goes_to_the_llm(self):
+        with patch.object(OllamaProvider, "generate", return_value={"content": "LLM answer", "error": None}) as gen:
+            data = fx.ask(self, "and how much i hold?")
+        self.assertEqual(data["message"]["content"], "LLM answer")
+        self.assertTrue(gen.called)

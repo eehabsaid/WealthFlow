@@ -78,5 +78,5 @@ def run(user: Any, req: QueryRequest) -> QueryResult:
 
 CAPABILITIES = (Capability(
     key="balance", provider_key="balance", label="Bank & liquid balances", terms=_TERMS, metrics=_METRICS, default_metric="total",
-    dimensions=_DIMS, filters=("currency", "bank"), time="none", executor=run, sources=("balance",),
+    dimensions=_DIMS, filters=("currency", "bank"), time="none", follow_subject="balance", executor=run, sources=("balance",),
 ),)

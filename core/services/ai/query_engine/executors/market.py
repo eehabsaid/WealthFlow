@@ -116,7 +116,7 @@ def run_fx(user: Any, req: QueryRequest) -> QueryResult:
 CAPABILITIES = (
     Capability(key="gold_price", provider_key="market_data", label="Gold price by karat", terms=_GOLD_TERMS,
                metrics=(Metric("ounce", (r"\bounce\b|\boz\b", r"اونصه|اوقيه")), Metric("price")), default_metric="price",
-               filters=("karat", "side"), time="none", executor=run_gold, sources=("market_data",)),
+               filters=("karat", "side"), time="none", follow_subject="gold", executor=run_gold, sources=("market_data",)),
     Capability(key="exchange_rates", provider_key="market_data", label="Exchange rates", terms=_FX_TERMS,
-               metrics=(Metric("rate"),), default_metric="rate", filters=("currency", "side"), time="none", executor=run_fx, sources=("market_data",)),
+               metrics=(Metric("rate"),), default_metric="rate", filters=("currency", "side"), time="none", follow_subject="exchange rate", executor=run_fx, sources=("market_data",)),
 )

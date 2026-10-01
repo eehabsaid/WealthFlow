@@ -88,5 +88,5 @@ def run(user: Any, req: QueryRequest) -> QueryResult:
 
 CAPABILITIES = (Capability(
     key="expenses", provider_key="expenses", label="Expenses", terms=_TERMS, metrics=_METRICS, default_metric="total",
-    dimensions=_DIMS, filters=("category",), time="required", executor=run, sources=("expenses",), latest_metrics=("latest",),
+    dimensions=_DIMS, filters=("category",), time="required", follow_subject="expenses", executor=run, sources=("expenses",), latest_metrics=("latest",),
 ),)

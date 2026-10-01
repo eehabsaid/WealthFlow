@@ -86,5 +86,5 @@ def run(user: Any, req: QueryRequest) -> QueryResult:
 
 CAPABILITIES = (Capability(
     key="salary", provider_key="salary", label="Salary", terms=_TERMS, metrics=_METRICS, default_metric="paid",
-    dimensions=_DIMS, filters=(), time="required", executor=run, sources=("salary",), latest_metrics=("latest", "paid"),
+    dimensions=_DIMS, filters=(), time="required", follow_subject="salary", executor=run, sources=("salary",), latest_metrics=("latest", "paid"),
 ),)

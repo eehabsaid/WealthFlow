@@ -11,7 +11,7 @@ from core.services.ai.query_engine.timespec import parse_time
 from .qe_paraphrases import CORPUS, FALL_THROUGH
 
 TODAY = date(2026, 9, 29)
-EXPECTED = {"expenses", "salary", "balance", "certificates", "fixed_assets", "gold_price", "exchange_rates"}
+EXPECTED = {"expenses", "salary", "balance", "certificates", "fixed_assets", "gold_price", "exchange_rates", "gold_holdings"}
 
 
 def months(q):
@@ -86,6 +86,32 @@ class SlotTests(SimpleTestCase):
         self.assertEqual(route("gold price in March 2025", today=TODAY).status, "unsupported_time")
         self.assertEqual(route("add an expense of 50", today=TODAY).status, "blocked")
         self.assertEqual(route("x" * 700, today=TODAY).status, "none")
+
+
+class FollowUpTests(SimpleTestCase):
+    """A short follow-up inherits the topic of the previous user question (the real log: gold price -> "and how much i hold?")."""
+
+    def test_real_conversation_gold_price_then_holdings(self):
+        self.assertEqual(route("and how much i hold?", today=TODAY).status, "none")  # alone it means nothing
+        r = route("and how much i hold?", today=TODAY, previous="what is the gold price today for 24k?")
+        self.assertEqual((r.status, r.capability), ("ready", "gold_holdings"))
+        self.assertIn("follow_up_of:gold_price", r.reason)
+
+    def test_follow_up_inherits_period_for_period_capabilities(self):
+        r = route("and my salary?", today=TODAY, previous="total expenses for Sept 2026")
+        self.assertEqual((r.status, r.capability, r.request.periods), ("ready", "salary", [(2026, 9)]))
+        self.assertEqual(route("and my salary?", today=TODAY).status, "incomplete")  # no previous question: nothing to inherit
+        r = route("what about last month?", today=TODAY, previous="salary for Sept 2026")
+        self.assertEqual((r.status, r.capability, r.request.periods), ("ready", "salary", [(2026, 8)]))
+
+    def test_follow_up_never_invents_a_topic(self):
+        for prev in ("what is the gold price today for 24k?", "total expenses for Sept 2026"):
+            for q in ("and thanks?", "ok", "and how are you?", "so what is the meaning of life?"):
+                self.assertNotEqual(route(q, today=TODAY, previous=prev).status, "ready", (prev, q))
+        self.assertEqual(route("and how much i hold?", today=TODAY, previous="hello").status, "none")
+        self.assertEqual(route("and how much i hold?", today=TODAY, previous="").status, "none")
+        long_q = "and " + "very " * 12 + "long question about nothing in particular"
+        self.assertEqual(route(long_q, today=TODAY, previous="gold price today").status, "none")
 
 
 class ParaphraseTests(SimpleTestCase):

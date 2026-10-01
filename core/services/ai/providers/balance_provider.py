@@ -39,8 +39,9 @@ class BalanceDataProvider(BaseContextProvider):
 
     def get_query_capabilities(self) -> list[Any]:
         from core.services.ai.query_engine.executors.balance import CAPABILITIES
+        from core.services.ai.query_engine.executors.gold_holdings import CAPABILITIES as GOLD_HOLDINGS
 
-        return list(CAPABILITIES)
+        return [*CAPABILITIES, *GOLD_HOLDINGS]
 
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         home_currency = self.get_user_primary_currency(user)

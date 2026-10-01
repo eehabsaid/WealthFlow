@@ -99,7 +99,31 @@ def build_request(cap: Capability, q: str, time: TimeSpec, lang: str, category_l
     return req, problems
 
 
-def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = None, today: date | None = None) -> Routing:
+_FOLLOW_UP = re.compile(r"^\s*(?:and|also|then|what about|how about|ok(?:ay)?|so)\b|^\s*(?:و|طيب|وكمان|وكم|ماذا عن|وماذا عن|وبالنسبه)\s*|\?$|؟$")
+MAX_FOLLOW_UP_WORDS = 9
+MIN_FOLLOW_UP_SCORE = 3   # a follow-up only inherits the previous topic when that gives a CONFIDENT match
+
+
+def _follow_up(q: str, caps: list[Capability], previous: str) -> tuple[str, Capability | None]:
+    """"and how much I hold?" right after a gold-price question -> score it as "... gold holdings".
+    Returns (augmented text, previous capability) or (q, None). Never invents a topic: needs a confident score."""
+    if not previous or len(q.split()) > MAX_FOLLOW_UP_WORDS or not _FOLLOW_UP.search(q):
+        return q, None
+    pq = norm(previous)
+    ranked = sorted(((score(c, pq), c) for c in caps), key=lambda x: -x[0])
+    if ranked[0][0] <= 0 or not ranked[0][1].follow_subject:
+        return q, None
+    prev_cap = ranked[0][1]
+    aug = f"{q} {prev_cap.follow_subject}"
+    base = max(score(c, prev_cap.follow_subject) for c in caps)   # what the bare subject scores on its own
+    best = max(score(c, aug) for c in caps)
+    # the follow-up's OWN words must add evidence: "and thanks?" + the old topic must not become a question
+    own_time = parse_time(q).kind != "none"                       # "what about last month?" adds a period of its own
+    return (aug, prev_cap) if best >= MIN_FOLLOW_UP_SCORE and (best > base or own_time) else (q, None)
+
+
+def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = None, today: date | None = None,
+          previous: str = "") -> Routing:
     q, raw = norm(text), str(text or "")
     out = Routing(lang=language(raw))
     if not q or len(raw) > MAX_CHARS:
@@ -109,6 +133,12 @@ def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = No
         return Routing(status="blocked", reason="action_request", lang=out.lang)
     caps = get_capabilities()
     ranked = sorted(((score(c, q), c) for c in caps), key=lambda x: -x[0])
+    follow_of: Capability | None = None
+    if ranked[0][0] <= 0:  # nothing matched on its own: maybe a short follow-up to the previous question
+        q, follow_of = _follow_up(q, caps, previous)
+        if follow_of is not None:
+            ranked = sorted(((score(c, q), c) for c in caps), key=lambda x: -x[0])
+            out.reason = f"follow_up_of:{follow_of.key}"
     out.scores = {c.key: s for s, c in ranked if s}
     top, cap = ranked[0]
     second = ranked[1][0] if len(ranked) > 1 else 0
@@ -117,6 +147,12 @@ def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = No
         return out
     out.capability = cap.key
     time = parse_time(q, today)
+    follow_form = bool(previous) and len(q.split()) <= MAX_FOLLOW_UP_WORDS and bool(_FOLLOW_UP.search(q))
+    if (follow_of is not None or follow_form) and cap.time == "required" and not time.months and time.kind != "latest":
+        prev_time = parse_time(norm(previous), today)  # "and for salary?" keeps the period of the previous question
+        if prev_time.months:
+            time = prev_time
+            time.notes.append("period_from_previous_question")
     out.time = time
     req, problems = build_request(cap, q, time, out.lang, category_lookup)
     out.request = req
@@ -141,8 +177,11 @@ def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = No
         out.needs_llm = bool(TIME_HINT.search(q))
         out.confidence = 0.4
         return out
-    out.status, out.reason = "ready", "deterministic"
+    out.status = "ready"
+    out.reason = out.reason if out.reason.startswith("follow_up_of:") else "deterministic"
     out.confidence = 0.95 if margin >= 3 else 0.85
+    if follow_of is not None:
+        out.confidence = min(out.confidence, 0.8)
     if time.notes:
         out.confidence -= 0.1
     return out

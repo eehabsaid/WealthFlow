@@ -46,7 +46,7 @@ def _audit(req: QueryRequest, text: str, started: float, llm_calls: int) -> dict
 
 
 def answer(user: Any, text: str, *, provider: Any = None, understanding: Any = None, info: dict[str, Any] | None = None,
-           elapsed_ms: int = 0) -> dict[str, Any] | None:
+           elapsed_ms: int = 0, previous: str = "") -> dict[str, Any] | None:
     """Return {content, tool_calls, sources} or None (fall through). Fills `info` either way."""
     started = time.monotonic()
     info = info if info is not None else {}
@@ -58,7 +58,7 @@ def answer(user: Any, text: str, *, provider: Any = None, understanding: Any = N
     if not is_enabled(user):
         info["reason"] = "kill_switch"
         return None
-    routing: Routing = route(text, category_lookup=_category_lookup(user))
+    routing: Routing = route(text, category_lookup=_category_lookup(user), previous=previous)
     info.update(routing.summary())
     if routing.status == "analytic" and routing.request is not None:
         info["facts_request"] = routing.request.to_dict()  # narrative path: model gets computed facts, not data

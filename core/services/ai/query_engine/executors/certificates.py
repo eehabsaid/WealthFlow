@@ -50,5 +50,5 @@ def run(user: Any, req: QueryRequest) -> QueryResult:
 
 CAPABILITIES = (Capability(
     key="certificates", provider_key="bank_certificates", label="Bank certificates & deposits", terms=_TERMS, metrics=_METRICS,
-    default_metric="summary", filters=(), time="none", executor=run, sources=("bank_certificates",),
+    default_metric="summary", filters=(), time="none", follow_subject="certificates", executor=run, sources=("bank_certificates",),
 ),)

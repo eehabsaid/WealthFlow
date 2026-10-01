@@ -48,9 +48,9 @@ def _match_salary(text: str) -> str | None:
 
 
 def try_direct_answer(user: Any, text: str, *, provider: Any = None, understanding: Any = None,
-                      info: dict[str, Any] | None = None, elapsed_ms: int = 0) -> dict[str, Any] | None:
+                      info: dict[str, Any] | None = None, elapsed_ms: int = 0, previous: str = "") -> dict[str, Any] | None:
     """Return {content, tool_calls, sources} for a question the engine can answer, else None.
     `info` (optional dict) is filled with the routing decision for the [AI-PIPELINE] trace."""
     from core.services.ai.query_engine import answer
 
-    return answer(user, text, provider=provider, understanding=understanding, info=info, elapsed_ms=elapsed_ms)
+    return answer(user, text, provider=provider, understanding=understanding, info=info, elapsed_ms=elapsed_ms, previous=previous)
