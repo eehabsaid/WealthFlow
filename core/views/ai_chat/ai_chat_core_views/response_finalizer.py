@@ -4,11 +4,20 @@ Pure code motion from the original ai_chat_core_views.py — same logic, same
 order of operations, only relocated for file-size compliance.
 """
 
+import json
+
+from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 
 from core.models import AIMessage
 from core.services.ai.tools.defs import AI_TOOL_REGISTRY
 from core.views.ai_chat.response_sanitizer import strip_latex, strip_leaked_control_tokens
+
+
+def json_safe(value):
+    """Round-trip through JSON so Decimal / date / datetime / UUID / set values (tool results, agent
+    steps) can never break the JSONField save or the response. Non-serialisable leftovers become str."""
+    return json.loads(json.dumps(value, cls=DjangoJSONEncoder, default=str))
 
 
 def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
@@ -17,6 +26,8 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
     # Save successful assistant response with full tool execution audit trail
     content_str = strip_leaked_control_tokens(content_str, set(AI_TOOL_REGISTRY.keys()))
     content_str = strip_latex(content_str)
+    executed_tool_calls = json_safe(executed_tool_calls or [])
+    sources = json_safe(sources or [])
     ai_msg = AIMessage.objects.create(
         conversation=conversation,
         role="assistant",
@@ -80,4 +91,4 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
     }
     if extra:
         payload.update(extra)  # e.g. {"pipeline": trace} when ai_pipeline_debug is on
-    return JsonResponse(payload)
+    return JsonResponse(payload, encoder=DjangoJSONEncoder)

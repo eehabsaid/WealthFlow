@@ -30,6 +30,11 @@ class MarketDataProvider(BaseContextProvider):
             "description": "Fetches current forex mid/buy/sell rates and latest 24K gold market price per gram.",
         }]
 
+    def get_query_capabilities(self) -> list[Any]:
+        from core.services.ai.query_engine.executors.market import CAPABILITIES
+
+        return list(CAPABILITIES)
+
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         latest_rate_ids = ExchangeRate.objects.values("currency_code").annotate(max_id=Max("id")).values_list("max_id", flat=True)
         qs = ExchangeRate.objects.filter(id__in=latest_rate_ids).values("currency_code", "mid_rate", "buy_rate", "sell_rate", "fetched_at")

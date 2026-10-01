@@ -114,6 +114,8 @@
     "ai_validate_mode_flag": "Markieren",
     "ai_validate_mode_regenerate": "Neu generieren",
     "ai_pipeline_debug_label": "Pipeline-Debug-Trace",
+    "ai_direct_answers_label": "Sofortige Datenantworten",
+    "ai_direct_answers_help": "Einfache Datenfragen sofort aus Ihren Daten beantworten, ohne das KI-Modell",
     "ai_tool_activity_read_live_app_structure": "Live-App-Struktur entdecken...",
     "ai_tool_activity_suggest_app_feature": "Anforderungsdokument entwerfen...",
     "ai_tool_activity_query_application_data": "Geschäftsdaten modulübergreifend abfragen...",

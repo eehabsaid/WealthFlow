@@ -37,6 +37,11 @@ class BalanceDataProvider(BaseContextProvider):
             "description": "Calculates liquid cash & bank balances, pre-converted total liquid net worth in primary currency, and currency breakdowns deterministically.",
         }]
 
+    def get_query_capabilities(self) -> list[Any]:
+        from core.services.ai.query_engine.executors.balance import CAPABILITIES
+
+        return list(CAPABILITIES)
+
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         home_currency = self.get_user_primary_currency(user)
 

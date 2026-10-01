@@ -72,6 +72,13 @@ class CapabilityRegistry:
             except Exception as exc:
                 logger.warning("Failed to collect capabilities from provider '%s': %s", p_key, exc)
 
+        try:  # instant-answer capabilities declared for the query engine (same provider registry)
+            from core.services.ai.query_engine.registry import describe_capabilities
+
+            discovered.extend(describe_capabilities())
+        except Exception as exc:
+            logger.warning("Failed to collect query-engine capabilities: %s", exc)
+
         cls._capabilities_cache = discovered
         return cls._capabilities_cache
 

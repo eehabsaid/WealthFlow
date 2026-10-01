@@ -28,6 +28,7 @@ window.AIA.saveAISettingsFromGui = async function () {
     ai_multi_agent_enabled: multiAgentEnabled,
     ai_validate_mode: document.getElementById("aiValidateModeSelect")?.value || "flag",
     ai_pipeline_debug: document.getElementById("aiPipelineDebugToggle")?.checked || false,
+    ai_direct_answers: document.getElementById("aiDirectAnswersToggle")?.checked !== false,
     ai_provider: provider,
     ai_model: model,
     ai_temperature: temperature,

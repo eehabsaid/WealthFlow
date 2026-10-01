@@ -114,6 +114,8 @@
     "ai_validate_mode_flag": "تنبيه",
     "ai_validate_mode_regenerate": "إعادة التوليد",
     "ai_pipeline_debug_label": "تتبع مسار المعالجة",
+    "ai_direct_answers_label": "الإجابات الفورية للبيانات",
+    "ai_direct_answers_help": "الإجابة عن أسئلة البيانات البسيطة فورًا من بياناتك دون استخدام نموذج الذكاء الاصطناعي",
     "ai_tool_activity_read_live_app_structure": "استكشاف هيكل التطبيق الحالي...",
     "ai_tool_activity_suggest_app_feature": "صياغة وثيقة متطلبات الميزة...",
     "ai_tool_activity_query_application_data": "استعلام بيانات الأعمال عبر الوحدات...",

@@ -114,6 +114,8 @@
     "ai_validate_mode_flag": "Signaler",
     "ai_validate_mode_regenerate": "Régénérer",
     "ai_pipeline_debug_label": "Trace de débogage du pipeline",
+    "ai_direct_answers_label": "Réponses instantanées aux données",
+    "ai_direct_answers_help": "Répondre instantanément aux questions simples sur vos données, sans le modèle d'IA",
     "ai_tool_activity_read_live_app_structure": "Découverte de la structure de l'application...",
     "ai_tool_activity_suggest_app_feature": "Rédaction du document de spécification...",
     "ai_tool_activity_query_application_data": "Interrogation des données commerciales...",

@@ -58,6 +58,11 @@ class ExpensesDataProvider(BaseContextProvider):
             "description": "Calculates total spending, all-time and per-month category breakdowns, top spending categories, and pre-converted primary currency metrics deterministically.",
         }]
 
+    def get_query_capabilities(self) -> list[Any]:
+        from core.services.ai.query_engine.executors.expenses import CAPABILITIES
+
+        return list(CAPABILITIES)
+
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         home_currency = self.get_user_primary_currency(user)
         fmt = lambda v: self.format_currency(v, home_currency)  # noqa: E731

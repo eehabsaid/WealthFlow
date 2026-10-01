@@ -50,6 +50,11 @@ class SalaryDataProvider(BaseContextProvider):
             "description": "Calculates historical, expected, and bonus salary income, career & YTD growth trends, pre-formatted currency metrics, and company breakdowns deterministically.",
         }]
 
+    def get_query_capabilities(self) -> list[Any]:
+        from core.services.ai.query_engine.executors.salary import CAPABILITIES
+
+        return list(CAPABILITIES)
+
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         currency_code = self.get_user_primary_currency(user)
 

@@ -1,23 +1,18 @@
 """Direct answers: questions the code can answer exactly, with zero LLM calls.
 
-Local models spend minutes re-reading ~10K tokens of context just to quote a
-value the backend already computed. When a question is a single, unambiguous
-fact, the answer is computed from the same deterministic data the LLM would
-have been told to quote verbatim:
-  - salary: paid salary for one month, or the latest paid salary
-    (see tools/salary_answers.py)
-  - expenses: total, daily list, or category breakdown for one month
-    (see expense_direct.py); multi-month detailed table with month + grand totals
-    (see expense_table_direct.py)
+Since the query-engine migration this module is a thin entry point: every direct answer (salary for
+a month / latest, expense total / daily / category / multi-month table, and the new balance, certificates,
+fixed assets, gold price by karat and exchange-rate answers, en + ar) is a capability entry in
+core/services/ai/query_engine/ (see engine.answer). Kill-switch: AppSettings ai_direct_answers=false.
 
-Anything ambiguous, multi-part, comparative or non-English returns None and the
-normal LLM pipeline runs unchanged. Kill-switch: AppSettings ai_direct_answers=false.
+`_match_salary` is kept importable (its regression tests still guard the wording rules the engine's
+router replaced); expense_direct.match_expense_intent / expense_table_direct.match_expense_table_intent
+are kept for the same reason.
 """
 
 from __future__ import annotations
 
 import re
-import time
 from typing import Any
 
 from core.services.ai.period_parser import find_periods
@@ -52,58 +47,10 @@ def _match_salary(text: str) -> str | None:
     return None
 
 
-def try_direct_answer(user: Any, text: str) -> dict[str, Any] | None:
-    """Return {content, tool_calls, sources} for a simple deterministic question, else None."""
-    if user is None or not getattr(user, "is_authenticated", False):
-        return None
-    from core.models import AppSettings
+def try_direct_answer(user: Any, text: str, *, provider: Any = None, understanding: Any = None,
+                      info: dict[str, Any] | None = None, elapsed_ms: int = 0) -> dict[str, Any] | None:
+    """Return {content, tool_calls, sources} for a question the engine can answer, else None.
+    `info` (optional dict) is filled with the routing decision for the [AI-PIPELINE] trace."""
+    from core.services.ai.query_engine import answer
 
-    if str(AppSettings.get("ai_direct_answers", "true", user=user)).strip().lower() == "false":
-        return None
-    return _try_salary(user, text) or _try_expenses(user, text)
-
-
-def _audit(tool: str, text: str, started: float) -> dict[str, Any]:
-    from datetime import datetime, timezone
-
-    return {
-        "tool": tool, "timestamp": datetime.now(timezone.utc).isoformat(), "status": "success",
-        "duration_ms": int((time.monotonic() - started) * 1000),
-        "arguments": {"search_query": text}, "step": 1, "direct_answer": True,
-    }
-
-
-def _try_expenses(user: Any, text: str) -> dict[str, Any] | None:
-    from core.services.ai.expense_direct import answer_expenses, match_expense_intent
-
-    from core.services.ai.expense_table_direct import answer_expense_table, match_expense_table_intent
-
-    started = time.monotonic()
-    table = match_expense_table_intent(text)
-    if table:
-        return {"content": answer_expense_table(user, *table),
-                "tool_calls": [_audit("direct_answer_expense_table", text, started)], "sources": ["expenses"]}
-    intent = match_expense_intent(text)
-    if not intent:
-        return None
-    answer = answer_expenses(user, *intent)
-    return {"content": answer, "tool_calls": [_audit("direct_answer_expenses", text, started)], "sources": ["expenses"]}
-
-
-def _try_salary(user: Any, text: str) -> dict[str, Any] | None:
-    key = _match_salary(text)
-    if not key:
-        return None
-
-    from core.services.ai.tools import validate_and_execute_tool
-
-    audit, res = validate_and_execute_tool("query_application_data", {"search_query": text}, user)
-    if not isinstance(res, dict) or audit.get("status") != "success":
-        return None
-    salary = (res.get("data") or {}).get("salary")
-    answer = salary.get(key) if isinstance(salary, dict) else None
-    if not isinstance(answer, str) or not answer.strip():
-        return None
-    audit["step"] = 1
-    audit["direct_answer"] = True
-    return {"content": answer.strip(), "tool_calls": [audit], "sources": ["salary"]}
+    return answer(user, text, provider=provider, understanding=understanding, info=info, elapsed_ms=elapsed_ms)

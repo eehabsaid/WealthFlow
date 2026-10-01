@@ -36,6 +36,11 @@ class FixedAssetsDataProvider(BaseContextProvider):
             "description": "Calculates real estate, vehicle, physical gold karat spot valuations, total asset net worth, asset class allocation %, and pre-converted home currency metrics deterministically.",
         }]
 
+    def get_query_capabilities(self) -> list[Any]:
+        from core.services.ai.query_engine.executors.assets import CAPABILITIES
+
+        return list(CAPABILITIES)
+
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         home_currency = self.get_user_primary_currency(user)
 

@@ -44,6 +44,14 @@ class BaseContextProvider(ABC):
         """Declare capabilities provided by this context provider."""
         return []
 
+    def get_query_capabilities(self) -> list[Any]:
+        """Declare what the query engine can answer instantly (0 LLM calls) from this provider's data.
+
+        Returns core.services.ai.query_engine.spec.Capability objects (metrics, dimensions, filters,
+        time support, executor). Default: nothing, the provider is only used as LLM context.
+        """
+        return []
+
     @abstractmethod
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         """Fetch read-only data dictionary for the given user."""

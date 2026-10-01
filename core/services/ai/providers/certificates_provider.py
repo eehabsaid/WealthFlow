@@ -67,6 +67,11 @@ class BankCertificatesDataProvider(BaseContextProvider):
             "description": "Calculates active certificates principal, monthly interest payouts, weighted interest yield %, maturity countdowns, and currency conversions deterministically.",
         }]
 
+    def get_query_capabilities(self) -> list[Any]:
+        from core.services.ai.query_engine.executors.certificates import CAPABILITIES
+
+        return list(CAPABILITIES)
+
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         home_currency = self.get_user_primary_currency(user)
 

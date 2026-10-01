@@ -96,8 +96,15 @@ class AIChatView(View):
             trace.log_summary()
             return build_provider_disabled_response(cache_mgr, progress_key, conversation, user_msg)
 
-        # Simple deterministic questions (e.g. paid salary for a month) need no LLM call.
-        direct = try_direct_answer(request.user, user_text)
+        # Stage 1b — Route: the query engine answers supported data questions with 0 LLM calls (1 short
+        # slot-filling call only if unclear). Runs BEFORE the orchestrator branch so multi-agent can
+        # never hijack a fast question. Every decision is traced on the `route` stage.
+        info = {}
+        with trace.stage("route") as rec:
+            direct = try_direct_answer(request.user, user_text, provider=provider, understanding=understanding,
+                                       info=info, elapsed_ms=trace.elapsed_ms())
+            rec.detail.update(info)
+            rec.detail["llm_calls"] = info.get("llm_calls", 0)
         if direct:
             trace.skip_remaining("direct_answer")
             trace.log_summary()
@@ -105,6 +112,7 @@ class AIChatView(View):
                 cache_mgr, progress_key, conversation, user_msg, user_text,
                 direct["content"], direct["tool_calls"], direct["sources"], request,
             )
+        facts_request = info.get("facts_request")
 
         multi_agent_str = AppSettings.get("ai_multi_agent_enabled", "false", user=request.user).strip().lower()
         if multi_agent_str in ("true", "1", "yes"):
@@ -122,7 +130,7 @@ class AIChatView(View):
         # Stages 2-6 — Retrieve -> Reason -> Tool -> Validate -> Respond
         return run_default_pipeline(
             trace=trace, understanding=understanding, provider=provider, request=request,
-            conversation=conversation, user_msg=user_msg, user_text=user_text,
+            conversation=conversation, user_msg=user_msg, user_text=user_text, facts_request=facts_request,
             respond=lambda content, calls, sources, extra=None: finalize_success(
                 cache_mgr, progress_key, conversation, user_msg, user_text,
                 content, calls, sources, request, extra=extra,

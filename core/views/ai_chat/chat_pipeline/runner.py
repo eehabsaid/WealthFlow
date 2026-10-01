@@ -23,12 +23,14 @@ from .validate import run_validate
 
 def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, provider, request,
                          conversation, user_msg, user_text: str,
+                         facts_request: dict | None = None,
                          respond: Callable[..., Any], on_error: Callable[[list, str], Any]):
     """respond(content, executed_tool_calls, sources, extra) and on_error(sources, error_str)
     are supplied by the view so cache/progress handling stays where it was."""
     provider = TracedProvider(provider, trace)
     try:
         retrieval = run_retrieve(trace, request, conversation, user_msg, user_text)
+        _attach_facts(trace, retrieval, facts_request, request.user)
         pre = run_prefetch(trace, retrieval, understanding, user_text, request.user)
         reasoning = run_reason(trace, provider, retrieval.messages, understanding.question_domain,
                                retrieval, understanding, prefetched=pre.used)
@@ -51,3 +53,15 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
         return run_respond(trace, respond, validation.content, tool.executed, retrieval.sources, extra)
     finally:
         trace.log_summary()
+
+
+def _attach_facts(trace: PipelineTrace, retrieval, facts_request, user) -> None:
+    """Item 5: advice / why / comparison questions get a small block of code-computed facts."""
+    if not facts_request:
+        return
+    from core.services.ai.query_engine import build_facts
+
+    facts = build_facts(user, facts_request)
+    trace.records["route"].detail["facts_chars"] = len(facts or "")
+    if facts:
+        retrieval.messages.append({"role": "system", "content": "STEP 0 — " + facts})
