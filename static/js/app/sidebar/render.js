@@ -18,6 +18,8 @@ function renderSidebar() {
   const canGoldPrice = canAccessAny(["gold_price"]);
   const canExpenses = canAccessAny(["expenses"]);
   const canExpenseCategories = canAccessAny(["expense-categories"]);
+  const canBudgets = canAccessAny(["budgets"]);
+  const canImportData = canAccessAny(["import_data"]);
   const canReports = canAccessAny(["reports"]);
   const canAdvancedReports = canAccessAny(["advanced_reports"]);
   const canSettings =
@@ -35,7 +37,7 @@ function renderSidebar() {
         </div>
         <nav class="sidebar-nav">
 
-            ${buildSidebarPrimaryNavHtml(showWelcomeOnly, canDashboard, canAI, canFinancialAdvisor, canSalary)}${buildSidebarModulesNavHtml(showWelcomeOnly, canBalance, canBankCertificates, canFixedAssets, canExchangeRates, canGoldPrice)}${buildSidebarExpensesReportsNavHtml(showWelcomeOnly, canExpenses, canExpenseCategories, canReports, canAdvancedReports)}${buildSidebarSettingsNavHtml(showWelcomeOnly, canSettings)}        </nav>`;
+            ${buildSidebarPrimaryNavHtml(showWelcomeOnly, canDashboard, canAI, canFinancialAdvisor, canSalary)}${buildSidebarModulesNavHtml(showWelcomeOnly, canBalance, canBankCertificates, canFixedAssets, canExchangeRates, canGoldPrice)}${buildSidebarExpensesReportsNavHtml(showWelcomeOnly, canExpenses, canExpenseCategories, canBudgets, canImportData, canReports, canAdvancedReports)}${buildSidebarSettingsNavHtml(showWelcomeOnly, canSettings)}        </nav>`;
 
   _renderSidebarFooter(sidebar);
   applyTranslations();

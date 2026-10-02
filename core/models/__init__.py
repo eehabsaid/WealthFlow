@@ -28,6 +28,7 @@ from .ai_message import AIMessage
 from .ai_knowledge import AIKnowledgeEntry, AIModelVersion, AIBenchmarkReport
 from .ai_prompt import AIPromptCategory, AIPrompt
 from .billing import Plan, PlanPrice, Subscription, Invoice, UpgradeRequest
+from .budget import Budget, RecurringTransaction, BUDGET_PERIOD_CHOICES, RECURRING_FREQUENCY_CHOICES
 
 __all__ = [
     "Company",
@@ -105,5 +106,9 @@ __all__ = [
     "Subscription",
     "Invoice",
     "UpgradeRequest",
+    "Budget",
+    "RecurringTransaction",
+    "BUDGET_PERIOD_CHOICES",
+    "RECURRING_FREQUENCY_CHOICES",
 ]
 

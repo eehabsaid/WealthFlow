@@ -27,6 +27,7 @@ function triggerAddEntry() {
   } else if (hash === "balance") showBalanceModal(null);
   else if (hash === "bank-certificates") showBankCertificateModal(null);
   else if (hash === "fixed-assets") showFixedAssetModal();
+  else if (hash === "budgets") showBudgetModal(null);
 }
 
 // ════════════════════════════════════════════════════════════════════════════

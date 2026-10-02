@@ -1,5 +1,7 @@
 from core.models import ExchangeRate
 from datetime import date
+
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from core.models import BalanceEntry, Bank, Currency, Expense
@@ -86,9 +88,15 @@ class FinancialIntelligenceCalibrationTest(TestCase):
             currency=self.egp,
             amount=1000,
         )
-        Expense.objects.create(owner=self.user, date=date(2026, 5, 1), year=2026, month=5, amount=20000, amount_base=20000)
-        Expense.objects.create(owner=self.user, date=date(2026, 6, 1), year=2026, month=6, amount=18000, amount_base=18000)
-        Expense.objects.create(owner=self.user, date=date(2026, 7, 1), year=2026, month=7, amount=22000, amount_base=22000)
+        # Relative to today: the advisor looks at trailing months, so fixed
+        # calendar dates silently age out of its window.
+        this_month = date.today().replace(day=1)
+        for months_back, amount in ((3, 20000), (2, 18000), (1, 22000)):
+            spent_on = this_month - relativedelta(months=months_back)
+            Expense.objects.create(
+                owner=self.user, date=spent_on, year=spent_on.year, month=spent_on.month,
+                amount=amount, amount_base=amount,
+            )
 
         stressed = self.client.get("/api/certificate-forecast/")
         self.assertEqual(stressed.status_code, 200)

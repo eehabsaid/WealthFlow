@@ -83,6 +83,8 @@ MEMBER_ROLE_KEYS = [
     "gold_price",
     "expenses",
     "expense-categories",
+    "budgets",
+    "import_data",
     "reports",
     "advanced_reports",
     "settings",

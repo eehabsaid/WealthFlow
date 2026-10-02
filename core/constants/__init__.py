@@ -21,6 +21,8 @@ PAGE_PERMISSION_CHOICES = [
     ("gold_price", "Gold Price"),
     ("expenses", "Expenses"),
     ("expense-categories", "Expense Categories"),
+    ("budgets", "Budgets"),
+    ("import_data", "Import Data"),
     ("reports", "Reports"),
     ("advanced_reports", "Advanced Reports"),
     ("settings", "Settings"),

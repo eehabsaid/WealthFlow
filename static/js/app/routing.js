@@ -49,6 +49,12 @@ function routeAllowed(hash) {
   if (hash === "expense-categories") {
     return canAccessAny(["expense-categories"]);
   }
+  if (hash === "budgets") {
+    return canAccessAny(["budgets"]);
+  }
+  if (hash === "import-data") {
+    return canAccessAny(["import_data"]);
+  }
   if (hash === "reports") {
     return canAccessAny(["reports"]);
   }
@@ -87,6 +93,8 @@ function getFirstAllowedRoute() {
     "gold-price",
     "expenses",
     "expense-categories",
+    "budgets",
+    "import-data",
     "reports",
     "advanced-reports",
     "settings-languages",
@@ -117,6 +125,8 @@ function permissionToRoute(pageKey) {
   if (pageKey === "gold_price") return "gold-price";
   if (pageKey === "expenses") return "expenses";
   if (pageKey === "expense-categories") return "expense-categories";
+  if (pageKey === "budgets") return "budgets";
+  if (pageKey === "import_data") return "import-data";
   if (pageKey === "reports") return "reports";
   if (pageKey === "advanced_reports") return "advanced-reports";
   if (pageKey === "settings") return "settings-languages";

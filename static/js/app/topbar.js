@@ -94,6 +94,8 @@ const ROUTES = {
     add: false,
     fn: () => renderExpenseCategories(),
   },
+  budgets: { key: "nav_budgets", add: true, fn: () => renderBudgets() },
+  "import-data": { key: "nav_import_data", add: false, fn: () => renderImportData() },
   reports: { key: "nav_expenses_report", add: false, fn: () => renderReports() },
   "advanced-reports": {
     key: "nav_advanced_reports",

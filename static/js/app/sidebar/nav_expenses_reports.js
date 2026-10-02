@@ -6,15 +6,22 @@ function buildSidebarExpensesReportsNavHtml(
   showWelcomeOnly,
   canExpenses,
   canExpenseCategories,
+  canBudgets,
+  canImportData,
   canReports,
   canAdvancedReports
 ) {
-  return `${!showWelcomeOnly && (canExpenses || canExpenseCategories || canReports || canAdvancedReports) ? '<div style="border-top:1px solid var(--border-color);margin:10px 0"></div>' : ""}
+  return `${!showWelcomeOnly && (canExpenses || canExpenseCategories || canBudgets || canImportData || canReports || canAdvancedReports) ? '<div style="border-top:1px solid var(--border-color);margin:10px 0"></div>' : ""}
 
             <!-- Expenses & Reports section -->
             ${
               !showWelcomeOnly &&
-              (canExpenses || canExpenseCategories || canReports || canAdvancedReports)
+              (canExpenses ||
+                canExpenseCategories ||
+                canBudgets ||
+                canImportData ||
+                canReports ||
+                canAdvancedReports)
                 ? `
             <div class="nav-section-header" onclick="toggleSection(this)"
                  style="cursor:pointer;padding:10px;display:flex;justify-content:space-between">
@@ -37,6 +44,24 @@ function buildSidebarExpensesReportsNavHtml(
                 <button class="nav-item" onclick="navigate('expense-categories')">
                     <i class="bi bi-tag"></i>
                     <span data-i18n="nav_expense_categories">Categories</span>
+                </button>`
+                    : ""
+                }
+                ${
+                  canBudgets
+                    ? `
+                <button class="nav-item" onclick="navigate('budgets')">
+                    <i class="bi bi-piggy-bank"></i>
+                    <span data-i18n="nav_budgets">Budgets</span>
+                </button>`
+                    : ""
+                }
+                ${
+                  canImportData
+                    ? `
+                <button class="nav-item" onclick="navigate('import-data')">
+                    <i class="bi bi-upload"></i>
+                    <span data-i18n="nav_import_data">Import Data</span>
                 </button>`
                     : ""
                 }
