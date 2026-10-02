@@ -36,7 +36,7 @@ from e2e_module_dispatch import run_module
 def main():
     parser = argparse.ArgumentParser(description="WealthFlow Human QA End-to-End Regression Suite")
     parser.add_argument("--mode", default="full", choices=["full", "smoke", "module", "page", "crud", "lang", "theme", "device"])
-    parser.add_argument("--module", default="all", choices=["all", "auth", "dashboard", "ai", "balance", "salary", "expenses", "certificates", "fixed_assets", "reports", "reminders", "financial_advisor", "settings", "translations", "billing"])
+    parser.add_argument("--module", default="all", choices=["all", "auth", "dashboard", "ai", "balance", "salary", "expenses", "budgets", "import_data", "certificates", "fixed_assets", "reports", "reminders", "financial_advisor", "settings", "translations", "billing"])
     parser.add_argument("--page", default=None)
     parser.add_argument("--lang", default="en", choices=["en", "ar", "fr", "de"])
     parser.add_argument("--theme", default="dark", choices=["dark", "light"])
@@ -94,7 +94,7 @@ def main():
             else:
                 modules_to_run = [
                     "auth", "dashboard", "ai", "balance", "salary", "certificates",
-                    "fixed_assets", "expenses", "reports", "reminders",
+                    "fixed_assets", "expenses", "budgets", "import_data", "reports", "reminders",
                     "financial_advisor", "settings", "translations", "billing"
                 ]
 

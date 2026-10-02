@@ -52,6 +52,15 @@ def run_ui_sweep():
         shot_fa = os.path.join(out_dir, "human_e2e_fixed_assets.png")
         page.screenshot(path=shot_fa)
 
+        # Budgets (A2) and Import Data (A3) Sweep
+        test_ctx.goto_route("#budgets")
+        time.sleep(2)
+        page.screenshot(path=os.path.join(out_dir, "human_e2e_budgets.png"))
+
+        test_ctx.goto_route("#import-data")
+        time.sleep(2)
+        page.screenshot(path=os.path.join(out_dir, "human_e2e_import_data.png"))
+
         test_ctx.close()
 
-    print("  [PASS] UI Playwright Human Experience sweep captured successfully across all 5 modules.")
+    print("  [PASS] UI Playwright Human Experience sweep captured successfully across all 7 modules.")

@@ -11,7 +11,7 @@ WHAT THIS FIXES vs. the previous setup
    makes that suite run against a disposable COPY instead — production is
    never opened by the app process at all, matching the same safe pattern
    already used by scripts/run_e2e_tests.sh's pytest path.
-2. tests/modules/*.py (14 module test files) were never actually wired
+2. tests/modules/* (16 module test files/packages) were never actually wired
    into anything pytest could discover. They ARE correctly wired into
    scripts/test_ui_human_full_e2e.py already (that script imports and
    calls each one directly, not via pytest) — this wrapper is what makes
@@ -24,6 +24,8 @@ USAGE
     python scripts/run_full_e2e.py
     python scripts/run_full_e2e.py --mode=smoke
     python scripts/run_full_e2e.py --mode=module --module=fixed_assets
+    python scripts/run_full_e2e.py --mode=module --module=budgets
+    python scripts/run_full_e2e.py --mode=module --module=import_data
     python scripts/run_full_e2e.py --headed --slowmo=250
 
 Any arguments not listed below are passed straight through to

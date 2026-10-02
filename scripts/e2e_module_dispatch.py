@@ -19,6 +19,8 @@ from tests.modules.certificates import test_certificates_module
 from tests.modules.fixed_assets import test_fixed_assets_module
 from tests.modules.reports import test_reports_module
 from tests.modules.reminders import test_reminders_module
+from tests.modules.budgets import test_budgets_module
+from tests.modules.import_data import test_import_data_module
 from tests.modules.financial_advisor import test_financial_advisor_module
 from tests.modules.ai import test_ai_module
 from tests.modules.settings import test_settings_module
@@ -34,6 +36,8 @@ MODULE_DISPATCH = {
     "certificates": test_certificates_module,
     "fixed_assets": test_fixed_assets_module,
     "expenses": test_expenses_module,
+    "budgets": test_budgets_module,
+    "import_data": test_import_data_module,
     "reports": test_reports_module,
     "reminders": test_reminders_module,
     "financial_advisor": test_financial_advisor_module,

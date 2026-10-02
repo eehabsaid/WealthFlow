@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 
 def deep_merge(dict1, dict2):
     """
