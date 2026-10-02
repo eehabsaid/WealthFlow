@@ -166,40 +166,64 @@ class RealisticVolumeTests(TestCase):
 
 
 class GoldHoldingsFollowUpTests(TestCase):
-    """The real log: "what is the gold price today for 24k?" then "and how much i hold?" took 9m56s on the LLM path."""
+    """The real log: "what is the gold price today for 24k?" then "and how much i hold?".
+    Regression: the Balance gold entry is a mirror of the Owned gold fixed assets (gold_sync_service), so the
+    grams must be counted ONCE (the first version answered 250 g for 125 g of gold)."""
+
+    ASSETS = (("Bars 5-10-20", "35"), ("Bar 20 a", "20"), ("Bar 20 b", "20"), ("Bar 50", "50"))
 
     def setUp(self):
-        from core.models import BalanceEntry, Currency, FixedAsset
+        from core.models import Currency, FixedAsset
         from core.models.fixed_assets_gold import GoldDetails
+        from core.services.fixed_assets.gold_sync_service import _refresh_gold_asset_pricing, _sync_gold_balance_from_assets
 
         fx.build(self)
-        for owner, grams, asset_g in ((self.user, "10.00", "5.0000"), (self.other, "999.00", "888.0000")):
-            gold = Currency.objects.get_or_create(owner=owner, code="GOLD", defaults={"name": "Gold"})[0]
-            BalanceEntry.objects.create(owner=owner, title="Gold bars", balance_type="gold", currency=gold, amount=Decimal(grams), purity="21k")
-            asset = FixedAsset.objects.create(owner=owner, name="Gold set", asset_type="Gold", purchase_date=date(2024, 1, 1),
+        for owner, assets in ((self.user, self.ASSETS), (self.other, (("Other", "888"),))):
+            Currency.objects.get_or_create(owner=owner, code="Gold", defaults={"name": "Gold (grams)"})
+            for name, grams in assets:
+                a = FixedAsset.objects.create(owner=owner, name=name, asset_type="Gold", status="Owned", purchase_date=date(2024, 1, 1),
                                               purchase_price=Decimal("1000"), current_market_value=Decimal("1000"))
-            GoldDetails.objects.create(asset=asset, purity="21k", weight=Decimal(asset_g))
+                gd = GoldDetails.objects.create(asset=a, purity="24k", weight=Decimal(grams))
+                _refresh_gold_asset_pricing(a, gd)
+            _sync_gold_balance_from_assets(owner)   # what the app does on every gold asset save
 
-    def test_follow_up_after_gold_price_is_answered_without_llm(self):
+    def test_follow_up_after_gold_price_counts_the_gold_once(self):
         with NO_LLM as gen:
             first = fx.ask(self, "what is the gold price today for 24k?")["message"]["content"]
             self.assertIn("Gold 24K price per gram", first)
             data = fx.ask(self, "and how much i hold?")
-            text = data["message"]["content"]
             gen.assert_not_called()
-        self.assertIn("Gold holdings: 15.00 g in total", text)  # 10 g in Balance + 5 g fixed asset
-        self.assertIn("Balance: Gold bars", text)
-        self.assertIn("Fixed asset: Gold set", text)
-        self.assertNotIn("999", text)
+        text = data["message"]["content"]
+        self.assertIn("Gold holdings: 125.00 g in total, worth 625,000.00 EGP", text)   # 125 g x 5,000 (24k sell in the fixture)
+        self.assertNotIn("250.00", text)
+        self.assertIn("Includes 4 gold fixed asset(s) (125.00 g)", text)
         self.assertNotIn("888", text)
         self.assertEqual(data["message"]["tool_calls"][0]["tool"], "direct_answer_gold_holdings")
+
+    def test_same_answer_for_the_two_phrasings_and_matches_balance_value(self):
+        with NO_LLM:
+            a = fx.ask(self, "how much gold i hold and how much it's value in EGP")["message"]["content"]
+            b = fx.ask(self, "how much gold do I own")["message"]["content"]
+        self.assertIn("125.00 g in total, worth 625,000.00 EGP", a)
+        self.assertEqual(a.split("\n")[0], b.split("\n")[0])
+
+    def test_asset_grams_missing_from_balance_are_added_but_sold_assets_are_not(self):
+        from core.models import BalanceEntry, FixedAsset
+        from core.models.fixed_assets_gold import GoldDetails
+
+        BalanceEntry.objects.filter(owner=self.user, balance_type="gold").delete()   # sync has not run yet
+        sold = FixedAsset.objects.create(owner=self.user, name="Sold bar", asset_type="Gold", status="Sold", purchase_date=date(2024, 1, 1),
+                                         purchase_price=Decimal("1"), current_market_value=Decimal("1"))
+        GoldDetails.objects.create(asset=sold, purity="24k", weight=Decimal("500"))
+        with NO_LLM:
+            text = fx.ask(self, "how much gold do I hold")["message"]["content"]
+        self.assertIn("Gold holdings: 125.00 g in total, worth 625,000.00 EGP", text)   # Owned assets only (the Sold 500 g is ignored), once
+        self.assertNotIn("Includes", text)   # nothing is mirrored into Balance in this state
 
     def test_follow_up_is_traced_and_standalone_question_works(self):
         with NO_LLM, self.assertLogs("core.ai.pipeline", level="WARNING") as logs:
             fx.ask(self, "gold price today")
             fx.ask(self, "and how much i hold?")
-            text = fx.ask(self, "how much gold do I own")["message"]["content"]
-        self.assertIn("15.00 g", text)
         self.assertTrue(any("follow_up_of:gold_price" in m for m in logs.output))
 
     def test_follow_up_without_a_previous_question_still_goes_to_the_llm(self):

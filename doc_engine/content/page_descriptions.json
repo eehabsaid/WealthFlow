@@ -92,7 +92,8 @@
     "steps": [
       "Review SFT dataset metrics.",
       "Select training backend.",
-      "Trigger model fine-tuning or autonomous learning scan."
+      "Trigger model fine-tuning or autonomous learning scan.",
+      "Turn Instant Data Answers on or off: when on, simple data questions (balances, salary, expenses, gold price, exchange rates) are answered instantly from your own data without the AI model."
     ]
   },
   "settings::settings-languages": {
