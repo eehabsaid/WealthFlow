@@ -8,6 +8,8 @@ Checks, against the real API (not just the DOM):
      AI provider is not configured in this environment (the chat endpoint then refuses before any routing).
 """
 
+from tests.modules.settings.common import close_global_modal
+
 SETTINGS_URL = "/api/settings/ai/"
 CHAT_URL = "/api/financial-advisor/ai/chat/"
 QUESTION = "how much money do I have"   # answered from Balance rows only, valid even for an empty account
@@ -38,6 +40,7 @@ def _direct_call(resp):
 def _set_toggle(context, checked):
     """Click the real toggle + Save button; returns the stored value read back through the API."""
     page = context.page
+    close_global_modal(page)   # a modal left open by an earlier phase intercepts the Save click
     box = page.query_selector("#aiDirectAnswersToggle")
     if box is None:
         return None
@@ -52,7 +55,9 @@ def _set_toggle(context, checked):
 
 def test_ai_instant_answers(context, reporter, screenshot_logger):
     page = context.page
+    close_global_modal(page)
     context.goto_route("#settings-aiadvisor")
+    close_global_modal(page)
     reporter.pages_visited.add("Settings -> AI Advisor")
     try:
         page.wait_for_selector("#aiDirectAnswersToggle", timeout=20000)

@@ -1,6 +1,7 @@
 """Settings module phase 6: Portable Backup Archive download & Documentation Engine generation trigger. Split out of tests/modules/settings.py."""
 
 from tests.core.download_verifier import verify_downloaded_file
+from tests.modules.settings.common import close_global_modal
 
 
 def test_backup_and_docs(context, reporter, screenshot_logger):
@@ -34,3 +35,7 @@ def test_backup_and_docs(context, reporter, screenshot_logger):
         reporter.add_step("Documentation Engine Generation Trigger", "Settings", "PASS", "Triggered doc engine document generation.", screenshot_path=shot_doc)
     except Exception as ex:
         reporter.add_step("Documentation Engine Trigger", "Settings", "FAIL", f"Exception: {ex}")
+
+    # handleGenerateClick() can open the shared #globalModal ("Generation Validation Failed") and leave it up;
+    # close it here so it does not block the next phase.
+    close_global_modal(context.page)
