@@ -6,6 +6,7 @@ setup phase: column widths, header row, and Currency/Bank lookup maps.
 """
 from core.reports.excel_formatting_helpers import _f, _thin, _thin_lr
 from core.reports.report_context import get_report_base_code
+from core.reports.excel_sheets_builder.build_balance_sheet.context import resolve_slot_codes
 
 
 def apply_setup(ctx):
@@ -24,12 +25,14 @@ def apply_setup(ctx):
     ws.column_dimensions["K"].width = 29.7
     ws.row_dimensions[7].height = 18.0
 
+    from core.services.shared.market_profile import is_gulf_code
+
+    base_code = get_report_base_code()
+    ctx.slots = resolve_slot_codes(base_code, gulf=is_gulf_code(base_code))
     hdrs = [
         "Title",
-        get_report_base_code(),
-        "USD",
-        "EUR",
-        "SAR",
+        base_code,
+        *ctx.slots,
         "Gold",
         "Acct-Number",
         "Card-ID",
@@ -57,5 +60,8 @@ def apply_setup(ctx):
 
     from core.models import Currency, Bank as BankModel
 
-    ctx.cur_map = {c.id: c.code for c in Currency.objects.all()}
-    ctx.bank_map = {b.id: b for b in BankModel.objects.all()}
+    # Scoped to what this report's own entries reference (never another user's rows).
+    currency_ids = {be.currency_id for be in ctx.balance_entries if be.currency_id}
+    bank_ids = {be.bank_id for be in ctx.balance_entries if be.bank_id}
+    ctx.cur_map = {c.id: c.code for c in Currency.objects.filter(id__in=currency_ids)}
+    ctx.bank_map = {b.id: b for b in BankModel.objects.filter(id__in=bank_ids)}

@@ -26,6 +26,9 @@ def _seed_catalogs_for_user(user):
     from core.services.onboarding import seed_default_expense_categories
 
     _clone_or_seed(Currency, user, _DEFAULT_CURRENCIES)
+    from core.services.shared.market_profile import ensure_picker_currencies
+
+    ensure_picker_currencies(user)  # AED must be selectable in the onboarding wizard (Gulf market)
     _clone_or_seed(CertificateStatus, user, _DEFAULT_CERT_STATUSES)
     # Try cloning from a template first; _seed_gold_settings_defaults is
     # idempotent (get_or_create) so calling it afterward is a safe no-op

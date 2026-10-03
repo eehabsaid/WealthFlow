@@ -81,6 +81,11 @@
       { "name": "Add Category", "type": "modal", "trigger": "showCategoryModal" },
       { "name": "Add Subcategory", "type": "modal", "trigger": "showSubcategoryModal" }
   ]},
+  { "route": "budgets", "title": "Budgets", "nested_navigation": [
+      { "name": "Add Budget", "type": "modal", "trigger": "eval:window.showBudgetModal && window.showBudgetModal(null)" },
+      { "name": "Add Recurring", "type": "modal", "trigger": "eval:window.showRecurringModal && window.showRecurringModal(null)" }
+  ]},
+  { "route": "import-data", "title": "Import Data" },
   { "route": "reports", "title": "Reports", "tabs": [
     { "name": "Monthly", "id": "monthly" }, 
     { "name": "Yearly", "id": "yearly" }, 

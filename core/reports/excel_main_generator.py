@@ -70,7 +70,7 @@ def generate_excel(owner, output_path=None, lang="ar"):
     auto_adjust_columns(ws_cert)
 
     ws_bal = wb.create_sheet("BALANCE")
-    build_balance_sheet(ws_bal, balance_entries, company_sheet_rows)
+    build_balance_sheet(ws_bal, balance_entries, company_sheet_rows, owner=owner)
 
     ws_ce = wb.create_sheet("Currency Exchanges")
     build_currency_exchanges_sheet(ws_ce, CurrencyExchange.objects.filter(user=owner), lang=lang)

@@ -83,7 +83,11 @@ class OnboardingService:
     def complete(cls, user, data):
         if not data.get("skip"):
             if data.get("default_currency"):
+                from core.services.shared.market_profile import ensure_base_catalog, prune_egp_for_gulf_user
+
+                ensure_base_catalog(user, data["default_currency"])
                 set_user_base_currency(user, data["default_currency"])
+                prune_egp_for_gulf_user(user)
             cls._create_employer(user, data.get("employer"))
             cls._create_cash_account(user, data.get("account"))
             if isinstance(data.get("categories"), list):

@@ -11,6 +11,7 @@ Sibling modules:
 - billing_urls.py: subscription status, plan list
 - budget_urls.py: budgets, recurring transactions, alerts
 - import_urls.py: CSV/Excel/bank-statement import preview + confirm
+- pwa_urls.py: web app manifest, service worker, offline page
 
 All lists are concatenated below to form the single `urlpatterns` Django expects.
 """
@@ -25,6 +26,7 @@ from .ai_platform_urls import urlpatterns as ai_platform_urlpatterns
 from .billing_urls import urlpatterns as billing_urlpatterns
 from .budget_urls import urlpatterns as budget_urlpatterns
 from .import_urls import urlpatterns as import_urlpatterns
+from .pwa_urls import urlpatterns as pwa_urlpatterns
 
 urlpatterns = (
     auth_urlpatterns
@@ -37,4 +39,5 @@ urlpatterns = (
     + billing_urlpatterns
     + budget_urlpatterns
     + import_urlpatterns
+    + pwa_urlpatterns
 )

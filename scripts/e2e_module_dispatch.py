@@ -26,6 +26,8 @@ from tests.modules.ai import test_ai_module
 from tests.modules.settings import test_settings_module
 from tests.modules.translations import test_translations_module
 from tests.modules.billing import test_billing_module
+from tests.modules.pwa import test_pwa_module
+from tests.modules.gulf_market import test_gulf_market_module
 
 MODULE_DISPATCH = {
     "auth": test_authentication_module,
@@ -44,6 +46,8 @@ MODULE_DISPATCH = {
     "settings": test_settings_module,
     "translations": test_translations_module,
     "billing": test_billing_module,
+    "pwa": test_pwa_module,
+    "gulf_market": test_gulf_market_module,
 }
 
 

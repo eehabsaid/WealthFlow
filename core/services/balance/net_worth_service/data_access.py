@@ -57,7 +57,7 @@ class NetWorthDataAccessMixin(ProjectedBalanceEntriesMixin):
         return _to_float(self._latest_rates().get(GOLD_PRICE_CURRENCY, 1.0))
 
     def _latest_gold_price(self):
-        return self._cached("latest_gold", lambda: GoldPrice.objects.order_by("-fetched_at").first())
+        return self._cached("latest_gold", lambda: GoldPrice.objects.order_by("-fetched_at", "-id").first())
 
     def _gold_cashback_by_key(self) -> Dict[str, float]:
         def _load():

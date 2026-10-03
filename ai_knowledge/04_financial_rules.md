@@ -42,3 +42,11 @@ All non-home-currency values must be converted using live `ExchangeRate` records
 - All provider list payloads are capped at 20 most recent rows for token efficiency.
 - Aggregates (totals, averages, counts) MUST be computed over the full queryset BEFORE slicing.
 - Slicing first then aggregating produces incorrect totals — this is a known anti-pattern in this codebase.
+
+## 9. Market Profiles: Egypt and the Gulf (SAR / AED)
+- A user's market follows their base currency. Base SAR, AED, KWD, QAR, BHD or OMR is a Gulf-market user; everything else keeps the Egyptian behavior unchanged.
+- A Gulf-market user has no EGP in their currency list or in their exchange-rate list. EGP is kept only when something still references it (balances, expenses, goals, assets); it is never deleted out from under existing data.
+- Gold for a Gulf-market user is the international spot price converted to their own base currency (USD per gram of 24K × carat purity × the USD→base rate). There is no dealer buy/sell spread and no Egyptian making charge. Shop prices are higher than the spot price.
+- Gold for every other user is the Egyptian dealer price in EGP with buy and sell prices, converted to the base currency when it is not EGP.
+- To answer "what is the gold price" for a Gulf-market user, read the `/api/gold/` values (`market = "spot"`, `currency` = base code) and never quote EGP figures.
+- Plan prices in EGP are not offered to a Gulf-market user who holds no EGP.

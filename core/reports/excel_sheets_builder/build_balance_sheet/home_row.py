@@ -10,6 +10,7 @@ from core.reports.excel_formatting_helpers import (
     FMT_EUR,
     FMT_SAR,
     FMT_GOLD,
+    fmt_for_code,
     _f,
     _thin,
 )
@@ -43,20 +44,12 @@ def apply_home_row(ctx):
     b2.border = _thin()
     b2.number_format = fmt_base_red()
 
-    c2 = ws.cell(row=2, column=3, value=home.get("USD", 0))
-    c2.font = _f(bold=True, name="Arial")
-    c2.border = _thin()
-    c2.number_format = FMT_USD
-
-    d2 = ws.cell(row=2, column=4, value=home.get("EUR", 0))
-    d2.font = _f(bold=True, name="Arial")
-    d2.border = _thin()
-    d2.number_format = FMT_EUR
-
-    e2 = ws.cell(row=2, column=5, value=home.get("SAR", 0))
-    e2.font = _f(bold=True, name="Arial")
-    e2.border = _thin()
-    e2.number_format = FMT_SAR
+    fixed_formats = {"USD": FMT_USD, "EUR": FMT_EUR, "SAR": FMT_SAR}
+    for column, code in zip((3, 4, 5), ctx.slots):
+        cell = ws.cell(row=2, column=column, value=home.get(code, 0))
+        cell.font = _f(bold=True, name="Arial")
+        cell.border = _thin()
+        cell.number_format = fixed_formats.get(code) or fmt_for_code(code)
 
     f2 = ws.cell(row=2, column=6, value=home.get("Gold", 0))
     f2.font = _f(bold=True, name="Arial")

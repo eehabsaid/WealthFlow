@@ -23,6 +23,9 @@ EXEMPT_PATH_PREFIXES = (
 EXEMPT_PATHS = (
     "/",
     "/favicon.ico",
+    "/manifest.webmanifest",
+    "/service-worker.js",
+    "/offline/",
     "/api/billing/paymob/webhook/",
 )
 

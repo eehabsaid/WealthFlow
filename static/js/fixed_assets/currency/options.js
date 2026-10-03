@@ -58,8 +58,11 @@ function renderMonetaryCurrencyOptions(selectedCurrencyId = "") {
 
 function getDefaultMonetaryCurrencyId() {
   const monetaryCurrencies = getMonetaryCurrencies();
-  const egp = monetaryCurrencies.find((row) => String(row.code).toUpperCase() === "EGP");
-  return (egp || monetaryCurrencies[0] || {}).id || "";
+  // Default to the user's own base currency (EGP for Egyptians in Egypt, SAR/AED for the Gulf).
+  const base = monetaryCurrencies.find(
+    (row) => String(row.code).toUpperCase() === String(baseCurrencyCode()).toUpperCase()
+  );
+  return (base || monetaryCurrencies[0] || {}).id || "";
 }
 
 function getDefaultPurchaseCurrencyId() {

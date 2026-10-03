@@ -54,7 +54,9 @@ class FixedAssetsDataProvider(BaseContextProvider):
         assets_raw = list(qs)
 
         # 2. Fetch Latest Gold Spot Price for Karat Math
-        latest_gold_price = GoldPrice.objects.order_by("-fetched_at").first()
+        from core.services.shared.market_profile import gold_price_for_user
+
+        latest_gold_price = gold_price_for_user(user, GoldPrice.objects.order_by("-fetched_at", "-id").first())
 
         total_assets_val_home = 0.0
         allocation_by_class: dict[str, float] = {}

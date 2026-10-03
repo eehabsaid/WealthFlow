@@ -31,6 +31,7 @@ STRUCTURE / CONVENTION — read this before adding or splitting a file:
     internals are reorganized.
 """
 
+from .exports_pwa import manifest_view, service_worker_view, offline_view
 from .exports_auth import (
     AdminRequiredMixin, SysadminRequiredMixin, PermissionRequiredMixin, LoginAPIView, SignupAPIView, LogoutAPIView,
     CurrentUserView, UpdateProfileView, login_view, signup_view,
@@ -154,4 +155,5 @@ __all__ = [
     "OpenFolderView",
     "BudgetListView", "BudgetDetailView", "RecurringTransactionListView", "RecurringTransactionDetailView",
     "RecurringTransactionProcessDueView", "RecurringTransactionDuePreviewView", "BudgetAlertsView", "ImportPreviewView", "ImportConfirmView",
+    "manifest_view", "service_worker_view", "offline_view",
 ]

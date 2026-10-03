@@ -2496,5 +2496,11 @@
     "recurring_pause": "إيقاف مؤقت",
     "recurring_resume": "استئناف",
     "recurring_confirm_post": "سيتم إنشاء هذه المصروفات وخصمها من أرصدتك:",
-    "recurring_confirm_count_suffix": "مصروف إجمالًا. هل تريد المتابعة؟"
+    "recurring_confirm_count_suffix": "مصروف إجمالًا. هل تريد المتابعة؟",
+    "pwa_offline_title": "أنت غير متصل بالإنترنت",
+    "pwa_offline_message": "يحتاج WealthFlow إلى اتصال بالإنترنت لتحميل بياناتك المالية. تحقق من اتصالك وحاول مرة أخرى.",
+    "pwa_offline_retry": "حاول مرة أخرى",
+    "gold_currency_per_gram": "{currency} / جرام",
+    "usd_currency_rate": "سعر صرف دولار ← {currency}",
+    "gold_spot_disclaimer": "الأسعار هي أسعار الذهب العالمية الفورية محوّلة إلى {currency}. أسعار المحلات تشمل المصنعية وهي أعلى."
 }

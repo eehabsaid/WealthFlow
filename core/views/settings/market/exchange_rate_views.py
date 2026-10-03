@@ -11,6 +11,15 @@ from core.models import ExchangeRate
 from core.services.shared.exchange_rate_service import ExchangeRateService
 
 
+def _user_sees_egp(user):
+    from core.models import Currency
+    from core.services.shared.market_profile import is_gulf_user
+
+    if not is_gulf_user(user):
+        return True
+    return Currency.objects.filter(owner=user, code__iexact="EGP").exists()
+
+
 class ExchangeRateListView(View):
     """GET  /api/rates/          → latest rate per currency
     POST /api/rates/refresh/  → fetch from internet and save"""
@@ -25,7 +34,11 @@ class ExchangeRateListView(View):
             .values_list("max_id", flat=True)
         )
         rates = ExchangeRate.objects.filter(id__in=latest_ids).order_by("currency_code")
-        last = ExchangeRate.objects.order_by("-fetched_at").first()
+        if request.user.is_authenticated and not _user_sees_egp(request.user):
+            # Gulf-market users (no EGP anywhere): EGP stays in the table for
+            # internal conversions but is not listed to them.
+            rates = rates.exclude(currency_code__iexact="EGP")
+        last = ExchangeRate.objects.order_by("-fetched_at", "-id").first()
         return JsonResponse(
             {
                 "rates": [r.to_dict() for r in rates],

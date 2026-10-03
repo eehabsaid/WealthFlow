@@ -2496,5 +2496,11 @@
     "recurring_pause": "Pausieren",
     "recurring_resume": "Fortsetzen",
     "recurring_confirm_post": "Diese Ausgaben werden erstellt und von Ihren Salden abgezogen:",
-    "recurring_confirm_count_suffix": "Ausgabe(n) insgesamt. Fortfahren?"
+    "recurring_confirm_count_suffix": "Ausgabe(n) insgesamt. Fortfahren?",
+    "pwa_offline_title": "Sie sind offline",
+    "pwa_offline_message": "WealthFlow benötigt eine Internetverbindung, um Ihre Finanzdaten zu laden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "pwa_offline_retry": "Erneut versuchen",
+    "gold_currency_per_gram": "{currency} / Gramm",
+    "usd_currency_rate": "Kurs USD → {currency}",
+    "gold_spot_disclaimer": "Die Preise sind internationale Spotpreise, umgerechnet in {currency}. Ladenpreise enthalten Fertigungskosten und sind höher."
 }

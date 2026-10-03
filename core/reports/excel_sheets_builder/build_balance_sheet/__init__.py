@@ -33,11 +33,12 @@ from core.reports.excel_sheets_builder.build_balance_sheet.totals import apply_t
 __all__ = ["build_balance_sheet"]
 
 
-def build_balance_sheet(ws, balance_entries, company_sheet_rows):
+def build_balance_sheet(ws, balance_entries, company_sheet_rows, owner=None):
     ctx = BalanceSheetContext(
         ws=ws,
         balance_entries=balance_entries,
         company_sheet_rows=company_sheet_rows,
+        owner=owner,
     )
     apply_setup(ctx)
     apply_home_row(ctx)

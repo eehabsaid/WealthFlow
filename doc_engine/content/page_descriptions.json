@@ -113,11 +113,11 @@
     ]
   },
   "settings::settings-currency": {
-    "purpose": "Configure the administrative settings and preferences for Settings Currency.",
+    "purpose": "Manage your currencies and choose your base currency (EGP, SAR, AED, USD and others). Switching to a Gulf base gives you a currency list without EGP.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings and select Currencies.",
+      "Review your currency list and choose your base currency.",
+      "Add any other currency you hold. EGP stays available if you still hold EGP data."
     ]
   },
   "settings::settings-users": {
@@ -739,11 +739,12 @@
     ]
   },
   "gold-price": {
-    "purpose": "Monitor live global gold prices per ounce/gram and track historical commodity trends.",
+    "purpose": "Monitor gold prices per gram. Users in Egypt see the Egyptian dealer price in EGP with buy and sell prices; users whose base currency is a Gulf currency (SAR, AED) see the international spot price converted to their own currency.",
     "steps": [
       "Navigate to Gold Price.",
-      "Review the live market rate for gold.",
-      "Analyze the historical price charts to inform your buying/selling decisions."
+      "Review the price per gram for each carat in your currency and the USD exchange rate used.",
+      "Select Refresh Prices to fetch the latest prices.",
+      "Remember that shop prices include making charges and are higher than the spot price."
     ]
   },
   "expenses": {
@@ -989,6 +990,41 @@
       "Click the Add Goal button.",
       "Specify the goal title, target amount, current contribution, and deadline date.",
       "Save the goal to start tracking progress and automated recommendation insights."
+    ]
+  },
+  "budgets": {
+    "purpose": "Set spending limits per category and period, automate repeating income and expenses, and see alerts when a budget is close to or over its limit.",
+    "steps": [
+      "Open Budgets from the Expenses Reports group in the sidebar.",
+      "Use Add Budget to set an amount, period, category and alert threshold in your base currency.",
+      "Use Add Recurring to schedule a repeating transaction; pause or resume it at any time. Past start dates are not back-filled unless you choose to.",
+      "Review the alerts shown when spending reaches the alert threshold or exceeds the budget."
+    ]
+  },
+  "budgets::add_budget": {
+    "purpose": "Create or edit a spending budget.",
+    "steps": [
+      "Enter a name and the budget amount.",
+      "Choose the period and, optionally, an expense category.",
+      "Set the alert threshold percentage.",
+      "Save to start tracking spending against the budget."
+    ]
+  },
+  "budgets::add_recurring": {
+    "purpose": "Create or edit a recurring transaction (salary, rent, subscriptions).",
+    "steps": [
+      "Enter the transaction details and amount.",
+      "Choose how often it repeats and the start date.",
+      "Save; due transactions are previewed before they are created, and can be paused or resumed."
+    ]
+  },
+  "import-data": {
+    "purpose": "Bring existing data into WealthFlow from a CSV or Excel file or a bank statement, with a preview before anything is saved.",
+    "steps": [
+      "Open Import Data from the Expenses Reports group in the sidebar.",
+      "Choose the file and the type of data it contains.",
+      "Review the preview, including rows that will be skipped or rejected.",
+      "Confirm to import; nothing is saved until you confirm."
     ]
   }
 }

@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>WealthFlow</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0a0f1e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="WealthFlow">
+    <link rel="apple-touch-icon" href="{% static 'images/pwa/apple-touch-icon.png' %}">
     <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}?v=1784452207">
     <link href="{% static 'vendor/fonts/google-fonts.css' %}" rel="stylesheet">
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -44,6 +50,7 @@
 <div id="center-alert-container"></div>
 
 <!-- Scripts -->
+<script src="{% static 'js/pwa/register.js' %}"></script>
 {% include "partials/scripts/01_vendor_i18n_datepicker.html" %}
 {% include "partials/scripts/02_reports_app_shell.html" %}
 {% include "partials/scripts/03_financial_advisor_features.html" %}

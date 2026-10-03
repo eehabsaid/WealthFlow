@@ -18,7 +18,10 @@ def apply_totals(ctx):
 
     from core.models import BankCertificate
 
-    cert_count = BankCertificate.objects.filter(status__iexact="active").count()
+    cert_qs = BankCertificate.objects.filter(status__iexact="active")
+    if ctx.owner is not None:
+        cert_qs = cert_qs.filter(owner=ctx.owner)
+    cert_count = cert_qs.count()
     cr = excel_row
     cert_entries = [
         be
@@ -57,13 +60,31 @@ def apply_totals(ctx):
     )
     ws.cell(row=tar, column=1).border = _thin()
 
-    formula = (
-        f"=B{ter}"
-        f"+(C2*('Exchange Rates'!B2))"
-        f"+(D2*('Exchange Rates'!B3))"
-        f"+(E2*('Exchange Rates'!B11))"
-        f"+(F2*(('Gold Price'!C2)+28.5))"
-    )
+    base_code = get_report_base_code()
+    if base_code == "EGP" and tuple(ctx.slots) == ("USD", "EUR", "SAR"):
+        # Unchanged for the original Egyptian layout.
+        formula = (
+            f"=B{ter}"
+            f"+(C2*('Exchange Rates'!B2))"
+            f"+(D2*('Exchange Rates'!B3))"
+            f"+(E2*('Exchange Rates'!B11))"
+            f"+(F2*(('Gold Price'!C2)+28.5))"
+        )
+    else:
+        # Any other base: convert with the owner's base rates directly (the
+        # 'Exchange Rates' cells are quoted against the rate pivot, not the base).
+        from core.services.shared.currency_conversion_service import CurrencyConversionService
+        from core.services.shared.market_profile import is_gulf_code
+
+        rates = CurrencyConversionService.get_rates_to_base(base_code)
+        parts = [f"=B{ter}"]
+        for column, code in zip("CDE", ctx.slots):
+            parts.append(f"({column}2*{float(rates.get(code, 0))})")
+        if is_gulf_code(base_code):
+            parts.append("(F2*('Gold Price'!C2))")  # spot price in the base currency
+        else:
+            parts.append(f"(F2*(('Gold Price'!C2)+28.5)*{float(rates.get('EGP', 0))})")
+        formula = "+".join(parts)
 
     ta = ws.cell(row=tar, column=2, value=formula)
     ta.alignment = Alignment(horizontal="center", vertical="center")

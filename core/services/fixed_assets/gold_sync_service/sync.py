@@ -39,13 +39,24 @@ def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None
     if latest_gold is None:
         return
 
-    usd_to_egp = _to_decimal(latest_gold.usd_to_egp)
+    # Gulf-market owners (SAR/AED/...) are priced from the international spot in
+    # their own currency; everyone else keeps the Egyptian dealer price below.
+    from core.services.shared.market_profile import is_gulf_user, spot_gold_snapshot
+
+    gulf_snapshot = spot_gold_snapshot(asset.owner, latest_gold) if is_gulf_user(asset.owner) else None
+    if gulf_snapshot is not None:
+        usd_to_egp = _to_decimal(gulf_snapshot["usd_to_base"])  # purchase-currency units per 1 USD
+    else:
+        usd_to_egp = _to_decimal(latest_gold.usd_to_egp)
     if usd_to_egp > 0:
         asset.purchase_usd_rate = usd_to_egp
         asset.purchase_price_usd = _to_decimal(asset.purchase_price) / usd_to_egp
 
     purity_key = _normalize_gold_purity(details.purity)
-    sell_price_per_gram = _gold_sell_price_per_gram(latest_gold, purity_key)
+    if gulf_snapshot is not None:
+        sell_price_per_gram = _to_decimal(gulf_snapshot["carat_" + purity_key])
+    else:
+        sell_price_per_gram = _gold_sell_price_per_gram(latest_gold, purity_key)
     unit_factor = _gold_unit_factor(details.unit)
     details.market_price = sell_price_per_gram * unit_factor
 
@@ -63,7 +74,8 @@ def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None
     from core.services.shared.currency_conversion_service import CurrencyConversionService
 
     base_code = get_user_base_code(asset.owner)
-    if base_code == GOLD_PRICE_CURRENCY:
+    if gulf_snapshot is not None or base_code == GOLD_PRICE_CURRENCY:
+        # Gulf: sell price and cashback are already in the owner's base currency.
         asset.current_market_value = value_in_gold_currency
     else:
         _, asset.current_market_value = CurrencyConversionService.convert_amount(

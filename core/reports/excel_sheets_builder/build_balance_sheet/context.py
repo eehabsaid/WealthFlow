@@ -6,6 +6,27 @@ BalanceSheetContext dataclass shared across the build phases.
 """
 from dataclasses import dataclass, field
 
+# Fixed currency columns C, D, E of the BALANCE sheet (F is Gold).
+DEFAULT_SLOT_CODES = ("USD", "EUR", "SAR")
+_GULF_SUBSTITUTES = ("AED", "GBP", "EUR")
+_OTHER_SUBSTITUTES = ("EGP", "AED", "GBP")
+
+
+def resolve_slot_codes(base_code, gulf=False):
+    """Codes for columns C/D/E. The base currency already has column B, so a
+    default slot equal to the base is replaced by another currency (otherwise
+    the base amount would appear twice and be counted twice in the total)."""
+    base = str(base_code or "").strip().upper()
+    slots = list(DEFAULT_SLOT_CODES)
+    for i, code in enumerate(slots):
+        if code != base:
+            continue
+        for candidate in (_GULF_SUBSTITUTES if gulf else _OTHER_SUBSTITUTES):
+            if candidate != base and candidate not in slots:
+                slots[i] = candidate
+                break
+    return tuple(slots)
+
 
 @dataclass
 class BalanceSheetContext:
@@ -21,3 +42,5 @@ class BalanceSheetContext:
     cur_map: dict = field(default_factory=dict)
     bank_map: dict = field(default_factory=dict)
     excel_row: int = 3
+    owner: object = None
+    slots: tuple = DEFAULT_SLOT_CODES

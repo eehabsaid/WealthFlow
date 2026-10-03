@@ -67,7 +67,7 @@ async function _renderDashboardEnhancements() {
                         <thead><tr>
                             <th data-i18n="bank">Bank</th>
                             <th data-i18n="expiry_date">Expiry</th>
-                            <th class="text-end" data-i18n="amount">Amount (EGP)</th>
+                            <th class="text-end" data-i18n="amount_base">Amount</th>
                             <th data-i18n="days_left">Days Left</th>
                             <th data-i18n="status">Status</th>
                         </tr></thead>

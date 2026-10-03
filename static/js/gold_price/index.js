@@ -60,11 +60,19 @@ async function renderGoldPrice() {
 
   const gd = data.gold;
   const hasData = !!gd;
+  // Gulf-market users get spot prices in their own currency (no dealer buy/sell spread).
+  const isSpot = hasData && gd.market === "spot";
+  const priceCurrency = (hasData && gd.currency) || "EGP";
+  // Templated keys re-translate on language change; the currency fills {currency}.
+  const spotAttrs = (key) =>
+    `data-i18n-key="${key}" data-i18n-params='${JSON.stringify({ currency: priceCurrency })}'`;
 
   const buyText = t("buy", "BUY");
   const sellText = t("sell", "SELL");
   const purityText = t("purity", "Purity");
-  const egpPerGramText = t("egp_per_gram", "EGP / gram");
+  const egpPerGramText = isSpot
+    ? t("gold_currency_per_gram", "{currency} / gram").replace("{currency}", priceCurrency)
+    : t("egp_per_gram", "EGP / gram");
 
   const caratCards = hasData
     ? Object.entries(CARAT_META)
@@ -74,12 +82,16 @@ async function renderGoldPrice() {
                     <div class="kpi-card" style="--kpi-accent:${meta.color};--kpi-bg:rgba(255,209,102,0.08);text-align:center;border-color:${meta.color}44">
                         <div style="font-size:28px;margin-bottom:4px">🥇</div>
                         <div class="kpi-label" style="color:${meta.color}">${meta.label_en} — ${meta.label}</div>
-                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px" data-i18n="egp_per_gram">${egpPerGramText}</div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px" ${isSpot ? spotAttrs("gold_currency_per_gram") : 'data-i18n="egp_per_gram"'}>${egpPerGramText}</div>
                         <div style="display:flex;gap:10px;font-size:13px;margin-top:8px">
-                            <div style="flex:1;background:rgba(255,255,255,0.1);padding:6px;border-radius:4px;text-align:center">
+                            ${
+                              isSpot
+                                ? ""
+                                : `<div style="flex:1;background:rgba(255,255,255,0.1);padding:6px;border-radius:4px;text-align:center">
                                 <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px" data-i18n="buy">${buyText}</div>
                                 <div style="font-weight:bold;color:${meta.color}">${fmt(gd[key + "_buy"])}</div>
-                            </div>
+                            </div>`
+                            }
                             <div style="flex:1;background:rgba(255,255,255,0.1);padding:6px;border-radius:4px;text-align:center">
                                 <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px" data-i18n="sell">${sellText}</div>
                                 <div style="font-weight:bold;color:${meta.color}">${fmt(gd[key])}</div>
@@ -97,21 +109,31 @@ async function renderGoldPrice() {
   const noDataText = t("no_gold_data", "No gold price data yet.");
   const goldSpotText = t("gold_spot", "Gold Spot (USD/oz)");
   const caratPerGramText = t("24k_per_gram", "24K per gram (USD)");
-  const usdEgpText = t("usd_egp_rate", "USD → EGP rate");
+  const usdEgpText = isSpot
+    ? t("usd_currency_rate", "USD → {currency} rate").replace("{currency}", priceCurrency)
+    : t("usd_egp_rate", "USD → EGP rate");
   const caratHeader = t("carat", "Carat");
   const arabicLabel = t("arabic_label", "Arabic");
   const spreadText = t("spread", "Spread");
-  const disclaimerText = t(
-    "gold_disclaimer",
-    "Prices are directly from goldbullioneg.com. BUY = selling to the shop, SELL = buying from the shop."
-  );
+  const disclaimerText = isSpot
+    ? t(
+        "gold_spot_disclaimer",
+        "Prices are international spot prices converted to {currency}. Shop prices include making charges and are higher."
+      ).replace("{currency}", priceCurrency)
+    : t(
+        "gold_disclaimer",
+        "Prices are directly from goldbullioneg.com. BUY = selling to the shop, SELL = buying from the shop."
+      );
+  const sourceLabel = isSpot
+    ? "api.gold-api.com + open.er-api.com"
+    : "goldbullioneg.com + open.er-api.com";
 
   mc.innerHTML = `
         <div class="page-header">
             <div>
                 <div class="page-title" data-i18n="gold_prices">🥇 Gold Prices</div>
                 <div class="page-subtitle">
-                    <span data-i18n="source">${sourceText}</span>: goldbullioneg.com + open.er-api.com
+                    <span data-i18n="source">${sourceText}</span>: ${sourceLabel}
                     ${hasData ? `· <strong>${formatDate(gd.fetched_at)}</strong>` : ""}
                 </div>
             </div>
@@ -133,7 +155,7 @@ async function renderGoldPrice() {
                 <div class="row g-3 mb-4">
                     <div class="col-md-4"><div class="kpi-card"><div class="kpi-label" data-i18n="gold_spot">${goldSpotText}</div><div class="kpi-value">$${fmt(gd.usd_per_oz)}</div></div></div>
                     <div class="col-md-4"><div class="kpi-card"><div class="kpi-label" data-i18n="24k_per_gram">${caratPerGramText}</div><div class="kpi-value">$${Number(gd.usd_gram_24k).toFixed(4)}</div></div></div>
-                    <div class="col-md-4"><div class="kpi-card"><div class="kpi-label" data-i18n="usd_egp_rate">${usdEgpText}</div><div class="kpi-value">${Number(gd.usd_to_egp).toFixed(2)}</div></div></div>
+                    <div class="col-md-4"><div class="kpi-card"><div class="kpi-label" ${isSpot ? spotAttrs("usd_currency_rate") : 'data-i18n="usd_egp_rate"'}>${usdEgpText}</div><div class="kpi-value">${Number(isSpot ? gd.usd_to_base : gd.usd_to_egp).toFixed(2)}</div></div></div>
                 </div>
 
                 <div class="table-container">
@@ -143,9 +165,9 @@ async function renderGoldPrice() {
                                 <th data-i18n="carat">${caratHeader}</th>
                                 <th data-i18n="arabic_label">${arabicLabel}</th>
                                 <th data-i18n="purity">${purityText}</th>
-                                <th class="text-center" data-i18n="buy">${buyText}</th>
+                                ${isSpot ? "" : `<th class="text-center" data-i18n="buy">${buyText}</th>`}
                                 <th class="text-center" data-i18n="sell">${sellText}</th>
-                                <th class="text-center" data-i18n="spread">${spreadText}</th>
+                                ${isSpot ? "" : `<th class="text-center" data-i18n="spread">${spreadText}</th>`}
                             </tr>
                         </thead>
                         <tbody>
@@ -158,9 +180,9 @@ async function renderGoldPrice() {
                                         <td><strong style="color:${meta.color}">${meta.label_en}</strong></td>
                                         <td>${meta.label}</td>
                                         <td>${meta.purity}</td>
-                                        <td class="text-center num-col" style="color:${meta.color}">${fmt(egpBuy)}</td>
+                                        ${isSpot ? "" : `<td class="text-center num-col" style="color:${meta.color}">${fmt(egpBuy)}</td>`}
                                         <td class="text-center num-col" style="color:${meta.color}">${fmt(egpSell)}</td>
-                                        <td class="text-center num-col" style="color:var(--text-muted)">${fmt(spread)}</td>
+                                        ${isSpot ? "" : `<td class="text-center num-col" style="color:var(--text-muted)">${fmt(spread)}</td>`}
                                     </tr>`;
                               })
                               .join("")}
@@ -170,7 +192,7 @@ async function renderGoldPrice() {
         }
 
         <div style="margin-top:14px;font-size:12px;color:var(--text-muted)">
-            <i class="bi bi-info-circle"></i> <span data-i18n="gold_disclaimer">${disclaimerText}</span>
+            <i class="bi bi-info-circle"></i> <span ${isSpot ? spotAttrs("gold_spot_disclaimer") : 'data-i18n="gold_disclaimer"'}>${disclaimerText}</span>
         </div>`;
   applyTranslations();
 }

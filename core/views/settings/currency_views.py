@@ -95,7 +95,11 @@ class BaseCurrencyView(View):
     def post(self, request):
         data = parse_json_body(request)
         try:
+            from core.services.shared.market_profile import ensure_base_catalog, prune_egp_for_gulf_user
+
+            ensure_base_catalog(request.user, data.get("code"))
             set_user_base_currency(request.user, data.get("code"))
+            prune_egp_for_gulf_user(request.user)
         except ValueError as exc:
             key = _BASE_ERROR_KEYS.get(str(exc), "currency_default_invalid")
             return JsonResponse({"error": str(exc), "error_key": key}, status=400)

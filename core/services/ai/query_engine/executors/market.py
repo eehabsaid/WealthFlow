@@ -45,11 +45,14 @@ def run_gold(user: Any, req: QueryRequest) -> QueryResult:
     from core.models import GoldPrice
     from core.services.shared.base_currency import GOLD_PRICE_CURRENCY
 
+    from core.services.shared.market_profile import gold_price_for_user
+
     lang = req.lang
-    g = GoldPrice.objects.order_by("-fetched_at", "-id").first()
+    g = gold_price_for_user(user, GoldPrice.objects.order_by("-fetched_at", "-id").first())
     if g is None:
         return QueryResult(intro=t(lang, "gold_none"))
-    when, cur = _when(g.fetched_at), GOLD_PRICE_CURRENCY
+    # Gulf-market users: spot price in their own currency; others: the Egyptian dealer price currency.
+    when, cur = _when(g.fetched_at), getattr(g, "currency", GOLD_PRICE_CURRENCY)
     if req.metric == "ounce":
         return QueryResult(intro=t(lang, "gold_oz", usd=_num(g.usd_per_oz), usd_g=_num(g.usd_gram_24k), when=when),
                            facts={"usd_per_oz": float(g.usd_per_oz)})

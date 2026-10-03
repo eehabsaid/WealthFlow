@@ -4,7 +4,7 @@ npm run format
 
 backend:
 python manage.py check
-python -m pyflakes core tests wealthflow doc_engine manage.py
+python -m pyflakes core tests scripts wealthflow doc_engine manage.py
 
 
 python manage.py test

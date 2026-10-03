@@ -18,6 +18,33 @@ from core.services.billing import (
 logger = logging.getLogger(__name__)
 
 
+def _hide_egp_prices(user, payload):
+    """Gulf-market users (no EGP anywhere) are not offered EGP plan prices; the
+    platform's other price rows (USD, SAR, AED...) stay. Others are unchanged."""
+    from core.models import Currency
+    from core.services.shared.market_profile import is_gulf_user
+
+    if not is_gulf_user(user) or Currency.objects.filter(owner=user, code__iexact="EGP").exists():
+        return payload
+
+    def walk(node):
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key == "prices" and isinstance(value, list):
+                    node[key] = [
+                        pr for pr in value
+                        if str(pr.get("currency_code", "")).upper() != "EGP"
+                    ]
+                else:
+                    walk(value)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item)
+
+    walk(payload)
+    return payload
+
+
 @login_required(login_url="/accounts/login/")
 def billing_status(request):
     """Current user's subscription/trial state, for the trial banner + gating."""
@@ -38,13 +65,13 @@ def billing_status(request):
     subscription.refresh_from_db()
     data = subscription.to_dict()
     data["has_access"] = has_access
-    return JsonResponse({"subscription": data, "pending_upgrade_request": pending_data})
+    return JsonResponse(_hide_egp_prices(request.user, {"subscription": data, "pending_upgrade_request": pending_data}))
 
 
 @login_required(login_url="/accounts/login/")
 def billing_plans(request):
     plans = Plan.objects.filter(is_active=True).order_by("sort_order", "id")
-    return JsonResponse({"plans": [p.to_dict() for p in plans]})
+    return JsonResponse(_hide_egp_prices(request.user, {"plans": [p.to_dict() for p in plans]}))
 
 
 @login_required(login_url="/accounts/login/")

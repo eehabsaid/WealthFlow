@@ -58,4 +58,4 @@ def _gold_cashback_per_gram(purity_value, owner=None):
 
 
 def _latest_gold_price():
-    return GoldPrice.objects.order_by("-fetched_at").first()
+    return GoldPrice.objects.order_by("-fetched_at", "-id").first()

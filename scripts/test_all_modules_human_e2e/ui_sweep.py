@@ -61,6 +61,15 @@ def run_ui_sweep():
         time.sleep(2)
         page.screenshot(path=os.path.join(out_dir, "human_e2e_import_data.png"))
 
+        # Gold Price (A5: priced per the user's market) and the PWA offline page (A4)
+        test_ctx.goto_route("#gold-price")
+        time.sleep(2)
+        page.screenshot(path=os.path.join(out_dir, "human_e2e_gold_price.png"))
+
+        test_ctx.goto_route("offline/")
+        time.sleep(1)
+        page.screenshot(path=os.path.join(out_dir, "human_e2e_pwa_offline.png"))
+
         test_ctx.close()
 
-    print("  [PASS] UI Playwright Human Experience sweep captured successfully across all 7 modules.")
+    print("  [PASS] UI Playwright Human Experience sweep captured successfully across all 9 pages.")

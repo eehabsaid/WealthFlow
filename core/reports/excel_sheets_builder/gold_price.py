@@ -27,7 +27,14 @@ def build_gold_price_sheet(ws, gold_qs, balance_entries, owner):
     ws.column_dimensions["H"].width = 14.3
 
     FILL_BLACK = _fill("FF000000")
-    latest = gold_qs.order_by("-fetched_at").first()
+    latest = gold_qs.order_by("-fetched_at", "-id").first()
+
+    # Gulf-market owners (SAR/AED/...): spot prices in their own currency, no
+    # Egyptian making-charge notes, no EGP anywhere. Everyone else is unchanged.
+    from core.services.shared.market_profile import is_gulf_user, spot_gold_snapshot
+
+    gulf = latest is not None and is_gulf_user(owner)
+    spot = spot_gold_snapshot(owner, latest) if gulf else None
 
     for c, h in enumerate(["السعر", "شراء", "بيع", "المزيد", "الملاحظات"], 1):
         cell = ws.cell(row=1, column=c, value=h)
@@ -48,10 +55,10 @@ def build_gold_price_sheet(ws, gold_qs, balance_entries, owner):
         for col, val in enumerate(
             [
                 label,
-                round(float(getattr(latest, bf, 0)), 0) if latest else 0,
-                round(float(getattr(latest, sf, 0)), 0) if latest else 0,
+                round(spot[bf] if gulf else float(getattr(latest, bf, 0)), 0) if latest else 0,
+                round(spot[sf] if gulf else float(getattr(latest, sf, 0)), 0) if latest else 0,
                 ">",
-                karat,
+                "" if gulf else karat,
             ],
             1,
         ):
@@ -60,13 +67,14 @@ def build_gold_price_sheet(ws, gold_qs, balance_entries, owner):
             c.alignment = _center()
             c.border = _thin()
 
+    usd_rate = spot["usd_to_base"] if gulf else (float(latest.usd_to_egp) if latest else 0)
     rows_data = [
         [
-            "الدولار 0 ج",
-            float(latest.usd_to_egp) if latest else 0,
-            float(latest.usd_to_egp) if latest else 0,
+            "الدولار" if gulf else "الدولار 0 ج",
+            usd_rate,
+            usd_rate,
             None,
-            "0 ج",
+            "" if gulf else "0 ج",
         ],
         [
             "الأونصة 0 $",
@@ -83,6 +91,8 @@ def build_gold_price_sheet(ws, gold_qs, balance_entries, owner):
             "320 ج",
         ],
     ]
+    if gulf:
+        rows_data = rows_data[:2]  # the Egyptian gold-pound coin row has no Gulf equivalent
     for i, row_data in enumerate(rows_data, 7):
         _apply_zebra_striping(ws, i, 5)
         for col, val in enumerate(row_data, 1):
@@ -133,7 +143,8 @@ def build_gold_price_sheet(ws, gold_qs, balance_entries, owner):
     except Exception:
         pass
 
-    vals = ["=(C2+28.5)*(BALANCE!F2)", round(paid_amount, 2), "=G11-H11"]
+    now_formula = "=C2*(BALANCE!F2)" if gulf else "=(C2+28.5)*(BALANCE!F2)"
+    vals = [now_formula, round(paid_amount, 2), "=G11-H11"]
     for c, val in enumerate(vals, 7):
         c_val = ws.cell(row=11, column=c, value=val)
         c_val.font = _f(name="Arial")
@@ -146,4 +157,4 @@ def build_gold_price_sheet(ws, gold_qs, balance_entries, owner):
         # currency), so making this dynamic-base like the rest of the
         # reports would show a genuinely-EGP-denominated number under a
         # different currency's symbol.
-        c_val.number_format = fmt_for_code("EGP")
+        c_val.number_format = fmt_for_code() if gulf else fmt_for_code("EGP")
