@@ -33,9 +33,9 @@ def serialize_instance(instance, field_map: dict) -> dict[str, Any]:
         raw = getattr(instance, attname, None)
         row[attname] = serialize_value(raw)
 
-    # Special handling: Document uses GenericForeignKey via ContentType.
-    # Store "app_label.model_name" instead of the raw integer content_type_id.
-    if hasattr(instance, "content_type_id") and hasattr(instance, "object_id"):
+    # Document (GenericForeignKey), LogEntry and Permission point at a ContentType: store
+    # "app_label.model_name" instead of the raw integer content_type_id (ids differ between databases).
+    if hasattr(instance, "content_type_id"):
         try:
             ct = ContentType.objects.get(pk=instance.content_type_id)
             row["_content_type_label"] = content_type_label(ct)
@@ -58,7 +58,27 @@ def serialize_instance(instance, field_map: dict) -> dict[str, Any]:
                 except User.DoesNotExist:
                     row[f"__{attname[:-3]}__username"] = None
 
+    _add_natural_hints(row, field_map)
     return row
+
+
+def _add_natural_hints(row: dict[str, Any], field_map: dict) -> None:
+    """FKs to Permission / Group get a database-independent hint (ids differ between databases):
+    __<fk>__perm = "app_label.model.codename", __<fk>__group = group name. Resolved by the restore."""
+    from django.contrib.auth.models import Group, Permission
+
+    for attname, field in field_map.items():
+        if not (isinstance(field, (django_models.ForeignKey, django_models.OneToOneField)) and attname.endswith("_id")):
+            continue
+        value, base = row.get(attname), attname[:-3]
+        if value is None:
+            continue
+        if field.related_model is Permission:
+            perm = Permission.objects.select_related("content_type").filter(pk=value).first()
+            row[f"__{base}__perm"] = f"{perm.content_type.app_label}.{perm.content_type.model}.{perm.codename}" if perm else None
+        elif field.related_model is Group:
+            group = Group.objects.filter(pk=value).first()
+            row[f"__{base}__group"] = group.name if group else None
 
 
 def sha256_of_bytes(data: bytes) -> str:

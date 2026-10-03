@@ -202,11 +202,11 @@
     ]
   },
   "settings::settings-backuprestore": {
-    "purpose": "Configure the administrative settings and preferences for Settings Backuprestore.",
+    "purpose": "Create, download, upload and restore portable backups (.wfbackup). A backup contains every table of application data: financial records, budgets and recurring transactions, settings, users, roles, permissions and group links, login-attempt records, the admin change history and AI data. Only temporary login sessions are left out.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Create & Download Backup to save a portable .wfbackup file.",
+      "Create Server Backup to keep a copy on the server and see it in the Server Backups list.",
+      "Upload & Restore Backup to restore from a file; permissions and group links are matched by name, so they restore correctly on another server."
     ]
   },
   "settings::settings-documentation": {

@@ -15,7 +15,8 @@ def test_gold_purities(context, reporter, screenshot_logger):
         gp_checker.add_manual_step(context.page.query_selector("#gspKey") is not None)
 
         before_ids = gp_checker.snapshot_ids()
-        gp_key = _uid()[:2] + "k"
+        # unique_together(owner, key): a 2-digit key collided with the seeded 24k/22k/21k/18k (and earlier runs) -> 500 -> no row.
+        gp_key = "e" + _uid() + "k"
         gp_label = gp_key.upper()
         if context.page.query_selector("#gspKey"):
             context.page.fill("#gspKey", gp_key)

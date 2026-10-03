@@ -866,6 +866,7 @@
     "gold_purity_key_required": "مفتاح العيار مطلوب",
     "gold_purity_saved": "تم حفظ عيار الذهب ✓",
     "error_saving_gold_purity": "خطأ أثناء حفظ عيار الذهب",
+    "gold_purity_key_exists": "مفتاح العيار هذا موجود بالفعل",
     "confirm_disable_gold_purity": "تعطيل هذا العيار؟",
     "gold_purity_disabled": "تم تعطيل عيار الذهب",
     "error_disabling_gold_purity": "خطأ أثناء تعطيل عيار الذهب",

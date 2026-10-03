@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from core.services.restore.helpers import get_field_map
 from core.services.restore.instance_builder import build_instance_kwargs
+from core.services.restore.natural_restore import natural_restore_row, uses_natural_restore
 
 
 def restore_table(
@@ -33,6 +34,11 @@ def restore_table(
 
         if dry_run:
             created += 1
+            continue
+
+        if uses_natural_restore(model_class):
+            outcome = natural_restore_row(model_class, kwargs, overwrite)
+            created, updated, skipped = created + (outcome == "created"), updated + (outcome == "updated"), skipped + (outcome == "skipped")
             continue
 
         if overwrite and lookup_field:

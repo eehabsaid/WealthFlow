@@ -866,6 +866,7 @@
     "gold_purity_key_required": "La cle de purete est requise",
     "gold_purity_saved": "Purete d'or enregistree ✓",
     "error_saving_gold_purity": "Erreur lors de l'enregistrement de la purete d'or",
+    "gold_purity_key_exists": "Cette clé de pureté existe déjà",
     "confirm_disable_gold_purity": "Desactiver cette purete d'or ?",
     "gold_purity_disabled": "Purete d'or desactivee",
     "error_disabling_gold_purity": "Erreur lors de la desactivation de la purete d'or",

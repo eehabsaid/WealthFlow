@@ -66,4 +66,22 @@ def build_instance_kwargs(
                 user_obj = username_cache[username]
                 kwargs[attname] = user_obj.pk if user_obj else None
 
+    _resolve_natural_hints(row, field_map, kwargs)
     return kwargs
+
+
+def _resolve_natural_hints(row: dict, field_map: dict, kwargs: dict) -> None:
+    """Map __<fk>__perm / __<fk>__group hints to the ids of THIS database (None when it no longer exists)."""
+    from django.contrib.auth.models import Group, Permission
+
+    for attname in field_map:
+        base = attname[:-3] if attname.endswith("_id") else attname
+        perm_hint, group_hint = row.get(f"__{base}__perm"), row.get(f"__{base}__group")
+        if perm_hint:
+            try:
+                app_label, model, codename = perm_hint.split(".", 2)
+                kwargs[attname] = Permission.objects.get(content_type__app_label=app_label, content_type__model=model, codename=codename).pk
+            except (ValueError, Permission.DoesNotExist):
+                kwargs[attname] = None
+        elif group_hint:
+            kwargs[attname] = Group.objects.filter(name=group_hint).values_list("pk", flat=True).first()

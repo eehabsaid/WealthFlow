@@ -74,7 +74,22 @@ async function saveGoldPurity(itemId) {
     showToast(t("gold_purity_saved", "Gold purity saved ✓"), "success");
     renderGoldSettings();
   } else {
-    showToast(t("error_saving_gold_purity", "Error saving gold purity"), "error");
+    let errKey = "error_saving_gold_purity";
+    try {
+      const err = await res.json();
+      if (err && err.error_key === "gold_purity_key_exists") errKey = "gold_purity_key_exists";
+    } catch (_e) {
+      /* keep the generic message */
+    }
+    showToast(
+      t(
+        errKey,
+        errKey === "gold_purity_key_exists"
+          ? "This purity key already exists"
+          : "Error saving gold purity"
+      ),
+      "error"
+    );
   }
 }
 

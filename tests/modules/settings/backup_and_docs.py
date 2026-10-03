@@ -1,6 +1,6 @@
 """Settings module phase 6: Portable Backup Archive download & Documentation Engine generation trigger. Split out of tests/modules/settings.py."""
 
-from tests.core.download_verifier import verify_downloaded_file
+from tests.core.download_verifier import verify_backup_archive, verify_downloaded_file
 from tests.modules.settings.common import close_global_modal
 
 
@@ -17,9 +17,10 @@ def test_backup_and_docs(context, reporter, screenshot_logger):
         download.save_as(save_path)
 
         verify_downloaded_file(save_path, expected_extension=".wfbackup")
+        table_count = verify_backup_archive(save_path)   # manifest, checksums, and every required table (budgets, permissions, login attempts...)
         shot_bk = screenshot_logger.capture(context.page, "settings", "backup", "none", "backup_download", "ok")
         reporter.exports_tested.append("Backup & Restore -> Create & Download Portable Backup (.wfbackup)")
-        reporter.add_step("Backup Archive Download Verification", "Settings", "PASS", f"Verified backup archive: {save_path}", screenshot_path=shot_bk)
+        reporter.add_step("Backup Archive Download Verification", "Settings", "PASS", f"Verified backup archive: {save_path} ({table_count} tables, checksums OK, required tables present)", screenshot_path=shot_bk)
     except Exception as ex:
         reporter.add_step("Backup Archive Download", "Settings", "FAIL", f"Exception: {ex}")
 

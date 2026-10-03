@@ -870,6 +870,7 @@
     "gold_purity_key_required": "Purity key is required",
     "gold_purity_saved": "Gold purity saved ✓",
     "error_saving_gold_purity": "Error saving gold purity",
+    "gold_purity_key_exists": "This purity key already exists",
     "confirm_disable_gold_purity": "Disable this gold purity?",
     "gold_purity_disabled": "Gold purity disabled",
     "error_disabling_gold_purity": "Error disabling gold purity",

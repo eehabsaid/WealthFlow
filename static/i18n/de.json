@@ -866,6 +866,7 @@
     "gold_purity_key_required": "Reinheits-Schluessel ist erforderlich",
     "gold_purity_saved": "Goldreinheit gespeichert ✓",
     "error_saving_gold_purity": "Fehler beim Speichern der Goldreinheit",
+    "gold_purity_key_exists": "Dieser Reinheitsschlüssel existiert bereits",
     "confirm_disable_gold_purity": "Diese Goldreinheit deaktivieren?",
     "gold_purity_disabled": "Goldreinheit deaktiviert",
     "error_disabling_gold_purity": "Fehler beim Deaktivieren der Goldreinheit",

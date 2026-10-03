@@ -7,7 +7,10 @@ from __future__ import annotations
 
 
 def get_model_export_order():
-    from django.contrib.auth.models import Group, User
+    from axes.models import AccessAttempt, AccessAttemptExpiration, AccessFailureLog, AccessLog
+    from django.contrib.admin.models import LogEntry
+    from django.contrib.auth.models import Group, Permission, User
+    from django.contrib.contenttypes.models import ContentType
 
     from core.models import (
         AIBenchmarkReport, AIConversation, AIKnowledgeEntry, AIMessage, AIModelVersion,
@@ -16,6 +19,7 @@ def get_model_export_order():
         AssetMaintenance, AssetMortgage, AssetPhoto, AssetPurchasePayment,
         AssetRental, AssetRenovation, AssetSale, AssetValuationHistory,
         AuthAuditLog, AuthToken,
+        Budget, RecurringTransaction,
         Bank, BankCertificate, BankCertificateInterestHistory, BankInterest,
         BalanceEntry, BalanceTransfer,
         CardRenewalFee, CertificateStatus, Company, CreditCardPayment,
@@ -36,8 +40,16 @@ def get_model_export_order():
     )
 
     return [
+        # ContentType + Permission are restored by NATURAL KEY (app_label/model, codename), never by pk:
+        # their ids differ between databases and a pk-preserving restore would corrupt every permission link.
+        ("00", ContentType,                  None),
         ("01", Group,                        "name"),
         ("02", User,                         "username"),
+        ("02b", Permission,                   None),
+        # auth link tables (who belongs to which group / holds which permission): restored by natural key too.
+        ("02c", Group.permissions.through,    None),
+        ("02d", User.groups.through,          None),
+        ("02e", User.user_permissions.through, None),
         ("03", Currency,                     "code"),
         ("04", Bank,                         None),
         ("05", Company,                      None),
@@ -105,4 +117,12 @@ def get_model_export_order():
         ("66", Role,                          "name"),
         ("67", RolePermission,                None),
         ("68", UserRole,                      None),
+        ("69", Budget,                        None),
+        ("70", RecurringTransaction,          None),
+        # login-attempt / lockout records (django-axes) and the admin change history are app data too.
+        ("71", AccessAttempt,                 None),
+        ("72", AccessAttemptExpiration,       None),
+        ("73", AccessFailureLog,              None),
+        ("74", AccessLog,                     None),
+        ("75", LogEntry,                      None),
     ]

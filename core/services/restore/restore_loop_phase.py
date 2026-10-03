@@ -47,7 +47,7 @@ def run_restore_loop(zf, table_files: list[str], ctx: RestoreRunContext) -> Rest
                 continue
 
             # Apply --skip-users
-            if ctx.skip_users and model_name in ("user", "group"):
+            if ctx.skip_users and model_name in ("user", "group", "user_groups", "user_user_permissions", "group_permissions"):
                 ctx.stdout.write(f"  SKIP  {model_name} (--skip-users)")
                 continue
 

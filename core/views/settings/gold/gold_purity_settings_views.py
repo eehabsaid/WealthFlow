@@ -14,6 +14,18 @@ from core.models import GoldPuritySetting
 from core.views.settings.gold.gold_settings_helpers import _seed_gold_settings_defaults
 
 
+def _key_error(user, key, exclude_pk=None):
+    """unique_together(owner, key): a duplicate used to surface as an unhandled IntegrityError (HTTP 500)."""
+    if not key:
+        return JsonResponse({"error": "Purity key is required", "error_key": "gold_purity_key_required"}, status=400)
+    clash = GoldPuritySetting.objects.filter(owner=user, key=key)
+    if exclude_pk is not None:
+        clash = clash.exclude(pk=exclude_pk)
+    if clash.exists():
+        return JsonResponse({"error": f"Purity {key} already exists", "error_key": "gold_purity_key_exists"}, status=409)
+    return None
+
+
 class GoldPuritySettingsListView(View):
     def get(self, request):
         _seed_gold_settings_defaults(request.user)
@@ -25,6 +37,9 @@ class GoldPuritySettingsListView(View):
         key = str(data.get("key") or "").strip().lower()
         if key and not key.endswith("k"):
             key = f"{key}k"
+        error = _key_error(request.user, key)
+        if error:
+            return error
         item = GoldPuritySetting.objects.create(
             owner=request.user,
             key=key,
@@ -45,6 +60,9 @@ class GoldPuritySettingsDetailView(View):
             key = str(data.get("key") or "").strip().lower()
             if key and not key.endswith("k"):
                 key = f"{key}k"
+            error = _key_error(request.user, key, exclude_pk=item.pk)
+            if error:
+                return error
             item.key = key
 
         if "label" in data:
