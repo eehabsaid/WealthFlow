@@ -62,7 +62,9 @@ async function renderGoldPrice() {
   const hasData = !!gd;
   // Gulf-market users get spot prices in their own currency (no dealer buy/sell spread).
   const isSpot = hasData && gd.market === "spot";
-  const priceCurrency = (hasData && gd.currency) || "EGP";
+  const priceCurrency =
+    (hasData && gd.currency) ||
+    (typeof baseCurrencyCode === "function" ? baseCurrencyCode() : "EGP");
   // Templated keys re-translate on language change; the currency fills {currency}.
   const spotAttrs = (key) =>
     `data-i18n-key="${key}" data-i18n-params='${JSON.stringify({ currency: priceCurrency })}'`;

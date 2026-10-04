@@ -6,7 +6,7 @@ from core.models import AppSettings
 
 User = get_user_model()
 
-_SIGNUP = {"password": "SecurePass123!", "confirm_password": "SecurePass123!", "lang": "en"}
+_SIGNUP = {"password": "SecurePass123!", "confirm_password": "SecurePass123!", "lang": "en", "accept_terms": "on"}
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", DEFAULT_FROM_EMAIL="noreply@example.com")

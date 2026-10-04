@@ -1,0 +1,50 @@
+{% load static %}
+<!doctype html>
+<html lang="{{ lang_code|default:'en' }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title }} - WealthFlow</title>
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/authentication/auth/index.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/authentication/forms.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/authentication/legal.css' %}" rel="stylesheet" />
+  </head>
+  <body class="auth-page legal-page">
+    <main class="auth-card legal-card" id="legalMain">
+      <div class="auth-lang">
+        <select id="authLanguageSelect" aria-label="Language selector">
+          <option value="en">English</option>
+          <option value="ar">العربية</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+        <button class="icon-btn" id="theme-toggle" type="button" onclick="WFAuth.toggleTheme()" aria-label="Toggle theme">🌙</button>
+      </div>
+      <h1 data-i18n="{{ title_key }}">{{ title }}</h1>
+      <p class="legal-meta">
+        <span data-i18n="legal_version_label">Version</span>: <bdi>{{ legal_version }}</bdi>
+      </p>
+      <div class="legal-draft" role="note" data-i18n="legal_draft_notice">{{ draft_notice }}</div>
+      {% for section in sections %}
+      <section class="legal-section">
+        <h2 data-i18n="{{ section.title_key }}">{{ section.title }}</h2>
+        <p data-i18n="{{ section.body_key }}">{{ section.body }}</p>
+      </section>
+      {% endfor %}
+      <hr class="auth-divider" />
+      <div class="auth-footer legal-footer">
+        <a href="/privacy/" data-i18n="legal_privacy_title">Privacy Policy</a>
+        <span aria-hidden="true">·</span>
+        <a href="/terms/" data-i18n="legal_terms_title">Terms of Service</a>
+        <span aria-hidden="true">·</span>
+        <a href="/accounts/login/" data-i18n="legal_back_to_login">Back to sign in</a>
+      </div>
+    </main>
+    <script src="{% static 'js/authentication/shared/csrf_lang.js' %}"></script>
+    <script src="{% static 'js/authentication/shared/theme.js' %}"></script>
+    <script src="{% static 'js/authentication/shared/ui_helpers.js' %}"></script>
+    <script src="{% static 'js/authentication/shared/bootstrap.js' %}"></script>
+  </body>
+</html>

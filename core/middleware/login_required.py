@@ -1,5 +1,5 @@
 """Requires an authenticated session for every request except an explicit
-public allowlist (login/signup/password-reset pages, the auth API, the
+public allowlist (login/signup/password-reset pages, the Privacy/Terms pages, the auth API, the
 SPA shell, Django admin, static/media assets, and the Paymob webhook,
 which is verified via HMAC signature instead of a session).
 
@@ -26,6 +26,8 @@ EXEMPT_PATHS = (
     "/manifest.webmanifest",
     "/service-worker.js",
     "/offline/",
+    "/privacy/",
+    "/terms/",
     "/api/billing/paymob/webhook/",
 )
 

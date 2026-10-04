@@ -1,13 +1,12 @@
 """Settings module phase 6: Portable Backup Archive download & Documentation Engine generation trigger. Split out of tests/modules/settings.py."""
 
 from tests.core.download_verifier import verify_backup_archive, verify_downloaded_file
-from tests.modules.settings.common import close_global_modal
+from tests.modules.settings.common import open_settings_tab, close_global_modal
 
 
 def test_backup_and_docs(context, reporter, screenshot_logger):
     # 5. Portable Backup Archive Download
-    context.page.evaluate("if (typeof switchSettingsTab === 'function') switchSettingsTab('backup');")
-    context.page.wait_for_timeout(600)
+    open_settings_tab(context, "backup")
 
     try:
         with context.page.expect_download(timeout=5000) as download_info:
@@ -25,8 +24,7 @@ def test_backup_and_docs(context, reporter, screenshot_logger):
         reporter.add_step("Backup Archive Download", "Settings", "FAIL", f"Exception: {ex}")
 
     # 6. Documentation Engine Generation
-    context.page.evaluate("if (typeof switchSettingsTab === 'function') switchSettingsTab('documentation');")
-    context.page.wait_for_timeout(600)
+    open_settings_tab(context, "documentation")
 
     try:
         context.page.evaluate("if (typeof handleGenerateClick === 'function') handleGenerateClick();")

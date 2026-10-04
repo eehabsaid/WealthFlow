@@ -84,8 +84,30 @@ GOLD_HOLDINGS = [
     "what is the value of my gold holdings", "gold I have in grams", "tell me how much gold I hold", "my gold grams and value", "total gold holdings",
     "كم عندي ذهب", "كم معي ذهب", "كم املك من ذهب", "ذهبي", "مقتنيات الذهب", "جرامات الذهب عندي", "كم جرام ذهب معي",
 ]
+BUDGETS = [
+    "show my budgets", "what is my budget status", "how are my budgets doing", "budget status", "list my budgets", "my budgets this month",
+    "how much of my budget have I used", "how much of my food budget is left", "what is left in my budget", "remaining budget",
+    "how much is left in my groceries budget", "budget remaining for transport", "am I over budget", "which budgets am I over",
+    "did I exceed any budget", "have I overspent my budget", "which budget is close to its limit", "any budget at risk",
+    "budgets that are over the limit", "is my entertainment budget exceeded", "percent of my budget used", "how much budget do I have left this month",
+    "what are my spending limits", "show my spending limit status", "weekly budget status", "monthly budgets overview", "yearly budget status",
+    "my budget for dining out", "budget left for shopping", "what is my total budget",
+    "ما هي ميزانيتي", "حالة الميزانيات", "كم تبقى من ميزانيتي", "هل تجاوزت ميزانيتي", "ميزانياتي هذا الشهر", "المتبقي من ميزانية الطعام",
+    "اعرض ميزانياتي", "اي ميزانية تجاوزت الحد", "ميزانيات قريبة من الحد", "كم استخدمت من ميزانية المواصلات",
+]
+RECURRING = [
+    "show my recurring transactions", "list my recurring payments", "what are my recurring bills", "my subscriptions", "list my subscriptions",
+    "what subscriptions do I have", "upcoming subscriptions", "next recurring payment", "which recurring bills are due soon", "recurring expenses due this month",
+    "what bills are coming up", "upcoming bills", "when is my next scheduled payment", "show scheduled payments", "my autopay list",
+    "how much do my subscriptions cost per month", "total of my recurring expenses", "monthly total of recurring payments", "how much am I committed to each month in recurring bills",
+    "what is the total cost of my subscriptions", "my standing orders", "my direct debits", "fixed monthly bills", "regular payments I have",
+    "show my recurring items", "recurring expenses", "what recurring payments are due", "due bills this month", "next bills due", "all my repeating payments",
+    "اشتراكاتي", "ما هي اشتراكاتي", "المدفوعات المتكررة", "المعاملات المتكررة", "فواتير قادمة", "اشتراكاتي القادمة",
+    "كم تكلفني اشتراكاتي شهريا", "اجمالي المصروفات المتكررة", "التزاماتي الشهرية", "اعرض المصروفات المتكررة",
+]
 CORPUS = {"expenses": EXPENSES, "salary": SALARY, "balance": BALANCE, "certificates": CERTIFICATES,
-          "fixed_assets": FIXED_ASSETS, "gold_holdings": GOLD_HOLDINGS, "gold_price": GOLD, "exchange_rates": FX}
+          "fixed_assets": FIXED_ASSETS, "gold_holdings": GOLD_HOLDINGS, "gold_price": GOLD, "exchange_rates": FX,
+          "budgets": BUDGETS, "recurring": RECURRING}
 
 # Must NOT be answered by the engine (advice / why / compare / forecast / actions / not data).
 FALL_THROUGH = [
@@ -95,4 +117,7 @@ FALL_THROUGH = [
     "hello", "thanks", "what can you do", "how does the app work", "why is the dollar rising", "recommend how to save money",
     "compare my salary Jan 2026 and Feb 2026", "لماذا ارتفعت مصروفاتي في سبتمبر 2026", "قارن مصروفات اغسطس وسبتمبر 2026", "كيف اوفر فلوسي", "هل اشتري ذهب الان",
     "what is the meaning of life", "write me a poem about gold",
+    "how should I budget my salary", "how can I stay within my budget", "should I increase my food budget", "recommend a budget for next year",
+    "set a budget of 500 for food", "delete my entertainment budget", "why did I go over budget in Sept 2026", "كيف اضع ميزانية لراتبي", "هل يجب ان ازيد ميزانيتي",
+    "should I cancel my subscriptions", "how can I reduce my recurring bills", "add a recurring payment for rent",
 ]

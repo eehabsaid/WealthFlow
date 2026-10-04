@@ -4,7 +4,8 @@ Checks, against the real browser (not only the DOM):
  1. /manifest.webmanifest is linked from the page, served as JSON, standalone, with 192 + 512 + maskable icons that load.
  2. The service worker registers with root scope and becomes active.
  3. The service worker never caches /api/ responses (private financial data).
- 4. /offline/ renders its translated message, and a real navigation made while the browser is offline lands on it.
+ 4. App JS/CSS/i18n is served network-first (cached as offline fallback only) under the bumped cache version.
+ 5. /offline/ renders its translated message, and a real navigation made while the browser is offline lands on it.
 
 NOTE: tests/core/test_context.py registers ONE global dialog handler; do not add another page.on("dialog") here.
 """
@@ -68,7 +69,39 @@ def _check_service_worker(page, reporter, screenshot_logger):
     api_cached = [u for u in cached if u.startswith("/api/")]
     _step(reporter, screenshot_logger, page, "API responses are never cached", not api_cached,
           f"cached_paths={cached} api_cached={api_cached}")
+    _check_network_first(page, reporter, screenshot_logger)
     return True
+
+
+NETWORK_FIRST_JS = """async () => {
+    const names = (await caches.keys()).filter((n) => n.startsWith('wealthflow-static-'));
+    const url = '/static/js/pwa/offline.js';
+    const online = await fetch(url, {cache: 'no-store'});
+    return {names, onlineOk: online.ok};
+}"""
+
+OFFLINE_FETCH_JS = """async () => {
+    try {
+        const r = await fetch('/static/js/pwa/offline.js');
+        return {ok: r.ok};
+    } catch (e) { return {ok: false, error: String(e)}; }
+}"""
+
+
+def _check_network_first(page, reporter, screenshot_logger):
+    info = page.evaluate(NETWORK_FIRST_JS)
+    page.wait_for_timeout(500)
+    cached = page.evaluate(CACHED_URLS_JS)
+    versioned = bool(info["names"]) and all(not n.endswith("-v1") for n in info["names"])
+    stored = "/static/js/pwa/offline.js" in cached
+    page.context.set_offline(True)
+    try:
+        offline = page.evaluate(OFFLINE_FETCH_JS)
+    finally:
+        page.context.set_offline(False)
+    ok = versioned and info["onlineOk"] and stored and offline.get("ok", False)
+    _step(reporter, screenshot_logger, page, "App JS is network-first with offline cache fallback", ok,
+          f"caches={info['names']} stored={stored} offline={offline}")
 
 
 def _check_offline(context, reporter, screenshot_logger):

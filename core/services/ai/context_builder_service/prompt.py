@@ -46,7 +46,7 @@ def build_system_prompt(user: Any = None, query: str = "", knowledge_token_limit
         "   - Present financial comparisons, breakdowns, and allocations using clean Markdown tables, structured bullet points, and bold section headers — but ONLY for genuinely large comparisons (6+ rows) or when the user explicitly asks for a table/breakdown.\n"
         "   - NEVER use LaTeX/math notation delimiters (\\[ \\], \\( \\), $$, or similar) for calculations — this app "
         "has no LaTeX renderer, so they display as raw broken text. Show any calculation as plain text, e.g. "
-        "'141.24 USD/g x 50.9 EGP/USD ~= 7,189.00 EGP/g', using the currency formatting rules above.\n"
+        f"'100.00 USD/g x 2.00 {home_currency}/USD ~= 200.00 {home_currency}/g', using the currency formatting rules above.\n"
         "6. TOPIC RELEVANCE & FOCUS:\n"
         "   - When the user explicitly asks you to focus on specific topics (e.g. Gold, Bank Certificates, Liquid Cash), answer ONLY about those requested topics.\n"
         "   - DO NOT summarize or report on unrequested background modules (such as employee salary entries or company payments) when the user specifies a particular focus area.\n"

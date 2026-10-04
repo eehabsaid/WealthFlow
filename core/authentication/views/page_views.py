@@ -34,6 +34,10 @@ def login_view(request):
     return _render_auth(request, "authentication/login.html")
 
 
+def _checked(value) -> bool:
+    return str(value or "").strip().lower() in ("on", "1", "true", "yes")
+
+
 def signup_view(request):
     if request.method == "POST":
         result = AuthWorkflowService.register_user(
@@ -44,6 +48,7 @@ def signup_view(request):
             confirm_password=request.POST.get("confirm_password", ""),
             full_name=request.POST.get("full_name", ""),
             lang=_request_lang(request),
+            accept_terms=_checked(request.POST.get("accept_terms")),
         )
         context = {
             "prefill_username": request.POST.get("username", "").strip(),

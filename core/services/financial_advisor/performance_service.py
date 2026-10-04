@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 
 from core.models import GoldPriceHistory
 from core.services.balance.net_worth_service import NetWorthService
+from core.services.financial_advisor.performance_gold_market import GoldMarketView, gold_market_payload
 from core.services.exchange_rate_history_service import ExchangeRateHistoryService
 from core.services.shared.base_currency import base_rates, get_user_base_code
 from core.utils import format_date
@@ -14,6 +15,8 @@ from core.utils import format_date
 # default currency is dropped and the next candidate fills its slot, so a
 # pivot-base (EGP) user still sees exactly USD / EUR / SAR.
 _CURRENCY_CANDIDATES = ["USD", "EUR", "SAR", "EGP"]
+# Gulf-market users have no EGP anywhere: their analysis uses Gulf currencies.
+_GULF_CURRENCY_CANDIDATES = ["USD", "EUR", "SAR", "AED"]
 
 
 def _calc_rolling_ma(values: List[float], window: int, decimals: int = 2) -> List[float]:
@@ -54,13 +57,15 @@ class PerformanceService:
         gold_history_qs = list(GoldPriceHistory.objects.order_by("timestamp"))
         gold_latest = gold_history_qs[-1] if gold_history_qs else None
 
-        current_gold_price_24k = (
-            float(gold_latest.carat_24k) if gold_latest and gold_latest.carat_24k else 0.0
-        )
+        gold_view = GoldMarketView(self.owner)
+        current_gold_price_24k = gold_view.price(gold_latest, "24k") if gold_latest else 0.0
+        ma_factor = gold_view.factor_21k(gold_latest)
+        gold_ma_short_summary *= ma_factor
+        gold_ma_long_summary *= ma_factor
         latest_update_date = gold_latest.timestamp.date() if gold_latest else self.today
         latest_update_formatted = format_date(latest_update_date)
 
-        gold_24k_values = [float(item.carat_24k) for item in gold_history_qs]
+        gold_24k_values = [gold_view.price(item, "24k") for item in gold_history_qs]
         gold_rolling_ma_short = _calc_rolling_ma(gold_24k_values, 7, decimals=2)
         gold_rolling_ma_long = _calc_rolling_ma(gold_24k_values, 30, decimals=2)
 
@@ -70,9 +75,9 @@ class PerformanceService:
                 {
                     "timestamp": item.timestamp.isoformat(),
                     "date": format_date(item.timestamp.date()),
-                    "carat_24k": float(item.carat_24k),
-                    "carat_21k": float(item.carat_21k),
-                    "carat_18k": float(item.carat_18k),
+                    "carat_24k": round(gold_24k_values[idx], 2),
+                    "carat_21k": round(gold_view.price(item, "21k"), 2),
+                    "carat_18k": round(gold_view.price(item, "18k"), 2),
                     "ma_short": gold_rolling_ma_short[idx],
                     "ma_long": gold_rolling_ma_long[idx],
                 }
@@ -87,7 +92,8 @@ class PerformanceService:
         # (see ExchangeRateHistoryService.get_rate_series_in_base). The base
         # itself would be a flat line of 1, so it is never offered as a tab.
         base_code = get_user_base_code(self.owner)
-        currencies = [c for c in _CURRENCY_CANDIDATES if c != base_code][:3]
+        candidates = _GULF_CURRENCY_CANDIDATES if gold_view.gulf else _CURRENCY_CANDIDATES
+        currencies = [c for c in candidates if c != base_code][:3]
         live_rates = base_rates(self.owner)
         start_date = self.today - timedelta(days=90)
         rate_history_available = False
@@ -167,6 +173,7 @@ class PerformanceService:
         return {
             "as_of": self.today.isoformat(),
             "gold": {
+                **gold_market_payload(gold_view),
                 "current_price_24k": round(current_gold_price_24k, 2),
                 "latest_update": latest_update_formatted,
                 "trend_7d": round(gold_trend_7, 2),

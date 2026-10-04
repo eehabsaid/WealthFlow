@@ -16,9 +16,8 @@ def check_gulf_screens(context, reporter, screenshot_logger, code):
     page = context.page
 
     # Settings > Currencies
-    context.goto_route("#settings")
-    page.evaluate("if (typeof switchSettingsTab === 'function') switchSettingsTab('currencies');")
-    page.wait_for_timeout(700)
+    context.goto_route("#settings-currency")   # the tab route (there is no global switchSettingsTab)
+    page.wait_for_timeout(900)
     codes = [c["code"].upper() for c in (api_json(page, "/api/currencies/") or {}).get("currencies", [])]
     ok = code in codes and "EGP" not in codes and "AED" in codes and "USD" in codes
     _step(reporter, screenshot_logger, page, f"[{code}] Currencies list has no EGP", ok, f"codes={codes}", f"{code.lower()}_currencies")

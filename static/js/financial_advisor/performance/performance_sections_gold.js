@@ -31,7 +31,7 @@ function buildGoldOverviewSection(ctx) {
                 <div class="p-3 rounded h-100 d-flex justify-content-between align-items-center" style="background:var(--bg-tertiary); border:1px solid var(--border-color);">
                   <div>
                     <div class="small" style="color:var(--text-secondary);" data-i18n="performance_gold_current_24k">Current 24K Gold Price</div>
-                    <div class="fs-4 fw-bold text-primary mt-1">${formatMoneyEgp(gold.current_price_24k)}</div>
+                    <div class="fs-4 fw-bold text-primary mt-1">${formatMoneyGold(gold.current_price_24k, gold.currency)}</div>
                     <div class="extra-small mt-1" style="color:var(--text-secondary);"><span data-i18n="performance_per_gram">per gram</span> &bull; <span data-i18n="performance_latest_update">Latest update:</span> ${gold.latest_update || ""}</div>
                   </div>
                   <div class="fs-1 text-warning opacity-75">

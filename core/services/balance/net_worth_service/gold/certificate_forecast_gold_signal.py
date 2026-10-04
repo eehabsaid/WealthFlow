@@ -138,10 +138,19 @@ def compute_gold_signal(
     if gold_trend_90 <= -12 and gold_trend_state in {"Sideways", "Moderate Uptrend"}:
         gold_trend_state = "Moderate Downtrend"
 
+    # MA figures are stored in the gold price currency (EGP); Gulf-market users
+    # (no EGP anywhere) see them as spot prices in their own base currency.
+    # Lazy import: performance_gold_market pulls in core.services.shared, which
+    # would be circular at module load time.
+    from core.services.financial_advisor.performance_gold_market import GoldMarketView
+
+    gold_view = GoldMarketView(getattr(service, "owner", None))
+    ma_factor = gold_view.factor_21k(gold_history[0] if gold_history else None)
     gold_text = (
         f"Gold trend: {gold_trend_state}. "
         f"7d {gold_trend_7:.2f}%, 30d {gold_trend_30:.2f}%, 90d {gold_trend_90:.2f}%, "
-        f"MA(7) {gold_ma_short:,.2f} EGP, MA(30) {gold_ma_long:,.2f} EGP, gap {gold_ma_gap_pct:.2f}%."
+        f"MA(7) {gold_ma_short * ma_factor:,.2f} {gold_view.currency}, "
+        f"MA(30) {gold_ma_long * ma_factor:,.2f} {gold_view.currency}, gap {gold_ma_gap_pct:.2f}%."
     )
     if gold_trend_state == "Strong Uptrend":
         gold_text += (

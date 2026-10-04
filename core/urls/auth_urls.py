@@ -10,6 +10,8 @@ urlpatterns = [
     path("accounts/check-email/", views.check_email_view, name="check_email"),
     path("accounts/account-disabled/", views.account_disabled_view, name="account_disabled"),
     path("accounts/logout/", views.logout_view, name="logout"),
+    path("privacy/", views.privacy_view, name="privacy"),
+    path("terms/", views.terms_view, name="terms"),
     path("api/auth/login/", views.LoginAPIView.as_view()),
     path("api/auth/signup/", views.SignupAPIView.as_view()),
     path("api/auth/logout/", views.LogoutAPIView.as_view()),

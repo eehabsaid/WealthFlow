@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, Callable, Iterable
 
-from .lexicon import ACTION, ANALYTIC, BUY_RE, KARAT_RE, MID_RE, N_RE, SELL_RE, TIME_HINT, find_currencies, language, norm, rx
+from .lexicon import ACTION, ANALYTIC, ANALYTIC_LOOKUP_BUDGET, BUY_RE, KARAT_RE, MID_RE, N_RE, SELL_RE, TIME_HINT, find_currencies, language, norm, rx
 from .registry import get_capabilities
 from .spec import Capability, QueryRequest
 from .timespec import TimeSpec, parse_time
@@ -161,7 +161,7 @@ def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = No
     if second >= 2 and margin < 2:
         out.status, out.reason = "multi", "several_capabilities"
         return out
-    if ANALYTIC.search(q):
+    if (ANALYTIC_LOOKUP_BUDGET if cap.key == "budgets" else ANALYTIC).search(q):
         out.status, out.reason, out.confidence = "analytic", "needs_reasoning", 0.6
         return out
     if cap.time == "none" and time.months:

@@ -1,6 +1,6 @@
 {
   "ai": {
-    "purpose": "WealthFlow AI Intelligence Platform workspace for business data reasoning, architecture inquiries, prompt library management, and cross-application assistance.",
+    "purpose": "WealthFlow AI Intelligence Platform workspace for business data reasoning, architecture inquiries, prompt library management, and cross-application assistance. Instant answers also cover your budgets (limit, spent, left, over the limit) and recurring payments (upcoming, total per month).",
     "steps": [
       "Select a question domain (Business Data or App Architecture).",
       "Open the Prompt Library to choose, search, filter, or insert reusable prompts into the chat input.",
@@ -228,11 +228,12 @@
     ]
   },
   "auth::create_account": {
-    "purpose": "Register a new WealthFlow account to begin tracking your wealth.",
+    "purpose": "Register a new WealthFlow account to begin tracking your wealth. You must accept the Terms of Service and Privacy Policy to create an account.",
     "steps": [
       "Fill in your personal details.",
       "Create a secure password.",
-      "Submit the form to create your account."
+      "Tick the box to accept the Terms of Service and Privacy Policy (both open in a new tab).",
+      "Submit the form to create your account, then confirm your email."
     ]
   },
   "auth::forgot_password": {
@@ -1035,6 +1036,32 @@
       "Choose the file and the type of data it contains.",
       "Review the preview, including rows that will be skipped or rejected.",
       "Confirm to import; nothing is saved until you confirm."
+    ]
+  },
+  "auth::privacy": {
+    "purpose": "Read how WealthFlow collects, uses and protects your personal data. This page is public and follows your chosen language. The text is a draft that needs legal review before public launch.",
+    "steps": [
+      "Open Privacy Policy from the link under the sign-in or sign-up form, or from the sidebar footer.",
+      "Read the sections on the data collected, AI features, payments, cookies, retention and your rights.",
+      "Use the language selector to read it in English, Arabic, French or German."
+    ]
+  },
+  "auth::terms": {
+    "purpose": "Read the rules for using WealthFlow: accounts, acceptable use, plans and payments, AI answers and liability. This page is public and follows your chosen language. The text is a draft that needs legal review before public launch.",
+    "steps": [
+      "Open Terms of Service from the link under the sign-in or sign-up form, or from the sidebar footer.",
+      "Read the sections on your account, acceptable use, plans and payments, and liability.",
+      "Use the language selector to read it in English, Arabic, French or German."
+    ]
+  },
+  "settings::settings-billing": {
+    "purpose": "Set up online payments with Paymob and manage the billing plans and their prices. Gulf accounts (SAR / AED) are configured separately because each Paymob region has its own account.",
+    "steps": [
+      "Open Settings, then More and Billing Plans (system administrators only).",
+      "Fill in the main Paymob account: API key, HMAC secret, integration ID and iframe ID. Until it is filled in, checkout runs in test mode and no real charge is made.",
+      "Optionally fill in a SAR and an AED account (Paymob host such as ksa.paymob.com, keys, integration and iframe). A currency without an account cannot be paid online once any account is live.",
+      "Choose which currencies the main account serves, then Save.",
+      "Add or edit plans and their prices in each currency."
     ]
   }
 }

@@ -11,7 +11,7 @@ from core.services.ai.query_engine.timespec import parse_time
 from .qe_paraphrases import CORPUS, FALL_THROUGH
 
 TODAY = date(2026, 9, 29)
-EXPECTED = {"expenses", "salary", "balance", "certificates", "fixed_assets", "gold_price", "exchange_rates", "gold_holdings"}
+EXPECTED = {"expenses", "salary", "balance", "certificates", "fixed_assets", "gold_price", "exchange_rates", "gold_holdings", "budgets", "recurring"}
 
 
 def months(q):

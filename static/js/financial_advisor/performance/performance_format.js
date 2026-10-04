@@ -5,12 +5,15 @@
 // within the performance_* sibling files).
 // ════════════════════════════════════════════════════════════════════════════
 
-function formatMoneyEgp(val) {
+// Gold prices come with their own currency code (EGP dealer prices, or the
+// viewer's base currency for Gulf-market spot prices). Never hardcode it.
+function formatMoneyGold(val, code) {
   const num = Number(val) || 0;
+  const cur = code || baseCurrencyCode();
   if (typeof fmtpresent === "function") {
-    return `EGP ${fmtpresent(num)}`;
+    return `${cur} ${fmtpresent(num)}`;
   }
-  return `EGP ${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `${cur} ${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function formatImpactBase(val) {

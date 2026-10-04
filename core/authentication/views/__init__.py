@@ -5,6 +5,7 @@ Sibling modules:
 - mixins.py       — AdminRequiredMixin, SysadminRequiredMixin, PermissionRequiredMixin
 - helpers.py       — _render_auth, _render_auth_status
 - page_views.py        — template-rendering auth views (login/signup/forgot/reset/verify)
+- legal_views.py       — public Privacy Policy / Terms of Service pages
 - page_status_views.py — status-page views (check-email/disabled) and logout_view
 - api_views.py     — JSON API views (LoginAPIView, SignupAPIView, LogoutAPIView,
                        CurrentUserView, UpdateProfileView)
@@ -20,6 +21,7 @@ from core.authentication.views.mixins import (
     PermissionRequiredMixin,
 )
 from core.authentication.views.helpers import _render_auth, _render_auth_status
+from core.authentication.views.legal_views import privacy_view, terms_view
 from core.authentication.views.page_views import (
     login_view,
     signup_view,
@@ -57,6 +59,8 @@ __all__ = [
     "UpdateProfileView",
     "login_view",
     "signup_view",
+    "privacy_view",
+    "terms_view",
     "forgot_password_view",
     "reset_password_view",
     "verify_email_view",

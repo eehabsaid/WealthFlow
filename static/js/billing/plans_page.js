@@ -150,7 +150,12 @@ async function checkoutPlan(planId) {
       }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "checkout failed");
+    if (!res.ok) {
+      const err = new Error(data.error || "checkout failed");
+      // 400 carries a customer-safe reason (e.g. currency not payable online yet).
+      err.serverMessage = res.status === 400 && !!data.error;
+      throw err;
+    }
 
     if (data.mode === "paymob") {
       window.location.href = data.iframe_url;
@@ -187,7 +192,13 @@ async function checkoutPlan(planId) {
     if (typeof checkBillingStatus === "function") checkBillingStatus();
     if (typeof renderSidebar === "function") renderSidebar();
   } catch (e) {
-    showToast(t("error_starting_checkout", "Couldn't start checkout. Please try again."), "error");
+    const isServerMessage = e && e.serverMessage;
+    showToast(
+      isServerMessage
+        ? e.message
+        : t("error_starting_checkout", "Couldn't start checkout. Please try again."),
+      "error"
+    );
   }
 }
 

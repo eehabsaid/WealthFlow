@@ -5,7 +5,13 @@
 // pre-computed context object built by renderPerformanceView.
 // ════════════════════════════════════════════════════════════════════════════
 
-const _PERF_CURRENCY_FLAGS = { USD: "🇺🇸", EUR: "🇪🇺", SAR: "🇸🇦", EGP: "🇪🇬" };
+const _PERF_CURRENCY_FLAGS = {
+  USD: "🇺🇸",
+  EUR: "🇪🇺",
+  SAR: "🇸🇦",
+  AED: "🇦🇪",
+  EGP: "🇪🇬",
+};
 
 function buildCurrencyChartAnalysisRow(ctx) {
   const {

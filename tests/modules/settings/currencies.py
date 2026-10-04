@@ -1,15 +1,14 @@
 """Settings module phase 2: Currency Setting CRUD. Split out of tests/modules/settings.py."""
 
 from tests.core.crud_verifier import CrudVerifier
-from tests.modules.settings.common import _uid
+from tests.modules.settings.common import open_settings_tab, _uid
 
 
 def test_currencies(context, reporter, screenshot_logger):
     # 2. Currency Setting CRUD — real, API-verified
     curr_checker = CrudVerifier(context.page, api_list_url="/api/currencies/", list_key="currencies")
     try:
-        context.page.evaluate("if (typeof switchSettingsTab === 'function') switchSettingsTab('currencies');")
-        context.page.wait_for_timeout(500)
+        open_settings_tab(context, "currencies")
 
         before_ids = curr_checker.snapshot_ids()
 

@@ -13,6 +13,8 @@ welcome-only redirect ran before checking whether the target route
 page-permission check in routeAllowed(). Fixed by also exempting
 "billing-plans" in that earlier guard.
 
+Also runs the Paymob gateway-settings phase (tests/modules/billing_gateway.py).
+
 Runs its own isolated browser + login (testuser / Eehabdev1) rather
 than the shared admin session the rest of the suite runs under, since
 the scenario specifically requires zero assigned page permissions —
@@ -21,6 +23,7 @@ this code path at all.
 """
 
 from tests.core.test_context import TestContext
+from tests.modules.billing_gateway import check_gateway_settings
 
 BILLING_TEST_USERNAME = "testuser"
 BILLING_TEST_PASSWORD = "Eehabdev1"
@@ -28,6 +31,10 @@ BILLING_TEST_PASSWORD = "Eehabdev1"
 
 def test_billing_module(context, reporter, screenshot_logger):
     reporter.pages_visited.add("Billing — Trial Banner Upgrade Flow")
+    try:
+        check_gateway_settings(context, reporter, screenshot_logger)  # admin session, read-only
+    except Exception as ex:
+        reporter.add_step("Gateway settings checks", "Billing", "FAIL", f"Exception: {ex}")
 
     billing_ctx = None
     try:

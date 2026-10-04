@@ -2,7 +2,7 @@ import json
 import logging
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from core.validators.json_body import parse_json_body
@@ -158,3 +158,12 @@ def paymob_webhook(request):
 
     CheckoutService.process_webhook(payload)
     return JsonResponse({"ok": True})
+
+
+@login_required(login_url="/accounts/login/")
+def paymob_return(request):
+    """Where Paymob sends the customer's browser after paying (set this as the
+    'Transaction response callback' URL in the Paymob dashboard). It never
+    activates anything — only the signed webhook does — it just lands the
+    customer back on the plans page, which reads the real subscription state."""
+    return HttpResponseRedirect("/#billing-plans")

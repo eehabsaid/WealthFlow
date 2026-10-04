@@ -81,9 +81,10 @@ class PerformancePayloadBaseTests(TestCase):
             _row("USD", day, "50")
             _row("EUR", day, "58")
             _row("SAR", day, "13.333333")
+            _row("AED", day, "13.6")
         from core.models import ExchangeRate
 
-        for code, rate in (("USD", "50"), ("EUR", "58"), ("SAR", "13.333333")):
+        for code, rate in (("USD", "50"), ("EUR", "58"), ("SAR", "13.333333"), ("AED", "13.6")):
             ExchangeRate.objects.create(
                 currency_code=code, buy_rate=Decimal(rate), sell_rate=Decimal(rate), mid_rate=Decimal(rate)
             )
@@ -101,12 +102,14 @@ class PerformancePayloadBaseTests(TestCase):
         self.assertEqual(cur["data"]["USD"]["current_rate"], 50.0)
         self.assertEqual({p["mid_rate"] for p in cur["data"]["USD"]["timeseries"]}, {50.0})
 
-    def test_sar_base_user_sees_usd_in_sar_and_egp_replaces_the_base_tab(self):
+    def test_sar_base_user_sees_usd_in_sar_and_aed_replaces_the_base_tab(self):
         cur = self._payload("sar_viewer", "SAR")
-        self.assertEqual(cur["codes"], ["USD", "EUR", "EGP"])
+        # Gulf-market users have no EGP anywhere: AED fills the base's slot.
+        self.assertEqual(cur["codes"], ["USD", "EUR", "AED"])
         self.assertAlmostEqual(cur["data"]["USD"]["current_rate"], 3.75, places=2)
         self.assertAlmostEqual(cur["data"]["EUR"]["current_rate"], 4.35, places=2)
-        self.assertAlmostEqual(cur["data"]["EGP"]["current_rate"], 0.075, places=3)
+        self.assertAlmostEqual(cur["data"]["AED"]["current_rate"], 1.02, places=2)
+        self.assertNotIn("EGP", cur["codes"])
 
     def test_payload_endpoint_returns_rebased_values_over_http(self):
         user = User.objects.create_user(username="sar_http", password="pw12345")

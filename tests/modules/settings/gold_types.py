@@ -1,7 +1,7 @@
 """Settings module phase 3: Gold Type Setting soft-toggle CRUD. Split out of tests/modules/settings.py."""
 
 from tests.core.crud_verifier import CrudVerifier
-from tests.modules.settings.common import _uid
+from tests.modules.settings.common import open_settings_tab, _uid
 
 
 def test_gold_types(context, reporter, screenshot_logger):
@@ -10,8 +10,7 @@ def test_gold_types(context, reporter, screenshot_logger):
     # mechanism (soft toggle, not row removal), verified via field update.
     gt_checker = CrudVerifier(context.page, api_list_url="/api/settings/gold-types/", list_key="items")
     try:
-        context.page.evaluate("if (typeof switchSettingsTab === 'function') switchSettingsTab('gold-settings');")
-        context.page.wait_for_timeout(500)
+        open_settings_tab(context, "gold-settings")
 
         before_ids = gt_checker.snapshot_ids()
 

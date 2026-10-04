@@ -11,6 +11,49 @@ async function _fetchGatewaySettings() {
   return res.json();
 }
 
+const _GATEWAY_REGION_CODES = ["SAR", "AED"];
+
+function _regionFieldHtml(code, field, labelKey, labelDefault, value, secret) {
+  const id = `paymobRegion_${code}_${field}`;
+  return `<div class="col-6">
+                    <label data-i18n="${labelKey}">${t(labelKey, labelDefault)}</label>
+                    <input type="text" class="form-control" id="${id}" value="${value || ""}" autocomplete="off"${secret ? "" : ""}>
+                </div>`;
+}
+
+function _regionsHtml(g) {
+  const regions = g.regions || {};
+  const blocks = _GATEWAY_REGION_CODES
+    .map((code) => {
+      const r = regions[code] || {};
+      const live = r.is_configured
+        ? `<span class="wf-gateway-badge wf-gateway-badge-live" data-i18n="payment_gateway_live_badge">${t("payment_gateway_live_badge", "Live")}</span>`
+        : `<span class="wf-gateway-badge wf-gateway-badge-test" data-i18n="payment_gateway_region_not_set">${t("payment_gateway_region_not_set", "Not configured")}</span>`;
+      return `<div style="margin-top:12px;border-top:1px solid var(--border-color);padding-top:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div style="font-weight:600;color:var(--text-secondary)">${code}</div>${live}
+            </div>
+            <div class="row g-3">
+                ${_regionFieldHtml(code, "base_url", "paymob_region_host", "Paymob host (e.g. ksa.paymob.com)", r.base_url)}
+                ${_regionFieldHtml(code, "api_key", "paymob_api_key", "Paymob API Key", r.api_key, true)}
+                ${_regionFieldHtml(code, "hmac_secret", "paymob_hmac_secret", "Paymob HMAC Secret", r.hmac_secret, true)}
+                ${_regionFieldHtml(code, "integration_id", "paymob_integration_id", "Integration ID", r.integration_id)}
+                ${_regionFieldHtml(code, "iframe_id", "paymob_iframe_id", "Iframe ID", r.iframe_id)}
+            </div>
+        </div>`;
+    })
+    .join("");
+  return `<div style="margin-top:14px;">
+            <div style="font-weight:600;color:var(--text-secondary)" data-i18n="payment_gateway_gulf_title">${t("payment_gateway_gulf_title", "Gulf accounts (SAR / AED)")}</div>
+            <div style="margin:4px 0;color:var(--text-muted);font-size:12px;" data-i18n="payment_gateway_gulf_hint">${t("payment_gateway_gulf_hint", "Each Paymob region has its own account. Fill a currency in only if you have a Paymob account for it; otherwise that currency cannot be paid online.")}</div>
+            <div class="col-6" style="margin-top:6px;">
+                <label data-i18n="paymob_default_currencies">${t("paymob_default_currencies", "Currencies served by the main account")}</label>
+                <input type="text" class="form-control" id="paymobDefaultCurrencies" value="${g.paymob_default_currencies || "EGP"}" autocomplete="off">
+            </div>
+            ${blocks}
+        </div>`;
+}
+
 function _gatewayCardHtml(g) {
   const badge = g.is_configured
     ? `<span class="wf-gateway-badge wf-gateway-badge-live" data-i18n="payment_gateway_live_badge">${t("payment_gateway_live_badge", "Live")}</span>`
@@ -43,6 +86,7 @@ function _gatewayCardHtml(g) {
                     <input type="text" class="form-control" id="paymobIframeId" value="${g.paymob_iframe_id || ""}">
                 </div>
             </div>
+            ${_regionsHtml(g)}
             <div style="margin-top:10px;text-align:right;">
                 <button class="btn-primary-custom btn-sm" onclick="saveGatewaySettings()" data-i18n="btn_save">${t("btn_save", "Save")}</button>
             </div>
@@ -64,11 +108,24 @@ async function saveGatewaySettings() {
     paymob_hmac_secret: document.getElementById("paymobHmacSecret").value.trim(),
     paymob_integration_id: document.getElementById("paymobIntegrationId").value.trim(),
     paymob_iframe_id: document.getElementById("paymobIframeId").value.trim(),
+    paymob_default_currencies: document.getElementById("paymobDefaultCurrencies").value.trim(),
+    regions: {},
   };
+  _GATEWAY_REGION_CODES.forEach((code) => {
+    body.regions[code] = {};
+    ["base_url", "api_key", "hmac_secret", "integration_id", "iframe_id"].forEach((field) => {
+      body.regions[code][field] = document
+        .getElementById(`paymobRegion_${code}_${field}`)
+        .value.trim();
+    });
+  });
 
   const res = await fetch("/api/settings/billing/gateway/", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCsrfToken(),
+    },
     body: JSON.stringify(body),
   });
 

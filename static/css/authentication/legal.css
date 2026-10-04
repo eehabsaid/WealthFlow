@@ -1,0 +1,89 @@
+/* Privacy Policy / Terms of Service pages (public, unauthenticated). */
+body.legal-page {
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 24px 12px;
+}
+
+.auth-card.legal-card {
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.legal-card h1 {
+  font-size: 26px;
+  margin-bottom: 4px;
+}
+
+.legal-meta {
+  color: var(--wf-auth-text-secondary);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.legal-draft {
+  background: rgb(245 158 11 / 12%);
+  border: 1px solid rgb(245 158 11 / 45%);
+  border-radius: 10px;
+  color: var(--wf-auth-text-primary, inherit);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  padding: 10px 12px;
+}
+
+.legal-section h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 18px 0 6px;
+}
+
+.legal-section p {
+  color: var(--wf-auth-text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.legal-footer {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.signup-terms {
+  align-items: flex-start;
+  display: flex;
+  font-size: 12.5px;
+  gap: 8px;
+  margin: 4px 0 14px;
+}
+
+.signup-terms input[type="checkbox"] {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.signup-terms a {
+  color: var(--wf-auth-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-legal-links {
+  font-size: 11.5px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.auth-legal-links a {
+  color: var(--wf-auth-text-secondary);
+  text-decoration: none;
+}
+
+.auth-legal-links a:hover {
+  text-decoration: underline;
+}

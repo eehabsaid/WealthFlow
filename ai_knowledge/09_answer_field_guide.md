@@ -29,5 +29,10 @@ Applies to `query_application_data`. Each top-level key is a separate module. Re
 - Exchange rate -> the row in `exchange_rates` with that `currency_code` (`mid_rate`, `buy_rate`, `sell_rate`).
 - Gold price -> `latest_gold_price`.
 
+## Budgets and recurring payments (`budgets`)
+- A budget's status -> the matching item in `budgets`. `amount_base` is the limit, `spent_base` what was spent this period, `remaining_base` what is left and `percent_used` the share used; all are in the user's base currency.
+- Over the limit -> budgets with `percent_used` of 100 or more. Close to the alert level -> `percent_used` at or above `alert_threshold_percent`. Ignore budgets with `is_active` false.
+- Subscriptions and bills -> `recurring_transactions` with `is_active` true: `next_run_date` is the next due date, `frequency` and `interval` say how often, and `amount` is in that item's own `currency_code` (not necessarily the base currency).
+
 ## Financial advisor (`financial_advisor`)
 - Use the values already computed under `overview` and `opportunity_detection`. Do not recompute them from other modules.

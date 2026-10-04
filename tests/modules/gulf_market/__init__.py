@@ -7,16 +7,19 @@ the real screens):
   - The Exchange Rates screen shows AED and no EGP row.
   - The Gold Prices screen is priced in the base currency (spot, no EGP / goldbullioneg text).
   - Plan prices contain no EGP.
+  - Every Financial Advisor tab is free of EGP and Performance gold history is spot in the base currency.
 The throwaway user is always deleted afterwards; no existing account is modified.
 
 Split into one file per phase (200-line rule):
   - switching.py — throwaway-user + API helpers
   - screens.py   — the screen checks
+  - advisor.py   — Financial Advisor tabs / Performance gold
 
 NOTE: tests/core/test_context.py registers ONE global dialog handler; do not add another page.on("dialog") here.
 """
 
 from tests.core.test_context import TestContext
+from tests.modules.gulf_market.advisor import check_advisor_no_egp
 from tests.modules.gulf_market.screens import check_gulf_screens
 from tests.modules.gulf_market.switching import GULF_TEST_PASSWORD, api_post, create_member_user, delete_user
 
@@ -45,6 +48,7 @@ def _run_for_code(context, reporter, screenshot_logger, code):
                           f"wizard call accepted for {username}")
         user_ctx.goto_route("")   # reload so the shell reads the new base currency and the wizard is gone
         check_gulf_screens(user_ctx, reporter, screenshot_logger, code)
+        check_advisor_no_egp(user_ctx, reporter, screenshot_logger, code)
     finally:
         if user_ctx is not None:
             user_ctx.close()

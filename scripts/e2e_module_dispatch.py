@@ -28,6 +28,7 @@ from tests.modules.translations import test_translations_module
 from tests.modules.billing import test_billing_module
 from tests.modules.pwa import test_pwa_module
 from tests.modules.gulf_market import test_gulf_market_module
+from tests.modules.legal import test_legal_module
 
 MODULE_DISPATCH = {
     "auth": test_authentication_module,
@@ -48,6 +49,7 @@ MODULE_DISPATCH = {
     "billing": test_billing_module,
     "pwa": test_pwa_module,
     "gulf_market": test_gulf_market_module,
+    "legal": test_legal_module,
 }
 
 

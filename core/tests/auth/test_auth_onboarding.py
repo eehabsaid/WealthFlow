@@ -39,6 +39,7 @@ class AuthOnboardingWorkflowTest(TestCase):
                 "confirm_password": "SecurePass123!",
                 "full_name": "New User",
                 "lang": "en",
+                "accept_terms": "on",
             },
         )
 
@@ -68,6 +69,7 @@ class AuthOnboardingWorkflowTest(TestCase):
                 "password": "SecurePass123!",
                 "confirm_password": "SecurePass123!",
                 "lang": "en",
+                "accept_terms": "on",
             },
         )
 
@@ -87,6 +89,7 @@ class AuthOnboardingWorkflowTest(TestCase):
                 "password": "SecurePass123!",
                 "confirm_password": "SecurePass123!",
                 "lang": "en",
+                "accept_terms": "on",
             },
         )
 

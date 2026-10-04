@@ -58,6 +58,7 @@ class SignupAPIView(View):
             confirm_password=data.get("confirm_password", ""),
             full_name=data.get("full_name", ""),
             lang=str(data.get("lang", "") or "en"),
+            accept_terms=str(data.get("accept_terms", "")).strip().lower() in ("true", "1", "on", "yes"),
         )
         if not result.ok:
             payload = {"error_key": result.error_key, "error": result.error_key}

@@ -43,7 +43,7 @@ function renderGoldTab() {
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="market_price">Market Price</label><input type="number" step="0.0001" class="form-control" id="gd_market_price" readonly></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="cashback_per_gram">Cashback per Gram</label><input type="number" step="0.0001" class="form-control" id="gd_cashback_per_gram" value="0" readonly></div>
                               <div class="col-md-4"><label class="form-label text-light" data-i18n="purchase_weight">Purchase Weight</label><input type="number" step="0.0001" class="form-control" id="gd_purchase_weight"></div>
-                              <div class="col-12"><small class="text-light" style="opacity:.75;" data-i18n="auto_calculated_from_gold_prices">Auto-calculated from Gold Prices module (SELL + USD/EGP).</small></div>
+                              <div class="col-12"><small class="text-light" style="opacity:.75;" data-i18n="auto_calculated_from_gold_prices">Auto-calculated from the Gold Prices module (price per gram in your default currency).</small></div>
                             </div>
                           </div>
                         </div>

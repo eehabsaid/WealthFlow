@@ -51,6 +51,14 @@ function _renderSidebarFooter(sidebar) {
                 onmouseleave="this.style.background='none'">
             <i class="bi bi-box-arrow-left" style="font-size:16px"></i>
             <span class="nav-text" data-i18n="nav_logout">Logout</span>
-        </button>`;
+        </button>
+        <div class="nav-text sidebar-legal-links"
+             style="display:flex;gap:8px;justify-content:center;padding:6px 8px 0;font-size:11px;">
+            <a href="/terms/" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:none"
+               data-i18n="legal_terms_title">${t("legal_terms_title", "Terms of Service")}</a>
+            <span style="color:var(--text-muted)" aria-hidden="true">·</span>
+            <a href="/privacy/" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:none"
+               data-i18n="legal_privacy_title">${t("legal_privacy_title", "Privacy Policy")}</a>
+        </div>`;
   nav.appendChild(footer);
 }

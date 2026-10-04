@@ -70,6 +70,19 @@ def run_ui_sweep():
         time.sleep(1)
         page.screenshot(path=os.path.join(out_dir, "human_e2e_pwa_offline.png"))
 
+        # Legal pages (public) and the Billing Plans settings tab with the Gulf Paymob accounts
+        test_ctx.goto_route("privacy/")
+        time.sleep(1)
+        page.screenshot(path=os.path.join(out_dir, "human_e2e_privacy.png"))
+
+        test_ctx.goto_route("terms/")
+        time.sleep(1)
+        page.screenshot(path=os.path.join(out_dir, "human_e2e_terms.png"))
+
+        test_ctx.goto_route("#settings-billing")
+        time.sleep(2)
+        page.screenshot(path=os.path.join(out_dir, "human_e2e_billing_gateway.png"))
+
         test_ctx.close()
 
     print("  [PASS] UI Playwright Human Experience sweep captured successfully across all 9 pages.")

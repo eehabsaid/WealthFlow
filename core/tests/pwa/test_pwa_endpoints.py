@@ -48,6 +48,25 @@ class PwaEndpointTests(TestCase):
         self.assertIn('url.pathname.startsWith("/static/")', body)
         self.assertNotIn("/api/", body)
 
+    def test_service_worker_serves_app_code_network_first(self):
+        body = self.client.get("/service-worker.js").content.decode()
+        for prefix in ("/static/js/", "/static/css/", "/static/i18n/"):
+            self.assertIn(f'"{prefix}"', body)
+        self.assertNotIn("/static/vendor/", body)
+        self.assertIn("async function networkFirst", body)
+        self.assertIn("async function cacheFirst", body)
+        self.assertNotIn("staleWhileRevalidate", body)
+        # network-first: fetch happens before any cache lookup, cache is the fallback
+        net = body[body.index("async function networkFirst"):body.index("async function cacheFirst")]
+        self.assertLess(net.index("await fetch(request)"), net.index("cache.match(request)"))
+
+    def test_service_worker_cache_version_bumped(self):
+        from core.views.pwa_views import PWA_CACHE_VERSION
+        # v2 shipped with the old stale-while-revalidate worker; the network-first worker needs a newer name
+        self.assertNotIn(PWA_CACHE_VERSION, ("v1", "v2"))
+        body = self.client.get("/service-worker.js").content.decode()
+        self.assertIn(f'const VERSION = "{PWA_CACHE_VERSION}"', body)
+
     def test_service_worker_precache_list_resolves_to_real_files(self):
         body = self.client.get("/service-worker.js").content.decode()
         start = body.index("const PRECACHE_URLS = ") + len("const PRECACHE_URLS = ")

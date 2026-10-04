@@ -10,6 +10,7 @@ from django.utils import timezone
 from core.models import AppSettings
 from core.authentication.serializers import AuthFlowResult
 from core.authentication.emails import EmailDeliveryError
+from core.authentication.legal import LEGAL_VERSION
 from core.authentication.services.member_role import assign_member_role
 from core.services.billing import SubscriptionService
 
@@ -21,13 +22,15 @@ class RegistrationMixin:
     """User registration, login-block resolution, and email verification."""
 
     @classmethod
-    def register_user(cls, request, *, username: str, email: str, password: str, confirm_password: str, full_name: str = "", lang: str = "en") -> AuthFlowResult:
+    def register_user(cls, request, *, username: str, email: str, password: str, confirm_password: str, full_name: str = "", lang: str = "en", accept_terms: bool = False) -> AuthFlowResult:
         username = username.strip()
         email = email.strip().lower()
         full_name = full_name.strip()
 
         if not username or not email or not password:
             return AuthFlowResult(ok=False, error_key="auth_error_required_signup_fields")
+        if not accept_terms:
+            return AuthFlowResult(ok=False, error_key="auth_error_terms_required")
         if password != confirm_password:
             return AuthFlowResult(ok=False, error_key="auth_error_passwords_mismatch")
         if User.objects.filter(username=username).exists():
@@ -53,6 +56,8 @@ class RegistrationMixin:
             profile.email_verified = False
             profile.account_status = "pending_email_verification"
             profile.preferred_language = lang
+            profile.terms_accepted_at = timezone.now()
+            profile.terms_version = LEGAL_VERSION
             profile.status_reason = ""
             profile.approved_at = None
             profile.rejected_at = None

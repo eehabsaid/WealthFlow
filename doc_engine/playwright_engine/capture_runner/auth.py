@@ -29,6 +29,20 @@ class AuthMixin:
         self.global_context["page_title"] = "Create Account"
         self.capture_screenshot(page, "create_account")
 
+        page.goto(f"{self.base_url}/privacy/")
+        self.wait_for_ui_ready(page)
+        page.wait_for_timeout(500)
+        self.global_context["tab_id"] = "privacy"
+        self.global_context["page_title"] = "Privacy Policy"
+        self.capture_screenshot(page, "privacy")
+
+        page.goto(f"{self.base_url}/terms/")
+        self.wait_for_ui_ready(page)
+        page.wait_for_timeout(500)
+        self.global_context["tab_id"] = "terms"
+        self.global_context["page_title"] = "Terms of Service"
+        self.capture_screenshot(page, "terms")
+
         page.goto(f"{self.base_url}/accounts/forgot-password/")
         self.wait_for_ui_ready(page)
         page.wait_for_timeout(500)

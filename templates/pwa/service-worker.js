@@ -1,4 +1,7 @@
 /* WealthFlow service worker (version {{ cache_version }}).
+ * App code (JS/CSS/i18n) is network-first so a release is never one visit stale;
+ * the cache is only its offline fallback. Vendor files, fonts and images never
+ * change under the same URL and stay cache-first.
  * Caches only public static assets and the offline page. Financial data
  * (the JSON API) and authenticated pages are NEVER cached: they always go to the
  * network, so nothing private can be served to another user on a shared device. */
@@ -29,16 +32,32 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-async function staleWhileRevalidate(request) {
+const NETWORK_FIRST_PREFIXES = ["/static/js/", "/static/css/", "/static/i18n/"];
+
+function isNetworkFirst(pathname) {
+  return NETWORK_FIRST_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+async function networkFirst(request) {
+  const cache = await caches.open(STATIC_CACHE);
+  try {
+    const response = await fetch(request);
+    if (response && response.ok) cache.put(request, response.clone());
+    return response;
+  } catch (error) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    throw error;
+  }
+}
+
+async function cacheFirst(request) {
   const cache = await caches.open(STATIC_CACHE);
   const cached = await cache.match(request);
-  const network = fetch(request)
-    .then((response) => {
-      if (response && response.ok) cache.put(request, response.clone());
-      return response;
-    })
-    .catch(() => cached);
-  return cached || network;
+  if (cached) return cached;
+  const response = await fetch(request);
+  if (response && response.ok) cache.put(request, response.clone());
+  return response;
 }
 
 self.addEventListener("fetch", (event) => {
@@ -55,6 +74,6 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.pathname.startsWith("/static/")) {
-    event.respondWith(staleWhileRevalidate(request));
+    event.respondWith(isNetworkFirst(url.pathname) ? networkFirst(request) : cacheFirst(request));
   }
 });

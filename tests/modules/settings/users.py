@@ -1,7 +1,7 @@
 """Settings module phase 5: User Account CRUD. Split out of tests/modules/settings.py."""
 
 from tests.core.crud_verifier import CrudVerifier
-from tests.modules.settings.common import _uid
+from tests.modules.settings.common import open_settings_tab, _uid
 
 
 def test_users(context, reporter, screenshot_logger):
@@ -9,8 +9,7 @@ def test_users(context, reporter, screenshot_logger):
     # large page_size ensures the newly created test user is captured.
     user_checker = CrudVerifier(context.page, api_list_url="/api/users/?page_size=1000", list_key="users")
     try:
-        context.page.evaluate("if (typeof switchSettingsTab === 'function') switchSettingsTab('users'); else if (typeof navigate === 'function') navigate('settings-users');")
-        context.page.wait_for_timeout(500)
+        open_settings_tab(context, "users")
 
         before_ids = user_checker.snapshot_ids()
 

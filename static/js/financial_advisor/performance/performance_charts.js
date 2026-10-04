@@ -125,7 +125,7 @@ function renderGoldChart(goldObj, goldTimeframe) {
   const filtered = filterTimeseries(rawList, goldTimeframe);
   return buildPerformanceChart({
     canvasId: "fa-gold-performance-chart",
-    label: "24K Gold Price (EGP)",
+    label: `24K Gold Price (${goldObj.currency || baseCurrencyCode()})`,
     timeseries: filtered,
     valueKey: "carat_24k",
     labelKey: "date",

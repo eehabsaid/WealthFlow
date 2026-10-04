@@ -1,5 +1,5 @@
-"""Changed static assets must get a new URL version, otherwise the service worker (stale-while-revalidate on
-/static/) and the browser keep serving the old file for a visit or two."""
+"""Changed static assets must get a new URL version, otherwise the service worker (the service worker used to serve
+/static/ stale-while-revalidate; app JS/CSS/i18n are network-first now) and the browser keep serving the old file for a visit or two."""
 
 import re
 from pathlib import Path

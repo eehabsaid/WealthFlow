@@ -53,6 +53,18 @@ _EN = {
     "gh_by": "Gold holdings by source (amounts in {cur}):", "col_source": "Source", "col_purity": "Purity", "col_grams": "Grams",
     "src_balance": "Balance", "src_asset": "Fixed asset (not in Balance)",
     "gh_synced": "Includes {n} gold fixed asset(s) ({grams} g): they are synced into your Balance gold entries and counted once.",
+    "only_current": "I can only show the current state of budgets and recurring items, not a past month.", "bud_none": "No active budgets are set.", "bud_none_cat": "No active budget is set for {cat}.",
+    "bud_all_cats": "All categories", "bud_status": "Budget status: {n} active budget(s), amounts in {cur}.",
+    "bud_over": "Budgets over the limit: {over}; close to the alert level: {near} (amounts in {cur}).",
+    "bud_all_ok": "All {n} budget(s) are within their limits.", "bud_remaining": "Left across the shown budgets (amounts in {cur}): {amount}.",
+    "per_weekly": "Weekly", "per_monthly": "Monthly", "per_yearly": "Yearly",
+    "col_period": "Period", "col_limit": "Limit", "col_spent": "Spent", "col_left": "Left", "col_used": "Used",
+    "rec_none": "No active recurring transactions are set.", "rec_none_upcoming": "Nothing recurring is due in the next {days} days.",
+    "rec_list": "Active recurring transactions ({n}):", "rec_upcoming": "{n} recurring item(s) due in the next {days} days:",
+    "rec_total": "Recurring commitments come to about {amount} per month across {n} item(s).",
+    "rec_skipped": "{n} item(s) were left out because no exchange rate is stored for their currency.",
+    "freq_daily": "Every {n} day(s)", "freq_weekly": "Every {n} week(s)", "freq_monthly": "Every {n} month(s)", "freq_yearly": "Every {n} year(s)",
+    "col_frequency": "Repeats", "col_next_due": "Next due",
 }
 _AR = {
     "uncategorized": "بدون تصنيف", "no_date": "بدون تاريخ", "grand": "الإجمالي الكلي", "total_of": "إجمالي {label}",
@@ -101,6 +113,18 @@ _AR = {
     "gh_by": "مقتنيات الذهب حسب المصدر (المبالغ بـ {cur}):", "col_source": "المصدر", "col_purity": "العيار", "col_grams": "الجرامات",
     "src_balance": "الرصيد", "src_asset": "أصل ثابت (غير مضاف للرصيد)",
     "gh_synced": "يشمل {n} أصل ذهب ثابت ({grams} جم): تتم مزامنتها مع أرصدة الذهب في الرصيد وتُحسب مرة واحدة.",
+    "only_current": "أستطيع عرض الوضع الحالي للميزانيات والمعاملات المتكررة فقط، وليس شهرًا سابقًا.", "bud_none": "لا توجد ميزانيات نشطة.", "bud_none_cat": "لا توجد ميزانية نشطة للفئة {cat}.",
+    "bud_all_cats": "كل الفئات", "bud_status": "حالة الميزانيات: {n} ميزانية نشطة، المبالغ بـ {cur}.",
+    "bud_over": "ميزانيات تجاوزت الحد: {over}؛ وقريبة من حد التنبيه: {near} (المبالغ بـ {cur}).",
+    "bud_all_ok": "كل الميزانيات ({n}) ضمن حدودها.", "bud_remaining": "المتبقي في الميزانيات المعروضة (المبالغ بـ {cur}): {amount}.",
+    "per_weekly": "أسبوعي", "per_monthly": "شهري", "per_yearly": "سنوي",
+    "col_period": "الفترة", "col_limit": "الحد", "col_spent": "المصروف", "col_left": "المتبقي", "col_used": "المستخدم",
+    "rec_none": "لا توجد معاملات متكررة نشطة.", "rec_none_upcoming": "لا يوجد شيء متكرر مستحق خلال {days} يومًا القادمة.",
+    "rec_list": "المعاملات المتكررة النشطة ({n}):", "rec_upcoming": "{n} معاملة متكررة مستحقة خلال {days} يومًا القادمة:",
+    "rec_total": "الالتزامات المتكررة تبلغ نحو {amount} شهريًا في {n} بند.",
+    "rec_skipped": "تم استبعاد {n} بند لعدم وجود سعر صرف مسجل لعملته.",
+    "freq_daily": "كل {n} يوم", "freq_weekly": "كل {n} أسبوع", "freq_monthly": "كل {n} شهر", "freq_yearly": "كل {n} سنة",
+    "col_frequency": "التكرار", "col_next_due": "الاستحقاق التالي",
 }
 _TABLES = {"en": _EN, "ar": _AR}
 

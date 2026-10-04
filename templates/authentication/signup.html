@@ -11,6 +11,7 @@
     <link href="{% static 'css/authentication/forms.css' %}" rel="stylesheet" />
     <link href="{% static 'css/authentication/animations.css' %}" rel="stylesheet" />
     <link href="{% static 'css/authentication/responsive.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/authentication/legal.css' %}" rel="stylesheet" />
   </head>
   <body class="auth-page">
     <div class="auth-card signup-card" si-modern-card>
@@ -184,7 +185,17 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-submit" tabindex="6">
+        <label class="signup-terms" for="signupAcceptTerms">
+          <input type="checkbox" name="accept_terms" id="signupAcceptTerms" value="on" required tabindex="6" />
+          <span>
+            <span data-i18n="auth_accept_prefix">I agree to the</span>
+            <a href="/terms/" target="_blank" rel="noopener" data-i18n="legal_terms_title">Terms of Service</a>
+            <span data-i18n="auth_accept_and">and</span>
+            <a href="/privacy/" target="_blank" rel="noopener" data-i18n="legal_privacy_title">Privacy Policy</a>
+          </span>
+        </label>
+
+        <button type="submit" class="btn-submit" tabindex="7">
           <i class="bi bi-person-plus"></i>
           <span data-i18n="auth_create_account_button">Create Account</span>
         </button>
@@ -193,7 +204,12 @@
       <hr class="auth-divider" />
       <div class="auth-footer">
         <span data-i18n="auth_already_have_account">Already have an account?</span>
-        <a href="/accounts/login/" data-i18n="auth_login_link" tabindex="7">Sign in</a>
+        <a href="/accounts/login/" data-i18n="auth_login_link" tabindex="8">Sign in</a>
+      </div>
+      <div class="auth-legal-links">
+        <a href="/terms/" data-i18n="legal_terms_title">Terms of Service</a>
+        <span aria-hidden="true">·</span>
+        <a href="/privacy/" data-i18n="legal_privacy_title">Privacy Policy</a>
       </div>
     </div>
 

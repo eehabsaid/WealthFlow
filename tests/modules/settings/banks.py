@@ -2,6 +2,7 @@
 
 from tests.core.data_generator import get_unique_bank_data
 from tests.core.crud_verifier import CrudVerifier
+from tests.modules.settings.common import open_settings_tab
 
 
 def test_banks(context, reporter, screenshot_logger):
@@ -9,8 +10,7 @@ def test_banks(context, reporter, screenshot_logger):
     bank_data = get_unique_bank_data()
     bank_checker = CrudVerifier(context.page, api_list_url="/api/banks/", list_key="banks")
     try:
-        context.page.evaluate("if (typeof switchSettingsTab === 'function') switchSettingsTab('banks');")
-        context.page.wait_for_timeout(500)
+        open_settings_tab(context, "banks")
 
         before_ids = bank_checker.snapshot_ids()
 

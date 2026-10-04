@@ -41,6 +41,10 @@ ANALYTIC = rx(
 )
 ACTION = rx(r"^\s*(please\s+)?(add|create|delete|remove|update|edit|transfer|pay|record|change|set)\b|^\s*(اضف|احذف|امسح|عدل|حول|سجل)\b")
 
+# Same as ANALYTIC but "budget"/"ميزانية" alone is a lookup when the question is ABOUT budgets
+# ("how much of my food budget is left"); advice words (should, reduce, how can...) still fall through.
+ANALYTIC_LOOKUP_BUDGET = rx(ANALYTIC.pattern.replace("budget\\w*|", "").replace("|ميزانيه", "") + r"|\bكيف\b")
+
 # Currency words -> ISO code (normalised Arabic).
 CURRENCIES: dict[str, str] = {
     "usd": "USD", "dollar": "USD", "dollars": "USD", "buck": "USD", "bucks": "USD", "دولار": "USD", "الدولار": "USD", "دولارات": "USD",

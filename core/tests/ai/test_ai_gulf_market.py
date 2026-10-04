@@ -76,3 +76,16 @@ class AiGulfMarketTests(TestCase):
         data = FixedAssetsDataProvider().get_data(self.user)
         item = next(i for i in data["items"] if i["name"] == "Ring")
         self.assertAlmostEqual(item["current_market_value"], 10 * 134 * 52.30 / 13.94, delta=0.2)
+
+
+class AiPromptCurrencyExampleTests(TestCase):
+    """The system prompt's worked example must use the viewer's own currency (no EGP for a SAR user)."""
+
+    def test_prompt_example_uses_home_currency(self):
+        import inspect
+
+        from core.services.ai.context_builder_service import prompt as prompt_module
+
+        source = inspect.getsource(prompt_module)
+        self.assertNotIn("50.9 EGP/USD", source)
+        self.assertIn("{home_currency}/USD", source)

@@ -6,8 +6,10 @@ Tests:
  3. Creating a new chat session.
  4. Capture module view screenshot.
  5. Answer feedback (thumbs) and Learned Answers modal (tests/modules/ai_learning.py).
+ 6. Instant answers for Budgets and Recurring transactions (tests/modules/ai_budgets.py).
 """
 
+from tests.modules.ai_budgets import test_ai_budgets
 from tests.modules.ai_learning import test_ai_learning
 
 
@@ -24,3 +26,4 @@ def test_ai_module(context, reporter, screenshot_logger):
         reporter.add_step("WealthFlow AI Workspace View", "WealthFlow AI", "FAIL", f"Exception: {ex}", screenshot_path=shot_err)
 
     test_ai_learning(context, reporter, screenshot_logger)
+    test_ai_budgets(context, reporter, screenshot_logger)

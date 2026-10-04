@@ -93,6 +93,7 @@ class AuthSecurityTokensTest(TestCase):
                 "password": "SecurePass123!",
                 "confirm_password": "SecurePass123!",
                 "lang": "en",
+                "accept_terms": "on",
             },
         )
 
@@ -111,6 +112,7 @@ class AuthSecurityTokensTest(TestCase):
                 "password": "SecurePass123!",
                 "confirm_password": "SecurePass123!",
                 "lang": "en",
+                "accept_terms": "on",
             },
         )
 

@@ -35,7 +35,7 @@ class PaymobWebhookTestCase(TestCase):
     def test_webhook_rejects_missing_or_invalid_hmac(self):
         res = self.client.post(
             "/api/billing/paymob/webhook/?hmac=not-a-real-signature",
-            data=json.dumps({"obj": {"success": True, "order": {"merchant_order_id": f"wf-inv-{self.invoice.id}"}}}),
+            data=json.dumps({"obj": {"success": True, "amount_cents": 25000, "currency": "EGP", "order": {"merchant_order_id": f"wf-inv-{self.invoice.id}"}}}),
             content_type="application/json",
         )
         self.assertEqual(res.status_code, 403)
@@ -47,7 +47,7 @@ class PaymobWebhookTestCase(TestCase):
         res = self.client.post(
             "/api/billing/paymob/webhook/?hmac=whatever",
             data=json.dumps(
-                {"obj": {"success": True, "order": {"merchant_order_id": f"wf-inv-{self.invoice.id}"}}}
+                {"obj": {"success": True, "amount_cents": 25000, "currency": "EGP", "order": {"merchant_order_id": f"wf-inv-{self.invoice.id}"}}}
             ),
             content_type="application/json",
         )
@@ -61,10 +61,11 @@ class PaymobWebhookTestCase(TestCase):
     @patch("core.services.billing.paymob_gateway.PaymobGateway.verify_webhook_hmac", return_value=True)
     def test_webhook_is_idempotent(self, _mock_verify):
         payload = json.dumps(
-            {"obj": {"success": True, "order": {"merchant_order_id": f"wf-inv-{self.invoice.id}"}}}
+            {"obj": {"success": True, "amount_cents": 25000, "currency": "EGP", "order": {"merchant_order_id": f"wf-inv-{self.invoice.id}"}}}
         )
         self.client.post("/api/billing/paymob/webhook/?hmac=whatever", data=payload, content_type="application/json")
         first_paid_at = Invoice.objects.get(id=self.invoice.id).paid_at
+        self.assertIsNotNone(first_paid_at)
 
         self.client.post("/api/billing/paymob/webhook/?hmac=whatever", data=payload, content_type="application/json")
         second_paid_at = Invoice.objects.get(id=self.invoice.id).paid_at

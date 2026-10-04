@@ -25,6 +25,7 @@ from tests.modules.settings.currencies import test_currencies
 from tests.modules.settings.gold_types import test_gold_types
 from tests.modules.settings.gold_purities import test_gold_purities
 from tests.modules.settings.users import test_users
+from tests.modules.settings.common import open_settings_tab
 from tests.modules.settings.backup_and_docs import test_backup_and_docs
 from tests.modules.settings.ai_instant_answers import test_ai_instant_answers
 
@@ -35,11 +36,15 @@ def test_settings_module(context, reporter, screenshot_logger):
     reporter.pages_visited.add("Settings & Administration")
 
     # Sweep sub-tabs
-    tabs = ["general", "banks", "currencies", "gold-settings", "email-templates", "backup", "documentation", "users"]
+    # Every tab is a real route; a tab that does not open is a FAIL step, not a silent skip.
+    tabs = ["languages", "banks", "currencies", "gold-settings", "email-templates", "backup", "documentation", "users"]
     for t in tabs:
-        context.page.evaluate(f"if (typeof switchSettingsTab === 'function') switchSettingsTab('{t}');")
-        context.page.wait_for_timeout(500)
-        reporter.tabs_visited.add(f"Settings -> {t}")
+        opened = open_settings_tab(context, t, wait_ms=700)
+        if opened:
+            reporter.tabs_visited.add(f"Settings -> {t}")
+        shot = screenshot_logger.capture(context.page, "settings", f"tab_{t}", "none", "view", "ok" if opened else "fail")
+        reporter.add_step(f"Settings tab opens: {t}", "Settings", "PASS" if opened else "FAIL",
+                          f"hash={context.page.evaluate('location.hash')}", screenshot_path=shot)
 
     test_banks(context, reporter, screenshot_logger)
     test_currencies(context, reporter, screenshot_logger)
