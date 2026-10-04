@@ -1,0 +1,38 @@
+/* Answer feedback (thumbs up / down) */
+.ai-ws-feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.35rem;
+}
+
+.ai-ws-fb-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--bs-secondary-color, #6c757d);
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0.25rem 0.45rem;
+}
+
+.ai-ws-fb-btn:hover {
+  border-color: var(--bs-border-color, #dee2e6);
+}
+
+.ai-ws-fb-up.active {
+  color: var(--bs-success, #198754);
+  border-color: var(--bs-success, #198754);
+}
+
+.ai-ws-fb-down.active {
+  color: var(--bs-danger, #dc3545);
+  border-color: var(--bs-danger, #dc3545);
+}
+
+.ai-ws-fb-error {
+  color: var(--bs-danger, #dc3545);
+  font-size: 0.75rem;
+  margin-inline-start: 0.4rem;
+}

@@ -84,12 +84,22 @@ async function _handleAIChatSubmit() {
     };
 
     _setLoadingUI(false);
+    // ok:false = the model call failed or timed out: say so instead of showing an empty bubble
+    const answerText =
+      data.ok === false && !aiMsg.content
+        ? _aiT(
+            "ai_ws_error_provider",
+            "The AI model did not answer in time. Check that the model is running, then try again."
+          )
+        : aiMsg.content || "";
     _appendMessage(
       "assistant",
-      aiMsg.content || "",
+      answerText,
       aiMsg.tool_calls,
       aiMsg.sources,
-      aiMsg.created_at || new Date().toISOString()
+      aiMsg.created_at || new Date().toISOString(),
+      data.ok === false ? null : aiMsg.id,
+      0
     );
 
     _renderRightPanel();

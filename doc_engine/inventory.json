@@ -6,6 +6,7 @@
       { "name": "Pinned Chats", "type": "modal", "trigger": "eval:window.openPinnedChatsModal && window.openPinnedChatsModal()" },
       { "name": "Prompt Library", "type": "modal", "trigger": "eval:window.openPromptLibraryModal && window.openPromptLibraryModal()" },
       { "name": "Create Prompt", "type": "modal", "trigger": "eval:if(window.openPromptLibraryModal){ window.openPromptLibraryModal(); setTimeout(() => { if(window._promptLibNewForm) window._promptLibNewForm(); }, 400); }" },
+      { "name": "Learned Answers", "type": "modal", "trigger": "eval:window.openLearnedAnswersModal && window.openLearnedAnswersModal()" },
       { "name": "Knowledge Search", "type": "modal", "trigger": "eval:window.openKnowledgeSearchModal && window.openKnowledgeSearchModal()" },
       { "name": "Knowledge Base", "type": "modal", "trigger": "eval:window.openKnowledgeBaseModal && window.openKnowledgeBaseModal()" },
       { "name": "Add Knowledge Entry", "type": "modal", "trigger": "eval:if(window.openKnowledgeBaseModal){ window.openKnowledgeBaseModal(); setTimeout(() => { if(window.KB && window.KB.newForm) window.KB.newForm(); }, 400); }" },

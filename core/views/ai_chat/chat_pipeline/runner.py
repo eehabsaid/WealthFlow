@@ -28,6 +28,7 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
     """respond(content, executed_tool_calls, sources, extra) and on_error(sources, error_str)
     are supplied by the view so cache/progress handling stays where it was."""
     provider = TracedProvider(provider, trace)
+    trace.skip("knowledge", "data_question")  # the knowledge stage belongs to the how/where/should path (workflow.py)
     try:
         retrieval = run_retrieve(trace, request, conversation, user_msg, user_text)
         _attach_facts(trace, retrieval, facts_request, request.user)

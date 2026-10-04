@@ -30,7 +30,9 @@ from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.direct_answers import try_direct_answer
 from core.services.ai.orchestration import Orchestrator
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
-from core.views.ai_chat.chat_pipeline import PipelineTrace, run_default_pipeline, understand
+from core.services.ai.app_knowledge import is_workflow_question
+from core.views.ai_chat.chat_pipeline import PipelineTrace, run_default_pipeline, run_workflow_pipeline, understand, workflow_enabled
+from core.views.ai_chat.chat_pipeline.trace import log_request_start
 
 from .conversation_setup import (
     build_provider_disabled_response,
@@ -61,6 +63,7 @@ class AIChatView(View):
     """
 
     def post(self, request):
+        log_request_start(getattr(request.user, "id", None), len(request.body or b""))
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
@@ -116,6 +119,21 @@ class AIChatView(View):
                 direct["content"], direct["tool_calls"], direct["sources"], request,
             )
         facts_request = info.get("facts_request")
+
+        # Stage 1c — how / where / should questions about using the app: reason from retrieved app
+        # knowledge (no data snapshot, no tools). Advice questions with computed facts keep the data path.
+        if not facts_request and workflow_enabled(request.user) and is_workflow_question(user_text):
+            return run_workflow_pipeline(
+                trace=trace, provider=provider, request=request, conversation=conversation, user_msg=user_msg,
+                user_text=user_text,
+                respond=lambda content, calls, sources, extra=None: finalize_success(
+                    cache_mgr, progress_key, conversation, user_msg, user_text,
+                    content, calls, sources, request, extra=extra,
+                ),
+                on_error=lambda sources, err: build_provider_error_response(
+                    cache_mgr, progress_key, conversation, sources, user_msg, err
+                ),
+            )
 
         multi_agent_str = AppSettings.get("ai_multi_agent_enabled", "false", user=request.user).strip().lower()
         if multi_agent_str in ("true", "1", "yes"):

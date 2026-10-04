@@ -11,7 +11,7 @@ match — this file is what core/views/__init__.py depends on, so no
 other file needs to change when those are reorganized internally.
 """
 
-from .ai_chat_views import AIChatView, AIConversationListView, AIConversationDetailView, AIProgressView
+from .ai_chat_views import AIChatView, AIConversationListView, AIConversationDetailView, AIFeedbackListView, AIMessageFeedbackView, AIProgressView
 from .ai_platform_views import (
     AIPlatformKnowledgeView,
     AIPlatformDatasetView,
@@ -32,6 +32,8 @@ __all__ = [
     "AIChatView",
     "AIConversationListView",
     "AIConversationDetailView",
+    "AIMessageFeedbackView",
+    "AIFeedbackListView",
     "AIProgressView",
     "AIPlatformKnowledgeView",
     "AIPlatformDatasetView",

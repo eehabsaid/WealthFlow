@@ -6,6 +6,8 @@
       "Open the Prompt Library to choose, search, filter, or insert reusable prompts into the chat input.",
       "Create, edit, favorite, and manage custom AI prompts organized by categories.",
       "Ask a natural language query about your financial metrics or codebase.",
+      "Ask how-to questions such as where to record a purchase: the assistant answers from the app's own documentation and how data flows, without reading your numbers.",
+      "Rate an answer with the thumbs up or down under it; approved how-to answers are reused for similar questions and rejected ones never are.",
       "Manage conversations and switch between multi-thread chats."
     ]
   },
@@ -34,6 +36,14 @@
       "Open Pinned Chats from the AI Workspace sidebar card.",
       "Click a pinned conversation to jump directly into it.",
       "Unpin a conversation to remove it from this list."
+    ]
+  },
+  "ai::learned_answers": {
+    "purpose": "Review the answers you rated with the thumbs up or down, see which approved how-to answers the AI reuses for similar questions, and clear a rating.",
+    "steps": [
+      "Open Learned Answers from the AI Workspace sidebar card.",
+      "Read each rated question and answer; a green badge means the answer is reused for similar questions, a grey badge means it is not.",
+      "Click the clear button on a row to remove your rating; a cleared answer is no longer reused."
     ]
   },
   "ai::knowledge_search": {

@@ -21,7 +21,15 @@ async function _refreshActiveConversation(convId) {
     container.innerHTML = "";
     if (messages.length > 0) {
       messages.forEach((msg) => {
-        _appendMessage(msg.role, msg.content, msg.tool_calls, msg.sources, msg.created_at);
+        _appendMessage(
+          msg.role,
+          msg.content,
+          msg.tool_calls,
+          msg.sources,
+          msg.created_at,
+          msg.id,
+          msg.feedback
+        );
       });
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.role === "assistant") {
@@ -60,7 +68,15 @@ async function _switchAIChatConversation(convId) {
     const messages = conv.messages || [];
     if (messages.length > 0) {
       messages.forEach((msg) => {
-        _appendMessage(msg.role, msg.content, msg.tool_calls, msg.sources, msg.created_at);
+        _appendMessage(
+          msg.role,
+          msg.content,
+          msg.tool_calls,
+          msg.sources,
+          msg.created_at,
+          msg.id,
+          msg.feedback
+        );
       });
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.role === "assistant") {

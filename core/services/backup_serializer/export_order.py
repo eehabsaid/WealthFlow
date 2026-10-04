@@ -14,7 +14,7 @@ def get_model_export_order():
 
     from core.models import (
         AIBenchmarkReport, AIConversation, AIKnowledgeEntry, AIMessage, AIModelVersion,
-        AIPrompt, AIPromptCategory,
+        AIAnswerFeedback, AIPrompt, AIPromptCategory,
         AppSettings, AssetAcquisitionCost, AssetFurniture, AssetInsurance,
         AssetMaintenance, AssetMortgage, AssetPhoto, AssetPurchasePayment,
         AssetRental, AssetRenovation, AssetSale, AssetValuationHistory,
@@ -125,4 +125,5 @@ def get_model_export_order():
         ("73", AccessFailureLog,              None),
         ("74", AccessLog,                     None),
         ("75", LogEntry,                      None),
+        ("76", AIAnswerFeedback,              None),
     ]

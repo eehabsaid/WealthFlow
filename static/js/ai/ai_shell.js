@@ -62,6 +62,13 @@ async function renderAI() {
               </div>
               <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
             </div>
+            <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-learned-answers" onclick="openLearnedAnswersModal()" style="cursor: pointer;">
+              <div class="ai-ws-future-card-left">
+                <i class="bi bi-hand-thumbs-up text-primary"></i>
+                <span data-i18n="ai_la_card">Learned Answers</span>
+              </div>
+              <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
+            </div>
             <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-saved-prompts" onclick="openPromptLibraryModal()" style="cursor: pointer;">
               <div class="ai-ws-future-card-left">
                 <i class="bi bi-bookmark text-primary"></i>

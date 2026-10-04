@@ -7,6 +7,7 @@
    - left_panel.css           Three-panel body, left nav, conversation list
    - center_empty_state.css   Center workspace, empty-state platform cards
    - message_bubbles.css      Chat message bubbles + markdown/callouts
+   - message_feedback.css     Thumbs up/down bar under assistant answers
    - code_tables_badges.css   Code blocks, tables, tool badges
    - input_area.css           Workspace input command center
    - right_panel.css          Right context panel (sources, tools, modules)
@@ -21,6 +22,7 @@
 @import url("left_panel/index.css");
 @import url("center_empty_state.css");
 @import url("message_bubbles.css");
+@import url("message_feedback.css");
 @import url("code_tables_badges.css");
 @import url("input_area.css");
 @import url("right_panel.css");

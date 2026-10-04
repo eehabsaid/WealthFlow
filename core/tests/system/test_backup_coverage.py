@@ -68,6 +68,33 @@ class BackupCoverageTests(TestCase):
         finally:
             shutil.rmtree(tmp)
 
+    def test_ai_answer_feedback_round_trip(self):
+        """Zip 2: thumbs up/down (the AI's learned examples) survive backup -> delete -> restore, with their message."""
+        from core.models import AIAnswerFeedback, AIConversation, AIMessage
+
+        user = get_user_model().objects.create_user(username="bk_ai_fb_user", password="Pw123456!")
+        conv = AIConversation.objects.create(user=user, title="t")
+        AIMessage.objects.create(conversation=conv, role="user", content="where do I record a laptop?")
+        up = AIMessage.objects.create(conversation=conv, role="assistant", content="As an asset.", sources=["app_knowledge"])
+        down = AIMessage.objects.create(conversation=conv, role="assistant", content="Wrong answer.")
+        AIAnswerFeedback.objects.create(owner=user, message=up, question="where do I record a laptop?", answer="As an asset.", rating=1, kind="workflow")
+        AIAnswerFeedback.objects.create(owner=user, message=down, question="where do I record a laptop?", answer="Wrong answer.", rating=-1, kind="workflow")
+        tmp = tempfile.mkdtemp()
+        try:
+            path = os.path.join(tmp, "f.wfbackup")
+            call_command("backup_data", output=tmp, filename="f.wfbackup", no_compress=True)
+            with zipfile.ZipFile(path) as zf:
+                self.assertTrue(any(n.endswith("_aianswerfeedback.json") for n in zf.namelist()), zf.namelist())
+            conv.delete()   # cascades to the messages and the feedback
+            self.assertEqual(AIAnswerFeedback.objects.count(), 0)
+            call_command("restore_data", path)
+            rows = {r.rating: r for r in AIAnswerFeedback.objects.filter(owner=user)}
+            self.assertEqual(set(rows), {1, -1})
+            self.assertEqual((rows[1].answer, rows[1].kind, rows[1].message.sources), ("As an asset.", "workflow", ["app_knowledge"]))
+            self.assertEqual(rows[-1].message.content, "Wrong answer.")
+        finally:
+            shutil.rmtree(tmp)
+
 
 class AuthAndSecurityTablesRoundTripTests(TestCase):
     """Login attempts, admin log, permissions and who-holds-what survive backup -> delete -> restore."""

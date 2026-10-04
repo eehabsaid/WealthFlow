@@ -87,7 +87,7 @@ from .exports_fixed_assets import (
 )
 
 from .exports_ai_features import (
-    AIChatView, AIConversationListView, AIConversationDetailView, AIProgressView,
+    AIChatView, AIConversationListView, AIConversationDetailView, AIFeedbackListView, AIMessageFeedbackView, AIProgressView,
     AIPlatformKnowledgeView, AIPlatformDatasetView, AIPlatformModelView, AIPlatformBenchmarkView,
     AIPlatformKnowledgeDetailView, AIPromptListView, AIPromptDetailView, AIPromptFavoriteView,
     AIPromptUseView, AIPromptDuplicateView, AIPromptCategoryListView,
@@ -141,7 +141,7 @@ __all__ = [
     "AssetAcquisitionCostDetailView", "AssetAcquisitionCostCategoriesView", "AssetMaintenanceListView", "AssetMaintenanceDetailView", "AssetInsuranceListView",
     "AssetInsuranceDetailView", "AssetFurnitureListView", "AssetFurnitureDetailView", "AssetFurnitureCategoriesView", "AssetValuationHistoryListView",
     "AssetValuationHistoryDetailView", "AssetSaleView", "FixedAssetUsdRateView", "FixedAssetValuationRefreshView", "_salary_trigger_day",
-    "AIChatView", "AIConversationListView", "AIConversationDetailView", "AIProgressView", "AIPlatformKnowledgeView",
+    "AIChatView", "AIConversationListView", "AIConversationDetailView", "AIMessageFeedbackView", "AIFeedbackListView", "AIProgressView", "AIPlatformKnowledgeView",
     "AIPlatformDatasetView", "AIPlatformModelView", "AIPlatformBenchmarkView", "AIPlatformKnowledgeDetailView", "AIPromptListView",
     "AIPromptDetailView", "AIPromptFavoriteView", "AIPromptUseView", "AIPromptDuplicateView", "AIPromptCategoryListView",
     "SettingsView", "PlanAdminListView", "PlanAdminDetailView", "PlanPriceAdminListView", "PlanPriceAdminDetailView", "PaymobGatewaySettingsView", "EmailTemplateListView", "EmailTemplateDetailView", "EmailSettingsTestView", "AISettingsView",

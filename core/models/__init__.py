@@ -25,6 +25,7 @@ from .documentation import DocumentationExecution
 from .scenario import Scenario, ScenarioEvent
 from .ai_conversation import AIConversation
 from .ai_message import AIMessage
+from .ai_feedback import AIAnswerFeedback
 from .ai_knowledge import AIKnowledgeEntry, AIModelVersion, AIBenchmarkReport
 from .ai_prompt import AIPromptCategory, AIPrompt
 from .billing import Plan, PlanPrice, Subscription, Invoice, UpgradeRequest
@@ -83,6 +84,7 @@ __all__ = [
     "AssetInsurance",
     "GoldDetails",
     "OtherAssetDetails",
+    "AIAnswerFeedback",
     "AssetRenovation",
     "AssetAcquisitionCost",
     "AssetFurniture",

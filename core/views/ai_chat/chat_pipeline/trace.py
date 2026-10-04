@@ -16,7 +16,7 @@ from typing import Any, Iterator
 
 logger = logging.getLogger("core.ai.pipeline")
 
-STAGES = ("understand", "route", "retrieve", "prefetch", "reason", "tool", "validate", "respond")
+STAGES = ("understand", "route", "knowledge", "retrieve", "prefetch", "reason", "tool", "validate", "respond")
 _MAX_DETAIL_CHARS = 700
 
 
@@ -106,6 +106,12 @@ class PipelineTrace:
             for n in STAGES if n in self.records
         )
         logger.warning("%s summary total=%dms %s", self._prefix(), self.elapsed_ms(), parts)
+
+
+def log_request_start(user_id: Any, chars: int) -> None:
+    """First line of every chat request, logged before auth/parsing work, so a request that never reaches
+    the stage lines (blocked, crashed, worker killed) is still visible in the log."""
+    logger.warning("[AI-PIPELINE] user=%s request received chars=%d", user_id, chars)
 
 
 class TracedProvider:

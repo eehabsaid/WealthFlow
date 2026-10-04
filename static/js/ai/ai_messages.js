@@ -91,7 +91,7 @@ function _aiSuggestionClick(i18nKey, defaultText) {
   }
 }
 
-function _renderMessageHTML(role, content, toolCalls, sources, timestamp) {
+function _renderMessageHTML(role, content, toolCalls, sources, timestamp, messageId, feedback) {
   const isUser = role === "user";
   const roleI18n = isUser ? "ai_ws_role_you" : "ai_ws_role_assistant";
   const roleName = isUser ? "You" : "WealthFlow AI";
@@ -111,6 +111,8 @@ function _renderMessageHTML(role, content, toolCalls, sources, timestamp) {
   }
 
   const processedContent = _renderMarkdown(content);
+  const feedbackBar =
+    !isUser && messageId && content ? _renderFeedbackBar(messageId, feedback) : "";
 
   return `
     <div class="ai-ws-msg">
@@ -124,12 +126,13 @@ function _renderMessageHTML(role, content, toolCalls, sources, timestamp) {
         </div>
         ${toolBadges}
         <div class="ai-ws-msg-content">${processedContent}</div>
+        ${feedbackBar}
       </div>
     </div>
   `;
 }
 
-function _appendMessage(role, content, toolCalls, sources, timestamp) {
+function _appendMessage(role, content, toolCalls, sources, timestamp, messageId, feedback) {
   const container = document.getElementById("ai-ws-messages");
   if (!container) return;
 
@@ -137,7 +140,15 @@ function _appendMessage(role, content, toolCalls, sources, timestamp) {
     container.innerHTML = "";
   }
 
-  container.innerHTML += _renderMessageHTML(role, content, toolCalls, sources, timestamp);
+  container.innerHTML += _renderMessageHTML(
+    role,
+    content,
+    toolCalls,
+    sources,
+    timestamp,
+    messageId,
+    feedback
+  );
   container.scrollTop = container.scrollHeight;
   _applyTranslations();
 }

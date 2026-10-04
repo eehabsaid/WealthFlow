@@ -5,7 +5,11 @@ Tests:
  2. Verify sidebar thread list, multiline textarea, and domain selector.
  3. Creating a new chat session.
  4. Capture module view screenshot.
+ 5. Answer feedback (thumbs) and Learned Answers modal (tests/modules/ai_learning.py).
 """
+
+from tests.modules.ai_learning import test_ai_learning
+
 
 def test_ai_module(context, reporter, screenshot_logger):
     context.goto_route("#ai")
@@ -18,3 +22,5 @@ def test_ai_module(context, reporter, screenshot_logger):
     except Exception as ex:
         shot_err = screenshot_logger.capture(context.page, "ai", "workspace", "error", "fail", "fail")
         reporter.add_step("WealthFlow AI Workspace View", "WealthFlow AI", "FAIL", f"Exception: {ex}", screenshot_path=shot_err)
+
+    test_ai_learning(context, reporter, screenshot_logger)

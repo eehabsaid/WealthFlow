@@ -6,6 +6,7 @@ from django.views import View
 
 from core.validators.json_body import parse_json_body
 from core.models import AIConversation
+from core.services.ai.app_knowledge import ratings_for
 from core.services.ai.cache_manager import AICacheManager
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
 
@@ -114,6 +115,9 @@ class AIConversationDetailView(View):
 
         messages = conversation.messages.filter(is_deleted=False)
         msg_list = [m.to_dict() for m in messages]
+        ratings = ratings_for(request.user, [m["id"] for m in msg_list])
+        for m in msg_list:
+            m["feedback"] = ratings.get(m["id"], 0)
 
         conv_dict = conversation.to_dict()
         conv_dict["messages"] = msg_list

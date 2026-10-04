@@ -88,6 +88,14 @@ urlpatterns = [
         feature_required("allows_ai_workspace")(views.AIConversationDetailView.as_view()),
     ),
     path(
+        "api/financial-advisor/ai/feedback/",
+        feature_required("allows_ai_workspace")(views.AIFeedbackListView.as_view()),
+    ),
+    path(
+        "api/financial-advisor/ai/messages/<int:pk>/feedback/",
+        feature_required("allows_ai_workspace")(views.AIMessageFeedbackView.as_view()),
+    ),
+    path(
         "api/financial-advisor/ai/progress/",
         feature_required("allows_ai_workspace")(views.AIProgressView.as_view()),
     ),
