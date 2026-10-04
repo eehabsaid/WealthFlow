@@ -3,6 +3,7 @@ instructions + a few knowledge chunks + a few approved examples + a tiny data sl
 
 from __future__ import annotations
 
+import re
 from typing import Any, Sequence
 
 MAX_CHUNKS, MAX_KNOWLEDGE_CHARS, HISTORY_MESSAGES, HISTORY_CHARS = 4, 2400, 4, 300
@@ -18,14 +19,15 @@ INSTRUCTIONS = (
 )
 
 
-def select_chunks(ranked: list[tuple[float, dict[str, Any]]]) -> list[tuple[float, dict[str, Any]]]:
+def select_chunks(ranked: list[tuple[float, dict[str, Any]]], max_chunks: int = MAX_CHUNKS,
+                  max_chars: int = MAX_KNOWLEDGE_CHARS) -> list[tuple[float, dict[str, Any]]]:
     if not ranked:
         return []
     top, chosen, used = ranked[0][0], [], 0
     for score, chunk in ranked:
-        if len(chosen) >= MAX_CHUNKS or score < MIN_REL_SCORE * top:
+        if len(chosen) >= max_chunks or score < MIN_REL_SCORE * top:
             break
-        if used + len(chunk["text"]) > MAX_KNOWLEDGE_CHARS:
+        if used + len(chunk["text"]) > max_chars:
             continue
         chosen.append((score, chunk))
         used += len(chunk["text"])
@@ -47,3 +49,22 @@ def build_messages(question: str, chunks: list[dict[str, Any]], examples: list[d
             messages.append({"role": m.role, "content": m.content[:HISTORY_CHARS]})
     messages.append({"role": "user", "content": question})
     return messages
+
+
+_AR = re.compile(r"[\u0600-\u06FF]")
+_FALLBACK_HEAD = {
+    "en": "The AI model did not answer in time, so here is what the app documents for your question (no reasoning applied):",
+    "ar": "لم يردّ نموذج الذكاء الاصطناعي في الوقت المناسب، وهذا ما يوثّقه التطبيق بخصوص سؤالك (دون استنتاج):",
+}
+
+
+def fallback_text(question: str, chunks: list[dict[str, Any]], limit: int = 3) -> str:
+    """Retrieval-only answer used when the model fails: the retrieved facts themselves, clearly labelled."""
+    lines: list[str] = []
+    for chunk in chunks[:limit]:
+        for ln in chunk["text"].splitlines():
+            ln = ln.strip()
+            if ln:
+                lines.append(ln if ln.startswith("- ") else f"- {ln}")
+    head = _FALLBACK_HEAD["ar" if _AR.search(question or "") else "en"]
+    return head + "\n\n" + "\n".join(lines)

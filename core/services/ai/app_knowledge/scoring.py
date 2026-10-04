@@ -4,6 +4,7 @@ embedding bonus on the few best lexical candidates. If embeddings are unavailabl
 from __future__ import annotations
 
 import math
+import re
 from typing import Any
 
 from core.services.ai.codebase_search import query_tokens, tokenize
@@ -14,14 +15,42 @@ _SYNONYMS = {
     "paid": ("payment",), "pay": ("payment",), "cost": ("price",), "spent": ("expense",), "spend": ("expense",),
     "owned": ("asset",), "own": ("asset",), "sold": ("sale",), "sell": ("sale",),
 }
+# Arabic question words -> the English words the app's own text uses (query side only; the knowledge stays English)
+_AR_TERMS = {
+    "أصل": ("asset",), "اصل": ("asset",), "أصول": ("asset",), "اصول": ("asset",), "ثابتة": ("fixed", "asset"),
+    "مصروف": ("expense",), "مصروفات": ("expense",), "مصاريف": ("expense",), "نفقات": ("expense",),
+    "شراء": ("purchase", "price"), "اشتريت": ("purchase", "price"), "سعر": ("price",), "ثمن": ("price",), "تكلفة": ("cost", "price"),
+    "لابتوب": ("asset", "other", "purchase"), "كمبيوتر": ("asset", "other", "purchase"), "هاتف": ("asset", "other", "purchase"),
+    "سيارة": ("vehicle", "asset"), "عقار": ("real", "estate", "asset"), "شقة": ("real", "estate", "asset"),
+    "تجديد": ("renovation",), "ترميم": ("renovation",), "أثاث": ("furniture",), "اثاث": ("furniture",),
+    "بطاقة": ("card",), "ائتمان": ("credit", "card"), "ائتمانية": ("credit", "card"), "رسوم": ("fee",),
+    "بنك": ("bank",), "حساب": ("bank", "account"), "رصيد": ("balance",), "نقد": ("cash",), "نقدي": ("cash",),
+    "ذهب": ("gold",), "راتب": ("salary",), "شهادة": ("certificate",), "فائدة": ("interest",),
+    "سجل": ("record",), "أسجل": ("record",), "اسجل": ("record",), "أضيف": ("add", "record"), "اضيف": ("add", "record"),
+    "أحتسب": ("record", "count"), "احتسب": ("record", "count"), "بيع": ("sale", "sell"), "بعت": ("sale", "sell"),
+    "ميزانية": ("budget",), "تحويل": ("transfer",), "صافي": ("net", "worth"),
+}
+_AR_WORD = re.compile(r"[\u0600-\u06FF]+")
+_AR_PREFIXES = ("وال", "بال", "لل", "ال", "و", "ب", "ل")
 SEMANTIC_CANDIDATES = 8
 SEMANTIC_WEIGHT = 1.0
 # generated data-flow facts and page descriptions describe what the app does for the user; docstrings explain internals
 SOURCE_BOOST = {"flow": 1.3, "page": 1.1, "code": 1.0}
 
 
+def semantic_enabled() -> bool:
+    """Off by default: the embedding call can stall for seconds and loads a second model next to the chat model,
+    which hurts on small machines. Lexical ranking already finds the right chunks. AppSettings ai_knowledge_semantic."""
+    from core.models import AppSettings
+
+    return str(AppSettings.get("ai_knowledge_semantic", "false")).strip().lower() in ("true", "1", "yes", "on")
+
+
 def expand_query(query: str) -> set[str]:
     tokens = set(query_tokens(query))
+    for word in _AR_WORD.findall(query or ""):
+        for cand in (word, *(word[len(p):] for p in _AR_PREFIXES if word.startswith(p) and len(word) - len(p) >= 2)):
+            tokens.update(_AR_TERMS.get(cand, ()))
     for t in list(tokens):
         tokens.update(_SYNONYMS.get(t, ()))
     return tokens
@@ -56,6 +85,8 @@ def lexical_rank(query: str, chunks: list[dict[str, Any]]) -> list[tuple[float, 
 def rank(query: str, chunks: list[dict[str, Any]], limit: int = 12) -> list[tuple[float, dict[str, Any]]]:
     lex = lexical_rank(query, chunks)[:limit]
     if len(lex) < 2:
+        return lex
+    if not semantic_enabled():
         return lex
     try:
         from core.services.ai.retrieval import embeddings

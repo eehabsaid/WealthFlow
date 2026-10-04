@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import TestCase
 
 from core.models import AIAnswerFeedback, AIConversation, AIMessage
@@ -123,3 +124,14 @@ class LearningTests(FeedbackBase):
         with patch(PROVIDER, return_value=prov):
             fx.ask(self, SIMILAR)
         self.assertNotIn("Record it as an asset.", prov.calls[0]["messages"][0]["content"])
+
+
+class FallbackAnswerLearningTests(FeedbackBase):
+    def test_retrieval_only_answer_can_be_rated_but_is_never_reused(self):
+        cache.clear()
+        with patch(PROVIDER, return_value=stub_provider(error="timed out")):
+            data = fx.ask(self, LAPTOP)
+        msg_id = data["message"]["id"]
+        self.assertEqual(self.rate(msg_id, 1).json()["rating"], 1)
+        self.assertEqual(AIAnswerFeedback.objects.get(message_id=msg_id).kind, "data")   # not "workflow"
+        self.assertEqual(find_examples(self.user, SIMILAR), [])

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+from django.core.cache import cache
 from django.test import TestCase
 
 from core.models import AppSettings
@@ -18,6 +19,7 @@ PROVIDER = "core.views.ai_chat.ai_chat_core_views.get_active_ai_provider"
 def stub_provider(reply="Record it as an asset.", error=None):
     prov = MagicMock()
     prov.supports_tools = True
+    prov.model = "test-model"
     prov.calls = []
 
     def generate(messages, tools=None, **kw):
@@ -30,6 +32,7 @@ def stub_provider(reply="Record it as an asset.", error=None):
 
 class WorkflowChatTests(TestCase):
     def setUp(self):
+        cache.clear()   # the slow-model memory lives in the cache
         fx.build(self)
 
     def chat(self, text, prov):
@@ -75,11 +78,58 @@ class WorkflowChatTests(TestCase):
         self.assertNotIn("SECRET", system)
         self.assertNotIn("9999999", system)
 
-    def test_provider_error_is_a_clean_error_with_logged_summary(self):
+    def test_model_failure_returns_the_retrieved_facts_not_an_empty_answer(self):
         data, log = self.chat(LAPTOP, stub_provider(error="timed out"))
+        self.assertTrue(data["ok"])
+        content = data["message"]["content"]
+        self.assertIn("did not answer in time", content)
+        self.assertIn("NOT written as an Expense row", content)          # a retrieved, code-derived fact
+        self.assertEqual(data["message"]["sources"], ["knowledge_fallback"])
+        self.assertIn("path", log)
+        self.assertIn("retrieval_fallback", log)
+        self.assertIn("summary total=", log)
+
+    def test_fallback_is_arabic_headed_for_arabic_questions(self):
+        data, _ = self.chat("أين أسجل شراء لابتوب؟ كيف أحتسب سعره", stub_provider(error="timed out"))
+        self.assertIn("لم يردّ", data["message"]["content"])
+
+    def test_no_chunks_and_model_failure_is_a_clean_error(self):
+        with patch("core.views.ai_chat.chat_pipeline.workflow.ak.retrieve_knowledge", return_value=[]):
+            data, log = self.chat(LAPTOP, stub_provider(error="timed out"))
         self.assertFalse(data["ok"])
         self.assertIn("summary total=", log)
-        self.assertIn("provider_error", log)
+
+    def test_timeout_switches_the_next_question_to_the_compact_budget_and_success_clears_it(self):
+        failing = stub_provider(error="timed out")
+        self.chat(LAPTOP, failing)
+        first = failing.calls[0]
+        self.assertEqual((first["max_tokens"], first["timeout"]), (320, 300))
+        ok = stub_provider()
+        self.chat(LAPTOP, ok)
+        compact = ok.calls[0]
+        self.assertEqual((compact["max_tokens"], compact["timeout"]), (140, 120))
+        self.assertLess(sum(len(m["content"]) for m in compact["messages"]), 4000)
+        again = stub_provider()
+        self.chat(LAPTOP, again)                                          # the successful call cleared the flag
+        self.assertEqual(again.calls[0]["max_tokens"], 320)
+
+    def test_slow_memory_is_per_model(self):
+        self.chat(LAPTOP, stub_provider(error="timed out"))
+        other = stub_provider()
+        other.model = "smaller-model"
+        self.chat(LAPTOP, other)
+        self.assertEqual(other.calls[0]["max_tokens"], 320)
+
+    def test_embeddings_are_not_called_by_default(self):
+        with patch("core.services.ai.retrieval.embeddings.semantic_scores", side_effect=AssertionError("embedding call")):
+            data, _ = self.chat(LAPTOP, stub_provider())
+        self.assertTrue(data["ok"])
+
+    def test_embeddings_can_be_enabled(self):
+        AppSettings.set("ai_knowledge_semantic", "true")
+        with patch("core.services.ai.retrieval.embeddings.semantic_scores", return_value={}) as sem:
+            self.chat(LAPTOP, stub_provider())
+        self.assertTrue(sem.called)
 
     def test_empty_model_reply_gets_the_fallback_text(self):
         data, _ = self.chat(LAPTOP, stub_provider(reply=" "))

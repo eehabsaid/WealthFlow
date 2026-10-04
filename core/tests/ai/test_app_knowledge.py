@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from django.conf import settings
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from core.services.ai import app_knowledge as ak
 from core.services.ai.app_knowledge.chunks import get_chunks
@@ -46,7 +46,7 @@ class ChunkTests(SimpleTestCase):
         self.assertIn("core/services/shared/expense_mirror_engine.py", locations)
 
 
-class RetrievalTests(SimpleTestCase):
+class RetrievalTests(TestCase):   # reads AppSettings (semantic switch)
     def ids(self, q):
         return [c["id"] for _, c in ak.retrieve_knowledge(q)]
 
@@ -59,6 +59,11 @@ class RetrievalTests(SimpleTestCase):
     def test_other_workflow_questions_find_their_own_sources(self):
         self.assertTrue(any("credit_card_payment" in i for i in self.ids("where do I record my credit card payment?")))
         self.assertTrue(any("renovations" in i or i.startswith("flow:Fixed assets") for i in self.ids("how should I enter renovation costs of my apartment?")))
+
+    def test_arabic_questions_reach_the_english_knowledge(self):
+        ids = self.ids("أين أسجل شراء لابتوب؟ في الأصول أم المصروفات؟")
+        self.assertTrue(any(i.startswith("flow:Fixed assets") for i in ids), ids)
+        self.assertTrue(any(i.startswith("flow:Expenses") or i.startswith("flow:Double") for i in ids), ids)
 
     def test_nothing_is_hard_coded_for_the_trigger_question(self):
         root = Path(settings.BASE_DIR)
