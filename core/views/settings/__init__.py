@@ -81,6 +81,8 @@ from core.views.settings.market.exchange_rate_views import ExchangeRateListView,
 from core.views.settings.market.gold_price_views import GoldPriceListView, GoldPriceRefreshView
 
 from core.views.settings.ai.ai_settings_views import AISettingsView
+from core.views.settings.ai.ai_user_limits_views import AIUserLimitsView
+from core.views.settings.ai.ai_user_settings_views import AIUserSettingsView
 from core.views.settings.ai.ai_connection_test_views import AIConnectionTestView
 from core.views.settings.ai.ai_provider_views import AIProviderListView
 from core.views.settings.ai.ai_runtime_capabilities_views import AIRuntimeCapabilitiesView
@@ -161,6 +163,8 @@ __all__ = [
     "GoldPriceListView",
     "GoldPriceRefreshView",
     "AISettingsView",
+    "AIUserLimitsView",
+    "AIUserSettingsView",
     "AIConnectionTestView",
     "AIProviderListView",
     "AIRuntimeCapabilitiesView",

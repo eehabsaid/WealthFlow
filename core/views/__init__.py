@@ -95,7 +95,7 @@ from .exports_ai_features import (
 
 from .exports_settings import (
     SettingsView, PlanAdminListView, PlanAdminDetailView, PlanPriceAdminListView, PlanPriceAdminDetailView, PaymobGatewaySettingsView, EmailTemplateListView, EmailTemplateDetailView, EmailSettingsTestView,
-    AISettingsView, AIConnectionTestView, AIProviderListView, AIRuntimeCapabilitiesView, ScrapePropertyRatesView,
+    AISettingsView, AIUserLimitsView, AIUserSettingsView, AIConnectionTestView, AIProviderListView, AIRuntimeCapabilitiesView, ScrapePropertyRatesView,
     GoldTypeSettingsListView, GoldTypeSettingsDetailView, GoldPuritySettingsListView, GoldPuritySettingsDetailView,
     ExchangeRateListView, ExchangeRateRefreshView, GoldPriceListView, GoldPriceRefreshView,
     CurrencyListView, CurrencyDetailView, _seed_gold_settings_defaults, BackupCreateView,
@@ -144,7 +144,7 @@ __all__ = [
     "AIChatView", "AIConversationListView", "AIConversationDetailView", "AIMessageFeedbackView", "AIFeedbackListView", "AIProgressView", "AIPlatformKnowledgeView",
     "AIPlatformDatasetView", "AIPlatformModelView", "AIPlatformBenchmarkView", "AIPlatformKnowledgeDetailView", "AIPromptListView",
     "AIPromptDetailView", "AIPromptFavoriteView", "AIPromptUseView", "AIPromptDuplicateView", "AIPromptCategoryListView",
-    "SettingsView", "PlanAdminListView", "PlanAdminDetailView", "PlanPriceAdminListView", "PlanPriceAdminDetailView", "PaymobGatewaySettingsView", "EmailTemplateListView", "EmailTemplateDetailView", "EmailSettingsTestView", "AISettingsView",
+    "SettingsView", "PlanAdminListView", "PlanAdminDetailView", "PlanPriceAdminListView", "PlanPriceAdminDetailView", "PaymobGatewaySettingsView", "EmailTemplateListView", "EmailTemplateDetailView", "EmailSettingsTestView", "AISettingsView", "AIUserLimitsView", "AIUserSettingsView",
     "AIConnectionTestView", "AIProviderListView", "AIRuntimeCapabilitiesView", "ScrapePropertyRatesView", "GoldTypeSettingsListView", "GoldTypeSettingsDetailView",
     "GoldPuritySettingsListView", "GoldPuritySettingsDetailView", "ExchangeRateListView", "ExchangeRateRefreshView", "GoldPriceListView",
     "GoldPriceRefreshView", "CurrencyListView", "CurrencyDetailView", "_seed_gold_settings_defaults", "BackupCreateView",

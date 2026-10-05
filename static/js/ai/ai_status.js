@@ -14,7 +14,21 @@ async function _fetchAIWorkspaceStatus() {
       fetch("/api/ai-platform/models/").catch(() => null),
     ]);
 
-    if (settingsRes && settingsRes.ok) _aiState.aiSettings = await settingsRes.json();
+    if (settingsRes && settingsRes.ok) {
+      _aiState.aiSettings = await settingsRes.json();
+    } else {
+      // Members cannot read the sysadmin settings: show their effective provider/model/state instead
+      const me = await fetch("/api/settings/ai/me/")
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null);
+      if (me) {
+        _aiState.aiSettings = {
+          ai_provider: me.effective.ai_provider,
+          ai_model: me.effective.ai_model,
+          ai_enabled: String(me.effective.ai_enabled).toLowerCase() === "true",
+        };
+      }
+    }
     if (knowledgeRes && knowledgeRes.ok) {
       const kData = await knowledgeRes.json();
       _aiState.knowledgeCount = (kData.entries && kData.entries.length) || 0;

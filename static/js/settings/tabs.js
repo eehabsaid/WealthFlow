@@ -20,6 +20,7 @@ const SETTINGS_TAB_MAP = {
   backuprestore: "backuprestore",
   documentation: "documentation",
   aiadvisor: "aiadvisor",
+  "settings-myai": "myai",
   roles: "roles",
 };
 
@@ -149,5 +150,12 @@ const SETTINGS_TABS = [
     fallback: "AI Advisor",
     route: "settings-aiadvisor",
     key: "settings_aiadvisor",
+  },
+  {
+    id: "myai",
+    i18n: "settings_myai",
+    fallback: "My AI Settings",
+    route: "settings-myai",
+    key: "settings_myai",
   },
 ];

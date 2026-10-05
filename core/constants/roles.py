@@ -32,6 +32,7 @@ SETTINGS_TAB_CHOICES = [
     ("settings_backuprestore", "Settings: Backup & Restore"),
     ("settings_documentation", "Settings: Documentation"),
     ("settings_aiadvisor", "Settings: AI Advisor"),
+    ("settings_myai", "Settings: My AI Settings"),
     ("settings_roles", "Settings: Roles"),
 ]
 
@@ -94,4 +95,5 @@ MEMBER_ROLE_KEYS = [
     "settings_reminders",
     "settings_certstatus",
     "settings_goldsettings",
+    "settings_myai",
 ]

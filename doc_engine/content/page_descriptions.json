@@ -103,7 +103,16 @@
       "Review SFT dataset metrics.",
       "Select training backend.",
       "Trigger model fine-tuning or autonomous learning scan.",
-      "Turn Instant Data Answers on or off: when on, simple data questions (balances, salary, expenses, gold price, exchange rates) are answered instantly from your own data without the AI model."
+      "Turn Instant Data Answers on or off: when on, simple data questions (balances, salary, expenses, gold price, exchange rates) are answered instantly from your own data without the AI model.",
+      "Set the default monthly AI token limit and optional per-user overrides in the limits panel at the bottom: a blank override uses the default and 0 means unlimited. Limits apply only to users on the general app settings; users on their own AI settings are never limited."
+    ]
+  },
+  "settings::settings-myai": {
+    "purpose": "Choose whether your AI Advisor uses the general app settings or your own provider, model, API key and generation options.",
+    "steps": [
+      "Leave 'Use general app settings' on to use the shared configuration; your monthly token usage and limit are shown at the top.",
+      "Turn it off to enter your own provider, model, API key and options; your own settings have no monthly token limit.",
+      "Save. Switching back to the general settings keeps your own values for later but ignores them."
     ]
   },
   "settings::settings-languages": {

@@ -5,6 +5,7 @@ Tests:
  2. Portable Backup Archive creation & download (triggerDownloadBackup() -> wealthflow_backup_*.wfbackup).
  3. Documentation Engine generation (handleGenerateClick()).
  4. AI Advisor "Instant Data Answers" toggle round-trip + instant-answer engine check (API-verified).
+ 5. Per-user "My AI Settings" tab + sysadmin monthly token limits panel (API-verified).
 
 Split into one file per phase (200-line rule):
   - common.py            — shared _uid() helper
@@ -15,6 +16,7 @@ Split into one file per phase (200-line rule):
   - users.py             — Phase 5: User Account CRUD
   - backup_and_docs.py   — Phase 6: Backup Archive download & Documentation Engine trigger
   - ai_instant_answers.py — Phase 7: AI Advisor Instant Data Answers toggle + engine check
+  - ai_user_settings.py   — Phase 8: My AI Settings tab + sysadmin token limits panel
 
 This module re-exports test_settings_module, the entry point imported by
 scripts/test_ui_human_full_e2e.py.
@@ -28,6 +30,7 @@ from tests.modules.settings.users import test_users
 from tests.modules.settings.common import open_settings_tab
 from tests.modules.settings.backup_and_docs import test_backup_and_docs
 from tests.modules.settings.ai_instant_answers import test_ai_instant_answers
+from tests.modules.settings.ai_user_settings import test_ai_user_settings
 
 
 def test_settings_module(context, reporter, screenshot_logger):
@@ -53,3 +56,4 @@ def test_settings_module(context, reporter, screenshot_logger):
     test_users(context, reporter, screenshot_logger)
     test_backup_and_docs(context, reporter, screenshot_logger)
     test_ai_instant_answers(context, reporter, screenshot_logger)
+    test_ai_user_settings(context, reporter, screenshot_logger)

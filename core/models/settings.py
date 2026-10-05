@@ -32,7 +32,7 @@ class AppSettings(models.Model):
 
     @classmethod
     def get(cls, key, default=None, user=None):
-        if user is not None and getattr(user, "is_authenticated", False):
+        if user is not None and getattr(user, "is_authenticated", False) and not cls._on_general_ai(key, user):
             try:
                 return cls.objects.get(key=key, owner=user).value
             except cls.DoesNotExist:
@@ -41,6 +41,17 @@ class AppSettings(models.Model):
             return cls.objects.get(key=key, owner=None).value
         except cls.DoesNotExist:
             return default
+
+    @classmethod
+    def _on_general_ai(cls, key, user):
+        """True when `key` is a per-user AI key and the user runs on the general AI settings (the default):
+        their own rows for it are ignored. Other keys are never affected."""
+        from core.constants.ai_user_settings import AI_USER_SETTING_KEYS, USE_GENERAL_KEY
+
+        if key not in AI_USER_SETTING_KEYS:
+            return False
+        flag = cls.objects.filter(key=USE_GENERAL_KEY, owner=user).values_list("value", flat=True).first()
+        return str(flag if flag is not None else "true").strip().lower() not in ("false", "0", "no")
 
     @classmethod
     def set(cls, key, value, user=None):

@@ -78,3 +78,24 @@ def build_provider_disabled_response(cache_mgr, progress_key, conversation, user
         },
         status=200,
     )
+
+
+def build_token_limit_response(cache_mgr, progress_key, conversation, user_msg, usage):
+    """Monthly token limit reached (user on the general AI settings): no model call, clear message."""
+    cache_mgr.set(
+        progress_key,
+        {"status": "error", "error": "Monthly AI token limit reached."},
+        ttl_seconds=60.0,
+    )
+    return JsonResponse(
+        {
+            "ok": False,
+            "error_key": "ai_error_token_limit",
+            "error": "Monthly AI token limit reached.",
+            "limit": usage["limit"],
+            "used": usage["used"],
+            "conversation_id": conversation.id,
+            "user_message": user_msg.to_dict(),
+        },
+        status=200,
+    )

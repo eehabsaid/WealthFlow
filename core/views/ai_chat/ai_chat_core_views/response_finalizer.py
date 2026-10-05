@@ -28,12 +28,15 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
     content_str = strip_latex(content_str)
     executed_tool_calls = json_safe(executed_tool_calls or [])
     sources = json_safe(sources or [])
+    meter = getattr(request, "_ai_token_meter", None)  # set by AIChatView; feeds the monthly token limit
     ai_msg = AIMessage.objects.create(
         conversation=conversation,
         role="assistant",
         content=content_str,
         sources=sources,
         tool_calls=executed_tool_calls,
+        prompt_tokens=meter.prompt if meter else None,
+        completion_tokens=meter.completion if meter else None,
     )
 
     # Mark progress as done with message_id now that it is saved in history

@@ -70,6 +70,8 @@ window.AIA.renderAIAdvisorSettings = async function () {
     multiAgentChecked,
   });
   container.innerHTML = html;
+  container.insertAdjacentHTML("beforeend", '<div id="aiUserLimitsPanel" class="mt-4"></div>');
+  window.AIA.loadUserLimitsPanel();
 
   window.AIA.loadAIPlatformOverviewData();
 

@@ -29,6 +29,7 @@ from core.models import AppSettings
 from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.direct_answers import try_direct_answer
 from core.services.ai.orchestration import Orchestrator
+from core.services.ai.usage import MeteredProvider, TokenMeter, limit_status
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
 from core.services.ai.app_knowledge import is_workflow_question
 from core.views.ai_chat.chat_pipeline import PipelineTrace, run_default_pipeline, run_workflow_pipeline, understand, workflow_enabled
@@ -36,6 +37,7 @@ from core.views.ai_chat.chat_pipeline.trace import log_request_start
 
 from .conversation_setup import (
     build_provider_disabled_response,
+    build_token_limit_response,
     init_progress,
     resolve_conversation,
     save_user_message,
@@ -98,6 +100,15 @@ class AIChatView(View):
             trace.skip_remaining("provider_disabled")
             trace.log_summary()
             return build_provider_disabled_response(cache_mgr, progress_key, conversation, user_msg)
+
+        # Monthly token limit: applies only to users on the general AI settings (own settings = unlimited)
+        usage = limit_status(request.user)
+        if usage["exceeded"]:
+            trace.skip_remaining("token_limit")
+            trace.log_summary()
+            return build_token_limit_response(cache_mgr, progress_key, conversation, user_msg, usage)
+        request._ai_token_meter = TokenMeter()
+        provider = MeteredProvider(provider, request._ai_token_meter)
 
         # Stage 1b — Route: the query engine answers supported data questions with 0 LLM calls (1 short
         # slot-filling call only if unclear). Runs BEFORE the orchestrator branch so multi-agent can

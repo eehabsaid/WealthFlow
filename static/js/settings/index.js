@@ -81,6 +81,7 @@ async function renderSettings(route) {
     backuprestore: renderBackupRestoreSettings,
     documentation: renderDocumentationSettings,
     aiadvisor: renderAIAdvisorSettings,
+    myai: renderMyAISettings,
     billing: renderBillingSettings,
   };
 

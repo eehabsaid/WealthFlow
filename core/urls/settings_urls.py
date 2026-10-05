@@ -10,6 +10,8 @@ urlpatterns = [
     path("api/settings/email-templates/<int:pk>/", views.EmailTemplateDetailView.as_view()),
     path("api/settings/email-test/", views.EmailSettingsTestView.as_view()),
     path("api/settings/ai/", views.AISettingsView.as_view()),
+    path("api/settings/ai/me/", views.AIUserSettingsView.as_view()),
+    path("api/settings/ai/user-limits/", views.AIUserLimitsView.as_view()),
     path("api/settings/ai/providers/", views.AIProviderListView.as_view()),
     path("api/settings/ai/test-connection/", views.AIConnectionTestView.as_view()),
     path("api/settings/ai/runtime-capabilities/", views.AIRuntimeCapabilitiesView.as_view()),
