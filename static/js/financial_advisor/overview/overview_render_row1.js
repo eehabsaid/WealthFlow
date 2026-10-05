@@ -23,6 +23,10 @@ function buildOverviewRow1Html(ctx) {
     nwTrendIsUp,
     nwTrendText,
   } = ctx;
+  const nwTrendCompact =
+    kpis && kpis.net_worth_growth_yoy != null && nwTrendIsUp !== null
+      ? `${nwTrendIsUp ? "↑" : "↓"} ${fmt(Math.abs(kpis.net_worth_growth_yoy))}%`
+      : "";
   return `    <!-- ROW 1: Financial Health, AI Executive Summary, Alerts (Bottom Margin mb-4 for Spacing Rhythm) -->
     <div class="row g-3 mb-4">
       <!-- Financial Health Card -->
@@ -75,33 +79,33 @@ function buildOverviewRow1Html(ctx) {
               <span data-i18n="overview_executive_summary_title">AI Executive Summary</span>
             </span>
           </div>
-          <div class="overview-ai-card-content flex-row align-items-start gap-4" style="height: calc(100% - 75px);">
+          <div class="overview-ai-card-content flex-row align-items-start gap-3 gap-xl-4" style="height: calc(100% - 75px);">
             <!-- Left Grid with dotted leaders and recommendation paragraphs -->
-            <div style="flex:1.25; width:0; height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="flex:1; min-width:0; height:100%; display:flex; flex-direction:column; justify-content:space-between;">
               <div class="mb-3 pb-2 border-bottom" style="border-color:var(--border-color) !important;">
                 
                 <!-- Row 1: Portfolio Health -->
                 <div class="d-flex align-items-center justify-content-between mb-2 pb-1" style="font-size:13px;">
-                  <span style="color: var(--text-secondary);" data-i18n="overview_kpi_portfolio_health" style="flex-shrink:0;">Portfolio Health</span>
-                  <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4;"></span>
-                  <span class="fw-bold text-end" style="color:${healthColor}; flex-shrink:0;">${t(payload.executive_summary.health_status_key, payload.executive_summary.health_status_fallback)}</span>
+                  <span style="color: var(--text-secondary); flex-shrink:0; white-space:nowrap;" data-i18n="overview_kpi_portfolio_health">Portfolio Health</span>
+                  <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4; min-width:12px;"></span>
+                  <span class="fw-bold text-end" style="color:${healthColor}; flex-shrink:0; white-space:nowrap;">${t(payload.executive_summary.health_status_key, payload.executive_summary.health_status_fallback)}</span>
                 </div>
 
                 <!-- Row 2: Net Worth -->
                 <div class="d-flex align-items-center justify-content-between mb-2 pb-1" style="font-size:13px;">
-                  <span style="color: var(--text-secondary);" data-i18n="overview_kpi_total_net_worth" style="flex-shrink:0;">Net Worth</span>
-                  <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4;"></span>
-                  <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0; display:inline-flex; align-items:center;">
+                  <span style="color: var(--text-secondary); flex-shrink:0; white-space:nowrap;" data-i18n="overview_kpi_total_net_worth">Total Net Worth</span>
+                  <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4; min-width:12px;"></span>
+                  <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0; display:inline-flex; align-items:center; white-space:nowrap;">
                     ${_money(kpis.total_net_worth)} 
-                    <span class="ms-2" style="font-size:11px; font-weight:600; color:${nwTrendIsUp === null ? "var(--text-secondary)" : nwTrendIsUp ? "var(--accent-green)" : "var(--accent-red)"}; margin-left:6px;">${nwTrendText}</span>
+                    ${nwTrendCompact ? `<span class="ms-2" style="font-size:11px; font-weight:600; color:${nwTrendIsUp ? "var(--accent-green)" : "var(--accent-red)"}; margin-left:6px;" title="${nwTrendText}">${nwTrendCompact}</span>` : ""}
                   </span>
                 </div>
 
                 <!-- Row 3: Liquidity -->
                 <div class="d-flex align-items-center justify-content-between mb-2 pb-1" style="font-size:13px;">
-                  <span style="color: var(--text-secondary);" data-i18n="portfolio_optimizer_liquidity" style="flex-shrink:0;">Liquidity</span>
-                  <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4;"></span>
-                  <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0;">
+                  <span style="color: var(--text-secondary); flex-shrink:0; white-space:nowrap;" data-i18n="portfolio_optimizer_liquidity">Liquidity</span>
+                  <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4; min-width:12px;"></span>
+                  <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0; white-space:nowrap;">
                     ${payload.executive_summary.emergency_months == null ? "" : `${fmt(payload.executive_summary.emergency_months)} <span data-i18n="portfolio_optimizer_months_short">mo</span>`} 
                     <span style="color: var(--text-secondary); font-size:11px; font-weight:normal;">(${t(payload.executive_summary.liquidity_status_key, payload.executive_summary.liquidity_status_fallback)})</span>
                   </span>
@@ -109,16 +113,16 @@ function buildOverviewRow1Html(ctx) {
 
                 <!-- Row 4: Diversification -->
                 <div class="d-flex align-items-center justify-content-between mb-2 pb-1" style="font-size:13px;">
-                  <span style="color: var(--text-secondary);" data-i18n="portfolio_optimizer_diversification_rating" style="flex-shrink:0;">Diversification</span>
-                  <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4;"></span>
-                  <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0;">${t(payload.executive_summary.diversification_status_key, payload.executive_summary.diversification_status_fallback)}</span>
+                  <span style="color: var(--text-secondary); flex-shrink:0; white-space:nowrap;" data-i18n="diversification">Diversification</span>
+                  <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4; min-width:12px;"></span>
+                  <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0; white-space:nowrap;">${t(payload.executive_summary.diversification_status_key, payload.executive_summary.diversification_status_fallback)}</span>
                 </div>
 
                 <!-- Row 5: Goals -->
                 <div class="d-flex align-items-center justify-content-between" style="font-size:13px;">
-                  <span style="color: var(--text-secondary);" data-i18n="goal_planning_goal_progress" style="flex-shrink:0;">Goals</span>
-                  <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4;"></span>
-                  <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0;">
+                  <span style="color: var(--text-secondary); flex-shrink:0; white-space:nowrap;" data-i18n="goal_planning_goal_progress">Goals</span>
+                  <span style="flex:1; border-bottom:1px dotted var(--border-color); margin:0 8px; align-self:flex-end; opacity:0.4; min-width:12px;"></span>
+                  <span class="fw-bold text-end" style="color:var(--text-primary); flex-shrink:0; white-space:nowrap;">
                     <span style="color: var(--accent-green);">${goals.completed || 0}</span> / 
                     <span style="color: var(--accent-primary);">${goals.on_track || 0}</span> / 
                     <span style="color: var(--accent-red);">${goals.delayed || 0}</span>
@@ -130,7 +134,7 @@ function buildOverviewRow1Html(ctx) {
                 ${recParagraphsHtml}
               </div>
             </div>
-            <img class="overview-ai-graphic d-none d-sm-block animate__animated animate__fadeIn" src="/static/images/financial_advisor_overview_hero.svg" alt="AI illustration" style="align-self: flex-start; margin-top: 6px;">
+            <img class="overview-ai-graphic d-none d-xl-block animate__animated animate__fadeIn" src="/static/images/financial_advisor_overview_hero.svg" alt="AI illustration" style="align-self: flex-start; margin-top: 6px; width: 120px; height: 120px; flex-shrink:0;">
           </div>
           <div class="overview-ai-footer">
             <span>

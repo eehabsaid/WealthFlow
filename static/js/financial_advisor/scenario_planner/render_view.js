@@ -61,11 +61,11 @@ window.SP.renderScenarioPlannerView = function (pane) {
           <!-- RIGHT WORKSPACE: SUB-TABS & CONTENT -->
           <div class="col-12 col-lg-9 d-flex flex-column gap-3">
             <!-- SUB-TABS NAV -->
-            <div class="d-flex gap-2 p-1 rounded" style="background:var(--bg-tertiary); width:fit-content;">
-              <button class="btn btn-sm ${window.SP.state.activeSubTab === "builder" ? "btn-primary" : "btn-link text-secondary text-decoration-none"}" id="sp-tab-builder" data-i18n="scenario_planner_subtab_builder">Builder</button>
-              <button class="btn btn-sm ${window.SP.state.activeSubTab === "dashboard" ? "btn-primary" : "btn-link text-secondary text-decoration-none"}" id="sp-tab-dashboard" data-i18n="scenario_planner_subtab_dashboard">Impact Dashboard</button>
-              <button class="btn btn-sm ${window.SP.state.activeSubTab === "compare" ? "btn-primary" : "btn-link text-secondary text-decoration-none"}" id="sp-tab-compare" data-i18n="scenario_planner_subtab_compare">Compare</button>
-              <button class="btn btn-sm ${window.SP.state.activeSubTab === "insights" ? "btn-primary" : "btn-link text-secondary text-decoration-none"}" id="sp-tab-insights" data-i18n="scenario_planner_subtab_insights">Insights</button>
+            <div class="d-flex flex-wrap gap-1 gap-sm-2 p-1 rounded" style="background:var(--bg-tertiary); max-width:100%; width:fit-content;">
+              <button class="btn btn-sm px-2 px-sm-3 ${window.SP.state.activeSubTab === "builder" ? "btn-primary" : "btn-link text-secondary text-decoration-none"}" id="sp-tab-builder" data-i18n="scenario_planner_subtab_builder">Builder</button>
+              <button class="btn btn-sm px-2 px-sm-3 ${window.SP.state.activeSubTab === "dashboard" ? "btn-primary" : "btn-link text-secondary text-decoration-none"}" id="sp-tab-dashboard" data-i18n="scenario_planner_subtab_dashboard">Impact Dashboard</button>
+              <button class="btn btn-sm px-2 px-sm-3 ${window.SP.state.activeSubTab === "compare" ? "btn-primary" : "btn-link text-secondary text-decoration-none"}" id="sp-tab-compare" data-i18n="scenario_planner_subtab_compare">Compare</button>
+              <button class="btn btn-sm px-2 px-sm-3 ${window.SP.state.activeSubTab === "insights" ? "btn-primary" : "btn-link text-secondary text-decoration-none"}" id="sp-tab-insights" data-i18n="scenario_planner_subtab_insights">Insights</button>
             </div>
 
             <!-- SUB-TAB CONTENT PANES -->

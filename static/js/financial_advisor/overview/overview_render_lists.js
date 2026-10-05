@@ -109,16 +109,24 @@ function buildOverviewOpportunitiesHtml(payload) {
 function buildOverviewAllocationRowsHtml(portfolio) {
   const allocationRowsHtml = (portfolio.allocation_cards || [])
     .map((card) => {
+      const fullAmount = _money(card.value);
+      const absVal = Math.abs(card.value || 0);
+      const compactAmount =
+        absVal >= 1000000
+          ? (card.value / 1000000).toFixed(2) + "M"
+          : absVal >= 1000
+            ? (card.value / 1000).toFixed(1) + "K"
+            : fullAmount;
       return `
-      <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color:var(--border-color) !important; font-size:11px; line-height: 1.2;">
-        <span style="color:var(--text-secondary); display:inline-flex; align-items:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex: 1;">
-          <i class="bi bi-circle-fill me-2" style="font-size:6px; color:${_categoryColor(card.key)}; margin-right:6px;"></i>
-          ${t(card.label_key, card.key)}
+      <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color:var(--border-color) !important; font-size:11px; line-height: 1.2; gap: 4px;">
+        <span style="color:var(--text-secondary); display:inline-flex; align-items:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex: 1; min-width: 0;">
+          <i class="bi bi-circle-fill me-1" style="font-size:6px; color:${_categoryColor(card.key)}; margin-right:5px; flex-shrink:0;"></i>
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t(card.label_key, card.key)}</span>
         </span>
-        <span class="fw-bold" style="color:var(--text-primary); margin-left: 12px; margin-right: 16px; flex-shrink: 0;">
-          ${_money(card.value)}
+        <span class="fw-bold text-end" title="${fullAmount}" style="color:var(--text-primary); flex-shrink: 0; font-variant-numeric: tabular-nums; white-space:nowrap;">
+          ${compactAmount}
         </span>
-        <span class="fw-bold text-end" style="color:var(--text-primary); width: 48px; flex-shrink: 0;">
+        <span class="fw-bold text-end" style="color:var(--text-primary); min-width: 34px; flex-shrink: 0; font-variant-numeric: tabular-nums;">
           ${fmt(card.percentage)}%
         </span>
       </div>

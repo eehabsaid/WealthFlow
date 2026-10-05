@@ -57,7 +57,7 @@ function _renderWhatIfView(pane) {
         <div class="row g-4">
           <!-- Left Column: Controls -->
           <div class="col-12 col-lg-5">
-            <div class="card border-0 p-4 h-100" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
+            <div class="card border-0 p-3 p-sm-4 h-100" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
               <div class="d-flex align-items-center justify-content-between mb-4">
                 <h5 class="m-0 fw-bold" style="color:var(--text-primary);" data-i18n="whatif_controls_title">Adjust Your Plan</h5>
                 <div id="whatif-spinner" class="spinner-border spinner-border-sm text-primary d-none" role="status">
@@ -129,7 +129,7 @@ function _renderWhatIfView(pane) {
           <!-- Right Column: Comparison Cards + Chart -->
           <div class="col-12 col-lg-7 d-flex flex-column gap-4">
             <!-- Comparison Card -->
-            <div class="card border-0 p-4" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
+            <div class="card border-0 p-3 p-sm-4" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
               <h5 class="fw-bold mb-3" style="color:var(--text-primary);" data-i18n="whatif_comparison_title">Baseline vs. Adjusted</h5>
               <div id="whatif-comparison-body">
                 ${_buildComparisonRowsHtml(_whatIfData)}
@@ -137,7 +137,7 @@ function _renderWhatIfView(pane) {
             </div>
 
             <!-- Net Worth Projection Chart Card -->
-            <div class="card border-0 p-4 flex-grow-1" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
+            <div class="card border-0 p-3 p-sm-4 flex-grow-1" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
               <h5 class="fw-bold mb-3" style="color:var(--text-primary);" data-i18n="whatif_chart_title">Net Worth Projection</h5>
               <div style="height:320px; position:relative;">
                 <canvas id="whatIfChart"></canvas>

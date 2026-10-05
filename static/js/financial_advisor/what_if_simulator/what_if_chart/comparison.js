@@ -55,39 +55,39 @@ function _buildComparisonRowsHtml(data) {
   return `
     <div class="d-flex flex-column gap-3">
       <!-- Metric 1: Net Worth -->
-      <div class="p-3 rounded d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2" style="background:var(--bg-tertiary); border:1px solid var(--border-color);">
-        <div class="fw-medium" style="color:var(--text-primary);" data-i18n="whatif_networth_12m">Net Worth (12 months)</div>
-        <div class="d-flex align-items-center gap-3">
-          <span class="small" style="color:var(--text-secondary);">${_money(nwBase)}</span>
-          <i class="bi bi-arrow-right text-muted"></i>
-          <span class="fw-bold" style="color:var(--text-primary);">${_money(nwAdj)}</span>
-          <span class="badge px-2 py-1 fw-semibold" style="background:${nwBadgeBg}; color:${nwBadgeColor};">
+      <div class="p-3 rounded d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-2" style="background:var(--bg-tertiary); border:1px solid var(--border-color);">
+        <div class="fw-medium text-nowrap" style="color:var(--text-primary);" data-i18n="whatif_networth_12m">Net Worth (12 months)</div>
+        <div class="d-flex align-items-center gap-2 gap-sm-3 flex-wrap justify-content-start justify-content-xl-end">
+          <span class="small text-nowrap" style="color:var(--text-secondary);">${_money(nwBase)}</span>
+          <i class="bi bi-arrow-right text-muted flex-shrink-0"></i>
+          <span class="fw-bold text-nowrap" style="color:var(--text-primary);">${_money(nwAdj)}</span>
+          <span class="badge px-2 py-1 fw-semibold flex-shrink-0" style="background:${nwBadgeBg}; color:${nwBadgeColor};">
             ${_fmtDelta(nwDeltaVal)}
           </span>
         </div>
       </div>
 
       <!-- Metric 2: Risk Score -->
-      <div class="p-3 rounded d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2" style="background:var(--bg-tertiary); border:1px solid var(--border-color);">
-        <div class="fw-medium" style="color:var(--text-primary);" data-i18n="whatif_risk_score">Risk Score</div>
-        <div class="d-flex align-items-center gap-3">
-          <span class="small" style="color:var(--text-secondary);">${riskBase.toFixed(1)}</span>
-          <i class="bi bi-arrow-right text-muted"></i>
-          <span class="fw-bold" style="color:var(--text-primary);">${riskAdj.toFixed(1)}</span>
-          <span class="badge px-2 py-1 fw-semibold" style="background:${riskBadgeBg}; color:${riskBadgeColor};">
+      <div class="p-3 rounded d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-2" style="background:var(--bg-tertiary); border:1px solid var(--border-color);">
+        <div class="fw-medium text-nowrap" style="color:var(--text-primary);" data-i18n="whatif_risk_score">Risk Score</div>
+        <div class="d-flex align-items-center gap-2 gap-sm-3 flex-wrap justify-content-start justify-content-xl-end">
+          <span class="small text-nowrap" style="color:var(--text-secondary);">${riskBase.toFixed(1)}</span>
+          <i class="bi bi-arrow-right text-muted flex-shrink-0"></i>
+          <span class="fw-bold text-nowrap" style="color:var(--text-primary);">${riskAdj.toFixed(1)}</span>
+          <span class="badge px-2 py-1 fw-semibold flex-shrink-0" style="background:${riskBadgeBg}; color:${riskBadgeColor};">
             ${_fmtDelta(riskDeltaVal, false, 1)}
           </span>
         </div>
       </div>
 
       <!-- Metric 3: Cash Coverage -->
-      <div class="p-3 rounded d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2" style="background:var(--bg-tertiary); border:1px solid var(--border-color);">
-        <div class="fw-medium" style="color:var(--text-primary);" data-i18n="whatif_cash_coverage">Cash Coverage (months)</div>
-        <div class="d-flex align-items-center gap-3">
-          <span class="small" style="color:var(--text-secondary);">${covBase !== null && covBase !== undefined ? covBase.toFixed(1) : "-"}</span>
-          <i class="bi bi-arrow-right text-muted"></i>
-          <span class="fw-bold" style="color:var(--text-primary);">${covAdj !== null && covAdj !== undefined ? covAdj.toFixed(1) : "-"}</span>
-          <span class="badge px-2 py-1 fw-semibold" style="background:${covBadgeBg}; color:${covBadgeColor};">
+      <div class="p-3 rounded d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-2" style="background:var(--bg-tertiary); border:1px solid var(--border-color);">
+        <div class="fw-medium text-nowrap" style="color:var(--text-primary);" data-i18n="whatif_cash_coverage">Cash Coverage (months)</div>
+        <div class="d-flex align-items-center gap-2 gap-sm-3 flex-wrap justify-content-start justify-content-xl-end">
+          <span class="small text-nowrap" style="color:var(--text-secondary);">${covBase !== null && covBase !== undefined ? covBase.toFixed(1) : "-"}</span>
+          <i class="bi bi-arrow-right text-muted flex-shrink-0"></i>
+          <span class="fw-bold text-nowrap" style="color:var(--text-primary);">${covAdj !== null && covAdj !== undefined ? covAdj.toFixed(1) : "-"}</span>
+          <span class="badge px-2 py-1 fw-semibold flex-shrink-0" style="background:${covBadgeBg}; color:${covBadgeColor};">
             ${_fmtDelta(covDeltaVal, false, 1)}
           </span>
         </div>

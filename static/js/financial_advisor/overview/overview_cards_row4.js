@@ -20,7 +20,7 @@ function buildOverviewRow4Html(params) {
             </div>
             <div class="overview-summary-body" style="padding-bottom: 0;">
               <div class="d-flex align-items-center justify-content-between gap-2" style="margin-bottom: 8px;">
-                <div class="overview-donut-wrap" style="width: 110px; height: 110px; flex-shrink:0;">
+                <div class="overview-donut-wrap" style="width: 88px; height: 88px; flex-shrink:0;">
                   <canvas id="overviewPortfolioDonutChart"></canvas>
                 </div>
                 <div style="flex: 1; min-width: 0;">
