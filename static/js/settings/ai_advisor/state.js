@@ -17,3 +17,13 @@ window.AIA.state = {
   currentAISettings: null,
   currentProviderSchemas: [],
 };
+
+// Re-arms the app's shared "Show all N rows / Show less" toggle (app/utils/collapsible.js, same as Expenses)
+// for a table whose rows were re-rendered: drops the stale toggle, then lets initCollapsibleTables() rebuild it.
+window.AIA.resetCollapsible = function (table) {
+  if (!table) return;
+  table.removeAttribute("data-collapsible-init");
+  const host = table.closest(".table-container") || table.parentElement;
+  const toggle = host && host.nextElementSibling;
+  if (toggle && toggle.classList.contains("wf-table-toggle-btn")) toggle.remove();
+};

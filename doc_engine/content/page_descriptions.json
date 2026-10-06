@@ -104,7 +104,7 @@
       "Select training backend.",
       "Trigger model fine-tuning or autonomous learning scan.",
       "Turn Instant Data Answers on or off: when on, simple data questions (balances, salary, expenses, gold price, exchange rates) are answered instantly from your own data without the AI model.",
-      "Set the default monthly AI token limit and optional per-user overrides in the limits panel at the bottom: a blank override uses the default and 0 means unlimited. Limits apply only to users on the general app settings; users on their own AI settings are never limited."
+      "Set the default monthly AI token limit and optional per-user overrides in the 'Monthly AI token limit per user' frame, above the platform and model-history section: a blank override uses the default and 0 means unlimited. Search users by name or email, filter by AI settings mode, use Toggle Select All (or tick users) and Apply to selected to set one limit for many users at once. Limits apply only to users on the general app settings; users on their own AI settings are never limited. Long tables show 5 rows with a Show all / Show less toggle."
     ]
   },
   "settings::settings-myai": {

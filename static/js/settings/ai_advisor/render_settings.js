@@ -3,6 +3,8 @@
 // monolithic ai_advisor.js (200-line rule). Sibling files:
 // - state.js                    Shared window.AIA.state + escapeHtml helper
 // - render_settings_form.js     Builds the settings form HTML
+// - render_platform_card.js     Builds the Self-Evolving AI Platform card HTML
+// - user_limits.js / user_limits_actions.js  Monthly token limits panel (sysadmin)
 // - provider_fields.js          Provider dropdown + dynamic field rendering
 // - connection_test.js          "Test Connection" button handler
 // - diagnostics_model_select.js Diagnostic result rendering + model picker
@@ -69,8 +71,9 @@ window.AIA.renderAIAdvisorSettings = async function () {
     permissionTier,
     multiAgentChecked,
   });
-  container.innerHTML = html;
-  container.insertAdjacentHTML("beforeend", '<div id="aiUserLimitsPanel" class="mt-4"></div>');
+  // Order: settings form -> monthly token limits -> platform card (installed models)
+  container.innerHTML =
+    html + '<div id="aiUserLimitsPanel"></div>' + window.AIA.buildPlatformCardHtml();
   window.AIA.loadUserLimitsPanel();
 
   window.AIA.loadAIPlatformOverviewData();

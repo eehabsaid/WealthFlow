@@ -116,6 +116,22 @@ class AIUserSettingsTests(TestCase):
         rows = self.client.get("/api/settings/ai/user-limits/").json()["users"]
         self.assertTrue(any(r["username"] == "member" for r in rows))
 
+    def test_limits_bulk_apply_and_page_size(self):
+        self.client.force_login(self.admin)
+        res = _post(self.client, "/api/settings/ai/user-limits/", {"user_ids": [self.user.id, self.other.id], "limit": 777})
+        self.assertEqual((res.status_code, res.json()["updated"]), (200, 2))
+        self.assertEqual((effective_limit(self.user), effective_limit(self.other)), (777, 777))
+        _post(self.client, "/api/settings/ai/user-limits/", {"user_ids": [self.user.id], "limit": ""})   # blank = back to default
+        self.assertEqual(effective_limit(self.user), 0)
+        self.assertEqual(effective_limit(self.other), 777)
+        self.assertEqual(_post(self.client, "/api/settings/ai/user-limits/", {"user_ids": "all", "limit": 1}).status_code, 400)
+        self.assertEqual(_post(self.client, "/api/settings/ai/user-limits/", {"user_ids": [self.user.id], "limit": -1}).status_code, 400)
+        data = self.client.get("/api/settings/ai/user-limits/?page_size=2").json()
+        self.assertEqual((len(data["users"]), data["num_pages"]), (2, 2))
+        self.assertIn("email", data["users"][0])
+        self.client.force_login(self.user)
+        self.assertEqual(_post(self.client, "/api/settings/ai/user-limits/", {"user_ids": [self.user.id], "limit": 0}).status_code, 403)
+
     def test_user_cannot_write_limit_via_generic_settings_api(self):
         self.client.force_login(self.user)
         for body in ({USER_LIMIT_KEY: "0"}, {DEFAULT_LIMIT_KEY: "0"}, {USE_GENERAL_KEY: "false"}, {"ai_model": "sneaky"}):

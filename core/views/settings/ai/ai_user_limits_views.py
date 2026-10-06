@@ -33,10 +33,11 @@ class AIUserLimitsView(AdminRequiredMixin, View):
     def get(self, request):
         q = request.GET.get("q", "").strip()
         page = int(request.GET.get("page", 1) or 1)
+        page_size = min(max(int(request.GET.get("page_size", 25) or 25), 1), 200)
         qs = User.objects.order_by("username")
         if q:
             qs = qs.filter(Q(username__icontains=q) | Q(email__icontains=q))
-        paginator = Paginator(qs, 25)
+        paginator = Paginator(qs, page_size)
         try:
             page_obj = paginator.page(page)
         except EmptyPage:
@@ -46,7 +47,7 @@ class AIUserLimitsView(AdminRequiredMixin, View):
             own = AppSettings.objects.filter(key=USER_LIMIT_KEY, owner=u).values_list("value", flat=True).first()
             general = uses_general_settings(u)
             rows.append({
-                "id": u.id, "username": u.username, "use_general": general,
+                "id": u.id, "username": u.username, "email": u.email, "use_general": general,
                 "limit_override": own if own is not None else "",
                 "effective_limit": effective_limit(u) if general else 0,
                 "used": used_tokens(u),
@@ -64,6 +65,18 @@ class AIUserLimitsView(AdminRequiredMixin, View):
         try:
             if "default_limit" in data:
                 AppSettings.set(DEFAULT_LIMIT_KEY, str(_parse_limit(data["default_limit"]) or 0))
+            if "user_ids" in data:  # bulk: same value for every listed user (blank = default, 0 = unlimited)
+                ids = data["user_ids"]
+                if not isinstance(ids, list) or len(ids) > 2000:
+                    return JsonResponse({"error": "user_ids must be a list", "error_key": "ai_limit_invalid"}, status=400)
+                value = _parse_limit(data.get("limit"))
+                targets = list(User.objects.filter(pk__in=[int(i) for i in ids]))
+                for target in targets:
+                    if value is None:
+                        AppSettings.objects.filter(key=USER_LIMIT_KEY, owner=target).delete()
+                    else:
+                        AppSettings.set(USER_LIMIT_KEY, str(value), user=target)
+                return JsonResponse({"ok": True, "updated": len(targets)})
             if "user_id" in data:
                 target = User.objects.filter(pk=data["user_id"]).first()
                 if target is None:

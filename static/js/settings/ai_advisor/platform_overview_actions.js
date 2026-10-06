@@ -3,12 +3,33 @@
 
 window.AIA = window.AIA || {};
 
+// 402 = trial/plan does not include the AI platform: say so instead of leaving "Loading..." forever.
+window.AIA.showPlatformUnavailable = function (status) {
+  const msg =
+    status === 402
+      ? t(
+          "ai_platform_subscription_required",
+          "This section needs an active subscription that includes the AI platform."
+        )
+      : t("ai_platform_load_failed", "Could not load this section.");
+  const health = document.getElementById("aiPlatformDatasetHealth");
+  if (health) health.innerHTML = `<small class="text-muted">${msg}</small>`;
+  const tbody = document.getElementById("aiPlatformModelList");
+  if (tbody) {
+    window.AIA.resetCollapsible(tbody.closest("table"));
+    tbody.innerHTML = `<tr><td colspan="7" class="text-muted text-center py-2">${msg}</td></tr>`;
+  }
+};
+
 window.AIA.loadAIPlatformOverviewData = async function () {
   try {
     const [dsRes, mRes] = await Promise.all([
       fetch("/api/ai-platform/datasets/"),
       fetch("/api/ai-platform/models/"),
     ]);
+
+    const failed = [dsRes, mRes].find((r) => !r.ok);
+    if (failed) window.AIA.showPlatformUnavailable(failed.status);
 
     if (dsRes.ok) {
       const dsData = await dsRes.json();
@@ -30,6 +51,7 @@ window.AIA.loadAIPlatformOverviewData = async function () {
       const versions = mData.model_versions || [];
       const tbody = document.getElementById("aiPlatformModelList");
       if (tbody) {
+        window.AIA.resetCollapsible(tbody.closest("table"));
         if (versions.length === 0) {
           tbody.innerHTML = `<tr><td colspan="7" class="text-muted text-center py-2" data-i18n="ai_platform_no_models">${t("ai_platform_no_models", "No custom model versions found.")}</td></tr>`;
         } else {
@@ -55,6 +77,7 @@ window.AIA.loadAIPlatformOverviewData = async function () {
           });
           tbody.innerHTML = html;
         }
+        if (typeof initCollapsibleTables === "function") initCollapsibleTables();
       }
     }
 

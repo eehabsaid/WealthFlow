@@ -1,22 +1,16 @@
 "use strict";
-// AI Advisor (sysadmin): default monthly token limit + per-user override.
+// AI Advisor (sysadmin): default monthly token limit + per-user override, search, bulk apply.
 // Limits apply only to users on the general AI settings; users on their own settings are unlimited.
+// Rows use the app's shared table + "Show all / Show less" toggle (app/utils/collapsible.js, as in Expenses).
 
 window.AIA = window.AIA || {};
+window.AIA.limits = { users: [], selected: new Set(), q: "", mode: "all" };
 
-async function aiLimitsPost(payload) {
-  const res = await fetch("/api/settings/ai/user-limits/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    showToast(t(data.error_key || "settings_save_failed", data.error || "Save failed"), "error");
-    return false;
-  }
-  showToast(t("settings_saved", "Settings saved ✓"));
-  return true;
+const AI_SAVE_BTN_CLASS = "btn btn-primary-custom d-flex align-items-center";
+
+function aiSaveBtnHtml(extraAttrs, labelKey, fallback, extraClass = "") {
+  return `<button type="button" class="${extraClass} ${AI_SAVE_BTN_CLASS}" ${extraAttrs}>
+    <i class="bi bi-check-lg me-1"></i> <span data-i18n="${labelKey}">${t(labelKey, fallback)}</span></button>`;
 }
 
 function aiLimitsRowHtml(u) {
@@ -28,45 +22,76 @@ function aiLimitsRowHtml(u) {
     : u.effective_limit
       ? u.effective_limit.toLocaleString()
       : t("myai_no_limit", "no limit");
+  const off = u.use_general ? "" : "disabled";
+  const checked = window.AIA.limits.selected.has(u.id) ? "checked" : "";
   return `<tr data-user-id="${u.id}">
+    <td><input type="checkbox" class="form-check-input ai-limit-select" ${off} ${checked}></td>
     <td>${escapeHtml(u.username)}</td><td>${mode}</td>
     <td>${Number(u.used).toLocaleString()}</td><td>${effective}</td>
-    <td><input type="number" min="0" class="form-control form-control-sm ai-limit-input" value="${escapeHtml(u.limit_override)}"
-      placeholder="${t("ai_limits_inherit", "default")}" ${u.use_general ? "" : "disabled"}></td>
-    <td><button type="button" class="btn btn-sm btn-outline-primary ai-limit-save" ${u.use_general ? "" : "disabled"}>${t("ai_save_settings", "Save Settings")}</button></td></tr>`;
+    <td><input type="number" min="0" class="form-control ai-limit-input" style="min-width:150px"
+      value="${escapeHtml(u.limit_override)}" placeholder="${t("ai_limits_inherit", "default")}" ${off}></td>
+    <td>${aiSaveBtnHtml(off, "ai_save_settings", "Save Settings", "ai-limit-save")}</td></tr>`;
 }
+
+function aiLimitsFiltered() {
+  const { users, q, mode } = window.AIA.limits;
+  const needle = q.trim().toLowerCase();
+  return users.filter(
+    (u) =>
+      (mode === "all" || (mode === "general") === u.use_general) &&
+      (!needle || `${u.username} ${u.email || ""}`.toLowerCase().includes(needle))
+  );
+}
+
+window.AIA.renderUserLimitsTable = function () {
+  const host = document.getElementById("aiLimitsTableHost");
+  if (!host) return;
+  const rows = aiLimitsFiltered();
+  const th = (key, fb) => `<th data-i18n="${key}">${t(key, fb)}</th>`;
+  const body = rows.length
+    ? rows.map(aiLimitsRowHtml).join("")
+    : `<tr><td colspan="7" class="text-muted text-center py-3" data-i18n="ai_limits_no_users">${t("ai_limits_no_users", "No users match your search.")}</td></tr>`;
+  host.innerHTML = `<div class="table-container"><table class="data-table"><thead><tr><th></th>
+    ${th("ai_limits_th_user", "User")}${th("ai_limits_th_mode", "AI settings")}${th("ai_limits_th_used", "Used this month")}
+    ${th("ai_limits_th_limit", "Effective limit")}${th("ai_limits_th_override", "Override")}<th></th></tr></thead>
+    <tbody id="aiLimitsBody">${body}</tbody></table></div>`;
+  if (typeof initCollapsibleTables === "function") initCollapsibleTables();
+  window.AIA.updateLimitsSelection();
+};
+
+window.AIA.updateLimitsSelection = function () {
+  const n = window.AIA.limits.selected.size;
+  const label = document.getElementById("aiLimitsSelectedCount");
+  if (label)
+    label.textContent = t("ai_limits_selected_count", "{count} selected").replace("{count}", n);
+  const apply = document.getElementById("aiLimitsBulkApply");
+  if (apply) apply.disabled = n === 0;
+};
 
 window.AIA.loadUserLimitsPanel = async function () {
   const box = document.getElementById("aiUserLimitsPanel");
   if (!box) return;
-  const res = await fetch("/api/settings/ai/user-limits/");
-  if (!res.ok) return;
-  const d = await res.json();
-  box.innerHTML = `<div class="card p-3">
-    <h6 class="fw-semibold" data-i18n="ai_limits_title">${t("ai_limits_title", "Monthly AI token limit per user")}</h6>
-    <div class="form-text mb-2" data-i18n="ai_limits_hint">${t("ai_limits_hint", "Applies only to users on the general app settings. Blank = use the default; 0 = unlimited.")}</div>
-    <div class="input-group input-group-sm mb-3" style="max-width:360px">
-      <span class="input-group-text" data-i18n="ai_limits_default">${t("ai_limits_default", "Default limit (tokens / month)")}</span>
-      <input type="number" min="0" id="aiDefaultLimitInput" class="form-control" value="${escapeHtml(d.default_limit)}">
-      <button type="button" class="btn btn-outline-primary" id="aiDefaultLimitSave">${t("ai_save_settings", "Save Settings")}</button>
-    </div>
-    <div class="table-responsive"><table class="table table-sm align-middle">
-      <thead><tr><th>${t("ai_limits_th_user", "User")}</th><th>${t("ai_limits_th_mode", "AI settings")}</th>
-        <th>${t("ai_limits_th_used", "Used this month")}</th><th>${t("ai_limits_th_limit", "Effective limit")}</th>
-        <th>${t("ai_limits_th_override", "Override")}</th><th></th></tr></thead>
-      <tbody id="aiLimitsBody">${d.users.map(aiLimitsRowHtml).join("")}</tbody></table></div></div>`;
-  document.getElementById("aiDefaultLimitSave").onclick = async () => {
-    if (await aiLimitsPost({ default_limit: document.getElementById("aiDefaultLimitInput").value }))
-      window.AIA.loadUserLimitsPanel();
-  };
-  document.querySelectorAll("#aiLimitsBody .ai-limit-save").forEach((btn) => {
-    btn.onclick = async () => {
-      const row = btn.closest("tr");
-      const ok = await aiLimitsPost({
-        user_id: Number(row.dataset.userId),
-        limit: row.querySelector(".ai-limit-input").value,
-      });
-      if (ok) window.AIA.loadUserLimitsPanel();
-    };
-  });
+  const users = [];
+  let defaultLimit = "0";
+  for (let page = 1, pages = 1; page <= pages; page++) {
+    const res = await fetch(`/api/settings/ai/user-limits/?page=${page}&page_size=200`);
+    if (!res.ok) return;
+    const d = await res.json();
+    users.push(...d.users);
+    defaultLimit = d.default_limit;
+    pages = d.num_pages;
+  }
+  const L = window.AIA.limits;
+  L.users = users;
+  L.selected = new Set(
+    [...L.selected].filter((id) => users.some((u) => u.id === id && u.use_general))
+  );
+  if (!document.getElementById("aiUserLimitsCard")) {
+    box.innerHTML = window.AIA.buildUserLimitsCardHtml(defaultLimit);
+    window.AIA.bindUserLimitsEvents();
+  } else {
+    document.getElementById("aiDefaultLimitInput").value = defaultLimit;
+  }
+  window.AIA.renderUserLimitsTable();
+  if (typeof applyTranslations === "function") applyTranslations();
 };
