@@ -4,10 +4,11 @@ Tests (read-only: no account is ever created):
  1. /privacy/ and /terms/ render every section with the "legal review needed" notice (public, no login).
  2. The pages follow the language: Arabic switches the text and flips the page to RTL.
  3. Signup shows a required consent checkbox linking to both pages; the form is invalid until it is ticked.
- 4. Login and signup footers link to Terms/Privacy; the in-app sidebar footer links to them too.
+ 4. The text scrolls to its last link at desktop and phone sizes (regression for the cut-off bug).
+ 5. Login and signup footers link to Terms/Privacy; the in-app sidebar footer links to them too.
 
 Phases 1-3 run in their own isolated browser WITHOUT a session (the pages are public, and the signup
-form is only meaningful logged out). Phase 4 uses the shared admin session.
+form is only meaningful logged out). Phase 5 uses the shared admin session.
 NOTE: tests/core/test_context.py registers ONE global dialog handler; do not add another page.on("dialog") here.
 """
 
@@ -36,6 +37,25 @@ def _check_public_pages(page, reporter, screenshot_logger):
         on_page = path in page.url
         _step(reporter, screenshot_logger, page, f"{label} page renders all sections with draft notice",
               on_page and sections == count and draft, f"url={page.url} sections={sections}/{count} draft_notice={draft}", tab)
+
+
+def _check_scrollable(page, reporter, screenshot_logger):
+    """Regression: the whole text must be reachable (page scrolls) at desktop and phone sizes."""
+    for size, (w, h) in (("desktop", (1280, 720)), ("phone", (375, 667))):
+        page.set_viewport_size({"width": w, "height": h})
+        for path, label in (("/terms/", "Terms of Service"), ("/privacy/", "Privacy Policy")):
+            page.goto(f"{BASE}{path}")
+            page.wait_for_timeout(900)
+            for _ in range(30):
+                page.mouse.wheel(0, 400)
+            page.wait_for_timeout(250)
+            reached = page.evaluate(
+                "(() => { const l = [...document.querySelectorAll('.legal-footer a')].pop().getBoundingClientRect();"
+                " return l.bottom <= innerHeight && l.top >= 0; })()"
+            )
+            _step(reporter, screenshot_logger, page, f"{label} scrolls to the last link ({size})", reached,
+                  f"viewport={w}x{h} last_link_in_view={reached}", f"{path.strip('/')}_scroll_{size}")
+    page.set_viewport_size({"width": 1280, "height": 720})
 
 
 def _check_arabic_rtl(page, reporter, screenshot_logger):
@@ -97,6 +117,7 @@ def test_legal_module(context, reporter, screenshot_logger):
         )
         page = public_ctx.page
         _check_public_pages(page, reporter, screenshot_logger)
+        _check_scrollable(page, reporter, screenshot_logger)
         _check_arabic_rtl(page, reporter, screenshot_logger)
         _check_signup_consent(page, reporter, screenshot_logger)
         _check_footer_links(context, page, reporter, screenshot_logger)

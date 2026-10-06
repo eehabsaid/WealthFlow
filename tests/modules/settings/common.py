@@ -17,7 +17,7 @@ SETTINGS_TAB_ROUTES = {
     "reminders": "settings-reminders", "cert-status": "settings-certstatus",
     "gold-settings": "settings-goldsettings", "property-valuation": "settings-propertyvaluation",
     "dashboard": "settings-dashboard", "backup": "settings-backuprestore",
-    "documentation": "settings-documentation", "ai-advisor": "settings-aiadvisor", "my-ai": "settings-myai",
+    "documentation": "settings-documentation", "ai-advisor": "settings-aiadvisor", "legal": "settings-legal", "my-ai": "settings-myai",
 }
 
 

@@ -10,7 +10,7 @@ from django.utils import timezone
 from core.models import AppSettings
 from core.authentication.serializers import AuthFlowResult
 from core.authentication.emails import EmailDeliveryError
-from core.authentication.legal import LEGAL_VERSION
+from core.services.legal import current_label
 from core.authentication.services.member_role import assign_member_role
 from core.services.billing import SubscriptionService
 
@@ -57,7 +57,7 @@ class RegistrationMixin:
             profile.account_status = "pending_email_verification"
             profile.preferred_language = lang
             profile.terms_accepted_at = timezone.now()
-            profile.terms_version = LEGAL_VERSION
+            profile.terms_version = current_label()
             profile.status_reason = ""
             profile.approved_at = None
             profile.rejected_at = None

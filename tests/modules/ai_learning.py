@@ -24,9 +24,19 @@ def _run(context, reporter, screenshot_logger):
     page.wait_for_selector("#ai-ws-input, #ai-chat-input", timeout=8000)
 
     # 1. API contract (real endpoints, real session)
-    empty = page.evaluate(_FETCH, ["/api/financial-advisor/ai/feedback/", "GET", None])
-    ok = empty["status"] == 200 and empty["data"].get("items") == []
-    _step(reporter, screenshot_logger, page, "Feedback list endpoint is empty for a new user", ok, f"GET feedback -> {empty}", "feedback_list")
+    # Data-independent: the test account may already hold rated answers, so assert the contract and
+    # relate every later check to this starting state (the "empty for a NEW user" case is covered by
+    # core/tests/ai/test_ai_feedback_learning.py with a fresh user).
+    listing = page.evaluate(_FETCH, ["/api/financial-advisor/ai/feedback/", "GET", None])
+    items = (listing["data"] or {}).get("items")
+    shape_ok = isinstance(items, list) and all(
+        isinstance(it, dict) and {"message_id", "rating", "question"} <= set(it) and it["rating"] in (1, -1)
+        for it in items
+    )
+    ok = listing["status"] == 200 and shape_ok
+    count = len(items) if isinstance(items, list) else -1
+    _step(reporter, screenshot_logger, page, "Feedback list endpoint returns this user's rated answers", ok,
+          f"GET feedback -> status={listing['status']} items={count} shape_ok={shape_ok}", "feedback_list")
     missing = page.evaluate(_FETCH, ["/api/financial-advisor/ai/messages/99999999/feedback/", "POST", {"rating": 1}])
     bad = page.evaluate(_FETCH, ["/api/financial-advisor/ai/messages/99999999/feedback/", "POST", {"rating": 5}])
     ok = missing["status"] == 404 and bad["status"] == 400
@@ -51,9 +61,13 @@ def _run(context, reporter, screenshot_logger):
     # 4. Learned Answers modal opens from the sidebar card and shows the empty state
     page.click("#ai-ws-card-learned-answers")
     page.wait_for_selector("#la-modal-body", timeout=5000)
-    page.wait_for_selector("#la-empty", timeout=5000)
-    ok = page.query_selector("#la-empty") is not None
-    _step(reporter, screenshot_logger, page, "Learned Answers modal opens with empty state", ok, "empty state visible", "learned_answers")
+    # The modal shows the empty state iff the list is empty, otherwise exactly one row per rated answer.
+    page.wait_for_selector("#la-empty, .la-row", timeout=5000)
+    rows = len(page.query_selector_all(".la-row"))
+    empty_shown = page.query_selector("#la-empty") is not None
+    ok = (empty_shown and count == 0 and rows == 0) or (not empty_shown and count > 0 and rows == count)
+    _step(reporter, screenshot_logger, page, "Learned Answers modal matches the rated-answer list (empty state or one row each)", ok,
+          f"api_items={count} rows={rows} empty_state={empty_shown}", "learned_answers")
     page.evaluate("() => { if (window.closeModal) closeModal(); }")
     reporter.pages_visited.add("WealthFlow AI -> Learned Answers")
 

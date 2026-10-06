@@ -10,8 +10,9 @@ per-user override, no matter how permissive the role — they require
 `is_sysadmin` directly: Roles management itself (you can't delegate the
 ability to hand out delegation), User Management (creates/deletes accounts,
 flips is_sysadmin), Billing Plans (which also hosts the Payment Gateway
-/ Paymob key fields inline on the same tab), and AI Advisor (a single
-app-wide AI configuration, not per-user BYOK).
+/ Paymob key fields inline on the same tab), AI Advisor (a single
+app-wide AI configuration, not per-user BYOK), and Legal Text (the
+Privacy Policy / Terms editor: the operator's legal wording).
 """
 
 SETTINGS_TAB_CHOICES = [
@@ -34,10 +35,11 @@ SETTINGS_TAB_CHOICES = [
     ("settings_aiadvisor", "Settings: AI Advisor"),
     ("settings_myai", "Settings: My AI Settings"),
     ("settings_roles", "Settings: Roles"),
+    ("settings_legal", "Settings: Legal Text"),
 ]
 
 # Never grantable via Role or per-user override — always requires is_sysadmin.
-SYSADMIN_ONLY_SETTINGS_TABS = ["settings_users", "settings_billing", "settings_roles", "settings_aiadvisor"]
+SYSADMIN_ONLY_SETTINGS_TABS = ["settings_users", "settings_billing", "settings_roles", "settings_aiadvisor", "settings_legal"]
 
 SETTINGS_TAB_KEYS = [key for key, _ in SETTINGS_TAB_CHOICES]
 

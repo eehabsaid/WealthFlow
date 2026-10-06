@@ -1,6 +1,6 @@
 {% load static %}
 <!doctype html>
-<html lang="{{ lang_code|default:'en' }}">
+<html lang="{{ lang_code|default:'en' }}" class="legal-html">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,7 +12,7 @@
     <link href="{% static 'css/authentication/legal.css' %}" rel="stylesheet" />
   </head>
   <body class="auth-page legal-page">
-    <main class="auth-card legal-card" id="legalMain">
+    <main class="auth-card legal-card" id="legalMain" data-legal-overridden="{{ overridden|yesno:'true,false' }}">
       <div class="auth-lang">
         <select id="authLanguageSelect" aria-label="Language selector">
           <option value="en">English</option>
@@ -22,15 +22,15 @@
         </select>
         <button class="icon-btn" id="theme-toggle" type="button" onclick="WFAuth.toggleTheme()" aria-label="Toggle theme">🌙</button>
       </div>
-      <h1 data-i18n="{{ title_key }}">{{ title }}</h1>
+      <h1 {{ title_attr }}>{{ title }}</h1>
       <p class="legal-meta">
         <span data-i18n="legal_version_label">Version</span>: <bdi>{{ legal_version }}</bdi>
       </p>
       <div class="legal-draft" role="note" data-i18n="legal_draft_notice">{{ draft_notice }}</div>
       {% for section in sections %}
       <section class="legal-section">
-        <h2 data-i18n="{{ section.title_key }}">{{ section.title }}</h2>
-        <p data-i18n="{{ section.body_key }}">{{ section.body }}</p>
+        <h2 {{ section.title_attr }}>{{ section.title }}</h2>
+        <p {{ section.body_attr }}>{{ section.body|linebreaksbr }}</p>
       </section>
       {% endfor %}
       <hr class="auth-divider" />
@@ -46,5 +46,6 @@
     <script src="{% static 'js/authentication/shared/theme.js' %}"></script>
     <script src="{% static 'js/authentication/shared/ui_helpers.js' %}"></script>
     <script src="{% static 'js/authentication/shared/bootstrap.js' %}"></script>
+    <script src="{% static 'js/authentication/legal_lang.js' %}"></script>
   </body>
 </html>

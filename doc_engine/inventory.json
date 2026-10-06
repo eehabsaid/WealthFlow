@@ -155,6 +155,7 @@
     { "name": "Backup and Restore", "id": "settings-backuprestore" },
     { "name": "Documentation", "id": "settings-documentation" },
     { "name": "AI Advisor", "id": "settings-aiadvisor" },
+    { "name": "Legal Text", "id": "settings-legal" },
     { "name": "My AI Settings", "id": "settings-myai" }
   ]}
 ]

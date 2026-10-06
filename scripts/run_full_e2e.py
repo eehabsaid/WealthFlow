@@ -28,7 +28,8 @@ USAGE
     python scripts/run_full_e2e.py --mode=module --module=import_data
     python scripts/run_full_e2e.py --mode=module --module=pwa
     python scripts/run_full_e2e.py --mode=module --module=gulf_market
-    python scripts/run_full_e2e.py --mode=module --module=legal
+    python scripts/run_full_e2e.py --mode=module --module=legal      # public Privacy/Terms pages (incl. scroll check)
+    python scripts/run_full_e2e.py --mode=module --module=settings   # also covers the Legal Text editor tab
     python scripts/run_full_e2e.py --headed --slowmo=250
 
 Any arguments not listed below are passed straight through to

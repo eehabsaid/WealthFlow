@@ -126,11 +126,20 @@ from core.views.settings.documentation.documentation_action_views import (
     OpenFolderView,
 )
 
+from core.views.settings.legal_text_views import (
+    LegalConsentView,
+    LegalTextDetailView,
+    LegalTextListView,
+)
+
 __all__ = [
     "CurrencyListView",
     "CurrencyDetailView",
     "SettingsView",
     "EmailTemplateListView",
+    "LegalConsentView",
+    "LegalTextDetailView",
+    "LegalTextListView",
     "EmailTemplateDetailView",
     "EmailSettingsTestView",
     "BackupCreateView",

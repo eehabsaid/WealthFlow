@@ -22,6 +22,7 @@ const SETTINGS_TAB_MAP = {
   aiadvisor: "aiadvisor",
   "settings-myai": "myai",
   roles: "roles",
+  "settings-legal": "legal",
 };
 
 const SETTINGS_TABS = [
@@ -150,6 +151,13 @@ const SETTINGS_TABS = [
     fallback: "AI Advisor",
     route: "settings-aiadvisor",
     key: "settings_aiadvisor",
+  },
+  {
+    id: "legal",
+    i18n: "settings_legal",
+    fallback: "Legal Text",
+    route: "settings-legal",
+    key: "settings_legal",
   },
   {
     id: "myai",

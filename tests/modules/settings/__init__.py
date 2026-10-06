@@ -31,6 +31,7 @@ from tests.modules.settings.common import open_settings_tab
 from tests.modules.settings.backup_and_docs import test_backup_and_docs
 from tests.modules.settings.ai_instant_answers import test_ai_instant_answers
 from tests.modules.settings.ai_user_settings import test_ai_user_settings
+from tests.modules.settings.legal_text import test_legal_text
 
 
 def test_settings_module(context, reporter, screenshot_logger):
@@ -40,7 +41,7 @@ def test_settings_module(context, reporter, screenshot_logger):
 
     # Sweep sub-tabs
     # Every tab is a real route; a tab that does not open is a FAIL step, not a silent skip.
-    tabs = ["languages", "banks", "currencies", "gold-settings", "email-templates", "backup", "documentation", "users"]
+    tabs = ["languages", "banks", "currencies", "gold-settings", "email-templates", "backup", "documentation", "users", "legal"]
     for t in tabs:
         opened = open_settings_tab(context, t, wait_ms=700)
         if opened:
@@ -57,3 +58,4 @@ def test_settings_module(context, reporter, screenshot_logger):
     test_backup_and_docs(context, reporter, screenshot_logger)
     test_ai_instant_answers(context, reporter, screenshot_logger)
     test_ai_user_settings(context, reporter, screenshot_logger)
+    test_legal_text(context, reporter, screenshot_logger)

@@ -1,7 +1,9 @@
 """Version tag of the Privacy Policy / Terms of Service texts.
 
-Bump whenever the legal text (static/i18n legal_* keys) changes materially, so
-each account's stored `terms_version` shows which text it accepted.
+Label of the BUILT-IN text (static/i18n legal_* keys), used while no edited
+version exists. Once a sysadmin publishes a version (Settings > Legal Text) the
+newest LegalVersion label is current instead (core.services.legal.current_label).
+Bump this when the built-in i18n text itself changes materially.
 The current text is a DRAFT and needs legal review before public launch.
 """
 

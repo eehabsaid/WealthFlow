@@ -12,6 +12,15 @@
 
 window.renderSettings = renderSettings;
 window.renderDashboardSettings = renderDashboardSettings;
+window.renderLegalSettings = renderLegalSettings;
+window.legalSelect = legalSelect;
+window.legalEditTitle = legalEditTitle;
+window.legalEditSection = legalEditSection;
+window.legalAddSection = legalAddSection;
+window.legalRemoveSection = legalRemoveSection;
+window.legalResetDoc = legalResetDoc;
+window.publishLegalVersion = publishLegalVersion;
+window.loadLegalVersion = loadLegalVersion;
 window.applySmtpPreset = applySmtpPreset;
 window.saveSmtpSettingsFromGui = saveSmtpSettingsFromGui;
 window.testSmtpSettingsFromGui = testSmtpSettingsFromGui;

@@ -86,6 +86,7 @@ async function initApp() {
   renderTopbar();
   applySidebarDesktopMode(_sidebarDesktopMode, true);
 
+  if (typeof checkLegalConsent === "function") checkLegalConsent();
   if (typeof initOnboardingWizard === "function") initOnboardingWizard();
 
   // Check reminders in background after load

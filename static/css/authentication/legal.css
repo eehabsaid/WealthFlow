@@ -1,14 +1,41 @@
-/* Privacy Policy / Terms of Service pages (public, unauthenticated). */
-body.legal-page {
-  align-items: flex-start;
+/* Privacy Policy / Terms of Service pages (public, unauthenticated).
+ *
+ * The shared auth shell (auth/core_theme.css) locks html/body to one viewport
+ * with overflow hidden so the short login/signup cards never scroll. The legal
+ * text is much longer than a viewport, so these pages opt out: the document
+ * scrolls normally (scrollbar visible) and nothing is clipped, on every
+ * viewport size and in RTL. The !important flags are needed to beat the
+ * !important locks in the shared shell.
+ */
+html.legal-html {
+  height: auto !important;
+  max-height: none !important;
+  overflow: hidden auto !important;
+  scrollbar-width: auto !important;
+}
+
+body.auth-page.legal-page {
+  align-items: flex-start !important;
+  height: auto !important;
+  max-height: none !important;
   min-height: 100vh;
-  padding: 24px 12px;
+  overflow: hidden !important;
+  padding: 24px 12px !important;
+  scrollbar-width: auto !important;
+}
+
+html.legal-html::-webkit-scrollbar {
+  display: block !important;
+  height: auto !important;
+  width: 10px !important;
 }
 
 .auth-card.legal-card {
+  margin: 0 auto !important;
+  max-height: none;
   max-width: 760px;
+  overflow: visible;
   width: 100%;
-  margin: 0 auto;
 }
 
 .legal-card h1 {

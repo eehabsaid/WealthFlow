@@ -83,6 +83,10 @@ def run_ui_sweep():
         time.sleep(2)
         page.screenshot(path=os.path.join(out_dir, "human_e2e_billing_gateway.png"))
 
+        test_ctx.goto_route("#settings-legal")
+        time.sleep(2)
+        page.screenshot(path=os.path.join(out_dir, "human_e2e_settings_legal.png"))
+
         test_ctx.close()
 
     print("  [PASS] UI Playwright Human Experience sweep captured successfully across all 9 pages.")

@@ -83,6 +83,7 @@ async function renderSettings(route) {
     aiadvisor: renderAIAdvisorSettings,
     myai: renderMyAISettings,
     billing: renderBillingSettings,
+    legal: renderLegalSettings,
   };
 
   await (renderers[activeTab] || renderers.banks)();
