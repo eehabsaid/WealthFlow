@@ -62,7 +62,9 @@ class GulfAdvisorNoEgpTests(TestCase):
         self.assertEqual(gold["currency"], "SAR")
         self.assertEqual(gold["market"], "spot")
         sar_per_usd = Decimal("52.3") / Decimal("13.94")
-        newest = max(gold["timeseries"], key=lambda r: r["timestamp"])
+        # The loop in setUp can stamp several rows with the same coarse clock
+        # tick (Windows); the service orders ties by id, so the last row is newest.
+        newest = gold["timeseries"][-1]
         self.assertAlmostEqual(newest["carat_24k"], float((USD_GRAM + 9) * sar_per_usd), delta=0.05)
         self.assertAlmostEqual(gold["current_price_24k"], newest["carat_24k"], delta=0.05)
 
@@ -71,3 +73,13 @@ class GulfAdvisorNoEgpTests(TestCase):
         self.assertEqual(gold["currency"], "EGP")
         self.assertEqual(gold["market"], "dealer")
         self.assertEqual(gold["current_price_24k"], 7009.0)
+
+    def test_gold_history_rows_with_identical_timestamps_keep_insertion_order(self):
+        from django.utils import timezone
+
+        GoldPriceHistory.objects.update(timestamp=timezone.now())
+        self._go_gulf("SAR")
+        series = self.client.get("/api/financial-advisor/performance/").json()["gold"]["timeseries"]
+        prices = [row["carat_24k"] for row in series]
+        self.assertEqual(prices, sorted(prices))
+        self.assertEqual(series[-1]["carat_24k"], max(prices))

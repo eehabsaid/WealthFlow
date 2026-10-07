@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.views import View
 
 from core.models import ExchangeRate
+from core.services.shared.currency_conversion_service import get_rate_pivot_code
 from core.services.shared.exchange_rate_service import ExchangeRateService
 
 
@@ -45,6 +46,7 @@ class ExchangeRateListView(View):
                 "fetched_at": (
                     last.fetched_at.strftime("%Y-%m-%d %H:%M") if last else None
                 ),
+                "pivot_currency": get_rate_pivot_code(),
             }
         )
 
@@ -59,7 +61,13 @@ class ExchangeRateRefreshView(View):
         try:
             pivot_code = get_user_base_code(request.user) if request.user.is_authenticated else None
             result = ExchangeRateService().refresh_latest_rates(pivot_code).to_dict()
-            return JsonResponse({**result, "message": f"Fetched {result['saved']} currencies"})
+            return JsonResponse(
+                {
+                    **result,
+                    "message": f"Fetched {result['saved']} currencies",
+                    "pivot_currency": get_rate_pivot_code(),
+                }
+            )
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=502)

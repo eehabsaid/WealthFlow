@@ -5,6 +5,7 @@ its prompt -> model timeout shows the retrieved facts. Skipped when Playwright/C
 
 from __future__ import annotations
 
+import re
 import os
 from unittest.mock import patch
 
@@ -14,6 +15,7 @@ from django.core.cache import cache
 
 from core.models import AIAnswerFeedback, PagePermission
 from core.tests.ai import qe_fixtures as fx
+from core.tests.ai.live_boot import first_load
 from core.tests.ai.test_ai_workflow_chat import LAPTOP, PROVIDER, stub_provider
 
 SIMILAR = "I just bought a laptop, should I record its price in assets or in expenses?"
@@ -52,19 +54,8 @@ class AIWorkspaceLiveTests(StaticLiveServerTestCase):
         self.page = ctx.new_page()
         self.addCleanup(ctx.close)
 
-    def skip_onboarding(self):
-        """A brand-new user gets the first-run wizard on top of the page; skip it like a user would."""
-        skip = self.page.locator("#globalModal.show button:has-text('Skip for now')")
-        try:
-            skip.wait_for(state="visible", timeout=6000)
-        except Exception:
-            return
-        skip.click()
-        self.page.wait_for_selector("#globalModal.show", state="detached", timeout=8000)
-
     def open_ai(self):
-        self.page.goto(f"{self.live_server_url}/#ai")
-        self.skip_onboarding()
+        first_load(self.page, f"{self.live_server_url}/#ai")
         if "#ai" not in self.page.url:
             self.page.goto(f"{self.live_server_url}/#ai")
         self.page.wait_for_selector("#ai-ws-input", timeout=15000)
@@ -118,8 +109,14 @@ class AIWorkspaceLiveTests(StaticLiveServerTestCase):
             self.page.wait_for_selector(".ai-ws-fb-up.active", timeout=5000)
             self.page.reload()                                                      # state survives a reload of the conversation
             self.page.wait_for_selector("#ai-ws-input", timeout=15000)
-            self.page.click(".ai-ws-conv-item, .ai-ws-history-item, [data-conv-id]", timeout=8000)
-            self.page.wait_for_selector(".ai-ws-fb-up.active", timeout=8000)
+            item = self.page.locator(".ai-ws-conv-item, .ai-ws-history-item, [data-conv-id]").first
+            item.wait_for(state="visible", timeout=30000)
+            # Wait for the real event (the stored conversation arriving), then for it to render.
+            with self.page.expect_response(
+                lambda r: r.request.method == "GET" and re.search(r"/ai/conversations/\d+/", r.url), timeout=30000
+            ):
+                item.click()
+            self.page.wait_for_selector(".ai-ws-fb-up.active", timeout=15000)
 
     def test_model_timeout_shows_retrieved_facts_in_the_ui(self):
         with patch(PROVIDER, return_value=stub_provider(error="timed out")):

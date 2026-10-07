@@ -13,6 +13,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from core.authentication.services import AuthWorkflowService
 from core.constants.ai_user_settings import USER_LIMIT_KEY, USE_GENERAL_KEY
 from core.models import AIModelVersion, AppSettings, Subscription
+from core.tests.ai.live_boot import first_load
 from core.tests.billing.test_support import grant_ai_workspace_access
 
 User = get_user_model()
@@ -55,14 +56,7 @@ class AILimitsPanelLiveTests(StaticLiveServerTestCase):
                           "url": self.live_server_url}])
         self.page = ctx.new_page()
         self.addCleanup(ctx.close)
-        self.page.goto(f"{self.live_server_url}/#settings-aiadvisor")
-        skip = self.page.locator("#globalModal.show button:has-text('Skip for now')")
-        try:
-            skip.wait_for(state="visible", timeout=6000)
-            skip.click()
-            self.page.wait_for_selector("#globalModal.show", state="detached", timeout=8000)
-        except Exception:
-            pass
+        first_load(self.page, f"{self.live_server_url}/#settings-aiadvisor")
         if "settings-aiadvisor" not in self.page.url:
             self.page.goto(f"{self.live_server_url}/#settings-aiadvisor")
         self.page.wait_for_selector("#aiLimitsBody tr", timeout=30000)

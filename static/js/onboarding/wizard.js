@@ -17,7 +17,10 @@ async function initOnboardingWizard() {
     if (!res.ok) return;
     const status = await res.json();
     if (status.rates_missing) {
-      fetch("/api/rates/refresh/", { method: "POST" }).catch(() => {});
+      fetch("/api/rates/refresh/", { method: "POST" })
+        .then((r) => r.json())
+        .then(wfSyncRatePivot)
+        .catch(() => {});
     }
     if (status.needs_wizard) showOnboardingWizard(status);
   } catch (_e) {

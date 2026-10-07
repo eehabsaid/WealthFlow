@@ -13,6 +13,7 @@ from django.core.cache import cache
 from core.constants.ai_user_settings import DEFAULT_LIMIT_KEY, USE_GENERAL_KEY
 from core.models import AIConversation, AIMessage, AppSettings, PagePermission
 from core.tests.ai import qe_fixtures as fx
+from core.tests.ai.live_boot import first_load
 from core.tests.ai.test_ai_workflow_chat import LAPTOP, PROVIDER, stub_provider
 
 ANSWER = "Record it as an asset: the purchase price already deducts your balance."
@@ -52,18 +53,8 @@ class AIUserSettingsLiveTests(StaticLiveServerTestCase):
         self.page = ctx.new_page()
         self.addCleanup(ctx.close)
 
-    def skip_onboarding(self):
-        skip = self.page.locator("#globalModal.show button:has-text('Skip for now')")
-        try:
-            skip.wait_for(state="visible", timeout=6000)
-        except Exception:
-            return
-        skip.click()
-        self.page.wait_for_selector("#globalModal.show", state="detached", timeout=8000)
-
     def open(self, route, selector):
-        self.page.goto(f"{self.live_server_url}/#{route}")
-        self.skip_onboarding()
+        first_load(self.page, f"{self.live_server_url}/#{route}")
         if route not in self.page.url:
             self.page.goto(f"{self.live_server_url}/#{route}")
         self.page.wait_for_selector(selector, timeout=30000)

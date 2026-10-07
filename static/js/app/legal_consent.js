@@ -3,7 +3,23 @@
 // re-consent", each account sees this blocking dialog once after login until it
 // accepts (or signs out). Accounts are otherwise never asked again.
 
-async function checkLegalConsent() {
+const LEGAL_CONSENT_DELAY_MS = 1500;
+const LEGAL_CONSENT_MAX_ATTEMPTS = 20;
+
+function legalConsentModalOpen() {
+  return !!document.querySelector(".modal.show, .modal-backdrop");
+}
+
+// Runs after the first screen has settled and never on top of another dialog
+// (first-run wizard, any modal being opened or closed): while one is open the
+// check is postponed, then made once it is gone. The delay keeps the extra
+// request off the critical boot path.
+async function checkLegalConsent(attempt = 0) {
+  await new Promise((resolve) => setTimeout(resolve, LEGAL_CONSENT_DELAY_MS));
+  if (legalConsentModalOpen()) {
+    if (attempt + 1 < LEGAL_CONSENT_MAX_ATTEMPTS) checkLegalConsent(attempt + 1);
+    return;
+  }
   let status;
   try {
     const res = await fetch("/api/legal/consent/");
@@ -12,7 +28,7 @@ async function checkLegalConsent() {
   } catch (e) {
     return;
   }
-  if (!status.required) return;
+  if (!status.required || document.getElementById("legalConsentOverlay")) return;
   const el = document.createElement("div");
   el.id = "legalConsentOverlay";
   el.className = "modal-backdrop-lite";

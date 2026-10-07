@@ -27,6 +27,12 @@ function wfRateToBase(code, rates) {
   return base > 0 ? quote(code) / base : 0;
 }
 
+// /api/rates/ and /api/rates/refresh/ report the live pivot; a refresh can
+// re-pivot the stored rates, so the copy loaded at login must follow it.
+function wfSyncRatePivot(data) {
+  if (data && data.pivot_currency) window.WF_BASE.pivot_currency = data.pivot_currency;
+}
+
 function applyBaseCurrencyToTranslations() {
   const code = baseCurrencyCode();
   if (!code || typeof _t === "undefined" || !_t) return;
@@ -51,5 +57,6 @@ async function loadBaseCurrency() {
 window.baseCurrencyCode = baseCurrencyCode;
 window.baseCurrencySymbol = baseCurrencySymbol;
 window.wfRateToBase = wfRateToBase;
+window.wfSyncRatePivot = wfSyncRatePivot;
 window.applyBaseCurrencyToTranslations = applyBaseCurrencyToTranslations;
 window.loadBaseCurrency = loadBaseCurrency;

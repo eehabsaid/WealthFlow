@@ -11,8 +11,9 @@ from core.models import BalanceEntry, Currency, ExchangeRate, GoldPrice
 User = get_user_model()
 
 # Screens' read endpoints. Not listed: /api/translations/ (static UI text that
-# contains the word "EGP" in the Egyptian gold label) and /api/base-currency/
-# ('pivot_currency' is the internal rate-table pivot, never displayed).
+# contains the word "EGP" in the Egyptian gold label) and /api/base-currency/.
+# 'pivot_currency' (also returned by /api/rates/) is the internal rate-table
+# pivot, never displayed, so it is removed before scanning.
 ENDPOINTS = [
     "/api/currencies/", "/api/rates/", "/api/gold/", "/api/balance/", "/api/dashboard/summary/",
     "/api/expenses/", "/api/budgets/", "/api/goals/", "/api/banks/", "/api/fixed-assets/",
@@ -20,6 +21,7 @@ ENDPOINTS = [
     "/api/per-diems/currencies/",
 ]
 EGP_RE = re.compile(r"EGP|ج\.م")
+PIVOT_RE = re.compile(r'"pivot_currency":\s*"[A-Z]*"')
 
 
 class GulfNoEgpSweepTests(TestCase):
@@ -41,7 +43,7 @@ class GulfNoEgpSweepTests(TestCase):
         for url in ENDPOINTS:
             response = self.client.get(url)
             self.assertLess(response.status_code, 500, url)
-            if "json" in response.get("Content-Type", "") and EGP_RE.search(response.content.decode()):
+            if "json" in response.get("Content-Type", "") and EGP_RE.search(PIVOT_RE.sub("", response.content.decode())):
                 offenders.append(url)
         self.assertEqual(offenders, [])
 

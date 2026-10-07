@@ -72,3 +72,29 @@ class DynamicRatePivotTests(TestCase):
         with patch("core.integrations.fetch_latest_exchange_rates", return_value={"USD": 0.2667}):
             ExchangeRateService().refresh_latest_rates("SAR")
         self.assertEqual(get_user_base_info(None)["pivot_currency"], "SAR")
+
+
+class RatesEndpointsReportPivotTests(TestCase):
+    """The Exchange Rates page re-quotes rates on the live pivot; both rates
+    endpoints must report it so the browser's cached copy never goes stale."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="pivot_user", password="pw12345")
+        self.client.force_login(self.user)
+
+    def test_list_reports_the_current_pivot(self):
+        AppSettings.set("exchange_rate_pivot_code", "SAR")
+        data = self.client.get("/api/rates/").json()
+        self.assertEqual(data["pivot_currency"], "SAR")
+
+    def test_refresh_response_reports_the_new_pivot(self):
+        profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        profile.preferred_currency = "SAR"
+        profile.save(update_fields=["preferred_currency"])
+        with override_settings(MULTI_CURRENCY_ENABLED=True), patch(
+            "core.integrations.fetch_latest_exchange_rates",
+            return_value={"USD": 0.2667, "EGP": 3.65},
+        ):
+            data = self.client.post("/api/rates/refresh/").json()
+        self.assertEqual(data["pivot_currency"], "SAR")
+        self.assertEqual(self.client.get("/api/rates/").json()["pivot_currency"], "SAR")

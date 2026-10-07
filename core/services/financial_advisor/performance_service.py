@@ -54,7 +54,7 @@ class PerformanceService:
         gold_value = float(cert_forecast.get("gold_value", 0.0) or 0.0)
 
         # Raw Gold Price History Timeseries
-        gold_history_qs = list(GoldPriceHistory.objects.order_by("timestamp"))
+        gold_history_qs = list(GoldPriceHistory.objects.order_by("timestamp", "id"))
         gold_latest = gold_history_qs[-1] if gold_history_qs else None
 
         gold_view = GoldMarketView(self.owner)

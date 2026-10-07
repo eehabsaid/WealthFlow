@@ -40,8 +40,9 @@ def _latest():
     return LegalVersion.objects.order_by("-created_at", "-id").first()
 
 
-@lru_cache(maxsize=1)
 def _current_snapshot() -> tuple:
+    """Read from the database on every call: a process-level copy outlives
+    rolled-back/flushed rows (tests) and is stale across workers (production)."""
     row = _latest()
     if row is None:
         return (LEGAL_VERSION, False, None, {})
@@ -49,7 +50,7 @@ def _current_snapshot() -> tuple:
 
 
 def clear_cache() -> None:
-    _current_snapshot.cache_clear()
+    """No-op, kept so existing callers keep working (nothing is cached)."""
 
 
 def current_label() -> str:

@@ -181,3 +181,22 @@ class LegalConsentTests(LegalTextBase):
     def test_consent_requires_login(self):
         self.client.logout()
         self.assertIn(self.client.get("/api/legal/consent/").status_code, (401, 403, 302))
+
+
+class LegalSnapshotIsNeverCachedTests(LegalTextBase):
+    """A process-level copy of the current version leaked between tests (and
+    live-server threads); the version must be read from the DB on each call."""
+
+    def test_direct_db_changes_are_visible_without_clear_cache(self):
+        self.assertEqual(current_label(), LEGAL_VERSION)
+        LegalVersion.objects.create(label="v-direct", content={}, require_reconsent=True, created_by=self.admin)
+        self.assertEqual(current_label(), "v-direct")
+        self.assertTrue(needs_reconsent(AuthWorkflowService.get_profile(self.member)))
+        LegalVersion.objects.all().delete()
+        self.assertEqual(current_label(), LEGAL_VERSION)
+        self.assertFalse(needs_reconsent(AuthWorkflowService.get_profile(self.member)))
+
+    def test_clear_cache_is_a_harmless_noop(self):
+        clear_cache()
+        clear_cache()
+        self.assertEqual(current_label(), LEGAL_VERSION)

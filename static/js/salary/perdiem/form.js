@@ -16,6 +16,7 @@ async function showPerDiemFormModal(perDiemId, companyId, year) {
 
     const cData = await cRes.json();
     const rData = await rRes.json();
+    wfSyncRatePivot(rData);
     const pd = pdRes ? await pdRes.json() : null;
 
     const currencies = cData.currencies || [];

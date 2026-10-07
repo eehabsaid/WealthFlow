@@ -24,6 +24,10 @@ async function renderExchangeRates() {
     return;
   }
 
+  // The stored rates are pivoted on whoever refreshed last; keep the cached
+  // pivot (loaded at login) in step so rateInBase() always finds its rows.
+  wfSyncRatePivot(data);
+
   const rates = data.rates || [];
   const fetchedAt = data.fetched_at;
   const hasData = rates.length > 0;

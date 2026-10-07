@@ -35,6 +35,7 @@ async function refreshExchangeRates() {
       const errorMsg = t("error_prefix", "Error: ") + data.error;
       showToast(errorMsg, "error");
     } else {
+      wfSyncRatePivot(data);
       const successMsg = t("rates_updated", "Rates updated ✓");
       showToast(successMsg, "success");
       renderExchangeRates();
