@@ -2642,5 +2642,21 @@
     "legal_editor_err_invalid_content": "Le texte envoyé est invalide.",
     "legal_consent_title": "Conditions et politique de confidentialité mises à jour",
     "legal_consent_body": "Nous avons mis à jour nos conditions d'utilisation et notre politique de confidentialité. Veuillez les lire et les accepter pour continuer.",
-    "legal_consent_accept": "J'accepte"
+    "legal_consent_accept": "J'accepte",
+    "account_data_title": "Vos données",
+    "account_data_subtitle": "Téléchargez une copie de tout ce que vous possédez dans WealthFlow, ou supprimez définitivement votre compte.",
+    "account_data_export_btn": "Exporter mes données",
+    "account_data_export_done": "Vos données ont été téléchargées ✓",
+    "account_data_export_failed": "Impossible d'exporter vos données. Veuillez réessayer.",
+    "account_data_delete_btn": "Supprimer mon compte",
+    "account_data_delete_warning": "Cette action est définitive et irréversible. Votre profil, soldes, dépenses, actifs, documents et conversations IA sont supprimés. Exportez d'abord vos données si vous souhaitez en garder une copie.",
+    "account_data_password_label": "Votre mot de passe",
+    "account_data_confirm_label": "Tapez DELETE pour confirmer",
+    "account_data_confirm_required": "Tapez DELETE pour confirmer.",
+    "account_data_delete_confirm_btn": "Supprimer définitivement",
+    "account_data_cancel_btn": "Annuler",
+    "account_data_deleted": "Votre compte a été supprimé.",
+    "account_data_wrong_password": "Mot de passe incorrect.",
+    "account_data_last_admin": "Vous êtes le seul administrateur. Nommez d'abord un autre administrateur.",
+    "account_data_delete_failed": "Impossible de supprimer le compte. Veuillez réessayer."
 }

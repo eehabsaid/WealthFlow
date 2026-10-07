@@ -13,6 +13,7 @@ from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 
 from core.validators.json_body import parse_json_body
+from core.services.account import deletion_blocker, purge_user
 from core.services.shared.auth_workflow_service import AuthWorkflowService
 from core.views.auth_views import AdminRequiredMixin, _build_user_dict
 
@@ -109,7 +110,9 @@ class UserDetailView(AdminRequiredMixin, View):
 
     def delete(self, request, pk):
         user = get_object_or_404(User, pk=pk)
-        user.delete()
+        if user.pk == request.user.pk and deletion_blocker(user):
+            return JsonResponse({"error": "last_admin", "message": deletion_blocker(user)}, status=409)
+        purge_user(user)
         return JsonResponse({"deleted": pk})
 
 
@@ -128,7 +131,8 @@ class UserBulkActionView(AdminRequiredMixin, View):
         changed = 0
         if action == "delete":
             changed = users.count()
-            users.delete()
+            for doomed in list(users):
+                purge_user(doomed)
         elif action == "activate":
             changed = users.count()
             for user in users:

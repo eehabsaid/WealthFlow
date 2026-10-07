@@ -46,7 +46,9 @@ function _paintPlansPage(plans, subscription, pendingRequest) {
         ${_currencySelectHtml(currencies)}
         <div class="wf-plans-grid">
             ${plans.length ? plans.map((p) => _planCardHtml(p, currentPlanId, pendingRequest)).join("") : `<p>${t("no_active_plans", "No plans available yet.")}</p>`}
-        </div>`;
+        </div>
+        <div id="wf-account-data"></div>`;
+  if (typeof renderAccountDataCard === "function") renderAccountDataCard();
 }
 
 function _plansPageCurrencyOptions(plans) {

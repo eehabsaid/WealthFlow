@@ -2642,5 +2642,21 @@
     "legal_editor_err_invalid_content": "Der gesendete Text ist ungültig.",
     "legal_consent_title": "Aktualisierte Bedingungen und Datenschutzerklärung",
     "legal_consent_body": "Wir haben unsere Nutzungsbedingungen und Datenschutzerklärung aktualisiert. Bitte prüfen und akzeptieren Sie diese, um fortzufahren.",
-    "legal_consent_accept": "Ich stimme zu"
+    "legal_consent_accept": "Ich stimme zu",
+    "account_data_title": "Ihre Daten",
+    "account_data_subtitle": "Laden Sie eine Kopie aller Ihrer Daten in WealthFlow herunter oder löschen Sie Ihr Konto endgültig.",
+    "account_data_export_btn": "Meine Daten exportieren",
+    "account_data_export_done": "Ihre Daten wurden heruntergeladen ✓",
+    "account_data_export_failed": "Ihre Daten konnten nicht exportiert werden. Bitte versuchen Sie es erneut.",
+    "account_data_delete_btn": "Mein Konto löschen",
+    "account_data_delete_warning": "Dies ist endgültig und kann nicht rückgängig gemacht werden. Ihr Profil, Salden, Ausgaben, Vermögenswerte, Dokumente und KI-Chats werden gelöscht. Exportieren Sie zuerst Ihre Daten, wenn Sie eine Kopie behalten möchten.",
+    "account_data_password_label": "Ihr Passwort",
+    "account_data_confirm_label": "Geben Sie DELETE zur Bestätigung ein",
+    "account_data_confirm_required": "Geben Sie DELETE zur Bestätigung ein.",
+    "account_data_delete_confirm_btn": "Endgültig löschen",
+    "account_data_cancel_btn": "Abbrechen",
+    "account_data_deleted": "Ihr Konto wurde gelöscht.",
+    "account_data_wrong_password": "Falsches Passwort.",
+    "account_data_last_admin": "Sie sind der einzige Administrator. Machen Sie zuerst einen anderen Benutzer zum Administrator.",
+    "account_data_delete_failed": "Das Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
 }

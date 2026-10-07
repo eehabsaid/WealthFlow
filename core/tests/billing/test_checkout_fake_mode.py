@@ -8,7 +8,7 @@ import json
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from core.models import Currency, Invoice, Plan, PlanPrice, Subscription
 from core.services.billing import PaymobGateway
@@ -17,6 +17,7 @@ from core.services.billing.subscription_service import SubscriptionService
 User = get_user_model()
 
 
+@override_settings(BILLING_TEST_MODE=True)
 class CheckoutFakeModeTestCase(TestCase):
     """Paymob isn't configured in these tests (no AppSettings keys set),
     so checkout should always fall back to fake/test mode."""

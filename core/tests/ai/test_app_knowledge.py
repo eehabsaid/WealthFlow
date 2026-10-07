@@ -65,6 +65,37 @@ class RetrievalTests(TestCase):   # reads AppSettings (semantic switch)
         self.assertTrue(any(i.startswith("flow:Fixed assets") for i in ids), ids)
         self.assertTrue(any(i.startswith("flow:Expenses") or i.startswith("flow:Double") for i in ids), ids)
 
+    def test_french_questions_reach_the_english_knowledge(self):
+        for q in ("Où dois-je enregistrer le prix d'un ordinateur acheté ? Dans les actifs ou les dépenses ?",
+                  "Si j'ai acheté un téléphone, où saisir le prix : actifs immobilisés ou dépenses ?"):
+            ids = self.ids(q)
+            self.assertTrue(any(i.startswith("flow:Fixed assets") for i in ids), (q, ids))
+            self.assertTrue(any(i.startswith(("flow:Expenses", "flow:Double", "flow:Mirroring")) for i in ids), (q, ids))
+        self.assertTrue(any("credit_card_payment" in i for i in self.ids("Où enregistrer le paiement de ma carte de crédit ?")))
+        self.assertTrue(any("renovations" in i or i.startswith("flow:Fixed assets") for i in self.ids("Comment saisir les frais de rénovation de mon appartement ?")))
+
+    def test_german_questions_reach_the_english_knowledge(self):
+        for q in ("Wo soll ich den Kaufpreis eines Computers erfassen: Vermögenswerte oder Ausgaben?",
+                  "Wenn ich ein Handy gekauft habe, wo buche ich den Preis, bei den Anlagegütern oder den Ausgaben?"):
+            ids = self.ids(q)
+            self.assertTrue(any(i.startswith("flow:Fixed assets") for i in ids), (q, ids))
+            self.assertTrue(any(i.startswith(("flow:Expenses", "flow:Double", "flow:Mirroring")) for i in ids), (q, ids))
+        self.assertTrue(any("credit_card_payment" in i for i in self.ids("Wo erfasse ich die Zahlung meiner Kreditkarte?")))
+        self.assertTrue(any("renovations" in i or i.startswith("flow:Fixed assets") for i in self.ids("Wie erfasse ich die Renovierungskosten meiner Wohnung?")))
+
+    def test_accents_and_umlauts_fold_instead_of_splitting_words(self):
+        from core.services.ai.app_knowledge.query_terms_fr_de import fold, foreign_terms
+
+        self.assertEqual(fold("Dépenses Vermögenswerte Straße"), "depenses vermogenswerte strasse")
+        self.assertIn("expense", foreign_terms("mes dépenses"))
+        self.assertIn("expense", foreign_terms("meine Ausgaben"))
+        self.assertIn("price", foreign_terms("der Kaufpreis"))
+        self.assertEqual(foreign_terms("how much did I spend"), set())
+        self.assertEqual(foreign_terms(LAPTOP), set())   # English "or"/"in"/"its" must never map to French/German words
+        from core.services.ai.app_knowledge.scoring import expand_query
+        self.assertNotIn("gold", expand_query(LAPTOP))
+        self.assertEqual(fold("مصروفات ٢"), "مصروفات ٢")  # Arabic untouched
+
     def test_nothing_is_hard_coded_for_the_trigger_question(self):
         root = Path(settings.BASE_DIR)
         scanned = list((root / "core/services/ai/app_knowledge").glob("*.py")) + list((root / "core/views/ai_chat/chat_pipeline").glob("*.py"))
@@ -77,10 +108,16 @@ class QuestionKindTests(SimpleTestCase):
     def test_workflow_questions(self):
         for q in (LAPTOP, "where do I record my credit card payment?", "how should I enter renovation costs?",
                   "should I add my car insurance as an expense?", "If I sold my car, where do I put the money?",
-                  "أين أسجل شراء لابتوب؟"):
+                  "أين أسجل شراء لابتوب؟",
+                  "Où dois-je enregistrer mon achat d'ordinateur ?", "Comment saisir une dépense de carte ?",
+                  "Si j'ai acheté un portable, où le noter ?", "Est-ce mieux de le mettre en dépense ?",
+                  "Wo erfasse ich einen Computer-Kauf?", "Soll ich das als Ausgabe oder Vermögenswert buchen?",
+                  "Wenn ich ein Auto verkauft habe, wo trage ich das Geld ein?"):
             self.assertTrue(ak.is_workflow_question(q), q)
 
     def test_lookups_and_actions_are_not(self):
         for q in ("how much did I spend in June 2026?", "what is my balance", "show salary for March",
-                  "add an expense of 50 for lunch", "hello", "", "x" * 600):
+                  "add an expense of 50 for lunch", "hello", "", "x" * 600,
+                  "Quel est mon solde ?", "Combien ai-je dépensé en juin ?", "Ajoute une dépense de 50",
+                  "Wie hoch sind meine Ausgaben im März?", "Füge eine Ausgabe von 50 hinzu", "Zeige mein Gehalt"):
             self.assertFalse(ak.is_workflow_question(q), q)

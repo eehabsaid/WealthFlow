@@ -2642,5 +2642,21 @@
     "legal_editor_err_invalid_content": "The submitted text is invalid.",
     "legal_consent_title": "Updated Terms and Privacy Policy",
     "legal_consent_body": "We updated our Terms of Service and Privacy Policy. Please review and accept them to continue.",
-    "legal_consent_accept": "I accept"
+    "legal_consent_accept": "I accept",
+    "account_data_title": "Your data",
+    "account_data_subtitle": "Download a copy of everything you own in WealthFlow, or permanently delete your account.",
+    "account_data_export_btn": "Export my data",
+    "account_data_export_done": "Your data was downloaded ✓",
+    "account_data_export_failed": "Couldn't export your data. Please try again.",
+    "account_data_delete_btn": "Delete my account",
+    "account_data_delete_warning": "This is permanent and cannot be undone. Your profile, balances, expenses, assets, documents and AI chats are deleted. Export your data first if you want to keep a copy.",
+    "account_data_password_label": "Your password",
+    "account_data_confirm_label": "Type DELETE to confirm",
+    "account_data_confirm_required": "Type DELETE to confirm.",
+    "account_data_delete_confirm_btn": "Permanently delete",
+    "account_data_cancel_btn": "Cancel",
+    "account_data_deleted": "Your account was deleted.",
+    "account_data_wrong_password": "Wrong password.",
+    "account_data_last_admin": "You are the only administrator. Make another user an administrator first.",
+    "account_data_delete_failed": "Couldn't delete the account. Please try again."
 }

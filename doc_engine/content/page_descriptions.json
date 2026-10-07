@@ -1077,7 +1077,8 @@
     "steps": [
       "Check the banner under the top bar: it shows the days left in your trial, or that your trial or subscription has ended.",
       "Compare the available plans and choose Upgrade to request or start a paid plan.",
-      "After upgrading, access to every page is restored immediately; your data is kept while the account is locked."
+      "After upgrading, access to every page is restored immediately; your data is kept while the account is locked.",
+      "Under the plans, the Your data card lets you Export my data (a JSON file with everything you own) or Delete my account: enter your password and type DELETE; this is permanent and also works while the account is locked."
     ]
   },
   "settings::settings-billing": {

@@ -183,3 +183,53 @@
   background: color-mix(in srgb, var(--accent-green) 18%, transparent);
   color: var(--accent-green);
 }
+
+/* Account data (export / delete) */
+
+.wf-account-card {
+  max-width: 900px;
+  margin: 32px auto 0;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.wf-account-card h2 {
+  font-size: 18px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.wf-account-card p {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.wf-account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.wf-account-delete-form {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.wf-account-delete-form label {
+  display: block;
+  margin: 10px 0 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.wf-account-delete-form input {
+  max-width: 320px;
+}
+
+.wf-account-warning {
+  color: var(--danger, #dc3545) !important;
+}

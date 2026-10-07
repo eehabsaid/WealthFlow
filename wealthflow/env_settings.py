@@ -13,6 +13,9 @@ Env vars (all optional except SECRET_KEY when DEBUG is off):
   WEALTHFLOW_PROXY_COUNT         proxies in front of the app (default 1)
   WEALTHFLOW_SSL_REDIRECT        default true when DEBUG is false
   WEALTHFLOW_HSTS_SECONDS        default 2592000 (30 days) when DEBUG is false
+  WEALTHFLOW_BILLING_TEST_MODE   true allows fake/test-mode checkout when no Paymob
+                                 account is configured (default: same as DEBUG, so
+                                 production without Paymob never gives free upgrades)
   WEALTHFLOW_MULTI_CURRENCY      true lets users pick a default currency other
                                  than the platform default (work in progress)
 """
@@ -55,6 +58,7 @@ def build_security_settings(environ) -> dict:
     cfg = {
         "MULTI_CURRENCY_ENABLED": _bool(environ, "WEALTHFLOW_MULTI_CURRENCY", True),
         "DEBUG": debug,
+        "BILLING_TEST_MODE": _bool(environ, "WEALTHFLOW_BILLING_TEST_MODE", debug),
         "SECRET_KEY": secret,
         "ALLOWED_HOSTS": _list(environ, "WEALTHFLOW_ALLOWED_HOSTS", DEFAULT_HOSTS),
         "CSRF_TRUSTED_ORIGINS": _list(environ, "WEALTHFLOW_CSRF_TRUSTED_ORIGINS", DEFAULT_TRUSTED_ORIGINS),

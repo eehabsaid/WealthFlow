@@ -7,6 +7,7 @@ Tests:
  2. Clicking "Upgrade" in that banner actually lands on the Plans page
     (#billing-plans), instead of being silently bounced back to Welcome.
  3. When that account's trial has ended the app is locked to the upgrade page (tests/modules/billing_lock.py).
+ 4. The plans page 'Your data' card: export my data / delete my account (tests/modules/billing_account.py).
 
 This is a regression test for a bug where route_dispatch.js's
 welcome-only redirect ran before checking whether the target route
@@ -25,6 +26,7 @@ this code path at all.
 
 from tests.core.test_context import TestContext
 from tests.modules.billing_gateway import check_gateway_settings
+from tests.modules.billing_account import check_account_data_card
 from tests.modules.billing_lock import check_lapsed_lock
 
 BILLING_TEST_USERNAME = "testuser"
@@ -118,6 +120,7 @@ def test_billing_module(context, reporter, screenshot_logger):
         )
 
         check_lapsed_lock(page, reporter, screenshot_logger)
+        check_account_data_card(page, reporter, screenshot_logger)
 
     except Exception as ex:
         shot_err = screenshot_logger.capture(context.page, "billing", "upgrade_flow", "error", "fail", "fail")

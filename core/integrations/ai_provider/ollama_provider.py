@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any, Optional
 
@@ -11,6 +10,8 @@ from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
 from core.services.ai.credential_encryption import redact_secrets
 
 from .base import BaseAIProvider
+from .ollama_options import build_options
+from .ollama_response import parse_message
 from .ollama_payload import apply_runtime_flags, format_timing, is_think_unsupported_error
 from .ollama_connection_mixin import OllamaConnectionMixin
 
@@ -110,46 +111,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
         # For chat generation, allow up to 180s (3 minutes) by default to accommodate local LLMs
         timeout = int(kwargs.get("timeout") or max(self.timeout, 180))
 
-        options: dict[str, Any] = {}
-        try:
-            options["num_predict"] = int(kwargs.get("max_tokens") or self.user_options.get("max_tokens") or AppSettings.get("ai_max_tokens", "2048"))
-        except (ValueError, TypeError):
-            pass
-        try:
-            options["temperature"] = float(kwargs.get("temperature") or self.user_options.get("temperature") or AppSettings.get("ai_temperature", "0.7"))
-        except (ValueError, TypeError):
-            pass
-        try:
-            options["num_ctx"] = int(kwargs.get("context_size") or self.user_options.get("context_size") or AppSettings.get("ai_context_size", "4096"))
-        except (ValueError, TypeError):
-            pass
-        try:
-            top_k_val = kwargs.get("top_k") or AppSettings.get("ai_top_k", None)
-            if top_k_val not in (None, ""):
-                options["top_k"] = int(top_k_val)
-        except (ValueError, TypeError):
-            pass
-        try:
-            top_p_val = kwargs.get("top_p") or AppSettings.get("ai_top_p", None)
-            if top_p_val not in (None, ""):
-                options["top_p"] = float(top_p_val)
-        except (ValueError, TypeError):
-            pass
-        try:
-            repeat_penalty_val = kwargs.get("repeat_penalty") or AppSettings.get("ai_repeat_penalty", None)
-            if repeat_penalty_val not in (None, ""):
-                options["repeat_penalty"] = float(repeat_penalty_val)
-        except (ValueError, TypeError):
-            pass
-        try:
-            # ai_seed: blank means "no fixed seed" (non-deterministic) — the
-            # normal case. Only set options["seed"] when a real value is
-            # configured; an empty string must never reach int().
-            seed_val = kwargs.get("seed") or AppSettings.get("ai_seed", None)
-            if seed_val not in (None, ""):
-                options["seed"] = int(seed_val)
-        except (ValueError, TypeError):
-            pass
+        options = build_options(kwargs, self.user_options)
 
         payload: dict[str, Any] = {
             "model": model_name,
@@ -180,23 +142,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
         if not isinstance(data, dict):
             return {"content": "", "tool_calls": None, "prompt_tokens": None, "completion_tokens": None, "error": "Invalid JSON response from Ollama API."}
 
-        msg = data.get("message", {})
-        content = ""
-        tool_calls = None
-        if isinstance(msg, dict):
-            content = str(msg.get("content", "")).strip()
-            tool_calls = msg.get("tool_calls")
-            if not tool_calls and content and content.startswith("{") and ("function" in content or "name" in content):
-                try:
-                    parsed = json.loads(content)
-                    if isinstance(parsed, dict):
-                        fn_name = parsed.get("function") or parsed.get("name")
-                        fn_args = parsed.get("parameters") or parsed.get("arguments") or {}
-                        if isinstance(fn_name, str) and fn_name and isinstance(fn_args, dict):
-                            tool_calls = [{"function": {"name": fn_name, "arguments": fn_args}}]
-                            content = ""
-                except (json.JSONDecodeError, TypeError, ValueError):
-                    pass
+        content, tool_calls = parse_message(data.get("message", {}))
 
         # WARNING level on purpose: the project has no LOGGING config, so INFO is hidden.
         logger.warning(format_timing(model_name, data))

@@ -2642,5 +2642,21 @@
     "legal_editor_err_invalid_content": "النص المُرسل غير صالح.",
     "legal_consent_title": "تم تحديث الشروط وسياسة الخصوصية",
     "legal_consent_body": "قمنا بتحديث شروط الخدمة وسياسة الخصوصية. يُرجى مراجعتهما والموافقة عليهما للمتابعة.",
-    "legal_consent_accept": "أوافق"
+    "legal_consent_accept": "أوافق",
+    "account_data_title": "بياناتك",
+    "account_data_subtitle": "نزّل نسخة من كل ما تملكه في WealthFlow، أو احذف حسابك نهائيًا.",
+    "account_data_export_btn": "تصدير بياناتي",
+    "account_data_export_done": "تم تنزيل بياناتك ✓",
+    "account_data_export_failed": "تعذّر تصدير بياناتك. حاول مرة أخرى.",
+    "account_data_delete_btn": "حذف حسابي",
+    "account_data_delete_warning": "هذا الإجراء نهائي ولا يمكن التراجع عنه. سيتم حذف ملفك الشخصي وأرصدتك ومصروفاتك وأصولك ومستنداتك ومحادثات الذكاء الاصطناعي. صدّر بياناتك أولًا إذا أردت الاحتفاظ بنسخة.",
+    "account_data_password_label": "كلمة مرورك",
+    "account_data_confirm_label": "اكتب DELETE للتأكيد",
+    "account_data_confirm_required": "اكتب DELETE للتأكيد.",
+    "account_data_delete_confirm_btn": "حذف نهائي",
+    "account_data_cancel_btn": "إلغاء",
+    "account_data_deleted": "تم حذف حسابك.",
+    "account_data_wrong_password": "كلمة المرور غير صحيحة.",
+    "account_data_last_admin": "أنت المسؤول الوحيد. اجعل مستخدمًا آخر مسؤولًا أولًا.",
+    "account_data_delete_failed": "تعذّر حذف الحساب. حاول مرة أخرى."
 }

@@ -5,49 +5,22 @@ trial users aren't blocked while Ehab sets up real payment keys.
 
 import logging
 from datetime import timedelta
-from decimal import ROUND_HALF_UP, Decimal
 
 from django.utils import timezone
 
 from core.models import Currency, Invoice, Plan
+from core.services.billing.checkout_helpers import (  # noqa: F401  (re-exported: import paths stay stable)
+    _MERCHANT_ORDER_PREFIX,
+    NO_GATEWAY_MESSAGE,
+    CheckoutError,
+    _billing_data_for,
+    amount_to_cents,
+    test_payments_allowed,
+)
 from core.services.billing.paymob_gateway import PaymobConfigError, PaymobGateway
 from core.services.billing.subscription_service import SubscriptionService
 
 logger = logging.getLogger(__name__)
-
-_MERCHANT_ORDER_PREFIX = "wf-inv-"
-# ISO country for Paymob's billing_data, per charge currency (placeholder "NA" otherwise).
-_COUNTRY_BY_CURRENCY = {"EGP": "EG", "SAR": "SA", "AED": "AE"}
-
-
-def amount_to_cents(amount) -> int:
-    """Smallest-unit amount Paymob expects, rounded (never truncated)."""
-    return int((Decimal(str(amount)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-
-
-class CheckoutError(Exception):
-    pass
-
-
-def _billing_data_for(user, currency_code: str = "") -> dict:
-    """Paymob requires a billing_data block; most fields aren't collected
-    by WealthFlow, so placeholders are used where nothing real exists."""
-    name = (getattr(user, "get_full_name", lambda: "")() or user.username or "Customer").strip()
-    first, _, last = name.partition(" ")
-    return {
-        "first_name": first or "Customer",
-        "last_name": last or "Customer",
-        "email": getattr(user, "email", "") or "customer@example.com",
-        "phone_number": "+00000000000",
-        "apartment": "NA",
-        "floor": "NA",
-        "street": "NA",
-        "building": "NA",
-        "city": "NA",
-        "country": _COUNTRY_BY_CURRENCY.get(str(currency_code).upper(), "NA"),
-        "state": "NA",
-    }
-
 
 class CheckoutService:
     @staticmethod
@@ -83,6 +56,9 @@ class CheckoutService:
                 "Please choose another currency or contact support."
             )
 
+        if not PaymobGateway.any_configured() and not test_payments_allowed():
+            raise CheckoutError(NO_GATEWAY_MESSAGE)
+
         invoice = cls._create_pending_invoice(user, plan, currency)
 
         if not PaymobGateway.any_configured():
@@ -112,10 +88,13 @@ class CheckoutService:
 
     @classmethod
     def complete_fake_payment(cls, user, invoice_id) -> Invoice:
-        """Test-mode only. Stops working the moment Paymob is fully
-        configured, so it can never be used to bypass real payment."""
+        """Test-mode only. Stops working the moment Paymob is configured,
+        and is refused outright unless BILLING_TEST_MODE is on, so it can
+        never be used to bypass real payment."""
         if PaymobGateway.any_configured():
             raise CheckoutError("Fake payments are disabled once a real payment gateway is configured.")
+        if not test_payments_allowed():
+            raise CheckoutError(NO_GATEWAY_MESSAGE)
 
         invoice = (
             Invoice.objects.filter(id=invoice_id, owner=user, status="pending")

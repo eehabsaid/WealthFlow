@@ -5,7 +5,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from core.authentication.services import AuthWorkflowService
@@ -124,6 +124,7 @@ class SubscriptionEnforcementTests(TestCase):
         self.assertEqual(Invoice.objects.get(pk=inv.pk).status, "pending")
         self.assertTrue(_is_402(self.client.get("/api/balance/")))            # still locked
 
+    @override_settings(BILLING_TEST_MODE=True)
     def test_fake_checkout_unlocks_only_in_test_mode_without_a_gateway(self):
         u, inv = self._lapsed_with_invoice("pay_fake")
         with patch("core.services.billing.paymob_gateway.PaymobGateway.any_configured", return_value=False):

@@ -9,6 +9,7 @@ Sibling modules:
 - financial_advisor_urls.py: forecasts, overview, optimizer, risk analysis, scenarios, goal planning, ai chat
 - ai_platform_urls.py: knowledge base, datasets, models, benchmarks, prompt library
 - billing_urls.py: subscription status, plan list
+- account_urls.py: own-data export, delete my account
 - budget_urls.py: budgets, recurring transactions, alerts
 - import_urls.py: CSV/Excel/bank-statement import preview + confirm
 - pwa_urls.py: web app manifest, service worker, offline page
@@ -24,6 +25,7 @@ from .fixed_assets_urls import urlpatterns as fixed_assets_urlpatterns
 from .financial_advisor_urls import urlpatterns as financial_advisor_urlpatterns
 from .ai_platform_urls import urlpatterns as ai_platform_urlpatterns
 from .billing_urls import urlpatterns as billing_urlpatterns
+from .account_urls import urlpatterns as account_urlpatterns
 from .budget_urls import urlpatterns as budget_urlpatterns
 from .import_urls import urlpatterns as import_urlpatterns
 from .pwa_urls import urlpatterns as pwa_urlpatterns
@@ -37,6 +39,7 @@ urlpatterns = (
     + financial_advisor_urlpatterns
     + ai_platform_urlpatterns
     + billing_urlpatterns
+    + account_urlpatterns
     + budget_urlpatterns
     + import_urlpatterns
     + pwa_urlpatterns

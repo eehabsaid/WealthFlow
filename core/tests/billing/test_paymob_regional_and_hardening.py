@@ -6,7 +6,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from core.models import AppSettings, Currency, Invoice, Plan, PlanPrice
 from core.services.ai.credential_encryption import encrypt_credential
@@ -93,6 +93,7 @@ class RegionalConfigTests(_Base):
         with self.assertRaises(CheckoutError):
             CheckoutService.initiate_checkout(self.user, self.plan, self.egp)
 
+    @override_settings(BILLING_TEST_MODE=True)
     def test_unconfigured_everywhere_stays_fake_mode(self):
         self.assertFalse(PaymobGateway.any_configured())
         self.assertEqual(CheckoutService.initiate_checkout(self.user, self.plan, self.sar)["mode"], "fake")

@@ -15,8 +15,21 @@ _PATTERNS = tuple(re.compile(p, _FLAGS) for p in (
     r"\bif i (bought|buy|sold|sell|paid|pay|received|get|got|lent|borrowed)\b",
     r"(أين|اين|كيف)\s.{0,60}(أسجل|اسجل|أضيف|اضيف|أدخل|ادخل|أحتسب|احتسب)",
     r"هل (يجب|ينبغي|الأفضل)",
+    # French
+    r"\b(où|comment)\b.{0,70}\b(enregistr\w*|saisir|ajouter|noter|comptabilis\w*|classer|mettre|ranger|dois-je|devrais-je|puis-je|dois je|puis je)\b",
+    r"\b(dois|devrais)[- ]je\b",
+    r"\bsi j['’](ai|achète|vends|paie|reçois)\b.{0,40}\b(acheté|vendu|payé|reçu|achète|vends|paie|reçois)\b",
+    r"\best-ce (mieux|correct|bien) de\b",
+    # German
+    r"\b(wo|wie)\b.{0,70}\b(erfass\w*|eintrag\w*|buch\w*|verbuch\w*|hinzufüg\w*|speicher\w*|einordn\w*|kategorisier\w*|soll ich|muss ich|kann ich)\b",
+    r"\bsoll(te)? ich\b",
+    r"\bwenn ich\b.{0,50}\b(gekauft|verkauft|bezahlt|erhalten|kaufe|verkaufe|bezahle)\b",
 ))
-_ACTION_START = re.compile(r"^\s*(please\s+)?(add|create|delete|remove|update|edit|transfer|pay|change)\b", _FLAGS)
+_ACTION_START = re.compile(
+    r"^\s*(please\s+|s'il vous plaît\s+|bitte\s+)?(add|create|delete|remove|update|edit|transfer|pay|change"
+    r"|ajoute|crée|supprime|modifie|virer|paie|füge|erstelle|lösche|ändere|überweise|zahle)\b",
+    _FLAGS,
+)
 
 
 def is_workflow_question(text: str) -> bool:

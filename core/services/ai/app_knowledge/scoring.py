@@ -7,6 +7,7 @@ import math
 import re
 from typing import Any
 
+from core.services.ai.app_knowledge.query_terms_fr_de import fold, foreign_terms
 from core.services.ai.codebase_search import query_tokens, tokenize
 
 # Query-side normalisation only (everyday wording -> the words the app's own text uses). Not answers.
@@ -47,7 +48,8 @@ def semantic_enabled() -> bool:
 
 
 def expand_query(query: str) -> set[str]:
-    tokens = set(query_tokens(query))
+    tokens = set(query_tokens(fold(query)))  # fold: accents/umlauts no longer split FR/DE words into fragments
+    tokens.update(foreign_terms(query))
     for word in _AR_WORD.findall(query or ""):
         for cand in (word, *(word[len(p):] for p in _AR_PREFIXES if word.startswith(p) and len(word) - len(p) >= 2)):
             tokens.update(_AR_TERMS.get(cand, ()))
