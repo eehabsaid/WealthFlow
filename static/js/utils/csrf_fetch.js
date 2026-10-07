@@ -29,6 +29,32 @@
 
   window.wfGetCsrfToken = () => getCookie("csrftoken");
 
+  // A 402 {"error": "subscription_required"} means the trial/subscription lapsed: refresh the billing state once
+  // (many calls fail together) so the banner shows and the router locks the app to the upgrade page.
+  let lastSubscriptionCheck = 0;
+  function watchSubscription(promise, url) {
+    return promise.then((res) => {
+      if (res.status === 402 && isSameOrigin(url)) {
+        res
+          .clone()
+          .json()
+          .then((body) => {
+            const now = Date.now();
+            if (
+              body &&
+              body.error === "subscription_required" &&
+              now - lastSubscriptionCheck > 5000
+            ) {
+              lastSubscriptionCheck = now;
+              if (typeof window.checkBillingStatus === "function") window.checkBillingStatus();
+            }
+          })
+          .catch(() => {});
+      }
+      return res;
+    });
+  }
+
   window.fetch = function (input, init) {
     const options = init || {};
     const isRequest = typeof Request !== "undefined" && input instanceof Request;
@@ -37,13 +63,13 @@
     const token = getCookie("csrftoken");
 
     if (SAFE_METHODS.test(method) || !token || !isSameOrigin(url)) {
-      return nativeFetch(input, init);
+      return watchSubscription(nativeFetch(input, init), url);
     }
 
     const headers = new Headers(options.headers || (isRequest ? input.headers : undefined));
     if (!headers.get("X-CSRFToken")) {
       headers.set("X-CSRFToken", token);
     }
-    return nativeFetch(input, Object.assign({}, options, { headers }));
+    return watchSubscription(nativeFetch(input, Object.assign({}, options, { headers })), url);
   };
 })();

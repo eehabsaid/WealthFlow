@@ -30,6 +30,11 @@ function route() {
   const hash =
     requested || storedRoute || (shouldShowWelcomeOnly() ? "welcome" : getFirstAllowedRoute());
 
+  if (isSubscriptionLapsed() && hash !== "billing-plans") {
+    navigate("billing-plans");
+    return;
+  }
+
   if (shouldShowWelcomeOnly() && hash !== "welcome" && hash !== "billing-plans") {
     navigate("welcome");
     return;

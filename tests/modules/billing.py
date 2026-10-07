@@ -6,6 +6,7 @@ Tests:
     page access) sees the trial/expired banner.
  2. Clicking "Upgrade" in that banner actually lands on the Plans page
     (#billing-plans), instead of being silently bounced back to Welcome.
+ 3. When that account's trial has ended the app is locked to the upgrade page (tests/modules/billing_lock.py).
 
 This is a regression test for a bug where route_dispatch.js's
 welcome-only redirect ran before checking whether the target route
@@ -24,6 +25,7 @@ this code path at all.
 
 from tests.core.test_context import TestContext
 from tests.modules.billing_gateway import check_gateway_settings
+from tests.modules.billing_lock import check_lapsed_lock
 
 BILLING_TEST_USERNAME = "testuser"
 BILLING_TEST_PASSWORD = "Eehabdev1"
@@ -114,6 +116,8 @@ def test_billing_module(context, reporter, screenshot_logger):
             if plans_grid
             else "Plans grid missing after navigating to #billing-plans.",
         )
+
+        check_lapsed_lock(page, reporter, screenshot_logger)
 
     except Exception as ex:
         shot_err = screenshot_logger.capture(context.page, "billing", "upgrade_flow", "error", "fail", "fail")

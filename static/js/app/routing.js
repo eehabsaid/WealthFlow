@@ -4,6 +4,9 @@ function routeAllowed(hash) {
   if (isPrivilegedUser()) {
     return true;
   }
+  if (isSubscriptionLapsed()) {
+    return hash === "billing-plans"; // lapsed trial/subscription: only the upgrade page is available
+  }
   if (hash === "billing-plans") {
     // Every account can view/upgrade their own plan, regardless of assigned page permissions.
     return true;
@@ -71,6 +74,9 @@ function routeAllowed(hash) {
 function getFirstAllowedRoute() {
   if (isPrivilegedUser()) {
     return "dashboard";
+  }
+  if (isSubscriptionLapsed()) {
+    return "billing-plans";
   }
 
   // For normal users, homepage should be one of the assigned pages.

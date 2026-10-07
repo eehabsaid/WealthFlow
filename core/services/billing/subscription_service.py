@@ -8,7 +8,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 from core.constants import TRIAL_DAYS_DEFAULT
-from core.models import Plan, Subscription
+from core.models import Plan, Subscription, UserProfile
 
 
 class SubscriptionService:
@@ -54,6 +54,21 @@ class SubscriptionService:
             cls._expire_trial(subscription)
             return False
         return subscription.has_access()
+
+    @classmethod
+    def is_lapsed(cls, user) -> bool:
+        """True when `user` HAS a subscription that no longer grants access (expired trial, canceled, unpaid).
+
+        Deliberately False for: anonymous users, superusers, sysadmins (platform operators must always reach
+        billing/settings), and users with no subscription row at all (accounts created by a sysadmin are not
+        billed; signup always creates a trial, so a row exists for every self-registered user)."""
+        if user is None or not user.is_authenticated or user.is_superuser:
+            return False
+        subscription = cls.get_subscription(user)
+        if subscription is None or cls.has_active_access(user):
+            return False
+        profile = UserProfile.objects.filter(user=user).only("is_sysadmin").first()
+        return not (profile and profile.is_sysadmin)
 
     @staticmethod
     def _expire_trial(subscription: Subscription) -> None:

@@ -43,6 +43,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "axes.middleware.AxesMiddleware",
     "core.middleware.LoginRequiredMiddleware",
+    "core.middleware.SubscriptionRequiredMiddleware",
     "core.middleware.JsonBodyErrorMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",

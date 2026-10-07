@@ -18,6 +18,8 @@ async function checkBillingStatus() {
     // (e.g. AI Workplace) without a second round-trip.
     window._billingSubscription = data.subscription || null;
     _renderTrialBanner(data.subscription, data.pending_upgrade_request);
+    // Lapsed trial/subscription: lock the app to the upgrade page (also covers status arriving after first route()).
+    if (isSubscriptionLapsed() && typeof route === "function") route();
   } catch (e) {}
 }
 

@@ -107,15 +107,6 @@
       "Set the default monthly AI token limit and optional per-user overrides in the 'Monthly AI token limit per user' frame, above the platform and model-history section: a blank override uses the default and 0 means unlimited. Search users by name or email, filter by AI settings mode, use Toggle Select All (or tick users) and Apply to selected to set one limit for many users at once. Limits apply only to users on the general app settings; users on their own AI settings are never limited. Long tables show 5 rows with a Show all / Show less toggle."
     ]
   },
-  "settings::settings-legal": {
-    "purpose": "System administrators edit the Privacy Policy and Terms of Service text shown on the public /privacy/ and /terms/ pages, per language, and keep a version history.",
-    "steps": [
-      "Pick a language and a document (Terms of Service or Privacy Policy), then edit the page title and each section title and text; add or remove sections, or reset the document to the built-in text.",
-      "Type a new version label and press Publish new version. Languages you did not edit keep the built-in text, and accounts keep the version they accepted at signup.",
-      "Tick Require every user to accept this version again to show every user a one-time acceptance dialog after login.",
-      "Use Load into editor on a row of the version history to start a new version from an older one."
-    ]
-  },
   "settings::settings-myai": {
     "purpose": "Choose whether your AI Advisor uses the general app settings or your own provider, model, API key and generation options.",
     "steps": [
@@ -1070,6 +1061,14 @@
       "Open Terms of Service from the link under the sign-in or sign-up form, or from the sidebar footer.",
       "Read the sections on your account, acceptable use, plans and payments, and liability.",
       "Use the language selector to read it in English, Arabic, French or German."
+    ]
+  },
+  "billing-plans": {
+    "purpose": "View your plan and trial status, and upgrade. When a free trial or subscription has ended, this is the only page available: the rest of the app is locked until you upgrade.",
+    "steps": [
+      "Check the banner under the top bar: it shows the days left in your trial, or that your trial or subscription has ended.",
+      "Compare the available plans and choose Upgrade to request or start a paid plan.",
+      "After upgrading, access to every page is restored immediately; your data is kept while the account is locked."
     ]
   },
   "settings::settings-billing": {
