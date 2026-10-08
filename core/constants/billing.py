@@ -8,6 +8,7 @@ SUBSCRIPTION_STATUS_CHOICES = [
     ("past_due", "Past Due"),
     ("canceled", "Canceled"),
     ("expired", "Expired"),
+    ("suspended", "Suspended"),
 ]
 
 # Statuses under which the user should still be granted access to the app.
@@ -24,6 +25,7 @@ INVOICE_STATUS_CHOICES = [
     ("paid", "Paid"),
     ("failed", "Failed"),
     ("refunded", "Refunded"),
+    ("void", "Void"),
 ]
 
 # Customer-submitted "I want to upgrade" requests, captured while gateway

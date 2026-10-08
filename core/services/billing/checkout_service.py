@@ -47,6 +47,9 @@ class CheckoutService:
 
     @classmethod
     def initiate_checkout(cls, user, plan: Plan, currency: Currency) -> dict:
+        current = SubscriptionService.get_subscription(user)
+        if current is not None and current.status == "suspended":
+            raise CheckoutError("This account is suspended. Please contact support.")
         # Once any real Paymob account exists, a currency it cannot charge is
         # refused up front — never silently sent to a different region's
         # account, and never downgraded to a fake payment.
@@ -123,8 +126,8 @@ class CheckoutService:
             .select_related("subscription", "plan", "currency")
             .first()
         )
-        if invoice is None or invoice.status == "paid":
-            return invoice
+        if invoice is None or invoice.status in ("paid", "refunded", "void"):
+            return invoice  # a late callback must never re-activate a refunded/void invoice
 
         if obj.get("pending") is True:
             return invoice  # Paymob will send the final result later; stay pending
@@ -161,7 +164,11 @@ class CheckoutService:
         invoice.save(update_fields=["status", "paid_at"])
 
         subscription = invoice.subscription
+        subscription.refresh_from_db()  # never act on a stale status (e.g. suspended moments ago)
         subscription.plan = invoice.plan
-        subscription.status = "active"
+        if subscription.status != "suspended":  # a suspended account stays suspended even when it pays
+            subscription.status = "active"
         subscription.current_period_end = invoice.period_end
-        subscription.save(update_fields=["plan", "status", "current_period_end", "updated_at"])
+        if invoice.gateway_reference:
+            subscription.gateway = "paymob"
+        subscription.save(update_fields=["plan", "status", "current_period_end", "gateway", "updated_at"])

@@ -27,6 +27,7 @@ this code path at all.
 from tests.core.test_context import TestContext
 from tests.modules.billing_gateway import check_gateway_settings
 from tests.modules.billing_account import check_account_data_card
+from tests.modules.billing_customers import check_customers_and_trial_option
 from tests.modules.billing_lock import check_lapsed_lock
 
 BILLING_TEST_USERNAME = "testuser"
@@ -39,6 +40,10 @@ def test_billing_module(context, reporter, screenshot_logger):
         check_gateway_settings(context, reporter, screenshot_logger)  # admin session, read-only
     except Exception as ex:
         reporter.add_step("Gateway settings checks", "Billing", "FAIL", f"Exception: {ex}")
+    try:
+        check_customers_and_trial_option(context, reporter, screenshot_logger)  # admin session, leaves data unchanged
+    except Exception as ex:
+        reporter.add_step("Customers / trial option checks", "Billing", "FAIL", f"Exception: {ex}")
 
     billing_ctx = None
     try:

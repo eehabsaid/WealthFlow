@@ -34,6 +34,7 @@ class Capability:
     sources: tuple[str, ...] = ()
     follow_subject: str = ""                    # words appended to a short follow-up ("and how much I hold?") after this capability
     latest_metrics: tuple[str, ...] = ()        # metrics that make sense with no period ("last expense")
+    period_free_dims: tuple[str, ...] = ()      # group_by values answerable over all history (no period needed)
 
     def metric_names(self) -> list[str]:
         return [m.name for m in self.metrics]

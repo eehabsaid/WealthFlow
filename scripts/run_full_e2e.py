@@ -77,19 +77,19 @@ READY_TIMEOUT_SECONDS = 30
 def main() -> int:
     install_signal_handlers()
 
-    if not os.path.exists(PROD_DB):
-        err(f"{PROD_DB} not found — are you running this from the repo root?")
-        return 1
+    has_prod_db = os.path.exists(PROD_DB)
+    if not has_prod_db:
+        log("No local db.sqlite3 (it is untracked) — the disposable DB starts empty and is seeded by scripts/e2e_seed.py")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_db = os.path.join(ROOT_DIR, f"db.sqlite3.bak.{timestamp}")
     test_db = os.path.join(ROOT_DIR, f"db_e2e_test_{timestamp}.sqlite3")
 
-    log(f"Backing up production database -> {os.path.basename(backup_db)}")
-    shutil.copy2(PROD_DB, backup_db)
-
-    log(f"Creating disposable test database (copy of production data) -> {os.path.basename(test_db)}")
-    shutil.copy2(PROD_DB, test_db)
+    if has_prod_db:
+        log(f"Backing up production database -> {os.path.basename(backup_db)}")
+        shutil.copy2(PROD_DB, backup_db)
+        log(f"Creating disposable test database (copy of production data) -> {os.path.basename(test_db)}")
+        shutil.copy2(PROD_DB, test_db)
 
     env = os.environ.copy()
     env["WEALTHFLOW_DB_NAME"] = os.path.basename(test_db)
@@ -109,6 +109,11 @@ def main() -> int:
         if migrate_result.returncode != 0:
             err("Migration against the disposable copy failed — aborting before starting the server.")
             return migrate_result.returncode
+
+        seed_result = subprocess.run([sys.executable, os.path.join("scripts", "e2e_seed.py")], cwd=ROOT_DIR, env=env)
+        if seed_result.returncode != 0:
+            err("E2E seeding failed — aborting before starting the server.")
+            return seed_result.returncode
 
         log(f"Starting Django dev server against the TEST database on {SERVER_HOST}:{SERVER_PORT}")
         server_log_path = os.path.join(ROOT_DIR, f"e2e_server_{timestamp}.log")
@@ -158,7 +163,8 @@ def main() -> int:
             else:
                 log("Verified production database is untouched.")
 
-        log(f"Production db backup kept at: {os.path.basename(backup_db)}")
+        if has_prod_db:
+            log(f"Production db backup kept at: {os.path.basename(backup_db)}")
 
     log(f"Suite finished with exit code {suite_exit_code}.")
     return suite_exit_code

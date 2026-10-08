@@ -12,6 +12,8 @@ _TERMS = (
     (r"\bsalar(?:y|ies)\b|\bpay ?slips?\b|\bpay ?checks?\b|\bwages?\b|\btake[- ]home\b|\bmy pay\b|\bpaid me\b|\bget paid\b|\bearnings?\b", 3),
     (r"راتب\w*|رواتب|مرتب\w*|معاش\w*|ماهيه|ماهيتي", 3),
     (r"\bbonus(?:es)?\b|مكافا\w*", 3),
+    (r"\bsalaires?\b|\br[ée]mun[ée]ration\b|\bfiche de paie\b", 3),
+    (r"\bgehalt\b|\bgeh[aä]lter\b|\blohn\b|\bl[oö]hne\b|\bgehaltsabrechnung\b", 3),
 )
 _METRICS = (
     Metric("bonus", (r"\bbonus(?:es)?\b", r"مكافا\w*")),
@@ -23,6 +25,8 @@ _METRICS = (
 )
 _DIMS = (
     ("company", (r"\b(?:by|per|each|every)\s+company\b|\bcompan(?:y|ies)\b", r"حسب (?:ال)?شركه|لكل شركه|الشركات")),
+    ("year", (r"\b(?:by year|per year|yearly|annual(?:ly)?|year by year|each year|year over year)\b", r"سنويا|حسب السنه|لكل سنه|كل سنه",
+              r"\bpar an(?:n[ée]e)?\b|\bannuel(?:le)?s?\b|\bannuellement\b|\bchaque ann[ée]e\b", r"\bj[aä]hrlich\w*|\bpro jahr\b|\bnach jahr(?:en)?\b|\bjedes jahr\b")),
     ("month", (r"\b(?:by month|per month|monthly|month by month|each month)\b", r"شهريا|حسب الشهر|لكل شهر|كل شهر")),
 )
 _WHAT = {"paid": "what_paid", "expected": "what_expected", "bonus": "what_bonus", "total": "what_paid", "average": "what_paid", "latest": "what_paid"}
@@ -46,8 +50,30 @@ def _val(e: Any, metric: str) -> float:
     return float(getattr(e, {"expected": "expected", "bonus": "bonus"}.get(metric, "paid")) or 0)
 
 
+def _yearly(user: Any, req: QueryRequest, cur: str) -> QueryResult:
+    """Yearly summary over all history (or the years named in the question): the provider's own aggregation."""
+    from core.models import SalaryEntry
+    from core.services.ai.providers.salary_provider.aggregation import compute_yearly_summary
+
+    lang, qs = req.lang, SalaryEntry.objects.filter(company__owner=user)
+    if req.periods:
+        qs = qs.filter(year__in={y for y, _ in req.periods})
+    years = compute_yearly_summary(qs, cur, lambda v, c: money(v, c))["yearly_summary"]
+    if not years:
+        return QueryResult(intro=t(lang, "sal_none_any"))
+    out = [Row([str(y["year"]), money(y["total_expected"], cur), money(y["total_paid"], cur), money(y["total_bonus"], cur),
+                "-" if y["yoy_growth_pct"] is None else f"{y['yoy_growth_pct']:+.2f}%"]) for y in years]
+    sums = [sum(y[k] for y in years) for k in ("total_expected", "total_paid", "total_bonus")]
+    out.append(Row([t(lang, "grand"), *(money(x, cur) for x in sums), ""], bold=True))
+    return QueryResult(intro=t(lang, "sal_year_table", cur=cur), rows=out,
+                       columns=[t(lang, "col_year"), t(lang, "col_expected"), t(lang, "col_paid"), t(lang, "col_bonus"), t(lang, "col_yoy")],
+                       facts={"groups": {str(y["year"]): y["total_paid"] for y in years}, "total": sums[1], "currency": cur})
+
+
 def run(user: Any, req: QueryRequest) -> QueryResult:
     lang, cur, months = req.lang, home_currency(user), list(req.periods)
+    if req.group_by == "year":
+        return _yearly(user, req, cur)
     rows = _entries(user, months)
     metric = req.metric if req.metric in _WHAT else "paid"
     if not months:  # 'latest' with no period
@@ -86,5 +112,5 @@ def run(user: Any, req: QueryRequest) -> QueryResult:
 
 CAPABILITIES = (Capability(
     key="salary", provider_key="salary", label="Salary", terms=_TERMS, metrics=_METRICS, default_metric="paid",
-    dimensions=_DIMS, filters=(), time="required", follow_subject="salary", executor=run, sources=("salary",), latest_metrics=("latest", "paid"),
+    dimensions=_DIMS, filters=(), time="required", follow_subject="salary", executor=run, sources=("salary",), latest_metrics=("latest", "paid"), period_free_dims=("year",),
 ),)

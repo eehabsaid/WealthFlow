@@ -34,6 +34,9 @@ class Invoice(models.Model):
     period_end = models.DateTimeField(null=True, blank=True)
     issued_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    refunded_at = models.DateTimeField(null=True, blank=True)
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    refund_note = models.CharField(max_length=255, blank=True, default="")
 
     class Meta:
         ordering = ["-issued_at", "-id"]
@@ -41,6 +44,7 @@ class Invoice(models.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "owner_id": self.owner_id,
             "plan_id": self.plan_id,
             "plan_name": self.plan.name,
             "amount": str(self.amount),
@@ -48,6 +52,10 @@ class Invoice(models.Model):
             "status": self.status,
             "issued_at": self.issued_at.isoformat() if self.issued_at else None,
             "paid_at": self.paid_at.isoformat() if self.paid_at else None,
+            "refunded_at": self.refunded_at.isoformat() if self.refunded_at else None,
+            "refund_amount": str(self.refund_amount) if self.refund_amount is not None else None,
+            "refund_note": self.refund_note,
+            "gateway_reference": self.gateway_reference,
         }
 
     def __str__(self):

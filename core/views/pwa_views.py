@@ -13,7 +13,7 @@ from django.shortcuts import render
 from django.templatetags.static import static
 from django.views.decorators.http import require_GET
 
-PWA_CACHE_VERSION = "v8"
+PWA_CACHE_VERSION = "v9"
 PWA_THEME_COLOR = "#0a0f1e"
 OFFLINE_URL = "/offline/"
 

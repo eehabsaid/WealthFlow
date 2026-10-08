@@ -28,6 +28,10 @@ urlpatterns = [
     path("api/settings/billing/plans/<int:plan_id>/prices/", views.PlanPriceAdminListView.as_view()),
     path("api/settings/billing/plans/<int:plan_id>/prices/<int:price_id>/", views.PlanPriceAdminDetailView.as_view()),
     path("api/settings/billing/gateway/", views.PaymobGatewaySettingsView.as_view()),
+    path("api/settings/billing/trial-options/", views.TrialOptionsView.as_view()),
+    path("api/settings/billing/customers/", views.CustomerListView.as_view()),
+    path("api/settings/billing/customers/<int:user_id>/action/", views.CustomerActionView.as_view()),
+    path("api/settings/billing/invoices/<int:invoice_id>/action/", views.InvoiceActionView.as_view()),
     # Backup & Restore
     path("api/settings/backup/create/", views.BackupCreateView.as_view()),
     path("api/settings/backup/list/", views.BackupListView.as_view()),

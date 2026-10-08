@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 
+from core.services.billing.trial_policy import start_trial_for_admin_created
 from core.validators.json_body import parse_json_body
 from core.services.account import deletion_blocker, purge_user
 from core.services.shared.auth_workflow_service import AuthWorkflowService
@@ -76,6 +77,7 @@ class UserListView(AdminRequiredMixin, View):
             AuthWorkflowService.enable_user(user, actor=request.user)
         else:
             AuthWorkflowService.disable_user(user, actor=request.user)
+        start_trial_for_admin_created(user)
         return JsonResponse({"user": _build_user_dict(user)}, status=201)
 
 

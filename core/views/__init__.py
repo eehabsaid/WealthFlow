@@ -94,7 +94,7 @@ from .exports_ai_features import (
 )
 
 from .exports_settings import (
-    SettingsView, PlanAdminListView, PlanAdminDetailView, PlanPriceAdminListView, PlanPriceAdminDetailView, PaymobGatewaySettingsView, LegalConsentView, LegalTextDetailView, LegalTextListView, EmailTemplateListView, EmailTemplateDetailView, EmailSettingsTestView,
+    SettingsView, PlanAdminListView, PlanAdminDetailView, PlanPriceAdminListView, PlanPriceAdminDetailView, PaymobGatewaySettingsView, CustomerActionView, CustomerListView, InvoiceActionView, TrialOptionsView, LegalConsentView, LegalTextDetailView, LegalTextListView, EmailTemplateListView, EmailTemplateDetailView, EmailSettingsTestView,
     AISettingsView, AIUserLimitsView, AIUserSettingsView, AIConnectionTestView, AIProviderListView, AIRuntimeCapabilitiesView, ScrapePropertyRatesView,
     GoldTypeSettingsListView, GoldTypeSettingsDetailView, GoldPuritySettingsListView, GoldPuritySettingsDetailView,
     ExchangeRateListView, ExchangeRateRefreshView, GoldPriceListView, GoldPriceRefreshView,
@@ -144,7 +144,7 @@ __all__ = [
     "AIChatView", "AIConversationListView", "AIConversationDetailView", "AIMessageFeedbackView", "AIFeedbackListView", "AIProgressView", "AIPlatformKnowledgeView",
     "AIPlatformDatasetView", "AIPlatformModelView", "AIPlatformBenchmarkView", "AIPlatformKnowledgeDetailView", "AIPromptListView",
     "AIPromptDetailView", "AIPromptFavoriteView", "AIPromptUseView", "AIPromptDuplicateView", "AIPromptCategoryListView",
-    "SettingsView", "PlanAdminListView", "PlanAdminDetailView", "PlanPriceAdminListView", "PlanPriceAdminDetailView", "PaymobGatewaySettingsView", "LegalConsentView", "LegalTextDetailView", "LegalTextListView", "EmailTemplateListView", "EmailTemplateDetailView", "EmailSettingsTestView", "AISettingsView", "AIUserLimitsView", "AIUserSettingsView",
+    "SettingsView", "PlanAdminListView", "PlanAdminDetailView", "PlanPriceAdminListView", "PlanPriceAdminDetailView", "PaymobGatewaySettingsView", "CustomerActionView", "CustomerListView", "InvoiceActionView", "TrialOptionsView", "LegalConsentView", "LegalTextDetailView", "LegalTextListView", "EmailTemplateListView", "EmailTemplateDetailView", "EmailSettingsTestView", "AISettingsView", "AIUserLimitsView", "AIUserSettingsView",
     "AIConnectionTestView", "AIProviderListView", "AIRuntimeCapabilitiesView", "ScrapePropertyRatesView", "GoldTypeSettingsListView", "GoldTypeSettingsDetailView",
     "GoldPuritySettingsListView", "GoldPuritySettingsDetailView", "ExchangeRateListView", "ExchangeRateRefreshView", "GoldPriceListView",
     "GoldPriceRefreshView", "CurrencyListView", "CurrencyDetailView", "_seed_gold_settings_defaults", "BackupCreateView",

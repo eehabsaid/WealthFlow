@@ -1083,13 +1083,16 @@
     ]
   },
   "settings::settings-billing": {
-    "purpose": "Set up online payments with Paymob and manage the billing plans and their prices. Gulf accounts (SAR / AED) are configured separately because each Paymob region has its own account.",
+    "purpose": "Set up online payments with Paymob, manage the billing plans and their prices, decide whether users you create get a free trial, and manage customers (suspend, extend trial, change plan, invoices and refunds). Gulf accounts (SAR / AED) are configured separately because each Paymob region has its own account.",
     "steps": [
       "Open Settings, then More and Billing Plans (system administrators only).",
       "Fill in the main Paymob account: API key, HMAC secret, integration ID and iframe ID. Until it is filled in, checkout runs in test mode and no real charge is made.",
       "Optionally fill in a SAR and an AED account (Paymob host such as ksa.paymob.com, keys, integration and iframe). A currency without an account cannot be paid online once any account is live.",
       "Choose which currencies the main account serves, then Save.",
-      "Add or edit plans and their prices in each currency."
+      "Add or edit plans and their prices in each currency.",
+      "Use the Trials checkbox to decide whether users you create from Settings > Users start a free trial (on by default; existing users are not changed).",
+      "In Customers, search a user, then suspend or unsuspend the account, extend the trial, or change the plan.",
+      "Open a customer's invoices to mark a pending invoice paid, void it, or refund a paid one. A Paymob refund is recorded here; return the money from the Paymob dashboard."
     ]
   }
 }

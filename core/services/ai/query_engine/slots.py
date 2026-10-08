@@ -172,7 +172,7 @@ def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = No
         out.reason = "ambiguous_capability" if margin == 1 else problems[0]
         out.confidence = 0.5
         return out
-    if cap.time == "required" and not time.months and not (time.kind == "latest" and req.metric in cap.latest_metrics):
+    if cap.time == "required" and not time.months and req.group_by not in cap.period_free_dims and not (time.kind == "latest" and req.metric in cap.latest_metrics):
         out.status, out.reason = "incomplete", "missing_period"
         out.needs_llm = bool(TIME_HINT.search(q))
         out.confidence = 0.4
