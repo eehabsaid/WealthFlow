@@ -67,8 +67,11 @@ def build_report_data(data, lang, t, owner):
 
     total_inc = ReportService.get_period_income(owner, rtype, year, month, start_date, end_date)
 
-    # Add bank interest (summing all certificates)
-    total_interest = sum(float(c.interest_value or 0) for c in BankCertificate.objects.filter(owner=owner))
+    # Add bank interest from active certificates only.
+    total_interest = sum(
+        float(c.interest_value or 0)
+        for c in BankCertificate.objects.filter(owner=owner, status__iexact="Active")
+    )
     total_inc += total_interest
 
     net_sav = total_inc - total_exp

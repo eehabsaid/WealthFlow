@@ -6,6 +6,7 @@ from core.models import (
     BankCertificate,
     Currency,
 )
+from core.reports.generate_report_generator.data_phase import build_report_data
 
 User = get_user_model()
 
@@ -97,3 +98,39 @@ class CertificateReportActiveOnlyTest(TestCase):
         overdue_buckets = payload["buckets"]["overdue"]
         self.assertEqual(len(overdue_buckets), 1)
         self.assertEqual(overdue_buckets[0]["status"], "Active")
+
+    def test_expense_report_income_includes_only_active_certificate_interest(self):
+        user = User.objects.create_user(username="testuser_expense_certro")
+        currency = Currency.objects.create(code="EGP", symbol="£", name="Egyptian Pound")
+        BalanceEntry.objects.create(
+            owner=user,
+            title="Cash (EGP)",
+            balance_type=BalanceEntry.BalanceType.CASH,
+            bank=None,
+            currency=currency,
+            amount=100000,
+        )
+        for status, interest in (
+            ("Active", 50),
+            ("aCtIvE", 25),
+            ("Inactive", 30),
+            ("closed", 15),
+        ):
+            BankCertificate.objects.create(
+                owner=user,
+                currency=currency,
+                issue_date=date(2026, 1, 1),
+                expiry_date=date(2026, 6, 1),
+                amount=500,
+                interest_value=interest,
+                status=status,
+            )
+
+        report_data = build_report_data(
+            {"type": "yearly", "year": 2026},
+            "en",
+            {},
+            user,
+        )
+
+        self.assertEqual(report_data["total_inc"], 75.0)
