@@ -39,9 +39,9 @@ class QAReporter(ReporterHtmlMixin):
         self.skipped_count = 0
 
         self.expected_pages = 20
-        self.expected_tabs = 50
+        self.expected_tabs = 51
         self.expected_modals = 21
-        self.expected_exports = 8
+        self.expected_exports = 9
 
     def add_step(self, name, page_name, status="PASS", details="", screenshot_path=None, duration_ms=0):
         rel_screenshot = None

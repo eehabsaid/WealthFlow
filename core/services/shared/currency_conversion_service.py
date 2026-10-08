@@ -61,7 +61,7 @@ class CurrencyConversionService:
         Return a dictionary mapping currency_code -> latest buy_rate (Decimal) for all currencies.
         """
         rates: Dict[str, Decimal] = {get_rate_pivot_code(): Decimal("1.000000")}
-        for rate in ExchangeRate.objects.order_by("currency_code", "-fetched_at"):
+        for rate in ExchangeRate.objects.order_by("currency_code", "-fetched_at", "-id"):
             code = str(rate.currency_code or "").upper()
             if code and code not in rates:
                 rates[code] = Decimal(str(rate.buy_rate)) if rate.buy_rate and rate.buy_rate > 0 else Decimal("1.000000")

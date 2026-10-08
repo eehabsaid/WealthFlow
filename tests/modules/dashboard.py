@@ -73,3 +73,38 @@ def test_dashboard_module(context, reporter, screenshot_logger):
     reporter.pages_visited.add("Gold Prices")
     shot_gold = screenshot_logger.capture(context.page, "gold-price", "main", "none", "view", "ok")
     reporter.add_step("Gold Prices Page Sweep", "Gold Prices", "PASS", "Swept gold prices live table.", screenshot_path=shot_gold)
+
+    # 5. Excel workbook download (Export button): the Exchange Rates sheet must be quoted in
+    # the user's base currency, not raw against the rate pivot (regression: AED-pivot rates in an EGP workbook).
+    try:
+        import io
+
+        import openpyxl
+
+        resp = context.page.request.get("http://127.0.0.1:8000/api/export/excel/")
+        assert resp.status == 200, f"Excel export returned HTTP {resp.status}"
+        wb = openpyxl.load_workbook(io.BytesIO(resp.body()))
+        assert "Exchange Rates" in wb.sheetnames, "Workbook has no Exchange Rates sheet"
+        usd_buy = wb["Exchange Rates"]["B2"].value
+        assert isinstance(usd_buy, (int, float)) and usd_buy > 0, f"USD buy rate cell is not a positive number: {usd_buy!r}"
+        base = context.page.evaluate("window.WF_BASE && window.WF_BASE.code")
+        pivot = context.page.evaluate("window.WF_BASE && window.WF_BASE.pivot_currency")
+        reporter.exports_tested.append("Dashboard Excel workbook")
+        reporter.add_step("Excel Workbook Exchange Rates Base", "Dashboard", "PASS",
+                          f"USD buy cell = {usd_buy:.4f} (base={base}, pivot={pivot}); workbook opens with {len(wb.sheetnames)} sheets.")
+    except Exception as ex:
+        reporter.add_step("Excel Workbook Exchange Rates Base", "Dashboard", "FAIL", f"Exception: {ex}")
+
+    # 6. Exchange Rates featured cards: Buy/Sell rows must fit inside their card (no clipping/overlap).
+    try:
+        context.goto_route("#exchange-rates")
+        context.page.wait_for_selector(".rate-card-spread", timeout=15000)
+        clipped = context.page.evaluate(
+            "[...document.querySelectorAll('.rate-card-spread')].filter(e => e.scrollWidth > e.clientWidth + 1).length"
+        )
+        total = context.page.evaluate("document.querySelectorAll('.rate-card-spread').length")
+        shot_cards = screenshot_logger.capture(context.page, "exchange-rates", "featured-cards", "none", "view", "ok")
+        reporter.add_step("Exchange Rates Featured Cards Fit", "Exchange Rates", "PASS" if clipped == 0 and total else "FAIL",
+                          f"{total} featured cards, {clipped} with clipped Buy/Sell text.", screenshot_path=shot_cards)
+    except Exception as ex:
+        reporter.add_step("Exchange Rates Featured Cards Fit", "Exchange Rates", "FAIL", f"Exception: {ex}")

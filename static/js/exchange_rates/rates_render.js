@@ -69,14 +69,14 @@ async function renderExchangeRates() {
                     <div class="kpi-label">${r.currency_code}</div>
                     <div class="kpi-value" style="font-size:18px">${fmtRate(rateInBase(r.currency_code, "mid_rate"))}</div>
                     <div class="kpi-sub" data-i18n="rate_per_1">${perOneText} ${r.currency_code}</div>
-                    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text-muted)">
-                        <span style="display:flex; gap:4px;">
+                    <div class="rate-card-spread" style="display:flex;flex-direction:column;gap:3px;margin-top:8px;font-size:11px;color:var(--text-muted)">
+                        <span style="display:flex;justify-content:space-between;gap:8px;">
                             <span data-i18n="buy">${buyText}</span>
-                            <span>${fmtRate(rateInBase(r.currency_code, "buy_rate"))}</span>
+                            <span style="font-variant-numeric:tabular-nums">${fmtRate(rateInBase(r.currency_code, "buy_rate"))}</span>
                         </span>
-                        <span style="display:flex; gap:4px;">
+                        <span style="display:flex;justify-content:space-between;gap:8px;">
                             <span data-i18n="sell">${sellText}</span>
-                            <span>${fmtRate(rateInBase(r.currency_code, "sell_rate"))}</span>
+                            <span style="font-variant-numeric:tabular-nums">${fmtRate(rateInBase(r.currency_code, "sell_rate"))}</span>
                         </span>
                     </div>
                 </div>

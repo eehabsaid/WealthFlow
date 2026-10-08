@@ -51,21 +51,32 @@ def build_exchange_rates_sheet(ws, rates_list, balance_entries, owner=None):
 
     rate_map = {r.currency_code: r for r in rates_list}
 
+    # Stored rates are quoted against the rate pivot (e.g. AED once the Gulf
+    # market pivot is active). The sheet, and the "Total all Balances" cell
+    # formulas that point at it, must be in the report owner's base currency
+    # (EGP for Egyptian users), so re-express each rate in the base. Identical
+    # to the raw value whenever the pivot already is the base (divisor 1).
+    from core.services.shared.currency_conversion_service import (
+        CurrencyConversionService,
+        get_rate_pivot_code,
+    )
+
+    divisor = 1.0
+    report_base = get_report_base_code()
+    if report_base != get_rate_pivot_code():
+        base_in_pivot = CurrencyConversionService.get_all_latest_buy_rates().get(report_base)
+        if base_in_pivot and base_in_pivot > 0:
+            divisor = float(base_in_pivot)
+
     for i, (code, arabic) in enumerate(CURRENCIES, 2):
         _apply_zebra_striping(ws, i, 3)
         r = rate_map.get(code)
         ws.cell(row=i, column=1, value=arabic)
         if r:
-            val_buy = (
-                round(float(r.buy_rate) * 100, 4)
-                if code == "JPY"
-                else float(r.buy_rate)
-            )
-            val_sell = (
-                round(float(r.sell_rate) * 100, 4)
-                if code == "JPY"
-                else float(r.sell_rate)
-            )
+            buy = float(r.buy_rate) / divisor
+            sell = float(r.sell_rate) / divisor
+            val_buy = round(buy * 100, 4) if code == "JPY" else buy
+            val_sell = round(sell * 100, 4) if code == "JPY" else sell
             ws.cell(row=i, column=2, value=val_buy)
             ws.cell(row=i, column=3, value=val_sell)
 

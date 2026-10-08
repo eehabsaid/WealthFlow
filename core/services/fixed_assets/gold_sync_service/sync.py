@@ -48,6 +48,17 @@ def _refresh_gold_asset_pricing(asset, gold_details=None, latest_gold_price=None
         usd_to_egp = _to_decimal(gulf_snapshot["usd_to_base"])  # purchase-currency units per 1 USD
     else:
         usd_to_egp = _to_decimal(latest_gold.usd_to_egp)
+        # The stored rate is EGP per USD. purchase_price is in the owner's base
+        # currency, so a non-EGP, non-Gulf owner needs base units per USD instead
+        # (otherwise purchase_price_usd = price / EGP-rate is wrong). EGP-base
+        # owners keep the exact previous value.
+        from core.services.shared.base_currency import get_user_base_code, GOLD_PRICE_CURRENCY
+        from core.services.shared.currency_conversion_service import CurrencyConversionService
+
+        owner_base = get_user_base_code(asset.owner)
+        if owner_base != GOLD_PRICE_CURRENCY:
+            usd_in_base = CurrencyConversionService.get_rates_to_base(owner_base).get("USD")
+            usd_to_egp = _to_decimal(usd_in_base) if usd_in_base else Decimal("0")
     if usd_to_egp > 0:
         asset.purchase_usd_rate = usd_to_egp
         asset.purchase_price_usd = _to_decimal(asset.purchase_price) / usd_to_egp

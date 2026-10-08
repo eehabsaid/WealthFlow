@@ -107,6 +107,25 @@ def _check_footer_links(context, page, reporter, screenshot_logger):
           hrefs == ["/terms/", "/privacy/"], f"hrefs={hrefs}", "sidebar_footer")
 
 
+def _check_operator_fields(page, reporter, screenshot_logger):
+    """The default text carries [[OPERATOR_NAME]] / [[CONTACT_EMAIL]] / [[RETENTION_PERIOD]] /
+    [[GOVERNING_LAW]] until the owner fills them in (Settings > Legal Text). Either way the page
+    must still show the 'legal review needed' notice and never a half-open marker."""
+    tokens = ("[[OPERATOR_NAME]]", "[[CONTACT_EMAIL]]", "[[RETENTION_PERIOD]]", "[[GOVERNING_LAW]]")
+    left = []
+    broken = False
+    notice = True
+    for path in ("/privacy/", "/terms/"):
+        page.goto(f"{BASE}{path}")
+        page.wait_for_timeout(800)
+        text = page.inner_text("body")
+        left += [t for t in tokens if t in text]
+        broken = broken or text.count("[[") != text.count("]]")
+        notice = notice and bool(page.query_selector("[data-i18n='legal_draft_notice']"))
+    _step(reporter, screenshot_logger, page, "Legal pages show operator fields and the review notice",
+          notice and not broken, f"unfilled fields still shown: {sorted(set(left))}", "operator_fields")
+
+
 def test_legal_module(context, reporter, screenshot_logger):
     reporter.pages_visited.add("Legal — Privacy / Terms / Signup consent")
     public_ctx = None
@@ -119,6 +138,7 @@ def test_legal_module(context, reporter, screenshot_logger):
         _check_public_pages(page, reporter, screenshot_logger)
         _check_scrollable(page, reporter, screenshot_logger)
         _check_arabic_rtl(page, reporter, screenshot_logger)
+        _check_operator_fields(page, reporter, screenshot_logger)
         _check_signup_consent(page, reporter, screenshot_logger)
         _check_footer_links(context, page, reporter, screenshot_logger)
     except Exception as ex:

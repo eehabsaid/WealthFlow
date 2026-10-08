@@ -2578,7 +2578,7 @@
     "auth_accept_and": "and",
     "auth_error_terms_required": "You must accept the Terms of Service and Privacy Policy to create an account.",
     "privacy_s1_title": "Who we are and scope",
-    "privacy_s1_body": "WealthFlow is a personal finance application. This policy explains what personal data the operator of this WealthFlow service collects, why, and what choices you have. It applies to the web app and the installable app (PWA).",
+    "privacy_s1_body": "WealthFlow is a personal finance application. This policy explains what personal data the operator of this WealthFlow service collects, why, and what choices you have. It applies to the web app and the installable app (PWA). Operator: [[OPERATOR_NAME]].",
     "privacy_s2_title": "Data we collect",
     "privacy_s2_body": "Account data: username, email address, full name, language and default currency. Financial data you enter: balances, certificates, fixed assets, expenses, budgets, salary and similar records. Technical data: session and security cookies, sign-in attempts and audit events.",
     "privacy_s3_title": "How we use your data",
@@ -2590,9 +2590,9 @@
     "privacy_s6_title": "Cookies and local storage",
     "privacy_s6_body": "We use strictly necessary cookies for sign-in and security (session, CSRF) and to remember your language and theme. The installable app stores app files in your browser cache so it can open offline. We do not use advertising cookies.",
     "privacy_s7_title": "Retention and security",
-    "privacy_s7_body": "We keep your data while your account exists. Passwords are stored hashed, and payment and AI provider keys are stored encrypted. No online service is perfectly secure; use a strong, unique password.",
+    "privacy_s7_body": "We keep your data while your account exists. Passwords are stored hashed, and payment and AI provider keys are stored encrypted. No online service is perfectly secure; use a strong, unique password. Retention period after account deletion and for invoice records: [[RETENTION_PERIOD]].",
     "privacy_s8_title": "Your rights and contact",
-    "privacy_s8_body": "You can ask the operator to access, correct, export or delete your personal data, and to explain how it is processed. Contact the operator of this service to make a request. Applicable law may give you additional rights.",
+    "privacy_s8_body": "You can ask the operator to access, correct, export or delete your personal data, and to explain how it is processed. Contact the operator of this service to make a request. Applicable law may give you additional rights. Contact: [[CONTACT_EMAIL]].",
     "terms_s1_title": "Acceptance",
     "terms_s1_body": "By creating an account or using WealthFlow you agree to these Terms and to the Privacy Policy. If you do not agree, do not use the service.",
     "terms_s2_title": "The service",
@@ -2610,7 +2610,7 @@
     "terms_s8_title": "Liability",
     "terms_s8_body": "The service is provided as is. To the extent permitted by law, the operator is not liable for indirect or consequential losses, or for decisions you make based on the information shown.",
     "terms_s9_title": "Termination and contact",
-    "terms_s9_body": "You may stop using the service and ask for your account to be deleted at any time. We may suspend accounts that breach these Terms. Questions about these Terms go to the operator of this service.",
+    "terms_s9_body": "You may stop using the service and ask for your account to be deleted at any time. We may suspend accounts that breach these Terms. Questions about these Terms go to the operator of this service. Contact: [[CONTACT_EMAIL]]. Governing law: [[GOVERNING_LAW]].",
     "settings_legal": "Legal Text",
     "legal_editor_no_permission": "Only a system administrator can edit the legal text.",
     "legal_editor_intro": "Edit the Privacy Policy and Terms of Service shown at /privacy/ and /terms/. Each save publishes a new version; empty languages keep the built-in text. Existing accounts keep the version they accepted.",
@@ -2658,5 +2658,7 @@
     "account_data_deleted": "Your account was deleted.",
     "account_data_wrong_password": "Wrong password.",
     "account_data_last_admin": "You are the only administrator. Make another user an administrator first.",
-    "account_data_delete_failed": "Couldn't delete the account. Please try again."
+    "account_data_delete_failed": "Couldn't delete the account. Please try again.",
+    "balance_overview_empty_title": "No balances yet",
+    "balance_overview_empty_desc": "Add an account balance and your currency cards will show up here."
 }

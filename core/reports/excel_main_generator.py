@@ -43,9 +43,13 @@ def generate_excel(owner, output_path=None, lang="ar"):
     )
     rates = []
     for item in latest_ids:
-        r = ExchangeRate.objects.filter(
-            currency_code=item["currency_code"], fetched_at=item["latest"]
-        ).first()
+        r = (
+            ExchangeRate.objects.filter(
+                currency_code=item["currency_code"], fetched_at=item["latest"]
+            )
+            .order_by("-id")
+            .first()
+        )
         if r:
             rates.append(r)
     build_exchange_rates_sheet(ws_ex, rates, balance_entries, owner=owner)

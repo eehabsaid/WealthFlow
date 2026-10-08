@@ -22,7 +22,9 @@ function renderBalanceOverview(data) {
     grandTotalLabel,
   } = data;
 
-  const currencyCards = _currencies
+  // Only currencies with a positive numeric amount get a card (gold included).
+  // Compare as a number, never as the formatted string.
+  const visibleCards = _currencies
     .map((cur) => {
       const lookupKey =
         cur.code === "GOLD" || cur.code === "Gold"
@@ -30,20 +32,32 @@ function renderBalanceOverview(data) {
             ? "GOLD"
             : "Gold"
           : cur.code;
-      const cardValue = totals[lookupKey] || 0;
-      return `
+      return { cur, cardValue: Number(totals[lookupKey]) || 0 };
+    })
+    .filter((item) => item.cardValue > 0);
+
+  const currencyCards = visibleCards
+    .map(
+      ({ cur, cardValue }) => `
             <div class="col-6 col-md-4 col-lg-2">
                 <div class="currency-card">
                     <div class="cur-flag">${cur.flag || "💱"}</div>
                     <div class="cur-code" data-i18n="${cur.code}">${cur.code}</div>
                     <div class="cur-amount num-fmt" data-value="${cardValue}">${fmt(cardValue)}</div>
                 </div>
-            </div>`;
-    })
+            </div>`
+    )
     .join("");
 
+  const currencyCardsBlock = currencyCards
+    ? `<div class="row g-3 mb-4">${currencyCards}</div>`
+    : `<div class="kpi-card mb-4 bal-overview-empty" id="balOverviewEmpty" style="text-align:center">
+            <div class="kpi-label" data-i18n="balance_overview_empty_title">No balances yet</div>
+            <div style="margin-top:8px;color:var(--text-secondary);font-size:13px" data-i18n="balance_overview_empty_desc">Add an account balance and your currency cards will show up here.</div>
+        </div>`;
+
   pane.innerHTML = `
-        <div class="row g-3 mb-4">${currencyCards}</div>
+        ${currencyCardsBlock}
 
         <div class="kpi-card mb-4" style="text-align:center">
             <div class="kpi-label" data-i18n="grand_total">${grandTotalLabel}</div>

@@ -2578,7 +2578,7 @@
     "auth_accept_and": "und die",
     "auth_error_terms_required": "Sie müssen die Nutzungsbedingungen und die Datenschutzerklärung akzeptieren, um ein Konto zu erstellen.",
     "privacy_s1_title": "Wer wir sind und Geltungsbereich",
-    "privacy_s1_body": "WealthFlow ist eine App für persönliche Finanzen. Diese Erklärung beschreibt, welche personenbezogenen Daten der Betreiber dieses WealthFlow-Dienstes erhebt, warum, und welche Wahlmöglichkeiten Sie haben. Sie gilt für die Web-App und die installierbare App (PWA).",
+    "privacy_s1_body": "WealthFlow ist eine App für persönliche Finanzen. Diese Erklärung beschreibt, welche personenbezogenen Daten der Betreiber dieses WealthFlow-Dienstes erhebt, warum, und welche Wahlmöglichkeiten Sie haben. Sie gilt für die Web-App und die installierbare App (PWA). Betreiber: [[OPERATOR_NAME]].",
     "privacy_s2_title": "Daten, die wir erheben",
     "privacy_s2_body": "Kontodaten: Benutzername, E-Mail-Adresse, vollständiger Name, Sprache und Standardwährung. Finanzdaten, die Sie eingeben: Kontostände, Zertifikate, Anlagevermögen, Ausgaben, Budgets, Gehalt und ähnliche Einträge. Technische Daten: Sitzungs- und Sicherheits-Cookies, Anmeldeversuche und Audit-Ereignisse.",
     "privacy_s3_title": "Wie wir Ihre Daten verwenden",
@@ -2590,9 +2590,9 @@
     "privacy_s6_title": "Cookies und lokaler Speicher",
     "privacy_s6_body": "Wir verwenden unbedingt erforderliche Cookies für Anmeldung und Sicherheit (Sitzung, CSRF) sowie zum Merken von Sprache und Design. Die installierbare App speichert App-Dateien im Browser-Cache, damit sie offline startet. Wir verwenden keine Werbe-Cookies.",
     "privacy_s7_title": "Aufbewahrung und Sicherheit",
-    "privacy_s7_body": "Wir speichern Ihre Daten, solange Ihr Konto besteht. Passwörter werden als Hash gespeichert, Zahlungs- und KI-Anbieter-Schlüssel verschlüsselt. Kein Online-Dienst ist vollkommen sicher; verwenden Sie ein starkes, einzigartiges Passwort.",
+    "privacy_s7_body": "Wir speichern Ihre Daten, solange Ihr Konto besteht. Passwörter werden als Hash gespeichert, Zahlungs- und KI-Anbieter-Schlüssel verschlüsselt. Kein Online-Dienst ist vollkommen sicher; verwenden Sie ein starkes, einzigartiges Passwort. Aufbewahrungsfrist nach Kontolöschung und für Rechnungsunterlagen: [[RETENTION_PERIOD]].",
     "privacy_s8_title": "Ihre Rechte und Kontakt",
-    "privacy_s8_body": "Sie können den Betreiber bitten, auf Ihre personenbezogenen Daten zuzugreifen, sie zu berichtigen, zu exportieren oder zu löschen und zu erklären, wie sie verarbeitet werden. Wenden Sie sich für eine Anfrage an den Betreiber dieses Dienstes. Das geltende Recht kann Ihnen weitere Rechte einräumen.",
+    "privacy_s8_body": "Sie können den Betreiber bitten, auf Ihre personenbezogenen Daten zuzugreifen, sie zu berichtigen, zu exportieren oder zu löschen und zu erklären, wie sie verarbeitet werden. Wenden Sie sich für eine Anfrage an den Betreiber dieses Dienstes. Das geltende Recht kann Ihnen weitere Rechte einräumen. Kontakt: [[CONTACT_EMAIL]].",
     "terms_s1_title": "Zustimmung",
     "terms_s1_body": "Mit der Erstellung eines Kontos oder der Nutzung von WealthFlow stimmen Sie diesen Bedingungen und der Datenschutzerklärung zu. Wenn Sie nicht zustimmen, nutzen Sie den Dienst nicht.",
     "terms_s2_title": "Der Dienst",
@@ -2610,7 +2610,7 @@
     "terms_s8_title": "Haftung",
     "terms_s8_body": "Der Dienst wird wie besehen bereitgestellt. Soweit gesetzlich zulässig, haftet der Betreiber nicht für mittelbare oder Folgeschäden oder für Entscheidungen, die Sie auf Grundlage der angezeigten Informationen treffen.",
     "terms_s9_title": "Beendigung und Kontakt",
-    "terms_s9_body": "Sie können den Dienst jederzeit nicht mehr nutzen und die Löschung Ihres Kontos verlangen. Wir können Konten sperren, die gegen diese Bedingungen verstoßen. Fragen zu diesen Bedingungen richten Sie an den Betreiber dieses Dienstes.",
+    "terms_s9_body": "Sie können den Dienst jederzeit nicht mehr nutzen und die Löschung Ihres Kontos verlangen. Wir können Konten sperren, die gegen diese Bedingungen verstoßen. Fragen zu diesen Bedingungen richten Sie an den Betreiber dieses Dienstes. Kontakt: [[CONTACT_EMAIL]]. Anwendbares Recht: [[GOVERNING_LAW]].",
     "settings_legal": "Rechtstexte",
     "legal_editor_no_permission": "Nur ein Systemadministrator kann die Rechtstexte bearbeiten.",
     "legal_editor_intro": "Bearbeiten Sie die unter /privacy/ und /terms/ angezeigte Datenschutzerklärung und die Nutzungsbedingungen. Jedes Speichern veröffentlicht eine neue Version; leere Sprachen behalten den integrierten Text. Bestehende Konten behalten die akzeptierte Version.",
@@ -2658,5 +2658,7 @@
     "account_data_deleted": "Ihr Konto wurde gelöscht.",
     "account_data_wrong_password": "Falsches Passwort.",
     "account_data_last_admin": "Sie sind der einzige Administrator. Machen Sie zuerst einen anderen Benutzer zum Administrator.",
-    "account_data_delete_failed": "Das Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+    "account_data_delete_failed": "Das Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+    "balance_overview_empty_title": "Noch keine Salden",
+    "balance_overview_empty_desc": "Fügen Sie einen Kontostand hinzu, dann erscheinen hier Ihre Währungskarten."
 }

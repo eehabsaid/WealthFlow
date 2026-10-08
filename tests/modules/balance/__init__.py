@@ -6,6 +6,7 @@ Tests:
  3. Immediate downstream cross-module verification (Dashboard Net Worth & Advisor Overview).
 
 Split into one file per phase (200-line rule):
+  - overview.py            — Phase 0: Overview tab (zero-amount currencies hidden, empty state)
   - accounts.py            — Phase 1: Balance Account CRUD + downstream verification
   - transfers.py           — Phase 2: Balance Transfer CRUD
   - currency_exchange.py   — Phase 3: Currency Exchange structural check
@@ -17,6 +18,7 @@ This module re-exports test_balance_module, the entry point imported by
 scripts/test_ui_human_full_e2e.py.
 """
 
+from tests.modules.balance.overview import test_overview
 from tests.modules.balance.accounts import test_accounts
 from tests.modules.balance.transfers import test_transfers
 from tests.modules.balance.currency_exchange import test_currency_exchange
@@ -37,12 +39,13 @@ def test_balance_module(context, reporter, screenshot_logger):
     reporter.pages_visited.add("Balance & Net Worth")
 
     # Sweep sub-tabs
-    tabs = ["accounts", "transfers", "currency_exchange", "bank_interest", "credit_card_payment", "card_renewal_fee"]
+    tabs = ["overview", "accounts", "transfers", "currency_exchange", "bank_interest", "credit_card_payment", "card_renewal_fee"]
     for t in tabs:
         context.page.evaluate(f"if (typeof switchTab === 'function') switchTab('{t}');")
         context.page.wait_for_timeout(500)
         reporter.tabs_visited.add(f"Balance -> {t}")
 
+    test_overview(context, reporter, screenshot_logger)
     test_accounts(context, reporter, screenshot_logger)
     test_transfers(context, reporter, screenshot_logger)
     test_currency_exchange(context, reporter, screenshot_logger)

@@ -55,3 +55,22 @@ class GoldAssetCurrencyNeutralityTests(TestCase):
 
         _, expected = CurrencyConversionService.convert_amount(Decimal("35000.00"), "EGP", "USD")
         self.assertEqual(asset.current_market_value, expected)
+
+    def test_egp_base_purchase_usd_rate_is_the_stored_egp_rate(self):
+        user = User.objects.create_user(username="egp_rate_owner", password="x")
+        asset, details = self._make_gold_asset(user)
+        _refresh_gold_asset_pricing(asset, details, self.gold_price)
+        self.assertEqual(asset.purchase_usd_rate, Decimal("48.500000"))
+        self.assertAlmostEqual(float(asset.purchase_price_usd), 1000 / 48.5, places=4)
+
+    def test_non_egp_base_purchase_usd_rate_is_base_units_per_usd(self):
+        """purchase_price is in the owner's base, so purchase_price_usd must not
+        divide by the EGP-per-USD rate (latent EGP assumption)."""
+        user = User.objects.create_user(username="eur_rate_owner", password="x")
+        UserProfile.objects.update_or_create(user=user, defaults={"preferred_currency": "EUR"})
+        ExchangeRate.objects.create(currency_code="USD", buy_rate=Decimal("48.5"), sell_rate=Decimal("48.6"), mid_rate=Decimal("48.55"))
+        ExchangeRate.objects.create(currency_code="EUR", buy_rate=Decimal("55"), sell_rate=Decimal("55.1"), mid_rate=Decimal("55.05"))
+        asset, details = self._make_gold_asset(user)
+        _refresh_gold_asset_pricing(asset, details, self.gold_price)
+        self.assertAlmostEqual(float(asset.purchase_usd_rate), 48.5 / 55, places=4)  # EUR per 1 USD
+        self.assertAlmostEqual(float(asset.purchase_price_usd), 1000 / (48.5 / 55), places=2)

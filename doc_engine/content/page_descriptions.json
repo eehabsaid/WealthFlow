@@ -483,6 +483,7 @@
     "steps": [
       "Navigate to Balance > Overview.",
       "Review the total liquid wealth.",
+      "Check the currency cards at the top: only currencies with a balance above zero are shown, and a friendly message appears if every balance is zero.",
       "Analyze the distribution of funds across different banks."
     ]
   },

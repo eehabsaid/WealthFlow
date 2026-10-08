@@ -2578,7 +2578,7 @@
     "auth_accept_and": "et la",
     "auth_error_terms_required": "Vous devez accepter les Conditions d'utilisation et la Politique de confidentialité pour créer un compte.",
     "privacy_s1_title": "Qui nous sommes et portée",
-    "privacy_s1_body": "WealthFlow est une application de finances personnelles. Cette politique explique quelles données personnelles l'exploitant de ce service WealthFlow collecte, pourquoi, et quels choix vous avez. Elle s'applique à l'application web et à l'application installable (PWA).",
+    "privacy_s1_body": "WealthFlow est une application de finances personnelles. Cette politique explique quelles données personnelles l'exploitant de ce service WealthFlow collecte, pourquoi, et quels choix vous avez. Elle s'applique à l'application web et à l'application installable (PWA). Exploitant : [[OPERATOR_NAME]].",
     "privacy_s2_title": "Données que nous collectons",
     "privacy_s2_body": "Données de compte : nom d'utilisateur, adresse e-mail, nom complet, langue et devise par défaut. Données financières que vous saisissez : soldes, certificats, actifs immobilisés, dépenses, budgets, salaire et enregistrements similaires. Données techniques : cookies de session et de sécurité, tentatives de connexion et événements d'audit.",
     "privacy_s3_title": "Comment nous utilisons vos données",
@@ -2590,9 +2590,9 @@
     "privacy_s6_title": "Cookies et stockage local",
     "privacy_s6_body": "Nous utilisons des cookies strictement nécessaires pour la connexion et la sécurité (session, CSRF) et pour mémoriser votre langue et votre thème. L'application installable conserve ses fichiers dans le cache du navigateur pour s'ouvrir hors ligne. Nous n'utilisons pas de cookies publicitaires.",
     "privacy_s7_title": "Conservation et sécurité",
-    "privacy_s7_body": "Nous conservons vos données tant que votre compte existe. Les mots de passe sont stockés sous forme hachée, et les clés de paiement et de fournisseur d'IA sont stockées chiffrées. Aucun service en ligne n'est parfaitement sûr ; utilisez un mot de passe fort et unique.",
+    "privacy_s7_body": "Nous conservons vos données tant que votre compte existe. Les mots de passe sont stockés sous forme hachée, et les clés de paiement et de fournisseur d'IA sont stockées chiffrées. Aucun service en ligne n'est parfaitement sûr ; utilisez un mot de passe fort et unique. Durée de conservation après la suppression du compte et pour les factures : [[RETENTION_PERIOD]].",
     "privacy_s8_title": "Vos droits et contact",
-    "privacy_s8_body": "Vous pouvez demander à l'exploitant d'accéder à vos données personnelles, de les corriger, de les exporter ou de les supprimer, et d'expliquer comment elles sont traitées. Contactez l'exploitant de ce service pour faire une demande. La loi applicable peut vous accorder des droits supplémentaires.",
+    "privacy_s8_body": "Vous pouvez demander à l'exploitant d'accéder à vos données personnelles, de les corriger, de les exporter ou de les supprimer, et d'expliquer comment elles sont traitées. Contactez l'exploitant de ce service pour faire une demande. La loi applicable peut vous accorder des droits supplémentaires. Contact : [[CONTACT_EMAIL]].",
     "terms_s1_title": "Acceptation",
     "terms_s1_body": "En créant un compte ou en utilisant WealthFlow, vous acceptez les présentes Conditions et la Politique de confidentialité. Si vous n'êtes pas d'accord, n'utilisez pas le service.",
     "terms_s2_title": "Le service",
@@ -2610,7 +2610,7 @@
     "terms_s8_title": "Responsabilité",
     "terms_s8_body": "Le service est fourni tel quel. Dans la mesure permise par la loi, l'exploitant n'est pas responsable des pertes indirectes ou consécutives, ni des décisions que vous prenez sur la base des informations affichées.",
     "terms_s9_title": "Résiliation et contact",
-    "terms_s9_body": "Vous pouvez cesser d'utiliser le service et demander la suppression de votre compte à tout moment. Nous pouvons suspendre les comptes qui enfreignent les présentes Conditions. Les questions sur ces Conditions sont à adresser à l'exploitant de ce service.",
+    "terms_s9_body": "Vous pouvez cesser d'utiliser le service et demander la suppression de votre compte à tout moment. Nous pouvons suspendre les comptes qui enfreignent les présentes Conditions. Les questions sur ces Conditions sont à adresser à l'exploitant de ce service. Contact : [[CONTACT_EMAIL]]. Droit applicable : [[GOVERNING_LAW]].",
     "settings_legal": "Textes juridiques",
     "legal_editor_no_permission": "Seul un administrateur système peut modifier les textes juridiques.",
     "legal_editor_intro": "Modifiez la politique de confidentialité et les conditions d'utilisation affichées sur /privacy/ et /terms/. Chaque enregistrement publie une nouvelle version ; les langues vides gardent le texte intégré. Les comptes existants conservent la version acceptée.",
@@ -2658,5 +2658,7 @@
     "account_data_deleted": "Votre compte a été supprimé.",
     "account_data_wrong_password": "Mot de passe incorrect.",
     "account_data_last_admin": "Vous êtes le seul administrateur. Nommez d'abord un autre administrateur.",
-    "account_data_delete_failed": "Impossible de supprimer le compte. Veuillez réessayer."
+    "account_data_delete_failed": "Impossible de supprimer le compte. Veuillez réessayer.",
+    "balance_overview_empty_title": "Aucun solde pour le moment",
+    "balance_overview_empty_desc": "Ajoutez le solde d'un compte et vos cartes de devises s'afficheront ici."
 }
