@@ -30,6 +30,7 @@ class AccountStatusMixin:
             user.is_active = False
         profile.disabled_at = None
         profile.disabled_by = None
+        profile.deletion_requested_at = None
         profile.status_reason = reason
         profile.save()
         user.save(update_fields=["is_active"])

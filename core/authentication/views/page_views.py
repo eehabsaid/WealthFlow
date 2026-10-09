@@ -1,9 +1,13 @@
 
+from urllib.parse import quote
+
 from django.contrib.auth import authenticate, get_user_model, login
 from django.http import JsonResponse
 from django.shortcuts import redirect
 
 from core.validators.json_body import parse_json_body
+from core.services.account import is_pending_deletion, restore_needs_admin
+from core.services.budgets.auto_post import auto_post_on_login
 from core.authentication.services import AuthWorkflowService
 from core.authentication.utils import request_lang as _request_lang
 from core.authentication.views.helpers import _render_auth, _render_auth_status
@@ -27,6 +31,7 @@ def login_view(request):
             profile.preferred_language = lang
             profile.save(update_fields=["preferred_language", "updated_at"])
             login(request, user)
+            auto_post_on_login(user)
             response = redirect("/")
             response.set_cookie("wf_lang", lang, max_age=31536000, samesite="Lax")
             return response
@@ -111,6 +116,15 @@ def reset_password_view(request, token):
             password=request.POST.get("password", ""),
             confirm_password=request.POST.get("confirm_password", ""),
         )
+        if result.ok and is_pending_deletion(result.user) and not restore_needs_admin(result.user):
+            return _render_auth_status(
+                request,
+                title_key="auth_reset_password_heading",
+                message_key="auth_password_reset_success_pending_deletion",
+                tone="success",
+                cta_href=f"/accounts/restore/?username={quote(result.user.username)}",
+                cta_key="auth_restore_link",
+            )
         if result.ok:
             return _render_auth_status(
                 request,

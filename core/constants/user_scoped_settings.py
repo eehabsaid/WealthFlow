@@ -21,6 +21,8 @@ USER_SCOPED_SETTING_KEYS = frozenset(
         "dashboard_show_certs",
         "dashboard_show_reminders",
         "dashboard_show_salary",
+        # Budgets > Recurring (default off)
+        "recurring_auto_post_on_login",
         # Reminders tab
         "reminder_check_enabled",
         "cert_expiry_warning_days",

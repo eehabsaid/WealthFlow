@@ -29,6 +29,9 @@ from tests.modules.billing import test_billing_module
 from tests.modules.pwa import test_pwa_module
 from tests.modules.gulf_market import test_gulf_market_module
 from tests.modules.legal import test_legal_module
+from tests.modules.account_deletion import test_account_deletion_module
+from tests.modules.recurring_auto_post import test_recurring_auto_post_module
+from tests.modules.owner_setup import test_owner_setup_module
 
 MODULE_DISPATCH = {
     "auth": test_authentication_module,
@@ -50,6 +53,9 @@ MODULE_DISPATCH = {
     "pwa": test_pwa_module,
     "gulf_market": test_gulf_market_module,
     "legal": test_legal_module,
+    "account_deletion": test_account_deletion_module,
+    "recurring_auto_post": test_recurring_auto_post_module,
+    "owner_setup": test_owner_setup_module,
 }
 
 

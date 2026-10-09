@@ -14,7 +14,7 @@ from django.db.models import Q
 
 from core.services.billing.trial_policy import start_trial_for_admin_created
 from core.validators.json_body import parse_json_body
-from core.services.account import deletion_blocker, purge_user
+from core.services.account import deletion_blocker, is_pending_deletion, purge_user, restore_user, schedule_deletion
 from core.services.shared.auth_workflow_service import AuthWorkflowService
 from core.views.auth_views import AdminRequiredMixin, _build_user_dict
 
@@ -111,11 +111,27 @@ class UserDetailView(AdminRequiredMixin, View):
         return JsonResponse({"user": _build_user_dict(user)})
 
     def delete(self, request, pk):
+        """Schedule deletion (restorable); `?purge_now=1` permanently removes an account that is already pending."""
         user = get_object_or_404(User, pk=pk)
-        if user.pk == request.user.pk and deletion_blocker(user):
-            return JsonResponse({"error": "last_admin", "message": deletion_blocker(user)}, status=409)
-        purge_user(user)
-        return JsonResponse({"deleted": pk})
+        blocker = deletion_blocker(user)
+        if blocker:
+            return JsonResponse({"error": "last_admin", "message": blocker}, status=409)
+        if request.GET.get("purge_now") == "1":
+            if not is_pending_deletion(user):
+                return JsonResponse({"error": "not_pending_deletion"}, status=400)
+            purge_user(user)
+            return JsonResponse({"deleted": pk, "purged": True})
+        schedule_deletion(user, actor=request.user)
+        return JsonResponse({"deleted": pk, "scheduled": True})
+
+    def post(self, request, pk):
+        """POST {action: "restore"}: cancel a scheduled deletion."""
+        user = get_object_or_404(User, pk=pk)
+        if parse_json_body(request).get("action") != "restore":
+            return JsonResponse({"error": "unknown action"}, status=400)
+        if not restore_user(user, actor=request.user):
+            return JsonResponse({"error": "not_pending_deletion"}, status=400)
+        return JsonResponse({"user": _build_user_dict(user)})
 
 
 class UserBulkActionView(AdminRequiredMixin, View):
@@ -132,17 +148,29 @@ class UserBulkActionView(AdminRequiredMixin, View):
         users = User.objects.filter(id__in=ids)
         changed = 0
         if action == "delete":
-            changed = users.count()
+            blocked = []
             for doomed in list(users):
-                purge_user(doomed)
+                if deletion_blocker(doomed):
+                    blocked.append(doomed.username)
+                    continue
+                schedule_deletion(doomed, actor=request.user)
+                changed += 1
+            if blocked:
+                return JsonResponse({"changed": changed, "blocked_last_admin": blocked})
+        elif action == "restore":
+            for user in users:
+                changed += int(restore_user(user, actor=request.user))
         elif action == "activate":
             changed = users.count()
             for user in users:
                 AuthWorkflowService.enable_user(user, actor=request.user)
         elif action == "deactivate":
-            changed = users.count()
+            changed = 0
             for user in users:
+                if is_pending_deletion(user):
+                    continue
                 AuthWorkflowService.disable_user(user, actor=request.user)
+                changed += 1
         elif action == "set_staff":
             val = bool(data.get("value"))
             changed = users.update(is_staff=val)

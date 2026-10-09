@@ -78,14 +78,19 @@ async function renderBudgets() {
   mc.innerHTML =
     '<div class="spinner-overlay"><div class="spinner-border text-primary"></div></div>';
 
-  const [budgetsRes, recurringRes, alertsRes, catRes, curRes, bankRes] = await Promise.all([
-    fetch("/api/budgets/"),
-    fetch("/api/recurring-transactions/"),
-    fetch("/api/budgets/alerts/"),
-    fetch("/api/expense-categories/"),
-    fetch("/api/currencies/"),
-    fetch("/api/banks/"),
-  ]);
+  const [budgetsRes, recurringRes, alertsRes, catRes, curRes, bankRes, settingsRes] =
+    await Promise.all([
+      fetch("/api/budgets/"),
+      fetch("/api/recurring-transactions/"),
+      fetch("/api/budgets/alerts/"),
+      fetch("/api/expense-categories/"),
+      fetch("/api/currencies/"),
+      fetch("/api/banks/"),
+      fetch("/api/settings/"),
+    ]);
+  const autoPost =
+    ((await settingsRes.json().catch(() => ({}))).settings || {}).recurring_auto_post_on_login ===
+    "true";
   const budgets = (await budgetsRes.json()).budgets || [];
   const recurring = (await recurringRes.json()).recurring_transactions || [];
   const alerts = (await alertsRes.json()).alerts || [];
@@ -116,6 +121,11 @@ async function renderBudgets() {
           <button class="btn btn-outline-secondary btn-sm" onclick="processDueRecurring()" data-i18n="btn_process_due">Post Due Now</button>
           <button class="btn btn-primary btn-sm" onclick="showRecurringModal(null)" data-i18n="btn_add_recurring">Add Recurring</button>
         </div>
+      </div>
+      <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" id="recurringAutoPost" ${autoPost ? "checked" : ""}
+          onchange="saveRecurringAutoPost(this.checked)">
+        <label class="form-check-label" for="recurringAutoPost" data-i18n="recurring_auto_post_label">Post due recurring transactions automatically when I sign in</label>
       </div>
       ${recurring.length ? recurring.map(_recurringRowHtml).join("") : `<p class="text-secondary" data-i18n="no_recurring_yet">No recurring transactions yet.</p>`}
     </div>`;

@@ -143,6 +143,7 @@ class SchedulerAutomationCommandTest(TestCase):
                 "certificate_interest",
                 "exchange_rates",
                 "gold_prices",
+                "account_purge",
                 "property_valuation",
             },
         )
@@ -180,5 +181,5 @@ class SchedulerAutomationCommandTest(TestCase):
         call_command("run_automation", "--today", "2026-07-04", stdout=output)
         payload = json.loads(output.getvalue())
 
-        self.assertEqual(len(payload), 6)
+        self.assertEqual(len(payload), 7)
         self.assertTrue(all(item["success"] for item in payload))

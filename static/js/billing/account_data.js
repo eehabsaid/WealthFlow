@@ -15,7 +15,7 @@ function renderAccountDataCard() {
         <button class="btn btn-outline-danger" id="wf-account-delete-btn" onclick="toggleDeleteAccountForm(true)" data-i18n="account_data_delete_btn">${t("account_data_delete_btn", "Delete my account")}</button>
       </div>
       <div id="wf-account-delete-form" class="wf-account-delete-form" hidden>
-        <p class="wf-account-warning" data-i18n="account_data_delete_warning">${t("account_data_delete_warning", "This is permanent and cannot be undone. Your profile, balances, expenses, assets, documents and AI chats are deleted. Export your data first if you want to keep a copy.")}</p>
+        <p class="wf-account-warning" data-i18n="account_data_delete_warning">${t("account_data_delete_warning", "Your account is disabled now and permanently deleted after a grace period, which you can use to restore it. Your profile, balances, expenses, assets, documents and AI chats are then removed. Export your data first if you want a copy.")}</p>
         <label for="wf-account-password" data-i18n="account_data_password_label">${t("account_data_password_label", "Your password")}</label>
         <input type="password" id="wf-account-password" class="form-control" autocomplete="current-password" />
         <label for="wf-account-confirm" data-i18n="account_data_confirm_label">${t("account_data_confirm_label", "Type DELETE to confirm")}</label>
@@ -82,7 +82,13 @@ async function deleteMyAccount() {
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
-      showToast(t("account_data_deleted", "Your account was deleted."), "success");
+      showToast(
+        t(
+          "account_data_deleted",
+          "Your account is scheduled for deletion. You can restore it for {days} days by signing in."
+        ).replace("{days}", String(data.grace_days ?? "")),
+        "success"
+      );
       setTimeout(() => (window.location.href = "/accounts/login/"), 1200);
       return;
     }

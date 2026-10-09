@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 
-from core.services.account import build_user_export, deletion_blocker, purge_user
+from core.services.account import build_user_export, deletion_blocker, grace_days, schedule_deletion
 from core.validators.json_body import parse_json_body
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ def account_export(request):
 
 @login_required(login_url="/accounts/login/")
 def account_delete(request):
-    """POST {confirm: "DELETE", password}: permanently delete the signed-in user and all their data."""
+    """POST {confirm: "DELETE", password}: disable the account and schedule its deletion; restorable during the grace period."""
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
     data = parse_json_body(request)
@@ -43,6 +43,6 @@ def account_delete(request):
     blocker = deletion_blocker(user)
     if blocker:
         return JsonResponse({"error": "last_admin", "message": blocker}, status=409)
-    purge_user(user)
+    purge_on = schedule_deletion(user, actor=user)
     logout(request)
-    return JsonResponse({"deleted": True})
+    return JsonResponse({"deleted": True, "scheduled": True, "grace_days": grace_days(), "purge_at": purge_on.isoformat() if purge_on else None})

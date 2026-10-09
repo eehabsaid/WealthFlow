@@ -100,6 +100,8 @@ class RegistrationMixin:
             return "auth_status_verify_email"
         if profile.account_status == "rejected":
             return "auth_status_rejected"
+        if profile.deletion_requested_at:
+            return "auth_status_pending_deletion"
         if profile.account_status == "disabled" or not user.is_active:
             return "auth_status_disabled"
         return "auth_error_invalid_login"

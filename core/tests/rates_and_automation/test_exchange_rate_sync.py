@@ -158,3 +158,16 @@ class ExchangeRateSyncTest(TestCase):
         # Refresh must have completed despite archive error
         self.assertGreater(result.saved, 0)
         self.assertGreater(ExchangeRate.objects.count(), 0)
+
+
+class ExchangeRateDefaultOrderingTests(TestCase):
+    def test_default_ordering_breaks_ties_by_newest_id(self):
+        from django.utils import timezone
+
+        from core.models import ExchangeRate
+
+        stamp = timezone.now()
+        make = lambda buy: ExchangeRate.objects.create(currency_code="USD", currency_name="Dollar", buy_rate=buy, sell_rate=buy, mid_rate=buy, fetched_at=stamp)
+        first, second = make(50), make(51)
+        self.assertEqual(ExchangeRate._meta.ordering, ["-fetched_at", "currency_code", "-id"])
+        self.assertEqual([r.pk for r in ExchangeRate.objects.all()], [second.pk, first.pk])

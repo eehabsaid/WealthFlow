@@ -36,7 +36,16 @@ async function applyBulkAction() {
     showToast("No users selected", "error");
     return;
   }
-  if (action === "delete" && !confirm(`Delete ${ids.length} selected users?`)) return;
+  if (
+    action === "delete" &&
+    !confirm(
+      t(
+        "users_bulk_delete_confirm",
+        "Schedule {count} selected users for deletion? They can be restored during the grace period."
+      ).replace("{count}", String(ids.length))
+    )
+  )
+    return;
 
   const payload = { action, ids };
   if (action.startsWith("set_staff")) payload.value = action.endsWith("true");
@@ -54,6 +63,15 @@ async function applyBulkAction() {
     const d = await res.json();
     if (res.ok) {
       showToast(`${d.changed || 0} users updated`);
+      if (d.blocked_last_admin?.length) {
+        showToast(
+          t("users_bulk_blocked_last_admin", "Not deleted (last administrator): {names}").replace(
+            "{names}",
+            d.blocked_last_admin.join(", ")
+          ),
+          "error"
+        );
+      }
       const pageSizeEl = document.getElementById("usersPageSize");
       const qEl = document.getElementById("userSearch");
       loadUsers({
@@ -107,10 +125,56 @@ async function saveUser(userId) {
 }
 
 async function deleteUser(id) {
-  if (!confirm("Delete user? This cannot be undone.")) return;
+  if (
+    !confirm(
+      t(
+        "user_delete_confirm",
+        "Delete this user? The account is disabled now and can be restored until the grace period ends; after that it is permanently removed."
+      )
+    )
+  )
+    return;
   const res = await fetch(`/api/users/${id}/`, { method: "DELETE" });
   if (res.ok) {
-    showToast("Deleted");
+    showToast(t("user_delete_scheduled", "Account scheduled for deletion"));
     renderUserSettings();
-  } else showToast("Error deleting user", "error");
+  } else {
+    const e = await res.json().catch(() => ({}));
+    showToast(e.message || t("user_delete_error", "Error deleting user"), "error");
+  }
+}
+
+async function restoreUser(id) {
+  const res = await fetch(`/api/users/${id}/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "restore" }),
+  });
+  showToast(
+    res.ok
+      ? t("user_restored", "Account restored")
+      : t("user_restore_error", "Couldn't restore the account"),
+    res.ok ? "success" : "error"
+  );
+  if (res.ok) renderUserSettings();
+}
+
+async function purgeUserNow(id) {
+  if (
+    !confirm(
+      t(
+        "user_purge_now_confirm",
+        "Permanently delete this account and all its data now? This cannot be undone."
+      )
+    )
+  )
+    return;
+  const res = await fetch(`/api/users/${id}/?purge_now=1`, { method: "DELETE" });
+  showToast(
+    res.ok
+      ? t("user_purged", "Account permanently deleted")
+      : t("user_delete_error", "Error deleting user"),
+    res.ok ? "success" : "error"
+  );
+  if (res.ok) renderUserSettings();
 }

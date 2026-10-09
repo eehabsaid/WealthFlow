@@ -46,6 +46,13 @@ def effective_permission_keys(user):
     return keys
 
 
+def _purge_at_iso(profile):
+    from core.services.account import purge_at
+
+    when = purge_at(profile)
+    return when.isoformat() if when else None
+
+
 def build_user_dict(user, profile=None):
     """Formats User and UserProfile into a standardized dictionary."""
     if profile is None:
@@ -61,6 +68,8 @@ def build_user_dict(user, profile=None):
         "is_sysadmin": bool(profile.is_sysadmin),
         "email_verified": profile.email_verified,
         "account_status": profile.account_status,
+        "deletion_requested_at": profile.deletion_requested_at.isoformat() if profile.deletion_requested_at else None,
+        "purge_at": _purge_at_iso(profile),
         "roles": [ur.role.name for ur in user.roles.select_related("role").all()],
     }
 

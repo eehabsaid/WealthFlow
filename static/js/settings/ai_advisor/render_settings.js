@@ -72,8 +72,14 @@ window.AIA.renderAIAdvisorSettings = async function () {
     multiAgentChecked,
   });
   // Order: settings form -> monthly token limits -> platform card (installed models)
+  const keyWarning = window.AIA.state.currentAISettings.encryption_key_default
+    ? `<div class="alert alert-warning m-3" id="aiDefaultKeyWarning" role="alert">
+         <i class="bi bi-shield-exclamation me-2"></i>
+         <span data-i18n="ai_default_key_warning">Stored API keys are protected with the default server key. Set a private WEALTHFLOW_AI_ENCRYPTION_KEY on the server, run "python manage.py rekey_ai_keys --apply", then restart.</span>
+       </div>`
+    : "";
   container.innerHTML =
-    html + '<div id="aiUserLimitsPanel"></div>' + window.AIA.buildPlatformCardHtml();
+    keyWarning + html + '<div id="aiUserLimitsPanel"></div>' + window.AIA.buildPlatformCardHtml();
   window.AIA.loadUserLimitsPanel();
 
   window.AIA.loadAIPlatformOverviewData();

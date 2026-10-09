@@ -76,7 +76,8 @@ class DeletionTests(TestCase):
         self.assertTrue(User.objects.filter(username="alice").exists())
         res = post({"confirm": "DELETE", "password": "Pass12345!"})
         self.assertEqual(res.status_code, 200)
-        self.assertFalse(User.objects.filter(username="alice").exists())
+        self.assertTrue(res.json()["scheduled"])
+        self.assertFalse(User.objects.get(username="alice").is_active)  # soft-deleted: data kept for the grace period
         self.assertIn(self.client.get("/api/account/export/").status_code, (302, 401))  # session ended
         self.assertTrue(User.objects.filter(username="bob").exists())
 

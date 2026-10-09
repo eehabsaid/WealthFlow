@@ -1,6 +1,7 @@
 from django.urls import path
 from .. import views
 from ..views import ExportExcelWorkbookView
+from core.views.settings.billing.gateway_test_views import PaymobGatewayTestView
 
 urlpatterns = [
     # Reports
@@ -32,6 +33,7 @@ urlpatterns = [
     path("api/settings/billing/customers/", views.CustomerListView.as_view()),
     path("api/settings/billing/customers/<int:user_id>/action/", views.CustomerActionView.as_view()),
     path("api/settings/billing/invoices/<int:invoice_id>/action/", views.InvoiceActionView.as_view()),
+    path("api/settings/billing/gateway/test/", PaymobGatewayTestView.as_view()),
     # Backup & Restore
     path("api/settings/backup/create/", views.BackupCreateView.as_view()),
     path("api/settings/backup/list/", views.BackupListView.as_view()),

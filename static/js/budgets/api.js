@@ -97,6 +97,23 @@ async function toggleRecurringActive(id, isActive) {
   }
 }
 
+async function saveRecurringAutoPost(enabled) {
+  const res = await fetch("/api/settings/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      key: "recurring_auto_post_on_login",
+      value: enabled ? "true" : "false",
+    }),
+  });
+  showToast(
+    res.ok
+      ? t("settings_saved", "Settings saved ✓")
+      : t("error_saving_recurring", "Error saving recurring transaction"),
+    res.ok ? "success" : "error"
+  );
+}
+
 async function processDueRecurring() {
   const previewRes = await fetch("/api/recurring-transactions/due-preview/");
   if (!previewRes.ok) {

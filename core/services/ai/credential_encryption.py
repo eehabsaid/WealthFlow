@@ -46,6 +46,29 @@ def get_fernet_key() -> bytes:
     return base64.urlsafe_b64encode(hashlib.sha256(secret_key).digest())
 
 
+def fernet_key_from_secret(secret: str) -> bytes:
+    """Fernet key for an explicit secret string, using the same rules as WEALTHFLOW_AI_ENCRYPTION_KEY."""
+    secret = (secret or "").strip()
+    try:
+        raw = secret.encode("utf-8")
+        if len(base64.urlsafe_b64decode(raw)) == 32:
+            return raw
+    except Exception:
+        pass
+    return base64.urlsafe_b64encode(hashlib.sha256(secret.encode("utf-8")).digest())
+
+
+def settings_secret_key() -> bytes:
+    """The key used when WEALTHFLOW_AI_ENCRYPTION_KEY is not set (derived from Django SECRET_KEY)."""
+    secret_key = str(getattr(settings, "SECRET_KEY", "wealthflow_default_fallback_secret_key")).encode("utf-8")
+    return base64.urlsafe_b64encode(hashlib.sha256(secret_key).digest())
+
+
+def using_default_key() -> bool:
+    """True while stored credentials are protected only by the SECRET_KEY-derived fallback key."""
+    return not os.environ.get("WEALTHFLOW_AI_ENCRYPTION_KEY", "").strip()
+
+
 def is_encrypted(value: str | None) -> bool:
     """Returns True if value starts with 'enc:'."""
     if not value or not isinstance(value, str):

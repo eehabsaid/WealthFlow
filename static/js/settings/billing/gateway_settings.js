@@ -33,6 +33,10 @@ function _regionsHtml(g) {
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div style="font-weight:600;color:var(--text-secondary)">${code}</div>${live}
             </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-paymob-test="${code}" onclick="testGatewayRegion('${code}')" data-i18n="paymob_test_btn">${t("paymob_test_btn", "Test connection")}</button>
+                <small id="paymobTestResult_${code}" class="text-muted" role="status"></small>
+            </div>
             <div class="row g-3">
                 ${_regionFieldHtml(code, "base_url", "paymob_region_host", "Paymob host (e.g. ksa.paymob.com)", r.base_url)}
                 ${_regionFieldHtml(code, "api_key", "paymob_api_key", "Paymob API Key", r.api_key, true)}
@@ -137,5 +141,33 @@ async function saveGatewaySettings() {
   }
 }
 
+async function testGatewayRegion(code) {
+  const out = document.getElementById(`paymobTestResult_${code}`);
+  const btn = document.querySelector(`[data-paymob-test="${code}"]`);
+  if (!out) return;
+  if (btn) btn.disabled = true;
+  out.textContent = "…";
+  out.className = "text-muted";
+  try {
+    const res = await fetch("/api/settings/billing/gateway/test/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+      body: JSON.stringify({ currency: code }),
+    });
+    const data = await res.json().catch(() => ({}));
+    const key = data.error_key || "paymob_test_failed";
+    let msg = t(key, key).replace("{host}", data.host || "");
+    if (!data.ok && data.detail) msg += ` (${data.detail})`;
+    out.textContent = msg;
+    out.className = data.ok ? "text-success" : "text-danger";
+  } catch (e) {
+    out.textContent = t("paymob_test_failed", "Could not reach the server to run the test.");
+    out.className = "text-danger";
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+window.testGatewayRegion = testGatewayRegion;
 window.renderGatewaySettingsCard = renderGatewaySettingsCard;
 window.saveGatewaySettings = saveGatewaySettings;

@@ -33,6 +33,7 @@ async function loadUsers({ page = 1, pageSize = 10, q = "" } = {}) {
                     <option value="activate"     data-i18n="activate_selected">Activate selected</option>
                     <option value="deactivate"   data-i18n="deactivate_selected">Deactivate selected</option>
                     <option value="delete"       data-i18n="delete_selected">Delete selected</option>
+                    <option value="restore"      data-i18n="restore_selected">Restore selected</option>
                     <option value="set_staff_true"  data-i18n="set_staff">Set staff</option>
                     <option value="set_staff_false" data-i18n="unset_staff">Unset staff</option>
                     <option value="set_sysadmin_true"  data-i18n="set_sysadmin">Set sysadmin</option>
@@ -99,6 +100,7 @@ async function loadUsers({ page = 1, pageSize = 10, q = "" } = {}) {
     if (status === "pending_email_verification") return "auth_status_verify_email";
     if (status === "rejected") return "auth_status_rejected";
     if (status === "disabled") return "auth_status_disabled";
+    if (status === "pending_deletion") return "user_status_pending_deletion";
     return "auth_status_active_label";
   };
 
@@ -126,7 +128,13 @@ async function loadUsers({ page = 1, pageSize = 10, q = "" } = {}) {
             <td>
                 <button class="btn-icon" onclick="showUserModal(${u.id})"><i class="bi bi-pencil"></i></button>
                 <button class="btn-icon" onclick="showPermissionsModal(${u.id})"><i class="bi bi-shield-lock"></i></button>
-                <button class="btn-icon del" onclick="deleteUser(${u.id})"><i class="bi bi-trash"></i></button>
+                ${
+                  u.deletion_requested_at
+                    ? `<small class="text-muted" data-user-purge-at="${u.id}">${t("user_purge_on", "Purged on {date}").replace("{date}", String(u.purge_at || "").slice(0, 10))}</small>
+                <button class="btn-icon" data-user-restore="${u.id}" title="${t("user_restore_btn", "Restore")}" onclick="restoreUser(${u.id})"><i class="bi bi-arrow-counterclockwise"></i></button>
+                <button class="btn-icon del" data-user-purge="${u.id}" title="${t("user_purge_now_btn", "Delete permanently now")}" onclick="purgeUserNow(${u.id})"><i class="bi bi-x-octagon"></i></button>`
+                    : `<button class="btn-icon del" data-user-delete="${u.id}" onclick="deleteUser(${u.id})"><i class="bi bi-trash"></i></button>`
+                }
             </td>
         </tr>`
     )

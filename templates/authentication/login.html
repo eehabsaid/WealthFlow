@@ -49,6 +49,9 @@
       <div class="alert-dark-danger" role="alert">
         <i class="bi bi-exclamation-circle"></i>
         <span data-i18n="{{ error_key }}">{{ error_key }}</span>
+        {% if error_key == 'auth_status_pending_deletion' %}
+        <a href="/accounts/restore/?username={{ prefill_username|urlencode }}" id="restoreAccountLink" data-i18n="auth_restore_link">Restore my account</a>
+        {% endif %}
       </div>
       {% endif %}
 

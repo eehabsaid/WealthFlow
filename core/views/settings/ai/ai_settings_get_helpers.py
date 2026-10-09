@@ -9,7 +9,7 @@ core/views/settings/__init__.py accordingly."""
 
 from core.models import AppSettings
 from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
-from core.services.ai.credential_encryption import decrypt_credential, mask_credential
+from core.services.ai.credential_encryption import decrypt_credential, mask_credential, using_default_key
 from core.services.ai.tools.permissions import resolve_granted_tier
 from core.integrations.ai_provider import AVAILABLE_AI_PROVIDERS
 from core.views.settings.ai.ai_pipeline_settings import get_pipeline_settings
@@ -100,6 +100,7 @@ def build_ai_settings_get_payload(user=None):
     ]
 
     return {
+        "encryption_key_default": using_default_key(),
         "ai_enabled": enabled,
         "ai_read_only": read_only,
         "ai_permission_tier": permission_tier,

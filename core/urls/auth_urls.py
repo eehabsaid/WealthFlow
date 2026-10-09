@@ -1,5 +1,6 @@
 from django.urls import path
 from .. import views
+from core.authentication.views.restore_views import restore_account_view
 
 urlpatterns = [
     path("accounts/login/", views.login_view, name="login"),
@@ -9,6 +10,7 @@ urlpatterns = [
     path("accounts/verify-email/<str:token>/", views.verify_email_view, name="verify_email"),
     path("accounts/check-email/", views.check_email_view, name="check_email"),
     path("accounts/account-disabled/", views.account_disabled_view, name="account_disabled"),
+    path("accounts/restore/", restore_account_view, name="restore_account"),
     path("accounts/logout/", views.logout_view, name="logout"),
     path("privacy/", views.privacy_view, name="privacy"),
     path("terms/", views.terms_view, name="terms"),

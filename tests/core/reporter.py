@@ -38,7 +38,7 @@ class QAReporter(ReporterHtmlMixin):
         self.failed_count = 0
         self.skipped_count = 0
 
-        self.expected_pages = 20
+        self.expected_pages = 21
         self.expected_tabs = 51
         self.expected_modals = 21
         self.expected_exports = 9

@@ -10,6 +10,7 @@ from core.services.shared.exchange_rate_service import ExchangeRateService
 from core.services.fixed_assets.gold_valuation_service import GoldValuationService
 from core.services.fixed_assets.property_valuation_service import PropertyValuationService
 from core.services.shared.reminder_automation_service import ReminderAutomationService
+from core.services.account import purge_due_users
 
 def _run_reminders_for_all_owners(today=None):
     """System-wide scheduled job: each user's reminders are evaluated
@@ -70,6 +71,10 @@ class SchedulerService:
             "gold_prices": {
                 "label": "Gold price refresh",
                 "runner": lambda today=None: GoldValuationService().refresh_latest_prices().to_dict(),
+            },
+            "account_purge": {
+                "label": "Purge accounts past the deletion grace period",
+                "runner": lambda today=None: purge_due_users(),
             },
             "property_valuation": {
                 "label": "Property valuation refresh",

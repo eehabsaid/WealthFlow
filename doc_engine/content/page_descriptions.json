@@ -104,7 +104,8 @@
       "Select training backend.",
       "Trigger model fine-tuning or autonomous learning scan.",
       "Turn Instant Data Answers on or off: when on, simple data questions (balances, salary, expenses, gold price, exchange rates) are answered instantly from your own data without the AI model.",
-      "Set the default monthly AI token limit and optional per-user overrides in the 'Monthly AI token limit per user' frame, above the platform and model-history section: a blank override uses the default and 0 means unlimited. Search users by name or email, filter by AI settings mode, use Toggle Select All (or tick users) and Apply to selected to set one limit for many users at once. Limits apply only to users on the general app settings; users on their own AI settings are never limited. Long tables show 5 rows with a Show all / Show less toggle."
+      "Set the default monthly AI token limit and optional per-user overrides in the 'Monthly AI token limit per user' frame, above the platform and model-history section: a blank override uses the default and 0 means unlimited. Search users by name or email, filter by AI settings mode, use Toggle Select All (or tick users) and Apply to selected to set one limit for many users at once. Limits apply only to users on the general app settings; users on their own AI settings are never limited. Long tables show 5 rows with a Show all / Show less toggle.",
+      "If a yellow warning says stored API keys use the default server key, set a private WEALTHFLOW_AI_ENCRYPTION_KEY on the server, run \"python manage.py rekey_ai_keys --apply\" and restart; the warning disappears once a private key is active."
     ]
   },
   "settings::settings-legal": {
@@ -149,11 +150,11 @@
     ]
   },
   "settings::settings-users": {
-    "purpose": "Configure the administrative settings and preferences for Settings Users.",
+    "purpose": "Manage user accounts. Deleting a user disables the account and schedules its permanent removal after a grace period; the row then shows the purge date, Restore and Delete permanently now. The last active administrator cannot be deleted. Accounts that were already disabled or rejected before deletion can only be restored by an administrator.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Use the trash button (or Bulk actions > Delete selected) to schedule a deletion.",
+      "Use Restore (or Bulk actions > Restore selected) to cancel it before the purge date.",
+      "Use Delete permanently now on a pending row to remove the account and its data immediately."
     ]
   },
   "settings::settings-roles": {
@@ -252,6 +253,14 @@
       "Create a secure password.",
       "Tick the box to accept the Terms of Service and Privacy Policy (both open in a new tab).",
       "Submit the form to create your account, then confirm your email."
+    ]
+  },
+  "auth::restore_account": {
+    "purpose": "Cancel a scheduled account deletion. A deleted account is disabled and kept for a grace period; during that time you can restore it here.",
+    "steps": [
+      "Enter your username and password. If you forgot the password, use Forgot Password: after the email reset you are sent straight back here.",
+      "Select Restore my account.",
+      "Sign in again as usual; all your data is back."
     ]
   },
   "auth::forgot_password": {
@@ -1028,7 +1037,8 @@
       "Open Budgets from the Expenses Reports group in the sidebar.",
       "Use Add Budget to set an amount, period, category and alert threshold in your base currency.",
       "Use Add Recurring to schedule a repeating transaction; pause or resume it at any time. Past start dates are not back-filled unless you choose to.",
-      "Review the alerts shown when spending reaches the alert threshold or exceeds the budget."
+      "Review the alerts shown when spending reaches the alert threshold or exceeds the budget.",
+      "Turn on Post due recurring transactions automatically when I sign in (off by default) to have due items posted at sign-in; Post Due Now still previews and asks first."
     ]
   },
   "budgets::add_budget": {
@@ -1092,7 +1102,8 @@
       "Add or edit plans and their prices in each currency.",
       "Use the Trials checkbox to decide whether users you create from Settings > Users start a free trial (on by default; existing users are not changed).",
       "In Customers, search a user, then suspend or unsuspend the account, extend the trial, or change the plan.",
-      "Open a customer's invoices to mark a pending invoice paid, void it, or refund a paid one. A Paymob refund is recorded here; return the money from the Paymob dashboard."
+      "Open a customer's invoices to mark a pending invoice paid, void it, or refund a paid one. A Paymob refund is recorded here; return the money from the Paymob dashboard.",
+      "For each Gulf account (SAR / AED), save it and press Test connection to check that Paymob accepts the saved API key on the regional host; no order is created and nothing is charged."
     ]
   }
 }

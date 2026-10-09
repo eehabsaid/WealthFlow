@@ -172,6 +172,25 @@ class PaymobGateway:
         return data["token"]
 
     @classmethod
+    def test_connection(cls, currency_code: str) -> dict:
+        """Authenticate against the SAVED regional account of `currency_code` (no order, no charge). Returns
+        {ok, error_key, host, detail}: error_key is an i18n key for the Settings UI; detail is secret-redacted."""
+        from urllib.parse import urlparse
+
+        cfg = cls.get_region_config(currency_code)
+        host = ""
+        if cfg is None or not cfg.get("api_key"):
+            return {"ok": False, "error_key": "paymob_test_not_configured", "host": host, "detail": ""}
+        host = (urlparse(cfg["base_url"]).hostname or "").lower()
+        if not (host == "paymob.com" or host.endswith(".paymob.com")):
+            return {"ok": False, "error_key": "paymob_test_bad_host", "host": host, "detail": ""}
+        try:
+            cls._auth_token(cfg)
+        except PaymobConfigError as exc:
+            return {"ok": False, "error_key": "paymob_test_auth_failed", "host": host, "detail": str(exc)[:300]}
+        return {"ok": True, "error_key": "paymob_test_ok", "host": host, "detail": ""}
+
+    @classmethod
     def _create_order(cls, cfg: dict, auth_token: str, amount_cents: int, currency_code: str, merchant_order_id: str) -> int:
         data, status, err = make_json_http_request(
             f"{cfg['base_url']}/ecommerce/orders",

@@ -12,7 +12,7 @@ class ExchangeRate(models.Model):
     fetched_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-fetched_at", "currency_code"]
+        ordering = ["-fetched_at", "currency_code", "-id"]
 
     def to_dict(self):
         return {

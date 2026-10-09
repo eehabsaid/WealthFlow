@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.views import View
 
 from core.validators.json_body import parse_json_body
+from core.services.budgets.auto_post import auto_post_on_login
 from core.models import UserProfile
 from core.authentication.services import AuthWorkflowService
 from core.authentication.utils import (
@@ -36,8 +37,10 @@ class LoginAPIView(View):
         profile.preferred_language = str(data.get("lang", "") or profile.preferred_language or "en")
         profile.save(update_fields=["preferred_language", "updated_at"])
         login(request, user)
+        posted = auto_post_on_login(user)
         return JsonResponse(
             {
+                "recurring_posted": posted,
                 "user": _build_user_dict(user, profile),
                 "allowed_pages": _get_user_allowed_pages(user),
             }

@@ -1,6 +1,6 @@
-"""The default Privacy/Terms text carries clearly marked operator fields (name, contact,
-retention period, governing law) in every language, so the owner can fill them in the
-Settings > Legal Text editor, and the 'legal review needed' notice stays in place."""
+"""The default Privacy/Terms text carries the operator fields (name, contact, retention period,
+governing law) filled in for every language, with no unresolved [[...]] marker left, and the
+'legal review needed' notice stays in place. Settings > Legal Text can still override the text."""
 import json
 from pathlib import Path
 
@@ -9,10 +9,10 @@ from django.test import SimpleTestCase
 
 LANGS = ("en", "ar", "fr", "de")
 FIELDS = {
-    "privacy_s1_body": ["[[OPERATOR_NAME]]"],
-    "privacy_s7_body": ["[[RETENTION_PERIOD]]"],
-    "privacy_s8_body": ["[[CONTACT_EMAIL]]"],
-    "terms_s9_body": ["[[CONTACT_EMAIL]]", "[[GOVERNING_LAW]]"],
+    "privacy_s1_body": [None],  # operator name: Latin in en/fr/de, Arabic script in ar
+    "privacy_s7_body": ["30"],
+    "privacy_s8_body": ["ehab.alqabbani1981@gmail.com"],
+    "terms_s9_body": ["ehab.alqabbani1981@gmail.com"],
 }
 
 
@@ -21,12 +21,16 @@ def _load(lang):
 
 
 class LegalOperatorPlaceholderTests(SimpleTestCase):
-    def test_every_language_has_every_marked_field(self):
+    def test_every_language_has_every_filled_field_and_no_open_marker(self):
         for lang in LANGS:
             data = _load(lang)
             for key, tokens in FIELDS.items():
                 for token in tokens:
+                    if token is None:
+                        self.assertTrue("Ehab Al-Qabbani" in data[key] or "إيهاب القباني" in data[key], f"{lang}.json {key} lacks the operator name")
+                        continue
                     self.assertIn(token, data[key], f"{lang}.json {key} is missing {token}")
+                self.assertNotIn("[[", data[key], f"{lang}.json {key} still has an open marker")
 
     def test_legal_review_notice_is_kept(self):
         for lang in LANGS:

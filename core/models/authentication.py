@@ -20,6 +20,10 @@ class UserProfile(models.Model):
     # created before consent was collected or by an administrator.
     terms_accepted_at = models.DateTimeField(null=True, blank=True)
     terms_version = models.CharField(max_length=40, blank=True, default="")
+    # Set when the account was scheduled for deletion; it is purged after the grace period unless restored.
+    deletion_requested_at = models.DateTimeField(null=True, blank=True)
+    # account_status before the deletion request, so restoring never re-activates an account that was disabled/rejected.
+    status_before_deletion = models.CharField(max_length=32, blank=True, default="")
     approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey(
         User,

@@ -50,6 +50,13 @@ class AuthMixin:
         self.global_context["page_title"] = "Forgot Password"
         self.capture_screenshot(page, "forgot_password")
 
+        page.goto(f"{self.base_url}/accounts/restore/")
+        self.wait_for_ui_ready(page)
+        page.wait_for_timeout(500)
+        self.global_context["tab_id"] = "restore_account"
+        self.global_context["page_title"] = "Restore Account"
+        self.capture_screenshot(page, "restore_account")
+
         page.goto(f"{self.base_url}/accounts/login/")
         self.wait_for_ui_ready(page)
         page.wait_for_timeout(500)
