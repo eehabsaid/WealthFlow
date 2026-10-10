@@ -9,13 +9,13 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
 
+from core.constants.account_retention import grace_days, purge_at
+
 from core.services.account.scope import AXES_MODELS, owned_queryset
 
 logger = logging.getLogger(__name__)
 
 PENDING_DELETION_STATUS = "pending_deletion"
-GRACE_DAYS_KEY = "account_deletion_grace_days"
-DEFAULT_GRACE_DAYS = 30
 
 LAST_ADMIN_MESSAGE = "You are the only administrator. Make another user an administrator before deleting this account."
 
@@ -30,23 +30,6 @@ def deletion_blocker(user) -> str | None:
     if not _is_admin(user):
         return None
     return None if _other_active_admin(user) else LAST_ADMIN_MESSAGE
-
-
-def grace_days() -> int:
-    """Days a deleted account stays restorable (AppSettings `account_deletion_grace_days`, default 30)."""
-    from core.models import AppSettings
-
-    try:
-        return max(0, int(str(AppSettings.get(GRACE_DAYS_KEY, DEFAULT_GRACE_DAYS)).strip()))
-    except (TypeError, ValueError):
-        return DEFAULT_GRACE_DAYS
-
-
-def purge_at(profile):
-    """When a pending-deletion account will be purged, or None."""
-    if profile is None or not profile.deletion_requested_at:
-        return None
-    return profile.deletion_requested_at + timedelta(days=grace_days())
 
 
 def is_pending_deletion(user) -> bool:

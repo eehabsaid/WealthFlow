@@ -3,6 +3,7 @@ Authentication helper utilities.
 """
 
 from core.models import AppSettings, AuthAuditLog
+from core.constants.account_retention import purge_at
 from core.constants.roles import grantable_permission_keys
 
 
@@ -47,8 +48,6 @@ def effective_permission_keys(user):
 
 
 def _purge_at_iso(profile):
-    from core.services.account import purge_at
-
     when = purge_at(profile)
     return when.isoformat() if when else None
 

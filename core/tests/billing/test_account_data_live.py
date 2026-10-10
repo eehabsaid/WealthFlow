@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.utils import timezone
 
-from core.models import PagePermission, Plan, Subscription
+from core.models import PagePermission, Plan, Subscription, UserProfile
 
 User = get_user_model()
 
@@ -89,5 +89,7 @@ class AccountDataLiveTests(StaticLiveServerTestCase):
         self.page.fill("#wf-account-confirm", "DELETE")
         self.page.click("#wf-account-delete-confirm-btn")
         self.page.wait_for_url("**/accounts/login/**", timeout=15000)
-        self.assertFalse(User.objects.filter(pk=user.pk).exists())
+        user.refresh_from_db()
+        self.assertFalse(user.is_active)  # soft-delete: disabled now, data kept for the restorable grace period
+        self.assertIsNotNone(UserProfile.objects.get(user=user).deletion_requested_at)
         self.assertEqual(self.errors, [])

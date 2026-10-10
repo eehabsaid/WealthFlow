@@ -3,6 +3,7 @@ Django settings for wealthflow project.
 """
 
 import os
+import tempfile
 from datetime import timedelta
 
 from dotenv import load_dotenv
@@ -77,6 +78,12 @@ DATABASES = {
         "OPTIONS": {
             "timeout": 20,
         },
+        # A file-based test database, not the default shared in-memory one: the live (real-browser)
+        # tests boot the app with many parallel API calls, and threads sharing one in-memory SQLite
+        # connection collide ("InterfaceError: bad parameter or other API misuse" -> random 500s and
+        # dropped sessions). With a file each server thread gets its own connection. The name is per
+        # process so parallel runs never clash; Django deletes the file when the run ends.
+        "TEST": {"NAME": os.path.join(tempfile.gettempdir(), f"wealthflow_test_{os.getpid()}.sqlite3")},
     }
 }
 
