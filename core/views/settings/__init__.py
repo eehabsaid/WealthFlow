@@ -132,6 +132,7 @@ from core.views.settings.documentation.documentation_action_views import (
     OpenFolderView,
 )
 
+from core.views.settings.account_retention_views import AccountRetentionView
 from core.views.settings.legal_text_views import (
     LegalConsentView,
     LegalTextDetailView,
@@ -139,6 +140,7 @@ from core.views.settings.legal_text_views import (
 )
 
 __all__ = [
+    "AccountRetentionView",
     "CurrencyListView",
     "CurrencyDetailView",
     "SettingsView",

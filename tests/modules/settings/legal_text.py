@@ -68,6 +68,28 @@ def test_legal_text(context, reporter, screenshot_logger):
         )
         _step(reporter, screenshot_logger, page, "Legal publish rejects a duplicate and an invalid label",
               dup == 409 and bad == 400, f"duplicate={dup} invalid={bad}", "legal_text_validation")
+        # Grace-period card: save a new value, confirm the API reports it, reject an invalid one, then
+        # restore the original so a local database is left unchanged.
+        _csrf = "'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/)||[])[1]||''"
+        _api = (
+            "(body) => fetch('/api/settings/account-retention/', {method:'POST', headers:{'Content-Type':"
+            f"'application/json', {_csrf}}}, body: JSON.stringify(body)}}).then(r => r.status)"
+        )
+        original = page.evaluate("fetch('/api/settings/account-retention/').then(r => r.json()).then(d => d.grace_days)")
+        card = page.locator("#retentionDays").count() == 1
+        new_value = 45 if original != 45 else 46
+        page.fill("#retentionDays", str(new_value))
+        page.locator("#retentionSaveBtn").evaluate("el => el.scrollIntoView({block: 'center', behavior: 'instant'})")
+        page.click("#retentionSaveBtn")
+        page.wait_for_timeout(900)
+        saved = page.evaluate("fetch('/api/settings/account-retention/').then(r => r.json()).then(d => d.grace_days)")
+        bad = page.evaluate(f"({_api})({{grace_days: 0}})")
+        page.evaluate(f"({_api})({{grace_days: {original}}})")
+        restored = page.evaluate("fetch('/api/settings/account-retention/').then(r => r.json()).then(d => d.grace_days)")
+        _step(reporter, screenshot_logger, page, "Grace-period card saves a value, rejects 0 and restores the original",
+              card and saved == new_value and bad == 400 and restored == original,
+              f"card={card} original={original} saved={saved} invalid_status={bad} restored={restored}",
+              "legal_text_retention")
     except Exception as ex:
         shot = screenshot_logger.capture(page, "settings", "legal_text_error", "none", "fail", "fail")
         reporter.add_step("Legal Text settings", "Settings", "FAIL", f"Exception: {ex}", screenshot_path=shot)

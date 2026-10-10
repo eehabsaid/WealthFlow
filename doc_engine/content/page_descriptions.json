@@ -114,7 +114,8 @@
       "Pick a language and a document (Terms of Service or Privacy Policy), then edit the page title and each section title and text; add or remove sections, or reset the document to the built-in text.",
       "Type a new version label and press Publish new version. Languages you did not edit keep the built-in text, and accounts keep the version they accepted at signup.",
       "Tick Require every user to accept this version again to show every user a one-time acceptance dialog after login.",
-      "Use Load into editor on a row of the version history to start a new version from an older one."
+      "Use Load into editor on a row of the version history to start a new version from an older one.",
+      "Set the Account deletion grace period (1 to 365 days, default 30) at the top of the page and press Save: a deleted account is disabled at once and can be restored during this period, then it is permanently removed. Keep the retention wording in the Privacy Policy in line with the number."
     ]
   },
   "settings::settings-myai": {

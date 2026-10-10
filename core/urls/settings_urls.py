@@ -11,6 +11,7 @@ urlpatterns = [
     path("api/settings/email-templates/<int:pk>/", views.EmailTemplateDetailView.as_view()),
     path("api/settings/legal/", views.LegalTextListView.as_view()),
     path("api/settings/legal/<int:pk>/", views.LegalTextDetailView.as_view()),
+    path("api/settings/account-retention/", views.AccountRetentionView.as_view()),
     path("api/legal/consent/", views.LegalConsentView.as_view()),
     path("api/settings/email-test/", views.EmailSettingsTestView.as_view()),
     path("api/settings/ai/", views.AISettingsView.as_view()),

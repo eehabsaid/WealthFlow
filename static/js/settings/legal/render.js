@@ -24,6 +24,7 @@ async function renderLegalSettings() {
         Edit the Privacy Policy and Terms of Service shown at /privacy/ and /terms/. Each save publishes a new
         version; empty languages keep the built-in text. Existing accounts keep the version they accepted.
       </p>
+      <div id="retentionCard"></div>
       <div class="legal-edit-row">
         <select id="legalLangSelect" class="form-select" onchange="legalSelect('lang', this.value)"
                 data-i18n-title="legal_editor_language" title="Language">
@@ -55,6 +56,7 @@ async function renderLegalSettings() {
     </div>`;
   renderLegalEditorBody();
   renderLegalHistory();
+  renderRetentionCard();
 }
 
 function renderLegalHistory() {

@@ -94,7 +94,7 @@ from .exports_ai_features import (
 )
 
 from .exports_settings import (
-    SettingsView, PlanAdminListView, PlanAdminDetailView, PlanPriceAdminListView, PlanPriceAdminDetailView, PaymobGatewaySettingsView, CustomerActionView, CustomerListView, InvoiceActionView, TrialOptionsView, LegalConsentView, LegalTextDetailView, LegalTextListView, EmailTemplateListView, EmailTemplateDetailView, EmailSettingsTestView,
+    AccountRetentionView, SettingsView, PlanAdminListView, PlanAdminDetailView, PlanPriceAdminListView, PlanPriceAdminDetailView, PaymobGatewaySettingsView, CustomerActionView, CustomerListView, InvoiceActionView, TrialOptionsView, LegalConsentView, LegalTextDetailView, LegalTextListView, EmailTemplateListView, EmailTemplateDetailView, EmailSettingsTestView,
     AISettingsView, AIUserLimitsView, AIUserSettingsView, AIConnectionTestView, AIProviderListView, AIRuntimeCapabilitiesView, ScrapePropertyRatesView,
     GoldTypeSettingsListView, GoldTypeSettingsDetailView, GoldPuritySettingsListView, GoldPuritySettingsDetailView,
     ExchangeRateListView, ExchangeRateRefreshView, GoldPriceListView, GoldPriceRefreshView,
@@ -114,6 +114,7 @@ from .exports_budgets import (
 from .exports_import import ImportPreviewView, ImportConfirmView
 
 __all__ = [
+    "AccountRetentionView",
     "AdminRequiredMixin", "SysadminRequiredMixin", "PermissionRequiredMixin", "LoginAPIView", "SignupAPIView", "LogoutAPIView", "CurrentUserView",
     "UpdateProfileView", "login_view", "signup_view", "privacy_view", "terms_view", "forgot_password_view", "reset_password_view",
     "verify_email_view", "check_email_view", "account_disabled_view", "logout_view", "create_user_profile", "_build_user_dict", "_get_user_allowed_pages",

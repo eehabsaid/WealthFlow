@@ -49,6 +49,14 @@
   font-size: 0.9rem;
 }
 
+.legal-editor #retentionCard {
+  margin-bottom: 14px;
+}
+
+.legal-editor #retentionDays {
+  max-width: 140px;
+}
+
 .legal-publish-box {
   display: flex;
   flex-direction: column;

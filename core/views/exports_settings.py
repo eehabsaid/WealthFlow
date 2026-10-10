@@ -12,6 +12,7 @@ change when settings/ is reorganized internally.
 """
 
 from .settings import (
+    AccountRetentionView,
     SettingsView,
     EmailTemplateListView,
     LegalConsentView,
@@ -72,6 +73,7 @@ from .settings import (
 )
 
 __all__ = [
+    "AccountRetentionView",
     "SettingsView",
     "PlanAdminListView",
     "PlanAdminDetailView",
