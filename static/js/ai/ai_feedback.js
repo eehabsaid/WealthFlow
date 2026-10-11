@@ -21,6 +21,10 @@ function _renderFeedbackBar(messageId, feedback) {
         data-i18n-title="ai_ws_feedback_down" title="Not helpful" aria-pressed="${feedback === -1}">
         <i class="bi bi-hand-thumbs-down"></i>
       </button>
+      <button type="button" class="ai-ws-fb-btn ai-ws-copy-btn"
+        data-i18n-title="ai_ws_copy" title="Copy response">
+        <i class="bi bi-clipboard"></i>
+      </button>
       <span class="ai-ws-fb-error" hidden></span>
     </div>
   `;
@@ -60,7 +64,9 @@ async function _aiSendFeedback(button) {
 
 document.addEventListener("click", (event) => {
   const button = event.target.closest(".ai-ws-fb-btn");
-  if (button) _aiSendFeedback(button);
+  if (button && !button.classList.contains("ai-ws-copy-btn")) {
+    _aiSendFeedback(button);
+  }
 });
 
 window._renderFeedbackBar = _renderFeedbackBar;

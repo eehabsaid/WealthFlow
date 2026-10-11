@@ -2742,5 +2742,8 @@
     "ai_default_key_warning": "Les clés API stockées sont protégées par la clé par défaut du serveur. Définissez une WEALTHFLOW_AI_ENCRYPTION_KEY privée sur le serveur, exécutez \"python manage.py rekey_ai_keys --apply\", puis redémarrez.",
     "user_status_pending_deletion": "Suppression en attente",
     "auth_restore_needs_admin": "Ce compte était déjà désactivé avant la demande de suppression : seul un administrateur peut le restaurer.",
-    "auth_password_reset_success_pending_deletion": "Votre mot de passe a été mis à jour. Votre compte est programmé pour suppression : restaurez-le maintenant pour vous reconnecter."
+    "auth_password_reset_success_pending_deletion": "Votre mot de passe a été mis à jour. Votre compte est programmé pour suppression : restaurez-le maintenant pour vous reconnecter.",
+    "ai_ws_copy": "Copier la commande",
+    "ai_ws_copy_ok": "Commande copiée ✓",
+    "ai_ws_copy_error": "Échec de la copie de la commande. Veuillez réessayer." 
 }

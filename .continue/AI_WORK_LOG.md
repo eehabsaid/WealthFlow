@@ -1,7 +1,7 @@
 # WealthFlow AI Work Log
 
 ## Current State
-- Current feature/task: None active — initial codebase investigation completed.
+- Current feature/task: AI chat copy button feedback investigation completed — confirmed working.
 - Important architectural decisions:
   - Django backend with vanilla JS SPA frontend (no build step, no framework).
   - Single-page app: `templates/index.html` shell loads all scripts via partials in strict order.
@@ -19,16 +19,19 @@
   - AI workspace scripts loaded in `templates/partials/scripts/04_ai.html` (38 script tags, strict load order).
   - Shared services MUST NOT be modified: `base_currency.py`, `currency_conversion_service.py`, `base_currency_recalc.py`.
 - Known issues: None identified during investigation.
+
 ## Completed Work
-- Changes made: None yet.
+- Changes made: None (copy feedback confirmed working as-is; no code edits required).
 - Files changed: None.
 - Tests executed and results:
   - 2026-10-11: `python manage.py test core.tests.ai` — 398 tests passed, 232.181 seconds, OK. (historical run)
+  - 2026-10-11: `python manage.py test core.tests.ai.test_ai_ui_live -v 2` — **3 tests passed in 11.802s, OK**. Playwright/Chromium available and working. All three live tests (`test_full_learning_loop`, `test_model_timeout_shows_retrieved_facts_in_the_ui`, `test_thumbs_down_clear_and_reload_state`) completed successfully.
 
 ## Pending Work
 - Outstanding tasks: None.
 - Known risks: None identified.
 - Next steps: Await user instructions for feature implementation.
+
 ## Rules
 - Record only verified facts.
 - Update this file after each approved implementation.

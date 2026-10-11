@@ -2742,5 +2742,8 @@
     "ai_default_key_warning": "Gespeicherte API-Schlüssel sind mit dem Standard-Serverschlüssel geschützt. Setzen Sie einen privaten WEALTHFLOW_AI_ENCRYPTION_KEY auf dem Server, führen Sie \"python manage.py rekey_ai_keys --apply\" aus und starten Sie neu.",
     "user_status_pending_deletion": "Löschung ausstehend",
     "auth_restore_needs_admin": "Dieses Konto war schon vor dem Löschantrag deaktiviert; nur ein Administrator kann es wiederherstellen.",
-    "auth_password_reset_success_pending_deletion": "Dein Passwort wurde aktualisiert. Dein Konto ist zur Löschung vorgemerkt: stelle es jetzt wieder her, um dich anzumelden."
+    "auth_password_reset_success_pending_deletion": "Dein Passwort wurde aktualisiert. Dein Konto ist zur Löschung vorgemerkt: stelle es jetzt wieder her, um dich anzumelden.",
+    "ai_ws_copy": "Befehl kopieren",
+    "ai_ws_copy_ok": "Befehl kopiert ✓",
+    "ai_ws_copy_error": "Fehler beim Kopieren des Befehls. Bitte versuche es erneut."
 }

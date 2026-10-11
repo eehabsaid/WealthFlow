@@ -2742,5 +2742,8 @@
     "ai_default_key_warning": "مفاتيح API المخزنة محمية بمفتاح الخادم الافتراضي. اضبط WEALTHFLOW_AI_ENCRYPTION_KEY خاصًا على الخادم ثم شغّل \"python manage.py rekey_ai_keys --apply\" ثم أعد التشغيل.",
     "user_status_pending_deletion": "بانتظار الحذف",
     "auth_restore_needs_admin": "كان هذا الحساب معطلًا قبل طلب الحذف، لذلك لا يستطيع استعادته إلا المسؤول.",
-    "auth_password_reset_success_pending_deletion": "تم تحديث كلمة المرور. حسابك مجدول للحذف: استعده الآن لتتمكن من تسجيل الدخول."
+    "auth_password_reset_success_pending_deletion": "تم تحديث كلمة المرور. حسابك مجدول للحذف: استعده الآن لتتمكن من تسجيل الدخول.",
+    "ai_ws_copy": "نسخ الأمر",
+    "ai_ws_copy_ok": "تم النسخ ✓",
+    "ai_ws_copy_error": "تعذّر النسخ. حاول مرة أخرى."
 }

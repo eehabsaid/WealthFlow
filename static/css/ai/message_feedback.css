@@ -36,3 +36,9 @@
   font-size: 0.75rem;
   margin-inline-start: 0.4rem;
 }
+
+/* Copy response button */
+.ai-ws-copy-btn.active {
+  color: var(--bs-primary, #0d6efd);
+  border-color: var(--bs-primary, #0d6efd);
+}

@@ -2742,5 +2742,8 @@
     "ai_default_key_warning": "Stored API keys are protected with the default server key. Set a private WEALTHFLOW_AI_ENCRYPTION_KEY on the server, run \"python manage.py rekey_ai_keys --apply\", then restart.",
     "user_status_pending_deletion": "Pending deletion",
     "auth_restore_needs_admin": "This account was already disabled before deletion was requested, so only an administrator can restore it.",
-    "auth_password_reset_success_pending_deletion": "Your password was updated. Your account is scheduled for deletion: restore it now to sign in again."
+    "auth_password_reset_success_pending_deletion": "Your password was updated. Your account is scheduled for deletion: restore it now to sign in again.",
+    "ai_ws_copy": "Copy command",
+    "ai_ws_copy_ok": "Command copied ✓",
+    "ai_ws_copy_error": "Failed to copy command. Please try again."
 }
