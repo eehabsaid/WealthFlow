@@ -35,3 +35,11 @@ alwaysApply: true
 - Before implementation, do not modify the work log; first present the investigation and wait for approval.
 - Never claim tests passed unless they actually ran successfully.
 - Keep the log concise and never record secrets.
+## File Size and Code Organization
+- Every new or modified code file must not exceed 200 lines of code.
+- Before editing a file, check its current line count and plan changes to keep it within the 200-line limit.
+- If a file would exceed 200 lines, split the implementation into smaller, cohesive modules rather than exceeding the limit.
+- Place new files in the appropriate existing domain folders, following the project's current architecture and naming conventions.
+- Avoid unnecessary files, duplicated logic, and artificial splitting solely to satisfy the line limit.
+- After implementation, verify the line count of every new or modified code file and report the results.
+- If the limit cannot be met without compromising correctness or architecture, stop and explain the issue before proceeding.
