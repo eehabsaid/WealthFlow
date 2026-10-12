@@ -41,8 +41,31 @@ ANALYTIC = rx(
     r"\b(compar\w*|versus|vs|trend|trends|why|forecast|predict\w*|growth|explain\w*|reason|advice|advise|"
     r"recommend\w*|suggest\w*|insights?|analy[sz]\w*|improv\w*|should|budget\w*|save|saving|reduce|cut|"
     r"what if|scenario|simulat\w*|how can|how do i|how to|plan|should i invest|invest(?:ment)? (?:advice|strategy|plan)|good time|better to|worth it|afford)\b"
+    r"|\bif\b(?! (?:any|possible|not|so|needed|available)\b)|\bwould\b|\bsuppose\b|\bassuming\b|\bhypothetical\w*|"
+    r"\bhow does\b.{0,40}\b(?:change|affect)\b|\bimpact\b"   # what-if questions are scenario reasoning, never a plain lookup
     r"|قارن|مقارنه|لماذا|ليه|علاش|توقع|توقعات|نصيحه|انصحني|اشرح|حلل|تحليل|كيف اوفر|كيف يمكنني|هل يجب|هل ينفع|"
-    r"اقتراح|اقترح|اتجاه|ميزانيه|استثمر|ينفع"
+    r"اقتراح|اقترح|اتجاه|ميزانيه|استثمر|ينفع|ماذا لو|(?<!\w)لو (?:انا|حولت|نقلت|اشتريت|بعت|زاد|نقص)"
+)
+
+# Questions ABOUT THE APP ("where do I...", "which screen...", "what happens when...") are documentation
+# questions: a data word inside them ("account", "rates") must not trigger a data lookup.
+APP_HELP = rx(
+    r"\bwhere (?:do|can|could|should|would) (?:i|we)\b|\bwhere (?:is|are) (?:the|my|our)\b[\w ]{0,30}"
+    r"\b(?:screen|page|tab|menu|button|setting|settings|option|section)\b|\bwhich (?:screen|page|tab|menu|section|setting|button)\b|"
+    r"\bwhat happens (?:when|if|after)\b|\bwhat does (?:the |this )?[\w ]{1,30}(?:button|tab|setting|screen|page) do\b"
+    r"|(?<!\w)(?:فين|وين)\b|اين (?:اجد|اغير|يمكنني|اجده|اضيف|اعدل)|اي (?:شاشه|صفحه|تبويب|قايمه)|ماذا يحدث (?:عند|لو|اذا|بعد)|"
+    r"ايه اللي (?:يحصل|بيحصل)|ايش (?:يصير|يحصل)"
+)
+
+# The user is questioning / asking about the assistant's PREVIOUS answer ("you said...", "from where you get...",
+# "that is wrong"): only the model, with the conversation history, can answer that. A data word inside the
+# quoted text must not trigger a lookup.
+CHALLENGE = rx(
+    r"\byou (?:said|answered|told|wrote|mentioned|stated|gave|calculated|used|replied)\b|\bfrom where (?:did )?you\b|"
+    r"\bwhere did you (?:get|find|see|take|read)\b|\bhow did you (?:get|calculate|compute|arrive|come|know)\b|\bwhy did you\b|"
+    r"\byour (?:answer|previous|last|response) (?:is|was)\b|\b(?:that|this|it)(?:['’]s| is) (?:wrong|incorrect|not (?:right|correct))\b|"
+    r"\bare you sure\b|\byou(?:['’]re| are) wrong\b|\bwrong answer\b|\bdetails? (?:it|that|this)\b|\bexplain (?:that|this|it|your)\b"
+    r"|انت (?:قلت|قلتي|جاوبت|ذكرت|حسبت)|قلت لي|من اين (?:جئت|اتيت|حصلت|جبت)|منين|كيف حسبت|لماذا قلت|(?<!\w)(?:غلط|خطا)(?!\w)|هل انت متاكد"
 )
 ACTION = rx(r"^\s*(please\s+)?(add|create|delete|remove|update|edit|transfer|pay|record|change|set)\b|^\s*(اضف|احذف|امسح|عدل|حول|سجل)\b")
 

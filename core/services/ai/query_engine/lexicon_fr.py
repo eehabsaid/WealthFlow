@@ -17,6 +17,10 @@ _M = "janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembr
 _START = r"^\s*(?:s'il (?:te|vous) plait )?"
 
 PHRASES = [
+    # emergency fund / months of expenses covered
+    (r"\b(?:fonds|reserve|epargne) (?:d'urgence|de secours|de precaution)\b", " emergency fund "),
+    (r"\bcombien de mois (?:de|des) (?:depenses|charges|frais)\b", " how many months of expenses "),
+    (r"\b(\d{1,2}) mois (?:de|des) (?:depenses|charges|frais)\b", r" \1 months of expenses "),
     (r"\bj'ai\b", " jai "), (r"\bai[- ]je\b", " aije "), (r"\bn'ai\b", " nai "), (r"\bqu'est[- ]ce (?:que|qu')", " quoi "),
     (r"\bc'est\b", " cest "), (r"\bs'il (?:te|vous) plait\b", " "),
     # actions (must start the sentence)

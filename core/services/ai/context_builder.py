@@ -15,6 +15,7 @@ from django.urls import get_resolver, URLResolver, URLPattern
 
 from core.services.ai.providers import get_relevant_providers_data
 from core.services.ai.codebase_indexer import CodebaseIndexer
+from core.services.ai.app_pages import app_pages
 
 
 logger = logging.getLogger(__name__)
@@ -58,6 +59,7 @@ class AIContextBuilder:
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(now)),
             "total_routes_discovered": len(routes_info),
             "django_routes": routes_info,
+            "app_pages": app_pages(),
             "live_pages": live_pages,
             "playwright_executed": bool(include_playwright and live_pages),
             "crawl_error": crawl_error,

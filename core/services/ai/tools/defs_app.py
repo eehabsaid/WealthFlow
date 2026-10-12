@@ -21,7 +21,7 @@ from core.services.ai.tools.data_codebase import (
 APP_TOOL_DEFS: dict[str, dict[str, Any]] = {
     "read_live_app_structure": {
         "name": "read_live_app_structure",
-        "description": "Inspect real, live Django routes and DOM rendered tabs/modals to answer what pages and features currently exist.",
+        "description": "Inspect the app's real screens (app_pages: route, how to open it, tabs, dialogs), live Django routes and DOM rendered tabs/modals to answer what pages and features currently exist.",
         "is_read_only": True,
         "tier": "read",  # backlog item 7: explicit read/execute/modify tier
         "domain": "app_features_architecture",
@@ -30,7 +30,7 @@ APP_TOOL_DEFS: dict[str, dict[str, Any]] = {
             "type": "function",
             "function": {
                 "name": "read_live_app_structure",
-                "description": "Inspect real, live Django routes and DOM rendered tabs/modals to answer what pages and features currently exist.",
+                "description": "Inspect the app's real screens (app_pages: route, how to open it, tabs, dialogs), live Django routes and DOM rendered tabs/modals to answer what pages and features currently exist.",
                 "parameters": {
                     "type": "object",
                     "properties": {

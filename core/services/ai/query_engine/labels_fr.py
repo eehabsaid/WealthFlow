@@ -65,4 +65,10 @@ TABLE = {
     "rec_skipped": "{n} élément(s) ont été exclus car aucun taux de change n'est enregistré pour leur devise.",
     "freq_daily": "Tous les {n} jour(s)", "freq_weekly": "Toutes les {n} semaine(s)", "freq_monthly": "Tous les {n} mois", "freq_yearly": "Tous les {n} an(s)",
     "col_frequency": "Répétition", "col_next_due": "Prochaine échéance",
+    "ef_no_expenses": "Aucune dépense n'est enregistrée, la couverture du fonds d'urgence en mois ne peut donc pas être mesurée.",
+    "ef_head": "Votre fonds d'urgence couvre {months} mois de dépenses.",
+    "ef_liquid": "Liquidités (espèces et certificats, or exclu) : {amount}.",
+    "ef_avg": "Dépenses mensuelles moyennes : {amount} (moyenne des {n} mois avec dépenses sur les 180 derniers jours).",
+    "ef_target": "Objectif de {target} mois = {amount} : {status}",
+    "ef_met": "atteint ({ratio} fois l'objectif).", "ef_short": "non atteint, il manque {gap}.",
 }

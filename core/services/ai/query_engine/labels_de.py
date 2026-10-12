@@ -65,4 +65,10 @@ TABLE = {
     "rec_skipped": "{n} Posten wurden ausgelassen, weil für ihre Währung kein Wechselkurs gespeichert ist.",
     "freq_daily": "Alle {n} Tag(e)", "freq_weekly": "Alle {n} Woche(n)", "freq_monthly": "Alle {n} Monat(e)", "freq_yearly": "Alle {n} Jahr(e)",
     "col_frequency": "Wiederholung", "col_next_due": "Nächste Fälligkeit",
+    "ef_no_expenses": "Es sind noch keine Ausgaben erfasst, daher lässt sich die Reichweite des Notfallfonds in Monaten nicht messen.",
+    "ef_head": "Ihr Notfallfonds deckt {months} Monate Ausgaben ab.",
+    "ef_liquid": "Liquide Mittel (Bargeld und Zertifikate, ohne Gold): {amount}.",
+    "ef_avg": "Durchschnittliche monatliche Ausgaben: {amount} (Durchschnitt der {n} Monate mit Ausgaben in den letzten 180 Tagen).",
+    "ef_target": "Ziel von {target} Monaten = {amount}: {status}",
+    "ef_met": "erreicht ({ratio}-faches des Ziels).", "ef_short": "nicht erreicht, es fehlen {gap}.",
 }

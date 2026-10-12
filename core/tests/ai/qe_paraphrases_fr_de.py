@@ -64,6 +64,13 @@ FR = {
         "Mes engagements récurrents mensuels", "Liste de mes opérations récurrentes", "Paiements programmés", "Mes paiements réguliers",
         "Prochains abonnements à payer", "Mes abonnements actifs", "Mes paiements récurrents du mois",
     ],
+    "emergency_fund": [
+        "Mon fonds d'urgence est-il suffisant ?", "Quel est mon fonds d'urgence ?", "Combien de mois de dépenses mes liquidités couvrent-elles ?",
+        "Mon fonds d'urgence couvre-t-il 6 mois ?", "Situation de mon fonds d'urgence", "Ma réserve d'urgence est-elle suffisante ?",
+        "Combien de mois de dépenses puis-je couvrir ?", "Mon fonds d'urgence pour 3 mois de dépenses", "Couverture de mon fonds de secours",
+        "Mon épargne de précaution est-elle suffisante pour 6 mois ?", "Fonds d'urgence de 12 mois", "Combien de mois mon fonds d'urgence tiendrait-il ?",
+        "Vérifie mon fonds d'urgence", "Mon fonds de secours couvre combien de mois de dépenses ?", "Ma réserve d'urgence en mois",
+    ],
 }
 
 DE = {
@@ -125,6 +132,13 @@ DE = {
         "Meine Lastschriften", "Wie viel kosten mich meine Abonnements pro Monat?", "Summe meiner wiederkehrenden Ausgaben",
         "Monatliche Verpflichtungen durch wiederkehrende Zahlungen", "Liste meiner wiederkehrenden Buchungen", "Geplante Zahlungen",
         "Meine regelmäßigen Zahlungen", "Nächste fällige Abonnements", "Aktive Abonnements", "Meine wiederkehrenden Rechnungen",
+    ],
+    "emergency_fund": [
+        "Ist mein Notfallfonds ausreichend?", "Wie groß ist mein Notfallfonds?", "Wie viele Monate Ausgaben deckt mein Bargeld ab?",
+        "Deckt mein Notfallfonds 6 Monate?", "Status meines Notfallfonds", "Ist meine Notfallreserve ausreichend?",
+        "Wie viele Monate Ausgaben kann ich abdecken?", "Mein Notgroschen für 3 Monate Ausgaben", "Reichweite meines Notfallfonds",
+        "Ist mein Notgroschen für 6 Monate ausreichend?", "Notfallfonds für 12 Monate", "Wie viele Monate hält mein Notfallfonds?",
+        "Prüfe meinen Notfallfonds", "Wie viele Monate Ausgaben deckt mein Notfallfonds ab?", "Meine Notfallreserve in Monaten",
     ],
 }
 

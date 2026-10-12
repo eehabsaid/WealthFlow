@@ -105,9 +105,27 @@ RECURRING = [
     "اشتراكاتي", "ما هي اشتراكاتي", "المدفوعات المتكررة", "المعاملات المتكررة", "فواتير قادمة", "اشتراكاتي القادمة",
     "كم تكلفني اشتراكاتي شهريا", "اجمالي المصروفات المتكررة", "التزاماتي الشهرية", "اعرض المصروفات المتكررة",
 ]
+EMERGENCY_FUND = [
+    "is my emergency fund enough", "how big is my emergency fund", "my emergency fund coverage", "show my emergency fund",
+    "how many months of expenses does my cash cover", "how many months can my savings last", "how many months do my savings cover",
+    "how many months of expenses do I have saved", "emergency fund status", "do I have enough emergency savings",
+    "is my emergency reserve enough for 6 months", "is my emergency fund enough for 3 months of expenses", "emergency fund for 12 months",
+    "what is my runway in months", "my financial runway", "how long is my runway", "months of expenses covered by my liquid money",
+    "months of spending my cash covers", "months of living expenses I can cover", "emergency cash coverage in months",
+    "based on my balances is my emergency fund enough for 6 months of my average expenses", "does my emergency fund cover 6 months",
+    "how many months does my emergency fund last", "am I covered for 6 months of expenses with my emergency savings",
+    "emergency savings coverage", "what is my emergency reserve", "how many months of expenses can my cash cover",
+    "tell me my emergency fund in months", "emergency fund against 6 months of expenses", "check my emergency fund",
+    "how many months of expenses are covered by my savings", "is my emergency cash enough", "my emergency fund target of 9 months",
+    "كم شهر تغطي سيولتي من المصروفات", "هل صندوق الطوارئ كافي لـ 6 اشهر؟", "ما هو صندوق الطوارئ الخاص بي", "صندوق الطوارئ كم شهر",
+    "هل صندوق الطوارئ يكفي", "كم شهر من المصاريف يغطيها رصيدي", "احتياطي الطوارئ لدي", "مدخرات الطوارئ كم تكفي",
+    "هل احتياطي الطوارئ كافي لـ 3 اشهر", "اشهر من المصروفات التي تغطيها سيولتي", "كم شهر تكفي مدخراتي من المصاريف",
+    "صندوق الطوارئ 12 شهر", "هل عندي صندوق طوارئ كافي", "وضع صندوق الطوارئ", "كم شهر يغطي صندوق الطوارئ",
+]
+
 CORPUS = {"expenses": EXPENSES, "salary": SALARY, "balance": BALANCE, "certificates": CERTIFICATES,
           "fixed_assets": FIXED_ASSETS, "gold_holdings": GOLD_HOLDINGS, "gold_price": GOLD, "exchange_rates": FX,
-          "budgets": BUDGETS, "recurring": RECURRING}
+          "budgets": BUDGETS, "recurring": RECURRING, "emergency_fund": EMERGENCY_FUND}
 
 # Must NOT be answered by the engine (advice / why / compare / forecast / actions / not data).
 FALL_THROUGH = [
@@ -119,5 +137,8 @@ FALL_THROUGH = [
     "what is the meaning of life", "write me a poem about gold",
     "how should I budget my salary", "how can I stay within my budget", "should I increase my food budget", "recommend a budget for next year",
     "set a budget of 500 for food", "delete my entertainment budget", "why did I go over budget in Sept 2026", "كيف اضع ميزانية لراتبي", "هل يجب ان ازيد ميزانيتي",
+    "what if I move 100k from cash to gold", "if I sold my gold what would my net worth be", "ماذا لو حولت مدخراتي الى ذهب",
+    "where do I change my default currency", "which screen shows my exchange rates", "what happens when I delete my account",
+    "you said my emergency fund is 54 months, from where did you get that", "you answered wrong", "كيف حسبت صندوق الطوارئ", "انت قلت ان رصيدي كبير",
     "should I cancel my subscriptions", "how can I reduce my recurring bills", "add a recurring payment for rent",
 ]

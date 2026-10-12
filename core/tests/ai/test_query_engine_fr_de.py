@@ -15,7 +15,7 @@ from .qe_paraphrases import CORPUS, FALL_THROUGH
 from .qe_paraphrases_fr_de import DE, FALL_THROUGH_DE, FALL_THROUGH_FR, FR
 
 TODAY = date(2026, 9, 29)
-EXPECTED = {"expenses", "salary", "balance", "certificates", "fixed_assets", "gold_price", "exchange_rates", "gold_holdings", "budgets", "recurring"}
+EXPECTED = {"expenses", "salary", "balance", "certificates", "fixed_assets", "gold_price", "exchange_rates", "gold_holdings", "budgets", "recurring", "emergency_fund"}
 CORPORA = (("fr", FR, FALL_THROUGH_FR), ("de", DE, FALL_THROUGH_DE))
 
 

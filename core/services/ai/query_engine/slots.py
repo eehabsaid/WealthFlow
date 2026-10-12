@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, Callable, Iterable
 
-from .lexicon import ACTION, ANALYTIC, ANALYTIC_LOOKUP_BUDGET, BUY_RE, KARAT_RE, MID_RE, N_RE, SELL_RE, TIME_HINT, find_currencies, language, norm, rx
+from .lexicon import ACTION, ANALYTIC, ANALYTIC_LOOKUP_BUDGET, APP_HELP, BUY_RE, CHALLENGE, KARAT_RE, MID_RE, N_RE, SELL_RE, TIME_HINT, find_currencies, language, norm, rx
 from .lexicon_fr_de import LANGS, fold, to_english
 from .registry import get_capabilities
 from .spec import Capability, QueryRequest
@@ -79,6 +79,8 @@ def fill_filters(cap: Capability, q: str, category_lookup: Callable[[], Iterable
         hit = _match_names(category_lookup(), entity_q)
         if hit:
             f["category"] = hit
+    if "target" in cap.filters:
+        f["target_text"] = q  # the executor reads "6 months" out of it
     if {"bank", "asset_type"} & set(cap.filters):
         f["match_text"] = entity_q  # executors match it against their own (owner-scoped) names
     return f
@@ -141,6 +143,10 @@ def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = No
         return out
     if ACTION.search(q):
         return Routing(status="blocked", reason="action_request", lang=out.lang)
+    if CHALLENGE.search(q):
+        return Routing(status="blocked", reason="refers_to_previous_answer", lang=out.lang)
+    if APP_HELP.search(q):
+        return Routing(status="blocked", reason="app_help", lang=out.lang)
     caps = get_capabilities()
     ranked = sorted(((score(c, q), c) for c in caps), key=lambda x: -x[0])
     follow_of: Capability | None = None

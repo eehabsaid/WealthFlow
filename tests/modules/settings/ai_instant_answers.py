@@ -4,6 +4,8 @@ Checks, against the real API (not just the DOM):
   1. The toggle renders on #settings-aiadvisor and its stored default is ON.
   2. Unchecking it + Save persists false; checking it + Save persists true (the original state is restored).
   3. With it ON, a plain data question is answered by code: tool_calls[0].direct_answer is true and llm_calls is 0.
+  5. D3: "emergency fund" is answered by code too (direct_answer, 0 LLM calls, valid for an account without expenses),
+     and an app-help question ("What happens when I delete my account?") is NOT answered as a data lookup.
   4. With it OFF the same question is NOT answered by the engine (no direct_answer marker). Skipped when the
      AI provider is not configured in this environment (the chat endpoint then refuses before any routing).
 """
@@ -97,6 +99,16 @@ def test_ai_instant_answers(context, reporter, screenshot_logger):
             passed = bool(call) and call.get("llm_calls") == 0
             reporter.add_step("AI Instant Answer (0 LLM calls)", "WealthFlow AI", "PASS" if passed else "FAIL",
                               f"tool={call.get('tool')!r} llm_calls={call.get('llm_calls')!r}" if call else "Engine did not answer a plain balance question.")
+        if resp_on["status"] == 200:
+            resp_ef = _ask(page, "Is my emergency fund enough for 6 months of my average expenses?")
+            call = _direct_call(resp_ef)
+            reporter.add_step("AI Instant Answer: Emergency Fund", "WealthFlow AI",
+                              "PASS" if call and call.get("llm_calls") == 0 else "FAIL",
+                              f"tool={call.get('tool')!r} llm_calls={call.get('llm_calls')!r}" if call else "Engine did not answer an emergency-fund question.")
+            resp_help = _ask(page, "What happens when I delete my account?")
+            reporter.add_step("AI App-Help Question Is Not A Data Lookup", "WealthFlow AI",
+                              "PASS" if _direct_call(resp_help) is None else "FAIL",
+                              "App-help question went to the model path." if _direct_call(resp_help) is None else "Engine answered an app-help question as data.")
     except Exception as ex:
         reporter.add_step("AI Instant Data Answers", "Settings", "FAIL", f"Exception: {ex}")
     finally:

@@ -29,6 +29,11 @@ class FinancialAdvisorDataProvider(BaseContextProvider):
             "description": "Provides financial health score, alerts, KPIs, cash flow forecast, and opportunity detection.",
         }]
 
+    def get_query_capabilities(self) -> list[Any]:
+        from core.services.ai.query_engine.executors.emergency import CAPABILITIES
+
+        return list(CAPABILITIES)
+
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         return {
             "overview": get_financial_advisor_payload("overview", user),

@@ -38,6 +38,8 @@ class PortfolioContext:
     largest_currency: dict = field(default_factory=dict)
     largest_asset: dict = field(default_factory=dict)
     highest_appreciating_asset: dict = field(default_factory=dict)
+    liquid_for_emergency: float = 0.0   # cash + certificates (gold excluded): the numerator of emergency_months
+    baseline_months: int = 0            # recorded months averaged into monthly_expenses
 
 
 class PayloadMetricsMixin:
@@ -50,6 +52,7 @@ class PayloadMetricsMixin:
         monthly_expenses = self._monthly_expense_average()
         liquid_for_emergency = allocation_values["cash"] + allocation_values["certificates"]
         emergency_months = self._emergency_fund_months(liquid_for_emergency, monthly_expenses)
+        _, baseline_months = self._month_expense_baseline()
 
         liquid_pct = _to_float(allocation_percentages.get("cash"))
 
@@ -148,4 +151,6 @@ class PayloadMetricsMixin:
             largest_currency=largest_currency,
             largest_asset=largest_asset,
             highest_appreciating_asset=highest_appreciating_asset,
+            liquid_for_emergency=liquid_for_emergency,
+            baseline_months=baseline_months,
         )

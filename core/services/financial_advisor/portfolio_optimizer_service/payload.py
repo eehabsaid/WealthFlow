@@ -110,6 +110,12 @@ class PayloadMixin:
             },
             "expense_baseline": {
                 "avg_monthly_expenses": round(ctx.monthly_expenses, 2),
+                # Basis of the two figures above, so no consumer has to guess or recompute them:
+                # emergency_fund_months = liquid_for_emergency (cash + certificates, gold excluded) / avg_monthly_expenses,
+                # where avg_monthly_expenses averages the months that have expenses in the last 180 days.
+                "liquid_for_emergency": round(ctx.liquid_for_emergency, 2),
+                "baseline_months": ctx.baseline_months,
+                "baseline_window_days": 180,
                 # Months-of-expenses is unmeasurable without recorded expenses.
                 "emergency_fund_months": (
                     round(ctx.emergency_months, 2) if ctx.monthly_expenses > 0 else None

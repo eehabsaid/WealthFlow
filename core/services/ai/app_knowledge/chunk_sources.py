@@ -24,8 +24,35 @@ def _clip(text: str, limit: int = MAX_CHUNK_CHARS) -> str:
     return text if len(text) <= limit else text[:limit].rsplit(" ", 1)[0] + "..."
 
 
+# Auto-generated stub text that says nothing about the page; it only competes with real answers in retrieval
+# (the model once answered "where do I change my default currency?" with this stub).
+_PLACEHOLDER_PURPOSE = "Configure the administrative settings and preferences for "
+
+
+def _page_text_parts(page: dict[str, Any]) -> list[str]:
+    """One documented page as 1..n texts of at most MAX_CHUNK_CHARS: long pages are SPLIT by step, never cut
+    (a page whose last step was clipped made that step unanswerable, e.g. the account-deletion step)."""
+    purpose = str(page["purpose"]).strip()
+    steps = [f"{i}. {s}" for i, s in enumerate(page.get("steps") or [], 1)]
+    whole = f"{purpose} Steps: {' '.join(steps)}"
+    if len(whole) <= MAX_CHUNK_CHARS:
+        return [whole]
+    head = _clip(purpose, 300)
+    context = _clip(purpose, 120)
+    parts, buf, lead = [], [], f"{head} Steps:"
+    for step in steps:
+        step = _clip(step, MAX_CHUNK_CHARS - len(lead) - 1)
+        if buf and len(lead) + 1 + len(" ".join(buf)) + 1 + len(step) > MAX_CHUNK_CHARS:
+            parts.append(f"{lead} {' '.join(buf)}")
+            buf, lead = [], f"{context} (continued) Steps:"
+        buf.append(step)
+    if buf or not parts:
+        parts.append(f"{lead} {' '.join(buf)}".strip())
+    return parts
+
+
 def page_chunks() -> list[dict[str, Any]]:
-    """doc_engine/content/page_descriptions.json: one chunk per documented page / tab / modal."""
+    """doc_engine/content/page_descriptions.json: one chunk per documented page / tab / modal (long ones split)."""
     path = Path(settings.BASE_DIR) / "doc_engine" / "content" / "page_descriptions.json"
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -33,12 +60,12 @@ def page_chunks() -> list[dict[str, Any]]:
         return []
     chunks = []
     for key, page in data.items():
-        if not isinstance(page, dict) or not page.get("purpose"):
+        if not isinstance(page, dict) or not page.get("purpose") or str(page["purpose"]).startswith(_PLACEHOLDER_PURPOSE):
             continue
-        steps = " ".join(f"{i}. {s}" for i, s in enumerate(page.get("steps") or [], 1))
         title = key.replace("::", " > ").replace("_", " ").replace("-", " ")
-        chunks.append({"id": f"page:{key}", "source": "page", "title": title, "location": f"page {key}",
-                       "text": _clip(f"{page['purpose']} Steps: {steps}")})
+        for n, text in enumerate(_page_text_parts(page)):
+            chunks.append({"id": f"page:{key}" if n == 0 else f"page:{key}:{n}", "source": "page", "title": title,
+                           "location": f"page {key}", "text": text})
     return chunks
 
 

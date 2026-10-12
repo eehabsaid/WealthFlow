@@ -146,11 +146,12 @@
     ]
   },
   "settings::settings-currency": {
-    "purpose": "Manage your currencies and choose your base currency (EGP, SAR, AED, USD and others). Switching to a Gulf base gives you a currency list without EGP.",
+    "purpose": "Manage your currencies and choose your default (base) currency, which every total, report and AI answer is shown in (EGP, SAR, AED, USD and others). Switching to a Gulf base gives you a currency list without EGP.",
     "steps": [
       "Open Settings and select Currencies.",
-      "Review your currency list and choose your base currency.",
-      "Add any other currency you hold. EGP stays available if you still hold EGP data."
+      "To change your default currency, press Set as default in the Default column on the currency you want. Confirm the warning: every total is recalculated into the new currency, your original amounts stay unchanged, and switching back restores the previous numbers.",
+      "If the app says exchange rates for that currency are not available, open Exchange Rates and refresh them first, then try again.",
+      "Use Add Currency to add any other currency you hold. EGP stays available if you still hold EGP data."
     ]
   },
   "settings::settings-users": {
@@ -911,11 +912,11 @@
     ]
   },
   "settings::settings-currency::add_currency": {
-    "purpose": "Configure the administrative settings and preferences for Settings Currency.",
+    "purpose": "Add a currency you hold to your currency list.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Press Add Currency in Settings > Currencies.",
+      "Enter the Currency Code, Currency Name and Currency Symbol, then save.",
+      "Open Exchange Rates and refresh them so the new currency can be converted into your default currency."
     ]
   },
   "settings::settings-users::add_user": {
@@ -1093,7 +1094,7 @@
       "Check the banner under the top bar: it shows the days left in your trial, or that your trial or subscription has ended.",
       "Compare the available plans and choose Upgrade to request or start a paid plan.",
       "After upgrading, access to every page is restored immediately; your data is kept while the account is locked.",
-      "Under the plans, the Your data card lets you Export my data (a JSON file with everything you own) or Delete my account: enter your password and type DELETE; this is permanent and also works while the account is locked."
+      "Under the plans, the Your data card lets you Export my data (a JSON file with everything you own) or Delete my account: enter your password and type DELETE. Your account is disabled at once and kept for a grace period (30 days by default; an administrator can change it in Settings > Legal Text), during which signing in lets you choose Restore my account to cancel the deletion; when the period ends, your profile, balances, expenses, assets, documents and AI chats are permanently removed. The last active administrator cannot delete their account. This also works while the account is locked."
     ]
   },
   "settings::settings-billing": {

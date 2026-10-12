@@ -20,6 +20,10 @@ _M = "januar|februar|marz|april|mai|juni|juli|august|september|oktober|november|
 _START = r"^\s*(?:bitte )?"
 
 PHRASES = [
+    # emergency fund / months of expenses covered
+    (r"\b(?:notfallfonds|notgroschen|notfallreserve|notreserve|notfallrucklage|notfallkasse)\b", " emergency fund "),
+    (r"\bwie viele monate (?:an |der |meiner |meine )?(?:ausgaben|kosten)\b", " how many months of expenses "),
+    (r"\b(\d{1,2}) monate(?:n)? (?:an |der |meiner )?(?:ausgaben|kosten)\b", r" \1 months of expenses "),
     # actions (must start the sentence)
     (_START + r"(?:fuge|fuege|fugen)\b", " add "), (_START + r"(?:erstelle|erstellen|lege|anlegen)\b", " create "),
     (_START + r"(?:losche|loschen|entferne|entfernen)\b", " delete "), (_START + r"(?:andere|andern|bearbeite|bearbeiten)\b", " update "),
