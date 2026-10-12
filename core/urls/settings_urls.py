@@ -33,6 +33,7 @@ urlpatterns = [
     path("api/settings/billing/trial-options/", views.TrialOptionsView.as_view()),
     path("api/settings/billing/customers/", views.CustomerListView.as_view()),
     path("api/settings/billing/customers/<int:user_id>/action/", views.CustomerActionView.as_view()),
+    path("api/settings/billing/customers/<int:user_id>/invoices/", views.CustomerInvoicesView.as_view()),
     path("api/settings/billing/invoices/<int:invoice_id>/action/", views.InvoiceActionView.as_view()),
     path("api/settings/billing/gateway/test/", PaymobGatewayTestView.as_view()),
     # Backup & Restore

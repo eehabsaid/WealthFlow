@@ -13,7 +13,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from core.authentication.services import AuthWorkflowService
 from core.constants.ai_user_settings import USER_LIMIT_KEY, USE_GENERAL_KEY
 from core.models import AIModelVersion, AppSettings, Subscription
-from core.tests.ai.live_boot import first_load
+from core.tests.ai.live_boot import PageDiagnostics, first_load, scale_timeouts, wait_for_rows
 from core.tests.billing.test_support import grant_ai_workspace_access
 
 User = get_user_model()
@@ -54,13 +54,15 @@ class AILimitsPanelLiveTests(StaticLiveServerTestCase):
         ctx = self._browser.new_context(viewport={"width": 1400, "height": 1000})
         ctx.add_cookies([{"name": settings.SESSION_COOKIE_NAME, "value": self.client.cookies[settings.SESSION_COOKIE_NAME].value,
                           "url": self.live_server_url}])
+        scale_timeouts(ctx)
         self.page = ctx.new_page()
         self.addCleanup(ctx.close)
+        self.diag = PageDiagnostics(self.page)
         first_load(self.page, f"{self.live_server_url}/#settings-aiadvisor")
         if "settings-aiadvisor" not in self.page.url:
-            self.page.goto(f"{self.live_server_url}/#settings-aiadvisor")
-        self.page.wait_for_selector("#aiLimitsBody tr", timeout=30000)
-        self.page.wait_for_selector("#aiPlatformModelList tr td.fw-bold", timeout=30000)
+            self.page.goto(f"{self.live_server_url}/#settings-aiadvisor", wait_until="domcontentloaded")
+        wait_for_rows(self.page, self.diag, "#aiLimitsBody tr")
+        wait_for_rows(self.page, self.diag, "#aiPlatformModelList tr td.fw-bold")
 
     def rows(self):
         return self.page.locator("#aiLimitsBody tr:visible").count()

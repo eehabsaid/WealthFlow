@@ -107,6 +107,9 @@ class CustomersLiveTests(StaticLiveServerTestCase):
         self._modal().locator("button:has-text('Mark paid')").wait_for(timeout=10000)
         self._modal().locator("button:has-text('Mark paid')").click()
         self._until(lambda: Invoice.objects.get(pk=self.pending.pk).status == "paid", "invoice marked paid")
+        # the DB flips before the page refreshes the list and RE-RENDERS the invoices modal: wait for that final DOM
+        # (no pending invoice left) so no locator is resolved against the old one
+        self._modal().locator("button:has-text('Mark paid')").wait_for(state="detached", timeout=15000)
         self._modal().locator(f"#refundRow_{self.paid.id}").wait_for(state="attached", timeout=10000)
         self._modal().locator("button:has-text('Refund')").first.click()
         self._modal().locator(f"#refundNote_{self.paid.id}").wait_for(timeout=10000)
@@ -114,4 +117,41 @@ class CustomersLiveTests(StaticLiveServerTestCase):
         self._modal().locator(f"#refundRow_{self.paid.id} button:has-text('Refund')").click()
         self._until(lambda: Invoice.objects.get(pk=self.paid.pk).status == "refunded", "invoice refunded")
         self.assertEqual(Invoice.objects.get(pk=self.paid.pk).refund_note, "live test")
+        self.assertEqual(self.errors, [], f"JS errors: {self.errors}")
+
+    def test_pagination_load_more_search_and_lazy_invoices(self):
+        self._open_billing_settings()
+        for i in range(30):
+            User.objects.create_user(username=f"cl_pg_{i:02d}", password="pw123456")
+        cur = Currency.objects.filter(owner=self.user).first()
+        for _ in range(12):  # 14 invoices in total for cl_customer
+            Invoice.objects.create(owner=self.user, subscription=self.sub, plan=self.sub.plan, amount=Decimal("5.00"), currency=cur,
+                                   status="pending", period_start=timezone.now(), period_end=timezone.now() + timedelta(days=30))
+        self.page.reload()
+        self.page.wait_for_selector("#customersTable", timeout=60000)
+        rows = self.page.locator("#customersTable tbody tr")
+        self.assertEqual(rows.count(), 25)                                    # first page only (31 customers)
+        more = self.page.locator("#customersLoadMore")
+        self.assertIn("25/31", more.inner_text())
+        more.click()
+        self._until(lambda: rows.count() == 31, "second page appended")
+        self.assertEqual(self.page.locator("#customersLoadMore").count(), 0)  # nothing left to load
+
+        search = self.page.locator("#customersSearch")
+        search.fill("cl_pg_0")
+        search.press("Enter")
+        self._until(lambda: self.page.locator("#customersTable tbody tr").count() == 10, "search resets to the matching page")
+        self.assertEqual(self.page.locator("#customersLoadMore").count(), 0)
+        search.fill("")
+        search.press("Enter")
+        self._until(lambda: self.page.locator("#customersTable tbody tr").count() == 25, "cleared search is page 1 again")
+
+        self.page.locator("#customersTable tbody tr", has_text="cl_customer").first.locator("button[title='Invoices']").click()
+        show_more = self._modal().locator("#invoicesShowMore")
+        show_more.wait_for(timeout=10000)
+        self.assertIn("10/14", show_more.inner_text())
+        self.assertEqual(self._modal().locator("tr[id^='refundRow_']").count(), 10)
+        show_more.click()
+        self._until(lambda: self._modal().locator("tr[id^='refundRow_']").count() == 14, "remaining invoices loaded")
+        self.assertEqual(self._modal().locator("#invoicesShowMore").count(), 0)
         self.assertEqual(self.errors, [], f"JS errors: {self.errors}")

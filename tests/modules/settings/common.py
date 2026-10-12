@@ -29,14 +29,26 @@ def open_settings_tab(context, tab, wait_ms=900):
     return context.page.evaluate("location.hash") == f"#{route}"
 
 
-_CLOSE_GLOBAL_MODAL_JS = """() => {
+_CLOSE_GLOBAL_MODAL_JS = """async () => {
     const el = document.getElementById('globalModal');
     if (!el) return false;
     const wasOpen = el.classList.contains('show');
     const Modal = window.bootstrap && window.bootstrap.Modal;
     const inst = Modal ? Modal.getInstance(el) : null;
-    // Project rule: after hide() always dispose() the shared #globalModal instance, or the next show() fails silently.
-    if (inst) { try { inst.hide(); inst.dispose(); } catch (e) {} }
+    // Project rule: dispose() the shared #globalModal instance after hide(), but only once `hidden.bs.modal` fired:
+    // dispose() right after hide() nulls the instance under its queued _hideModal() ("reading 'style'" page error).
+    if (inst) {
+        try {
+            const waitFor = (evt) => new Promise((resolve) => {
+                const timer = setTimeout(() => resolve(false), 1500);
+                el.addEventListener(evt, () => { clearTimeout(timer); resolve(true); }, { once: true });
+            });
+            if (inst._isTransitioning && inst._isShown) await waitFor('shown.bs.modal');
+            let hidden = true;
+            if (inst._isShown || inst._isTransitioning) { const done = waitFor('hidden.bs.modal'); inst.hide(); hidden = await done; }
+            if (hidden) inst.dispose();
+        } catch (e) {}
+    }
     el.classList.remove('show');
     el.style.display = 'none';
     el.setAttribute('aria-hidden', 'true');

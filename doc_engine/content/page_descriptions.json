@@ -1,6 +1,6 @@
 {
   "ai": {
-    "purpose": "WealthFlow AI Intelligence Platform workspace for business data reasoning, architecture inquiries, prompt library management, and cross-application assistance. Instant answers also cover your budgets (limit, spent, left, over the limit) and recurring payments (upcoming, total per month).",
+    "purpose": "WealthFlow AI Intelligence Platform workspace for business data reasoning, architecture inquiries, prompt library management, and cross-application assistance. Instant answers also cover your budgets (limit, spent, left, over the limit) and recurring payments (upcoming, total per month), and work in English, Arabic, French and German.",
     "steps": [
       "Select a question domain (Business Data or App Architecture).",
       "Open the Prompt Library to choose, search, filter, or insert reusable prompts into the chat input.",
@@ -8,6 +8,7 @@
       "Ask a natural language query about your financial metrics or codebase.",
       "Ask how-to questions such as where to record a purchase: the assistant answers from the app's own documentation and how data flows, without reading your numbers. If the AI model is too slow to answer, you get the documented facts themselves, labelled as retrieval-only.",
       "Rate an answer with the thumbs up or down under it; approved how-to answers are reused for similar questions and rejected ones never are.",
+      "If the AI cannot answer a question, it investigates instead of giving up: it looks through your own data tables, the app guide and (for the system administrator) the source code with read-only tools, then answers from what it found and names the tables or files it used.",
       "Manage conversations and switch between multi-thread chats."
     ]
   },
@@ -103,7 +104,9 @@
       "Review SFT dataset metrics.",
       "Select training backend.",
       "Trigger model fine-tuning or autonomous learning scan.",
-      "Turn Instant Data Answers on or off: when on, simple data questions (balances, salary, expenses, gold price, exchange rates) are answered instantly from your own data without the AI model.",
+      "Turn Instant Data Answers on or off: when on, simple data questions (balances, salary, expenses, gold price, exchange rates) are answered instantly from your own data without the AI model. These instant answers understand English, Arabic, French and German and reply in the question's language.",
+      "Choose the AI Investigator mode. Auto (default): whenever a normal answer gives up (\"I don't have access\", an empty or failed reply) the AI explores your own data, the app guide and, for the system administrator, the source code with read-only tools and answers from what it finds. Always: use it for every question. Off: disabled.",
+      "Use the source-code switch to allow or forbid the AI from reading the source code. Only system administrators can ever use it, secrets and databases are never exposed, and it is on by default.",
       "Set the default monthly AI token limit and optional per-user overrides in the 'Monthly AI token limit per user' frame, above the platform and model-history section: a blank override uses the default and 0 means unlimited. Search users by name or email, filter by AI settings mode, use Toggle Select All (or tick users) and Apply to selected to set one limit for many users at once. Limits apply only to users on the general app settings; users on their own AI settings are never limited. Long tables show 5 rows with a Show all / Show less toggle.",
       "If a yellow warning says stored API keys use the default server key, set a private WEALTHFLOW_AI_ENCRYPTION_KEY on the server, run \"python manage.py rekey_ai_keys --apply\" and restart; the warning disappears once a private key is active."
     ]
@@ -1102,8 +1105,8 @@
       "Choose which currencies the main account serves, then Save.",
       "Add or edit plans and their prices in each currency.",
       "Use the Trials checkbox to decide whether users you create from Settings > Users start a free trial (on by default; existing users are not changed).",
-      "In Customers, search a user, then suspend or unsuspend the account, extend the trial, or change the plan.",
-      "Open a customer's invoices to mark a pending invoice paid, void it, or refund a paid one. A Paymob refund is recorded here; return the money from the Paymob dashboard.",
+      "In Customers, search a user, then suspend or unsuspend the account, extend the trial, or change the plan. The list shows 25 customers at a time: press Load more for the next page.",
+      "Open a customer's invoices (the newest 10 are shown; press Show more invoices for older ones) to mark a pending invoice paid, void it, or refund a paid one. A Paymob refund is recorded here; return the money from the Paymob dashboard.",
       "For each Gulf account (SAR / AED), save it and press Test connection to check that Paymob accepts the saved API key on the regional host; no order is created and nothing is charged."
     ]
   }

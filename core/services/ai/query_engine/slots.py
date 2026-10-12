@@ -13,6 +13,7 @@ from datetime import date
 from typing import Any, Callable, Iterable
 
 from .lexicon import ACTION, ANALYTIC, ANALYTIC_LOOKUP_BUDGET, BUY_RE, KARAT_RE, MID_RE, N_RE, SELL_RE, TIME_HINT, find_currencies, language, norm, rx
+from .lexicon_fr_de import LANGS, fold, to_english
 from .registry import get_capabilities
 from .spec import Capability, QueryRequest
 from .timespec import TimeSpec, parse_time
@@ -49,14 +50,17 @@ def _first_hit(pairs: Iterable[tuple[str, tuple[str, ...]]], q: str) -> list[str
 
 def _match_names(names: Iterable[str], q: str) -> str:
     best = ""
+    q = fold(q)   # accent-insensitive: a "Café" category matches "cafe"
     for name in names:
-        n = norm(name)
+        n = fold(norm(name))
         if n and len(n) >= 3 and rx(rf"(?<![\w]){re.escape(n)}(?![\w])").search(q) and len(n) > len(best):
             best = name
     return best
 
 
-def fill_filters(cap: Capability, q: str, category_lookup: Callable[[], Iterable[str]] | None) -> dict[str, Any]:
+def fill_filters(cap: Capability, q: str, category_lookup: Callable[[], Iterable[str]] | None, entity_q: str | None = None) -> dict[str, Any]:
+    """`q` is the routing text; `entity_q` (fr/de: translated + accent-folded original) is where the user's own names are matched."""
+    entity_q = q if entity_q is None else entity_q
     f: dict[str, Any] = {}
     if "currency" in cap.filters:
         codes = find_currencies(q)
@@ -72,15 +76,15 @@ def fill_filters(cap: Capability, q: str, category_lookup: Callable[[], Iterable
         if side:
             f["side"] = side
     if "category" in cap.filters and category_lookup is not None:
-        hit = _match_names(category_lookup(), q)
+        hit = _match_names(category_lookup(), entity_q)
         if hit:
             f["category"] = hit
     if {"bank", "asset_type"} & set(cap.filters):
-        f["match_text"] = q  # executors match it against their own (owner-scoped) names
+        f["match_text"] = entity_q  # executors match it against their own (owner-scoped) names
     return f
 
 
-def build_request(cap: Capability, q: str, time: TimeSpec, lang: str, category_lookup=None) -> tuple[QueryRequest, list[str]]:
+def build_request(cap: Capability, q: str, time: TimeSpec, lang: str, category_lookup=None, entity_q: str | None = None) -> tuple[QueryRequest, list[str]]:
     """Slot filling for one chosen capability. Returns (request, problems)."""
     problems: list[str] = []
     metrics = [m.name for m in cap.metrics if m.terms and any(rx(p).search(q) for p in m.terms)]
@@ -92,7 +96,7 @@ def build_request(cap: Capability, q: str, time: TimeSpec, lang: str, category_l
         capability=cap.key, metric=metrics[0] if metrics else cap.default_metric, group_by=dims[0] if dims else "",
         periods=list(time.months), latest=time.kind == "latest",
         n=int(next(g for g in n_m.groups() if g)) if n_m else None,
-        filters=fill_filters(cap, q, category_lookup), lang=lang,
+        filters=fill_filters(cap, q, category_lookup, entity_q), lang=lang,
     )
     if req.metric == "latest" and req.n is None:
         req.n = 5 if re.search(r"(expenses|transactions|purchases|payments|مصروفات|معاملات|عمليات|مشتريات)", q) else 1
@@ -126,6 +130,12 @@ def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = No
           previous: str = "") -> Routing:
     q, raw = norm(text), str(text or "")
     out = Routing(lang=language(raw))
+    entity_q = q
+    if out.lang in LANGS:   # fr / de: route on canonical English tokens, match the user's own names on the folded original
+        entity_q = f"{to_english(q, out.lang)} {fold(q)}"
+        q = to_english(q, out.lang)
+    if previous and language(str(previous)) in LANGS:
+        previous = to_english(norm(previous), language(str(previous)))
     if not q or len(raw) > MAX_CHARS:
         out.reason = "empty_or_too_long"
         return out
@@ -154,7 +164,7 @@ def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = No
             time = prev_time
             time.notes.append("period_from_previous_question")
     out.time = time
-    req, problems = build_request(cap, q, time, out.lang, category_lookup)
+    req, problems = build_request(cap, q, time, out.lang, category_lookup, entity_q)
     out.request = req
 
     margin = top - second

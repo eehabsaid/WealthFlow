@@ -28,191 +28,23 @@ STRUCTURE / CONVENTION — read this before adding or splitting a file:
     grows past ~200 lines, split it and, if that produces more than one
     file for that concern, move the results into (or create) a
     settings/<domain>/ subfolder following the same pattern.
-  - Always update this __init__.py's imports/__all__ to match — this file
+  - This package re-exports three umbrella modules (they exist only to keep every file under ~200 lines):
+      exports_general.py             currencies, app settings, e-mail, backup, banks, reminders, translations, legal ...
+      exports_market_gold_ai.py      gold settings, market data, AI settings
+      exports_access_billing_docs.py users/roles, billing (plans, customers ...), documentation
+    Add new exports to the matching umbrella module's imports and __all__.
+  - Keep this __init__.py's re-exports in sync — this file
     is the single place core/views/__init__.py and core/urls.py depend
     on (both do `from . import views` / `from .settings import X`), so no
     other file needs to change when you reorganize inside settings/.
 """
 
-from core.views.settings.currency_views import CurrencyListView, CurrencyDetailView
-from core.views.settings.app_settings_views import SettingsView
-from core.views.settings.email_template_views import (
-    EmailTemplateListView,
-    EmailTemplateDetailView,
-    EmailSettingsTestView,
-)
-from core.views.settings.backup_views import (
-    BackupCreateView,
-    BackupListView,
-    BackupDeleteView,
-    BackupRestoreView,
-)
-from core.views.settings.vendor_assets_views import VendorAssetsUpdateView
-from core.views.settings.property_rate_views import ScrapePropertyRatesView
-from core.views.settings.company_views import CompanyListView, CompanyDetailView
-from core.views.settings.bank_views import BankListView, BankDetailView, BankWithBalanceListView
-from core.views.settings.reminder_views import (
-    ReminderRuleListView,
-    ReminderRuleDetailView,
-    ReminderCheckView,
-    ReminderLogListView,
-)
-from core.views.settings.cert_status_views import (
-    CertificateStatusListView,
-    CertificateStatusDetailView,
-)
-from core.views.settings.translation_views import (
-    get_translations,
-    save_translations,
-    scan_translations,
-)
+from core.views.settings import exports_access_billing_docs, exports_general, exports_market_gold_ai
 
-from core.views.settings.gold.gold_settings_helpers import _seed_gold_settings_defaults
-from core.views.settings.gold.gold_type_settings_views import (
-    GoldTypeSettingsListView,
-    GoldTypeSettingsDetailView,
-)
-from core.views.settings.gold.gold_purity_settings_views import (
-    GoldPuritySettingsListView,
-    GoldPuritySettingsDetailView,
-)
+_UMBRELLAS = (exports_general, exports_market_gold_ai, exports_access_billing_docs)
 
-from core.views.settings.market.exchange_rate_views import ExchangeRateListView, ExchangeRateRefreshView
-from core.views.settings.market.gold_price_views import GoldPriceListView, GoldPriceRefreshView
+# Bind every re-exported name here so `from core.views.settings import X` keeps working exactly as before
+# (no star imports: pyflakes-clean). The names themselves are listed in each umbrella module's __all__.
+globals().update({name: getattr(module, name) for module in _UMBRELLAS for name in module.__all__})
 
-from core.views.settings.ai.ai_settings_views import AISettingsView
-from core.views.settings.ai.ai_user_limits_views import AIUserLimitsView
-from core.views.settings.ai.ai_user_settings_views import AIUserSettingsView
-from core.views.settings.ai.ai_connection_test_views import AIConnectionTestView
-from core.views.settings.ai.ai_provider_views import AIProviderListView
-from core.views.settings.ai.ai_runtime_capabilities_views import AIRuntimeCapabilitiesView
-
-from core.views.settings.user.user_views import (
-    UserListView,
-    UserDetailView,
-    UserBulkActionView,
-    user_management_page,
-)
-from core.views.settings.user.user_permission_views import (
-    UserPermissionListView,
-    UserPermissionDetailView,
-    PagePermissionChoicesView,
-    UserRoleListView,
-    UserRoleDetailView,
-)
-from core.views.settings.roles import RoleListView, RoleDetailView
-from core.views.settings.billing.plan_admin_views import (
-    PlanAdminListView,
-    PlanAdminDetailView,
-)
-from core.views.settings.billing.plan_price_admin_views import (
-    PlanPriceAdminListView,
-    PlanPriceAdminDetailView,
-)
-from core.views.settings.billing.gateway_settings_views import PaymobGatewaySettingsView
-from core.views.settings.billing.customer_admin_views import (
-    CustomerActionView,
-    CustomerListView,
-    InvoiceActionView,
-    TrialOptionsView,
-)
-
-from core.views.settings.documentation.documentation_core_views import (
-    ValidateCaptureView,
-    ValidateGenerationView,
-    DocumentationDevicesView,
-    DocumentationStatusView,
-    DocumentationHistoryView,
-    GenerateDocumentationView,
-)
-from core.views.settings.documentation.documentation_action_views import (
-    CaptureScreenshotsView,
-    GenerateDocumentsView,
-    CancelDocumentationView,
-    OpenFolderView,
-)
-
-from core.views.settings.account_retention_views import AccountRetentionView
-from core.views.settings.legal_text_views import (
-    LegalConsentView,
-    LegalTextDetailView,
-    LegalTextListView,
-)
-
-__all__ = [
-    "AccountRetentionView",
-    "CurrencyListView",
-    "CurrencyDetailView",
-    "SettingsView",
-    "EmailTemplateListView",
-    "LegalConsentView",
-    "LegalTextDetailView",
-    "LegalTextListView",
-    "EmailTemplateDetailView",
-    "EmailSettingsTestView",
-    "BackupCreateView",
-    "BackupListView",
-    "BackupDeleteView",
-    "BackupRestoreView",
-    "VendorAssetsUpdateView",
-    "ScrapePropertyRatesView",
-    "CompanyListView",
-    "CompanyDetailView",
-    "BankListView",
-    "BankDetailView",
-    "BankWithBalanceListView",
-    "ReminderRuleListView",
-    "ReminderRuleDetailView",
-    "ReminderCheckView",
-    "ReminderLogListView",
-    "CertificateStatusListView",
-    "CertificateStatusDetailView",
-    "get_translations",
-    "save_translations",
-    "scan_translations",
-    "_seed_gold_settings_defaults",
-    "GoldTypeSettingsListView",
-    "GoldTypeSettingsDetailView",
-    "GoldPuritySettingsListView",
-    "GoldPuritySettingsDetailView",
-    "ExchangeRateListView",
-    "ExchangeRateRefreshView",
-    "GoldPriceListView",
-    "GoldPriceRefreshView",
-    "AISettingsView",
-    "AIUserLimitsView",
-    "AIUserSettingsView",
-    "AIConnectionTestView",
-    "AIProviderListView",
-    "AIRuntimeCapabilitiesView",
-    "UserListView",
-    "UserDetailView",
-    "UserBulkActionView",
-    "user_management_page",
-    "UserPermissionListView",
-    "UserPermissionDetailView",
-    "PagePermissionChoicesView",
-    "UserRoleListView",
-    "UserRoleDetailView",
-    "RoleListView",
-    "RoleDetailView",
-    "PlanAdminListView",
-    "PlanAdminDetailView",
-    "PlanPriceAdminListView",
-    "PlanPriceAdminDetailView",
-    "PaymobGatewaySettingsView",
-    "CustomerActionView",
-    "CustomerListView",
-    "InvoiceActionView",
-    "TrialOptionsView",
-    "ValidateCaptureView",
-    "ValidateGenerationView",
-    "DocumentationDevicesView",
-    "DocumentationStatusView",
-    "DocumentationHistoryView",
-    "GenerateDocumentationView",
-    "CaptureScreenshotsView",
-    "GenerateDocumentsView",
-    "CancelDocumentationView",
-    "OpenFolderView",
-]
+__all__ = [name for module in _UMBRELLAS for name in module.__all__]

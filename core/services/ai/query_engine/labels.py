@@ -1,8 +1,11 @@
-"""en / ar wording for every answer the engine writes. Code-generated text only: no LLM."""
+"""en / ar / fr / de wording for every answer the engine writes. Code-generated text only: no LLM.
+(fr / de tables live in labels_fr.py / labels_de.py; every table has the same keys and {fields}, enforced by tests.)"""
 
 from __future__ import annotations
 
 import calendar
+
+from . import labels_de, labels_fr
 
 _AR_MONTHS = ("يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر")
 
@@ -128,7 +131,7 @@ _AR = {
     "freq_daily": "كل {n} يوم", "freq_weekly": "كل {n} أسبوع", "freq_monthly": "كل {n} شهر", "freq_yearly": "كل {n} سنة",
     "col_frequency": "التكرار", "col_next_due": "الاستحقاق التالي",
 }
-_TABLES = {"en": _EN, "ar": _AR}
+_TABLES = {"en": _EN, "ar": _AR, "fr": labels_fr.TABLE, "de": labels_de.TABLE}
 
 
 def t(lang: str, key: str, **kw) -> str:
@@ -139,6 +142,9 @@ def t(lang: str, key: str, **kw) -> str:
 def month_label(lang: str, year: int, month: int, abbr: bool = False) -> str:
     if lang == "ar":
         return f"{_AR_MONTHS[month - 1]} {year}"
+    if lang in ("fr", "de"):
+        mod = labels_fr if lang == "fr" else labels_de
+        return f"{(mod.MONTHS_ABBR if abbr else mod.MONTHS)[month - 1]} {year}"
     return f"{(calendar.month_abbr if abbr else calendar.month_name)[month]} {year}"
 
 

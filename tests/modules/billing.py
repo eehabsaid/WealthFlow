@@ -6,7 +6,7 @@ Tests:
     page access) sees the trial/expired banner.
  2. Clicking "Upgrade" in that banner actually lands on the Plans page
     (#billing-plans), instead of being silently bounced back to Welcome.
- 3. When that account's trial has ended the app is locked to the upgrade page (tests/modules/billing_lock.py).
+ 3. A separately seeded lapsed_user (trial ended yesterday) is locked to the upgrade page (tests/modules/billing_lock.py).
  4. The plans page 'Your data' card: export my data / delete my account (tests/modules/billing_account.py).
 
 This is a regression test for a bug where route_dispatch.js's
@@ -44,6 +44,11 @@ def test_billing_module(context, reporter, screenshot_logger):
         check_customers_and_trial_option(context, reporter, screenshot_logger)  # admin session, leaves data unchanged
     except Exception as ex:
         reporter.add_step("Customers / trial option checks", "Billing", "FAIL", f"Exception: {ex}")
+
+    try:
+        check_lapsed_lock(context, reporter, screenshot_logger)  # own session as the seeded lapsed_user
+    except Exception as ex:
+        reporter.add_step("Lapsed trial lock checks", "Billing", "FAIL", f"Exception: {ex}")
 
     billing_ctx = None
     try:
@@ -124,7 +129,6 @@ def test_billing_module(context, reporter, screenshot_logger):
             else "Plans grid missing after navigating to #billing-plans.",
         )
 
-        check_lapsed_lock(page, reporter, screenshot_logger)
         check_account_data_card(page, reporter, screenshot_logger)
 
     except Exception as ex:

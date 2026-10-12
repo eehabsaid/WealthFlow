@@ -17,6 +17,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wealthflow.settings")
 
 ADMIN = ("eehab_said", "Eehabdev1")
 TESTER = ("testuser", "Eehabdev1")
+FILLER_USERS = 3
+LAPSED = ("lapsed_user", "Eehabdev1")  # trial ended yesterday: drives the deterministic "lapsed trial locks the app" E2E
 
 
 def _ensure_plans():
@@ -55,6 +57,19 @@ def _reset_billing_tester(user):
     sub.save(update_fields=["trial_end", "updated_at"])
 
 
+def _reset_lapsed_user(user):
+    from django.utils import timezone
+    from core.models import PagePermission, Subscription
+    from core.services.billing.subscription_service import SubscriptionService
+
+    PagePermission.objects.filter(user=user).delete()
+    Subscription.objects.filter(owner=user).delete()
+    sub = SubscriptionService.start_trial(user)
+    sub.status = "trialing"
+    sub.trial_end = timezone.now() - timedelta(days=1)
+    sub.save(update_fields=["status", "trial_end", "updated_at"])
+
+
 def main() -> int:
     import django
 
@@ -68,7 +83,13 @@ def main() -> int:
     _ensure_plans()
     _ensure_user(*ADMIN, admin=True)
     _reset_billing_tester(_ensure_user(*TESTER, admin=False))
-    print(f"[e2e_seed] seeded {name}: plans, {ADMIN[0]} (sysadmin), {TESTER[0]} (10-day trial, no page permissions)")
+    _reset_lapsed_user(_ensure_user(*LAPSED, admin=False))
+    for n in range(1, FILLER_USERS + 1):   # enough users for the token-limit table's Show all / Show less step (needs more than 5)
+        _ensure_user(f"e2e_filler_{n}", "Eehabdev1", admin=False)
+    print(
+        f"[e2e_seed] seeded {name}: plans, {ADMIN[0]} (sysadmin), {TESTER[0]} (10-day trial, no page permissions), "
+        f"{LAPSED[0]} (trial ended yesterday)"
+    )
     return 0
 
 

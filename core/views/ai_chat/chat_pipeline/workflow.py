@@ -60,6 +60,7 @@ def run_workflow_pipeline(*, trace: PipelineTrace, provider, request, conversati
         chunks = [c for _, c in ranked]
         trace.skip("retrieve", "workflow_path")
         trace.skip("prefetch", "workflow_path")
+        trace.skip("investigate", "normal_path")
         history = []
         if budget.history_messages:
             qs = conversation.messages.filter(is_deleted=False).exclude(id=user_msg.id).order_by("-id")

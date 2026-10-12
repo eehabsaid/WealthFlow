@@ -32,7 +32,8 @@ from core.services.ai.orchestration import Orchestrator
 from core.services.ai.usage import MeteredProvider, TokenMeter, limit_status
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
 from core.services.ai.app_knowledge import is_workflow_question
-from core.views.ai_chat.chat_pipeline import PipelineTrace, run_default_pipeline, run_workflow_pipeline, understand, workflow_enabled
+from core.views.ai_chat.chat_pipeline import (ESCALATE, PipelineTrace, escalating, run_default_pipeline, run_investigator_pipeline,
+                                              run_workflow_pipeline, should_go_direct, understand, workflow_enabled)
 from core.views.ai_chat.chat_pipeline.trace import log_request_start
 
 from .conversation_setup import (
@@ -131,20 +132,32 @@ class AIChatView(View):
             )
         facts_request = info.get("facts_request")
 
-        # Stage 1c — how / where / should questions about using the app: reason from retrieved app
+        respond = lambda content, calls, sources, extra=None: finalize_success(  # noqa: E731
+            cache_mgr, progress_key, conversation, user_msg, user_text, content, calls, sources, request, extra=extra,
+        )
+        on_error = lambda sources, err: build_provider_error_response(  # noqa: E731
+            cache_mgr, progress_key, conversation, sources, user_msg, err
+        )
+        investigate = lambda why: run_investigator_pipeline(  # noqa: E731
+            trace=trace, provider=provider, request=request, conversation=conversation, user_msg=user_msg,
+            user_text=user_text, respond=respond, on_error=on_error, why=why,
+        )
+
+        # Stage 1c — the investigator: code questions (sysadmin) or mode "always" go straight to a tool-using
+        # exploration of the whole app; in mode "auto" it takes over below when a normal path gives up.
+        direct_why = should_go_direct(request.user, user_text)
+        if direct_why:
+            return investigate(direct_why)
+        esc_respond, esc_on_error, esc_box = escalating(request.user, respond, on_error)
+
+        # Stage 1d — how / where / should questions about using the app: reason from retrieved app
         # knowledge (no data snapshot, no tools). Advice questions with computed facts keep the data path.
         if not facts_request and workflow_enabled(request.user) and is_workflow_question(user_text):
-            return run_workflow_pipeline(
+            result = run_workflow_pipeline(
                 trace=trace, provider=provider, request=request, conversation=conversation, user_msg=user_msg,
-                user_text=user_text,
-                respond=lambda content, calls, sources, extra=None: finalize_success(
-                    cache_mgr, progress_key, conversation, user_msg, user_text,
-                    content, calls, sources, request, extra=extra,
-                ),
-                on_error=lambda sources, err: build_provider_error_response(
-                    cache_mgr, progress_key, conversation, sources, user_msg, err
-                ),
+                user_text=user_text, respond=esc_respond, on_error=esc_on_error,
             )
+            return investigate(esc_box.get("why", "escalation")) if result is ESCALATE else result
 
         multi_agent_str = AppSettings.get("ai_multi_agent_enabled", "false", user=request.user).strip().lower()
         if multi_agent_str in ("true", "1", "yes"):
@@ -160,14 +173,9 @@ class AIChatView(View):
             )
 
         # Stages 2-6 — Retrieve -> Reason -> Tool -> Validate -> Respond
-        return run_default_pipeline(
+        result = run_default_pipeline(
             trace=trace, understanding=understanding, provider=provider, request=request,
             conversation=conversation, user_msg=user_msg, user_text=user_text, facts_request=facts_request,
-            respond=lambda content, calls, sources, extra=None: finalize_success(
-                cache_mgr, progress_key, conversation, user_msg, user_text,
-                content, calls, sources, request, extra=extra,
-            ),
-            on_error=lambda sources, err: build_provider_error_response(
-                cache_mgr, progress_key, conversation, sources, user_msg, err
-            ),
+            respond=esc_respond, on_error=esc_on_error,
         )
+        return investigate(esc_box.get("why", "escalation")) if result is ESCALATE else result

@@ -20,10 +20,15 @@ def norm(text: str) -> str:
 
 
 def language(text: str) -> str:
+    """'ar' | 'fr' | 'de' | 'en' (anything else). fr/de need real evidence (lexicon_fr_de.detect), so English stays English."""
     letters = [c for c in text if c.isalpha()]
     if not letters:
         return "en"
-    return "ar" if sum(1 for c in letters if "\u0600" <= c <= "\u06ff") / len(letters) > 0.3 else "en"
+    if sum(1 for c in letters if "\u0600" <= c <= "\u06ff") / len(letters) > 0.3:
+        return "ar"
+    from .lexicon_fr_de import detect
+
+    return detect(text) or "en"
 
 
 @lru_cache(maxsize=512)

@@ -28,6 +28,24 @@ function _invoiceRowHtml(userId, inv) {
     </tr><tr id="refundRow_${inv.id}" style="display:none"><td colspan="6"></td></tr>`;
 }
 
+function _invoiceMoreHtml(c) {
+  if (c.invoice_count <= c.invoices.length) return "";
+  return `<div class="modal-body pt-0" style="text-align:center;"><button class="btn-secondary-custom btn-sm" id="invoicesShowMore" onclick="loadMoreInvoices(${c.user_id})"><span data-i18n="invoices_show_more">${t("invoices_show_more", "Show more invoices")}</span> (${c.invoices.length}/${c.invoice_count})</button></div>`;
+}
+
+async function loadMoreInvoices(userId) {
+  const c = _custFind(userId);
+  const res = await fetch(
+    `/api/settings/billing/customers/${userId}/invoices/?offset=${c.invoices.length}&limit=10`
+  );
+  if (!res.ok) return;
+  const data = await res.json();
+  const known = new Set(c.invoices.map((i) => i.id));
+  c.invoices = c.invoices.concat((data.invoices || []).filter((i) => !known.has(i.id)));
+  c.invoice_count = data.total;
+  showCustomerInvoices(userId);
+}
+
 function showCustomerInvoices(userId) {
   const c = _custFind(userId);
   const rows = c.invoices.map((i) => _invoiceRowHtml(userId, i)).join("");
@@ -40,6 +58,7 @@ function showCustomerInvoices(userId) {
                 : `<div style="color:var(--text-muted)" data-i18n="no_invoices">${t("no_invoices", "No invoices yet.")}</div>`
             }
         </div>
+        ${_invoiceMoreHtml(c)}
         <div class="modal-footer"><button class="btn-secondary-custom" data-bs-dismiss="modal" data-i18n="btn_close">${t("btn_close", "Close")}</button></div>`);
   applyTranslations();
 }
@@ -89,6 +108,7 @@ async function submitRefund(userId, invoiceId) {
 }
 
 window.showCustomerInvoices = showCustomerInvoices;
+window.loadMoreInvoices = loadMoreInvoices;
 window.invoiceAction = invoiceAction;
 window.showRefundForm = showRefundForm;
 window.submitRefund = submitRefund;

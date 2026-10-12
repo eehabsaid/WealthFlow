@@ -3,7 +3,7 @@ AI Tool Registry — merges the split registry-definition dicts.
 
 NOTE (200-line file convention): part of the core/services/ai/tools/
 package. Definitions live in defs_scenario.py and defs_app.py; this module
-merges them into the single public AI_TOOL_REGISTRY and exposes
+merges them (plus the investigator tools from core/services/ai/investigation/) into the single public AI_TOOL_REGISTRY and exposes
 get_registered_tool_schemas.
 """
 
@@ -13,8 +13,9 @@ from typing import Any
 
 from core.services.ai.tools.defs_scenario import SCENARIO_TOOL_DEFS
 from core.services.ai.tools.defs_app import APP_TOOL_DEFS
+from core.services.ai.investigation.defs import INVESTIGATION_TOOL_DEFS
 
-AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {**SCENARIO_TOOL_DEFS, **APP_TOOL_DEFS}
+AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {**SCENARIO_TOOL_DEFS, **APP_TOOL_DEFS, **INVESTIGATION_TOOL_DEFS}
 
 
 def get_registered_tool_schemas(domain: str | None = None) -> list[dict[str, Any]]:
@@ -23,5 +24,7 @@ def get_registered_tool_schemas(domain: str | None = None) -> list[dict[str, Any
     for tool_def in AI_TOOL_REGISTRY.values():
         if domain and tool_def.get("domain") != domain:
             continue
+        if tool_def.get("investigator_only") and domain != "app_investigation":
+            continue  # investigator tools are offered by the investigator only (smaller default prompts)
         schemas.append(tool_def["schema"])
     return schemas

@@ -57,14 +57,24 @@ def test_users(context, reporter, screenshot_logger):
                 context.page.wait_for_timeout(500)
         edit_result = user_checker.verify_field_updated(create_result.new_id, "email", new_email)
 
+        scheduled_ok, scheduled_note = True, ""
         if create_result.new_id is not None:
+            # Delete is a restorable schedule now (grace period): the row stays, flagged. Purge-now then removes it for real.
             context.page.evaluate(f"(async () => {{ if (typeof deleteUser === 'function') {{ await deleteUser({create_result.new_id}); }} }})()")
+            context.page.wait_for_timeout(700)
+            row = context.page.evaluate(
+                "async (id) => { const r = await fetch('/api/users/?page_size=1000'); const d = await r.json();"
+                " const list = Array.isArray(d) ? d : (d.users || d.results || []); return list.find((u) => u.id === id) || null; }",
+                create_result.new_id)
+            scheduled_ok = bool(row) and row.get("account_status") == "pending_deletion" and bool(row.get("deletion_requested_at"))
+            scheduled_note = f"Scheduled: row {'flagged pending_deletion' if scheduled_ok else 'NOT flagged (' + repr(row) + ')'} | "
+            context.page.evaluate(f"(async () => {{ if (typeof purgeUserNow === 'function') {{ await purgeUserNow({create_result.new_id}); }} }})()")
             context.page.wait_for_timeout(700)
         delete_result = user_checker.verify_deleted(create_result.new_id)
 
-        overall_pass = create_result.passed and edit_result.passed and delete_result.passed
+        overall_pass = create_result.passed and edit_result.passed and scheduled_ok and delete_result.passed
         reporter.record_crud("User Account Entry", user_checker.steps_passed, user_checker.steps_total)
-        detail = f"Create: {create_result.detail} | Edit: {edit_result.detail} | Delete: {delete_result.detail}"
+        detail = f"Create: {create_result.detail} | Edit: {edit_result.detail} | {scheduled_note}Delete: {delete_result.detail}"
         reporter.add_step("User Management CRUD (API-verified)", "Settings", "PASS" if overall_pass else "FAIL", detail, screenshot_path=shot_usr)
     except Exception as ex:
         reporter.record_crud("User Account Entry", user_checker.steps_passed, max(user_checker.steps_total, 1))

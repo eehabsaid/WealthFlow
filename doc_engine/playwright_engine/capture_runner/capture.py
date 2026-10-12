@@ -7,6 +7,7 @@ from playwright.sync_api import Page
 
 from doc_engine.services.navigation_planner import sanitize_filename
 from .helpers import log, check_cancelled_and_exit
+from .modal_close_js import CLOSE_MODALS_JS
 
 
 class CaptureMixin:
@@ -86,33 +87,13 @@ class CaptureMixin:
         silently and the capture times out with no error. Disposing here
         guarantees every subsequent showModal() call gets a clean instance,
         regardless of timing between consecutive modal captures.
+
+        The dispose waits for Bootstrap's `hidden.bs.modal` (see modal_close_js.py): disposing right after hide()
+        nulls the instance while its queued _hideModal() is pending and raises the page error
+        "Cannot read properties of null (reading 'style')".
         """
         try:
-            page.evaluate("""() => {
-                if (typeof clearGoldPurityReturnContext === 'function') {
-                    clearGoldPurityReturnContext();
-                }
-                if (typeof goldPurityReturnContext !== 'undefined') {
-                    goldPurityReturnContext = null;
-                }
-                const openModals = document.querySelectorAll('.modal.show, .modal[style*="display: block"]');
-                openModals.forEach(m => {
-                    if (window.bootstrap && window.bootstrap.Modal) {
-                        const inst = window.bootstrap.Modal.getInstance(m);
-                        if (inst) {
-                            try { inst.hide(); } catch(e) {}
-                            try { inst.dispose(); } catch(e) {}
-                        }
-                    }
-                    m.classList.remove('show');
-                    m.style.display = 'none';
-                    m.setAttribute('aria-hidden', 'true');
-                });
-                document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-                document.body.classList.remove('modal-open');
-                document.body.style.removeProperty('padding-right');
-                document.body.style.removeProperty('overflow');
-            }""")
+            page.evaluate(CLOSE_MODALS_JS)
             page.wait_for_selector('.modal.show', state='hidden', timeout=1000)
         except Exception:
             pass

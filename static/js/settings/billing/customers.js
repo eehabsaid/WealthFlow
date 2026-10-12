@@ -2,7 +2,10 @@
 // Billing settings — Customers (sysadmin): plan / status / trial end / period end / invoices per user.
 // This file is part of the settings module. Do not edit directly.
 
+const CUSTOMERS_PAGE_SIZE = 25; // server-side pages; "Load more" appends the next one
+const CUSTOMERS_MAX_REFRESH_PAGES = 8;
 let _customers = [];
+let _custMeta = { query: "", total: 0, hasMore: false };
 
 function _custEsc(value) {
   const d = document.createElement("div");
@@ -64,6 +67,11 @@ function _custRowHtml(c) {
     </tr>`;
 }
 
+function _custLoadMoreHtml() {
+  if (!_custMeta.hasMore) return "";
+  return `<div style="text-align:center;margin-top:10px;"><button class="btn-secondary-custom btn-sm" id="customersLoadMore" onclick="loadMoreCustomers()"><span data-i18n="customers_load_more">${t("customers_load_more", "Load more")}</span> (${_customers.length}/${_custMeta.total})</button></div>`;
+}
+
 function _customersCardHtml() {
   const rows = _customers.map(_custRowHtml).join("");
   const body = rows
@@ -84,23 +92,56 @@ function _customersCardHtml() {
             <input type="search" class="form-control form-control-sm" style="max-width:220px;" id="customersSearch" placeholder="${t("customers_search", "Search users")}" onkeydown="if(event.key==='Enter')renderCustomersCard()">
         </div>
         ${body}
+        ${_custLoadMoreHtml()}
     </div>`;
 }
 
-async function renderCustomersCard(keepSearch = true) {
-  const mount = document.getElementById("customersMount");
-  if (!mount) return;
-  const prev = keepSearch ? (document.getElementById("customersSearch") || {}).value || "" : "";
-  const res = await fetch(`/api/settings/billing/customers/?q=${encodeURIComponent(prev)}`);
-  if (!res.ok) return;
-  _customers = (await res.json()).customers || [];
+async function _custFetchPage(query, page) {
+  const res = await fetch(
+    `/api/settings/billing/customers/?q=${encodeURIComponent(query)}&page=${page}&page_size=${CUSTOMERS_PAGE_SIZE}`
+  );
+  return res.ok ? res.json() : null;
+}
+
+function _custPaint(mount, query) {
   mount.innerHTML = _customersCardHtml();
   const input = document.getElementById("customersSearch");
-  if (input) input.value = prev;
+  if (input) input.value = query;
   const table = document.getElementById("customersTable");
   if (table && window.AIA && AIA.resetCollapsible) AIA.resetCollapsible(table);
   if (typeof initCollapsibleTables === "function") initCollapsibleTables();
   applyTranslations();
 }
 
+async function renderCustomersCard(keepSearch = true) {
+  const mount = document.getElementById("customersMount");
+  if (!mount) return;
+  const query = keepSearch ? (document.getElementById("customersSearch") || {}).value || "" : "";
+  // a refresh (after an action) re-fetches the pages already loaded; a new search starts from page 1
+  const loaded = Math.ceil(_customers.length / CUSTOMERS_PAGE_SIZE);
+  const pages =
+    query === _custMeta.query ? Math.min(Math.max(1, loaded), CUSTOMERS_MAX_REFRESH_PAGES) : 1;
+  const results = await Promise.all(
+    Array.from({ length: pages }, (_, i) => _custFetchPage(query, i + 1))
+  );
+  if (results.some((r) => !r)) return;
+  _customers = results.flatMap((r) => r.customers || []);
+  const last = results[results.length - 1];
+  _custMeta = { query, total: last.total || 0, hasMore: !!last.has_more };
+  _custPaint(mount, query);
+}
+
+async function loadMoreCustomers() {
+  const mount = document.getElementById("customersMount");
+  if (!mount) return;
+  const page = Math.floor(_customers.length / CUSTOMERS_PAGE_SIZE) + 1;
+  const data = await _custFetchPage(_custMeta.query, page);
+  if (!data) return;
+  const known = new Set(_customers.map((c) => c.user_id));
+  _customers = _customers.concat((data.customers || []).filter((c) => !known.has(c.user_id)));
+  _custMeta = { query: _custMeta.query, total: data.total || 0, hasMore: !!data.has_more };
+  _custPaint(mount, _custMeta.query);
+}
+
 window.renderCustomersCard = renderCustomersCard;
+window.loadMoreCustomers = loadMoreCustomers;

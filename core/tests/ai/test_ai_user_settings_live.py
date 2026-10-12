@@ -13,7 +13,7 @@ from django.core.cache import cache
 from core.constants.ai_user_settings import DEFAULT_LIMIT_KEY, USE_GENERAL_KEY
 from core.models import AIConversation, AIMessage, AppSettings, PagePermission
 from core.tests.ai import qe_fixtures as fx
-from core.tests.ai.live_boot import first_load
+from core.tests.ai.live_boot import first_load, scale_timeouts
 from core.tests.ai.test_ai_workflow_chat import LAPTOP, PROVIDER, stub_provider
 
 ANSWER = "Record it as an asset: the purchase price already deducts your balance."
@@ -50,6 +50,7 @@ class AIUserSettingsLiveTests(StaticLiveServerTestCase):
         ctx = self._browser.new_context(viewport={"width": 1280, "height": 900})
         ctx.add_cookies([{"name": settings.SESSION_COOKIE_NAME, "value": self.client.cookies[settings.SESSION_COOKIE_NAME].value,
                           "url": self.live_server_url}])
+        scale_timeouts(ctx)
         self.page = ctx.new_page()
         self.addCleanup(ctx.close)
 

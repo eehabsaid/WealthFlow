@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.views import View
 
 from core.services.billing import customer_admin_service as svc
+from core.services.billing import customer_listing as listing
 from core.validators.json_body import parse_json_body
 from core.views.auth_views import AdminRequiredMixin
 
@@ -20,8 +21,19 @@ def _fail(exc: svc.CustomerAdminError):
 
 
 class CustomerListView(AdminRequiredMixin, View):
+    """GET ?q=&page=&page_size= -> {customers, total, page, page_size, has_more} (one page; default 25, max 100)."""
+
     def get(self, request):
-        return JsonResponse({"customers": svc.list_customers((request.GET.get("q") or "").strip())})
+        q = (request.GET.get("q") or "").strip()
+        return JsonResponse(listing.list_customers(q, request.GET.get("page"), request.GET.get("page_size")))
+
+
+class CustomerInvoicesView(AdminRequiredMixin, View):
+    """GET ?offset=&limit= -> {invoices, total, offset, has_more}: lazily loaded invoices of one customer."""
+
+    def get(self, request, user_id):
+        user = get_object_or_404(User, pk=user_id, is_superuser=False)
+        return JsonResponse(listing.invoices_page(user, request.GET.get("offset"), request.GET.get("limit")))
 
 
 class CustomerActionView(AdminRequiredMixin, View):
@@ -44,7 +56,7 @@ class CustomerActionView(AdminRequiredMixin, View):
                 return JsonResponse({"error": "bad_action", "message": "Unknown action."}, status=400)
         except svc.CustomerAdminError as exc:
             return _fail(exc)
-        return JsonResponse({"customer": svc.customer_dict(user)})
+        return JsonResponse({"customer": listing.customer_dict(user)})
 
 
 class InvoiceActionView(AdminRequiredMixin, View):
@@ -73,7 +85,7 @@ class InvoiceActionView(AdminRequiredMixin, View):
             return _fail(exc)
         owner_id = invoice.owner_id if invoice else result["invoice"]["owner_id"]
         owner = get_object_or_404(User, pk=owner_id)
-        return JsonResponse({"customer": svc.customer_dict(owner), **{k: v for k, v in result.items() if k != "invoice"}})
+        return JsonResponse({"customer": listing.customer_dict(owner), **{k: v for k, v in result.items() if k != "invoice"}})
 
 
 class TrialOptionsView(AdminRequiredMixin, View):

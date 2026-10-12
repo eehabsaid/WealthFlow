@@ -24,27 +24,6 @@ class CustomerAdminError(Exception):
         self.code, self.message, self.status = code, message, status
 
 
-def customer_dict(user, *, invoice_limit: int = 25) -> dict:
-    sub = SubscriptionService.get_subscription(user)
-    invoices = list(Invoice.objects.filter(owner=user).select_related("plan", "currency")[:invoice_limit])
-    return {
-        "user_id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "is_active": user.is_active,
-        "subscription": sub.to_dict() if sub else None,
-        "invoices": [i.to_dict() for i in invoices],
-        "invoice_count": Invoice.objects.filter(owner=user).count(),
-    }
-
-
-def list_customers(search: str = "") -> list:
-    qs = User.objects.filter(is_superuser=False).order_by("username")
-    if search:
-        qs = qs.filter(username__icontains=search) | qs.filter(email__icontains=search)
-    return [customer_dict(u) for u in qs.distinct().order_by("username")]
-
-
 def _sub(user) -> Subscription:
     sub = SubscriptionService.get_subscription(user)
     if sub is None:

@@ -1,4 +1,4 @@
-"""AI chat pipeline settings (ai_validate_mode, ai_pipeline_debug, ai_direct_answers): get / validate / persist.
+"""AI chat pipeline settings (ai_validate_mode, ai_pipeline_debug, ai_direct_answers, ai_investigator_mode, ai_code_access): get / validate / persist.
 
 Kept separate from ai_settings_get_helpers / ai_settings_save_helpers (200-line rule).
 Stored app-wide like the other AI settings; read by chat_pipeline.validate / runner.
@@ -10,6 +10,7 @@ from core.models import AppSettings
 
 VALIDATE_MODES = ("off", "flag", "regenerate")
 DEFAULT_VALIDATE_MODE = "flag"
+INVESTIGATOR_MODES = ("auto", "always", "off")   # chat_pipeline/investigate.py: auto = takes over when a normal answer gives up
 _TRUE = ("true", "1", "yes")
 _FALSE = ("false", "0", "no", "off")
 
@@ -18,7 +19,11 @@ def get_pipeline_settings(user=None) -> dict:
     mode = str(AppSettings.get("ai_validate_mode", DEFAULT_VALIDATE_MODE, user=user) or "").strip().lower()
     debug = str(AppSettings.get("ai_pipeline_debug", "false", user=user) or "").strip().lower()
     direct = str(AppSettings.get("ai_direct_answers", "true", user=user) or "true").strip().lower()
+    inv = str(AppSettings.get("ai_investigator_mode", "auto", user=user) or "auto").strip().lower()
+    code = str(AppSettings.get("ai_code_access", "true", user=None) or "true").strip().lower()   # global: a sysadmin security switch
     return {
+        "ai_investigator_mode": inv if inv in INVESTIGATOR_MODES else "auto",
+        "ai_code_access": code not in _FALSE,   # default ON; source-code tools are sysadmin-only either way
         "ai_validate_mode": mode if mode in VALIDATE_MODES else DEFAULT_VALIDATE_MODE,
         "ai_pipeline_debug": debug in _TRUE,
         "ai_direct_answers": direct not in _FALSE,  # default ON; read by query_engine.is_enabled
@@ -33,16 +38,25 @@ def validate_pipeline_settings(data):
         return None, JsonResponse(
             {"error": f"ai_validate_mode must be one of {list(VALIDATE_MODES)}"}, status=400
         )
+    inv = str(data.get("ai_investigator_mode", current["ai_investigator_mode"])).strip().lower()
+    if inv not in INVESTIGATOR_MODES:
+        return None, JsonResponse({"error": f"ai_investigator_mode must be one of {list(INVESTIGATOR_MODES)}"}, status=400)
+    code = data.get("ai_code_access", current["ai_code_access"])
+    if isinstance(code, str):
+        code = code.strip().lower() not in _FALSE
     debug = data.get("ai_pipeline_debug", current["ai_pipeline_debug"])
     if isinstance(debug, str):
         debug = debug.strip().lower() in _TRUE
     direct = data.get("ai_direct_answers", current["ai_direct_answers"])
     if isinstance(direct, str):
         direct = direct.strip().lower() not in _FALSE
-    return {"validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct)}, None
+    return {"validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct),
+            "investigator_mode": inv, "code_access": bool(code)}, None
 
 
 def persist_pipeline_settings(validated, user=None) -> None:
     AppSettings.set("ai_validate_mode", validated["validate_mode"], user=user)
     AppSettings.set("ai_pipeline_debug", "true" if validated["pipeline_debug"] else "false", user=user)
     AppSettings.set("ai_direct_answers", "true" if validated["direct_answers"] else "false", user=user)
+    AppSettings.set("ai_investigator_mode", validated["investigator_mode"], user=user)
+    AppSettings.set("ai_code_access", "true" if validated["code_access"] else "false", user=None)   # always global

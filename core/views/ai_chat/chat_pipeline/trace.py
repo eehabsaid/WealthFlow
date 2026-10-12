@@ -16,7 +16,7 @@ from typing import Any, Iterator
 
 logger = logging.getLogger("core.ai.pipeline")
 
-STAGES = ("understand", "route", "knowledge", "retrieve", "prefetch", "reason", "tool", "validate", "respond")
+STAGES = ("understand", "route", "knowledge", "retrieve", "prefetch", "reason", "investigate", "tool", "validate", "respond")
 _MAX_DETAIL_CHARS = 700
 
 

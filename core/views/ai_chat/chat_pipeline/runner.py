@@ -29,6 +29,7 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
     are supplied by the view so cache/progress handling stays where it was."""
     provider = TracedProvider(provider, trace)
     trace.skip("knowledge", "data_question")  # the knowledge stage belongs to the how/where/should path (workflow.py)
+    trace.skip("investigate", "normal_path")  # the investigator only runs when this path gives up (investigate.py)
     try:
         retrieval = run_retrieve(trace, request, conversation, user_msg, user_text)
         _attach_facts(trace, retrieval, facts_request, request.user)
