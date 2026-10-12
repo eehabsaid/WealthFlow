@@ -27,6 +27,7 @@ TABLE = {
     "sal_total": "Total {what} pour {label} : {amount}.", "sal_avg": "Moyenne mensuelle ({what}) pour {label} : {amount} (sur {n} mois).",
     "what_paid": "salaire versé", "what_expected": "salaire prévu", "what_bonus": "primes",
     "sal_year_table": "Salaire par année (montants en {cur}) :", "col_year": "Année", "col_yoy": "Variation par rapport à l'année précédente",
+    "sal_export": "Télécharger en Excel (.xlsx)", "sal_sheet": "Salaires",
     "bal_total": "Solde total : {amount} sur {n} compte(s).", "bal_gold": "Or : {grams} g, d'une valeur de {amount}.",
     "bal_gold_note": "L'or est inclus dans le total ({amount}).", "bal_none": "Aucun compte de solde n'est enregistré.",
     "bal_cur": "Solde en {cur} : {amount} sur {n} compte(s) (≈ {home}).", "bal_cur_none": "Aucun solde en {cur} n'est enregistré.",

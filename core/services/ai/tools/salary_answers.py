@@ -11,6 +11,7 @@ NOTE (200-line file convention): part of the core/services/ai/tools/ package.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 SALARY_INSTRUCTIONS = (
@@ -22,6 +23,10 @@ SALARY_INSTRUCTIONS = (
     "recent_monthly_timeline (oldest-first) or latest_active_year_summary (yearly aggregate) "
     "for this; a yearly total is never a single paid salary. Only say no salary data exists if "
     "latest_salary_entry is null/absent."
+    " LIST/EXPORT RULE: to list salaries of a year use ONLY salary.requested_year_entries (every entry of that "
+    "year, not capped; never say the list is limited to 20 entries). When the user asks to export / download / "
+    "Excel, finish the answer with salary.export_link_markdown copied verbatim (it is a working download link "
+    "built by the app); never say you cannot export or generate an Excel file."
 )
 
 _LATEST_WORDS = ("last", "latest", "recent", "newest", "current")
@@ -55,6 +60,25 @@ def _month_answer(user: Any, month: int, year: int) -> str:
     return f"Paid salary for {label}: " + "; ".join(parts) + "."
 
 
+_YEAR_RE = re.compile(r"(?<!\d)((?:19|20)\d\d)(?!\d)")
+MAX_YEAR_ENTRIES = 120
+
+
+def _year_entries(user: Any, years: list[int]) -> list[dict[str, Any]]:
+    from core.reports.salary_list_excel import salary_rows
+    from core.services.ai.providers.salary_provider.provider import SalaryDataProvider
+
+    provider = SalaryDataProvider()
+    cur = provider.get_user_primary_currency(user)
+    out = []
+    for year, _, e in salary_rows(user, years)[:MAX_YEAR_ENTRIES]:
+        out.append({"year": year, "month": e.month, "company": e.company.name if e.company else "",
+                    "expected_formatted": provider.format_currency(float(e.expected or 0), cur),
+                    "paid_formatted": provider.format_currency(float(e.paid or 0), cur),
+                    "bonus_formatted": provider.format_currency(float(e.bonus or 0), cur)})
+    return out
+
+
 def add_salary_answers(res: dict[str, Any], user: Any, search_query: str) -> None:
     """Put ready-made answers first inside res['salary'] (copies the dict; never mutates a cached one)."""
     salary = res.get("salary")
@@ -71,5 +95,23 @@ def add_salary_answers(res: dict[str, Any], user: Any, search_query: str) -> Non
             f"Latest paid salary: {latest.get('paid_formatted')} for "
             f"{latest.get('month')} {latest.get('year')} from {latest.get('company')}."
         )
+    if user is not None and getattr(user, "is_authenticated", False):
+        _add_list_and_export(extra, user, q)
     if extra:
         res["salary"] = {**extra, **salary}
+
+
+def _add_list_and_export(extra: dict[str, Any], user: Any, q: str) -> None:
+    """The model path's full-year list (the timeline is capped at 20 entries) and the Excel download link.
+
+    `q` is the model's own search query, not the user's sentence, so it may omit "export" / "list": the year
+    list is therefore added whenever a year is named and the link is always offered (the rule text tells the
+    model to use it only when the user asks to export)."""
+    from core.services.ai.query_engine.export_links import salary_export_url
+
+    years = sorted({int(y) for y in _YEAR_RE.findall(q)})
+    if years:
+        extra["requested_year_entries"] = _year_entries(user, years)
+    lang = "ar" if any("\u0600" <= ch <= "\u06ff" for ch in q) else "en"
+    label = {"ar": "تنزيل كملف Excel (.xlsx)"}.get(lang, "Download as Excel (.xlsx)")
+    extra["export_link_markdown"] = f"[{label}]({salary_export_url(years, lang)})"

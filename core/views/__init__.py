@@ -46,7 +46,7 @@ from .exports_auth import (
 from .exports_financial_core import (
     CompanyListView, CompanyDetailView, BankListView, BankDetailView,
     BankWithBalanceListView, SalaryListView, SalaryDetailView, GenerateCurrentSalaryView,
-    MarkSalaryPaidView, SalarySummaryView, PerDiemListView, PerDiemDetailView,
+    MarkSalaryPaidView, SalarySummaryView, SalaryExportView, PerDiemListView, PerDiemDetailView,
     PerDiemCurrencyListView, BankCertificateListView, BankCertificateDetailView, BankCertificateInterestHistoryView,
     _run_certificate_interest_sync, GoalPlanningView, GoalListView, GoalDetailView,
     DashboardSummaryView, index, _api_auth_required, _parse_iso_date,
@@ -122,7 +122,7 @@ __all__ = [
     "UserPermissionListView", "UserBulkActionView", "UserPermissionDetailView", "PagePermissionChoicesView", "user_management_page",
     "UserRoleListView", "UserRoleDetailView", "RoleListView", "RoleDetailView",
     "CompanyListView", "CompanyDetailView", "BankListView", "BankDetailView", "BankWithBalanceListView",
-    "SalaryListView", "SalaryDetailView", "GenerateCurrentSalaryView", "MarkSalaryPaidView", "SalarySummaryView",
+    "SalaryListView", "SalaryDetailView", "GenerateCurrentSalaryView", "MarkSalaryPaidView", "SalarySummaryView", "SalaryExportView",
     "PerDiemListView", "PerDiemDetailView", "PerDiemCurrencyListView", "BankCertificateListView", "BankCertificateDetailView",
     "BankCertificateInterestHistoryView", "_run_certificate_interest_sync", "GoalPlanningView", "GoalListView", "GoalDetailView",
     "DashboardSummaryView", "index", "_api_auth_required", "_parse_iso_date", "BalanceListView",

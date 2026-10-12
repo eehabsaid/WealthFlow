@@ -27,6 +27,7 @@ TABLE = {
     "sal_total": "Summe {what} für {label}: {amount}.", "sal_avg": "Monatlicher Durchschnitt ({what}) für {label}: {amount} (über {n} Monat(e)).",
     "what_paid": "gezahltes Gehalt", "what_expected": "erwartetes Gehalt", "what_bonus": "Boni",
     "sal_year_table": "Gehalt nach Jahr (Beträge in {cur}):", "col_year": "Jahr", "col_yoy": "Änderung zum Vorjahr",
+    "sal_export": "Als Excel herunterladen (.xlsx)", "sal_sheet": "Gehälter",
     "bal_total": "Gesamtsaldo: {amount} auf {n} Konto/Konten.", "bal_gold": "Gold: {grams} g im Wert von {amount}.",
     "bal_gold_note": "Gold ist in der Summe enthalten ({amount}).", "bal_none": "Es sind keine Salden erfasst.",
     "bal_cur": "Saldo in {cur}: {amount} auf {n} Konto/Konten (≈ {home}).", "bal_cur_none": "Es ist kein Saldo in {cur} erfasst.",

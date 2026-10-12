@@ -28,6 +28,8 @@ _NAME_YEAR = rx(rf"(?<![\w])(?P<m>{MON}){_SEP}(?P<y>{YEAR})(?!\d)")
 _YM = rx(rf"(?<!\d)(?P<y>{YEAR})[-/](?P<m>0?[1-9]|1[0-2])(?![\d])")
 _MY = rx(rf"(?<!\d)(?P<m>0?[1-9]|1[0-2])[-/](?P<y>{YEAR})(?!\d)")
 _BARE = rx(rf"(?<![\w])(?P<pre>in|for|of|during|from|to|until|through|since|between|and|في|خلال|عن|لشهر|شهر)?\s*(?P<m>{MON})(?![\w])")
+_YEAR_LIST = rx(rf"(?<!\d)(?P<ys>{YEAR}(?:\s*(?:,|،|and|&|و|et|und)\s*{YEAR})+)(?!\d)")
+_YEAR_SPAN = rx(rf"(?<!\d)(?P<a>{YEAR})\s*(?:to|until|through|thru|till|-|–|—|الي|حتي|bis|au|[àa])\s*(?P<b>{YEAR})(?!\d)")
 _YEAR_ONLY = rx(rf"(?:\b(?:in|for|of|during|year|throughout|across|all of)|سنه|عام|في|خلال|لعام|طوال)\s*(?P<y>{YEAR})(?!\d)")
 _REL_MONTH = rx(r"\b(this|current|last|previous)\s+month\b|الشهر (?:ده|دا|هذا|الحالي|الجاري)|هذا الشهر|الشهر (?:الماضي|السابق|اللي فات)|الشهر اللي فات")
 _REL_YEAR = rx(r"\b(this|current|last|previous)\s+year\b|(?:السنه|العام) (?:دي|هذه|هذا|الحاليه|الحالي)|(?:السنه|العام) (?:الماضيه|الماضي|اللي فاتت|السابقه)")
@@ -111,6 +113,13 @@ def parse_time(q: str, today: date | None = None) -> TimeSpec:
             continue  # the verb, not the month
         months.add((_assume_year(mon, today), mon))
         spec.notes.append("month_year_assumed")
+        q = _blank(q, m.span())
+    for m in list(_YEAR_SPAN.finditer(q)):  # "2025 to 2026"
+        a, b = sorted((int(m["a"]), int(m["b"])))
+        months.update((y, i) for y in range(a, min(b, a + 2) + 1) for i in range(1, 13))
+        q = _blank(q, m.span())
+    for m in list(_YEAR_LIST.finditer(q)):  # "2025 and 2026", "2024, 2025"
+        months.update((int(y), i) for y in re.findall(YEAR, m["ys"]) for i in range(1, 13))
         q = _blank(q, m.span())
     for m in list(_YEAR_ONLY.finditer(q)):
         months.update((int(m["y"]), i) for i in range(1, 13))

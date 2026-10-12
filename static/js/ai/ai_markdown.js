@@ -48,6 +48,13 @@ function _renderMarkdown(text) {
   // 4. Inline code
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
 
+  // 4b. Download links built by the app (e.g. the salary Excel export): same-site /api/ paths only,
+  // never external URLs. The text and URL were already HTML-escaped in step 2.
+  html = html.replace(
+    /\[([^\]\n]+)\]\((\/api\/[^)\s]+)\)/g,
+    '<a class="ai-ws-link" href="$2" download rel="noopener"><i class="bi bi-download me-1"></i>$1</a>'
+  );
+
   // 5. Bold & Italic — [^*\n] (not [^*]) so emphasis never spans a newline.
   // Without this, a run of bullet lines like "* Cash...\n* Gold...\n* QNB..."
   // gets pairwise-consumed as emphasis (line 1's "*" opens, line 2's "*"

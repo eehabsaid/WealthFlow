@@ -1,6 +1,6 @@
 {
   "ai": {
-    "purpose": "WealthFlow AI Intelligence Platform workspace for business data reasoning, architecture inquiries, prompt library management, and cross-application assistance. Instant answers also cover your budgets (limit, spent, left, over the limit) and recurring payments (upcoming, total per month), and work in English, Arabic, French and German.",
+    "purpose": "WealthFlow AI Intelligence Platform workspace for business data reasoning, architecture inquiries, prompt library management, and cross-application assistance. Instant answers also cover your budgets (limit, spent, left, over the limit) and recurring payments (upcoming, total per month), and work in English, Arabic, French and German. Ask for your salaries of a year (for example \"list the paid salaries for year 2026 and export it in excel sheet\") and the answer is the full table plus a link that downloads it as an Excel (.xlsx) file.",
     "steps": [
       "Select a question domain (Business Data or App Architecture).",
       "Open the Prompt Library to choose, search, filter, or insert reusable prompts into the chat input.",

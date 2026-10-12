@@ -7,10 +7,12 @@ Tests:
  4. Capture module view screenshot.
  5. Answer feedback (thumbs) and Learned Answers modal (tests/modules/ai_learning.py).
  6. Instant answers for Budgets and Recurring transactions (tests/modules/ai_budgets.py).
+ 7. Salary list + Excel export link and download (tests/modules/ai_salary_export.py).
 """
 
 from tests.modules.ai_budgets import test_ai_budgets
 from tests.modules.ai_learning import test_ai_learning
+from tests.modules.ai_salary_export import test_ai_salary_export
 
 
 def test_ai_module(context, reporter, screenshot_logger):
@@ -27,3 +29,4 @@ def test_ai_module(context, reporter, screenshot_logger):
 
     test_ai_learning(context, reporter, screenshot_logger)
     test_ai_budgets(context, reporter, screenshot_logger)
+    test_ai_salary_export(context, reporter, screenshot_logger)
