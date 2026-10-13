@@ -136,7 +136,8 @@ class ContextPathViewTest(TestCase):
         self.assertEqual(res.json()["message"]["content"], "You have 12,345.67 EGP.")
 
     def test_uncovered_question_still_offers_tools(self):
-        _, prov, _ = self.ask("what is my balance?", ["You have 12,345.67 EGP."], ["overview", "cash_flow", "goal_planning", "risk_analysis"])
+        # a question the router cannot compute (a computable one now gets VERIFIED DATA and needs no tools)
+        _, prov, _ = self.ask("how am I doing?", ["You have 12,345.67 EGP."], ["overview", "cash_flow", "goal_planning", "risk_analysis"])
         self.assertTrue(prov.generate.call_args[1]["tools"])
 
     def test_empty_context_answer_escalates_to_tools(self):

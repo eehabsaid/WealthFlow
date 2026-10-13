@@ -29,7 +29,7 @@ from core.models import AppSettings
 from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.direct_answers import try_direct_answer
 from core.services.ai.exports import FOLLOWUP_TOOL, ExportNoticeProvider, detect as detect_export_formats, is_pure_followup, previous_answer, strip_export_terms
-from core.services.ai.query_engine import route as route_question
+from core.services.ai.query_engine import route as route_question, verified_for_model
 from core.services.ai.query_engine.labels import t as label
 from core.services.ai.query_engine.lexicon import language
 from core.services.ai.orchestration import Orchestrator
@@ -154,6 +154,13 @@ class AIChatView(View):
                 cache_mgr, progress_key, conversation, user_msg, user_text,
                 direct["content"], direct["tool_calls"], direct["sources"], request,
             )
+        verified_data = None
+        if not direct:
+            # Direct Answers OFF (or no instant answer): the model still gets the exact computed rows, never just a summary
+            verified_data = verified_for_model(request.user, route_text, previous=previous, info=info)
+            rec_route = trace.records.get("route")
+            if rec_route is not None and info.get("verified_data"):
+                rec_route.detail["verified_data"] = info["verified_data"]
         facts_request = info.get("facts_request")
         if export_formats:
             # every later model-calling path goes through `provider`, so one proxy tells the model the app attaches the files
@@ -202,7 +209,7 @@ class AIChatView(View):
         # Stages 2-6 — Retrieve -> Reason -> Tool -> Validate -> Respond
         result = run_default_pipeline(
             trace=trace, understanding=understanding, provider=provider, request=request,
-            conversation=conversation, user_msg=user_msg, user_text=user_text, facts_request=facts_request,
+            conversation=conversation, user_msg=user_msg, user_text=user_text, facts_request=facts_request, verified_data=verified_data,
             respond=esc_respond, on_error=esc_on_error,
         )
         return investigate(esc_box.get("why", "escalation")) if result is ESCALATE else result

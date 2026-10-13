@@ -13,7 +13,19 @@ async function checkReminders() {
   } catch (e) {}
 }
 
+// A banner that arrives while a modal is open (the reminder check is async) would sit
+// above the modal and swallow clicks on its buttons. Hold it until the modal is closed.
+let _pendingReminders = null;
+
+function _modalIsOpen() {
+  return !!document.querySelector(".modal.show");
+}
+
 function _showReminderBanner(reminders) {
+  if (_modalIsOpen()) {
+    _pendingReminders = reminders;
+    return;
+  }
   const existing = document.getElementById("reminder-banner");
   if (existing) existing.remove();
 
@@ -67,4 +79,14 @@ function dismissReminderBanner() {
 // across ~29 files) too. When it happens to sit over a modal's close/cancel/save button
 // it silently intercepts the click. Modal interaction always wins: drop the banner the
 // moment any modal starts showing, same lifecycle-protection pattern as app/modals.js.
-document.addEventListener("show.bs.modal", dismissReminderBanner);
+document.addEventListener("show.bs.modal", () => {
+  _pendingReminders = null;
+  dismissReminderBanner();
+});
+document.addEventListener("hidden.bs.modal", () => {
+  if (_pendingReminders && !_modalIsOpen()) {
+    const held = _pendingReminders;
+    _pendingReminders = null;
+    _showReminderBanner(held);
+  }
+});

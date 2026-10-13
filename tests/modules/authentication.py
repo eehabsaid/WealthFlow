@@ -42,3 +42,10 @@ def test_authentication_module(context, reporter, screenshot_logger):
     except Exception as ex:
         shot_err = screenshot_logger.capture(context.page, "authentication", "profile_modal", "error", "fail", "fail")
         reporter.add_step("User Profile Modal Test", "Authentication", "FAIL", f"Exception: {ex}", screenshot_path=shot_err)
+    finally:
+        # A failed step must never leave the modal open: it would block every later step.
+        try:
+            context.page.evaluate("if (typeof closeModal === 'function') closeModal();")
+            context.page.wait_for_timeout(300)
+        except Exception:
+            pass

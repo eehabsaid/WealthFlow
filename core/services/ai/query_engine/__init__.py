@@ -5,7 +5,8 @@ from .engine import answer, is_enabled
 from .facts import build_facts
 from .registry import get_capabilities, get_capability
 from .slots import Routing, route
+from .verified import verified_for_model
 from .spec import Capability, QueryRequest, QueryResult
 
 __all__ = ["Capability", "QueryRequest", "QueryResult", "Routing", "answer", "build_facts",
-           "get_capabilities", "get_capability", "is_enabled", "route"]
+           "get_capabilities", "get_capability", "is_enabled", "route", "verified_for_model"]

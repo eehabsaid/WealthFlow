@@ -23,7 +23,7 @@ from .validate import run_validate
 
 def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, provider, request,
                          conversation, user_msg, user_text: str,
-                         facts_request: dict | None = None,
+                         facts_request: dict | None = None, verified_data: str | None = None,
                          respond: Callable[..., Any], on_error: Callable[[list, str], Any]):
     """respond(content, executed_tool_calls, sources, extra) and on_error(sources, error_str)
     are supplied by the view so cache/progress handling stays where it was."""
@@ -33,9 +33,11 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
     try:
         retrieval = run_retrieve(trace, request, conversation, user_msg, user_text)
         _attach_facts(trace, retrieval, facts_request, request.user)
+        if verified_data:
+            retrieval.messages.append({"role": "system", "content": "STEP 0 — " + verified_data})
         pre = run_prefetch(trace, retrieval, understanding, user_text, request.user)
         reasoning = run_reason(trace, provider, retrieval.messages, understanding.question_domain,
-                               retrieval, understanding, prefetched=pre.used)
+                               retrieval, understanding, prefetched=pre.used or bool(verified_data))
 
         if reasoning.error:
             trace.skip("tool", "provider_error")
