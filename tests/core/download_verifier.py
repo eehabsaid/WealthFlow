@@ -1,6 +1,6 @@
 """
 WealthFlow Download Verifier Utility
-Verifies exported files (Excel .xlsx, PDF .pdf, CSV .csv, Backup .wfbackup):
+Verifies exported files (Excel .xlsx, Word .docx, PDF .pdf, CSV .csv, Backup .wfbackup):
  1. File exists in test_downloads/
  2. Correct filename pattern
  3. Non-zero file size (> 0 bytes)
@@ -35,8 +35,8 @@ def verify_downloaded_file(filepath, expected_extension=None, min_bytes=10):
         assert header.startswith(b"%PDF-"), f"PDF file '{filename}' does not start with valid PDF header '%PDF-'"
     elif ext == ".csv":
         assert len(header) > 0, f"CSV file '{filename}' is empty"
-    elif ext == ".xlsx":
-        assert header.startswith(b"PK\x03\x04"), f"Excel file '{filename}' is not a valid zip/xlsx archive"
+    elif ext in (".xlsx", ".docx"):
+        assert header.startswith(b"PK\x03\x04"), f"Office file '{filename}' is not a valid zip-based {ext} archive"
     elif ext == ".wfbackup":
         assert len(header) > 0, f"Backup file '{filename}' is empty"
 

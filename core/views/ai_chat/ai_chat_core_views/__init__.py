@@ -28,6 +28,10 @@ from core.integrations.ai_provider import get_active_ai_provider
 from core.models import AppSettings
 from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.direct_answers import try_direct_answer
+from core.services.ai.exports import FOLLOWUP_TOOL, ExportNoticeProvider, detect as detect_export_formats, is_pure_followup, previous_answer, strip_export_terms
+from core.services.ai.query_engine import route as route_question
+from core.services.ai.query_engine.labels import t as label
+from core.services.ai.query_engine.lexicon import language
 from core.services.ai.orchestration import Orchestrator
 from core.services.ai.usage import MeteredProvider, TokenMeter, limit_status
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
@@ -111,6 +115,26 @@ class AIChatView(View):
         request._ai_token_meter = TokenMeter()
         provider = MeteredProvider(provider, request._ai_token_meter)
 
+        # Stage 1a — Export follow-up: a bare "export it to Excel" / "and as a PDF?" turns the previous answer into
+        # the requested files (no model call). Data questions that also ask for a file are answered normally and
+        # finalize_success attaches the links to their own answer.
+        export_formats = detect_export_formats(user_text)
+        route_text = strip_export_terms(user_text) if export_formats else user_text  # the router sees the question only
+        if export_formats:
+            previous_text = conversation.messages.filter(role="user", is_deleted=False).exclude(id=user_msg.id) \
+                .order_by("-id").values_list("content", flat=True).first() or ""
+            if is_pure_followup(route_question(route_text, previous=previous_text), understanding):
+                target = previous_answer(conversation, user_msg.id)
+                lang = language(user_text)
+                trace.skip_remaining("export_followup")
+                trace.log_summary()
+                return finalize_success(
+                    cache_mgr, progress_key, conversation, user_msg, user_text,
+                    label(lang, "export_followup" if target else "export_nothing"),
+                    [{"tool": FOLLOWUP_TOOL, "target_message_id": target.id if target else None}], [], request,
+                    export_target=target, offer_export=target is not None,
+                )
+
         # Stage 1b — Route: the query engine answers supported data questions with 0 LLM calls (1 short
         # slot-filling call only if unclear). Runs BEFORE the orchestrator branch so multi-agent can
         # never hijack a fast question. Every decision is traced on the `route` stage.
@@ -119,7 +143,7 @@ class AIChatView(View):
             # the previous user message lets a short follow-up ("and how much do I hold?") inherit its topic
             previous = conversation.messages.filter(role="user", is_deleted=False).exclude(id=user_msg.id) \
                 .order_by("-id").values_list("content", flat=True).first() or ""
-            direct = try_direct_answer(request.user, user_text, provider=provider, understanding=understanding,
+            direct = try_direct_answer(request.user, route_text, provider=provider, understanding=understanding,
                                        info=info, elapsed_ms=trace.elapsed_ms(), previous=previous)
             rec.detail.update(info)
             rec.detail["llm_calls"] = info.get("llm_calls", 0)
@@ -131,6 +155,9 @@ class AIChatView(View):
                 direct["content"], direct["tool_calls"], direct["sources"], request,
             )
         facts_request = info.get("facts_request")
+        if export_formats:
+            # every later model-calling path goes through `provider`, so one proxy tells the model the app attaches the files
+            provider = ExportNoticeProvider(provider, [f.label for f in export_formats])
 
         respond = lambda content, calls, sources, extra=None: finalize_success(  # noqa: E731
             cache_mgr, progress_key, conversation, user_msg, user_text, content, calls, sources, request, extra=extra,

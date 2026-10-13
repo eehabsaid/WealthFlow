@@ -10,7 +10,6 @@ urlpatterns = [
     path("", views.index),
     path("api/companies/", views.CompanyListView.as_view()),
     path("api/companies/<int:pk>/", views.CompanyDetailView.as_view()),
-    path("api/salary/export/", views.SalaryExportView.as_view()),
     path("api/salary/summary/", views.SalarySummaryView.as_view()),
     path("api/salary/generate-current/", views.GenerateCurrentSalaryView.as_view()),
     path("api/salary/", views.SalaryListView.as_view()),

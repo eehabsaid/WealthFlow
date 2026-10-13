@@ -92,6 +92,11 @@ urlpatterns = [
         feature_required("allows_ai_workspace")(views.AIFeedbackListView.as_view()),
     ),
     path(
+        "api/financial-advisor/ai/messages/<int:pk>/export/<str:fmt>/",
+        feature_required("allows_ai_workspace")(views.AIMessageExportView.as_view()),
+        name="ai-message-export",
+    ),
+    path(
         "api/financial-advisor/ai/messages/<int:pk>/feedback/",
         feature_required("allows_ai_workspace")(views.AIMessageFeedbackView.as_view()),
     ),

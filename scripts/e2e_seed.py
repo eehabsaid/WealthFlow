@@ -5,6 +5,11 @@ state the developer's local db.sqlite3 happens to be in (and works when db.sqlit
 
 Rules: never touches db.sqlite3 (refuses to run against it), never calls set_password on an existing user,
 only creates what is missing, and always resets the billing scenario state for `testuser`.
+
+Standalone use (when you start the server and the suite yourself instead of `python scripts/run_full_e2e.py`):
+    python scripts/e2e_seed.py --db db_e2e.sqlite3        # an existing, migrated copy of db.sqlite3 (never db.sqlite3 itself)
+    $env:WEALTHFLOW_DB_NAME = "db_e2e.sqlite3"; python manage.py runserver --noreload   # PowerShell: same DB for the server
+`--db` is the same thing as setting the WEALTHFLOW_DB_NAME environment variable.
 """
 
 import os
@@ -70,15 +75,27 @@ def _reset_lapsed_user(user):
     sub.save(update_fields=["status", "trial_end", "updated_at"])
 
 
+def _apply_db_argument(argv: list[str]) -> None:
+    """`--db NAME` / `--db=NAME` -> WEALTHFLOW_DB_NAME (must happen before Django reads the settings)."""
+    for i, arg in enumerate(argv):
+        if arg == "--db" and i + 1 < len(argv):
+            os.environ["WEALTHFLOW_DB_NAME"] = argv[i + 1]
+        elif arg.startswith("--db="):
+            os.environ["WEALTHFLOW_DB_NAME"] = arg.split("=", 1)[1]
+
+
 def main() -> int:
     import django
 
+    _apply_db_argument(sys.argv[1:])
     django.setup()
     from django.conf import settings
 
     name = os.path.basename(str(settings.DATABASES["default"]["NAME"]))
     if name == "db.sqlite3":
-        print("[e2e_seed] refusing to seed db.sqlite3 (set WEALTHFLOW_DB_NAME to the disposable DB)")
+        print("[e2e_seed] refusing to seed db.sqlite3 (your real data). Either:\n"
+              "  1) python scripts/run_full_e2e.py     (recommended: copies, migrates, seeds, starts the server and runs the suite), or\n"
+              "  2) python scripts/e2e_seed.py --db <disposable copy>.sqlite3   and start the server with WEALTHFLOW_DB_NAME set to the same file.")
         return 2
     _ensure_plans()
     _ensure_user(*ADMIN, admin=True)

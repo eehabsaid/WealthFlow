@@ -10,6 +10,8 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 
 from core.models import AIMessage
+from core.services.ai.exports import append_links, detect as detect_export_formats
+from core.services.ai.query_engine.lexicon import language
 from core.services.ai.tools.defs import AI_TOOL_REGISTRY
 from core.views.ai_chat.response_sanitizer import strip_latex, strip_leaked_control_tokens
 
@@ -21,8 +23,11 @@ def json_safe(value):
 
 
 def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
-                      content_str, executed_tool_calls, sources, request, extra=None):
-    """Persist the assistant reply, extract knowledge, and build the response."""
+                      content_str, executed_tool_calls, sources, request, extra=None, export_target=None, offer_export=True):
+    """Persist the assistant reply, extract knowledge, and build the response.
+
+    When the user's message asks for a file (Excel / Word / PDF / ...), the saved answer ends with download links:
+    to this answer, or to `export_target` (the earlier answer a bare "export it" follow-up refers to)."""
     # Save successful assistant response with full tool execution audit trail
     content_str = strip_leaked_control_tokens(content_str, set(AI_TOOL_REGISTRY.keys()))
     content_str = strip_latex(content_str)
@@ -38,6 +43,12 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
         prompt_tokens=meter.prompt if meter else None,
         completion_tokens=meter.completion if meter else None,
     )
+
+    export_formats = detect_export_formats(user_text) if offer_export else []
+    if export_formats:
+        target_id = export_target.id if export_target is not None else ai_msg.id
+        ai_msg.content = append_links(ai_msg.content, target_id, export_formats, language(user_text))
+        ai_msg.save(update_fields=["content"])
 
     # Mark progress as done with message_id now that it is saved in history
     cache_mgr.set(

@@ -13,7 +13,6 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
-from .export_links import export_footer, with_export_link
 from .registry import get_capability
 from .render import render
 from .slots import Routing, route
@@ -80,8 +79,7 @@ def answer(user: Any, text: str, *, provider: Any = None, understanding: Any = N
     if cap is None:
         return None
     try:
-        result = cap.executor(user, routing.request)
-        content = with_export_link(render(result), export_footer(cap.key, routing.request, result, text))
+        content = render(cap.executor(user, routing.request))
     except Exception as exc:  # a data error must fall back to the model path, not 500
         logger.exception("query engine executor %s failed", cap.key)
         info.update({"path": "llm_pipeline", "reason": f"executor_error:{type(exc).__name__}"})

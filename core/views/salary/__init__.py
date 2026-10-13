@@ -1,5 +1,4 @@
 from .salary_crud_views import SalaryListView, SalaryDetailView
-from .salary_export_views import SalaryExportView
 from .salary_actions_views import GenerateCurrentSalaryView, MarkSalaryPaidView, SalarySummaryView
 from .per_diem_views import (
     PerDiemListView,
@@ -13,7 +12,6 @@ __all__ = [
     "GenerateCurrentSalaryView",
     "MarkSalaryPaidView",
     "SalarySummaryView",
-    "SalaryExportView",
     "PerDiemListView",
     "PerDiemDetailView",
     "PerDiemCurrencyListView",
