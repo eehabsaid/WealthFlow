@@ -47,6 +47,9 @@ def _ensure_user(username, password, *, admin):
             user.save(update_fields=["is_staff", "is_superuser"])
     if admin:
         UserProfile.objects.filter(user=user).update(is_sysadmin=True)
+    # A fresh account opens the onboarding wizard, a modal that covers the page and swallows every click of a UI step.
+    # Seeded users are established accounts (the real db.sqlite3 has the wizard completed).
+    UserProfile.objects.filter(user=user).update(onboarding_completed=True)
     return user
 
 

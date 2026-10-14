@@ -20,7 +20,7 @@ NUDGES, CALL_TIMEOUT_S = 2, 240
 LABELS = {
     "app_list_dir": "Browsing {path}", "app_find_files": "Finding files ({pattern})", "app_grep": "Searching the code ({pattern})",
     "app_find_definition": "Locating {symbol}", "app_read_file": "Reading {path}", "app_knowledge_search": "Checking the app guide",
-    "app_data_models": "Looking at your data tables", "app_data_query": "Querying {model}",
+    "app_data_models": "Looking at your data tables", "app_data_query": "Querying {model}", "generate_file": "Building your {format} file",
 }
 
 
@@ -61,7 +61,7 @@ def _result_text(tool_res: dict, limit: int) -> str:
 
 def _label(name: str, args: dict) -> str:
     try:
-        return LABELS.get(name, name).format(**{k: str(v)[:40] for k, v in {**{"path": "", "pattern": "", "symbol": "", "model": ""}, **args}.items()})
+        return LABELS.get(name, name).format(**{k: str(v)[:40] for k, v in {**{"path": "", "pattern": "", "symbol": "", "model": "", "format": ""}, **args}.items()})
     except (KeyError, IndexError, ValueError):
         return name
 

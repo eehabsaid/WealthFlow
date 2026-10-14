@@ -10,6 +10,7 @@ Checks, against the real API (not just the DOM):
      AI provider is not configured in this environment (the chat endpoint then refuses before any routing).
 """
 
+from tests.modules.e2e_settings import AI_ENGINE_PINS, fresh_state, pinned
 from tests.modules.settings.common import close_global_modal
 
 SETTINGS_URL = "/api/settings/ai/"
@@ -56,6 +57,13 @@ def _set_toggle(context, checked):
 
 
 def test_ai_instant_answers(context, reporter, screenshot_logger):
+    # The "Default ON" check must see a truly fresh state: the runner copies the developer's real DB, which may hold
+    # ai_direct_answers=false. The rows are deleted for this step and put back afterwards.
+    with pinned(AI_ENGINE_PINS), fresh_state(["ai_direct_answers"]):
+        _run(context, reporter, screenshot_logger)
+
+
+def _run(context, reporter, screenshot_logger):
     page = context.page
     close_global_modal(page)
     context.goto_route("#settings-aiadvisor")

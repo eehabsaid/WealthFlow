@@ -1,4 +1,4 @@
-"""AI chat pipeline settings (ai_validate_mode, ai_pipeline_debug, ai_direct_answers, ai_investigator_mode, ai_code_access): get / validate / persist.
+"""AI chat pipeline settings (ai_validate_mode, ai_pipeline_debug, ai_direct_answers, ai_investigator_mode, ai_code_access, ai_file_generation + max size / max rows): get / validate / persist.
 
 Kept separate from ai_settings_get_helpers / ai_settings_save_helpers (200-line rule).
 Stored app-wide like the other AI settings; read by chat_pipeline.validate / runner.
@@ -11,8 +11,17 @@ from core.models import AppSettings
 VALIDATE_MODES = ("off", "flag", "regenerate")
 DEFAULT_VALIDATE_MODE = "flag"
 INVESTIGATOR_MODES = ("auto", "always", "off")   # chat_pipeline/investigate.py: auto = takes over when a normal answer gives up
+FILE_LIMITS = {"ai_file_max_mb": (1, 50, 10), "ai_file_max_rows": (100, 200000, 50000)}   # min, max, default
 _TRUE = ("true", "1", "yes")
 _FALSE = ("false", "0", "no", "off")
+
+
+def _clamped(raw, key) -> int:
+    low, high, default = FILE_LIMITS[key]
+    try:
+        return max(low, min(high, int(float(str(raw)))))
+    except ValueError:
+        return default
 
 
 def get_pipeline_settings(user=None) -> dict:
@@ -21,7 +30,10 @@ def get_pipeline_settings(user=None) -> dict:
     direct = str(AppSettings.get("ai_direct_answers", "true", user=user) or "true").strip().lower()
     inv = str(AppSettings.get("ai_investigator_mode", "auto", user=user) or "auto").strip().lower()
     code = str(AppSettings.get("ai_code_access", "true", user=None) or "true").strip().lower()   # global: a sysadmin security switch
+    files = str(AppSettings.get("ai_file_generation", "true", user=None) or "true").strip().lower()   # global: sysadmin switch
     return {
+        "ai_file_generation": files not in _FALSE,   # default ON: the AI can build Excel / Word / PDF / CSV / code files for the user
+        **{key: _clamped(AppSettings.get(key, str(default), user=None), key) for key, (_, _, default) in FILE_LIMITS.items()},
         "ai_investigator_mode": inv if inv in INVESTIGATOR_MODES else "auto",
         "ai_code_access": code not in _FALSE,   # default ON; source-code tools are sysadmin-only either way
         "ai_validate_mode": mode if mode in VALIDATE_MODES else DEFAULT_VALIDATE_MODE,
@@ -50,7 +62,18 @@ def validate_pipeline_settings(data):
     direct = data.get("ai_direct_answers", current["ai_direct_answers"])
     if isinstance(direct, str):
         direct = direct.strip().lower() not in _FALSE
-    return {"validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct),
+    files = data.get("ai_file_generation", current["ai_file_generation"])
+    if isinstance(files, str):
+        files = files.strip().lower() not in _FALSE
+    limits = {}
+    for key in FILE_LIMITS:
+        raw = data.get(key, current[key])
+        try:
+            float(str(raw))
+        except ValueError:
+            return None, JsonResponse({"error": f"{key} must be a number"}, status=400)
+        limits[key] = _clamped(raw, key)
+    return {"file_generation": bool(files), "file_limits": limits, "validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct),
             "investigator_mode": inv, "code_access": bool(code)}, None
 
 
@@ -60,3 +83,6 @@ def persist_pipeline_settings(validated, user=None) -> None:
     AppSettings.set("ai_direct_answers", "true" if validated["direct_answers"] else "false", user=user)
     AppSettings.set("ai_investigator_mode", validated["investigator_mode"], user=user)
     AppSettings.set("ai_code_access", "true" if validated["code_access"] else "false", user=None)   # always global
+    AppSettings.set("ai_file_generation", "true" if validated["file_generation"] else "false", user=None)   # always global
+    for key, value in validated["file_limits"].items():
+        AppSettings.set(key, str(value), user=None)

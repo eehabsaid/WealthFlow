@@ -22,7 +22,8 @@ class NewAIToolsReadOnlyTest(TestCase):
 
     def test_registered_tools_count_and_domains(self):
         schemas_all = get_registered_tool_schemas()
-        self.assertEqual(len(schemas_all), 9)
+        self.assertEqual(len(schemas_all), 10)   # 9 domain tools + generate_file (offered on every domain)
+        self.assertIn("generate_file", [s["function"]["name"] for s in schemas_all])
 
         schemas_business = get_registered_tool_schemas(domain="business_data_analysis")
         schemas_arch = get_registered_tool_schemas(domain="app_features_architecture")

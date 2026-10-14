@@ -67,6 +67,7 @@ class IntentTests(SimpleTestCase):
                 self.assertEqual(detect(phrase), [])
 
     def test_a_new_format_needs_only_a_registration(self):
+        original = _FORMATS.get("md")   # the real Markdown file format (builders/code.py) must survive this test
         register(ExportFormat(key="md", label="Markdown (.md)", extension="md", mime="text/markdown", builder=lambda d, l: b"# x",
                               terms=(r"\bmarkdown\b",), offer_by_default=False, order=60))
         try:
@@ -75,6 +76,8 @@ class IntentTests(SimpleTestCase):
             self.assertEqual([f.key for f in detect("export it")], ["xlsx", "docx", "pdf"])
         finally:
             _FORMATS.pop("md", None)
+            if original is not None:
+                _FORMATS["md"] = original
 
     def test_route_name_matches_the_marker_used_to_hide_links(self):
         self.assertIn(EXPORT_PATH_MARK, reverse("ai-message-export", args=[1, "xlsx"]))

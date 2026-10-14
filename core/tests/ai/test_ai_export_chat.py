@@ -159,11 +159,11 @@ class ChatExportTests(TestCase):
         AppSettings.set("ai_direct_answers", "false")
         prov = MagicMock()
         prov.supports_tools = False
-        answer = "| Month | Paid |\n|---|---|\n| Jan 2026 | 87,643.86 EGP |"
+        answer = "| Idea | Saved |\n|---|---|\n| Cancel unused subscriptions | 87,643.86 EGP |"
         prov.generate.side_effect = [{"content": answer, "tool_calls": None, "error": None}] * 3
         ctx = ([{"role": "system", "content": "SYS"}, {"role": "user", "content": "q"}], ["salary"])
         with patch(f"{VIEW}.get_active_ai_provider", return_value=prov), patch(GP, return_value=ctx):
-            data = fx.ask(self, "list the salaries for 2026 and export it in excel", conversation=False)
+            data = fx.ask(self, "suggest some ideas to save more money and export it in excel", conversation=False)
         content = data["message"]["content"]
         self.assertEqual(link_ids(content), [(str(data["message"]["id"]), "xlsx")])
         self.assertIn("FILE EXPORT", prov.generate.call_args[0][0][0]["content"])

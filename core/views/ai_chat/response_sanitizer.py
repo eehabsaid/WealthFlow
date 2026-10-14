@@ -64,13 +64,11 @@ def strip_leaked_control_tokens(text: str, valid_tool_names: set[str] | None = N
     return "\n".join(lines[idx:]).lstrip("\n")
 
 
-def strip_latex(text: str) -> str:
-    """Removes LaTeX math delimiters and common commands, leaving plain text."""
-    if not text:
-        return text
+_FENCE = re.compile(r"(```.*?```)", re.S)
 
+
+def _clean_latex(text: str) -> str:
     cleaned = text
-
     for pattern, replacement in _LATEX_COMMAND_REPLACEMENTS:
         cleaned = re.sub(pattern, replacement, cleaned)
 
@@ -78,7 +76,13 @@ def strip_latex(text: str) -> str:
     cleaned = re.sub(r"\\[()\[\]]", "", cleaned)
     cleaned = re.sub(r"\$\$([^$]*)\$\$", r"\1", cleaned)
 
-    # Collapse any double spaces left behind by removed commands.
-    cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+    # Collapse any double spaces left behind by removed commands (never a line's leading indentation).
+    return re.sub(r"(?<=\S)[ \t]{2,}", " ", cleaned)
 
-    return cleaned
+
+def strip_latex(text: str) -> str:
+    """Removes LaTeX math delimiters and common commands, leaving plain text. Fenced code blocks are left exactly as
+    written: Python indentation and regex escapes such as \\( are code, not LaTeX."""
+    if not text:
+        return text
+    return "".join(part if i % 2 else _clean_latex(part) for i, part in enumerate(_FENCE.split(text)))

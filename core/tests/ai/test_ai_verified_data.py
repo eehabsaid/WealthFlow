@@ -43,9 +43,19 @@ class VerifiedDataTests(TestCase):
         self.assertIn("Grand Total", sent)
 
     def test_same_with_a_file_request_and_in_other_languages(self):
-        for question in ("list my salaries 2026 and export it in excel", "اعرض رواتب 2026", "liste mes salaires 2026"):
+        for question in ("اعرض رواتب 2026", "liste mes salaires 2026"):
             with self.subTest(question=question):
                 self.assertIn("87,643.86", self.sent_to_model(question))
+
+    def test_a_file_request_is_answered_without_the_model_even_while_instant_answers_are_off(self):
+        """Export is its own feature: the router's exact rows + the file, 0 LLM calls (see engine.answer force=True)."""
+        AppSettings.set("ai_direct_answers", "false")
+        prov = model()
+        with patch(f"{VIEW}.get_active_ai_provider", return_value=prov), patch(GP, return_value=SUMMARY_ONLY):
+            data = fx.ask(self, "list my salaries 2026 and export it in excel", conversation=False)
+        self.assertFalse(prov.generate.called)
+        self.assertIn("87,643.86", data["message"]["content"])
+        self.assertIn("/export/xlsx/", data["message"]["content"])
 
     def test_other_topics_get_their_rows_too(self):
         self.assertIn("VERIFIED DATA", self.sent_to_model("list my expenses for June 2026"))

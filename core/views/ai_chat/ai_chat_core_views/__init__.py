@@ -1,21 +1,14 @@
 """AI Financial Advisor — core chat endpoint (AIChatView).
 
-Package layout
---------------
-Split into a package (was a single >200-line module) per the project's
-200-line-per-file convention.
-
+Package layout (the 200-line-per-file convention):
 - conversation_setup.py    conversation lookup, progress-cache bootstrap
+- export_stage.py          "export it to Excel" follow-ups (previous answer -> file)
 - generation_pipeline.py   context assembly, provider-generation + retry
 - response_finalizer.py    persistence, knowledge extraction, response build
 
 The default path runs through the staged pipeline in core/views/ai_chat/chat_pipeline/
-(Understand -> Retrieve -> Reason -> Tool -> Validate -> Respond).
-
-`get_active_ai_provider` is imported and invoked directly in this module
-(not delegated to a sibling) so that the existing test-suite patch target
-`core.views.ai_chat.ai_chat_core_views.get_active_ai_provider` keeps
-resolving correctly.
+(Understand -> Retrieve -> Reason -> Tool -> Validate -> Respond). `get_active_ai_provider` is invoked
+here (not in a sibling) so the test patch target `...ai_chat_core_views.get_active_ai_provider` resolves.
 """
 
 import json
@@ -28,10 +21,8 @@ from core.integrations.ai_provider import get_active_ai_provider
 from core.models import AppSettings
 from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.direct_answers import try_direct_answer
-from core.services.ai.exports import FOLLOWUP_TOOL, ExportNoticeProvider, detect as detect_export_formats, is_pure_followup, previous_answer, strip_export_terms
-from core.services.ai.query_engine import route as route_question, verified_for_model
-from core.services.ai.query_engine.labels import t as label
-from core.services.ai.query_engine.lexicon import language
+from core.services.ai.exports import ExportNoticeProvider, requested as detect_export_formats, strip_export_terms
+from core.services.ai.query_engine import verified_for_model
 from core.services.ai.orchestration import Orchestrator
 from core.services.ai.usage import MeteredProvider, TokenMeter, limit_status
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
@@ -47,6 +38,7 @@ from .conversation_setup import (
     resolve_conversation,
     save_user_message,
 )
+from .export_stage import export_followup_response
 from .generation_pipeline import build_provider_error_response
 from .response_finalizer import finalize_success
 
@@ -115,27 +107,15 @@ class AIChatView(View):
         request._ai_token_meter = TokenMeter()
         provider = MeteredProvider(provider, request._ai_token_meter)
 
-        # Stage 1a — Export follow-up: a bare "export it to Excel" / "and as a PDF?" turns the previous answer into
-        # the requested files (no model call). Data questions that also ask for a file are answered normally and
-        # finalize_success attaches the links to their own answer.
+        # Stage 1a — Export follow-up ("export it to Excel"): see export_stage.py. Data questions that also ask for a file
+        # are answered normally and finalize_success attaches the links to their own answer.
         export_formats = detect_export_formats(user_text)
         route_text = strip_export_terms(user_text) if export_formats else user_text  # the router sees the question only
         if export_formats:
-            previous_text = conversation.messages.filter(role="user", is_deleted=False).exclude(id=user_msg.id) \
-                .order_by("-id").values_list("content", flat=True).first() or ""
-            # only a short request that names nothing to look up ("export it to pdf") is a follow-up; a real question that
-            # also asks for a file is answered normally and gets the links on its own answer
-            if is_pure_followup(route_question(route_text, previous=previous_text), understanding, route_text):
-                target = previous_answer(conversation, user_msg.id)
-                lang = language(user_text)
-                trace.skip_remaining("export_followup")
-                trace.log_summary()
-                return finalize_success(
-                    cache_mgr, progress_key, conversation, user_msg, user_text,
-                    label(lang, "export_followup" if target else "export_nothing"),
-                    [{"tool": FOLLOWUP_TOOL, "target_message_id": target.id if target else None}], [], request,
-                    export_target=target, offer_export=target is not None,
-                )
+            followup = export_followup_response(cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation, user_msg=user_msg,
+                                                user_text=user_text, route_text=route_text, understanding=understanding, request=request, trace=trace)
+            if followup is not None:
+                return followup
 
         # Stage 1b — Route: the query engine answers supported data questions with 0 LLM calls (1 short
         # slot-filling call only if unclear). Runs BEFORE the orchestrator branch so multi-agent can
@@ -146,7 +126,7 @@ class AIChatView(View):
             previous = conversation.messages.filter(role="user", is_deleted=False).exclude(id=user_msg.id) \
                 .order_by("-id").values_list("content", flat=True).first() or ""
             direct = try_direct_answer(request.user, route_text, provider=provider, understanding=understanding,
-                                       info=info, elapsed_ms=trace.elapsed_ms(), previous=previous)
+                                       info=info, elapsed_ms=trace.elapsed_ms(), previous=previous, force=bool(export_formats))
             rec.detail.update(info)
             rec.detail["llm_calls"] = info.get("llm_calls", 0)
         if direct:
@@ -181,7 +161,7 @@ class AIChatView(View):
 
         # Stage 1c — the investigator: code questions (sysadmin) or mode "always" go straight to a tool-using
         # exploration of the whole app; in mode "auto" it takes over below when a normal path gives up.
-        direct_why = should_go_direct(request.user, user_text)
+        direct_why = should_go_direct(request.user, user_text, computed=bool(verified_data))
         if direct_why:
             return investigate(direct_why)
         esc_respond, esc_on_error, esc_box = escalating(request.user, respond, on_error)

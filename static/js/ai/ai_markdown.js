@@ -48,12 +48,16 @@ function _renderMarkdown(text) {
   // 4. Inline code
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
 
-  // 4b. Download links built by the app (e.g. the salary Excel export): same-site /api/ paths only,
-  // never external URLs. The text and URL were already HTML-escaped in step 2.
-  html = html.replace(
-    /\[([^\]\n]+)\]\((\/api\/[^)\s]+)\)/g,
-    '<a class="ai-ws-link" href="$2" download rel="noopener"><i class="bi bi-download me-1"></i>$1</a>'
-  );
+  // 4b. Download links built by the app (e.g. the answer as Excel / Word / PDF): same-site /api/ paths only,
+  // never external URLs. The text and URL were already HTML-escaped in step 2. Links to a saved answer's file
+  // (/api/financial-advisor/ai/messages/<id>/export/<format>/) render as a download card with a format badge.
+  html = html.replace(/\[([^\]\n]+)\]\((\/api\/[^)\s]+)\)/g, function (match, label, url) {
+    const file = url.match(/^\/api\/financial-advisor\/ai\/messages\/\d+\/export\/(\w+)\/$/);
+    if (!file) {
+      return `<a class="ai-ws-link" href="${url}" download rel="noopener"><i class="bi bi-download me-1"></i>${label}</a>`;
+    }
+    return `<a class="ai-ws-link ai-ws-file" href="${url}" download rel="noopener"><i class="bi bi-file-earmark-arrow-down ai-ws-file-icon"></i><span class="ai-ws-file-name">${label}</span><span class="ai-ws-file-ext">${file[1].toUpperCase().slice(0, 5)}</span></a>`;
+  });
 
   // 5. Bold & Italic — [^*\n] (not [^*]) so emphasis never spans a newline.
   // Without this, a run of bullet lines like "* Cash...\n* Gold...\n* QNB..."
@@ -151,4 +155,46 @@ function _renderMarkdown(text) {
   });
 
   return html;
+}
+
+// Delegated, so the card keeps working after a reload / when the conversation is re-rendered. When the file cannot be
+// built (message deleted, file generation switched off, too large) say so instead of saving an error page as the download.
+async function _aiFileCardClick(event) {
+  const card = event.target.closest && event.target.closest("a.ai-ws-file");
+  if (!card) return;
+  event.preventDefault();
+  try {
+    const res = await fetch(card.getAttribute("href"), { credentials: "same-origin" });
+    if (!res.ok) {
+      let detail = "";
+      try {
+        detail = (await res.json()).detail || "";
+      } catch (e) {
+        detail = "";
+      }
+      throw new Error(detail || String(res.status));
+    }
+    const named = /filename="?([^";]+)"?/.exec(res.headers.get("Content-Disposition") || "");
+    const url = URL.createObjectURL(await res.blob());
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = named ? named[1] : "export";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch (err) {
+    if (typeof showToast === "function") {
+      showToast(
+        err.message && isNaN(Number(err.message))
+          ? err.message
+          : t("ai_file_expired", "This file is no longer available."),
+        "danger"
+      );
+    }
+  }
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("click", _aiFileCardClick);
 }

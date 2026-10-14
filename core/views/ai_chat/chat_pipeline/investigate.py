@@ -54,14 +54,28 @@ def is_code_question(user, text: str) -> bool:
     return code_access_allowed(user) and bool(_CODE_HINT.search(text or ""))
 
 
-def should_go_direct(user, text: str) -> str | None:
-    """Reason to skip the normal paths and investigate straight away, or None."""
+_DOCUMENT_FORMATS = ("xlsx", "docx", "pdf", "csv", "txt")
+
+
+def wants_data_file(text: str) -> bool:
+    """A document/spreadsheet file is requested (code files are just the model's answer, no investigation needed)."""
+    from core.services.ai.exports import requested
+
+    return any(f.key in _DOCUMENT_FORMATS for f in requested(text))
+
+
+def should_go_direct(user, text: str, *, computed: bool = False) -> str | None:
+    """Reason to skip the normal paths and investigate straight away, or None. `computed`: the instant-answer router
+    already holds the exact rows for this question (the model gets them as verified data), so no exploration is needed."""
     mode = investigator_mode(user)
     if mode == "off":
         return None
     if mode == "always":
         return "mode_always"
-    return "code_question" if is_code_question(user, text) else None
+    if is_code_question(user, text):
+        return "code_question"
+    # "list ... and export it": the capped context is not enough for a complete file; the investigator has generate_file
+    return "export_request" if not computed and wants_data_file(text) else None
 
 
 def answer_failed(content: str, executed: list, sources: list) -> bool:

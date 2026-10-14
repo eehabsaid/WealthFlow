@@ -54,3 +54,18 @@ def detect(text: str) -> list[ExportFormat]:
     if named:
         return named
     return default_formats() if wanted else []
+
+
+def exports_enabled_formats(keys: list) -> list[ExportFormat]:
+    """Registered formats for `keys` (de-duplicated, display order), [] while file generation is switched off."""
+    from .settings import exports_enabled
+
+    wanted = {str(k or "").strip().lower() for k in keys}
+    return [f for f in all_formats() if f.key in wanted] if exports_enabled() else []
+
+
+def requested(text: str) -> list[ExportFormat]:
+    """detect() unless file generation is switched off in Settings > AI Advisor (then nothing is offered)."""
+    from .settings import exports_enabled
+
+    return detect(text) if exports_enabled() else []

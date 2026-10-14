@@ -5,6 +5,8 @@ endpoint about them, checks the answers (instant path, no model needed) and remo
 Questions that are advice ("how can I stay within my budget") are NOT asserted here: they need the model.
 """
 
+from tests.modules.e2e_settings import AI_ENGINE_PINS, pinned
+
 _FETCH = """async ([url, method, body]) => {
   const res = await fetch(url, {method, headers: {"Content-Type": "application/json",
     "X-CSRFToken": (window.wfGetCsrfToken && window.wfGetCsrfToken()) || ""}, body: body ? JSON.stringify(body) : undefined});
@@ -76,7 +78,8 @@ def _run(context, reporter, screenshot_logger):
 
 def test_ai_budgets(context, reporter, screenshot_logger):
     try:
-        _run(context, reporter, screenshot_logger)
+        with pinned({**AI_ENGINE_PINS, "ai_direct_answers": "true"}):   # never inherit the local DB's switches
+            _run(context, reporter, screenshot_logger)
     except Exception as ex:
         shot = screenshot_logger.capture(context.page, "ai", "budgets_error", "none", "fail", "fail")
         reporter.add_step("AI budgets/recurring answers", "WealthFlow AI", "FAIL", f"Exception: {ex}", screenshot_path=shot)

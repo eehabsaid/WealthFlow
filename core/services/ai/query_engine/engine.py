@@ -46,8 +46,10 @@ def _audit(req: QueryRequest, text: str, started: float, llm_calls: int) -> dict
 
 
 def answer(user: Any, text: str, *, provider: Any = None, understanding: Any = None, info: dict[str, Any] | None = None,
-           elapsed_ms: int = 0, previous: str = "") -> dict[str, Any] | None:
-    """Return {content, tool_calls, sources} or None (fall through). Fills `info` either way."""
+           elapsed_ms: int = 0, previous: str = "", force: bool = False) -> dict[str, Any] | None:
+    """Return {content, tool_calls, sources} or None (fall through). Fills `info` either way.
+    `force`: the user asked for a file ("... and export it to Excel"), which is its own feature: a question the router can
+    already compute is answered here, with 0 LLM calls, even while the Instant Data Answers switch is OFF."""
     started = time.monotonic()
     info = info if info is not None else {}
     info.setdefault("llm_calls", 0)
@@ -55,14 +57,15 @@ def answer(user: Any, text: str, *, provider: Any = None, understanding: Any = N
     if user is None or not getattr(user, "is_authenticated", False):
         info["reason"] = "anonymous"
         return None
-    if not is_enabled(user):
+    instant = is_enabled(user)
+    if not instant and not force:
         info["reason"] = "kill_switch"
         return None
     routing: Routing = route(text, category_lookup=_category_lookup(user), previous=previous)
     info.update(routing.summary())
     if routing.status == "analytic" and routing.request is not None:
         info["facts_request"] = routing.request.to_dict()  # narrative path: model gets computed facts, not data
-    if routing.status == "unclear" or (routing.status == "incomplete" and routing.needs_llm):
+    if instant and (routing.status == "unclear" or (routing.status == "incomplete" and routing.needs_llm)):
         from .llm_slots import fill_with_llm
 
         try:

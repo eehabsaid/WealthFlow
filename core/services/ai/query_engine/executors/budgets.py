@@ -14,7 +14,7 @@ from typing import Any
 from ..labels import t
 from ..lexicon import norm
 from ..spec import Capability, Metric, QueryRequest, QueryResult, Row
-from .common import MAX_ROWS, cell, home_currency, money
+from .common import cell, home_currency, money, row_cap
 
 _BUDGET_TERMS = (
     (r"\bbudgets?\b|\bover ?budget\b|\bunder ?budget\b|\bspending (?:limit|cap)s?\b|\bspend(?:ing)? limits?\b", 8),
@@ -72,7 +72,7 @@ def run_budgets(user: Any, req: QueryRequest) -> QueryResult:
         intro = t(lang, "bud_status", n=len(rows), cur=cur)
     table = [Row([cell(b["name"]), cell(b["category_name"] or t(lang, "bud_all_cats")), t(lang, f"per_{b['period']}"),
                   f"{b['amount_base']:,.2f}", f"{b['spent_base']:,.2f}", f"{b['remaining_base']:,.2f}", _pct(b["percent_used"])])
-             for b in rows[:MAX_ROWS]]
+             for b in rows[:row_cap()]]
     cols = [t(lang, "col_name"), t(lang, "col_category"), t(lang, "col_period"), t(lang, "col_limit"),
             t(lang, "col_spent"), t(lang, "col_left"), t(lang, "col_used")]
     return QueryResult(intro=intro, columns=cols, rows=table,
@@ -123,7 +123,7 @@ def run_recurring(user: Any, req: QueryRequest) -> QueryResult:
     else:
         intro = t(lang, "rec_list", n=len(items))
     table = [Row([cell(r.name), f"{float(r.amount):,.2f} {r.currency.code if r.currency else base}",
-                  t(lang, f"freq_{r.frequency}", n=int(r.interval or 1)), r.next_run_date.isoformat()]) for r in items[:MAX_ROWS]]
+                  t(lang, f"freq_{r.frequency}", n=int(r.interval or 1)), r.next_run_date.isoformat()]) for r in items[:row_cap()]]
     return QueryResult(intro=intro, columns=[t(lang, "col_name"), t(lang, "col_amount"), t(lang, "col_frequency"), t(lang, "col_next_due")],
                        rows=table, facts={"count": len(items)})
 

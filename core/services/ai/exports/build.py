@@ -9,6 +9,7 @@ from django.utils import timezone
 from ..query_engine.labels import month_label, t
 from ..query_engine.lexicon import language
 from .document import ExportDocument, parse_markdown, plain, strip_export_lines
+from .full_data import from_question, from_tool_calls
 from .registry import ExportFormat
 
 
@@ -18,21 +19,37 @@ def _today(lang: str) -> str:
     return f"{today.day} {month_label(lang, today.year, today.month)}"
 
 
-def _question_for(message: Any) -> str:
-    previous = (message.conversation.messages.filter(role="user", is_deleted=False, id__lt=message.id)
-                .order_by("-id").values_list("content", flat=True).first())
-    return plain(previous or "")
+def _previous_question(message: Any, question_id: int | None) -> str:
+    if question_id is None:
+        return ""
+    return (message.conversation.messages.filter(role="user", is_deleted=False, id__lt=question_id)
+            .order_by("-id").values_list("content", flat=True).first() or "")
+
+
+def _question_row(message: Any) -> tuple[int | None, str]:
+    row = (message.conversation.messages.filter(role="user", is_deleted=False, id__lt=message.id)
+           .order_by("-id").values_list("id", "content").first())
+    return (row[0], row[1]) if row else (None, "")
 
 
 def document_for(message: Any) -> ExportDocument:
-    content = strip_export_lines(message.content)
-    question = _question_for(message)
+    """The file's content: the tool dataset specs / the routed question replayed in full, else the saved answer text."""
+    user = message.conversation.user
+    question_id, question_raw = _question_row(message)
+    question = plain(question_raw)
+    saved = strip_export_lines(message.content)
+    content, source = saved, None
+    replay = from_tool_calls(message, user)
+    if replay:
+        content, source = replay
+    else:
+        content = from_question(message, user, question_raw, _previous_question(message, question_id)) or saved
     lang = language(question or content)
     return ExportDocument(
         title=t(lang, "export_title"),
         question=f"{t(lang, 'export_question')}: {question}" if question else "",
         generated=t(lang, "export_generated", date=_today(lang)),
-        lang=lang, blocks=parse_markdown(content),
+        lang=lang, blocks=parse_markdown(content), source=source or saved,
     )
 
 

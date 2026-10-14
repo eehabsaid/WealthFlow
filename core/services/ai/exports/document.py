@@ -37,6 +37,7 @@ class ExportDocument:
     generated: str = ""
     lang: str = "en"
     blocks: list[Block] = field(default_factory=list)
+    source: str = ""                 # raw text for code / text file formats (.py .js .sql ...)
 
     def tables(self) -> list[Block]:
         return [b for b in self.blocks if b.kind == "table"]

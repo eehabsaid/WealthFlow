@@ -10,7 +10,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 
 from core.models import AIMessage
-from core.services.ai.exports import append_links, detect as detect_export_formats
+from core.services.ai.exports import append_links, requested as detect_export_formats, formats_from_tool_calls
 from core.services.ai.query_engine.lexicon import language
 from core.services.ai.tools.defs import AI_TOOL_REGISTRY
 from core.views.ai_chat.response_sanitizer import strip_latex, strip_leaked_control_tokens
@@ -44,7 +44,7 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
         completion_tokens=meter.completion if meter else None,
     )
 
-    export_formats = detect_export_formats(user_text) if offer_export else []
+    export_formats = (detect_export_formats(user_text) or formats_from_tool_calls(executed_tool_calls)) if offer_export else []
     if export_formats:
         target_id = export_target.id if export_target is not None else ai_msg.id
         ai_msg.content = append_links(ai_msg.content, target_id, export_formats, language(user_text))

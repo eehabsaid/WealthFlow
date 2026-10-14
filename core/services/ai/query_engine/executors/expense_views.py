@@ -8,7 +8,7 @@ from django.db.models import Count, Q, Sum
 
 from ..labels import month_label, range_label, t
 from ..spec import QueryResult, Row
-from .common import MAX_ROWS, cell, money
+from .common import cell, money, row_cap
 
 
 def base_qs(user: Any, months: list[tuple[int, int]], category: str = ""):
@@ -104,7 +104,7 @@ def transactions(lang, months, qs, totals, cur):
         grand, grand_n = grand + s, grand_n + n
         empty += [] if n else [label]
         for e in by_ym.get((y, m), []):
-            if shown >= MAX_ROWS:
+            if shown >= row_cap():
                 break
             shown += 1
             cat = e.category.name if e.category else ""
@@ -129,7 +129,7 @@ def daily(lang, months, qs, cur):
     if not n:
         return QueryResult(intro=t(lang, "exp_none", label=label))
     rows = []
-    for day, es in list(days.items())[:MAX_ROWS]:
+    for day, es in list(days.items())[:row_cap()]:
         det = "; ".join(f"{cell((e.category.name if e.category else t(lang, 'uncategorized')) + (': ' + e.description if e.description else ''))} "
                         f"{float(e.amount_base or 0):,.2f}" for e in es)
         rows.append(Row([day, money(sum(float(e.amount_base or 0) for e in es), cur), det]))

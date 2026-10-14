@@ -25,7 +25,11 @@ def check_entities(answer: str, question: str, evidence: str) -> tuple[int, list
     checked, bad = 0, []
     asked = _periods(question)
     known = _periods(evidence)
+    # "the paid salaries for 2026": the whole year was asked for, so naming any of its months is not a new claim
+    asked_years = {y for y in re.findall(r"\b(20\d{2})\b", question or "")} if not asked else set()
     for p in sorted(_periods(answer) - asked):
+        if p[:4] in asked_years:
+            continue
         checked += 1
         if p not in known and not period_in_context(evidence, p):
             bad.append(f"month {p}")

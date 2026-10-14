@@ -68,5 +68,9 @@ INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
 
 def investigation_tool_schemas(user) -> list[dict[str, Any]]:
     """Tool schemas offered to the investigator for `user` (code tools only when code access is allowed)."""
+    from core.services.ai.exports.settings import exports_enabled
+    from core.services.ai.exports.tool import TOOL_DEF as file_tool
+
     code_ok = ct.code_access_allowed(user)
-    return [d["schema"] for n, d in INVESTIGATION_TOOL_DEFS.items() if code_ok or n not in CODE_TOOLS]
+    schemas = [d["schema"] for n, d in INVESTIGATION_TOOL_DEFS.items() if code_ok or n not in CODE_TOOLS]
+    return schemas + ([file_tool["schema"]] if exports_enabled() else [])

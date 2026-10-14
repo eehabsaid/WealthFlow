@@ -13,15 +13,22 @@ from typing import Any
 
 from core.services.ai.tools.defs_scenario import SCENARIO_TOOL_DEFS
 from core.services.ai.tools.defs_app import APP_TOOL_DEFS
+from core.services.ai.exports.tool import NAME as FILE_TOOL_NAME, TOOL_DEF as FILE_TOOL_DEF
 from core.services.ai.investigation.defs import INVESTIGATION_TOOL_DEFS
 
-AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {**SCENARIO_TOOL_DEFS, **APP_TOOL_DEFS, **INVESTIGATION_TOOL_DEFS}
+AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {**SCENARIO_TOOL_DEFS, **APP_TOOL_DEFS, **INVESTIGATION_TOOL_DEFS, FILE_TOOL_NAME: FILE_TOOL_DEF}
 
 
 def get_registered_tool_schemas(domain: str | None = None) -> list[dict[str, Any]]:
     """Returns list of registered tool schemas in Ollama function-calling format, filtered by domain if specified."""
     schemas = []
     for tool_def in AI_TOOL_REGISTRY.values():
+        if tool_def.get("offer_always"):   # generate_file: offered on every domain while file generation is enabled
+            from core.services.ai.exports.settings import exports_enabled
+
+            if exports_enabled():
+                schemas.append(tool_def["schema"])
+            continue
         if domain and tool_def.get("domain") != domain:
             continue
         if tool_def.get("investigator_only") and domain != "app_investigation":
