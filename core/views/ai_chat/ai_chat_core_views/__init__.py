@@ -123,7 +123,9 @@ class AIChatView(View):
         if export_formats:
             previous_text = conversation.messages.filter(role="user", is_deleted=False).exclude(id=user_msg.id) \
                 .order_by("-id").values_list("content", flat=True).first() or ""
-            if is_pure_followup(route_question(route_text, previous=previous_text), understanding):
+            # only a short request that names nothing to look up ("export it to pdf") is a follow-up; a real question that
+            # also asks for a file is answered normally and gets the links on its own answer
+            if is_pure_followup(route_question(route_text, previous=previous_text), understanding, route_text):
                 target = previous_answer(conversation, user_msg.id)
                 lang = language(user_text)
                 trace.skip_remaining("export_followup")
