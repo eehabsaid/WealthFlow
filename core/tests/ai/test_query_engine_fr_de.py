@@ -157,7 +157,7 @@ class LabelTableTests(SimpleTestCase):
         for name, table in (("fr", labels_fr.TABLE), ("de", labels_de.TABLE)):
             same = sorted(k for k in labels._EN if table[k] == labels._EN[k])
             self.assertLess(len(same), 12, f"{name}: untranslated {same}")      # only cognates (column headers, the brand name, "Question") may match English
-            self.assertTrue(all(k.startswith(("col_", "total_of", "head_tx", "sal_part", "export_title", "export_question")) for k in same), f"{name}: {same}")
+            self.assertTrue(all(k.startswith(("col_", "total_of", "head_tx", "sal_part", "export_title", "export_question", "wf_gold")) for k in same), f"{name}: {same}")
         for k in ("exp_total", "sal_month", "bal_total", "cert_none", "gold_none", "fx_none", "bud_none", "rec_none"):
             self.assertNotEqual(labels_de.TABLE[k], labels._EN[k], k)
             self.assertNotEqual(labels_fr.TABLE[k], labels._EN[k], k)

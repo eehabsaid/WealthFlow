@@ -29,6 +29,39 @@ from core.services.ai.context_builder_service.prompt import build_system_prompt
 logger = logging.getLogger(__name__)
 
 
+def _owner_of(block: str, sources: list[str]) -> str:
+    """Source of a business-data block: its header is '### <Provider>_<part> Payload Data:' (see summarize_payload)."""
+    head = block.split("\n", 1)[0].lower().replace(" ", "_")
+    return next((s for s in sorted(sources, key=len, reverse=True) if s.lower() in head), "")
+
+
+def _fit_blocks(high: list[str], low: list[str], budget: int, owner: dict[int, str]) -> tuple[list[str], set[str]]:
+    """Choose the blocks that fit `budget`. Every source gets its most important block considered before any source gets a
+    second one (round robin), so one data-heavy topic (e.g. expenses) can no longer starve another matched source
+    (e.g. the wealth forecast). A block that does not fit is skipped, not a reason to stop. Order of the chosen blocks is
+    kept as assembled (priority order). Returns (blocks, sources that made it in)."""
+    chosen: set[int] = set()
+    used = 0
+
+    def take(pool: list[str]) -> None:
+        nonlocal used
+        queues: dict[str, list[str]] = {}
+        for blk in pool:
+            queues.setdefault(owner.get(id(blk), ""), []).append(blk)
+        while any(queues.values()):
+            for key in list(queues):
+                while queues[key]:
+                    blk = queues[key].pop(0)
+                    if used + len(blk) <= budget:
+                        chosen.add(id(blk))
+                        used += len(blk)
+                        break          # one block per source per round
+    take(high)
+    take(low)
+    ordered = [b for b in (*high, *low) if id(b) in chosen]
+    return ordered, {owner.get(id(b), "") for b in ordered}
+
+
 class ContextBuilderService:
     """
     Assembles structured financial context for AI reasoning and formats model messages.
@@ -122,6 +155,7 @@ class ContextBuilderService:
         high_priority_blocks = []
         low_priority_blocks = []
         sources = []
+        block_owner: dict[int, str] = {}   # id(block) -> the source it came from (fair budget sharing)
 
         # 2a. Deterministic business-data grounding FIRST (balance, certificates,
         # expenses, salary, fixed assets/gold, market data) — only for topically-matched
@@ -132,6 +166,8 @@ class ContextBuilderService:
         sources.extend(biz_sources)
         high_priority_blocks.extend(biz_high)
         low_priority_blocks.extend(biz_low)
+        for blk in (*biz_high, *biz_low):
+            block_owner[id(blk)] = _owner_of(blk, biz_sources)
 
         # 2b. Codebase retrieval, only for clearly code/architecture questions.
         if is_codebase_question(user_query):
@@ -156,25 +192,12 @@ class ContextBuilderService:
             high, low = split_payload_blocks(key, payload)
             high_priority_blocks.extend(high)
             low_priority_blocks.extend(low)
+            for blk in (*high, *low):
+                block_owner[id(blk)] = key
 
         # 3. Assemble System Context String safely within its reserved data budget
         # (independent of system_instruction size — see MIN_DATA_CHARS above).
-        context_parts = []
-        data_chars_used = 0
-        for block in high_priority_blocks:
-            if data_chars_used + len(block) <= data_chars_budget:
-                context_parts.append(block)
-                data_chars_used += len(block)
-
-        # Append degradable low priority blocks section-by-section cleanly
-        for block in low_priority_blocks:
-            if data_chars_used + len(block) <= data_chars_budget:
-                context_parts.append(block)
-                data_chars_used += len(block)
-            else:
-                # Omit low-priority detail block cleanly without breaking JSON syntax
-                logger.info("Token budget reached: Omitted detailed timeline block cleanly.")
-                break
+        context_parts, _included = _fit_blocks(high_priority_blocks, low_priority_blocks, data_chars_budget, block_owner)
 
         full_context_str = "\n".join(context_parts)
         system_content = f"{system_instruction}\n\n=== FINANCIAL CONTEXT DATA ===\n{full_context_str}"

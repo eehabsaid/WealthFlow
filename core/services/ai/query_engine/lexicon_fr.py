@@ -17,6 +17,9 @@ _M = "janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembr
 _START = r"^\s*(?:s'il (?:te|vous) plait )?"
 
 PHRASES = [
+    # net worth / wealth forecast
+    (r"\bvaleur nette\b|\bpatrimoine net\b", " net worth "),
+    (r"\bcombien (?:vais[- ]je|aurai[- ]je|vaudra(?:i|s)?)\b", " how much will i "),
     # emergency fund / months of expenses covered
     (r"\b(?:fonds|reserve|epargne) (?:d'urgence|de secours|de precaution)\b", " emergency fund "),
     (r"\bcombien de mois (?:de|des) (?:depenses|charges|frais)\b", " how many months of expenses "),
@@ -63,6 +66,7 @@ PHRASES = [
 ]
 
 WORDS = {
+    "patrimoine": "wealth", "prevision": "forecast", "previsions": "forecast",
     "statut": "status",
     # months
     "janvier": "january", "fevrier": "february", "mars": "march", "avril": "april", "mai": "may", "juin": "june", "juillet": "july",

@@ -110,12 +110,13 @@ class ChatExportTests(TestCase):
         self.assertEqual(link_ids(content), [])
 
     def test_a_real_question_with_a_file_request_is_answered_not_treated_as_a_follow_up(self):
-        """Reported 2026-10-14: "analyze my wealth ... in details and export it to word" got "no earlier answer"."""
+        """Reported 2026-10-14: "analyze my wealth ... in details and export it to word" got "no earlier answer" (any question the
+        router could not compute was taken for "export it"). Uses a question no capability answers, so it stays a model question."""
         prov = MagicMock()
         prov.supports_tools = False
-        prov.generate.side_effect = lambda *a, **k: {"content": "Your wealth will be about 1,000 EGP.", "tool_calls": None, "error": None}
+        prov.generate.side_effect = lambda *a, **k: {"content": "Once upon a time there was a coin.", "tool_calls": None, "error": None}
         ctx = ([{"role": "system", "content": "SYS"}, {"role": "user", "content": "q"}], ["balance"])
-        question = "please analyze my wealth and tell me how much will it be on 30-Nov-2026, in details and export it to word"
+        question = "please tell me a short story about a lucky coin and a wise old banker, in details, and export it to word"
         for first in (True, False):   # with and without an earlier answer in the conversation
             with self.subTest(earlier_answer=not first), patch(f"{VIEW}.get_active_ai_provider", return_value=prov), patch(GP, return_value=ctx):
                 if not first:
@@ -124,7 +125,7 @@ class ChatExportTests(TestCase):
                 data = fx.ask(self, question, conversation=not first)
             content = data["message"]["content"]
             self.assertNotIn("no earlier answer", content)
-            self.assertIn("Your wealth will be about", content)
+            self.assertIn("Once upon a time", content)
             self.assertEqual([f for _, f in link_ids(content)], ["docx"])
 
     def test_a_data_topic_is_not_mistaken_for_a_follow_up(self):

@@ -31,8 +31,9 @@ class FinancialAdvisorDataProvider(BaseContextProvider):
 
     def get_query_capabilities(self) -> list[Any]:
         from core.services.ai.query_engine.executors.emergency import CAPABILITIES
+        from core.services.ai.query_engine.executors.wealth_forecast import CAPABILITIES as WEALTH
 
-        return list(CAPABILITIES)
+        return [*CAPABILITIES, *WEALTH]
 
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
         return {

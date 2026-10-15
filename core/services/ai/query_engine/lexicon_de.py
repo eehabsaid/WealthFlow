@@ -20,6 +20,9 @@ _M = "januar|februar|marz|april|mai|juni|juli|august|september|oktober|november|
 _START = r"^\s*(?:bitte )?"
 
 PHRASES = [
+    # net worth / wealth forecast
+    (r"\b(?:netto|rein|gesamt)vermogen\b", " net worth "),
+    (r"\bwie viel (?:werde|wird|kann) (?:ich|mein\w*)\b", " how much will i "),
     # emergency fund / months of expenses covered
     (r"\b(?:notfallfonds|notgroschen|notfallreserve|notreserve|notfallrucklage|notfallkasse)\b", " emergency fund "),
     (r"\bwie viele monate (?:an |der |meiner |meine )?(?:ausgaben|kosten)\b", " how many months of expenses "),
@@ -64,6 +67,7 @@ PHRASES = [
 ]
 
 WORDS = {
+    "vermogen": "wealth", "prognose": "forecast", "prognosen": "forecast",
     # compounds (German glues words together; the router sees the English parts)
     "gesamtausgaben": "total expenses", "gesamtkosten": "total expenses", "gesamtsaldo": "total balance", "gesamtguthaben": "total balance",
     "gesamtkapital": "total principal", "gesamtzinsen": "total interest", "gesamtgehalt": "total salary", "gesamtwert": "total value",

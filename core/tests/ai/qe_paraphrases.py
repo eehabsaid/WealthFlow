@@ -123,9 +123,20 @@ EMERGENCY_FUND = [
     "صندوق الطوارئ 12 شهر", "هل عندي صندوق طوارئ كافي", "وضع صندوق الطوارئ", "كم شهر يغطي صندوق الطوارئ",
 ]
 
+WEALTH_FORECAST = [
+    "what is my net worth", "my net worth", "net worth", "show my net worth", "what is my net worth now", "tell me my net worth",
+    "what will my net worth be in Nov 2026", "net worth in Dec 2026", "my net worth on 30-Nov-2026", "how much wealth will I have in Nov 2026",
+    "how much will I have in Dec 2026", "how much will I own in Jan 2027", "what is my wealth", "show my wealth", "my wealth in Nov 2026",
+    "forecast my net worth", "forecast my wealth for Dec 2026", "project my net worth for Nov 2026", "predict my wealth in Dec 2026",
+    "total worth in Nov 2026", "what is my total worth", "net worth forecast for Jan 2027", "wealth forecast Feb 2027",
+    "analyze my wealth and tell me how much it will be on 30-Nov-2026", "please analyze my wealth for Nov 2026 in details",
+    "my wealth growth by Dec 2026", "how much will my wealth be worth in Mar 2027", "net worth next year Dec 2026", "what will my wealth be in Nov 2026",
+    "tell me my wealth in Oct 2026", "كم صافي الثروة", "ثروتي الان", "كم ستكون ثروتي في نوفمبر 2026", "توقع ثروتي في ديسمبر 2026",
+]
+
 CORPUS = {"expenses": EXPENSES, "salary": SALARY, "balance": BALANCE, "certificates": CERTIFICATES,
           "fixed_assets": FIXED_ASSETS, "gold_holdings": GOLD_HOLDINGS, "gold_price": GOLD, "exchange_rates": FX,
-          "budgets": BUDGETS, "recurring": RECURRING, "emergency_fund": EMERGENCY_FUND}
+          "budgets": BUDGETS, "recurring": RECURRING, "emergency_fund": EMERGENCY_FUND, "wealth_forecast": WEALTH_FORECAST}
 
 # Must NOT be answered by the engine (advice / why / compare / forecast / actions / not data).
 FALL_THROUGH = [

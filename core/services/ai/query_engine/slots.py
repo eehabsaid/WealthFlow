@@ -177,7 +177,8 @@ def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = No
     if second >= 2 and margin < 2:
         out.status, out.reason = "multi", "several_capabilities"
         return out
-    if (ANALYTIC_LOOKUP_BUDGET if cap.key == "budgets" else ANALYTIC).search(q):
+    ana_q = rx(cap.analytic_ok).sub(" ", q) if cap.analytic_ok else q   # words this capability answers by itself ("forecast")
+    if (ANALYTIC_LOOKUP_BUDGET if cap.key == "budgets" else ANALYTIC).search(ana_q):
         out.status, out.reason, out.confidence = "analytic", "needs_reasoning", 0.6
         return out
     if cap.time == "none" and time.months:
