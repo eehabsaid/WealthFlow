@@ -38,6 +38,8 @@ let _aiState = {
   aiSettings: null,
   knowledgeCount: 0,
   modelInfo: null,
+  chatMode: "ask",
+  agentEnabled: true,
 };
 
 // Safe translation helper

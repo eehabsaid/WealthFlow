@@ -65,6 +65,7 @@ async function _handleAIChatSubmit() {
         message: message,
         conversation_id: _aiState.conversationId,
         question_domain: domain,
+        chat_mode: _aiChatMode(),
       }),
     });
 

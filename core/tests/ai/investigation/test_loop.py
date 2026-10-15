@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.test import SimpleTestCase, TestCase
 
 from core.services.ai.investigation import loop as inv
+from core.services.ai.investigation import loop_helpers
 
 from .support import ScriptedProvider, make_user, seed_tenant, tool_call
 
@@ -134,14 +135,14 @@ class HelpersTest(SimpleTestCase):
     def test_compaction_trims_oldest_tool_results_first(self):
         msgs = [{"role": "system", "content": "SYS"}] + [
             {"role": "system", "content": f"TOOL RESULT (t{i} x):\n" + "z" * 3000} for i in range(4)]
-        inv._compact(msgs, 7000)
+        loop_helpers.compact(msgs, 7000)
         self.assertIn("trimmed", msgs[1]["content"])
         self.assertIn("trimmed", msgs[2]["content"])
         self.assertNotIn("trimmed", msgs[4]["content"])
         self.assertEqual(msgs[0]["content"], "SYS")
 
     def test_result_text_is_capped_with_a_hint(self):
-        out = inv._result_text({"ok": True, "data": {"rows": ["x" * 100] * 100}}, 500)
+        out = loop_helpers.result_text({"ok": True, "data": {"rows": ["x" * 100] * 100}}, 500)
         self.assertLess(len(out), 700)
         self.assertIn("narrow the call", out)
-        self.assertIn("tool boom", inv._result_text({"ok": False, "error": "tool boom"}, 500))
+        self.assertIn("tool boom", loop_helpers.result_text({"ok": False, "error": "tool boom"}, 500))

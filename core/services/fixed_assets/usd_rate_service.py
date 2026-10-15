@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from core.models import Currency, ExchangeRate
+from core.models import Currency
 
 
 class UsdRateError(Exception):
@@ -71,15 +71,9 @@ class UsdRateService:
         return UsdRateResult(rate=round(rate, 5))
 
     def _latest_rate_by_code(self):
-        from django.db.models import Max
+        from core.services.shared.latest_rates import latest_exchange_rates
 
-        latest_ids = (
-            ExchangeRate.objects.values("currency_code")
-            .annotate(max_id=Max("id"))
-            .values_list("max_id", flat=True)
-        )
-        rows = ExchangeRate.objects.filter(id__in=latest_ids)
-        return {row.currency_code.upper(): row for row in rows}
+        return {row.currency_code.upper(): row for row in latest_exchange_rates()}
 
     def _get_buy_rate(self, rates_by_code, code):
         row = rates_by_code.get(code.upper())

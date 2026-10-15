@@ -67,6 +67,10 @@ const _AI_WS_SOURCES_MAP = {
   gold: "ai_ws_source_gold",
   fixed_assets: "ai_ws_source_fixed_assets",
   market_data: "ai_ws_source_market_data",
+  investigation: "ai_ws_source_investigation",
+  investigation_code: "ai_ws_source_investigation_code",
+  investigation_data: "ai_ws_source_investigation_data",
+  investigation_docs: "ai_ws_source_investigation_docs",
 };
 
 window._AI_WS_SOURCES_MAP = _AI_WS_SOURCES_MAP;

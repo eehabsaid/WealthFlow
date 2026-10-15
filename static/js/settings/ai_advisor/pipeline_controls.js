@@ -56,5 +56,48 @@ window.AIA.buildPipelineControlsHtml = function () {
                     <div class="form-check form-switch fs-5 mb-0">
                         <input class="form-check-input" type="checkbox" id="aiPipelineDebugToggle" ${debugChecked}>
                         <label class="form-check-label fs-6 fw-semibold ms-2" for="aiPipelineDebugToggle" data-i18n="ai_pipeline_debug_label">${t("ai_pipeline_debug_label", "Pipeline Debug Trace")}</label>
+                    </div>${window.AIA.buildAgentControlsHtml()}`;
+};
+
+// Agent mode (sysadmin): on/off, the editable investigation instructions (default text shown; saving the default stores "" so
+// future app improvements still apply) and the step / time / file-read limits per question.
+window.AIA.buildAgentControlsHtml = function () {
+  const s = window.AIA.state.currentAISettings || {};
+  const on = s.ai_agent_enabled === false ? "" : "checked";
+  const text = s.ai_agent_instructions || s.ai_agent_instructions_default || "";
+  const num = (id, key, min, max, fallback) =>
+    `<div class="d-flex align-items-center gap-2 mb-0"><label class="fs-6 mb-0" for="${id}" data-i18n="${key}_label">${t(`${key}_label`, key)}</label><input type="number" class="form-control form-control-sm w-auto" style="max-width:7.5rem" id="${id}" min="${min}" max="${max}" value="${s[key] ?? fallback}"></div>`;
+  return `
+                    <div class="form-check form-switch fs-5 mb-0">
+                        <input class="form-check-input" type="checkbox" id="aiAgentEnabledToggle" ${on}>
+                        <label class="form-check-label fs-6 fw-semibold ms-2" for="aiAgentEnabledToggle" data-i18n="ai_agent_enabled_label">${t("ai_agent_enabled_label", "Agent mode")}</label>
+                        <div class="form-text fs-6 fw-normal" data-i18n="ai_agent_enabled_help">${t("ai_agent_enabled_help", "Lets users switch the chat to Agent: the AI investigates the app and your data with read-only tools and answers from what it read. Source-code tools stay admin-only.")}</div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-3 mb-0" id="aiAgentLimits">
+                        ${num("aiAgentMaxStepsInput", "ai_agent_max_steps", 2, 40, 15)}
+                        ${num("aiAgentBudgetInput", "ai_agent_budget_s", 60, 3600, 600)}
+                        ${num("aiAgentMaxReadsInput", "ai_agent_max_reads", 1, 60, 12)}
+                    </div>
+                    <div class="mb-0">
+                        <label class="fs-6 fw-semibold mb-1" for="aiAgentInstructionsInput" data-i18n="ai_agent_instructions_label">${t("ai_agent_instructions_label", "Agent investigation instructions")}</label>
+                        <textarea class="form-control form-control-sm" id="aiAgentInstructionsInput" rows="10" maxlength="6000">${text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</textarea>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="aiAgentInstructionsResetBtn" onclick="window.AIA.resetAgentInstructions()" data-i18n="ai_agent_instructions_reset">${t("ai_agent_instructions_reset", "Restore default")}</button>
+                            <span class="form-text fs-6 mb-0" data-i18n="ai_agent_instructions_help">${t("ai_agent_instructions_help", "How the agent should investigate (like Continue's rules). Applies to every user's Agent chats.")}</span>
+                        </div>
                     </div>`;
+};
+
+window.AIA.resetAgentInstructions = function () {
+  const box = document.getElementById("aiAgentInstructionsInput");
+  if (box)
+    box.value = (window.AIA.state.currentAISettings || {}).ai_agent_instructions_default || "";
+};
+
+window.AIA.agentInstructionsForSave = function () {
+  const text = (document.getElementById("aiAgentInstructionsInput")?.value || "").trim();
+  const dflt = (
+    (window.AIA.state.currentAISettings || {}).ai_agent_instructions_default || ""
+  ).trim();
+  return text === dflt ? "" : text;
 };

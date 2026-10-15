@@ -39,6 +39,10 @@ function _renderRightPanel() {
     if (sources.length > 0) {
       sources.forEach((src) => {
         const name = typeof src === "string" ? src : src.name || "Unknown";
+        if (name.startsWith("agent:")) {
+          sourcesHtml += _aiAgentSourceChip(name);
+          return;
+        }
         const i18nKey = sourcesMap[name] || name;
         sourcesHtml += `<div class="ai-ws-source-chip active"><i class="bi bi-check-circle-fill me-1"></i> <span data-i18n="${i18nKey}">${name}</span></div>`;
       });

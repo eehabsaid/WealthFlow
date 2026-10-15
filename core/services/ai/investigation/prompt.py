@@ -43,20 +43,37 @@ def _map() -> str:
            "(script-global), i18n in static/i18n/{en,ar,fr,de}.json, AI chat in core/views/ai_chat and core/services/ai."
 
 
+AGENT_HEADER = """You are WealthFlow's built-in agent. You investigate the app with read-only tools and answer from facts, like a developer with the project open.
+Today is {today}. The current user is "{username}". You can read: the user's own business data, the app's documentation and screens{code_clause}.
+
+"""
+
+
+def _tail(user, schemas, native_tools, code_ok) -> str:
+    from core.services.ai.exports.settings import exports_enabled
+
+    text = (FILE_RULE if exports_enabled() else "") + (_map() if code_ok else "")
+    if not native_tools and schemas:
+        lines = [f"- {s['function']['name']}: {s['function']['description']} args: "
+                 f"{', '.join(s['function']['parameters'].get('properties', {}))}" for s in schemas]
+        text += TEXT_PROTOCOL.format(tools="\n".join(lines))
+    return text
+
+
+def build_agent_prompt(user, schemas: list | None = None, native_tools: bool = True, instructions: str | None = None) -> str:
+    """Agent mode: fixed header + the editable instructions (Settings > AI Advisor; default in agent/instructions.py)."""
+    from core.services.ai.agent.instructions import effective_instructions
+
+    code_ok = code_tools.code_access_allowed(user)
+    head = AGENT_HEADER.format(today=datetime.date.today().isoformat(), username=getattr(user, "username", "user"),
+                               code_clause=CODE_CLAUSE if code_ok else "")
+    return head + (instructions or effective_instructions()) + _tail(user, schemas, native_tools, code_ok)
+
+
 def build_system_prompt(user, schemas: list | None = None, native_tools: bool = True) -> str:
     code_ok = code_tools.code_access_allowed(user)
     text = RULES.format(
         today=datetime.date.today().isoformat(), username=getattr(user, "username", "user"),
         code_clause=CODE_CLAUSE if code_ok else "", code_rule=CODE_RULE if code_ok else "",
         evidence="path:line for code, figures with period and currency for data")
-    from core.services.ai.exports.settings import exports_enabled
-
-    if exports_enabled():
-        text += FILE_RULE
-    if code_ok:
-        text += _map()
-    if not native_tools and schemas:
-        lines = [f"- {s['function']['name']}: {s['function']['description']} args: "
-                 f"{', '.join(s['function']['parameters'].get('properties', {}))}" for s in schemas]
-        text += TEXT_PROTOCOL.format(tools="\n".join(lines))
-    return text
+    return text + _tail(user, schemas, native_tools, code_ok)

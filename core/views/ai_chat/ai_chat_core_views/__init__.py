@@ -31,6 +31,7 @@ from core.views.ai_chat.chat_pipeline import (ESCALATE, PipelineTrace, escalatin
                                               run_workflow_pipeline, should_go_direct, understand, workflow_enabled)
 from core.views.ai_chat.chat_pipeline.trace import log_request_start
 
+from .agent_stage import agent_stage
 from .conversation_setup import (
     build_provider_disabled_response,
     build_token_limit_response,
@@ -46,19 +47,10 @@ __all__ = ["AIChatView"]
 
 
 class AIChatView(View):
-    """
-    Endpoint for sending messages to AI Financial Advisor.
-    URL: POST /api/financial-advisor/ai/chat/
+    """Endpoint for sending messages to AI Financial Advisor. URL: POST /api/financial-advisor/ai/chat/
 
-    Implements a bounded multi-step investigation loop (see ai_chat_loop.py)
-    so the AI can chain tool calls in sequence — each step informed by the previous
-    result — the same way a human investigator works.
-
-    Safety guarantees (CPU-only hardware):
-    - Per-call timeout: inherited from ai_timeout AppSettings via OllamaProvider.generate().
-    - Total loop budget: LOOP_TOTAL_TIMEOUT_SECONDS wall-clock cap across all iterations.
-    - Repeat-call prevention: identical (tool, args) pairs are blocked mid-loop.
-    - Graceful fallback: user always receives a text answer; never a hang or silent failure.
+    Order: export follow-up -> Agent mode (chat switch "agent": the model owns the tool loop) -> instant answers ->
+    investigator / workflow / default staged pipeline. The user always receives a text answer; never a hang or silent failure.
     """
 
     def post(self, request):
@@ -116,6 +108,13 @@ class AIChatView(View):
                                                 user_text=user_text, route_text=route_text, understanding=understanding, request=request, trace=trace)
             if followup is not None:
                 return followup
+
+        # Stage 1a' — Agent mode (per-user Ask/Agent switch): the model investigates with tools from the first call.
+        agent_response = agent_stage(request=request, body=body, cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation,
+                                     user_msg=user_msg, user_text=user_text, route_text=route_text, trace=trace, provider=provider,
+                                     export_formats=export_formats)
+        if agent_response is not None:
+            return agent_response
 
         # Stage 1b — Route: the query engine answers supported data questions with 0 LLM calls (1 short
         # slot-filling call only if unclear). Runs BEFORE the orchestrator branch so multi-agent can

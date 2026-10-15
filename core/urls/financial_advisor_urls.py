@@ -1,6 +1,7 @@
 from django.urls import path
 from .. import views
 from core.services.billing import feature_required
+from core.views.ai_chat.ai_agent_views import AIChatModeView, AIStopView
 
 urlpatterns = [
     path(
@@ -103,5 +104,13 @@ urlpatterns = [
     path(
         "api/financial-advisor/ai/progress/",
         feature_required("allows_ai_workspace")(views.AIProgressView.as_view()),
+    ),
+    path(
+        "api/financial-advisor/ai/chat-mode/",
+        feature_required("allows_ai_workspace")(AIChatModeView.as_view()),
+    ),
+    path(
+        "api/financial-advisor/ai/stop/",
+        feature_required("allows_ai_workspace")(AIStopView.as_view()),
     ),
 ]

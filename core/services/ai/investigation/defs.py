@@ -11,27 +11,13 @@ from typing import Any
 
 from . import code_tools as ct
 from . import data_tools as dt
+from .defs_agent import AGENT_TOOL_DEFS
+from .defs_helpers import A as _A, B as _B, DOMAIN, I as _I, O as _O, S as _S, p as _p, tool as _tool
 from .knowledge_tool import knowledge_search
 
-DOMAIN = "app_investigation"
-CODE_TOOLS = ("app_list_dir", "app_find_files", "app_grep", "app_find_definition", "app_read_file")
-
-
-def _tool(name: str, description: str, handler, properties: dict, required: list | None = None) -> dict[str, Any]:
-    return {
-        "name": name, "description": description, "is_read_only": True, "tier": "read", "domain": DOMAIN,
-        "investigator_only": True, "handler": lambda user, params: handler(user, params),
-        "schema": {"type": "function", "function": {
-            "name": name, "description": description,
-            "parameters": {"type": "object", "properties": properties, "required": required or []}}},
-    }
-
-
-_S, _I, _B, _O, _A = ({"type": t} for t in ("string", "integer", "boolean", "object", "array"))
-
-
-def _p(spec: dict, description: str) -> dict:
-    return {**spec, "description": description}
+__all__ = ["CODE_TOOLS", "DOMAIN", "INVESTIGATION_TOOL_DEFS", "investigation_tool_schemas"]
+CODE_TOOLS = ("app_list_dir", "app_find_files", "app_grep", "app_find_definition", "app_read_file",
+              "app_callers", "app_git_history", "app_trace_feature")   # sysadmin only (see code_tools.code_access_allowed)
 
 
 INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
@@ -64,6 +50,8 @@ INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
                      "aggregate": _p(_O, "e.g. {\"sum\":\"amount_base\",\"count\":\"*\"}"),
                      "group_by": _p(_S, "field to group aggregates by, e.g. category__name or month")}, ["model"]),
 )}
+
+INVESTIGATION_TOOL_DEFS.update(AGENT_TOOL_DEFS)
 
 
 def investigation_tool_schemas(user) -> list[dict[str, Any]]:

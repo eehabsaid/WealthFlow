@@ -27,14 +27,9 @@ class ExchangeRateListView(View):
 
     def get(self, request):
         """Return the single most-recent row per currency code."""
-        from django.db.models import Max
+        from core.services.shared.latest_rates import latest_exchange_rates
 
-        latest_ids = (
-            ExchangeRate.objects.values("currency_code")
-            .annotate(max_id=Max("id"))
-            .values_list("max_id", flat=True)
-        )
-        rates = ExchangeRate.objects.filter(id__in=latest_ids).order_by("currency_code")
+        rates = latest_exchange_rates().order_by("currency_code")
         if request.user.is_authenticated and not _user_sees_egp(request.user):
             # Gulf-market users (no EGP anywhere): EGP stays in the table for
             # internal conversions but is not listed to them.

@@ -102,6 +102,11 @@ async function renderAI() {
                   <option value="business_data_analysis" data-i18n="ai_domain_business_data">Business / Data Analysis</option>
                   <option value="app_features_architecture" data-i18n="ai_domain_app_features">Application Features &amp; Architecture</option>
                 </select>
+                <div class="btn-group btn-group-sm ai-ws-mode-switch" role="group" id="ai-ws-mode-switch" aria-label="${_aiT("ai_mode_label", "Chat mode")}">
+                  <button type="button" class="btn btn-outline-primary" id="ai-ws-mode-ask" data-mode="ask" aria-pressed="true" onclick="_aiSetChatMode('ask')" data-i18n="ai_mode_ask">Ask</button>
+                  <button type="button" class="btn btn-outline-primary" id="ai-ws-mode-agent" data-mode="agent" aria-pressed="false" onclick="_aiSetChatMode('agent')" data-i18n="ai_mode_agent">Agent</button>
+                </div>
+                <small class="text-muted ai-ws-mode-hint" id="ai-ws-mode-hint"></small>
                 <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-auto me-2" id="ai-ws-btn-prompt-lib" onclick="openPromptLibraryModal()" title="Prompt Library">
                   <i class="bi bi-chat-left-quote me-1"></i> <span data-i18n="ai_ws_prompt_library_title">Prompt Library</span>
                 </button>
@@ -137,6 +142,7 @@ async function renderAI() {
   _applyTranslations();
   _initTextareaAutogrow();
   _renderExtensions();
+  _aiLoadChatMode();
 
   await _fetchAIWorkspaceStatus();
   await _fetchAIChatConversations();

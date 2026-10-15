@@ -1,4 +1,4 @@
-"""AI chat pipeline settings (ai_validate_mode, ai_pipeline_debug, ai_direct_answers, ai_investigator_mode, ai_code_access, ai_file_generation + max size / max rows): get / validate / persist.
+"""AI chat pipeline settings (ai_validate_mode, ai_pipeline_debug, ai_direct_answers, ai_investigator_mode, ai_code_access, ai_file_generation + max size / max rows, Agent mode ai_agent_*): get / validate / persist.
 
 Kept separate from ai_settings_get_helpers / ai_settings_save_helpers (200-line rule).
 Stored app-wide like the other AI settings; read by chat_pipeline.validate / runner.
@@ -7,6 +7,7 @@ Stored app-wide like the other AI settings; read by chat_pipeline.validate / run
 from django.http import JsonResponse
 
 from core.models import AppSettings
+from core.services.ai.agent.settings import get_agent_settings, persist_agent_settings, validate_agent_settings
 
 VALIDATE_MODES = ("off", "flag", "regenerate")
 DEFAULT_VALIDATE_MODE = "flag"
@@ -38,6 +39,7 @@ def get_pipeline_settings(user=None) -> dict:
         "ai_code_access": code not in _FALSE,   # default ON; source-code tools are sysadmin-only either way
         "ai_validate_mode": mode if mode in VALIDATE_MODES else DEFAULT_VALIDATE_MODE,
         "ai_pipeline_debug": debug in _TRUE,
+        **get_agent_settings(),   # Agent mode: switch, editable instructions (+ default text), step / time / read limits
         "ai_direct_answers": direct not in _FALSE,  # default ON; read by query_engine.is_enabled
     }
 
@@ -73,11 +75,15 @@ def validate_pipeline_settings(data):
         except ValueError:
             return None, JsonResponse({"error": f"{key} must be a number"}, status=400)
         limits[key] = _clamped(raw, key)
-    return {"file_generation": bool(files), "file_limits": limits, "validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct),
+    agent, agent_error = validate_agent_settings(data, current)
+    if agent_error:
+        return None, JsonResponse({"error": agent_error}, status=400)
+    return {"agent": agent, "file_generation": bool(files), "file_limits": limits, "validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct),
             "investigator_mode": inv, "code_access": bool(code)}, None
 
 
 def persist_pipeline_settings(validated, user=None) -> None:
+    persist_agent_settings(validated["agent"])   # always global (sysadmin)
     AppSettings.set("ai_validate_mode", validated["validate_mode"], user=user)
     AppSettings.set("ai_pipeline_debug", "true" if validated["pipeline_debug"] else "false", user=user)
     AppSettings.set("ai_direct_answers", "true" if validated["direct_answers"] else "false", user=user)

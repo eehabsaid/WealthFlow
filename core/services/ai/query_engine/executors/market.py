@@ -73,12 +73,9 @@ def run_gold(user: Any, req: QueryRequest) -> QueryResult:
 
 
 def _latest_rows() -> dict[str, Any]:
-    from django.db.models import Max
+    from core.services.shared.latest_rates import latest_exchange_rates
 
-    from core.models import ExchangeRate
-
-    ids = ExchangeRate.objects.values("currency_code").annotate(m=Max("id")).values_list("m", flat=True)
-    return {r.currency_code.upper(): r for r in ExchangeRate.objects.filter(id__in=ids)}
+    return {r.currency_code.upper(): r for r in latest_exchange_rates()}
 
 
 def run_fx(user: Any, req: QueryRequest) -> QueryResult:

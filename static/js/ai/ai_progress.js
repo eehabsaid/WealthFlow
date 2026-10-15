@@ -51,6 +51,7 @@ function _startProgressPolling(conversationId) {
           statusText = `${desc}${elapsedStr}`;
         }
         _updateThinkingBubbleText(statusText);
+        _aiRenderAgentSteps(data);
       } else if (data.status === "done") {
         _stopProgressPolling();
         _setLoadingUI(false);

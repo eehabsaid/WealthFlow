@@ -31,6 +31,17 @@ window.AIA.saveAISettingsFromGui = async function () {
     ai_direct_answers: document.getElementById("aiDirectAnswersToggle")?.checked !== false,
     ai_investigator_mode: document.getElementById("aiInvestigatorModeSelect")?.value || "auto",
     ai_code_access: document.getElementById("aiCodeAccessToggle")?.checked !== false,
+    ai_agent_enabled: document.getElementById("aiAgentEnabledToggle")?.checked !== false,
+    ai_agent_instructions: window.AIA.agentInstructionsForSave(),
+    ai_agent_max_steps: parseInt(
+      document.getElementById("aiAgentMaxStepsInput")?.value || "15",
+      10
+    ),
+    ai_agent_budget_s: parseInt(document.getElementById("aiAgentBudgetInput")?.value || "600", 10),
+    ai_agent_max_reads: parseInt(
+      document.getElementById("aiAgentMaxReadsInput")?.value || "12",
+      10
+    ),
     ai_file_generation: document.getElementById("aiFileGenerationToggle")?.checked !== false,
     ai_file_max_mb: parseInt(document.getElementById("aiFileMaxMbInput")?.value || "10", 10),
     ai_file_max_rows: parseInt(document.getElementById("aiFileMaxRowsInput")?.value || "50000", 10),

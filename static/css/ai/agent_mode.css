@@ -1,0 +1,53 @@
+/* Agent mode: Ask/Agent switch in the input bar, live step list in the thinking bubble, source reference chips. */
+.ai-ws-mode-switch .btn {
+  padding: 2px 12px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.ai-ws-mode-switch .btn.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #fff;
+}
+
+.ai-ws-mode-hint {
+  flex: 1 1 0;
+  min-width: 0;
+  margin-inline: 8px;
+  overflow: hidden;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-ws-agent-steps {
+  margin-top: 8px;
+}
+
+.ai-ws-agent-step-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.ai-ws-agent-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.ai-ws-agent-step.running {
+  color: var(--text-primary);
+}
+
+.ai-ws-source-ref {
+  overflow-wrap: anywhere;
+  font-family: var(--font-family-mono, monospace);
+  font-size: 0.72rem;
+}

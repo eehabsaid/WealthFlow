@@ -5,8 +5,8 @@ Market Data Provider (Exchange Rates & Gold Prices) for AI business context. Rea
 from __future__ import annotations
 
 from typing import Any
-from django.db.models import Max
-from core.models import ExchangeRate, GoldPrice
+from core.models import GoldPrice
+from core.services.shared.latest_rates import latest_exchange_rates
 from core.services.ai.providers.base import BaseContextProvider
 
 
@@ -36,8 +36,7 @@ class MarketDataProvider(BaseContextProvider):
         return list(CAPABILITIES)
 
     def get_data(self, user: Any, limit: int | None = None) -> dict[str, Any]:
-        latest_rate_ids = ExchangeRate.objects.values("currency_code").annotate(max_id=Max("id")).values_list("max_id", flat=True)
-        qs = ExchangeRate.objects.filter(id__in=latest_rate_ids).values("currency_code", "mid_rate", "buy_rate", "sell_rate", "fetched_at")
+        qs = latest_exchange_rates().values("currency_code", "mid_rate", "buy_rate", "sell_rate", "fetched_at")
         from core.services.shared.market_profile import is_gulf_user, spot_gold_snapshot
 
         gulf = user is not None and getattr(user, "is_authenticated", False) and is_gulf_user(user)
