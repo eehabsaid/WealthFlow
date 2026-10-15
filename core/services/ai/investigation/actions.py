@@ -78,11 +78,37 @@ def _from_text(content: str, valid: set) -> list[tuple[str, dict]]:
         found.append((name, args if isinstance(args, dict) else {}))
 
 
+def _from_call_syntax(content: str, valid: set) -> list[tuple[str, dict]]:
+    """`Calling tool({"a": 1}); other_tool({})` or `tool({...})`: the shape the loop itself writes into the history,
+    which models copy. Only offered tool names count; the argument object must be valid JSON."""
+    found, text = [], content or ""
+    for name in sorted(valid, key=len, reverse=True):
+        pos = 0
+        while len(found) < MAX_CALLS_PER_STEP:
+            at = text.find(name + "(", pos)
+            if at < 0:
+                break
+            start = at + len(name) + 1
+            pos = start
+            if text[start:start + 1] != "{":
+                if text[start:start + 1] == ")":
+                    found.append((at, name, {}))
+                continue
+            try:
+                args = json.loads(_balanced(text, start))
+            except ValueError:
+                continue
+            found.append((at, name, args if isinstance(args, dict) else {}))
+    return [(n, a) for _, n, a in sorted(found, key=lambda f: f[0])]
+
+
 def extract_calls(result: dict, valid_names: set) -> list[tuple[str, dict]]:
     """[(tool_name, args)] the model asked for, at most MAX_CALLS_PER_STEP, restricted to the tools actually offered."""
     calls = [(n, a) for n, a in (_norm_native(c) for c in (result.get("tool_calls") or [])) if n in valid_names]
     if not calls:
         calls = _from_text(str(result.get("content") or ""), valid_names)
+    if not calls:
+        calls = _from_call_syntax(str(result.get("content") or ""), valid_names)
     return calls[:MAX_CALLS_PER_STEP]
 
 

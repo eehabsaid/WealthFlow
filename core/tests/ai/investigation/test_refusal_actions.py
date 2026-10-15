@@ -60,6 +60,13 @@ class ActionsTest(SimpleTestCase):
         for text in shapes:
             self.assertEqual(extract_calls({"content": text}, VALID), [("app_grep", {"pattern": "a{1}"})], text)
 
+    def test_calling_syntax_copied_from_the_loop_history_is_a_tool_call(self):
+        text = 'Calling app_grep({"pattern": "a{1}"}); app_read_file({"path": "manage.py"})'
+        self.assertEqual(extract_calls({"content": text}, VALID),
+                         [("app_grep", {"pattern": "a{1}"}), ("app_read_file", {"path": "manage.py"})])
+        self.assertEqual(extract_calls({"content": "Calling not_offered({})"}, VALID), [])
+        self.assertEqual(extract_calls({"content": "Calling app_grep({broken"}, VALID), [])
+
     def test_unoffered_tools_are_dropped_and_reported(self):
         res = {"tool_calls": [{"function": {"name": "create_scenario", "arguments": {}}}]}
         self.assertEqual(extract_calls(res, VALID), [])
