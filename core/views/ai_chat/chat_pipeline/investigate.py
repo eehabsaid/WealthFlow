@@ -64,6 +64,25 @@ def wants_data_file(text: str) -> bool:
     return any(f.key in _DOCUMENT_FORMATS for f in requested(text))
 
 
+def wants_written_document(text: str) -> bool:
+    """Word / PDF / text file requested: the file must contain a document (see investigation/compose.py)."""
+    from core.services.ai.exports import requested
+
+    return any(f.key in ("docx", "pdf", "txt") for f in requested(text))
+
+
+def ensure_document(provider, user_text: str, result, ctx_chars: int) -> bool:
+    """Replace a stub answer ("Let me write it...") by the complete document. True when the content was replaced."""
+    from core.services.ai.investigation.compose import compose_document, needs_document
+
+    if result.reason == "cancelled" or not wants_written_document(user_text) or not needs_document(result):
+        return False
+    doc = compose_document(provider, user_text, result, ctx_chars)
+    if doc:
+        result.content = doc
+    return bool(doc)
+
+
 def should_go_direct(user, text: str, *, computed: bool = False) -> str | None:
     """Reason to skip the normal paths and investigate straight away, or None. `computed`: the instant-answer router
     already holds the exact rows for this question (the model gets them as verified data), so no exploration is needed."""
@@ -135,7 +154,8 @@ def run_investigator_pipeline(*, trace: PipelineTrace, provider, request, conver
                 budget_s=_int_setting(user, "ai_investigator_budget_s", 240, 40, 1800),
                 ctx_chars=ctx_chars, require_evidence=(why == "code_question"), conversation_id=conversation.id,
                 extra_refusal_markers=(_aiT_fallback_no_answer(),))
-            rec.detail.update({"why": why, "steps": len(result.steps), "tools": [s.get("tool") for s in result.steps],
+            composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars)
+            rec.detail.update({"why": why, "composed_document": composed, "steps": len(result.steps), "tools": [s.get("tool") for s in result.steps],
                                "statuses": [s.get("status") for s in result.steps], "llm_calls": result.llm_calls,
                                "nudges": result.nudges, "reason": result.reason, "error": result.error,
                                "content_chars": len(result.content)})
