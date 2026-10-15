@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.test import SimpleTestCase
 
 from core.services.ai.investigation.actions import extract_calls, strip_think, unavailable_tools
-from core.services.ai.investigation.refusal import is_refusal
+from core.services.ai.investigation.refusal import is_announcement, is_refusal
 
 VALID = {"app_grep", "app_read_file", "app_data_query"}
 
@@ -83,3 +83,16 @@ class ActionsTest(SimpleTestCase):
         self.assertEqual(strip_think("<think>plan</think>Answer"), "Answer")
         self.assertEqual(strip_think("<think>never closed"), "")
         self.assertEqual(strip_think(None), "")
+
+
+class AnnouncementTest(SimpleTestCase):
+    def test_announcements_in_four_languages(self):
+        for text in ("Now I have a comprehensive picture. Let me generate the Word document.", "I'll now search the routes.",
+                     "الآن لدي صورة كاملة. سأقوم بإنشاء المستند.", "Je vais maintenant générer le document Word.",
+                     "Ich werde jetzt das Word-Dokument erstellen."):
+            self.assertTrue(is_announcement(text), text)
+
+    def test_real_answers_are_not_announcements(self):
+        self.assertFalse(is_announcement("You spent 100.00 in total. Let me know if you want a breakdown."))
+        self.assertFalse(is_announcement("# Guide\n\nLet me explain: " + "x" * 400))
+        self.assertFalse(is_announcement(""))

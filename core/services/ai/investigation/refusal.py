@@ -73,3 +73,20 @@ def is_refusal(text: str, investigated: bool = False, extra_markers: tuple = ())
     if _CAP.search(head):
         return True
     return (not investigated) and bool(_NF.search(head)) and len(body) < 700
+
+
+# "Now I have a comprehensive picture. Let me generate the document." and then no tool call: the model announces the
+# next step instead of doing it. Short text only; a long answer that happens to say "let me know" is prose.
+_ANNOUNCE = re.compile("|".join((
+    r"\b(?:let me|let's|i(?:'ll| will| am going to|'m going to| shall)|now i(?:'ll| will)?|next,? i(?:'ll| will)) "
+    r"(?:now |first |go ahead and )?(?:generate|create|build|write|produce|compile|prepare|put together|make|search|look|check|read|fetch|query|investigate|export|draft)",
+    r"(?:سأقوم|سوف أقوم|سأبدأ|دعني|الآن سأ|والآن سأ|سأعد|سأنشئ|سأكتب) ",
+    r"\b(?:je vais|laissez-moi|permettez-moi|maintenant,? je vais) (?:maintenant )?(?:générer|generer|créer|creer|rédiger|rediger|produire|préparer|rechercher|vérifier|lire|exporter)",
+    r"\b(?:ich werde|lass mich|jetzt werde ich) (?:jetzt |nun )?(?:\S+ ){0,3}?(?:erstellen|generieren|schreiben|erzeugen|vorbereiten|suchen|prüfen|lesen|exportieren)",
+)), re.IGNORECASE)
+ANNOUNCE_MAX_CHARS = 350
+
+
+def is_announcement(text: str) -> bool:
+    body = (text or "").strip()
+    return 0 < len(body) <= ANNOUNCE_MAX_CHARS and "\n#" not in body and bool(_ANNOUNCE.search(body))

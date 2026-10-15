@@ -55,6 +55,18 @@ class LoopTest(TestCase):
         self.assertIn("DO have full read access", nudge)
         self.assertNotIn("I don't have access", "\n".join(m["content"] for m in prov.calls[1]["messages"] if m["role"] == "assistant"))
 
+    def test_announcing_the_next_step_is_pushed_to_act_not_accepted_as_the_answer(self):
+        res, prov = self.run_loop([
+            tool_call("app_data_models"),
+            {"content": "Now I have a comprehensive picture. Let me generate the Word document."},
+            tool_call("generate_file", format="docx", title="Guide", content="# Guide\n\nWealthFlow tracks your money."),
+            {"content": "I created the user guide."}])
+        self.assertEqual(res.content, "I created the user guide.")
+        self.assertEqual([s["tool"] for s in res.steps], ["app_data_models", "generate_file"])
+        pushed = "\n".join(m["content"] for m in prov.calls[2]["messages"])
+        self.assertIn("announced a next step", pushed)
+        self.assertIn("`content`", pushed)
+
     def test_negative_finding_after_investigating_is_a_valid_answer(self):
         res, _ = self.run_loop([tool_call("app_data_query", model="Expense", filters={"year": 1999}),
                                 {"content": "I couldn't find any expense in 1999: Expense has 0 rows for that year."}])

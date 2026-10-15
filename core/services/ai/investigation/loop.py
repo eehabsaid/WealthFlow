@@ -15,7 +15,7 @@ from . import prompt
 from .loop_helpers import compact, digest, label, publish_legacy, result_text, target, trim_history
 from .actions import extract_calls, strip_think, unavailable_tools
 from .defs import investigation_tool_schemas
-from .refusal import is_refusal
+from .refusal import is_announcement, is_refusal
 
 NUDGES, CALL_TIMEOUT_S = 2, 240
 
@@ -134,6 +134,12 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
         text = strip_think(res.get("content"))
         investigated = bool(out.steps)
         needs_evidence = require_evidence and not investigated
+        if text and is_announcement(text) and out.nudges < NUDGES:
+            file_hint = (" To create a file call generate_file now; for a written document (guide, report, summary) put the full text "
+                         "you want in the file in its `content` argument." if "generate_file" in names else "")
+            nudge("You announced a next step instead of doing it. Do not describe what you will do: call the tool in THIS reply, "
+                  "or, if you already have everything, write the complete answer now." + file_hint)
+            continue
         if (not text or needs_evidence or is_refusal(text, investigated, extra_refusal_markers)) and out.nudges < NUDGES:
             first = "app_data_models" if "app_data_models" in names else sorted(names)[0]
             nudge("You DO have full read access through your tools. Do not say you lack tools, data or access, and do not answer from memory. "

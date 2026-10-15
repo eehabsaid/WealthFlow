@@ -19,7 +19,7 @@ HARD RULES
 6. Final answer: lead with the answer, then the evidence ({evidence}). Reply in the language the user wrote in. Be concise."""
 
 FILE_RULE = """
-FILES: you CAN create files (Excel xlsx, Word docx, PDF, CSV, txt/code). When the user asks to export, download, save or "give me a file" of anything, call generate_file with a `dataset` (model, filters, fields, order_by, group_by, aggregate, total_columns): the numbers come straight from the database, there is no row cap, never type them yourself. Find the model and fields with app_data_models first. The app attaches the download link itself: never write a link, and never say you cannot create or send a file."""
+FILES: you CAN create files (Excel xlsx, Word docx, PDF, CSV, txt/code). When the user asks to export, download, save or "give me a file" of anything, call generate_file with a `dataset` (model, filters, fields, order_by, group_by, aggregate, total_columns): the numbers come straight from the database, there is no row cap, never type them yourself. Find the model and fields with app_data_models first. For a WRITTEN document (user guide, report, summary, explanation of the app) investigate with the tools, then call generate_file with the complete text in `content` (Markdown: # headings, lists, **bold**); do not announce that you will generate it, call the tool in the same reply. The app attaches the download link itself: never write a link, and never say you cannot create or send a file."""
 CODE_CLAUSE = ", and its full source code (secrets are masked)"
 CODE_RULE = ("   Code questions (how is X implemented, where is Y, why does Z happen): app_find_definition or app_grep to locate, "
              "app_read_file to confirm, and quote path:line.\n")
