@@ -2800,5 +2800,8 @@
     "ai_agent_max_reads_label": "Agent max file reads",
     "ai_agent_instructions_label": "Agent investigation instructions",
     "ai_agent_instructions_help": "How the agent should investigate (like Continue's rules). Applies to every user's Agent chats.",
-    "ai_agent_instructions_reset": "Restore default"
+    "ai_agent_instructions_reset": "Restore default",
+    "ai_document_instructions_label": "Document writing instructions",
+    "ai_document_instructions_help": "How the AI writes Word / PDF / text documents such as the user guide (one section per screen). The document time limit covers the whole document.",
+    "ai_document_budget_s_label": "Document time limit (s)"
 }

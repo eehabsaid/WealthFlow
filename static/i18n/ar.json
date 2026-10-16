@@ -2800,5 +2800,8 @@
     "ai_agent_max_reads_label": "أقصى عدد قراءات ملفات للوكيل",
     "ai_agent_instructions_label": "تعليمات تحقيق الوكيل",
     "ai_agent_instructions_help": "كيف يجب أن يحقق الوكيل (مثل قواعد Continue). تُطبَّق على محادثات الوكيل لكل المستخدمين.",
-    "ai_agent_instructions_reset": "استعادة الافتراضي"
+    "ai_agent_instructions_reset": "استعادة الافتراضي",
+    "ai_document_instructions_label": "تعليمات كتابة المستندات",
+    "ai_document_instructions_help": "كيف يكتب الذكاء الاصطناعي مستندات Word / PDF / نص مثل دليل المستخدم (قسم لكل شاشة). المهلة الزمنية للمستند تشمل المستند كاملاً.",
+    "ai_document_budget_s_label": "المهلة الزمنية للمستند (ث)"
 }

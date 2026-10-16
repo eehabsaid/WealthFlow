@@ -14,7 +14,8 @@ from core.models import AppSettings
 from .instructions import MAX_LENGTH
 
 MODES = ("ask", "agent")
-LIMITS = {"ai_agent_max_steps": (2, 40, 15), "ai_agent_budget_s": (60, 3600, 600), "ai_agent_max_reads": (1, 60, 12)}   # min, max, default
+LIMITS = {"ai_agent_max_steps": (2, 40, 15), "ai_agent_budget_s": (60, 3600, 600), "ai_agent_max_reads": (1, 60, 12),
+          "ai_document_budget_s": (120, 7200, 1200)}   # min, max, default
 _FALSE = ("false", "0", "no", "off")
 
 
@@ -30,6 +31,14 @@ def stored_instructions() -> str:
     return str(AppSettings.get("ai_agent_instructions", "", user=None) or "").strip()
 
 
+def stored_document_instructions() -> str:
+    return str(AppSettings.get("ai_document_instructions", "", user=None) or "").strip()
+
+
+def document_budget_s() -> int:
+    return limits()["ai_document_budget_s"]
+
+
 def clamp(key: str, raw: Any) -> int:
     low, high, default = LIMITS[key]
     try:
@@ -43,10 +52,11 @@ def limits() -> dict[str, int]:
 
 
 def get_agent_settings() -> dict[str, Any]:
-    from .instructions import DEFAULT_INSTRUCTIONS
+    from .instructions import DEFAULT_DOCUMENT_INSTRUCTIONS, DEFAULT_INSTRUCTIONS
 
     return {"ai_agent_enabled": agent_enabled(), "ai_agent_instructions": stored_instructions(),
-            "ai_agent_instructions_default": DEFAULT_INSTRUCTIONS, **limits()}
+            "ai_agent_instructions_default": DEFAULT_INSTRUCTIONS, "ai_document_instructions": stored_document_instructions(),
+            "ai_document_instructions_default": DEFAULT_DOCUMENT_INSTRUCTIONS, **limits()}
 
 
 def validate_agent_settings(data: dict, current: dict) -> tuple[dict | None, str | None]:
@@ -57,7 +67,10 @@ def validate_agent_settings(data: dict, current: dict) -> tuple[dict | None, str
     text = str(data.get("ai_agent_instructions", current["ai_agent_instructions"]) or "").strip()
     if len(text) > MAX_LENGTH:
         return None, f"ai_agent_instructions must be at most {MAX_LENGTH} characters"
-    out: dict[str, Any] = {"enabled": bool(enabled), "instructions": text, "limits": {}}
+    doc_text = str(data.get("ai_document_instructions", current["ai_document_instructions"]) or "").strip()
+    if len(doc_text) > MAX_LENGTH:
+        return None, f"ai_document_instructions must be at most {MAX_LENGTH} characters"
+    out: dict[str, Any] = {"enabled": bool(enabled), "instructions": text, "document_instructions": doc_text, "limits": {}}
     for key in LIMITS:
         raw = data.get(key, current[key])
         try:
@@ -71,6 +84,7 @@ def validate_agent_settings(data: dict, current: dict) -> tuple[dict | None, str
 def persist_agent_settings(validated: dict) -> None:
     AppSettings.set("ai_agent_enabled", "true" if validated["enabled"] else "false", user=None)
     AppSettings.set("ai_agent_instructions", validated["instructions"], user=None)
+    AppSettings.set("ai_document_instructions", validated["document_instructions"], user=None)
     for key, value in validated["limits"].items():
         AppSettings.set(key, str(value), user=None)
 

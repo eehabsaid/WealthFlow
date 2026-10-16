@@ -2800,5 +2800,8 @@
     "ai_agent_max_reads_label": "Lectures de fichiers max. de l'agent",
     "ai_agent_instructions_label": "Instructions d'enquête de l'agent",
     "ai_agent_instructions_help": "Comment l'agent doit enquêter (comme les règles de Continue). S'applique aux discussions Agent de tous les utilisateurs.",
-    "ai_agent_instructions_reset": "Rétablir par défaut"
+    "ai_agent_instructions_reset": "Rétablir par défaut",
+    "ai_document_instructions_label": "Instructions de rédaction des documents",
+    "ai_document_instructions_help": "Comment l'IA rédige les documents Word / PDF / texte comme le guide utilisateur (une section par écran). La limite de temps couvre tout le document.",
+    "ai_document_budget_s_label": "Limite de temps du document (s)"
 }

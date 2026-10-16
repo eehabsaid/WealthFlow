@@ -1,23 +1,27 @@
 """Guarantee for "write me a document": the file must hold the document, never the model's "let me write it" sentence.
 
 A model that researched with the tools but then stopped without calling generate_file leaves a short announcement as its
-answer, and that text would become the file. No phrase list can catch every wording ("let me generate/compose/draft..."),
-so the rule is structural: a document was requested, no generate_file call succeeded and the answer is short -> one
-dedicated tool-free call writes the complete document from the evidence the tools returned."""
+answer, and that text would become the file. No phrase list can catch every wording, so the rule is structural: a document
+was requested, no generate_file call succeeded and the answer is short -> the app writes the document itself.
+
+Two ways, chosen by the model with a one-word question (no phrase list):
+  * a guide to the app itself -> section by section, one model call per screen/tab group of the LIVE app (a local model with a
+    small context window cannot write 20 screens in one reply, and was cutting the guide off after a third of it). A section
+    the model fails to write, or that does not fit the time budget, is filled from the app's own screen list.
+  * any other document (a report on the user's data) -> one call from the evidence the tools returned."""
 
 from __future__ import annotations
 
+import time
+
 from .actions import strip_think
+from .compose_sections import knowledge, units
 from .refusal import is_refusal
 
 MIN_DOC_CHARS = 1500      # a real guide/report is longer than this; shorter text is an announcement or a stub
-MIN_ACCEPT_CHARS = 400
-TIMEOUT_S = 240
-_SYSTEM = ("You write documents for the user of a personal-finance app. Write the COMPLETE document the user asked for now, in "
-           "Markdown: a title (#), sections (##) with clear headings, short paragraphs, bullet lists and numbered steps where "
-           "useful. Use only the evidence below (what the app's tools returned); do not invent features. Cover EVERY screen and "
-           "area the evidence lists (each with its purpose and the steps to use it), plus getting started and settings when the "
-           "evidence mentions them; do not stop after a few sections. Write in the language of the request. Output ONLY the document: no introduction, no 'let me', no 'here is', no questions, no links.")
+MIN_ACCEPT_CHARS, MIN_SECTION_CHARS, TIMEOUT_S = 400, 120, 240
+_ABOUT_APP = ("Answer with exactly one word, YES or NO. Is the user asking for documentation of the application itself (a user guide, "
+              "manual or description of its screens and features), rather than a report or analysis of their own financial data?")
 
 
 def generated_file(steps: list) -> bool:
@@ -28,33 +32,62 @@ def needs_document(out) -> bool:
     return not generated_file(out.steps) and len((out.content or "").strip()) < MIN_DOC_CHARS
 
 
-def _with_routes(user, out) -> list:
-    """The tool results plus the app's full screen list (so the document covers every screen, not only what the model searched)."""
-    results = list(out.results or [])
-    if user is None or any(name == "app_routes" for name, _, _ in results):
-        return results
-    try:
-        from core.services.ai.tools import validate_and_execute_tool
-
-        _, res = validate_and_execute_tool("app_routes", {}, user)
-        from .loop_helpers import result_text
-
-        results.insert(0, ("app_routes", {}, result_text(res, 6000)))
-    except Exception:  # noqa: BLE001 - extra evidence only
-        pass
-    return results
-
-
-def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user=None) -> str:
-    """The full document text, or "" when the model could not produce one (the caller keeps the original answer)."""
-    budget = max(6000, ctx_chars - 4000)
-    evidence = "\n\n".join(f"[{name} {str(args)[:120]}]\n{text}" for name, args, text in _with_routes(user, out))[:budget]
-    messages = [{"role": "system", "content": _SYSTEM},
-                {"role": "user", "content": f"REQUEST:\n{user_text}\n\nEVIDENCE:\n{evidence or '(no tool results)'}"}]
+def _ask(provider, out, system: str, user_content: str, deadline: float, temperature: float = 0.2) -> str:
     out.llm_calls += 1
     try:
-        res = provider.generate(messages, tools=None, temperature=0.2, timeout=TIMEOUT_S)
-    except Exception:  # noqa: BLE001 - the caller keeps the original answer
+        res = provider.generate([{"role": "system", "content": system}, {"role": "user", "content": user_content}], tools=None,
+                                temperature=temperature, timeout=int(max(20, min(TIMEOUT_S, deadline - time.monotonic()))))
+    except Exception:  # noqa: BLE001 - the caller falls back
         return ""
-    text = strip_think((res or {}).get("content")) if isinstance(res, dict) and not res.get("error") else ""
+    return strip_think((res or {}).get("content")).strip() if isinstance(res, dict) and not res.get("error") else ""
+
+
+def _about_the_app(provider, user_text: str, out, deadline: float) -> bool:
+    return _ask(provider, out, _ABOUT_APP, user_text, deadline, temperature=0).upper().startswith("YES")
+
+
+def _heading(text: str, title: str) -> str:
+    """The section as "## title" Markdown: a stray H1 is demoted, a missing heading added."""
+    lines = text.splitlines()
+    if lines and lines[0].startswith("# "):
+        lines[0] = "#" + lines[0]
+    elif not lines or not lines[0].startswith("##"):
+        lines.insert(0, f"## {title}\n")
+    return "\n".join(lines)
+
+
+def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int, progress) -> str:
+    started = time.monotonic()
+    deadline = started + budget_s
+    plan = units(user)
+    intro = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY the document title (one line starting with '# ') and a short introduction "
+                 f"(3-5 sentences) of the guide. Screens: {', '.join(u['title'] for u in plan)}", deadline)
+    parts = [intro if intro.startswith("# ") and len(intro) > 30 else f"# User guide\n\n{intro}".rstrip()]
+    for n, unit in enumerate(plan, 1):
+        if progress:
+            progress(n, len(plan), unit["title"], started)
+        text = ""
+        if time.monotonic() < deadline - 20:
+            text = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY this section: \"{unit['title']}\". Cover every tab and "
+                        f"action listed, with the steps to use them.\n\nSCREEN:\n{unit['evidence']}\n\nAPP GUIDE:\n{knowledge(user, unit)}", deadline)
+        parts.append(_heading(text, unit["title"]) if len(text) >= MIN_SECTION_CHARS and not is_refusal(text, True) else unit["fallback"])
+    return "\n\n".join(parts)
+
+
+def _single(provider, user_text: str, out, instructions: str, ctx_chars: int, deadline: float) -> str:
+    budget = max(6000, ctx_chars - 4000)
+    evidence = "\n\n".join(f"[{name} {str(args)[:120]}]\n{text}" for name, args, text in (out.results or []))[:budget]
+    text = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nEVIDENCE:\n{evidence or '(no tool results)'}", deadline)
     return text if len(text) >= MIN_ACCEPT_CHARS and not is_refusal(text, True) else ""
+
+
+def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user=None, progress=None) -> str:
+    """The full document text, or "" when the model could not produce one (the caller keeps the original answer)."""
+    from core.services.ai.agent.instructions import effective_document_instructions
+    from core.services.ai.agent.settings import document_budget_s
+
+    instructions, budget_s = effective_document_instructions(), document_budget_s()
+    deadline = time.monotonic() + budget_s
+    if user is not None and _about_the_app(provider, user_text, out, deadline):
+        return _guide(provider, user, user_text, out, instructions, budget_s, progress)
+    return _single(provider, user_text, out, instructions, ctx_chars, deadline)

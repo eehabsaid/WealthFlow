@@ -65,6 +65,7 @@ window.AIA.buildAgentControlsHtml = function () {
   const s = window.AIA.state.currentAISettings || {};
   const on = s.ai_agent_enabled === false ? "" : "checked";
   const text = s.ai_agent_instructions || s.ai_agent_instructions_default || "";
+  const docText = s.ai_document_instructions || s.ai_document_instructions_default || "";
   const num = (id, key, min, max, fallback) =>
     `<div class="d-flex align-items-center gap-2 mb-0"><label class="fs-6 mb-0" for="${id}" data-i18n="${key}_label">${t(`${key}_label`, key)}</label><input type="number" class="form-control form-control-sm w-auto" style="max-width:7.5rem" id="${id}" min="${min}" max="${max}" value="${s[key] ?? fallback}"></div>`;
   return `
@@ -77,6 +78,7 @@ window.AIA.buildAgentControlsHtml = function () {
                         ${num("aiAgentMaxStepsInput", "ai_agent_max_steps", 2, 40, 15)}
                         ${num("aiAgentBudgetInput", "ai_agent_budget_s", 60, 3600, 600)}
                         ${num("aiAgentMaxReadsInput", "ai_agent_max_reads", 1, 60, 12)}
+                        ${num("aiDocumentBudgetInput", "ai_document_budget_s", 120, 7200, 1200)}
                     </div>
                     <div class="mb-0">
                         <label class="fs-6 fw-semibold mb-1" for="aiAgentInstructionsInput" data-i18n="ai_agent_instructions_label">${t("ai_agent_instructions_label", "Agent investigation instructions")}</label>
@@ -85,7 +87,29 @@ window.AIA.buildAgentControlsHtml = function () {
                             <button type="button" class="btn btn-sm btn-outline-secondary" id="aiAgentInstructionsResetBtn" onclick="window.AIA.resetAgentInstructions()" data-i18n="ai_agent_instructions_reset">${t("ai_agent_instructions_reset", "Restore default")}</button>
                             <span class="form-text fs-6 mb-0" data-i18n="ai_agent_instructions_help">${t("ai_agent_instructions_help", "How the agent should investigate (like Continue's rules). Applies to every user's Agent chats.")}</span>
                         </div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="fs-6 fw-semibold mb-1" for="aiDocumentInstructionsInput" data-i18n="ai_document_instructions_label">${t("ai_document_instructions_label", "Document writing instructions")}</label>
+                        <textarea class="form-control form-control-sm" id="aiDocumentInstructionsInput" rows="7" maxlength="6000">${docText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</textarea>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="aiDocumentInstructionsResetBtn" onclick="window.AIA.resetDocumentInstructions()" data-i18n="ai_agent_instructions_reset">${t("ai_agent_instructions_reset", "Restore default")}</button>
+                            <span class="form-text fs-6 mb-0" data-i18n="ai_document_instructions_help">${t("ai_document_instructions_help", "How the AI writes Word / PDF / text documents such as the user guide (one section per screen). The time limit above covers the whole document.")}</span>
+                        </div>
                     </div>`;
+};
+
+window.AIA.resetDocumentInstructions = function () {
+  const box = document.getElementById("aiDocumentInstructionsInput");
+  if (box)
+    box.value = (window.AIA.state.currentAISettings || {}).ai_document_instructions_default || "";
+};
+
+window.AIA.documentInstructionsForSave = function () {
+  const text = (document.getElementById("aiDocumentInstructionsInput")?.value || "").trim();
+  const dflt = (
+    (window.AIA.state.currentAISettings || {}).ai_document_instructions_default || ""
+  ).trim();
+  return text === dflt ? "" : text;
 };
 
 window.AIA.resetAgentInstructions = function () {

@@ -17,7 +17,21 @@ DEFAULT_INSTRUCTIONS = """HOW YOU WORK (Agent mode)
 9. Stop as soon as you can answer. Be concise and reply in the language the user wrote in."""
 
 
+DEFAULT_DOCUMENT_INSTRUCTIONS = """HOW YOU WRITE DOCUMENTS
+1. Write in Markdown: # for the document title only, ## for a screen or main section, ### for a tab or sub-topic, short paragraphs, bullet lists, and numbered steps for procedures.
+2. Use only the evidence you are given (the screen description and the app guide text). Never invent a feature, button, tab, price or limit.
+3. Cover everything the evidence lists: every tab and every action, each with its purpose and the steps to use it.
+4. Write for the person who uses the app, in the language of the request. Be concrete (what to click, what to enter, what happens next).
+5. Output ONLY the requested text: no introduction about what you are doing, no 'let me', no 'here is', no questions, no links."""
+
+
 def effective_instructions() -> str:
     from .settings import stored_instructions
 
     return stored_instructions() or DEFAULT_INSTRUCTIONS
+
+
+def effective_document_instructions() -> str:
+    from .settings import stored_document_instructions
+
+    return stored_document_instructions() or DEFAULT_DOCUMENT_INSTRUCTIONS

@@ -2800,5 +2800,8 @@
     "ai_agent_max_reads_label": "Max. Dateizugriffe des Agents",
     "ai_agent_instructions_label": "Untersuchungsanweisungen des Agents",
     "ai_agent_instructions_help": "Wie der Agent untersuchen soll (wie die Regeln von Continue). Gilt für die Agent-Chats aller Nutzer.",
-    "ai_agent_instructions_reset": "Standard wiederherstellen"
+    "ai_agent_instructions_reset": "Standard wiederherstellen",
+    "ai_document_instructions_label": "Anweisungen zum Schreiben von Dokumenten",
+    "ai_document_instructions_help": "Wie die KI Word-/PDF-/Textdokumente wie das Benutzerhandbuch schreibt (ein Abschnitt pro Bildschirm). Das Zeitlimit gilt für das gesamte Dokument.",
+    "ai_document_budget_s_label": "Zeitlimit für Dokumente (s)"
 }

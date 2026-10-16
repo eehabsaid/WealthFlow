@@ -27,7 +27,8 @@ def _db_path() -> str:
 # What every AI step needs to reach the chat at all (a fresh DB has no provider, so the endpoint answers "AI disabled"
 # before the instant engine runs). Nothing here needs a reachable model: instant answers and file export use 0 LLM calls.
 AI_ENGINE_PINS = {"ai_enabled": "true", "ai_provider": "ollama", "ai_investigator_mode": "auto", "ai_file_generation": "true",
-                  "ai_file_max_mb": "10", "ai_file_max_rows": "50000"}
+                  "ai_file_max_mb": "10", "ai_file_max_rows": "50000",
+                  "ai_chat_mode": "ask"}   # Agent mode (a saved per-user choice) skips the instant-answer engine these steps test
 
 
 def _connect() -> sqlite3.Connection:

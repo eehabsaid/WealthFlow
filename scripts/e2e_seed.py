@@ -78,6 +78,14 @@ def _reset_lapsed_user(user):
     sub.save(update_fields=["status", "trial_end", "updated_at"])
 
 
+def _reset_ai_choices():
+    """A copy of the developer's db.sqlite3 carries his own per-user Ask/Agent choice; Agent mode skips the instant-answer engine,
+    so every AI E2E step would silently test the model path instead. The disposable DB always starts on Ask."""
+    from core.models import AppSettings
+
+    AppSettings.objects.filter(key="ai_chat_mode").delete()
+
+
 def _apply_db_argument(argv: list[str]) -> None:
     """`--db NAME` / `--db=NAME` -> WEALTHFLOW_DB_NAME (must happen before Django reads the settings)."""
     for i, arg in enumerate(argv):
@@ -101,6 +109,7 @@ def main() -> int:
               "  2) python scripts/e2e_seed.py --db <disposable copy>.sqlite3   and start the server with WEALTHFLOW_DB_NAME set to the same file.")
         return 2
     _ensure_plans()
+    _reset_ai_choices()
     _ensure_user(*ADMIN, admin=True)
     _reset_billing_tester(_ensure_user(*TESTER, admin=False))
     _reset_lapsed_user(_ensure_user(*LAPSED, admin=False))

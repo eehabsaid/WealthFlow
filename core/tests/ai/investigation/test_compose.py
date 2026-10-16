@@ -59,16 +59,6 @@ class ComposeTest(TestCase):
 
 
 class ComposeEvidenceAndHeaderTest(TestCase):
-    def test_the_app_screen_list_is_added_to_the_evidence_and_the_prompt_demands_full_coverage(self):
-        from core.tests.ai.investigation.support import make_user
-
-        user = make_user("compose_user")
-        prov = ScriptedProvider([{"content": GUIDE}])
-        self.assertTrue(ensure_document(prov, "write the user guide as a word document", result("Let me write it.", results=()), 24000, user))
-        sent = "\n".join(m["content"] for m in prov.calls[0]["messages"])
-        self.assertIn("[app_routes", sent)
-        self.assertIn("EVERY screen", sent)
-
     def test_a_self_titled_document_replaces_the_generic_export_header(self):
         from core.models import AIConversation, AIMessage
         from core.services.ai.exports.build import document_for

@@ -51,6 +51,19 @@ class AgentSettingsApiTest(TestCase):
         self.post(ai_validate_mode="flag")                       # omitted agent keys keep their stored values
         self.assertEqual(self.client.get(self.URL).json()["ai_agent_max_steps"], 15)
 
+    def test_document_instructions_and_time_limit_are_editable_with_a_default(self):
+        from core.services.ai.agent.instructions import DEFAULT_DOCUMENT_INSTRUCTIONS, effective_document_instructions
+        from core.services.ai.agent.settings import document_budget_s
+
+        got = self.client.get(self.URL).json()
+        self.assertEqual((got["ai_document_instructions"], got["ai_document_instructions_default"], got["ai_document_budget_s"]),
+                         ("", DEFAULT_DOCUMENT_INSTRUCTIONS, 1200))
+        self.assertEqual(self.post(ai_document_instructions="Write short sections.", ai_document_budget_s=5).status_code, 200)
+        self.assertEqual((effective_document_instructions(), document_budget_s()), ("Write short sections.", 120))
+        self.post(ai_document_instructions="", ai_document_budget_s=99999)
+        self.assertEqual((effective_document_instructions(), document_budget_s()), (DEFAULT_DOCUMENT_INSTRUCTIONS, 7200))
+        self.assertEqual(self.post(ai_document_instructions="x" * 6001).status_code, 400)
+
     def test_a_member_cannot_read_or_change_the_agent_settings(self):
         member = make_user("agent_set_member")
         self.client.force_login(member)
