@@ -19,9 +19,10 @@ class GuideProvider:
     """Answers the three kinds of prompt the guide writer sends; records every call."""
 
     supports_tools = False
+    user = None
 
-    def __init__(self, about_app="YES", fail_sections=False):
-        self.calls, self.about_app, self.fail_sections = [], about_app, fail_sections
+    def __init__(self, about_app="YES", fail_sections=False, drop_last_tab=False):
+        self.calls, self.about_app, self.fail_sections, self.drop_last_tab = [], about_app, fail_sections, drop_last_tab
 
     def generate(self, messages, tools=None, **kwargs):
         system, ask = messages[0]["content"], messages[-1]["content"]
@@ -30,11 +31,17 @@ class GuideProvider:
             return {"content": self.about_app}
         if "Write ONLY the document title" in ask:
             return {"content": "# WealthFlow user guide\n\nThis guide explains every screen of the app step by step."}
+        if "Write ONLY this sub-section" in ask:
+            name = ask.split('starting with the line "### ', 1)[1].split('"', 1)[0]
+            return {"content": f"### {name}\n\n" + "Open this tab and follow the steps shown on screen. " * 4}
         if "Write ONLY this section" in ask:
             if self.fail_sections:
                 return {"error": "model unavailable"}
             title = ask.split('Write ONLY this section: "', 1)[1].split('"', 1)[0]
-            return {"content": f"## {title}\n\n" + "Open the screen from the menu and use its tabs to manage your records. " * 3}
+            body = "Open the screen from the menu and use its tabs to manage your records. " * 3
+            names = [unit["tabs"] for unit in units(self.user) if unit["title"] == title][0]
+            tabs = names[:-1] if self.drop_last_tab and len(names) > 1 else names
+            return {"content": f"\n\n## {title}\n\n{body}\n\n" + "\n\n".join(f"## {n}\n\n{body}" for n in tabs)}
         return {"content": "x" * 600}
 
 
@@ -61,6 +68,7 @@ class GuideTest(TestCase):
 
     def run_guide(self, user, provider):
         res = Result()
+        provider.user = user
         self.assertTrue(ensure_document(provider, ASK, res, 24000, user, None))
         return res.content
 
@@ -126,3 +134,42 @@ class GuideTest(TestCase):
         self.assertTrue(ensure_document(prov, "write a report of my expenses as a word document", res, 24000, self.member, None))
         self.assertEqual(len(prov.calls), 2)
         self.assertIn("total 100.00", prov.calls[1]["ask"])
+
+
+class GuideCoverageTest(TestCase):
+    """The reported bug: the section for Settings tabs 16-20 only contained "Legal Text" and silently dropped four tabs."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = make_user("cover_admin", sysadmin=True)
+
+    def run_guide(self, prov):
+        prov.user = self.admin
+        res = Result()
+        self.assertTrue(ensure_document(prov, ASK, res, 24000, self.admin, None))
+        return res.content, prov
+
+    def test_a_tab_the_model_skipped_is_written_on_its_own_so_nothing_is_missing(self):
+        doc, prov = self.run_guide(GuideProvider(drop_last_tab=True))
+        for name in tab_names(self.admin):
+            self.assertIn(f"### {name}", doc, name)
+        singles = [c for c in prov.calls if "Write ONLY this sub-section" in c["ask"]]
+        self.assertTrue(singles)
+        self.assertTrue(all(len(c["ask"]) < 5000 for c in singles))     # one tab per call: small prompt
+
+    def test_a_skipped_tab_the_model_cannot_write_comes_from_the_apps_own_tab_list(self):
+        class Flaky(GuideProvider):
+            def generate(self, messages, tools=None, **kwargs):
+                if "Write ONLY this sub-section" in messages[-1]["content"]:
+                    return {"error": "unavailable"}
+                return super().generate(messages, tools, **kwargs)
+
+        doc, _ = self.run_guide(Flaky(drop_last_tab=True))
+        for name in tab_names(self.admin):
+            self.assertIn(f"### {name}", doc, name)
+
+    def test_one_title_per_section_and_the_models_own_headings_sit_below_it(self):
+        doc, _ = self.run_guide(GuideProvider())
+        h2 = [line[3:] for line in doc.splitlines() if line.startswith("## ")]
+        self.assertEqual(len(h2), len(set(h2)))                          # no "Settings / Settings"
+        self.assertEqual(set(h2), {u["title"] for u in units(self.admin)})

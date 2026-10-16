@@ -2,7 +2,7 @@
 
 In the REAL chat UI, with Instant Answers pinned ON, asks "please analyze my wealth and tell me how much will it be on
 30-Nov-2026, in details" (the question that used to answer "the data only contains expense history") and checks that the
-answer is the forecast table (a Net worth row, a Now and a Forecast column) with real money values and no expense text.
+answer is the forecast table (a Net worth row, a Now and an Expected column) with real money values and no expense text.
 The same wording in Arabic must answer in Arabic. Read-only: nothing is created or changed except the chat itself.
 """
 
@@ -34,7 +34,7 @@ def test_ai_wealth(context, reporter, screenshot_logger):
         with pinned({**AI_ENGINE_PINS, "ai_direct_answers": "true"}):
             table = _ask(page, EN)
             text = table.inner_text()
-            ok = all(word in text for word in ("Net worth", "Now", "Forecast"))
+            ok = all(word in text for word in ("Net worth", "Now", "Expected"))
             _step(reporter, screenshot_logger, page, "AI wealth forecast answers with the projection table", ok and "Total All-Time Spending" not in text,
                   f"rows={table.locator('tr').count()}", "wealth_forecast")
             table = _ask(page, AR)

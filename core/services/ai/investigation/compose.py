@@ -15,7 +15,7 @@ from __future__ import annotations
 import time
 
 from .actions import strip_think
-from .compose_sections import knowledge, units
+from .compose_sections import knowledge, missing_tabs, tab_fallback, units
 from .refusal import is_refusal
 
 MIN_DOC_CHARS = 1500      # a real guide/report is longer than this; shorter text is an announcement or a stub
@@ -46,14 +46,38 @@ def _about_the_app(provider, user_text: str, out, deadline: float) -> bool:
     return _ask(provider, out, _ABOUT_APP, user_text, deadline, temperature=0).upper().startswith("YES")
 
 
-def _heading(text: str, title: str) -> str:
-    """The section as "## title" Markdown: a stray H1 is demoted, a missing heading added."""
-    lines = text.splitlines()
-    if lines and lines[0].startswith("# "):
-        lines[0] = "#" + lines[0]
-    elif not lines or not lines[0].startswith("##"):
-        lines.insert(0, f"## {title}\n")
-    return "\n".join(lines)
+def _norm(text: str) -> str:
+    return "".join(ch for ch in str(text).lower() if ch.isalnum())
+
+
+def _heading(text: str, unit: dict) -> str:
+    """The section as Markdown under exactly one "## title": the model's own first heading is replaced by the unit title, every
+    other H1/H2 becomes H3, and a heading that only repeats the screen's name is dropped (no "Settings / Settings")."""
+    same = {_norm(unit["title"]), _norm(unit["page"])}
+    out = [f"## {unit['title']}", ""]
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            name = stripped.lstrip("#").strip()
+            if _norm(name) in same:
+                continue
+            if stripped.startswith(("# ", "## ")):
+                line = f"### {name}"
+        elif not stripped and len(out) == 2:
+            continue
+        out.append(line)
+    return "\n".join(out).rstrip()
+
+
+def _tab_section(provider, user, user_text: str, out, unit: dict, tab: dict, instructions: str, deadline: float) -> str:
+    """One tab the section skipped: written alone (small prompt); the app's own tab list when the model cannot or time is up."""
+    text = ""
+    if time.monotonic() < deadline - 20:
+        text = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY this sub-section, starting with the line \"### {tab['name']}\": "
+                    f"what the tab is for and the steps to use each action.\n\nTAB:\n{tab}\n\nAPP GUIDE:\n{knowledge(user, unit, tab)}", deadline)
+    if len(text) < MIN_SECTION_CHARS or is_refusal(text, True):
+        return tab_fallback(tab)
+    return text if text.lstrip().startswith("###") else f"### {tab['name']}\n\n{text}"
 
 
 def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int, progress) -> str:
@@ -70,7 +94,13 @@ def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int
         if time.monotonic() < deadline - 20:
             text = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY this section: \"{unit['title']}\". Cover every tab and "
                         f"action listed, with the steps to use them.\n\nSCREEN:\n{unit['evidence']}\n\nAPP GUIDE:\n{knowledge(user, unit)}", deadline)
-        parts.append(_heading(text, unit["title"]) if len(text) >= MIN_SECTION_CHARS and not is_refusal(text, True) else unit["fallback"])
+        if len(text) < MIN_SECTION_CHARS or is_refusal(text, True):
+            parts.append(unit["fallback"])
+            continue
+        section = _heading(text, unit)
+        for tab in missing_tabs(unit, section):   # the model dropped these tabs: nothing may be missing from the guide
+            section += "\n\n" + _tab_section(provider, user, user_text, out, unit, tab, instructions, deadline)
+        parts.append(section)
     return "\n\n".join(parts)
 
 
