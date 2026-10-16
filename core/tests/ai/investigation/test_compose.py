@@ -56,3 +56,33 @@ class ComposeTest(TestCase):
             self.assertFalse(ensure_document(ScriptedProvider([reply]), self.ASK, res, 24000))
             self.assertEqual(res.content, "Let me write it.")
         self.assertEqual(compose_document(ScriptedProvider([{"content": "<think>x</think>" + GUIDE}]), self.ASK, result("x")), GUIDE)
+
+
+class ComposeEvidenceAndHeaderTest(TestCase):
+    def test_the_app_screen_list_is_added_to_the_evidence_and_the_prompt_demands_full_coverage(self):
+        from core.tests.ai.investigation.support import make_user
+
+        user = make_user("compose_user")
+        prov = ScriptedProvider([{"content": GUIDE}])
+        self.assertTrue(ensure_document(prov, "write the user guide as a word document", result("Let me write it.", results=()), 24000, user))
+        sent = "\n".join(m["content"] for m in prov.calls[0]["messages"])
+        self.assertIn("[app_routes", sent)
+        self.assertIn("EVERY screen", sent)
+
+    def test_a_self_titled_document_replaces_the_generic_export_header(self):
+        from core.models import AIConversation, AIMessage
+        from core.services.ai.exports.build import document_for
+        from core.tests.ai.investigation.support import make_user
+
+        user = make_user("header_user")
+        conv = AIConversation.objects.create(user=user, title="t")
+        AIMessage.objects.create(conversation=conv, role="user", content="write the user guide as a word document", sources=[])
+        guide = AIMessage.objects.create(conversation=conv, role="assistant", content=GUIDE, sources=[])
+        doc = document_for(guide)
+        self.assertEqual(doc.title, "WealthFlow user guide")
+        self.assertEqual(doc.question, "")
+        self.assertTrue(doc.generated)
+        self.assertEqual(doc.blocks[0].kind, "heading")
+        self.assertEqual(doc.blocks[0].level, 2)       # the old H1 became the title, sections keep their level
+        plain_answer = AIMessage.objects.create(conversation=conv, role="assistant", content="## Totals\n\nYou spent 5.", sources=[])
+        self.assertEqual(document_for(plain_answer).title, "WealthFlow AI")   # ordinary answers keep the usual header

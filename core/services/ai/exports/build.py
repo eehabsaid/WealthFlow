@@ -45,11 +45,14 @@ def document_for(message: Any) -> ExportDocument:
     else:
         content = from_question(message, user, question_raw, _previous_question(message, question_id)) or saved
     lang = language(question or content)
+    blocks = parse_markdown(content)
+    title, shown_question = t(lang, "export_title"), f"{t(lang, 'export_question')}: {question}" if question else ""
+    if blocks and blocks[0].kind == "heading" and blocks[0].level == 1:
+        # a self-titled document (a user guide, a report): its own title replaces the generic "WealthFlow AI / Question:" block
+        title, shown_question = blocks.pop(0).text, ""
     return ExportDocument(
-        title=t(lang, "export_title"),
-        question=f"{t(lang, 'export_question')}: {question}" if question else "",
-        generated=t(lang, "export_generated", date=_today(lang)),
-        lang=lang, blocks=parse_markdown(content), source=source or saved,
+        title=title, question=shown_question, generated=t(lang, "export_generated", date=_today(lang)),
+        lang=lang, blocks=blocks, source=source or saved,
     )
 
 
