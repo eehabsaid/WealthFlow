@@ -10,18 +10,21 @@ from .district_scraper import _scrape_districts
 logger = logging.getLogger(__name__)
 
 
-def build_rate_map(timeout_ms: int = 25_000) -> dict:
+def build_rate_map(timeout_ms: int = 25_000, diag: dict | None = None) -> dict:
     """
     Always returns a valid property_valuation_rate_map dict.
-    Baseline fills any district not returned by the live scrape.
+    Baseline fills any district not returned by the live scrape. `diag` (optional) receives the scrape diagnostics,
+    including `reason` when nothing live came back.
     """
+    diag = diag if diag is not None else {}
     timeout_secs = max(10, timeout_ms // 1_000)
 
     scraped: dict[str, float] = {}
     try:
-        scraped = _scrape_districts(timeout=timeout_secs)
+        scraped = _scrape_districts(timeout=timeout_secs, diag=diag)
     except Exception as exc:
         logger.warning("Scraping failed entirely: %s", exc)
+        diag["reason"] = "network"
 
     # Baseline first, live data overrides only validated districts
     by_city: dict[str, float] = CAIRO_BASELINE.copy()

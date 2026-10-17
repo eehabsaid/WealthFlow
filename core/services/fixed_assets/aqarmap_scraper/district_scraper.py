@@ -12,15 +12,32 @@ from .rsc_parsing import _decode_rsc, _extract_avg_price_data, _latest_apartment
 logger = logging.getLogger(__name__)
 
 
-def _scrape_districts(timeout: int = 20) -> dict[str, float]:
+BLOCK_CODES = (401, 403, 429, 503)
+
+
+def _failure_reason(diag: dict) -> str:
+    """Why nothing live came back: not_installed | blocked (the site refused us) | network | no_data (page changed)."""
+    codes = diag.get("statuses", {})
+    if any(c in codes for c in BLOCK_CODES) and not codes.get(200):
+        return "blocked"
+    if codes.get(200):
+        return "no_data"
+    return "network"
+
+
+def _scrape_districts(timeout: int = 20, diag: dict | None = None) -> dict[str, float]:
     """
     Fetch each district page, validate slug, return {name: price_per_sqm}.
     Districts that redirect to the city default are skipped (baseline used).
+    `diag`, when given, is filled with `statuses` ({http code: count}) and, if nothing live came back, `reason`.
     """
+    diag = diag if diag is not None else {}
+    diag["statuses"] = {}
     try:
         import cloudscraper
     except ImportError:
         logger.warning("cloudscraper not installed — scraping skipped")
+        diag["reason"] = "not_installed"
         return {}
 
     scraper = cloudscraper.create_scraper(
@@ -33,6 +50,7 @@ def _scrape_districts(timeout: int = 20) -> dict[str, float]:
         url = BASE_URL.format(path=path)
         try:
             r = scraper.get(url, headers=_HEADERS, timeout=timeout)
+            diag["statuses"][r.status_code] = diag["statuses"].get(r.status_code, 0) + 1
             if r.status_code != 200:
                 logger.debug("%-25s HTTP %d — using baseline", path, r.status_code)
                 continue
@@ -64,4 +82,6 @@ def _scrape_districts(timeout: int = 20) -> dict[str, float]:
 
         time.sleep(random.uniform(0.5, 1.2))
 
+    if not results:
+        diag["reason"] = _failure_reason(diag)
     return results

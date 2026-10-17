@@ -2824,5 +2824,9 @@
     "map_tiles_url_label": "Kachelserver-URL",
     "map_tiles_attribution_label": "Karten-Quellenangabe (HTML erlaubt)",
     "map_tiles_reset": "Standardkarte verwenden",
-    "invalid_map_tile_url": "Die Kachelserver-URL muss mit http(s):// beginnen und {z}, {x} und {y} enthalten."
+    "invalid_map_tile_url": "Die Kachelserver-URL muss mit http(s):// beginnen und {z}, {x} und {y} enthalten.",
+    "scrape_reason_not_installed": "das Paket cloudscraper ist auf dem Server nicht installiert",
+    "scrape_reason_blocked": "Aqarmap hat die Anfrage abgelehnt (Anti-Bot-Schutz)",
+    "scrape_reason_network": "der Server konnte keine Verbindung zu Aqarmap herstellen",
+    "scrape_reason_no_data": "Aqarmap hat geantwortet, aber die Seite enthält keine Preisdaten mehr"
 }

@@ -44,6 +44,7 @@ class ScrapePropertyRatesView(PermissionRequiredMixin, View):
         timeout_secs = int(body.get("timeout", 25))
         timeout_ms = timeout_secs * 1_000
 
+        diag = {}
         try:
             if baseline_only:
                 rate_map = {
@@ -53,7 +54,7 @@ class ScrapePropertyRatesView(PermissionRequiredMixin, View):
                     "source": "baseline_only",
                 }
             else:
-                rate_map = build_rate_map(timeout_ms=timeout_ms)
+                rate_map = build_rate_map(timeout_ms=timeout_ms, diag=diag)
         except Exception as exc:
             return JsonResponse({"ok": False, "error": str(exc)}, status=500)
 
@@ -77,5 +78,6 @@ class ScrapePropertyRatesView(PermissionRequiredMixin, View):
             "source": rate_map.get("source", "unknown"),
             "districts": len(rate_map.get("by_city", {})),
             "governorates": len(rate_map.get("by_governorate", {})),
+            "reason": diag.get("reason", ""),   # not_installed | blocked | network | no_data ("" = live data or baseline-only on request)
             "rate_map_json": new_json,
         })

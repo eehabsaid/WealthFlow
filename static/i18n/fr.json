@@ -2824,5 +2824,9 @@
     "map_tiles_url_label": "URL du serveur de tuiles",
     "map_tiles_attribution_label": "Crédit de la carte (HTML autorisé)",
     "map_tiles_reset": "Utiliser la carte par défaut",
-    "invalid_map_tile_url": "L'URL du serveur de tuiles doit commencer par http(s):// et contenir {z}, {x} et {y}."
+    "invalid_map_tile_url": "L'URL du serveur de tuiles doit commencer par http(s):// et contenir {z}, {x} et {y}.",
+    "scrape_reason_not_installed": "le paquet cloudscraper n'est pas installé sur le serveur",
+    "scrape_reason_blocked": "Aqarmap a refusé la requête (protection anti-bot)",
+    "scrape_reason_network": "le serveur n'a pas pu se connecter à Aqarmap",
+    "scrape_reason_no_data": "Aqarmap a répondu mais sa page ne contient plus les données de prix"
 }
