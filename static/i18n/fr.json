@@ -2818,5 +2818,11 @@
     "ai_agent_instructions_reset": "Rétablir par défaut",
     "ai_document_instructions_label": "Instructions de rédaction des documents",
     "ai_document_instructions_help": "Comment l'IA rédige les documents Word / PDF / texte comme le guide utilisateur (une section par écran). La limite de temps couvre tout le document.",
-    "ai_document_budget_s_label": "Limite de temps du document (s)"
+    "ai_document_budget_s_label": "Limite de temps du document (s)",
+    "map_tiles_title": "Fond de carte",
+    "map_tiles_hint": "Serveur de tuiles utilisé par les cartes des biens. Laissez vide pour le serveur gratuit OpenStreetMap. Utilisez {z}, {x}, {y} (et {s} pour les sous-domaines) dans l'adresse.",
+    "map_tiles_url_label": "URL du serveur de tuiles",
+    "map_tiles_attribution_label": "Crédit de la carte (HTML autorisé)",
+    "map_tiles_reset": "Utiliser la carte par défaut",
+    "invalid_map_tile_url": "L'URL du serveur de tuiles doit commencer par http(s):// et contenir {z}, {x} et {y}."
 }

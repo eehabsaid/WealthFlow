@@ -17,6 +17,8 @@ USER_SCOPED_SETTING_KEYS = frozenset(
         "property_valuation_external_result_path",
         "property_valuation_external_timeout_secs",
         "property_valuation_external_headers",
+        "map_tile_url",
+        "map_tile_attribution",
         # Dashboard tab
         "dashboard_show_certs",
         "dashboard_show_reminders",

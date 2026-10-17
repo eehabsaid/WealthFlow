@@ -65,6 +65,7 @@ async function renderPropertyValuationSettings() {
 
             <label style="display:block;margin-bottom:8px;color:var(--text-secondary);font-weight:600;" data-i18n="property_valuation_rate_map">${t("property_valuation_rate_map", "Property Valuation Rate Map")}</label>
             <textarea id="propertyValuationRateMap" class="form-control" rows="8" spellcheck="false" placeholder='{"by_city":{"Cairo":42000},"by_governorate":{"Giza":35000},"default":30000}'>${currentRateMap}</textarea>
+            ${mapTilesSettingsHtml(settingsData?.settings)}
         </div>
     `;
 
@@ -140,7 +141,11 @@ async function savePropertyValuationSettings() {
     return;
   }
 
+  const mapTileSettings = mapTilesSettingsValues();
+  if (!mapTileSettings) return;
+
   const settingsToSave = [
+    ...mapTileSettings,
     ["property_valuation_rate_map", raw],
     ["property_valuation_provider_order", providerOrder],
     ["property_valuation_external_enabled", externalEnabled],
@@ -158,6 +163,7 @@ async function savePropertyValuationSettings() {
     });
 
     if (res.ok) {
+      if (typeof resetMapTileConfig === "function") resetMapTileConfig();
       showToast(
         t("property_valuation_settings_saved", "Property valuation settings saved."),
         "success"

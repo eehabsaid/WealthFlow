@@ -1013,6 +1013,7 @@
       "Navigate to Settings > Property Valuation Settings.",
       "Scrape current district rates from Aqarmap, or load hardcoded baseline rates.",
       "Review and adjust rates per district as needed.",
+      "Optionally change the Map background (tile server and credit text) used by the property maps; leave it empty for the free OpenStreetMap server.",
       "Save the valuation settings to apply them across the application."
     ]
   },

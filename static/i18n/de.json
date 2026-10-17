@@ -2818,5 +2818,11 @@
     "ai_agent_instructions_reset": "Standard wiederherstellen",
     "ai_document_instructions_label": "Anweisungen zum Schreiben von Dokumenten",
     "ai_document_instructions_help": "Wie die KI Word-/PDF-/Textdokumente wie das Benutzerhandbuch schreibt (ein Abschnitt pro Bildschirm). Das Zeitlimit gilt für das gesamte Dokument.",
-    "ai_document_budget_s_label": "Zeitlimit für Dokumente (s)"
+    "ai_document_budget_s_label": "Zeitlimit für Dokumente (s)",
+    "map_tiles_title": "Kartenhintergrund",
+    "map_tiles_hint": "Kachelserver für die Immobilienkarten. Leer lassen für den kostenlosen OpenStreetMap-Server. Verwenden Sie {z}, {x}, {y} (und {s} für Subdomains) in der Adresse.",
+    "map_tiles_url_label": "Kachelserver-URL",
+    "map_tiles_attribution_label": "Karten-Quellenangabe (HTML erlaubt)",
+    "map_tiles_reset": "Standardkarte verwenden",
+    "invalid_map_tile_url": "Die Kachelserver-URL muss mit http(s):// beginnen und {z}, {x} und {y} enthalten."
 }

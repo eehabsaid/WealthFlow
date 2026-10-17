@@ -2818,5 +2818,11 @@
     "ai_agent_instructions_reset": "Restore default",
     "ai_document_instructions_label": "Document writing instructions",
     "ai_document_instructions_help": "How the AI writes Word / PDF / text documents such as the user guide (one section per screen). The document time limit covers the whole document.",
-    "ai_document_budget_s_label": "Document time limit (s)"
+    "ai_document_budget_s_label": "Document time limit (s)",
+    "map_tiles_title": "Map background",
+    "map_tiles_hint": "Tile server used by the property maps. Leave empty for the free OpenStreetMap server. Use {z}, {x}, {y} (and {s} for subdomains) in the address.",
+    "map_tiles_url_label": "Tile server URL",
+    "map_tiles_attribution_label": "Map credit text (HTML allowed)",
+    "map_tiles_reset": "Use default map",
+    "invalid_map_tile_url": "The tile server URL must start with http(s):// and contain {z}, {x} and {y}."
 }

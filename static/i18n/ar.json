@@ -2818,5 +2818,11 @@
     "ai_agent_instructions_reset": "استعادة الافتراضي",
     "ai_document_instructions_label": "تعليمات كتابة المستندات",
     "ai_document_instructions_help": "كيف يكتب الذكاء الاصطناعي مستندات Word / PDF / نص مثل دليل المستخدم (قسم لكل شاشة). المهلة الزمنية للمستند تشمل المستند كاملاً.",
-    "ai_document_budget_s_label": "المهلة الزمنية للمستند (ث)"
+    "ai_document_budget_s_label": "المهلة الزمنية للمستند (ث)",
+    "map_tiles_title": "خلفية الخريطة",
+    "map_tiles_hint": "خادم البلاطات المستخدم في خرائط العقارات. اتركه فارغًا لاستخدام خادم OpenStreetMap المجاني. استخدم {z} و{x} و{y} (و{s} للنطاقات الفرعية) في العنوان.",
+    "map_tiles_url_label": "عنوان خادم البلاطات",
+    "map_tiles_attribution_label": "نص حقوق الخريطة (يسمح بـ HTML)",
+    "map_tiles_reset": "استخدام الخريطة الافتراضية",
+    "invalid_map_tile_url": "يجب أن يبدأ عنوان خادم البلاطات بـ http(s):// ويحتوي على {z} و{x} و{y}."
 }
