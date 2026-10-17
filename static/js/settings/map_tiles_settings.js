@@ -29,7 +29,10 @@ function mapTilesSettingsValues() {
   const attribution = document.getElementById("mapTileAttribution")?.value?.trim() || "";
   if (url && !(/^https?:\/\//i.test(url) && ["{z}", "{x}", "{y}"].every((p) => url.includes(p)))) {
     showToast(
-      t("invalid_map_tile_url", "The tile server URL must start with http(s):// and contain {z}, {x} and {y}."),
+      t(
+        "invalid_map_tile_url",
+        "The tile server URL must start with http(s):// and contain {z}, {x} and {y}."
+      ),
       "error"
     );
     return null;

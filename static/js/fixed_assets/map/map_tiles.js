@@ -33,7 +33,13 @@ function loadMapTileConfig() {
 async function addMapTiles(map) {
   const cfg = await loadMapTileConfig();
   try {
-    L.tileLayer(cfg.url, { attribution: cfg.attribution, maxZoom: 19 }).addTo(map);
+    // The site sends "Referrer-Policy: same-origin", so tile servers would get no Referer and OpenStreetMap answers
+    // "Access blocked" (403). Tiles alone are sent the origin (https://host, no path); the rest of the app is unchanged.
+    L.tileLayer(cfg.url, {
+      attribution: cfg.attribution,
+      maxZoom: 19,
+      referrerPolicy: "origin",
+    }).addTo(map);
   } catch (err) {
     // The map was closed before the setting arrived: nothing to draw on.
   }
