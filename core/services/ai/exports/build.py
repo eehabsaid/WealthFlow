@@ -45,6 +45,8 @@ def document_for(message: Any) -> ExportDocument:
     else:
         content = from_question(message, user, question_raw, _previous_question(message, question_id)) or saved
     lang = language(question or content)
+    if lang == "en":
+        lang = language(content)   # an English request for a document written in Arabic: the file follows its own text (right-to-left)
     blocks = parse_markdown(content)
     title, shown_question = t(lang, "export_title"), f"{t(lang, 'export_question')}: {question}" if question else ""
     if blocks and blocks[0].kind == "heading" and blocks[0].level == 1:
