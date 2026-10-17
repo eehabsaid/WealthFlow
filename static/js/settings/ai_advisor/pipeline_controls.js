@@ -79,7 +79,9 @@ window.AIA.buildAgentControlsHtml = function () {
                         ${num("aiAgentBudgetInput", "ai_agent_budget_s", 60, 3600, 600)}
                         ${num("aiAgentMaxReadsInput", "ai_agent_max_reads", 1, 60, 12)}
                         ${num("aiDocumentBudgetInput", "ai_document_budget_s", 120, 7200, 1200)}
+                        ${num("aiDocumentMaxTokensInput", "ai_document_max_tokens", 1024, 32768, 6000)}
                     </div>
+                    <div class="form-text fs-6 mb-0" data-i18n="ai_document_max_tokens_help">${t("ai_document_max_tokens_help", "Document output limit: how many tokens the AI may write per step of a document (one screen of the guide, or one chunk of a translation). Too low and the text is cut off or left untranslated; it is also capped by Context Size minus about 3500.")}</div>
                     <div class="mb-0">
                         <label class="fs-6 fw-semibold mb-1" for="aiAgentInstructionsInput" data-i18n="ai_agent_instructions_label">${t("ai_agent_instructions_label", "Agent investigation instructions")}</label>
                         <textarea class="form-control form-control-sm" id="aiAgentInstructionsInput" rows="10" maxlength="6000">${text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</textarea>

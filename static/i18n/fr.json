@@ -2828,5 +2828,7 @@
     "scrape_reason_not_installed": "le paquet cloudscraper n'est pas installé sur le serveur",
     "scrape_reason_blocked": "Aqarmap a refusé la requête (protection anti-bot)",
     "scrape_reason_network": "le serveur n'a pas pu se connecter à Aqarmap",
-    "scrape_reason_no_data": "Aqarmap a répondu mais sa page ne contient plus les données de prix"
+    "scrape_reason_no_data": "Aqarmap a répondu mais sa page ne contient plus les données de prix",
+    "ai_document_max_tokens_label": "Limite de sortie du document (jetons)",
+    "ai_document_max_tokens_help": "Limite de sortie du document : nombre de jetons que l'IA peut écrire à chaque étape d'un document (un écran du guide ou un morceau de traduction). Trop bas, le texte est coupé ou non traduit ; elle est aussi plafonnée par la taille du contexte moins environ 3500."
 }

@@ -59,10 +59,16 @@ async function scrapePropertyRates(baselineOnly = false) {
 // " (why)" for the toast when the live scrape returned nothing; "" when the reason is unknown.
 function scrapeReasonText(reason) {
   const texts = {
-    not_installed: t("scrape_reason_not_installed", "the cloudscraper package is not installed on the server"),
+    not_installed: t(
+      "scrape_reason_not_installed",
+      "the cloudscraper package is not installed on the server"
+    ),
     blocked: t("scrape_reason_blocked", "Aqarmap refused the request (anti-bot protection)"),
     network: t("scrape_reason_network", "the server could not connect to Aqarmap"),
-    no_data: t("scrape_reason_no_data", "Aqarmap answered but its page no longer has the price data"),
+    no_data: t(
+      "scrape_reason_no_data",
+      "Aqarmap answered but its page no longer has the price data"
+    ),
   };
   return texts[reason] ? ` - ${texts[reason]}` : "";
 }

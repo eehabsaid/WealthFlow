@@ -136,6 +136,29 @@ class LoopTest(TestCase):
         res, _ = self.run_loop([tool_call("app_data_models")] + [{"content": "I cannot access that."}] * 4)
         self.assertIn("This is what I found", res.content)
 
+    def test_a_cut_off_generate_file_call_is_never_the_answer(self):
+        cut = 'Calling generate_file({"content": "# Guide\\n\\n## Intro\\n\\nWelcome to the app and its screens'
+        res, _ = self.run_loop([{"content": cut}], user=self.admin)
+        self.assertEqual(res.reason, "truncated_call")
+        self.assertTrue(res.content.startswith("# Guide"))
+        self.assertNotIn("Calling", res.content)
+
+    def test_a_call_written_as_text_after_a_long_introduction_is_never_the_answer(self):
+        text = ("Now I have enough material. Let me compose the comprehensive Arabic user guide and generate the Word document.\n\n"
+                'Calling generate_file({"content":"# Guide\\n\\n## Intro\\n\\nWelcome","filename":"a.docx","format","docx"}')
+        res, _ = self.run_loop([{"content": text}], user=self.admin)
+        self.assertEqual(res.reason, "truncated_call")
+        self.assertTrue(res.content.startswith("# Guide"))
+        self.assertNotIn("Calling", res.content)
+
+    def test_another_unreadable_tool_call_text_is_nudged_then_never_shown(self):
+        res, prov = self.run_loop([{"content": 'Calling app_grep({"pattern": "x"'}, tool_call("app_data_models"),
+                                   {"content": "You have 4 expenses."}])
+        self.assertEqual(res.content, "You have 4 expenses.")
+        self.assertIn("could not be read", prov.calls[1]["messages"][-1]["content"])
+        res, _ = self.run_loop([{"content": 'Calling app_grep({"pattern": "x"'}] * 5)
+        self.assertNotIn("Calling app_grep", res.content)
+
     def test_history_is_trimmed_and_included(self):
         hist = [{"role": "user", "content": f"q{i}"} for i in range(9)]
         _, prov = self.run_loop([{"content": "ok"}], history=hist)

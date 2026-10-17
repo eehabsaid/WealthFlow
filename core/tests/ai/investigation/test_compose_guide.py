@@ -82,7 +82,7 @@ class GuideTest(TestCase):
         for name in tab_names(self.admin):
             self.assertIn(name, "\n".join(u["evidence"] for u in plan))   # every tab reaches a section call
         self.assertTrue(doc.startswith("# WealthFlow user guide"))
-        self.assertEqual(len(prov.calls), 2 + len(plan))                   # "is it about the app", the intro, one per section
+        self.assertEqual(len(prov.calls), 3 + len(plan))                   # "is it about the app", "which language", the intro, one per section
         self.assertIn("Settings (1/", doc)
 
     def test_each_section_call_only_carries_its_own_tabs(self):
@@ -173,3 +173,16 @@ class GuideCoverageTest(TestCase):
         h2 = [line[3:] for line in doc.splitlines() if line.startswith("## ")]
         self.assertEqual(len(h2), len(set(h2)))                          # no "Settings / Settings"
         self.assertEqual(set(h2), {u["title"] for u in units(self.admin)})
+
+    def test_a_section_cut_off_by_the_output_limit_has_its_half_written_tab_rewritten_alone(self):
+        class CutOff(GuideProvider):
+            def generate(self, messages, tools=None, **kwargs):
+                res = super().generate(messages, tools, **kwargs)
+                if "Write ONLY this section" in messages[-1]["content"]:
+                    res["completion_tokens"] = kwargs["max_tokens"]          # the model stopped at the limit
+                return res
+
+        doc, prov = self.run_guide(CutOff())
+        for name in tab_names(self.admin):
+            self.assertIn(name, doc)
+        self.assertTrue([c for c in prov.calls if "Write ONLY this sub-section" in c["ask"]])

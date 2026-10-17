@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 from core.integrations.ai_provider.ollama_response import strip_reasoning
 
@@ -116,3 +117,36 @@ def unavailable_tools(result: dict, valid_names: set) -> list[str]:
     """Tool names the model requested natively that were not offered (never executed; the loop tells the model)."""
     wanted = (_norm_native(c)[0] for c in (result.get("tool_calls") or []))
     return sorted({n for n in wanted if n and n not in valid_names})
+
+
+# A call written as text, at the start of the reply or on a line of its own after a sentence ("Let me write it. Calling x({...").
+_LEAK = re.compile(r'(?:^|\n|[.:!?]\s)\s*(?:Calling\s+)?[A-Za-z_]\w*\(\s*\{\s*"|^\s*<tool_call>|^\s*\{\s*"(?:name|tool|tool_name|function)"\s*:', re.I)
+
+
+def is_call_leak(text: str) -> bool:
+    """The reply IS a tool call written as text (typically one that was cut off, so it did not parse): never an answer."""
+    return bool(_LEAK.search(text or ""))
+
+
+def salvage_content(text: str) -> str:
+    """The `"content": "..."` string of a leaked generate_file call, decoded, up to where the model stopped ("" if none).
+    A document the model put inside the call's arguments and that was cut off by its output limit keeps what was written."""
+    found = re.search(r'"content"\s*:\s*"', text or "")
+    if not found:
+        return ""
+    raw, out, i = text[found.end():], [], 0
+    while i < len(raw):
+        if raw[i] == "\\":
+            out.append(raw[i:i + 2])
+            i += 2
+        elif raw[i] == '"':
+            break
+        else:
+            out.append(raw[i])
+            i += 1
+    body = "".join(out)
+    body = body[:-1] if body.endswith("\\") else body
+    try:
+        return json.loads('"' + body + '"').strip()
+    except ValueError:
+        return body.replace("\\n", "\n").replace('\\"', '"').strip()

@@ -2828,5 +2828,7 @@
     "scrape_reason_not_installed": "das Paket cloudscraper ist auf dem Server nicht installiert",
     "scrape_reason_blocked": "Aqarmap hat die Anfrage abgelehnt (Anti-Bot-Schutz)",
     "scrape_reason_network": "der Server konnte keine Verbindung zu Aqarmap herstellen",
-    "scrape_reason_no_data": "Aqarmap hat geantwortet, aber die Seite enthält keine Preisdaten mehr"
+    "scrape_reason_no_data": "Aqarmap hat geantwortet, aber die Seite enthält keine Preisdaten mehr",
+    "ai_document_max_tokens_label": "Dokument-Ausgabelimit (Tokens)",
+    "ai_document_max_tokens_help": "Dokument-Ausgabelimit: wie viele Tokens die KI pro Schritt eines Dokuments schreiben darf (ein Bildschirm der Anleitung oder ein Übersetzungsabschnitt). Zu niedrig, und der Text wird abgeschnitten oder bleibt unübersetzt; zusätzlich begrenzt durch Kontextgröße minus etwa 3500."
 }

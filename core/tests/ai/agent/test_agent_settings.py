@@ -64,6 +64,18 @@ class AgentSettingsApiTest(TestCase):
         self.assertEqual((effective_document_instructions(), document_budget_s()), (DEFAULT_DOCUMENT_INSTRUCTIONS, 7200))
         self.assertEqual(self.post(ai_document_instructions="x" * 6001).status_code, 400)
 
+    def test_document_output_limit_is_a_setting_capped_by_the_context_window(self):
+        from core.services.ai.agent.settings import document_max_tokens
+
+        self.assertEqual(self.client.get(self.URL).json()["ai_document_max_tokens"], 6000)
+        self.assertEqual(self.post(ai_document_max_tokens=8000, ai_context_size=16384).status_code, 200)
+        self.assertEqual(document_max_tokens(), 8000)
+        self.assertEqual(self.post(ai_document_max_tokens=99999, ai_context_size=16384).status_code, 200)
+        self.assertEqual(document_max_tokens(), 12884)                      # 16384 - 3500 reserved for the prompt
+        self.assertEqual(self.post(ai_document_max_tokens=8000, ai_context_size=4096).status_code, 200)
+        self.assertEqual(document_max_tokens(), 1024)                       # never below a usable minimum
+        self.assertEqual(self.post(ai_document_max_tokens="lots").status_code, 400)
+
     def test_a_member_cannot_read_or_change_the_agent_settings(self):
         member = make_user("agent_set_member")
         self.client.force_login(member)

@@ -8,7 +8,10 @@ Two ways, chosen by the model with a one-word question (no phrase list):
   * a guide to the app itself -> section by section, one model call per screen/tab group of the LIVE app (a local model with a
     small context window cannot write 20 screens in one reply, and was cutting the guide off after a third of it). A section
     the model fails to write, or that does not fit the time budget, is filled from the app's own screen list.
-  * any other document (a report on the user's data) -> one call from the evidence the tools returned."""
+  * any other document (a report on the user's data) -> one call from the evidence the tools returned.
+A guide asked for in another language is written in English and then translated chunk by chunk (compose_translate.py).
+Every call gets the document output-token limit (Settings > AI Advisor) so a reply is not cut off at the default of a chat answer;
+a reply the limit still cut off is never trusted: the half-written last tab is rewritten alone, a half translation is redone."""
 
 from __future__ import annotations
 
@@ -16,6 +19,7 @@ import time
 
 from .actions import strip_think
 from .compose_sections import knowledge, missing_tabs, tab_fallback, units
+from .compose_translate import target_language, translate_markdown, uses_latin_script
 from .refusal import is_refusal
 
 MIN_DOC_CHARS = 1500      # a real guide/report is longer than this; shorter text is an announcement or a stub
@@ -29,17 +33,33 @@ def generated_file(steps: list) -> bool:
 
 
 def needs_document(out) -> bool:
-    return not generated_file(out.steps) and len((out.content or "").strip()) < MIN_DOC_CHARS
+    """No file was generated and the answer is a stub, or the model's generate_file call was cut off (its text is a partial document)."""
+    return not generated_file(out.steps) and (len((out.content or "").strip()) < MIN_DOC_CHARS or out.reason == "truncated_call")
 
 
 def _ask(provider, out, system: str, user_content: str, deadline: float, temperature: float = 0.2) -> str:
+    from core.services.ai.agent.settings import document_max_tokens
+
     out.llm_calls += 1
+    out.cut_off = False
+    limit = document_max_tokens(provider)
     try:
         res = provider.generate([{"role": "system", "content": system}, {"role": "user", "content": user_content}], tools=None,
-                                temperature=temperature, timeout=int(max(20, min(TIMEOUT_S, deadline - time.monotonic()))))
+                                temperature=temperature, max_tokens=limit, timeout=int(max(20, min(TIMEOUT_S, deadline - time.monotonic()))))
     except Exception:  # noqa: BLE001 - the caller falls back
         return ""
-    return strip_think((res or {}).get("content")).strip() if isinstance(res, dict) and not res.get("error") else ""
+    if not isinstance(res, dict) or res.get("error"):
+        return ""
+    used = res.get("completion_tokens")
+    out.cut_off = isinstance(used, int) and used >= 0.97 * limit   # stopped by the limit, not because it was finished
+    return strip_think(res.get("content")).strip()
+
+
+def _without_partial_tab(text: str) -> str:
+    """A section the output limit cut off ends inside its last tab: that tab is dropped (missing_tabs then rewrites it alone)."""
+    lines = text.splitlines()
+    heads = [i for i, line in enumerate(lines) if line.lstrip().startswith("#")]
+    return "\n".join(lines[:heads[-1]]).rstrip() if len(heads) > 1 else text
 
 
 def _about_the_app(provider, user_text: str, out, deadline: float) -> bool:
@@ -94,6 +114,8 @@ def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int
         if time.monotonic() < deadline - 20:
             text = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY this section: \"{unit['title']}\". Cover every tab and "
                         f"action listed, with the steps to use them.\n\nSCREEN:\n{unit['evidence']}\n\nAPP GUIDE:\n{knowledge(user, unit)}", deadline)
+        if out.cut_off:
+            text = _without_partial_tab(text)
         if len(text) < MIN_SECTION_CHARS or is_refusal(text, True):
             parts.append(unit["fallback"])
             continue
@@ -119,5 +141,14 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
     instructions, budget_s = effective_document_instructions(), document_budget_s()
     deadline = time.monotonic() + budget_s
     if user is not None and _about_the_app(provider, user_text, out, deadline):
-        return _guide(provider, user, user_text, out, instructions, budget_s, progress)
+        def ask(system: str, content: str, temperature: float = 0.2) -> str:
+            return _ask(provider, out, system, content, deadline, temperature)
+
+        language = target_language(ask, user_text)
+        if not language:
+            return _guide(provider, user, user_text, out, instructions, budget_s, progress)
+        english = _guide(provider, user, f"{user_text}\n\n[Write the document in English; it is translated into {language} afterwards.]",
+                         out, instructions, int(budget_s * 0.45), progress)
+        non_latin = not uses_latin_script(ask, language)
+        return translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, deadline, progress, non_latin)
     return _single(provider, user_text, out, instructions, ctx_chars, deadline)

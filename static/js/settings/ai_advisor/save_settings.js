@@ -43,6 +43,10 @@ window.AIA.saveAISettingsFromGui = async function () {
       document.getElementById("aiDocumentBudgetInput")?.value || "1200",
       10
     ),
+    ai_document_max_tokens: parseInt(
+      document.getElementById("aiDocumentMaxTokensInput")?.value || "6000",
+      10
+    ),
     ai_agent_max_reads: parseInt(
       document.getElementById("aiAgentMaxReadsInput")?.value || "12",
       10

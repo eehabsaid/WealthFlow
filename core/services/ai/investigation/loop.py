@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 from . import prompt
 from .loop_helpers import compact, digest, label, publish_legacy, result_text, target, trim_history
-from .actions import extract_calls, strip_think, unavailable_tools
+from .actions import extract_calls, is_call_leak, salvage_content, strip_think, unavailable_tools
 from .defs import investigation_tool_schemas
 from .refusal import is_announcement, is_refusal
 
@@ -132,6 +132,16 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
             compact(messages, ctx_chars)
             continue
         text = strip_think(res.get("content"))
+        if text and is_call_leak(text):
+            kept = salvage_content(text) if "generate_file" in names and "generate_file" in text else ""
+            if kept:   # a whole document written inside the call and cut off: never show the call; the app writes the document itself
+                out.content, out.reason = kept, "truncated_call"
+                break
+            if out.nudges < NUDGES:
+                nudge("Your last reply was a tool call written as text that could not be read (cut off or not valid JSON). Call the tool "
+                      "again with valid JSON and short arguments, or write the answer in plain text.")
+                continue
+            text = ""
         investigated = bool(out.steps)
         needs_evidence = require_evidence and not investigated
         if text and is_announcement(text) and out.nudges < NUDGES:
@@ -164,7 +174,7 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
                      "If something could not be determined, say exactly what you checked and what is missing."})
     final = call(None)
     text = strip_think(final.get("content")) if not final.get("error") else ""
-    if text and extract_calls(final, names):
+    if text and (extract_calls(final, names) or is_call_leak(text)):
         text = ""   # even the tool-free call wrote a tool request instead of an answer: use the digest, never raw JSON
     out.content = text if text and not is_refusal(text, bool(out.steps), extra_refusal_markers) else digest(out.results)
     if not out.content:

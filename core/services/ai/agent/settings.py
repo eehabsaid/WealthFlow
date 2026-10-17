@@ -15,7 +15,8 @@ from .instructions import MAX_LENGTH
 
 MODES = ("ask", "agent")
 LIMITS = {"ai_agent_max_steps": (2, 40, 15), "ai_agent_budget_s": (60, 3600, 600), "ai_agent_max_reads": (1, 60, 12),
-          "ai_document_budget_s": (120, 7200, 1200)}   # min, max, default
+          "ai_document_budget_s": (120, 7200, 1200), "ai_document_max_tokens": (1024, 32768, 6000)}   # min, max, default
+PROMPT_RESERVE = 3500   # tokens of the context window a document-writing prompt (screen data + app guide + rules) may take
 _FALSE = ("false", "0", "no", "off")
 
 
@@ -37,6 +38,18 @@ def stored_document_instructions() -> str:
 
 def document_budget_s() -> int:
     return limits()["ai_document_budget_s"]
+
+
+def document_max_tokens(provider=None) -> int:
+    """Output tokens for one document-writing call: the setting, but never more than the context window leaves after the prompt
+    (output beyond that is silently cut by the model server)."""
+    want = limits()["ai_document_max_tokens"]
+    ctx = (getattr(provider, "user_options", None) or {}).get("context_size") or AppSettings.get("ai_context_size", "4096", user=None)
+    try:
+        window = int(float(str(ctx)))
+    except (ValueError, TypeError):
+        window = 4096
+    return max(1024, min(want, window - PROMPT_RESERVE))
 
 
 def clamp(key: str, raw: Any) -> int:

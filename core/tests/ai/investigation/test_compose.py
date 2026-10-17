@@ -76,3 +76,16 @@ class ComposeEvidenceAndHeaderTest(TestCase):
         self.assertEqual(doc.blocks[0].level, 2)       # the old H1 became the title, sections keep their level
         plain_answer = AIMessage.objects.create(conversation=conv, role="assistant", content="## Totals\n\nYou spent 5.", sources=[])
         self.assertEqual(document_for(plain_answer).title, "WealthFlow AI")   # ordinary answers keep the usual header
+
+
+class TruncatedCallTest(TestCase):
+    def test_a_long_cut_off_generate_file_call_still_gets_the_full_document_written(self):
+        res = result("# Partial guide\n\n" + "text " * 800)      # long: the length rule alone would accept it
+        res.reason = "truncated_call"
+        self.assertTrue(needs_document(res))
+        prov = ScriptedProvider([{"content": GUIDE}])
+        self.assertTrue(ensure_document(prov, "write the user guide as a Word document in Arabic", res, 24000))
+        self.assertEqual(res.content, GUIDE)
+
+    def test_a_long_normal_answer_is_left_alone(self):
+        self.assertFalse(needs_document(result("x" * 2000)))

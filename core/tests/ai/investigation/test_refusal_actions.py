@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from django.test import SimpleTestCase
 
-from core.services.ai.investigation.actions import extract_calls, strip_think, unavailable_tools
+from core.services.ai.investigation.actions import extract_calls, is_call_leak, salvage_content, strip_think, unavailable_tools
 from core.services.ai.investigation.refusal import is_announcement, is_refusal
 
 VALID = {"app_grep", "app_read_file", "app_data_query"}
@@ -96,3 +96,27 @@ class AnnouncementTest(SimpleTestCase):
         self.assertFalse(is_announcement("You spent 100.00 in total. Let me know if you want a breakdown."))
         self.assertFalse(is_announcement("# Guide\n\nLet me explain: " + "x" * 400))
         self.assertFalse(is_announcement(""))
+
+
+class CallLeakTest(SimpleTestCase):
+    CUT = 'Calling generate_file({"content": "# دليل المستخدم\\n\\n## مقدمة\\n\\nمرحباً \\"بك\\"\\n\\n## 12. الإعدادات\\n\\n **البنوك ('
+
+    def test_a_cut_off_tool_call_written_as_text_is_recognised(self):
+        for text in (self.CUT, 'Calling app_grep({"pattern": "x"', '{"name": "app_grep", "arguments": {"pattern": "x', "<tool_call>{"):
+            self.assertTrue(is_call_leak(text), text)
+
+    def test_a_call_written_as_text_after_an_introducing_sentence_is_recognised(self):
+        text = 'Now I have enough material. Let me compose the guide.\n\nCalling generate_file({"content":"# دليل\\n\\n## مقدمة","filename":"a.docx","format","docx"}'
+        self.assertTrue(is_call_leak(text))
+        self.assertIn("## مقدمة", salvage_content(text))
+
+    def test_real_answers_are_not_leaks(self):
+        for text in ("You spent 100.00.", "# Guide\n\nCalling the bank is easy.", "The function foo({a}) is defined in x.py", "", None):
+            self.assertFalse(is_call_leak(text), text)
+
+    def test_the_document_inside_a_cut_off_call_is_kept_decoded(self):
+        kept = salvage_content(self.CUT)
+        self.assertTrue(kept.startswith("# دليل المستخدم\n\n## مقدمة"))
+        self.assertIn('مرحباً "بك"', kept)
+        self.assertTrue(kept.endswith("**البنوك ("))
+        self.assertEqual(salvage_content('Calling app_grep({"pattern": "x"'), "")
