@@ -30,6 +30,9 @@ class Invoice(models.Model):
     )
     status = models.CharField(max_length=20, choices=INVOICE_STATUS_CHOICES, default="pending")
     gateway_reference = models.CharField(max_length=255, blank=True, default="")
+    # Which gateway took the payment, and its payment/transaction id (needed to refund through that gateway).
+    gateway = models.CharField(max_length=20, blank=True, default="")
+    gateway_transaction_id = models.CharField(max_length=255, blank=True, default="")
     period_start = models.DateTimeField(null=True, blank=True)
     period_end = models.DateTimeField(null=True, blank=True)
     issued_at = models.DateTimeField(auto_now_add=True)
@@ -56,6 +59,7 @@ class Invoice(models.Model):
             "refund_amount": str(self.refund_amount) if self.refund_amount is not None else None,
             "refund_note": self.refund_note,
             "gateway_reference": self.gateway_reference,
+            "gateway": self.gateway,
         }
 
     def __str__(self):

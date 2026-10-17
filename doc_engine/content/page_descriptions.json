@@ -719,7 +719,8 @@
     "steps": [
       "Navigate to the Rental sub-tab.",
       "Enter the active lease details and monthly rent.",
-      "Track the generated yield."
+      "Track the generated yield.",
+      "When the tenant pays, click Rent received: the deposit is added to your balance and this month's expected rent is no longer counted, so the rent is counted once. Use Undo to remove it."
     ]
   },
   "fixed-assets::assets::valuation_history": {
@@ -1102,7 +1103,7 @@
     ]
   },
   "settings::settings-billing": {
-    "purpose": "Set up online payments with Paymob, manage the billing plans and their prices, decide whether users you create get a free trial, and manage customers (suspend, extend trial, change plan, invoices and refunds). Gulf accounts (SAR / AED) are configured separately because each Paymob region has its own account.",
+    "purpose": "Set up online payments with Paymob (and Stripe for currencies Paymob does not serve), manage the billing plans and their prices, decide whether users you create get a free trial, and manage customers (suspend, extend trial, change plan, invoices and refunds made at the payment gateway, or recorded only when you returned the money yourself). Gulf accounts (SAR / AED) are configured separately because each Paymob region has its own account.",
     "steps": [
       "Open Settings, then More and Billing Plans (system administrators only).",
       "Fill in the main Paymob account: API key, HMAC secret, integration ID and iframe ID. Until it is filled in, checkout runs in test mode and no real charge is made.",

@@ -17,7 +17,7 @@ def get_model_export_order():
         AIAnswerFeedback, AIPrompt, AIPromptCategory,
         AppSettings, AssetAcquisitionCost, AssetFurniture, AssetInsurance,
         AssetMaintenance, AssetMortgage, AssetPhoto, AssetPurchasePayment,
-        AssetRental, AssetRenovation, AssetSale, AssetValuationHistory,
+        AssetRental, RentReceipt, AssetRenovation, AssetSale, AssetValuationHistory,
         AuthAuditLog, AuthToken,
         Budget, RecurringTransaction,
         Bank, BankCertificate, BankCertificateInterestHistory, BankInterest,
@@ -127,4 +127,5 @@ def get_model_export_order():
         ("74", AccessLog,                     None),
         ("75", LogEntry,                      None),
         ("76", AIAnswerFeedback,              None),
+        ("77", RentReceipt,                   None),
     ]

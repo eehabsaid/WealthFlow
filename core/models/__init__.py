@@ -14,7 +14,7 @@ from .settings import AppSettings, EmailTemplate
 from .reminders import ReminderRule, ReminderLog, REMINDER_TYPE_CHOICES, SALARY_TRIGGER_CHOICES
 from .goals import Goal
 from .fixed_assets import FixedAsset, ASSET_TYPES, ASSET_STATUS, VALUATION_SOURCE
-from .fixed_assets_realestate import RealEstateDetails, AssetMortgage, AssetRental
+from .fixed_assets_realestate import RealEstateDetails, AssetMortgage, AssetRental, RentReceipt
 from .fixed_assets_vehicle import VehicleDetails, AssetMaintenance, AssetInsurance
 from .fixed_assets_gold import GoldDetails
 from .fixed_assets_other import OtherAssetDetails
@@ -80,6 +80,7 @@ __all__ = [
     "RealEstateDetails",
     "AssetMortgage",
     "AssetRental",
+    "RentReceipt",
     "VehicleDetails",
     "AssetMaintenance",
     "AssetInsurance",

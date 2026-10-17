@@ -41,6 +41,7 @@ function buildMortgageRentalPanesHtml(mortgage, rental) {
                             <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="contract_start">Contract Start</span><span class="value">${formatDate(rental.contract_start) || "-"}</span></div></div>
                             <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="contract_end">Contract End</span><span class="value">${formatDate(rental.contract_end) || "-"}</span></div></div>
                             <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${rental.notes || "-"}</span></div></div>
+                            <div class="col-12" id="rentReceiptMount" data-asset-id="${rental.asset_id}"></div>
                           </div>
                         `
                             : `<div class="text-center py-4" style="color:var(--text-secondary);" data-i18n="no_data">No data available</div>`

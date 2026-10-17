@@ -11,8 +11,10 @@ from tests.core.data_generator import get_unique_fixed_asset_data
 from tests.core.download_verifier import verify_downloaded_file
 from tests.core.assertions import verify_downstream_impact
 from tests.core.crud_verifier import CrudVerifier
+from tests.modules.rent_receipts import check_rent_received, fund_asset_purchases, unfund_asset_purchases
 
 def test_fixed_assets_module(context, reporter, screenshot_logger):
+    fund_asset_purchases()
     context.goto_route("#fixed-assets")
     reporter.pages_visited.add("Fixed Assets")
 
@@ -165,3 +167,6 @@ def test_fixed_assets_module(context, reporter, screenshot_logger):
     # 3. Downstream verification
     verify_downstream_impact(context.page, "Fixed Asset Creation", "dashboard")
     verify_downstream_impact(context.page, "Fixed Asset Creation", "financial-advisor")
+
+    check_rent_received(context, reporter, screenshot_logger)
+    unfund_asset_purchases()

@@ -43,6 +43,7 @@ async function renderBillingSettings() {
   document.getElementById("settingsContent").innerHTML = `
         <div id="trialOptionsMount"></div>
         <div id="gatewaySettingsMount"></div>
+        <div id="stripeSettingsMount"></div>
         <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:14px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                 <div style="font-weight:600;color:var(--text-secondary)" data-i18n="billing_plans">
@@ -73,6 +74,7 @@ async function renderBillingSettings() {
 
   applyTranslations();
   if (typeof renderGatewaySettingsCard === "function") renderGatewaySettingsCard();
+  if (typeof renderStripeSettingsCard === "function") renderStripeSettingsCard();
   if (typeof renderTrialOptionsCard === "function") renderTrialOptionsCard();
   if (typeof renderCustomersCard === "function") renderCustomersCard(false);
 }

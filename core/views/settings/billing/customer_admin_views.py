@@ -77,6 +77,7 @@ class InvoiceActionView(AdminRequiredMixin, View):
                     amount=data.get("amount"),
                     note=str(data.get("note") or ""),
                     revoke_access=bool(data.get("revoke_access", True)),
+                    manual=bool(data.get("manual", False)),
                 )
                 invoice = None
             else:

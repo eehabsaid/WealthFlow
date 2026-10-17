@@ -25,7 +25,7 @@ this code path at all.
 """
 
 from tests.core.test_context import TestContext
-from tests.modules.billing_gateway import check_gateway_settings
+from tests.modules.billing_gateway import check_gateway_settings, check_stripe_settings
 from tests.modules.billing_account import check_account_data_card
 from tests.modules.billing_customers import check_customers_and_trial_option
 from tests.modules.billing_lock import check_lapsed_lock
@@ -38,6 +38,7 @@ def test_billing_module(context, reporter, screenshot_logger):
     reporter.pages_visited.add("Billing — Trial Banner Upgrade Flow")
     try:
         check_gateway_settings(context, reporter, screenshot_logger)  # admin session, read-only
+        check_stripe_settings(context, reporter, screenshot_logger)  # admin session, read-only (no saves)
     except Exception as ex:
         reporter.add_step("Gateway settings checks", "Billing", "FAIL", f"Exception: {ex}")
     try:

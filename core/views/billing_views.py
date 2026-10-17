@@ -11,6 +11,7 @@ from core.services.billing import (
     CheckoutError,
     CheckoutService,
     PaymobGateway,
+    StripeGateway,
     SubscriptionService,
     UpgradeRequestService,
 )
@@ -115,7 +116,7 @@ def billing_checkout(request):
         return JsonResponse({"error": "Currency not found."}, status=404)
 
     try:
-        result = CheckoutService.initiate_checkout(request.user, plan, currency)
+        result = CheckoutService.initiate_checkout(request.user, plan, currency, return_base=request.build_absolute_uri("/"))
     except CheckoutError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
 
@@ -167,3 +168,21 @@ def paymob_return(request):
     activates anything — only the signed webhook does — it just lands the
     customer back on the plans page, which reads the real subscription state."""
     return HttpResponseRedirect("/#billing-plans")
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    """Stripe's server-to-server event callback. Public, verified by the Stripe-Signature HMAC."""
+    from core.services.billing.stripe_webhook import process_stripe_event
+
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+    if not StripeGateway.verify_webhook(request.body, request.META.get("HTTP_STRIPE_SIGNATURE", "")):
+        logger.warning("Stripe webhook received with invalid or missing signature.")
+        return JsonResponse({"error": "Invalid signature"}, status=403)
+    try:
+        event = json.loads(request.body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+    process_stripe_event(event if isinstance(event, dict) else {})
+    return JsonResponse({"ok": True})

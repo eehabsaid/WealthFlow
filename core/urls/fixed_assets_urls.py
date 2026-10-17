@@ -1,8 +1,11 @@
 from django.urls import path
 from .. import views
+from core.views.fixed_assets.rent_receipt_views import RentReceiptDetailView, RentReceiptListView
 
 urlpatterns = [
     # ── Fixed Assets ────────────────────────────────────────────────────────
+    path("api/fixed-assets/<int:asset_id>/rent-receipts/", RentReceiptListView.as_view()),
+    path("api/rent-receipts/<int:pk>/", RentReceiptDetailView.as_view()),
     path("api/fixed-assets/", views.FixedAssetListView.as_view()),
     path("api/fixed-assets/<int:pk>/", views.FixedAssetDetailView.as_view()),
     path("api/asset-renovations/", views.AssetRenovationListView.as_view()),

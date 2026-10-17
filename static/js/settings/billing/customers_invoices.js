@@ -79,7 +79,9 @@ function showRefundForm(userId, invoiceId) {
         <div class="col-4"><label data-i18n="refund_note">${t("refund_note", "Note")}</label>
             <input type="text" maxlength="255" class="form-control form-control-sm" id="refundNote_${invoiceId}"></div>
         <div class="col-3"><div class="form-check"><input type="checkbox" class="form-check-input" id="refundRevoke_${invoiceId}" checked>
-            <label class="form-check-label" for="refundRevoke_${invoiceId}" data-i18n="refund_revoke_access">${t("refund_revoke_access", "Revoke access")}</label></div></div>
+            <label class="form-check-label" for="refundRevoke_${invoiceId}" data-i18n="refund_revoke_access">${t("refund_revoke_access", "Revoke access")}</label></div>
+            <div class="form-check"><input type="checkbox" class="form-check-input" id="refundManual_${invoiceId}">
+            <label class="form-check-label" for="refundManual_${invoiceId}" data-i18n="refund_manual_only">${t("refund_manual_only", "Record only (I returned the money myself)")}</label></div></div>
         <div class="col-2"><button class="btn-primary-custom btn-sm" onclick="submitRefund(${userId}, ${invoiceId})" data-i18n="invoice_refund">${t("invoice_refund", "Refund")}</button></div>
     </div>`;
   applyTranslations();
@@ -91,6 +93,7 @@ async function submitRefund(userId, invoiceId) {
     amount: document.getElementById(`refundAmount_${invoiceId}`).value,
     note: document.getElementById(`refundNote_${invoiceId}`).value.trim(),
     revoke_access: document.getElementById(`refundRevoke_${invoiceId}`).checked,
+    manual: document.getElementById(`refundManual_${invoiceId}`).checked,
   };
   const r = await _postJson(`/api/settings/billing/invoices/${invoiceId}/action/`, body);
   if (await _customerDone(r, "refund_recorded", "Refund recorded ✓")) {
@@ -98,7 +101,7 @@ async function submitRefund(userId, invoiceId) {
       showToast(
         t(
           "refund_manual_notice",
-          "Return the money from the Paymob dashboard: the app cannot refund Paymob payments itself."
+          "This refund was only recorded: return the money from the payment gateway's dashboard."
         ),
         "warning"
       );

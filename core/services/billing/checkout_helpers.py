@@ -5,7 +5,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
 
-from core.services.billing.paymob_gateway import PaymobGateway
+from core.services.billing.gateways import any_gateway_configured
 
 _MERCHANT_ORDER_PREFIX = "wf-inv-"
 # ISO country for Paymob's billing_data, per charge currency (placeholder "NA" otherwise).
@@ -30,7 +30,7 @@ def test_payments_allowed() -> bool:
     """Fake/test-mode payments need BOTH no real gateway AND the explicit
     BILLING_TEST_MODE setting (default = DEBUG). Production without Paymob
     therefore refuses checkout instead of handing out free upgrades."""
-    return bool(getattr(settings, "BILLING_TEST_MODE", False)) and not PaymobGateway.any_configured()
+    return bool(getattr(settings, "BILLING_TEST_MODE", False)) and not any_gateway_configured()
 
 
 def _billing_data_for(user, currency_code: str = "") -> dict:

@@ -48,7 +48,12 @@ class ProjectedBalanceEntriesMixin:
                 .filter(asset__owner=self.owner, asset__asset_type__in=REAL_ESTATE_ASSET_TYPES, asset__status="Owned")
                 .order_by("id")
             )
+            from core.services.fixed_assets.rent_receipt_service import settled_rental_ids
+
+            settled = settled_rental_ids(self.owner)  # this month's rent already received -> counted once, as the real deposit
             for rental in rental_qs:
+                if rental.id in settled:
+                    continue
                 monthly_rent = _to_float(rental.monthly_rent)
                 occupancy_rate = _to_float(rental.occupancy_rate)
                 rental_income = monthly_rent * occupancy_rate / 100.0

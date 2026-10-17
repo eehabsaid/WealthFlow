@@ -17,7 +17,10 @@ from core.services.billing.checkout_helpers import (  # noqa: F401  (re-exported
     amount_to_cents,
     test_payments_allowed,
 )
+from core.services.billing.gateway_base import GatewayError
+from core.services.billing.gateways import any_gateway_configured, select_gateway
 from core.services.billing.paymob_gateway import PaymobConfigError, PaymobGateway
+from core.services.billing.stripe_gateway import StripeGateway
 from core.services.billing.subscription_service import SubscriptionService
 
 logger = logging.getLogger(__name__)
@@ -46,31 +49,43 @@ class CheckoutService:
         )
 
     @classmethod
-    def initiate_checkout(cls, user, plan: Plan, currency: Currency) -> dict:
+    def initiate_checkout(cls, user, plan: Plan, currency: Currency, return_base: str = "") -> dict:
         current = SubscriptionService.get_subscription(user)
         if current is not None and current.status == "suspended":
             raise CheckoutError("This account is suspended. Please contact support.")
-        # Once any real Paymob account exists, a currency it cannot charge is
+        # Once any real gateway exists, a currency none of them can charge is
         # refused up front — never silently sent to a different region's
         # account, and never downgraded to a fake payment.
-        if PaymobGateway.any_configured() and not PaymobGateway.is_configured(currency.code):
+        chosen = select_gateway(currency.code)
+        if any_gateway_configured() and chosen is None:
             raise CheckoutError(
                 f"Online payment is not available in {currency.code} yet. "
                 "Please choose another currency or contact support."
             )
 
-        if not PaymobGateway.any_configured() and not test_payments_allowed():
+        if not any_gateway_configured() and not test_payments_allowed():
             raise CheckoutError(NO_GATEWAY_MESSAGE)
 
         invoice = cls._create_pending_invoice(user, plan, currency)
 
-        if not PaymobGateway.any_configured():
+        if not any_gateway_configured():
             return {
                 "mode": "fake",
                 "invoice_id": invoice.id,
                 "amount": str(invoice.amount),
                 "currency_code": currency.code,
             }
+
+        if chosen == "stripe":
+            try:
+                result = StripeGateway.create_checkout(invoice=invoice, user=user, return_base=return_base)
+            except GatewayError as exc:
+                invoice.status = "failed"
+                invoice.save(update_fields=["status"])
+                raise CheckoutError(str(exc)) from exc
+            invoice.gateway, invoice.gateway_reference = "stripe", result["reference"]
+            invoice.save(update_fields=["gateway", "gateway_reference"])
+            return {"mode": "stripe", "invoice_id": invoice.id, "redirect_url": result["redirect_url"]}
 
         merchant_order_id = f"{_MERCHANT_ORDER_PREFIX}{invoice.id}"
         try:
@@ -85,8 +100,8 @@ class CheckoutService:
             invoice.save(update_fields=["status"])
             raise CheckoutError(str(exc)) from exc
 
-        invoice.gateway_reference = str(result["order_id"])
-        invoice.save(update_fields=["gateway_reference"])
+        invoice.gateway, invoice.gateway_reference = "paymob", str(result["order_id"])
+        invoice.save(update_fields=["gateway", "gateway_reference"])
         return {"mode": "paymob", "invoice_id": invoice.id, "iframe_url": result["iframe_url"]}
 
     @classmethod
@@ -94,7 +109,7 @@ class CheckoutService:
         """Test-mode only. Stops working the moment Paymob is configured,
         and is refused outright unless BILLING_TEST_MODE is on, so it can
         never be used to bypass real payment."""
-        if PaymobGateway.any_configured():
+        if any_gateway_configured():
             raise CheckoutError("Fake payments are disabled once a real payment gateway is configured.")
         if not test_payments_allowed():
             raise CheckoutError(NO_GATEWAY_MESSAGE)
@@ -139,6 +154,9 @@ class CheckoutService:
             if not cls._matches_invoice(invoice, obj):
                 logger.error("Paymob success callback for invoice %s does not match amount/currency; not activated.", invoice.id)
                 return invoice
+            invoice.gateway = "paymob"
+            invoice.gateway_transaction_id = str(obj.get("id") or "")
+            invoice.save(update_fields=["gateway", "gateway_transaction_id"])
             cls._mark_paid_and_activate(invoice)
         else:
             invoice.status = "failed"
@@ -169,6 +187,6 @@ class CheckoutService:
         if subscription.status != "suspended":  # a suspended account stays suspended even when it pays
             subscription.status = "active"
         subscription.current_period_end = invoice.period_end
-        if invoice.gateway_reference:
-            subscription.gateway = "paymob"
+        if invoice.gateway or invoice.gateway_reference:
+            subscription.gateway = invoice.gateway or "paymob"
         subscription.save(update_fields=["plan", "status", "current_period_end", "gateway", "updated_at"])

@@ -9,5 +9,6 @@ urlpatterns = [
     path("api/billing/checkout/", billing_views.billing_checkout),
     path("api/billing/checkout/fake-complete/", billing_views.billing_checkout_fake_complete),
     path("api/billing/paymob/webhook/", billing_views.paymob_webhook),
+    path("api/billing/stripe/webhook/", billing_views.stripe_webhook),
     path("billing/paymob/return/", billing_views.paymob_return),
 ]

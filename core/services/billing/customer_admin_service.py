@@ -1,7 +1,9 @@
 """Sysadmin customer operations: suspend/unsuspend, extend trial, change plan, invoice paid/void, refund.
 
-The Paymob client has no refund call, so a refund is RECORDED here (invoice -> refunded, access revoked when
-that invoice was what granted it) and the money itself is returned from the Paymob dashboard; the result says so.
+A refund of a gateway-paid invoice (Paymob or Stripe) is made at the gateway FIRST; the invoice becomes
+"refunded" (and access is revoked when that invoice granted it) only after the gateway confirms. A failed call
+changes nothing. The sysadmin can choose manual=True to just record a refund returned by hand (dashboard); the
+same manual record is used automatically when the gateway is not configured or in test mode, and the result says so.
 """
 
 from datetime import timedelta
@@ -12,6 +14,9 @@ from django.db import transaction
 from django.utils import timezone
 
 from core.models import Invoice, Plan, Subscription
+from core.services.billing.checkout_helpers import test_payments_allowed
+from core.services.billing.gateway_base import GatewayError
+from core.services.billing.gateways import gateway_is_configured, refund_through_gateway
 from core.services.billing.subscription_service import SubscriptionService
 
 MAX_EXTEND_DAYS = 365
@@ -115,7 +120,7 @@ def void_invoice(invoice_id) -> Invoice:
 
 
 @transaction.atomic
-def refund_invoice(invoice_id, *, amount=None, note: str = "", revoke_access: bool = True) -> dict:
+def refund_invoice(invoice_id, *, amount=None, note: str = "", revoke_access: bool = True, manual: bool = False) -> dict:
     inv = _invoice(invoice_id)
     if inv.status != "paid":
         raise CustomerAdminError("bad_status", "Only a paid invoice can be refunded.")
@@ -125,6 +130,13 @@ def refund_invoice(invoice_id, *, amount=None, note: str = "", revoke_access: bo
         raise CustomerAdminError("bad_amount", "Invalid refund amount.")
     if value <= 0 or value > inv.amount:
         raise CustomerAdminError("bad_amount", "Refund must be greater than 0 and not exceed the invoice amount.")
+    gateway_name = inv.gateway or ("paymob" if inv.gateway_reference else "")
+    via_gateway = bool(gateway_name) and not manual and not test_payments_allowed() and gateway_is_configured(gateway_name, inv.currency.code)
+    if via_gateway:
+        try:
+            refund_through_gateway(inv, value)
+        except GatewayError as exc:
+            raise CustomerAdminError("gateway_refund_failed", f"{exc} Nothing was changed. Fix it, or tick 'record only' if you returned the money yourself.", 502)
     now = timezone.now()
     inv.status, inv.refunded_at, inv.refund_amount, inv.refund_note = "refunded", now, value, (note or "")[:255]
     inv.save(update_fields=["status", "refunded_at", "refund_amount", "refund_note"])
@@ -135,12 +147,11 @@ def refund_invoice(invoice_id, *, amount=None, note: str = "", revoke_access: bo
         sub.status, sub.canceled_at, sub.current_period_end = "canceled", now, now
         sub.save(update_fields=["status", "canceled_at", "current_period_end", "updated_at"])
         revoked = True
-    via_paymob = bool(inv.gateway_reference)
-    return {
-        "invoice": inv.to_dict(),
-        "access_revoked": revoked,
-        "gateway_refund": "manual" if via_paymob else "not_applicable",
-        "message": "Refund recorded. Return the money from the Paymob dashboard: the Paymob client has no refund API."
-        if via_paymob
-        else "Refund recorded.",
-    }
+    if via_gateway:
+        outcome, message = "gateway", f"Refund confirmed by {gateway_name.title()} and recorded."
+    elif gateway_name:
+        outcome = "manual"
+        message = f"Refund recorded only. Return the money from the {gateway_name.title()} dashboard."
+    else:
+        outcome, message = "not_applicable", "Refund recorded."
+    return {"invoice": inv.to_dict(), "access_revoked": revoked, "gateway_refund": outcome, "message": message}

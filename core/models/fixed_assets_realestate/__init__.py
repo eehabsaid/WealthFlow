@@ -10,6 +10,7 @@ Sibling files:
 - real_estate_details.py RealEstateDetails model.
 - asset_mortgage.py       AssetMortgage model + post_save/post_delete signals.
 - asset_rental.py         AssetRental model + post_save/post_delete signals.
+- rent_receipt.py         RentReceipt model: rent received for one month (settles that month's virtual rental income).
 
 Update this docstring whenever a sibling file is added, removed, or its
 responsibility changes.
@@ -28,11 +29,13 @@ from core.models.fixed_assets_realestate.asset_rental import (
     handle_asset_rental_save,
 )
 from core.models.fixed_assets_realestate.real_estate_details import RealEstateDetails
+from core.models.fixed_assets_realestate.rent_receipt import RentReceipt
 
 __all__ = [
     "RealEstateDetails",
     "AssetMortgage",
     "AssetRental",
+    "RentReceipt",
     "handle_asset_mortgage_save",
     "handle_asset_mortgage_delete",
     "handle_asset_rental_save",
