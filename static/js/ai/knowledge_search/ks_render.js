@@ -20,6 +20,11 @@ window.KS.CATEGORIES = [
   ["app_evolution", "App Evolution"],
 ];
 
+// Only a system administrator may add, edit or delete entries (the server enforces the same rule).
+window.KS.canManage = function () {
+  return typeof isPrivilegedUser === "function" && isPrivilegedUser();
+};
+
 window.KS.renderModalShell = function () {
   const t = window.KS.t;
   const esc = window.KS.escapeHtml;
@@ -34,7 +39,12 @@ window.KS.renderModalShell = function () {
           <small class="text-muted">${esc(t("ai_ks_subtitle", "Search your AI knowledge base"))}</small>
         </div>
       </div>
-      <button type="button" class="btn-close text-reset ms-auto" onclick="closeModal()" aria-label="Close"></button>
+      ${
+        window.KS.canManage()
+          ? `<button type="button" class="btn btn-sm btn-outline-primary ms-auto me-2" onclick="window.openKnowledgeBaseModal()"><i class="bi bi-journal-text me-1"></i>${esc(t("ai_ks_manage", "Manage entries"))}</button>`
+          : ""
+      }
+      <button type="button" class="btn-close text-reset ${window.KS.canManage() ? "" : "ms-auto"}" onclick="closeModal()" aria-label="Close"></button>
     </div>
     <div class="px-4 pt-3 pb-2 border-bottom border-secondary-subtle">
       <div class="input-group">
@@ -66,12 +76,16 @@ window.KS.renderEntry = function (e) {
       <button class="btn btn-xs btn-outline-secondary btn-sm py-0 px-2" onclick="window.KS.copyEntry(${e.id})" title="${esc(t("ai_ks_copy", "Copy"))}">
         <i class="bi bi-clipboard"></i> ${esc(t("ai_ks_copy", "Copy"))}
       </button>
-      <button class="btn btn-xs btn-outline-primary btn-sm py-0 px-2" onclick="window.KS.startEdit(${e.id})" title="${esc(t("ai_ks_edit", "Edit"))}">
+      ${
+        window.KS.canManage()
+          ? `<button class="btn btn-xs btn-outline-primary btn-sm py-0 px-2" onclick="window.KS.startEdit(${e.id})" title="${esc(t("ai_ks_edit", "Edit"))}">
         <i class="bi bi-pencil"></i> ${esc(t("ai_ks_edit", "Edit"))}
       </button>
       <button class="btn btn-xs btn-outline-danger btn-sm py-0 px-2 ms-auto" onclick="window.KS.deleteEntry(${e.id})" title="${esc(t("ai_ks_delete", "Delete"))}">
         <i class="bi bi-trash"></i>
-      </button>
+      </button>`
+          : ""
+      }
     </div>`;
 
   const editForm = isEditing

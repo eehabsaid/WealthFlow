@@ -8,7 +8,6 @@
 
 const _aiWorkspaceExtensions = {
   leftPanels: [],
-  rightPanels: [],
   workspaceCards: [],
   widgets: [],
   agents: [],
@@ -16,9 +15,6 @@ const _aiWorkspaceExtensions = {
 
 function registerAIWorkspaceCard(config) {
   _aiWorkspaceExtensions.workspaceCards.push(config);
-}
-function registerAIRightPanel(config) {
-  _aiWorkspaceExtensions.rightPanels.push(config);
 }
 function registerAILeftPanel(config) {
   _aiWorkspaceExtensions.leftPanels.push(config);
@@ -30,13 +26,23 @@ function registerAIAgent(config) {
   _aiWorkspaceExtensions.agents.push(config);
 }
 
+// Extra left-panel blocks registered through registerAILeftPanel() are drawn into #ai-ws-ext-left.
+function _renderExtensions() {
+  const leftContainer = document.getElementById("ai-ws-ext-left");
+  if (!leftContainer) return;
+  _aiWorkspaceExtensions.leftPanels.forEach((ext) => {
+    const div = document.createElement("div");
+    if (typeof ext.render === "function") div.innerHTML = ext.render();
+    leftContainer.appendChild(div);
+  });
+}
+
 let _aiState = {
   conversationId: null,
   loading: false,
   contextPanelOpen: true,
   lastResponseMeta: null,
   aiSettings: null,
-  knowledgeCount: 0,
   chatMode: "ask",
   agentEnabled: true,
 };
@@ -81,7 +87,6 @@ function _relativeTime(dateStr) {
 }
 
 window.registerAIWorkspaceCard = registerAIWorkspaceCard;
-window.registerAIRightPanel = registerAIRightPanel;
 window.registerAILeftPanel = registerAILeftPanel;
 window.registerAIWidget = registerAIWidget;
 window.registerAIAgent = registerAIAgent;

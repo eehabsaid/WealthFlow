@@ -3,7 +3,7 @@
 /**
  * AI Workspace — Chat Submit
  * Sends the user's message to the backend chat endpoint and renders the response.
- * Depends on: ai_core.js, ai_messages.js, ai_progress.js, ai_context_panel.js, ai_conversations.js
+ * Depends on: ai_core.js, ai_messages.js, ai_progress.js, ai_conversations.js
  */
 
 async function _handleAIChatSubmit() {
@@ -108,7 +108,6 @@ async function _handleAIChatSubmit() {
       0
     );
 
-    _renderRightPanel();
     _fetchAIChatConversations();
   } catch (err) {
     _stopProgressPolling();

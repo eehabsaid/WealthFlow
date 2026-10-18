@@ -22,9 +22,6 @@ window.KB.renderModalShell = function () {
         </div>
       </div>
       <div class="d-flex align-items-center gap-2 ms-auto">
-        <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" id="kb-scan-btn" onclick="window.KB.triggerScan()">
-          <i class="bi bi-radar"></i> <span data-i18n="ai_kb_scan_btn">${esc(t("ai_kb_scan_btn", "Run Autonomous Scan"))}</span>
-        </button>
         <button type="button" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" onclick="window.KB.newForm()">
           <i class="bi bi-plus-lg"></i> <span data-i18n="ai_kb_new_btn">${esc(t("ai_kb_new_btn", "New Entry"))}</span>
         </button>
@@ -54,21 +51,6 @@ window.KB.renderTabs = function () {
     </button>
   `
   ).join("");
-};
-
-window.KB.renderScanResult = function () {
-  const t = window.KB.t;
-  const esc = window.KB.escapeHtml;
-  const result = window.KB.state.scanResult;
-  if (!result) return "";
-  if (result.error || result.ok === false) {
-    return `<div class="alert alert-danger py-2 px-3 mb-3 small" data-i18n="ai_kb_scan_error">${esc(t("ai_kb_scan_error", "Scan failed. Please try again."))}</div>`;
-  }
-  const learned = result.updated_entries_count ?? 0;
-  const suffix = learned
-    ? ` (${learned} ${esc(t("ai_kb_scan_new_entries", "new/updated entries"))})`
-    : "";
-  return `<div class="alert alert-success py-2 px-3 mb-3 small">${esc(t("ai_kb_scan_success", "Scan complete."))}${suffix}</div>`;
 };
 
 window.KB.renderForm = function () {
@@ -149,7 +131,6 @@ window.KB.renderBody = function () {
       ${window.KB.renderTabs()}
     </div>
     <div class="px-4 pt-3">
-      ${window.KB.renderScanResult()}
     </div>
     ${window.KB.renderForm()}
     <div style="max-height: 380px; overflow-y: auto;">

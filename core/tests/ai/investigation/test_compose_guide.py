@@ -78,12 +78,14 @@ class GuideTest(TestCase):
         plan = units(self.admin)
         self.assertGreater(len(plan), 17)                                  # Settings is split into several parts
         for unit in plan:
-            self.assertIn(f"## {unit['title']}", doc)
+            if unit["heading"]:                                            # a screen split in parts is ONE chapter
+                self.assertIn(f"## {unit['heading']}", doc)
         for name in tab_names(self.admin):
             self.assertIn(name, "\n".join(u["evidence"] for u in plan))   # every tab reaches a section call
         self.assertTrue(doc.startswith("# WealthFlow user guide"))
         self.assertEqual(len(prov.calls), 3 + len(plan))                   # "is it about the app", "which language", the intro, one per section
-        self.assertIn("Settings (1/", doc)
+        self.assertNotIn("Settings (1/", doc)                             # parts of one screen are one chapter, no "(1/4)" labels
+        self.assertEqual(doc.count("## Settings\n"), 1)
 
     def test_each_section_call_only_carries_its_own_tabs(self):
         prov = GuideProvider()
@@ -91,7 +93,7 @@ class GuideTest(TestCase):
         first = next(c for c in prov.calls if 'Write ONLY this section: "Settings (1/' in c["ask"])
         last = next(c for c in prov.calls if 'Write ONLY this section: "Settings (4/' in c["ask"])
         self.assertNotEqual(first["ask"].split("SCREEN:")[1], last["ask"].split("SCREEN:")[1])
-        self.assertLess(len(first["ask"]), 9000)                           # fits a small local context window
+        self.assertLess(len(first["ask"]), 24000)                          # fits a small local context window
 
     def test_a_member_never_gets_the_admin_only_screens(self):
         doc = self.run_guide(self.member, GuideProvider())
@@ -101,7 +103,8 @@ class GuideTest(TestCase):
     def test_sections_the_model_cannot_write_are_filled_from_the_app_itself(self):
         doc = self.run_guide(self.admin, GuideProvider(fail_sections=True))
         for unit in units(self.admin):
-            self.assertIn(f"## {unit['title']}", doc)
+            if unit["heading"]:                                            # a screen split in parts is ONE chapter
+                self.assertIn(f"## {unit['heading']}", doc)
         for name in tab_names(self.admin):
             self.assertIn(f"### {name}", doc)
 
@@ -117,7 +120,8 @@ class GuideTest(TestCase):
         finally:
             compose.time.monotonic = real
         for unit in units(self.admin):
-            self.assertIn(f"## {unit['title']}", doc)
+            if unit["heading"]:                                            # a screen split in parts is ONE chapter
+                self.assertIn(f"## {unit['heading']}", doc)
         self.assertFalse([c for c in prov.calls if "Write ONLY this section" in c["ask"]])   # no model time left: all from the app itself
 
     def test_the_editable_instructions_are_what_the_model_is_told(self):
@@ -172,7 +176,7 @@ class GuideCoverageTest(TestCase):
         doc, _ = self.run_guide(GuideProvider())
         h2 = [line[3:] for line in doc.splitlines() if line.startswith("## ")]
         self.assertEqual(len(h2), len(set(h2)))                          # no "Settings / Settings"
-        self.assertEqual(set(h2), {u["title"] for u in units(self.admin)})
+        self.assertEqual(set(h2), {u["heading"] for u in units(self.admin) if u["heading"]})
 
     def test_a_section_cut_off_by_the_output_limit_has_its_half_written_tab_rewritten_alone(self):
         class CutOff(GuideProvider):

@@ -12,9 +12,7 @@ window.KB.state = {
   entries: [],
   activeCategory: "all",
   loading: false,
-  scanning: false,
   isFormOpen: false,
-  scanResult: null,
 };
 
 window.KB.CATEGORIES = [
@@ -70,37 +68,6 @@ window.KB.loadEntries = async function () {
   } finally {
     state.loading = false;
     window.KB.renderBody();
-  }
-};
-
-window.KB.triggerScan = async function () {
-  const state = window.KB.state;
-  if (state.scanning) return;
-  state.scanning = true;
-  const btn = document.getElementById("kb-scan-btn");
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> ${window.KB.escapeHtml(window.KB.t("ai_kb_scanning", "Scanning..."))}`;
-  }
-  try {
-    const res = await fetch("/api/ai-platform/knowledge/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": window.KB.csrfToken(),
-      },
-      body: JSON.stringify({ action: "scan" }),
-    });
-    state.scanResult = res.ok ? await res.json() : { ok: false, error: true };
-  } catch (_e) {
-    state.scanResult = { ok: false, error: true };
-  } finally {
-    state.scanning = false;
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = `<i class="bi bi-radar"></i> <span data-i18n="ai_kb_scan_btn">${window.KB.escapeHtml(window.KB.t("ai_kb_scan_btn", "Run Autonomous Scan"))}</span>`;
-    }
-    await window.KB.loadEntries();
   }
 };
 

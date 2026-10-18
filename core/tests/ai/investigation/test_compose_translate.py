@@ -139,7 +139,7 @@ class TranslatedGuideTest(TestCase):
         self.assertTrue(writing and all("Write the document in English" in c["ask"] for c in writing))
         self.assertIn(MARK, doc)
         self.assertNotIn("Open the screen from the menu", doc)               # no English paragraph left behind
-        self.assertEqual(len([ln for ln in doc.splitlines() if ln.startswith("## ")]), len(units(self.admin)) + 0)
+        self.assertEqual(len([ln for ln in doc.splitlines() if ln.startswith("## ")]), len({u["page"] for u in units(self.admin)}))
 
     def test_every_translation_call_gets_the_document_output_limit(self):
         prov = TranslatingProvider()
@@ -164,4 +164,5 @@ class TranslatedGuideTest(TestCase):
     def test_when_translation_fails_the_english_guide_is_still_complete(self):
         doc = self.run_guide(TranslatingProvider(break_translation=True))
         for unit in units(self.admin):
-            self.assertIn(f"## {unit['title']}", doc)
+            if unit["heading"]:                                            # a screen split in parts is ONE chapter
+                self.assertIn(f"## {unit['heading']}", doc)

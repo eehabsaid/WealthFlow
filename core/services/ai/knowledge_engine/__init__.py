@@ -43,7 +43,7 @@ class AIKnowledgeEngine(ConversationSignalsMixin, UserNotesMixin):
         content: str,
         category: str = "business_rule",
         confidence: float = 1.0,
-        source: str = "autonomous_learning",
+        source: str = "manual",
     ) -> AIKnowledgeEntry:
         clean_key = str(key or "").strip().lower()
         entry, _created = AIKnowledgeEntry.objects.update_or_create(

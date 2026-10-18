@@ -66,9 +66,8 @@ class AILimitsPanelLiveTests(StaticLiveServerTestCase):
 
     def test_layout_title_input_buttons_and_order(self):
         p = self.page
-        # (5) limits frame sits above the Autonomous App Scan card
-        self.assertTrue(p.evaluate("""() => document.getElementById('aiUserLimitsCard')
-            .compareDocumentPosition(document.getElementById('aiPlatformScanCard')) & Node.DOCUMENT_POSITION_FOLLOWING"""))
+        # (5) the removed Autonomous App Scan card is gone from Settings
+        self.assertEqual(p.locator("#aiPlatformScanCard").count(), 0)
         # (1) title is a plain label, not a framed addon; (2) the input is roomy
         self.assertEqual(p.locator("#aiUserLimitsCard .input-group-text").count(), 0)
         self.assertEqual(p.locator("label[for=aiDefaultLimitInput]").inner_text().strip(), "Default limit (tokens / month)")

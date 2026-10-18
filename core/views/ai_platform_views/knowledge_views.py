@@ -1,5 +1,5 @@
 """
-Knowledge Base management views (AI Platform).
+Knowledge Base views (AI Platform): everyone can read and search the entries, only a sysadmin can add, edit or delete them.
 
 Split out of the former monolithic ai_platform_views.py (200-line rule).
 """
@@ -11,9 +11,8 @@ from django.views import View
 
 from core.validators.json_body import parse_json_body
 from core.models import AIKnowledgeEntry
-from core.services.ai.autonomous_learning_engine import AIAutonomousLearningEngine
 from core.services.ai.knowledge_engine import AIKnowledgeEngine
-from core.views.ai_platform_views.auth import _api_auth_required
+from core.views.ai_platform_views.auth import _api_auth_required, _sysadmin_required
 
 
 class AIPlatformKnowledgeView(View):
@@ -37,7 +36,7 @@ class AIPlatformKnowledgeView(View):
         return JsonResponse({"entries": [e.to_dict() for e in entries]})
 
     def post(self, request):
-        auth_error = _api_auth_required(request)
+        auth_error = _sysadmin_required(request)   # entries go into every user's AI prompt: only a sysadmin may write them
         if auth_error:
             return auth_error
 
@@ -45,11 +44,6 @@ class AIPlatformKnowledgeView(View):
             body = parse_json_body(request)
         except json.JSONDecodeError:
             body = {}
-
-        action = str(body.get("action", "scan")).strip().lower()
-        if action == "scan":
-            res = AIAutonomousLearningEngine.scan_and_learn_application_evolution()
-            return JsonResponse(res)
 
         key = str(body.get("key", "")).strip()
         title = str(body.get("title", "")).strip()
@@ -76,7 +70,7 @@ class AIPlatformKnowledgeDetailView(View):
     """
 
     def patch(self, request, pk):
-        auth_error = _api_auth_required(request)
+        auth_error = _sysadmin_required(request)
         if auth_error:
             return auth_error
 
@@ -100,7 +94,7 @@ class AIPlatformKnowledgeDetailView(View):
         return JsonResponse({"entry": entry.to_dict()})
 
     def delete(self, request, pk):
-        auth_error = _api_auth_required(request)
+        auth_error = _sysadmin_required(request)
         if auth_error:
             return auth_error
 

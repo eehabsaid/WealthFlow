@@ -27,7 +27,7 @@ class AIKnowledgeEntry(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
     confidence = models.FloatField(default=1.0)
-    source = models.CharField(max_length=100, default="autonomous_learning")
+    source = models.CharField(max_length=100, default="manual")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

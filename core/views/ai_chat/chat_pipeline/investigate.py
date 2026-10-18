@@ -73,18 +73,24 @@ def wants_written_document(text: str) -> bool:
 
 def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None, conversation_id=None) -> bool:
     """Replace a stub answer ("Let me write it...") by the complete document. True when the content was replaced."""
-    from core.services.ai.investigation.compose import compose_document, needs_document
+    from core.services.ai.investigation.compose import compose_document, drop_model_drafts, generated_file, needs_document
 
-    if result.reason == "cancelled" or not wants_written_document(user_text) or not needs_document(result):
+    if result.reason == "cancelled" or not wants_written_document(user_text):
+        return False
+    # The model wrote a file itself (Agent mode does): a guide to the app is still written by the app from the live screen list,
+    # because the model's own text is shallow, invents details and is repeated in every generate_file call.
+    own_file = generated_file(result.steps) and not needs_document(result)
+    if not own_file and not needs_document(result):
         return False
     from core.services.ai.investigation.loop_helpers import publish_legacy
 
     def progress(n, total, title, started):   # the chat's "current step" line: Writing the guide: Balance (3/17)
         publish_legacy(user, conversation_id, n, total, "document_section", f"Writing the document: {title}", started)
 
-    doc = compose_document(provider, user_text, result, ctx_chars, user, progress)
+    doc = compose_document(provider, user_text, result, ctx_chars, user, progress, guide_only=own_file)
     if doc:
         result.content = doc
+        drop_model_drafts(result.steps)
     return bool(doc)
 
 

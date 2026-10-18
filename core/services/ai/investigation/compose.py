@@ -18,7 +18,7 @@ from __future__ import annotations
 import time
 
 from .actions import strip_think
-from .compose_sections import knowledge, missing_tabs, tab_fallback, units
+from .compose_sections import dedupe_headings, knowledge, missing_tabs, tab_fallback, units
 from .compose_translate import target_language, translate_markdown, uses_latin_script
 from .refusal import is_refusal
 
@@ -74,7 +74,8 @@ def _heading(text: str, unit: dict) -> str:
     """The section as Markdown under exactly one "## title": the model's own first heading is replaced by the unit title, every
     other H1/H2 becomes H3, and a heading that only repeats the screen's name is dropped (no "Settings / Settings")."""
     same = {_norm(unit["title"]), _norm(unit["page"])}
-    out = [f"## {unit['title']}", ""]
+    head = unit.get("heading", unit["title"])
+    out = [f"## {head}", ""] if head else []
     for line in text.splitlines():
         stripped = line.strip()
         if stripped.startswith("#"):
@@ -83,7 +84,7 @@ def _heading(text: str, unit: dict) -> str:
                 continue
             if stripped.startswith(("# ", "## ")):
                 line = f"### {name}"
-        elif not stripped and len(out) == 2:
+        elif not stripped and not any(x.strip() for x in out[2 if head else 0:]):
             continue
         out.append(line)
     return "\n".join(out).rstrip()
@@ -123,7 +124,7 @@ def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int
         for tab in missing_tabs(unit, section):   # the model dropped these tabs: nothing may be missing from the guide
             section += "\n\n" + _tab_section(provider, user, user_text, out, unit, tab, instructions, deadline)
         parts.append(section)
-    return "\n\n".join(parts)
+    return dedupe_headings("\n\n".join(parts))
 
 
 def _single(provider, user_text: str, out, instructions: str, ctx_chars: int, deadline: float) -> str:
@@ -133,8 +134,18 @@ def _single(provider, user_text: str, out, instructions: str, ctx_chars: int, de
     return text if len(text) >= MIN_ACCEPT_CHARS and not is_refusal(text, True) else ""
 
 
-def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user=None, progress=None) -> str:
-    """The full document text, or "" when the model could not produce one (the caller keeps the original answer)."""
+def drop_model_drafts(steps: list) -> None:
+    """The app wrote the guide itself: the text the model put in its own generate_file calls is not the file's content any more
+    (the download is built from the saved answer). Datasets and tables the calls carry stay."""
+    for step in steps or []:
+        args = step.get("arguments") if step.get("tool") == "generate_file" else None
+        if isinstance(args, dict):
+            args.pop("content", None)
+
+
+def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user=None, progress=None, guide_only: bool = False) -> str:
+    """The full document text, or "" when the model could not produce one (the caller keeps the original answer).
+    guide_only: the model already made a file with generate_file; only a guide to the app itself is rewritten by the app."""
     from core.services.ai.agent.instructions import effective_document_instructions
     from core.services.ai.agent.settings import document_budget_s
 
@@ -151,4 +162,6 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
                          out, instructions, int(budget_s * 0.45), progress)
         non_latin = not uses_latin_script(ask, language)
         return translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, deadline, progress, non_latin)
+    if guide_only:
+        return ""
     return _single(provider, user_text, out, instructions, ctx_chars, deadline)

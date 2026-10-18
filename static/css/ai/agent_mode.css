@@ -45,9 +45,3 @@
 .ai-ws-agent-step.running {
   color: var(--text-primary);
 }
-
-.ai-ws-source-ref {
-  overflow-wrap: anywhere;
-  font-family: var(--font-family-mono, monospace);
-  font-size: 0.72rem;
-}

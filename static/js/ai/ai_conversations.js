@@ -4,7 +4,7 @@
  * AI Workspace — Conversations
  * Fetches, groups, and renders the conversation list; handles switching,
  * deleting, and starting new conversations.
- * Depends on: ai_core.js, ai_messages.js (render/empty state), ai_context_panel.js (right panel)
+ * Depends on: ai_core.js, ai_messages.js (render/empty state)
  */
 
 async function _fetchAIChatConversations() {
@@ -94,7 +94,6 @@ function _startNewAIChatConversation() {
   const container = document.getElementById("ai-ws-messages");
   if (container) container.innerHTML = "";
   _renderEmptyState();
-  _renderRightPanel();
   _fetchAIChatConversations();
   const inputEl = document.getElementById("ai-ws-input");
   if (inputEl) {

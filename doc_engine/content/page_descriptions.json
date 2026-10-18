@@ -55,15 +55,14 @@
       "Open Knowledge Search from the AI Workspace sidebar card.",
       "Type a search term to filter Knowledge Base entries in real time.",
       "Expand an entry to review its full content.",
-      "Inject, copy, edit, or delete an entry directly from the results list."
+      "Inject or copy an entry from the results list; only system administrators can edit or delete entries."
     ]
   },
   "ai::knowledge_base": {
     "purpose": "Central repository of curated business, financial, and application knowledge entries that the AI engine references when answering questions.",
     "steps": [
-      "Open Knowledge Base from the AI Workspace context panel.",
+      "System administrators: open Knowledge Base with the 'Manage entries' button in Knowledge Search.",
       "Filter entries by category using the tab bar.",
-      "Trigger a scan to detect new candidate knowledge from recent activity.",
       "Select an entry to review its full content, or add a new one."
     ]
   },
@@ -77,16 +76,15 @@
     ]
   },
   "settings::settings-aiadvisor": {
-    "purpose": "Configure the AI provider and model, the AI limits and the Agent / document-writing behaviour, and refresh the AI's knowledge of the app.",
+    "purpose": "Configure the AI provider and model, the AI limits and the Agent / document-writing behaviour.",
     "steps": [
-      "Trigger the Autonomous App Scan to refresh what the AI knows about the app (screens and code structure).",
       "Turn Instant Data Answers on or off: when on, simple data questions (balances, salary, expenses, gold price, exchange rates) are answered instantly from your own data without the AI model. These instant answers understand English, Arabic, French and German and reply in the question's language.",
       "Choose the AI Investigator mode. Auto (default): whenever a normal answer gives up (\"I don't have access\", an empty or failed reply) the AI explores your own data, the app guide and, for the system administrator, the source code with read-only tools and answers from what it finds. Always: use it for every question. Off: disabled.",
       "Use the source-code switch to allow or forbid the AI from reading the source code. Only system administrators can ever use it, secrets and databases are never exposed, and it is on by default.",
       "Use the AI File Generation switch to allow or forbid downloadable files (Excel, Word, PDF, CSV, code) and the AI file tool, and set the maximum file size (MB) and the maximum rows per file. It is on by default; nothing is stored on the server because a file is built from the saved answer when it is downloaded, so there is no retention period. Turning it off removes the links and makes old links answer 404.",
       "Set the default monthly AI token limit and optional per-user overrides in the 'Monthly AI token limit per user' frame, above the platform and model-history section: a blank override uses the default and 0 means unlimited. Search users by name or email, filter by AI settings mode, use Toggle Select All (or tick users) and Apply to selected to set one limit for many users at once. Limits apply only to users on the general app settings; users on their own AI settings are never limited. Long tables show 5 rows with a Show all / Show less toggle.",
       "If a yellow warning says stored API keys use the default server key, set a private WEALTHFLOW_AI_ENCRYPTION_KEY on the server, run \"python manage.py rekey_ai_keys --apply\" and restart; the warning disappears once a private key is active.",
-      "Agent mode (system administrator): turn it on or off for every user, set the maximum steps, the time limit (seconds) and the maximum file reads per question, and edit the Agent investigation instructions, which tell the AI how to investigate (orient, search, read, never state anything it did not read, cite what it used). Restore default puts the built-in text back; saving the default text keeps following future improvements. Source-code tools stay available to system administrators only, and only while the source-code switch is on. Document writing: when a user asks for a Word, PDF or text document, the AI writes it section by section (a user guide gets one section per screen and Settings tab, taken from the live app); edit the Document writing instructions here (Restore default puts the built-in text back) and set the Document time limit that covers the whole document; a section the model cannot write is filled from the app's own screen list, so nothing is left out. Set the Document output limit (tokens per step): too low and a section or a translation is cut off; it is capped by Context Size minus about 3500. A guide requested in another language (for example Arabic) is written in English first and then translated chunk by chunk, retrying in smaller pieces when a chunk is cut off or comes back untranslated."
+      "Agent mode (system administrator): turn it on or off for every user, set the maximum steps, the time limit (seconds) and the maximum file reads per question, and edit the Agent investigation instructions, which tell the AI how to investigate (orient, search, read, never state anything it did not read, cite what it used). Restore default puts the built-in text back; saving the default text keeps following future improvements. Source-code tools stay available to system administrators only, and only while the source-code switch is on. Document writing: when a user asks for a Word, PDF or text document, the AI writes it section by section (a user guide gets one section per screen and Settings tab, taken from the live app); edit the Document writing instructions here (Restore default puts the built-in text back) and set the Document time limit that covers the whole document; a section the model cannot write is filled from the app's own screen list, so nothing is left out. The same applies in Agent mode: a guide to the app is always written by the app from the screens' documented text (the model's own file drafts are not used), and a file never holds the same document twice. Set the Document output limit (tokens per step): too low and a section or a translation is cut off; it is capped by Context Size minus about 3500. A guide requested in another language (for example Arabic) is written in English first and then translated chunk by chunk, retrying in smaller pieces when a chunk is cut off or comes back untranslated."
     ]
   },
   "settings::settings-legal": {
@@ -108,19 +106,18 @@
     ]
   },
   "settings::settings-languages": {
-    "purpose": "Configure the administrative settings and preferences for Settings Languages.",
+    "purpose": "Manage the interface languages: add a language, mark it right-to-left, and choose which language is active.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Languages. The table lists every language with its code, label, whether it is right-to-left, and whether it is Active.",
+      "Use Set Active on a row to make that language the active one.",
+      "Use Add Language to add one, or the edit button on a row to change it."
     ]
   },
   "settings::settings-companies": {
-    "purpose": "Configure the administrative settings and preferences for Settings Companies.",
+    "purpose": "Manage the companies (employers) that pay you, and the payroll set-up of each one. Each active company becomes a tab on the Employment page.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Companies. The table shows Name, Display Name, Group Name, Color, Order, Active and the row actions.",
+      "Click Add to create a company, or the edit button on a row to change it."
     ]
   },
   "settings::settings-currency": {
@@ -133,11 +130,11 @@
     ]
   },
   "settings::settings-users": {
-    "purpose": "Manage user accounts. Deleting a user disables the account and schedules its permanent removal after a grace period; the row then shows the purge date, Restore and Delete permanently now. The last active administrator cannot be deleted. Accounts that were already disabled or rejected before deletion can only be restored by an administrator.",
+    "purpose": "Manage the user accounts: create users, change their access level, roles and permissions, and delete or restore accounts.",
     "steps": [
-      "Use the trash button (or Bulk actions > Delete selected) to schedule a deletion.",
-      "Use Restore (or Bulk actions > Restore selected) to cancel it before the purge date.",
-      "Use Delete permanently now on a pending row to remove the account and its data immediately."
+      "Open Settings > Users. The table shows Username, Email, Email Verified, Account Status, Roles and the row actions; the search box and the Bulk Actions menu (activate, deactivate, delete, restore, set or unset staff or sysadmin) work on ticked rows.",
+      "Click Add User to create an account, or the edit and permissions buttons on a row.",
+      "A deleted account is disabled at once and kept for a grace period; during it use Restore, or Delete permanently now to remove it and all its data."
     ]
   },
   "settings::settings-roles": {
@@ -150,67 +147,65 @@
     ]
   },
   "settings::settings-emailtemplates": {
-    "purpose": "Configure the administrative settings and preferences for Settings Emailtemplates.",
+    "purpose": "Edit the e-mails the app sends (such as verification and password reset) and the SMTP settings used to send them.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Email Templates. The SMTP Settings card holds the Sender Email, the Administrator Notification Email, the SMTP Host, the Port, TLS or SSL, the SMTP Username and the SMTP Password (leave it blank to keep the saved one).",
+      "Use Use Gmail Preset or Use Outlook Preset to fill the host and port for those providers, then Save SMTP Settings.",
+      "Enter an address in SMTP Test Recipient and click Send Test Email to check the settings.",
+      "The Email Templates table lists each template with its name, description and last update. Use the edit button to change the Subject and Email Body, or the preview button to see it with sample data."
     ]
   },
   "settings::settings-translations": {
-    "purpose": "Configure the administrative settings and preferences for Settings Translations.",
+    "purpose": "Edit the text of the app in every language.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Translations.",
+      "Use the search box to find a Translation Key or a text.",
+      "Edit the value for a language and click Save."
     ]
   },
   "settings::settings-translationcoverage": {
-    "purpose": "Configure the administrative settings and preferences for Settings Translationcoverage.",
+    "purpose": "See how complete each language is.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Translation Coverage. For every language the table shows Total Keys, Translated, Empty Values, Missing Keys and the Coverage percentage.",
+      "Click Missing Report to see which keys are missing or empty."
     ]
   },
   "settings::settings-reminders": {
-    "purpose": "Configure the administrative settings and preferences for Settings Reminders.",
+    "purpose": "Control the reminder engine and the reminder rules.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Reminders.",
+      "Turn Enable Reminder Engine on or off: when on, reminder banners appear on page load when a rule is due.",
+      "Set the Certificate Expiry Warning Window: certificates expiring within that many days appear on the dashboard.",
+      "The Reminder Rules table shows each rule's trigger and status; use Add Rule to create one, or the edit, enable/disable and delete buttons on a row."
     ]
   },
   "settings::settings-certstatus": {
-    "purpose": "Configure the administrative settings and preferences for Settings Certstatus.",
+    "purpose": "Define the lifecycle statuses of bank certificates (for example active or matured).",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Certificate Status. The table shows each status with its Color, whether it is Terminal, its Order and the Default one.",
+      "Click Add Status to create one, or the edit and delete buttons on a row. These statuses appear in the certificate form and on its list."
     ]
   },
   "settings::settings-goldsettings": {
-    "purpose": "Configure the administrative settings and preferences for Settings Goldsettings.",
+    "purpose": "Manage the gold types and the gold purities (carats) used to value gold.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Gold Settings.",
+      "The Gold Types table lists each type with its order and whether it is active; use Add Gold Type or the edit and disable buttons.",
+      "The Gold Purities table lists each purity key, label and Cashback per Gram; the cashback per gram is used in every gold valuation. Use Add Gold Purity or the edit and disable buttons."
     ]
   },
   "settings::settings-dashboard": {
-    "purpose": "Configure the administrative settings and preferences for Settings Dashboard.",
+    "purpose": "Choose what the Dashboard shows.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Dashboard.",
+      "Turn Show Salary KPI Widget on or off to show or hide the salary totals on the dashboard."
     ]
   },
   "settings::settings-banks": {
-    "purpose": "Configure the administrative settings and preferences for Settings Banks.",
+    "purpose": "Manage the banks that hold your balances, cards and certificates.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Banks. The table shows Bank Name, Account Number, SWIFT Code, Status and the row actions.",
+      "Click Add to create a bank, or the edit button on a row to change it."
     ]
   },
   "settings::settings-backuprestore": {
@@ -222,11 +217,12 @@
     ]
   },
   "settings::settings-documentation": {
-    "purpose": "Configure the administrative settings and preferences for Settings Documentation.",
+    "purpose": "Capture screenshots of the app and generate the User, Admin and Technical guides from them.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Open Settings > Documentation.",
+      "Under Screenshot Capture choose the Language, Theme and Device Category, then click Capture Screenshots; the Capture Progress shows the page and step being captured, and Cancel stops it.",
+      "Under Documentation Generation click Generate All Documents to build the User Guide, Admin Guide and Technical Guide from the existing screenshots.",
+      "Use Open Screenshot Folder and Generated Folder to find the files, and Execution History to see earlier runs."
     ]
   },
   "auth::create_account": {
@@ -431,19 +427,19 @@
     ]
   },
   "salary-7::add_salary_entry": {
-    "purpose": "Record a new monthly salary payout or income entry.",
+    "purpose": "Record or correct the salary of one month for the selected company.",
     "steps": [
-      "Click Add Entry.",
-      "Enter the exact payout amount and date.",
-      "Save the entry to update your cash flow."
+      "On the Employment page open the company's tab and click Add (or Edit on a month).",
+      "Enter the Year and Month, the Expected amount, the Paid amount, any Bonus and Notes.",
+      "Click Save. Use Mark Paid on a month to record that the salary was received; the bank balance is updated, and reversing the payment adjusts it back."
     ]
   },
   "salary-7::add_perdiem1": {
-    "purpose": "Manage your per diem allowances and daily travel compensations.",
+    "purpose": "Record a per diem (daily travel allowance) you received.",
     "steps": [
-      "Open the Per Diem modal.",
-      "Enter your travel dates and daily rates.",
-      "Save the allowance to your income sheet."
+      "Open Per Diem on the Employment page and click Add Per Diem.",
+      "Enter the Date, the Amount and its Currency, where it was Received In (for example Cash or a bank) and optional Notes.",
+      "Click Save. The Per Diem List can be filtered by currency and shows totals."
     ]
   },
   "salary-7::add_perdiem2": {
@@ -463,11 +459,12 @@
     ]
   },
   "all-companies::add_company": {
-    "purpose": "Register a new company or employer to the system.",
+    "purpose": "Add a company (employer) with its payroll set-up, or edit an existing one.",
     "steps": [
-      "Click Add Company.",
-      "Enter the company name, industry, and contact details.",
-      "Save the company profile."
+      "Click Add (or the edit button on a company's row).",
+      "Enter the Name, Display Name and Group Name, pick a Color and an Order number, and choose Active or Inactive.",
+      "Under Payroll Configuration set the Current Monthly Salary and its Salary Currency, the Payment Day (1-31), the Default Bank the salary is paid into, the Per Diem Amount and its currency, the Bonus Amount and any Payroll Notes.",
+      "Click Save."
     ]
   },
   "balance::overview": {
@@ -859,35 +856,38 @@
     ]
   },
   "settings::settings-languages::add_language": {
-    "purpose": "Configure the administrative settings and preferences for Settings Languages.",
+    "purpose": "Add a new interface language.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click Add Language.",
+      "Enter the Code (for example fr) and the Label (for example English).",
+      "Choose whether the language is Right-to-Left (Yes or No).",
+      "Click Add."
     ]
   },
   "settings::settings-languages::edit_language": {
-    "purpose": "Configure the administrative settings and preferences for Settings Languages.",
+    "purpose": "Change an existing interface language.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click the edit button on the language's row.",
+      "Change the Code, the Label or the Right-to-Left setting.",
+      "Click Save; the message \"Language updated successfully\" appears."
     ]
   },
   "settings::settings-companies::add_company": {
-    "purpose": "Configure the administrative settings and preferences for Settings Companies.",
+    "purpose": "Add a company (employer) with its payroll set-up, or edit an existing one.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click Add (or the edit button on a company's row).",
+      "Enter the Name, Display Name and Group Name, pick a Color and an Order number, and choose Active or Inactive.",
+      "Under Payroll Configuration set the Current Monthly Salary and its Salary Currency, the Payment Day (1-31), the Default Bank the salary is paid into, the Per Diem Amount and its currency, the Bonus Amount and any Payroll Notes.",
+      "Click Save."
     ]
   },
   "settings::settings-banks::add_bank": {
-    "purpose": "Configure the administrative settings and preferences for Settings Banks.",
+    "purpose": "Add a bank, or edit an existing one.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click Add (or the edit button on a bank's row).",
+      "Enter the Bank Name, Account Number and SWIFT Code, and set the Status.",
+      "Optionally enter the Card ID, Customer ID and Customer Name.",
+      "Click Save. Documents can be attached to a bank only after the bank has been saved once."
     ]
   },
   "settings::settings-currency::add_currency": {
@@ -899,19 +899,21 @@
     ]
   },
   "settings::settings-users::add_user": {
-    "purpose": "Configure the administrative settings and preferences for Settings Users.",
+    "purpose": "Create a user account, or edit one.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click Add User (or the edit button on a user's row).",
+      "Enter the Username, the Email and the Password (when editing, leave the password blank to keep it).",
+      "Choose Active (Yes or No) and the Access Level: Normal User, Staff User or Sysadmin User.",
+      "Click Save."
     ]
   },
   "settings::settings-users::manage_permissions": {
-    "purpose": "Configure the administrative settings and preferences for Settings Users.",
+    "purpose": "Choose which pages a user may open and which roles the user has.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click the permissions button on a user's row.",
+      "Under User Roles pick a role and click Add to give it to the user.",
+      "In Existing Permissions use Grant or Revoke on a page to allow or block it for this user.",
+      "Click Close when done."
     ]
   },
   "settings::settings-roles::add_role": {
@@ -933,52 +935,46 @@
       "Click Save to apply the changes."
     ]
   },
-  "settings::settings-emailtemplates::add_template": {
-    "purpose": "Configure the administrative settings and preferences for Settings Emailtemplates.",
-    "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
-    ]
-  },
   "settings::settings-translationcoverage::missing_report": {
-    "purpose": "Configure the administrative settings and preferences for Settings Translationcoverage.",
+    "purpose": "List the keys that are missing or empty in a language.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click Missing Report.",
+      "Read the Missing and Empty keys for each language in the Translation Coverage Report.",
+      "Click Close when done."
     ]
   },
   "settings::settings-reminders::add_reminder": {
-    "purpose": "Configure the administrative settings and preferences for Settings Reminders.",
+    "purpose": "Add or edit a reminder rule.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click Add Rule (or Edit on a rule).",
+      "Enter the Rule Name and choose the Rule Type and Trigger Type.",
+      "Enter the Trigger Value (a day number) or the Days Before Expiry, and the Reminder Message.",
+      "Tick Active to enable the rule and click Save."
     ]
   },
   "settings::settings-certstatus::add_status": {
-    "purpose": "Configure the administrative settings and preferences for Settings Certstatus.",
+    "purpose": "Add or edit a certificate status.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click Add Status (or Edit on a status).",
+      "Enter the Status Name, pick a Color and an Order.",
+      "Tick Set as default and/or Terminal status if needed.",
+      "Click Save."
     ]
   },
   "settings::settings-goldsettings::add_gold_type": {
-    "purpose": "Configure the administrative settings and preferences for Settings Goldsettings.",
+    "purpose": "Add or edit a gold type.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click Add Gold Type (or Edit on a type).",
+      "Enter the Gold Type name and its Order.",
+      "Set it Active or Inactive and click Save."
     ]
   },
   "settings::settings-goldsettings::add_gold_purity": {
-    "purpose": "Configure the administrative settings and preferences for Settings Goldsettings.",
+    "purpose": "Add or edit a gold purity.",
     "steps": [
-      "Navigate to the Settings panel.",
-      "Adjust the system preferences as needed.",
-      "Save the configuration to apply changes globally."
+      "Click Add Gold Purity (or Edit on a purity).",
+      "Enter the Purity Key, the Purity Label and the Cashback per Gram.",
+      "Click Save."
     ]
   },
   "settings::settings-propertyvaluation": {
@@ -1089,6 +1085,92 @@
       "In Customers, search a user, then suspend or unsuspend the account, extend the trial, or change the plan. The list shows 25 customers at a time: press Load more for the next page.",
       "Open a customer's invoices (the newest 10 are shown; press Show more invoices for older ones) to mark a pending invoice paid, void it, or refund a paid one. A Paymob refund is recorded here; return the money from the Paymob dashboard.",
       "For each Gulf account (SAR / AED), save it and press Test connection to check that Paymob accepts the saved API key on the regional host; no order is created and nothing is charged."
+    ]
+  },
+  "balance::bank_interest": {
+    "purpose": "Record the interest your bank accounts paid you.",
+    "steps": [
+      "Open Balance > Bank Interest. The table shows Date, Bank, Currency, Amount and Notes.",
+      "Click New Bank Interest to add an entry, or Edit / Delete on a row."
+    ]
+  },
+  "balance::bank_interest::add_bank_interest": {
+    "purpose": "Add or edit a bank interest entry.",
+    "steps": [
+      "Click New Bank Interest (or Edit on a row).",
+      "Enter the Date, select the Bank and the Currency, enter the Amount and optional Notes.",
+      "Click Save."
+    ]
+  },
+  "balance::credit_card_payment": {
+    "purpose": "Record payments you made to a credit card. Each payment also appears as an expense in the Credit Card category.",
+    "steps": [
+      "Open Balance > Credit Card Payment. The table shows Date, Paid From, Method, Card, Amount and Notes.",
+      "Click New Credit Card Payment to add one, or Edit / Delete on a row."
+    ]
+  },
+  "balance::credit_card_payment::add_credit_card_payment": {
+    "purpose": "Add or edit a credit card payment.",
+    "steps": [
+      "Click New Credit Card Payment (or Edit on a row).",
+      "Enter the Date, choose Paid From (the bank), the payment Method and the Card, enter the Amount and optional Notes.",
+      "Click Save."
+    ]
+  },
+  "balance::card_renewal_fee": {
+    "purpose": "Record the fees charged to renew a card. Each fee also appears as an expense in the Card Fees category.",
+    "steps": [
+      "Open Balance > Card Renewal Fee. The table shows Date, Bank, Card, Amount and Notes.",
+      "Click New Card Renewal Fee to add one, or Edit / Delete on a row."
+    ]
+  },
+  "balance::card_renewal_fee::add_card_renewal_fee": {
+    "purpose": "Add or edit a card renewal fee.",
+    "steps": [
+      "Click New Card Renewal Fee (or Edit on a row).",
+      "Enter the Date, select the Bank and the Card, enter the Amount and optional Notes.",
+      "Click Save."
+    ]
+  },
+  "settings::settings-users::edit_user": {
+    "purpose": "Change a user's details or access level.",
+    "steps": [
+      "Click the edit button on the user's row.",
+      "Change the Username, Email, Active status or Access Level.",
+      "Click Save."
+    ]
+  },
+  "settings::settings-billing::add_plan": {
+    "purpose": "Create a subscription plan.",
+    "steps": [
+      "Click Add Plan.",
+      "Enter the plan name, the Interval (days), the Sort order and whether it is Active.",
+      "Tick Includes AI Workplace if subscribers get the AI chat and its tools.",
+      "Click Save, then open the plan to add its Prices: one per currency configured in Settings > Currency."
+    ]
+  },
+  "settings::settings-billing::edit_plan": {
+    "purpose": "Change a subscription plan and its prices.",
+    "steps": [
+      "Click the edit button on the plan's row.",
+      "Change the name, Interval (days), Active, Includes AI Workplace or the Prices (currency and amount).",
+      "Click Save. A plan can be deleted with the delete button; this cannot be undone."
+    ]
+  },
+  "settings::settings-billing::customer_invoices": {
+    "purpose": "See each customer's plan and invoices, and manage a subscription.",
+    "steps": [
+      "In the Customers table search for a user; it shows the Plan, Status, Trial ends, Period ends and Invoices.",
+      "Use Extend trial (enter the days to add), Change plan, or Suspend (the user loses access at once).",
+      "Open a customer's invoices to see each amount; an invoice can be voided or refunded: choose Refund to return the money through the gateway, or Record only if you returned it yourself."
+    ]
+  },
+  "settings::settings-emailtemplates::edit_template": {
+    "purpose": "Change the subject and body of an e-mail the app sends.",
+    "steps": [
+      "Click the edit button on a template's row (the preview button shows it with sample data).",
+      "Change the Subject and the Email Body in the Email Template Editor.",
+      "Click Save."
     ]
   }
 }

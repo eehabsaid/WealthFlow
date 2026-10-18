@@ -2,9 +2,9 @@
 
 /**
  * AI Workspace — Shell & Input
- * Renders the three-panel workspace layout and wires the message textarea.
+ * Renders the two-panel workspace layout (conversations on the left, chat in the center) and wires the message textarea.
  * Depends on: ai_core.js, ai_status.js, ai_conversations.js, ai_messages.js,
- * ai_context_panel.js, ai_chat_submit.js
+ * ai_chat_submit.js
  */
 
 async function renderAI() {
@@ -22,9 +22,6 @@ async function renderAI() {
           </div>
           <div class="ai-ws-header-divider"></div>
           <div class="ai-ws-header-stats" id="ai-ws-header-stats">
-            <div class="ai-ws-stat-chip"><i class="bi bi-hdd-rack"></i> <span data-i18n="ai_ws_provider">Provider</span>: <span class="stat-value" id="ai-ws-chip-provider">—</span></div>
-            <div class="ai-ws-stat-chip"><i class="bi bi-robot"></i> <span data-i18n="ai_ws_model">Model</span>: <span class="stat-value" id="ai-ws-chip-model">—</span></div>
-            <div class="ai-ws-stat-chip"><i class="bi bi-database"></i> <span data-i18n="ai_ws_knowledge">Knowledge</span>: <span class="stat-value" id="ai-ws-chip-knowledge">—</span></div>
             <div class="ai-ws-stat-chip" id="ai-ws-chip-status-container"><i class="bi bi-circle-fill"></i> <span class="stat-value" id="ai-ws-chip-status">—</span></div>
           </div>
         </div>
@@ -32,16 +29,13 @@ async function renderAI() {
           <button class="btn btn-sm btn-outline-secondary align-items-center gap-1 ai-ws-sidebar-toggle" onclick="_toggleAISidebar()" title="${_aiT("ai_ws_toggle_sidebar", "Toggle Sidebar")}">
             <i class="bi bi-list"></i>
           </button>
-          <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" onclick="_toggleAIContextPanel()" title="${_aiT("ai_ws_toggle_context", "Toggle Context Panel")}">
-            <i class="bi bi-layout-sidebar-reverse"></i>
-          </button>
         </div>
       </div>
 
       <!-- Sidebar overlay (mobile) -->
       <div id="ai-ws-sidebar-overlay" class="ai-ws-overlay" onclick="_toggleAISidebar()"></div>
 
-      <!-- Three-Panel Body -->
+      <!-- Body -->
       <div class="ai-ws-body">
         <!-- Left Panel -->
         <div class="ai-ws-left">
@@ -110,7 +104,6 @@ async function renderAI() {
                 <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-auto me-2" id="ai-ws-btn-prompt-lib" onclick="openPromptLibraryModal()" title="Prompt Library">
                   <i class="bi bi-chat-left-quote me-1"></i> <span data-i18n="ai_ws_prompt_library_title">Prompt Library</span>
                 </button>
-                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-cpu me-1"></i> WealthFlow AI Engine</small>
               </div>
 
               <textarea id="ai-ws-input" class="ai-ws-textarea" rows="1" placeholder="${_aiT("ai_chat_input_placeholder_business", "Ask WealthFlow AI a question about business metrics, financial planning, or architecture...")}" onkeydown="_handleInputKeydown(event)"></textarea>
@@ -126,14 +119,6 @@ async function renderAI() {
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Right Context Panel (Width 330px) -->
-        <div class="ai-ws-right" id="ai-ws-right-panel">
-          <div id="ai-ws-context-content">
-             <!-- Populated via JS -->
-          </div>
-          <div id="ai-ws-ext-right"></div>
         </div>
       </div>
     </div>
@@ -152,7 +137,6 @@ async function renderAI() {
     await _switchAIChatConversation(savedConvId);
   } else {
     _renderEmptyState();
-    _renderRightPanel();
   }
 }
 

@@ -128,7 +128,6 @@
         { "name": "Customer Invoices", "type": "modal", "trigger": "eval:const btn = document.querySelector('#customersTable button[onclick*=\"showCustomerInvoices\"]'); if(btn) btn.click();" }
     ]}, 
     { "name": "Email Templates", "id": "settings-emailtemplates", "nested_navigation": [
-        { "name": "Add Template", "type": "modal", "trigger": "eval:showEmailTemplateModal()" },
         { "name": "Edit Template", "type": "modal", "trigger": "eval:const btn = document.querySelector('table button[onclick*=\"showEmailTemplateModal\"]'); if(btn) btn.click(); else if(window.showEmailTemplateModal) showEmailTemplateModal(1);" }
     ]}, 
     { "name": "Translations", "id": "settings-translations" }, 

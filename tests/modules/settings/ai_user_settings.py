@@ -123,13 +123,13 @@ def _layout_and_bulk(context, reporter, shots, snapshot):
     layout = page.evaluate("""() => {
         const card = document.getElementById('aiUserLimitsCard'), ref = document.getElementById('aiSaveBtn');
         const cls = (el) => [...el.classList].filter(c => c !== 'ai-limit-save').sort().join(' ');
-        return {above: !!(card.compareDocumentPosition(document.getElementById('aiPlatformScanCard')) & Node.DOCUMENT_POSITION_FOLLOWING),
+        return {above: !document.getElementById('aiPlatformScanCard'),
                 framedTitle: !!card.querySelector('.input-group-text'),
                 inputWidth: document.getElementById('aiDefaultLimitInput').getBoundingClientRect().width,
                 sameSave: cls(document.getElementById('aiDefaultLimitSave')) === cls(ref) && (!card.querySelector('.ai-limit-save') || cls(card.querySelector('.ai-limit-save')) === cls(ref))};
     }""")
     ok = layout["above"] and not layout["framedTitle"] and layout["inputWidth"] >= 200 and layout["sameSave"]
-    _step(reporter, shots, page, "Token-limit frame layout (above platform card, title label, wide input, app Save buttons)", ok, str(layout), "ai_limits_layout")
+    _step(reporter, shots, page, "Token-limit frame layout (no scan card, title label, wide input, app Save buttons)", ok, str(layout), "ai_limits_layout")
 
     rows = page.locator("#aiLimitsBody tr[data-user-id]").count()
     if rows:

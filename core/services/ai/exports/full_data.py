@@ -37,13 +37,57 @@ def _table_markdown(raw: dict, title: str) -> str:
     return "\n".join(lines)
 
 
+_PAREN = re.compile(r"\([^)]*\)")
+
+
+def _norm_heading(line: str) -> str:
+    """A heading without its numbering ("4.1.", "٥.١"), its "(English)" gloss and punctuation, so two drafts of one guide agree."""
+    return "".join(ch for ch in _PAREN.sub("", line.lstrip("#")).lower() if ch.isalpha())
+
+
+def _heading_set(text: str) -> set[str]:
+    return {_norm_heading(line) for line in text.splitlines() if line.lstrip().startswith("#")} - {""}
+
+
+def _title(text: str) -> str:
+    return next((_norm_heading(line) for line in text.splitlines() if line.startswith("# ")), "")
+
+
+def superseded_drafts(calls: list[dict]) -> set[int]:
+    """Indices of generate_file calls whose text is an earlier, shorter draft of the SAME document written again later.
+
+    A model that is not sure its file was saved writes the whole guide again (nine times in one real run), and joining every
+    call put nine copies in the file. Two texts are drafts of one document when they carry the same "# title", or when at
+    least a third of the smaller one's headings (and at least three) also head the other; the longest draft is kept. Texts
+    about different things are parts of one document: all kept."""
+    kept: list[tuple[int, set[str], int, str]] = []     # (call index, headings, length, title) of the draft kept per document
+    skip: set[int] = set()
+    for i, call in enumerate(calls):
+        text = str((call.get("arguments") or {}).get("content") or "")
+        heads, title = _heading_set(text), _title(text)
+        if not text.strip() or len(heads) < 3:
+            continue
+        for n, (j, other, size, other_title) in enumerate(kept):
+            if (title and title == other_title) or len(heads & other) >= max(3, min(len(heads), len(other)) // 3):
+                if len(text) > size:
+                    skip.add(j)
+                    kept[n] = (i, heads, len(text), title)
+                else:
+                    skip.add(i)
+                break
+        else:
+            kept.append((i, heads, len(text), title))
+    return skip
+
+
 def from_tool_calls(message: Any, user: Any) -> tuple[str, str | None] | None:
     """(markdown, raw text for code formats) built from the saved generate_file arguments."""
     calls = tool_calls_for_files(message)
     if not calls:
         return None
     cfg, parts, source = get_settings(), [], None
-    for call in calls:
+    old_drafts = superseded_drafts(calls)
+    for index, call in enumerate(calls):
         args = call.get("arguments") or {}
         title = str(args.get("title") or "")
         specs = args.get("datasets") if isinstance(args.get("datasets"), list) else ([args["dataset"]] if args.get("dataset") else [])
@@ -54,7 +98,7 @@ def from_tool_calls(message: Any, user: Any) -> tuple[str, str | None] | None:
                 logger.warning("export dataset replay failed: %s", exc)
         if isinstance(args.get("table"), dict):
             parts.append(_table_markdown(args["table"], title if not specs else ""))
-        if args.get("content"):
+        if args.get("content") and index not in old_drafts:
             source = str(args["content"])
             parts.append(source if args.get("format") not in ("py", "js", "html", "css", "json", "sql", "txt", "md") else f"```\n{source}\n```")
     return ("\n\n".join(p if isinstance(p, str) else p[0] for p in parts), source) if parts else None

@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from ..query_engine.labels import month_label, t
 from ..query_engine.lexicon import language
+from .doc_language import document_language
 from .document import ExportDocument, parse_markdown, plain, strip_export_lines
 from .full_data import from_question, from_tool_calls
 from .registry import ExportFormat
@@ -44,9 +45,9 @@ def document_for(message: Any) -> ExportDocument:
         content, source = replay
     else:
         content = from_question(message, user, question_raw, _previous_question(message, question_id)) or saved
-    lang = language(question or content)
+    lang = language(question) if question else "en"
     if lang == "en":
-        lang = language(content)   # an English request for a document written in Arabic: the file follows its own text (right-to-left)
+        lang = document_language(content)   # an English request for a document written in Arabic: the file follows its own text (right-to-left)
     blocks = parse_markdown(content)
     title, shown_question = t(lang, "export_title"), f"{t(lang, 'export_question')}: {question}" if question else ""
     if blocks and blocks[0].kind == "heading" and blocks[0].level == 1:

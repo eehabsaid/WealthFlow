@@ -41,7 +41,6 @@ async function _refreshActiveConversation(convId) {
     } else {
       _renderEmptyState();
     }
-    _renderRightPanel();
   } catch (_err) {
     // Non-critical
   }
@@ -88,8 +87,6 @@ async function _switchAIChatConversation(convId) {
     } else {
       _renderEmptyState();
     }
-
-    _renderRightPanel();
 
     // Check progress endpoint or conv.is_running to resume live thinking bubble
     try {
@@ -139,7 +136,6 @@ async function _deleteAIChatConversation(convId) {
         const container = document.getElementById("ai-ws-messages");
         if (container) container.innerHTML = "";
         _renderEmptyState();
-        _renderRightPanel();
       }
       _fetchAIChatConversations();
     }

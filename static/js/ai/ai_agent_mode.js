@@ -104,13 +104,6 @@ function _aiRenderAgentSteps(data) {
   box.innerHTML = `<ol class="ai-ws-agent-step-list">${rows}</ol>${stop}`;
 }
 
-// "agent:code:core/x.py:10-40" -> a chip "Code: core/x.py:10-40" (the reference is something the agent really read)
-function _aiAgentSourceChip(source) {
-  const [, kind, ...rest] = source.split(":");
-  const label = _aiT(`ai_ws_source_agent_${kind}`, kind);
-  return `<div class="ai-ws-source-chip active ai-ws-source-ref"><i class="bi bi-check-circle-fill me-1"></i> <span>${_escapeHtml(label)}: ${_escapeHtml(rest.join(":"))}</span></div>`;
-}
-
 async function _aiStopAgent() {
   const btn = document.getElementById("ai-ws-agent-stop");
   if (btn) btn.disabled = true;
@@ -132,4 +125,3 @@ window._aiSetChatMode = _aiSetChatMode;
 window._aiPaintModeSwitch = _aiPaintModeSwitch;
 window._aiRenderAgentSteps = _aiRenderAgentSteps;
 window._aiStopAgent = _aiStopAgent;
-window._aiAgentSourceChip = _aiAgentSourceChip;

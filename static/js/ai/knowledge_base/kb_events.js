@@ -17,7 +17,6 @@ window.openKnowledgeBaseModal = function () {
   }
 
   window.KB.state.isFormOpen = false;
-  window.KB.state.scanResult = null;
   window.KB.formError = null;
 
   showModal(window.KB.renderModalShell());
