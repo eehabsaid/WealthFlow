@@ -10,12 +10,16 @@ whether its last reply was stopped by the output limit."""
 
 from __future__ import annotations
 
+import logging
 import re
 import time
 
 from .refusal import is_refusal
 
+logger = logging.getLogger(__name__)
+
 CHUNK_CHARS, PIECE_CHARS = 2200, 900
+MAX_COPIED_SHARE, MIN_WORDS_TO_JUDGE = 0.6, 12   # share of a translation's words copied from the source = untranslated (any language)
 MAX_LATIN_SHARE = 0.5     # a translation into a non-Latin language may keep product names / quoted labels, not whole sentences
 _LANGUAGE_Q = ("Answer with one word only: the language the requested document must be written in. Use the language the request "
                "names; if it names none, the language the request itself is written in. Reply with the language's English name "
@@ -41,9 +45,29 @@ def uses_latin_script(ask, language: str) -> bool:
     return ask(_LATIN_Q.format(language=language), language, 0).strip().upper().startswith("YES")
 
 
+def _without_originals(text: str) -> str:
+    """The text without what may legitimately stay in the source language: code, URLs and the original name that the
+    translation keeps in parentheses after a translated button / tab / menu name."""
+    return re.sub(r"\([^()]*\)", " ", re.sub(r"```.*?```|`[^`]*`|https?://\S+", " ", text, flags=re.S))
+
+
 def latin_share(text: str) -> float:
-    letters = [ch for ch in text if ch.isalpha()]
+    letters = [ch for ch in _without_originals(text) if ch.isalpha()]
     return sum(1 for ch in letters if ch.isascii()) / len(letters) if letters else 1.0
+
+
+def _words(text: str) -> list[str]:
+    return re.findall(r"[^\W\d_]{3,}", _without_originals(text).casefold())
+
+
+def copied_share(source: str, text: str) -> float:
+    """Share of the translation's words that also occur in the source. Works for every language and script: a real translation
+    shares few words with the English source (names, cognates), a reply that is still English shares most of them."""
+    words = _words(text)
+    if len(words) < MIN_WORDS_TO_JUDGE:
+        return 0.0
+    known = set(_words(source))
+    return sum(1 for w in words if w in known) / len(words)
 
 
 def _pack(pieces: list[str], limit: int) -> list[str]:
@@ -80,6 +104,8 @@ def acceptable(source: str, text: str, cut: bool, non_latin: bool) -> bool:
         return False   # returned unchanged
     if non_latin and latin_share(text) > MAX_LATIN_SHARE:
         return False   # still (mostly) English
+    if copied_share(source, text) > MAX_COPIED_SHARE:
+        return False   # still (mostly) the source language, also for languages written in the same alphabet (French, German...)
     return abs(_headings(text) - _headings(source)) <= max(1, _headings(source) // 3)
 
 
@@ -93,17 +119,26 @@ def _try(ask, cut, system: str, chunk: str, non_latin: bool, deadline: float, te
     return ""
 
 
-def translate_markdown(ask, cut, markdown: str, language: str, deadline: float, progress=None, non_latin: bool = False) -> str:
+def translate_markdown(ask, cut, markdown: str, language: str, deadline: float, progress=None, non_latin: bool = False,
+                       stats: dict | None = None) -> str:
     """The whole text in `language`. A chunk that fails is translated again in smaller pieces; a piece that still fails (or
-    does not fit the time) stays English."""
-    system, chunks, parts = _TRANSLATE.format(language=language), split_chunks(markdown), []
+    does not fit the time) stays English. `stats`, when given, receives {"chunks": n, "kept_english": pieces left in English}."""
+    system, chunks, parts, kept = _TRANSLATE.format(language=language), split_chunks(markdown), [], 0
     started = time.monotonic()
     for n, chunk in enumerate(chunks, 1):
         if progress:
             progress(n, len(chunks), language, started)
         done = _try(ask, cut, system, chunk, non_latin, deadline, temperatures=(0.1,))
         if not done:
-            pieces = split_chunks(chunk, PIECE_CHARS) if len(chunk) > PIECE_CHARS else [chunk]
-            done = "\n\n".join(_try(ask, cut, system, p, non_latin, deadline) or p.strip() for p in pieces)
+            pieces, translated = split_chunks(chunk, PIECE_CHARS) if len(chunk) > PIECE_CHARS else [chunk], []
+            for piece in pieces:
+                got = _try(ask, cut, system, piece, non_latin, deadline)
+                kept += 0 if got else 1
+                translated.append(got or piece.strip())
+            done = "\n\n".join(translated)
         parts.append(done)
+    if stats is not None:
+        stats.update(chunks=len(chunks), kept_english=kept)
+    if kept:   # visible in the server log: the guide is complete but part of it is still English
+        logger.warning("[AI-TRANSLATE] %s: %d piece(s) of %d chunk(s) stayed English (rejected twice or out of time)", language, kept, len(chunks))
     return "\n\n".join(parts)

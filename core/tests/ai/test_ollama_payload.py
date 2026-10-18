@@ -66,3 +66,10 @@ class OllamaProviderPayloadTests(TestCase):
         self.assertIsNone(res["error"])
         self.assertEqual(m.call_count, 2)
         self.assertNotIn("think", m.call_args_list[1].kwargs["payload"])
+
+    def test_temperature_zero_is_sent_as_zero_and_unset_uses_the_setting(self):
+        with patch(_PATCH, return_value=_OK) as m:
+            self._provider().generate([{"role": "user", "content": "x"}], temperature=0)
+            self._provider().generate([{"role": "user", "content": "x"}])
+        self.assertEqual(m.call_args_list[0].kwargs["payload"]["options"]["temperature"], 0.0)
+        self.assertNotEqual(m.call_args_list[1].kwargs["payload"]["options"]["temperature"], 0.0)

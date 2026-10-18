@@ -7,8 +7,8 @@ from __future__ import annotations
 from django.test import SimpleTestCase, TestCase
 
 from core.services.ai.investigation.compose_sections import units
-from core.services.ai.investigation.compose_translate import (acceptable, latin_share, split_chunks, target_language,
-                                                              translate_markdown)
+from core.services.ai.investigation.compose_translate import (acceptable, copied_share, latin_share, split_chunks,
+                                                              target_language, translate_markdown)
 from core.views.ai_chat.chat_pipeline.investigate import ensure_document
 
 from .support import make_user
@@ -88,6 +88,37 @@ class ChunkTest(SimpleTestCase):
         for reply in (md, "", "short"):
             got = translate_markdown(lambda s, c, t=0.1, r=reply: r, lambda: False, md, "Arabic", 10**12, None, True)
             self.assertEqual(got.strip(), md.strip())
+
+
+class LanguageAgnosticChecksTest(SimpleTestCase):
+    SRC = ("## Balance\n\nOpen the Balance page from the main menu and select the Bank Interest tab to record the interest that your "
+           "bank paid you this month.\n\n1. Click the Add button and choose the bank account.\n2. Enter the amount and the date.\n")
+    FRENCH = ("## Solde\n\nOuvrez la page Solde depuis le menu principal et sélectionnez l'onglet Intérêts bancaires (Bank Interest) "
+              "pour enregistrer les intérêts que votre banque vous a versés ce mois-ci.\n\n1. Cliquez sur le bouton Ajouter (Add) "
+              "et choisissez le compte bancaire.\n2. Saisissez le montant et la date.\n")
+
+    def test_a_latin_alphabet_language_that_is_still_english_is_rejected(self):
+        half = self.SRC.replace("Balance", "Solde").replace("Open the Solde page", "Ouvrez la page Solde")
+        self.assertFalse(acceptable(self.SRC, half, cut=False, non_latin=False))
+        self.assertGreater(copied_share(self.SRC, half), 0.6)
+
+    def test_a_real_french_translation_is_accepted(self):
+        self.assertTrue(acceptable(self.SRC, self.FRENCH, cut=False, non_latin=False))
+        self.assertLess(copied_share(self.SRC, self.FRENCH), 0.3)
+
+    def test_original_names_in_parentheses_do_not_make_arabic_look_english(self):
+        src = "## Settings\n" + "".join(f"- Click the Setting Number {n} tab to open it now.\n" for n in range(6))
+        ar = "## الإعدادات\n" + "".join(f"- انقر على علامة التبويب رقم {n} (Setting Number {n}) لفتحها.\n" for n in range(6))
+        self.assertGreater(len(ar), 0.4 * len(src))
+        self.assertTrue(acceptable(src, ar, cut=False, non_latin=True))
+
+    def test_pieces_left_in_english_are_counted_and_logged(self):
+        md = "## Screen\n\nOpen the menu and click Save to keep your changes in the application today.\n"
+        stats = {}
+        with self.assertLogs("core.services.ai.investigation.compose_translate", level="WARNING") as logs:
+            translate_markdown(lambda s, c, t=0.1: "", lambda: False, md, "Arabic", 10**12, None, True, stats)
+        self.assertEqual(stats, {"chunks": 1, "kept_english": 1})
+        self.assertIn("stayed English", logs.output[0])
 
 
 class TranslatedGuideTest(TestCase):

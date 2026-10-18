@@ -24,11 +24,13 @@ _SYSTEM = (
     "Today: {today}."
 )
 PROMPT_TOKENS_EST, OUTPUT_TOKENS_EST = 300, 40
+DEFAULT_PROMPT_TPS, DEFAULT_DECODE_TPS = 700.0, 30.0
 
 
 def estimate_seconds(prompt_tokens: int = PROMPT_TOKENS_EST, out_tokens: int = OUTPUT_TOKENS_EST, user: Any = None) -> float:
-    """COMPUTED, not measured: tokens / throughput. Defaults are the throughput measured on the dev machine
-    (prompt 36.9 tok/s, decode 1.67 tok/s); override with AppSettings ai_prompt_tps / ai_decode_tps."""
+    """COMPUTED, not measured: tokens / throughput. Defaults are an estimate for the dev machine (RTX 5090 Laptop 24 GB, a ~27B
+    model fully on the GPU: prompt 700 tok/s, decode 30 tok/s); the real figures are in the [AI-TIMING] log lines
+    (prompt_tokens / prompt_eval, gen_tokens / gen). Override with AppSettings ai_prompt_tps / ai_decode_tps."""
     from core.models import AppSettings
 
     def num(key: str, default: float) -> float:
@@ -37,7 +39,7 @@ def estimate_seconds(prompt_tokens: int = PROMPT_TOKENS_EST, out_tokens: int = O
         except (TypeError, ValueError):
             return default
 
-    return prompt_tokens / num("ai_prompt_tps", 36.9) + out_tokens / num("ai_decode_tps", 1.67)
+    return prompt_tokens / num("ai_prompt_tps", DEFAULT_PROMPT_TPS) + out_tokens / num("ai_decode_tps", DEFAULT_DECODE_TPS)
 
 
 def request_from_json(obj: Any, lang: str) -> QueryRequest | None:

@@ -130,6 +130,8 @@ class AnalyticAndLlmSlotTests(TestCase):
 
     def test_slot_call_skipped_when_over_wall_clock_budget(self):
         AppSettings.set("ai_query_llm_budget_s", "5")
+        AppSettings.set("ai_prompt_tps", "36.9")   # a slow machine: the estimate (~32 s) is over the 5 s budget
+        AppSettings.set("ai_decode_tps", "1.67")
         with patch.object(OllamaProvider, "generate", return_value={"content": "LLM answer", "error": None}) as gen:
             fx.ask(self, "gold today")
         self.assertEqual(gen.call_count, 1)  # the normal pipeline's call only, not a slot call on top

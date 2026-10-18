@@ -15,7 +15,8 @@ def build_options(kwargs: dict[str, Any], user_options: dict[str, Any]) -> dict[
     except (ValueError, TypeError):
         pass
     try:
-        options["temperature"] = float(kwargs.get("temperature") or user_options.get("temperature") or AppSettings.get("ai_temperature", "0.7"))
+        asked = kwargs.get("temperature")   # 0 is a real value (deterministic YES/NO and one-word answers), not "unset"
+        options["temperature"] = float(asked if asked is not None else (user_options.get("temperature") or AppSettings.get("ai_temperature", "0.7")))
     except (ValueError, TypeError):
         pass
     try:
