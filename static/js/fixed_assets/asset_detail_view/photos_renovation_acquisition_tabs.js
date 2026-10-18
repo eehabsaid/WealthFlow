@@ -8,25 +8,7 @@ function buildPhotosRenovationAcquisitionTabsHtml(ctx) {
                   <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);">
                     <div class="card-body p-4">
                       <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="property_photos">Photo Gallery</h6>
-                      <div id="assetMainPhotoContainer" class="asset-main-photo-container mb-3" style="justify-content:center;">
-                        ${photos.length ? `<img id="assetMainPhoto" src="${photos[0].url}" alt="Asset photo" class="img-fluid" style="max-height:100%;max-width:100%;cursor:pointer;" />` : `<div class="text-center" data-i18n="no_property_photos">No photos available</div>`}
-                      </div>
-                      <div class="asset-photo-grid">
-                        ${
-                          photos.length
-                            ? photos
-                                .slice(1)
-                                .map(
-                                  (photo, index) => `
-                          <button type="button" class="btn btn-sm asset-photo-thumbnail p-0" data-url="${photo.url}" aria-label="Photo ${index + 2}">
-                            <img src="${photo.url}" alt="Thumbnail ${index + 2}" />
-                          </button>
-                        `
-                                )
-                                .join("")
-                            : ""
-                        }
-                      </div>
+                      ${buildAssetPhotoGalleryHtml(photos)}
                     </div>
                   </div>
                 </div>

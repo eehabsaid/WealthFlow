@@ -4,7 +4,9 @@
  *   base_layout.css        — general Fixed Assets list/card layout
  *   collapsible_cards.css  — collapsible card behavior, part 1
  *   summary_strip.css      — collapsible card behavior part 2 + summary strip
+ *   photo_gallery.css      — Asset Details photo gallery (arrows, frame, thumbnails)
  */
 @import url("base_layout.css");
 @import url("collapsible_cards.css");
 @import url("summary_strip.css");
+@import url("photo_gallery.css");

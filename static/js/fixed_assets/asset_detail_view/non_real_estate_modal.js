@@ -50,20 +50,7 @@ function buildAndShowNonRealEstateModal(ctx) {
             <div class="tab-pane fade" id="asset-core-pane" role="tabpanel" aria-labelledby="asset-core-tab">${coreTabPane}</div>
             <div class="tab-pane fade" id="asset-photos-pane" role="tabpanel" aria-labelledby="asset-photos-tab">
               <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-4">
-                <div id="assetMainPhotoContainer" class="asset-main-photo-container mb-3">
-                  ${photos.length ? `<img id="assetMainPhoto" src="${photos[0].url}" alt="Asset photo" class="img-fluid" style="max-height:100%;max-width:100%;cursor:pointer;" />` : `<div class="text-center" data-i18n="no_property_photos">No photos available</div>`}
-                </div>
-                <div class="asset-photo-grid">${
-                  photos.length
-                    ? photos
-                        .slice(1)
-                        .map(
-                          (photo, index) =>
-                            `<button type="button" class="btn btn-sm asset-photo-thumbnail p-0" data-url="${photo.url}" aria-label="Photo ${index + 2}"><img src="${photo.url}" alt="Thumbnail ${index + 2}" /></button>`
-                        )
-                        .join("")
-                    : ""
-                }</div>
+                ${buildAssetPhotoGalleryHtml(photos)}
               </div></div>
             </div>
             ${extraVehiclePanes}
@@ -97,16 +84,7 @@ function buildAndShowNonRealEstateModal(ctx) {
     fullscreenImage.src = "";
   });
 
-  const assetPhotoThumbnails = document.querySelectorAll(".asset-photo-thumbnail");
-  assetPhotoThumbnails.forEach((thumb) => {
-    thumb.addEventListener("click", (e) => {
-      const url = e.currentTarget.dataset.url;
-      const mainImg = document.getElementById("assetMainPhoto");
-      if (mainImg) mainImg.src = url;
-      assetPhotoThumbnails.forEach((item) => item.classList.remove("active"));
-      e.currentTarget.classList.add("active");
-    });
-  });
+  initAssetPhotoGallery(photos);
   hideLoading();
   return;
 }

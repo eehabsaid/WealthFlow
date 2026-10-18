@@ -1366,6 +1366,8 @@
     "sale_notes": "Notes de vente",
     "property_photos": "Photos de la propriété",
     "no_property_photos": "Aucune photo importée pour le moment.",
+    "previous_photo": "Photo précédente",
+    "next_photo": "Photo suivante",
     "upload_photo": "Téléverser une photo",
     "error_loading_currencies": "Impossible de charger les devises",
     "error_loading_banks": "Impossible de charger les banques",

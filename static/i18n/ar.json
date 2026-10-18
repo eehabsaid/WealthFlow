@@ -1366,6 +1366,8 @@
     "sale_notes": "ملاحظات البيع",
     "property_photos": "صور العقار",
     "no_property_photos": "لم يتم تحميل أي صور بعد.",
+    "previous_photo": "الصورة السابقة",
+    "next_photo": "الصورة التالية",
     "upload_photo": "تحميل صورة",
     "error_loading_currencies": "تعذر تحميل العملات",
     "error_loading_banks": "تعذر تحميل البنوك",

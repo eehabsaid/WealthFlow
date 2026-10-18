@@ -1366,6 +1366,8 @@
     "sale_notes": "Verkaufsnotizen",
     "property_photos": "Immobilienfotos",
     "no_property_photos": "Noch keine Fotos hochgeladen.",
+    "previous_photo": "Vorheriges Foto",
+    "next_photo": "Nächstes Foto",
     "upload_photo": "Foto hochladen",
     "error_loading_currencies": "Waehrungen konnten nicht geladen werden",
     "error_loading_banks": "Banken konnten nicht geladen werden",

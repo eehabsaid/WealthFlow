@@ -1368,6 +1368,8 @@
     "sale_notes": "Sale Notes",
     "property_photos": "Property Photos",
     "no_property_photos": "No photos uploaded yet.",
+    "previous_photo": "Previous photo",
+    "next_photo": "Next photo",
     "upload_photo": "Upload Photo",
     "error_loading_currencies": "Error loading currencies",
     "error_loading_banks": "Error loading banks",

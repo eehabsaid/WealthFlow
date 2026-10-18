@@ -129,16 +129,7 @@ async function showFixedAssetDetails(assetId, options = {}) {
       fullscreenImage.src = "";
     });
 
-    const assetPhotoThumbnails = document.querySelectorAll(".asset-photo-thumbnail");
-    assetPhotoThumbnails.forEach((thumb) => {
-      thumb.addEventListener("click", (e) => {
-        const url = e.currentTarget.dataset.url;
-        const mainImg = document.getElementById("assetMainPhoto");
-        if (mainImg) mainImg.src = url;
-        assetPhotoThumbnails.forEach((item) => item.classList.remove("active"));
-        e.currentTarget.classList.add("active");
-      });
-    });
+    initAssetPhotoGallery(photos);
 
     const propertyLatitude = parseFloat(asset.real_estate?.latitude);
     const propertyLongitude = parseFloat(asset.real_estate?.longitude);
