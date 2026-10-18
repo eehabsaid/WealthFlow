@@ -82,8 +82,6 @@ window.AIA.renderAIAdvisorSettings = async function () {
     keyWarning + html + '<div id="aiUserLimitsPanel"></div>' + window.AIA.buildPlatformCardHtml();
   window.AIA.loadUserLimitsPanel();
 
-  window.AIA.loadAIPlatformOverviewData();
-
   window.AIA.renderProviderFields(activeProviderKey);
 
   if (typeof applyTranslations === "function") {

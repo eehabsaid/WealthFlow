@@ -20,7 +20,7 @@ class ScopeCatalogTest(TestCase):
 
     def test_secret_and_internal_tables_are_never_queryable(self):
         for name in ("AppSettings", "AuthToken", "AuthAuditLog", "PagePermission", "UserRole", "UserProfile", "EmailTemplate",
-                     "AIMessage", "AIConversation", "AIKnowledgeEntry", "AIModelVersion", "Document", "PlanPrice"):
+                     "AIMessage", "AIConversation", "AIKnowledgeEntry", "Document", "PlanPrice"):
             self.assertNotIn(name, scope.catalog(), name)
             self.assertIsNone(scope.resolve_model(name), name)
 

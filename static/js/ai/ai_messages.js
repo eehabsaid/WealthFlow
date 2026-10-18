@@ -43,11 +43,6 @@ function _renderEmptyState() {
           <div class="ai-ws-platform-card-sub" data-i18n="ai_ws_card_knowledge_sub">Autonomous Learning Active</div>
         </div>
         <div class="ai-ws-platform-card">
-          <div class="ai-ws-platform-card-header"><i class="bi bi-database-check"></i> <span data-i18n="ai_ws_card_dataset">SFT Dataset Status</span></div>
-          <div class="ai-ws-platform-card-value" style="color:var(--accent-emerald);">Clean / Validated</div>
-          <div class="ai-ws-platform-card-sub" data-i18n="ai_ws_card_dataset_sub">Fine-Tuning Ready</div>
-        </div>
-        <div class="ai-ws-platform-card">
           <div class="ai-ws-platform-card-header"><i class="bi bi-tools"></i> <span data-i18n="ai_ws_card_tools">AI Capabilities</span></div>
           <div class="ai-ws-platform-card-value">4 Active Tools</div>
           <div class="ai-ws-platform-card-sub" data-i18n="ai_ws_card_tools_sub">DB, AST & Code Reasoner</div>

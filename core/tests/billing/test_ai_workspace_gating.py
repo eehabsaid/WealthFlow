@@ -11,9 +11,6 @@ AI_ENDPOINTS = [
     "/api/financial-advisor/ai/conversations/",
     "/api/financial-advisor/ai/progress/",
     "/api/ai-platform/knowledge/",
-    "/api/ai-platform/datasets/",
-    "/api/ai-platform/models/",
-    "/api/ai-platform/benchmarks/",
     "/api/ai-platform/prompts/",
 ]
 

@@ -37,7 +37,6 @@ let _aiState = {
   lastResponseMeta: null,
   aiSettings: null,
   knowledgeCount: 0,
-  modelInfo: null,
   chatMode: "ask",
   agentEnabled: true,
 };

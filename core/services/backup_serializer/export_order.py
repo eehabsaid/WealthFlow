@@ -13,7 +13,7 @@ def get_model_export_order():
     from django.contrib.contenttypes.models import ContentType
 
     from core.models import (
-        AIBenchmarkReport, AIConversation, AIKnowledgeEntry, AIMessage, AIModelVersion,
+        AIConversation, AIKnowledgeEntry, AIMessage,
         AIAnswerFeedback, AIPrompt, AIPromptCategory,
         AppSettings, AssetAcquisitionCost, AssetFurniture, AssetInsurance,
         AssetMaintenance, AssetMortgage, AssetPhoto, AssetPurchasePayment,
@@ -98,8 +98,6 @@ def get_model_export_order():
         ("46", AIConversation,               None),
         ("47", AIMessage,                    None),
         ("48", AIKnowledgeEntry,             "key"),
-        ("49", AIModelVersion,               "version_name"),
-        ("50", AIBenchmarkReport,            None),
         ("51", CreditCardPayment,            None),
         ("52", BankInterest,                 None),
         ("53", AssetAcquisitionCost,         None),

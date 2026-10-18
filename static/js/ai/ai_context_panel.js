@@ -130,28 +130,6 @@ function _renderRightPanel() {
           </div>
           <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
         </div>
-
-        <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-dataset-manager" onclick="openDatasetManagerModal()" style="cursor: pointer;">
-          <div class="ai-ws-future-card-left">
-            <i class="bi bi-server text-primary"></i>
-            <span data-i18n="ai_ws_future_dataset_manager">Dataset Manager</span>
-          </div>
-          <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
-        </div>
-        <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-model-management" onclick="openModelManagementModal()" style="cursor: pointer;">
-          <div class="ai-ws-future-card-left">
-            <i class="bi bi-sliders text-primary"></i>
-            <span data-i18n="ai_ws_future_model_mgmt">Model Management</span>
-          </div>
-          <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
-        </div>
-        <div class="ai-ws-future-card ai-ws-active-card" id="ai-ws-card-benchmark-results" onclick="openBenchmarkResultsModal()" style="cursor: pointer;">
-          <div class="ai-ws-future-card-left">
-            <i class="bi bi-graph-up-arrow text-primary"></i>
-            <span data-i18n="ai_ws_future_benchmarks">Benchmark Results</span>
-          </div>
-          <span class="badge bg-primary text-white" style="font-size: 0.7rem;"><i class="bi bi-folder-fill me-1"></i><span data-i18n="ai_prompt_open_btn">Open</span></span>
-        </div>
       </div>
     </div>
   `;

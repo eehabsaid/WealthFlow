@@ -76,36 +76,10 @@
       "Save the entry to make it available to the AI engine."
     ]
   },
-  "ai::dataset_manager": {
-    "purpose": "Review generated training/fine-tuning dataset statistics and trigger generation of new datasets from application activity.",
-    "steps": [
-      "Open Dataset Manager from the AI Workspace context panel.",
-      "Review current dataset statistics broken down by category.",
-      "Refresh statistics or generate a new dataset."
-    ]
-  },
-  "ai::model_management": {
-    "purpose": "Review available AI model backends and versions, promote a version to active, or trigger fine-tuning.",
-    "steps": [
-      "Open Model Management from the AI Workspace context panel.",
-      "Review the list of model versions and their status.",
-      "Promote a version to active, or trigger a new fine-tuning run."
-    ]
-  },
-  "ai::benchmark_results": {
-    "purpose": "Review AI model quality benchmark reports scored across multiple evaluation dimensions.",
-    "steps": [
-      "Open Benchmark Results from the AI Workspace context panel.",
-      "Review existing benchmark reports and their scores.",
-      "Run a new benchmark evaluation."
-    ]
-  },
   "settings::settings-aiadvisor": {
-    "purpose": "Configure Self-Evolving AI Platform settings, SFT dataset matrix, training backends, and fine-tuning controls.",
+    "purpose": "Configure the AI provider and model, the AI limits and the Agent / document-writing behaviour, and refresh the AI's knowledge of the app.",
     "steps": [
-      "Review SFT dataset metrics.",
-      "Select training backend.",
-      "Trigger model fine-tuning or autonomous learning scan.",
+      "Trigger the Autonomous App Scan to refresh what the AI knows about the app (screens and code structure).",
       "Turn Instant Data Answers on or off: when on, simple data questions (balances, salary, expenses, gold price, exchange rates) are answered instantly from your own data without the AI model. These instant answers understand English, Arabic, French and German and reply in the question's language.",
       "Choose the AI Investigator mode. Auto (default): whenever a normal answer gives up (\"I don't have access\", an empty or failed reply) the AI explores your own data, the app guide and, for the system administrator, the source code with read-only tools and answers from what it finds. Always: use it for every question. Off: disabled.",
       "Use the source-code switch to allow or forbid the AI from reading the source code. Only system administrators can ever use it, secrets and databases are never exposed, and it is on by default.",

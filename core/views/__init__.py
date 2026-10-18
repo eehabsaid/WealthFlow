@@ -88,7 +88,7 @@ from .exports_fixed_assets import (
 
 from .exports_ai_features import (
     AIChatView, AIConversationListView, AIConversationDetailView, AIFeedbackListView, AIMessageFeedbackView, AIMessageExportView, AIProgressView,
-    AIPlatformKnowledgeView, AIPlatformDatasetView, AIPlatformModelView, AIPlatformBenchmarkView,
+    AIPlatformKnowledgeView,
     AIPlatformKnowledgeDetailView, AIPromptListView, AIPromptDetailView, AIPromptFavoriteView,
     AIPromptUseView, AIPromptDuplicateView, AIPromptCategoryListView,
 )
@@ -143,7 +143,7 @@ __all__ = [
     "AssetInsuranceDetailView", "AssetFurnitureListView", "AssetFurnitureDetailView", "AssetFurnitureCategoriesView", "AssetValuationHistoryListView",
     "AssetValuationHistoryDetailView", "AssetSaleView", "FixedAssetUsdRateView", "FixedAssetValuationRefreshView", "_salary_trigger_day",
     "AIChatView", "AIConversationListView", "AIConversationDetailView", "AIMessageFeedbackView", "AIMessageExportView", "AIFeedbackListView", "AIProgressView", "AIPlatformKnowledgeView",
-    "AIPlatformDatasetView", "AIPlatformModelView", "AIPlatformBenchmarkView", "AIPlatformKnowledgeDetailView", "AIPromptListView",
+    "AIPlatformKnowledgeDetailView", "AIPromptListView",
     "AIPromptDetailView", "AIPromptFavoriteView", "AIPromptUseView", "AIPromptDuplicateView", "AIPromptCategoryListView",
     "SettingsView", "PlanAdminListView", "PlanAdminDetailView", "PlanPriceAdminListView", "PlanPriceAdminDetailView", "PaymobGatewaySettingsView", "CustomerActionView", "CustomerListView", "CustomerInvoicesView", "InvoiceActionView", "TrialOptionsView", "LegalConsentView", "LegalTextDetailView", "LegalTextListView", "EmailTemplateListView", "EmailTemplateDetailView", "EmailSettingsTestView", "AISettingsView", "AIUserLimitsView", "AIUserSettingsView",
     "AIConnectionTestView", "AIProviderListView", "AIRuntimeCapabilitiesView", "ScrapePropertyRatesView", "GoldTypeSettingsListView", "GoldTypeSettingsDetailView",

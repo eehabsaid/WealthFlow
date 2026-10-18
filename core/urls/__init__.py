@@ -7,7 +7,7 @@ Sibling modules:
 - misc_urls.py: reminders, cert-statuses, translations, advanced reports, dashboard, goals, documents
 - fixed_assets_urls.py: fixed assets, renovations, acquisition costs, furniture, valuations, maintenance, insurance
 - financial_advisor_urls.py: forecasts, overview, optimizer, risk analysis, scenarios, goal planning, ai chat
-- ai_platform_urls.py: knowledge base, datasets, models, benchmarks, prompt library
+- ai_platform_urls.py: knowledge base, prompt library
 - billing_urls.py: subscription status, plan list
 - account_urls.py: own-data export, delete my account
 - budget_urls.py: budgets, recurring transactions, alerts

@@ -13,18 +13,6 @@ urlpatterns = [
         "api/ai-platform/knowledge/<int:pk>/",
         _ai(views.AIPlatformKnowledgeDetailView.as_view()),
     ),
-    path(
-        "api/ai-platform/datasets/",
-        _ai(views.AIPlatformDatasetView.as_view()),
-    ),
-    path(
-        "api/ai-platform/models/",
-        _ai(views.AIPlatformModelView.as_view()),
-    ),
-    path(
-        "api/ai-platform/benchmarks/",
-        _ai(views.AIPlatformBenchmarkView.as_view()),
-    ),
     # ── AI Prompt Library ────────────────────────────────────────────────────
     path(
         "api/ai-platform/prompts/categories/",

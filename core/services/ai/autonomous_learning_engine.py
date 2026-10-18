@@ -78,14 +78,7 @@ class AIAutonomousLearningEngine:
         except Exception as exc:
             logger.error("Error scanning codebase AST in autonomous learning: %s", exc)
 
-        # 4. Trigger Dataset Generator Pipeline
-        try:
-            from core.services.ai.dataset_engine import AIDatasetEngine
-            AIDatasetEngine.generate_sft_datasets()
-        except Exception as exc:
-            logger.error("Error generating SFT datasets in autonomous learning: %s", exc)
-
-        # 5. Regenerate System Knowledge Manifest & Markdown Files in ai_knowledge/
+        # 4. Regenerate System Knowledge Manifest & Markdown Files in ai_knowledge/
         try:
             from core.services.ai.knowledge_generator import KnowledgeGenerator
             KnowledgeGenerator.generate_all()

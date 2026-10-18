@@ -8,10 +8,9 @@
 
 async function _fetchAIWorkspaceStatus() {
   try {
-    const [settingsRes, knowledgeRes, modelsRes] = await Promise.all([
+    const [settingsRes, knowledgeRes] = await Promise.all([
       fetch("/api/settings/ai/").catch(() => null),
       fetch("/api/ai-platform/knowledge/").catch(() => null),
-      fetch("/api/ai-platform/models/").catch(() => null),
     ]);
 
     if (settingsRes && settingsRes.ok) {
@@ -33,7 +32,6 @@ async function _fetchAIWorkspaceStatus() {
       const kData = await knowledgeRes.json();
       _aiState.knowledgeCount = (kData.entries && kData.entries.length) || 0;
     }
-    if (modelsRes && modelsRes.ok) _aiState.modelInfo = await modelsRes.json();
 
     const providerEl = document.getElementById("ai-ws-chip-provider");
     const modelEl = document.getElementById("ai-ws-chip-model");
@@ -42,9 +40,7 @@ async function _fetchAIWorkspaceStatus() {
     const statusContainer = document.getElementById("ai-ws-chip-status-container");
 
     if (providerEl) providerEl.textContent = _aiState.aiSettings?.ai_provider || "—";
-    if (modelEl)
-      modelEl.textContent =
-        _aiState.aiSettings?.ai_model || _aiState.modelInfo?.active_model?.base_model || "—";
+    if (modelEl) modelEl.textContent = _aiState.aiSettings?.ai_model || "—";
     if (knowledgeEl) knowledgeEl.textContent = _aiState.knowledgeCount || "—";
     if (statusEl) {
       const isOnline = _aiState.aiSettings && _aiState.aiSettings.ai_enabled;

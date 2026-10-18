@@ -19,7 +19,7 @@ OWNER_FIELD_NAMES = ("owner", "user")
 GLOBAL_MODELS = {
     "ContentType", "Group", "Permission", "Group_permissions", "EmailTemplate", "LegalVersion",
     "ExchangeRate", "GoldPrice", "GoldPriceHistory", "ExchangeRateHistory", "AIKnowledgeEntry",
-    "AIModelVersion", "AIBenchmarkReport", "AIPromptCategory", "DocumentationExecution",
+    "AIPromptCategory", "DocumentationExecution",
     "Plan", "PlanPrice", "Role", "RolePermission",
 }
 # Login secrets: never put in a downloadable file.

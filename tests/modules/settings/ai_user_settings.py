@@ -123,7 +123,7 @@ def _layout_and_bulk(context, reporter, shots, snapshot):
     layout = page.evaluate("""() => {
         const card = document.getElementById('aiUserLimitsCard'), ref = document.getElementById('aiSaveBtn');
         const cls = (el) => [...el.classList].filter(c => c !== 'ai-limit-save').sort().join(' ');
-        return {above: !!(card.compareDocumentPosition(document.getElementById('aiPlatformModelList')) & Node.DOCUMENT_POSITION_FOLLOWING),
+        return {above: !!(card.compareDocumentPosition(document.getElementById('aiPlatformScanCard')) & Node.DOCUMENT_POSITION_FOLLOWING),
                 framedTitle: !!card.querySelector('.input-group-text'),
                 inputWidth: document.getElementById('aiDefaultLimitInput').getBoundingClientRect().width,
                 sameSave: cls(document.getElementById('aiDefaultLimitSave')) === cls(ref) && (!card.querySelector('.ai-limit-save') || cls(card.querySelector('.ai-limit-save')) === cls(ref))};

@@ -1,6 +1,6 @@
 """Umbrella re-export for the AI Workspace features domain: chat
 conversations (ai_chat_views.py), the platform panels — Knowledge
-Base, Dataset Manager, Model Management, Benchmark Results
+Base
 (ai_platform_views.py) — and the Prompt Library (ai_prompt_views.py).
 Distinct from the AI Settings/connection-test views, which live under
 settings/ai/ since they back a Settings tab, not a workspace feature.
@@ -17,9 +17,6 @@ from .ai_chat_views import (
 )
 from .ai_platform_views import (
     AIPlatformKnowledgeView,
-    AIPlatformDatasetView,
-    AIPlatformModelView,
-    AIPlatformBenchmarkView,
     AIPlatformKnowledgeDetailView,
 )
 from .ai_prompt_views import (
@@ -40,9 +37,6 @@ __all__ = [
     "AIFeedbackListView",
     "AIProgressView",
     "AIPlatformKnowledgeView",
-    "AIPlatformDatasetView",
-    "AIPlatformModelView",
-    "AIPlatformBenchmarkView",
     "AIPlatformKnowledgeDetailView",
     "AIPromptListView",
     "AIPromptDetailView",

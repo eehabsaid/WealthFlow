@@ -1,18 +1,13 @@
 """
-Unit tests for AI Platform endpoints, Autonomous Learning Engine, Dataset
-Engine, Model Manager, and Benchmark Engine (the AIPlatformTestCase group).
+Unit tests for AI Platform endpoints and the Autonomous Learning Engine (the AIPlatformTestCase group).
 
 Split out of the former monolithic test_ai_platform.py (200-line rule).
 """
 
 from django.test import TestCase
 from django.contrib.auth.models import User
-from core.models import AIBenchmarkReport
 from core.services.ai.knowledge_engine import AIKnowledgeEngine
 from core.services.ai.autonomous_learning_engine import AIAutonomousLearningEngine
-from core.services.ai.dataset_engine import AIDatasetEngine
-from core.services.ai.model_manager import AIModelManager
-from core.services.ai.benchmark_engine import AIBenchmarkEngine
 from core.tests.billing.test_support import grant_ai_workspace_access
 
 
@@ -39,25 +34,6 @@ class AIPlatformTestCase(TestCase):
         self.assertTrue(res.get("ok"))
         self.assertGreaterEqual(res.get("updated_entries_count", 0), 1)
 
-    def test_dataset_engine_generation_and_validation(self):
-        AIKnowledgeEngine.record_knowledge_entry(
-            key="test_ds_entry",
-            title="Dataset Rule",
-            content="Data content for dataset validation.",
-        )
-        stats = AIDatasetEngine.generate_sft_datasets()
-        self.assertTrue(stats.get("ok"))
-        self.assertGreaterEqual(stats.get("total_samples", 0), 1)
-
-    def test_model_manager_and_benchmark_engine(self):
-        active = AIModelManager.get_active_model_version()
-        self.assertIsNotNone(active)
-        self.assertTrue(active.is_active)
-
-        report = AIBenchmarkEngine.evaluate_model_version(active, active)
-        self.assertIsInstance(report, AIBenchmarkReport)
-        self.assertGreaterEqual(report.overall_score, 0.0)
-
     def test_ai_platform_views(self):
         self.client.force_login(self.user)
 
@@ -65,14 +41,7 @@ class AIPlatformTestCase(TestCase):
         res_k = self.client.get("/api/ai-platform/knowledge/")
         self.assertEqual(res_k.status_code, 200)
 
-        # Dataset Endpoint
-        res_d = self.client.get("/api/ai-platform/datasets/")
-        self.assertEqual(res_d.status_code, 200)
-
-        # Models Endpoint
-        res_m = self.client.get("/api/ai-platform/models/")
-        self.assertEqual(res_m.status_code, 200)
-
-        # Benchmarks Endpoint
-        res_b = self.client.get("/api/ai-platform/benchmarks/")
-        self.assertEqual(res_b.status_code, 200)
+    def test_the_removed_training_endpoints_are_gone(self):
+        self.client.force_login(self.user)
+        for url in ("datasets", "models", "benchmarks"):
+            self.assertEqual(self.client.get(f"/api/ai-platform/{url}/").status_code, 404, url)
