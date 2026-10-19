@@ -6,6 +6,7 @@
    - portfolio_recs_goals.css  Portfolio recommendations, opportunities, badges
    - goal_planning.css         Goal planning cards, progress rings, milestones
    - misc_ui.css               Toast, spinner, group badge, mobile sidebar bits
+   - ai_advisor.css            Settings > AI Advisor cards, rows, section chips, Save bar
    ── */
 
 @import url("../settings_layout/tabs.css");
@@ -14,3 +15,4 @@
 @import url("../settings_layout/goal_planning/index.css");
 @import url("../settings_layout/misc_ui.css");
 @import url("../settings_layout/legal_editor.css");
+@import url("../settings_layout/ai_advisor.css");

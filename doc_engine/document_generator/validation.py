@@ -10,6 +10,8 @@ from ..models import DocumentationModel
 
 logger = logging.getLogger(__name__)
 
+I18N_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "static", "i18n")   # the app's own locale files
+
 
 class ValidationMixin:
     def _load_metadata(self):
@@ -51,7 +53,7 @@ class ValidationMixin:
         if lang == 'ar':
             lang = 'ar'
             
-        i18n_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "i18n")
+        i18n_dir = I18N_DIR
         
         # Load English for reverse lookup (to translate hardcoded English strings)
         en_path = os.path.join(i18n_dir, "en.json")

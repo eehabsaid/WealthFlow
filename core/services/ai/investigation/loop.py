@@ -51,7 +51,7 @@ def _progress(agent, user, conversation_id, step, max_steps, name, args, text_la
 def investigate(provider, user, user_text: str, *, history=None, max_steps: int = 10, budget_s: int = 240,
                 ctx_chars: int = 24000, require_evidence: bool = False, conversation_id=None,
                 extra_refusal_markers: tuple = (), agent: bool = False, instructions: str | None = None, hint: str = "",
-                max_reads: int | None = None, cancel_check=None) -> Investigation:
+                max_reads: int | None = None, cancel_check=None, write_tokens: int | None = None) -> Investigation:
     from core.services.ai.tools import validate_and_execute_tool
 
     started = time.monotonic()
@@ -72,7 +72,8 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
 
     def call(tools):
         out.llm_calls += 1
-        res = provider.generate(messages, tools=tools, temperature=0.1, timeout=int(max(20, min(CALL_TIMEOUT_S, remaining()))))
+        extra = {"max_tokens": write_tokens} if write_tokens else {}   # a document request: the document output limit, not the chat answer limit
+        res = provider.generate(messages, tools=tools, temperature=0.1, timeout=int(max(20, min(CALL_TIMEOUT_S, remaining()))), **extra)
         return res if isinstance(res, dict) else {}
 
     def nudge(text: str) -> None:

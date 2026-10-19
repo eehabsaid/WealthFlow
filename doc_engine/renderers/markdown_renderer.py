@@ -9,8 +9,8 @@ class MarkdownRenderer:
         lines = []
         lines.append("<!-- AUTO-GENERATED START -->\n")
         lines.append(f"# {context['title']}\n")
-        lines.append(f"**Application Name:** {context['app_name']}\n")
-        lines.append(f"**Guide Type:** {context['guide_type']}\n")
+        lines.append(f"**{context['lbl_app_name']}:** {context['app_name']}\n")
+        lines.append(f"**{context['lbl_guide_type']}:** {context['guide_type']}\n")
         lines.append(f"**{context['lbl_generated']}:** {context['date']}  \n")
         lines.append(f"**{context['lbl_language']}:** {context['language']}  \n")
         lines.append(f"**{context['lbl_theme']}:** {context['theme']}  \n")
@@ -56,7 +56,7 @@ class MarkdownRenderer:
                 lines.append("\n")
                 
             if item.siblings:
-                lines.append("**Related Pages:**")
+                lines.append(f"**{context['related_title']}:**")
                 for s_idx, sib in enumerate(item.siblings, 1):
                     lines.append(f"- {sib}")
                 lines.append("\n")

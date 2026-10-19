@@ -1,92 +1,94 @@
 "use strict";
 window.AIA = window.AIA || {};
-// AI Advisor settings form HTML builder (the main settings form markup).
+// AI Advisor settings form: the "Provider and model" group and the page composition (section chips, one card per group,
+// sticky Save bar). The other groups are built by settings_groups.js; the generic pieces by layout_helpers.js.
 
-window.AIA.buildAISettingsFormHtml = function (ctx) {
-  const { activeProviderKey, providerOptions, enabledChecked, permissionTier, multiAgentChecked } =
-    ctx;
-  const tierOption = (value, labelKey, fallback) =>
-    `<option value="${value}" ${permissionTier === value ? "selected" : ""}>${t(labelKey, fallback)}</option>`;
-  return `
-        <div class="si-modern-card p-4 mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                <div>
-                    <p class="text-muted small mb-0" data-i18n="ai_settings_desc">${t("ai_settings_desc", "Configure AI provider integration, API endpoints, model selection, and security parameters.")}</p>
-                </div>
-                <div class="d-flex align-items-center gap-4 flex-wrap">
-                    <div class="d-flex align-items-center gap-2 mb-0">
-                        <label class="fs-6 fw-semibold mb-0" for="aiPermissionTierSelect" data-i18n="ai_permission_tier_label">${t("ai_permission_tier_label", "AI Tool Permissions")}</label>
-                        <select class="form-select form-select-sm" id="aiPermissionTierSelect" style="width:auto;">
-                            ${tierOption("read", "ai_permission_tier_read", "Read Only")}
-                            ${tierOption("execute", "ai_permission_tier_execute", "Read + Execute")}
-                            ${tierOption("modify", "ai_permission_tier_modify", "Read + Execute + Modify")}
-                        </select>
-                    </div>
-                    <div class="form-check form-switch fs-5 mb-0">
-                        <input class="form-check-input" type="checkbox" id="aiMultiAgentToggle" ${multiAgentChecked}>
-                        <label class="form-check-label fs-6 fw-semibold ms-2" for="aiMultiAgentToggle" data-i18n="ai_multi_agent_label">${t("ai_multi_agent_label", "Multi-Agent Orchestration")}</label>
-                    </div>
-${window.AIA.buildPipelineControlsHtml()}
-                    <div class="form-check form-switch fs-5 mb-0">
-                        <input class="form-check-input" type="checkbox" id="aiEnabledToggle" ${enabledChecked}>
-                        <label class="form-check-label fs-6 fw-semibold ms-2" for="aiEnabledToggle" data-i18n="ai_enabled">${t("ai_enabled", "Enable AI Advisor")}</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Provider Selection & Dynamic Fields Container -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold" data-i18n="ai_provider">${t("ai_provider", "Provider")}</label>
-                    <select id="aiProviderSelect" class="form-select" onchange="window.AIA.onAIProviderChanged()">
-                        ${providerOptions}
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold" data-i18n="ai_model">${t("ai_model", "Model Name / Deployment")}</label>
-                    <div class="input-group">
-                        <input id="aiModelInput" type="text" class="form-control" value="${escapeHtml(window.AIA.getProviderModelValue(activeProviderKey))}" placeholder="e.g. llama3.2:latest, gpt-4o">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="aiModelDropdownBtn" data-i18n="ai_select_model">${t("ai_select_model", "Models")}</button>
-                        <ul class="dropdown-menu dropdown-menu-end" id="aiModelDropdownList">
-                            <li><span class="dropdown-item text-muted small" data-i18n="ai_test_to_load_models">${t("ai_test_to_load_models", "Run Test Connection to list models")}</span></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Container for provider-specific config inputs (API Key, Base URL, etc.) -->
-                <div class="col-12">
-                    <div id="providerSpecificFields" class="row g-3"></div>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold" data-i18n="ai_temperature">${t("ai_temperature", "Temperature")}</label>
-                    <input id="aiTemperatureInput" type="number" step="0.05" min="0.0" max="2.0" class="form-control" value="${window.AIA.state.currentAISettings.ai_temperature ?? 0.7}">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold" data-i18n="ai_context_size">${t("ai_context_size", "Context Size")}</label>
-                    <input id="aiContextSizeInput" type="number" step="128" min="256" class="form-control" value="${window.AIA.state.currentAISettings.ai_context_size ?? 4096}">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold" data-i18n="ai_timeout">${t("ai_timeout", "Timeout (sec)")}</label>
-                    <input id="aiTimeoutInput" type="number" step="1" min="1" class="form-control" value="${window.AIA.state.currentAISettings.ai_timeout ?? 60}">
-                </div>
-            </div>
-
-            <!-- Runtime capability inspection (hardware + Ollama /api/show + a live timing
-                 benchmark) -> recommended context/max-tokens/timeout/keep-alive. Preview only:
-                 fills the fields above, doesn't save anything until "Save Settings" is clicked. -->
-            <div class="mb-4">
-                <button type="button" class="btn btn-outline-warning d-flex align-items-center" id="aiRuntimeCapabilitiesBtn" onclick="window.AIA.detectRuntimeCapabilities(this)">
-                    <i class="bi bi-speedometer2 me-1"></i> <span data-i18n="ai_detect_capabilities">${t("ai_detect_capabilities", "Detect Capabilities & Recommend Config")}</span>
-                </button>
-                <div id="aiRuntimeCapabilitiesResult" class="mt-3" style="display:none;"></div>
-            </div>
-
-            <!-- Diagnostics Card / Result -->
-            <div id="aiTestDiagnosticResult" class="mb-4" style="display: none;"></div>
-
-            <!-- Advanced Parameters Accordion -->
-            <div class="accordion mb-4" id="aiAdvancedAccordion">
+window.AIA.buildProviderHtml = function (ctx) {
+  const ui = window.AIA.ui;
+  const s = window.AIA.state.currentAISettings;
+  const model = escapeHtml(window.AIA.getProviderModelValue(ctx.activeProviderKey));
+  const field = (id, key, label, step, min, value, help) =>
+    ui.numberField({ id, labelKey: key, label, step, min, value, helpKey: `${key}_help`, help });
+  const providerSelect = `<select id="aiProviderSelect" class="form-select" onchange="window.AIA.onAIProviderChanged()">${ctx.providerOptions}</select>`;
+  const modelControl = `
+    <div class="input-group">
+      <input id="aiModelInput" type="text" class="form-control" value="${model}" placeholder="e.g. llama3.2:latest, gpt-4o">
+      <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="aiModelDropdownBtn" data-i18n="ai_select_model">${t("ai_select_model", "Models")}</button>
+      <ul class="dropdown-menu dropdown-menu-end" id="aiModelDropdownList">
+        <li><span class="dropdown-item text-muted small" data-i18n="ai_test_to_load_models">${t("ai_test_to_load_models", "Run Test Connection to list models")}</span></li>
+      </ul>
+    </div>`;
+  const detect = `
+    <button type="button" class="btn btn-outline-warning d-flex align-items-center" id="aiRuntimeCapabilitiesBtn" onclick="window.AIA.detectRuntimeCapabilities(this)">
+      <i class="bi bi-speedometer2 me-1"></i> <span data-i18n="ai_detect_capabilities">${t("ai_detect_capabilities", "Detect Capabilities & Recommend Config")}</span>
+    </button>`;
+  const test = `
+    <button type="button" class="btn btn-outline-info d-flex align-items-center" id="aiTestConnBtn" onclick="window.AIA.testAIConnectionFromGui()">
+      <i class="bi bi-activity me-1"></i> <span data-i18n="ai_test_connection">${t("ai_test_connection", "Test Connection")}</span>
+    </button>`;
+  return (
+    ui.toggleRow({
+      id: "aiEnabledToggle",
+      checked: !!ctx.enabledChecked,
+      labelKey: "ai_enabled",
+      label: "Enable AI Advisor",
+      helpKey: "ai_enabled_help",
+      help: "Turns the whole AI workspace on or off for every user.",
+    }) +
+    ui.row({
+      id: "aiProviderSelect",
+      labelKey: "ai_provider",
+      label: "Provider",
+      control: providerSelect,
+    }) +
+    ui.row({
+      id: "aiModelInput",
+      labelKey: "ai_model",
+      label: "Model Name / Deployment",
+      control: modelControl,
+    }) +
+    `<div class="aia-row aia-row-wide"><div id="providerSpecificFields" class="row g-3"></div></div>` +
+    ui.grid(
+      field(
+        "aiTemperatureInput",
+        "ai_temperature",
+        "Temperature",
+        "0.05",
+        "0.0",
+        s.ai_temperature ?? 0.7,
+        "Lower is more predictable."
+      ) +
+        field(
+          "aiContextSizeInput",
+          "ai_context_size",
+          "Context Size",
+          "128",
+          "256",
+          s.ai_context_size ?? 4096,
+          "Tokens the model can read at once."
+        ) +
+        field(
+          "aiTimeoutInput",
+          "ai_timeout",
+          "Timeout (sec)",
+          "1",
+          "1",
+          s.ai_timeout ?? 60,
+          "Seconds to wait for one request."
+        ),
+      3
+    ) +
+    ui.row({
+      id: "aiRuntimeCapabilitiesBtn",
+      labelKey: "ai_detect_capabilities_label",
+      label: "Detect capabilities",
+      helpKey: "ai_detect_capabilities_help",
+      help: "Measures this machine and fills the fields above; nothing is saved until you press Save.",
+      control: detect,
+    }) +
+    `<div id="aiRuntimeCapabilitiesResult" class="mb-3" style="display:none;"></div>
+    <div class="aia-row aia-row-wide">
+            <div class="accordion" id="aiAdvancedAccordion">
                 <div class="accordion-item" style="border: 1px solid var(--border-color); background: var(--bg-secondary);">
                     <h2 class="accordion-header" id="headingAdvanced">
                         <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced" data-i18n="ai_advanced_params">
@@ -129,15 +131,67 @@ ${window.AIA.buildPipelineControlsHtml()}
                     </div>
                 </div>
             </div>
+    </div>` +
+    ui.row({
+      id: "aiTestConnBtn",
+      labelKey: "ai_test_connection_label",
+      label: "Connection",
+      helpKey: "ai_test_connection_help",
+      help: "Checks that the provider answers with the settings above and lists its models.",
+      control: test,
+    }) +
+    `<div id="aiTestDiagnosticResult" class="mb-3" style="display: none;"></div>`
+  );
+};
 
-            <!-- Action Buttons -->
-            <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-outline-info d-flex align-items-center" id="aiTestConnBtn" onclick="window.AIA.testAIConnectionFromGui()">
-                    <i class="bi bi-activity me-1"></i> <span data-i18n="ai_test_connection">${t("ai_test_connection", "Test Connection")}</span>
-                </button>
-                <button type="button" class="btn btn-primary-custom d-flex align-items-center" id="aiSaveBtn" onclick="window.AIA.saveAISettingsFromGui()">
-                    <i class="bi bi-check-lg me-1"></i> <span data-i18n="ai_save_settings">${t("ai_save_settings", "Save Settings")}</span>
-                </button>
-            </div>
-        </div>`;
+window.AIA.buildAISettingsFormHtml = function (ctx) {
+  const ui = window.AIA.ui;
+  const s = window.AIA.state.currentAISettings;
+  const providerLabel =
+    (window.AIA.state.currentProviderSchemas.find((p) => p.key === ctx.activeProviderKey) || {})
+      .key || "";
+  const bodies = {
+    provider: window.AIA.buildProviderHtml(ctx),
+    safety: window.AIA.buildSafetyHtml(s),
+    routing: window.AIA.buildRoutingHtml(s),
+    agent: window.AIA.buildAgentLimitsHtml(s),
+    docs: window.AIA.buildDocumentsHtml(s),
+    files: window.AIA.buildFilesHtml(s),
+    diag: window.AIA.buildDiagnosticsHtml(s),
+  };
+  const descs = {
+    provider: "Which AI runs the advisor and how it is called.",
+    safety: "What the AI may touch and how its answers are checked.",
+    routing: "How a question is answered before and during an AI run.",
+    agent: "Ceilings for each question asked in Agent mode.",
+    docs: "Long documents such as the user guide, written one screen at a time.",
+    files: "Excel, Word, PDF, CSV and code files built from your data.",
+    diag: "For troubleshooting only.",
+  };
+  const cards = ui.GROUPS.map(([id, icon, key, title]) =>
+    ui.card({
+      id,
+      icon,
+      titleKey: key,
+      title,
+      descKey: `${key}_desc`,
+      desc: descs[id],
+      body: bodies[id],
+      badge:
+        id === "provider"
+          ? [providerLabel, window.AIA.getProviderModelValue(ctx.activeProviderKey)]
+              .filter(Boolean)
+              .join(" · ")
+          : "",
+    })
+  ).join("");
+  return `
+    <p class="aia-intro" data-i18n="ai_settings_desc">${t("ai_settings_desc", "Configure AI provider integration, API endpoints, model selection, and security parameters.")}</p>
+    ${ui.chips()}
+    <div class="aia-groups">${cards}</div>
+    <div class="aia-savebar">
+      <button type="button" class="btn btn-primary-custom d-flex align-items-center" id="aiSaveBtn" onclick="window.AIA.saveAISettingsFromGui()">
+        <i class="bi bi-check-lg me-1"></i> <span data-i18n="ai_save_settings">${t("ai_save_settings", "Save Settings")}</span>
+      </button>
+    </div>`;
 };

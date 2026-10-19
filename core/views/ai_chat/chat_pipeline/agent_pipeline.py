@@ -16,7 +16,7 @@ from core.services.ai.agent.sources import build_sources
 from core.services.ai.investigation import loop as inv_loop
 from core.views.ai_chat.ai_chat_helpers import _aiT_fallback_no_answer
 
-from .investigate import _int_setting, _setting, ensure_document
+from .investigate import _int_setting, _setting, document_write_tokens, ensure_document
 from .trace import PipelineTrace, TracedProvider
 
 CHITCHAT_MAX_WORDS = 2      # "hi" / "thanks": answered without forcing a tool call
@@ -53,7 +53,8 @@ def run_agent_pipeline(*, trace: PipelineTrace, provider, request, conversation,
                 max_steps=lim["ai_agent_max_steps"], budget_s=lim["ai_agent_budget_s"], ctx_chars=ctx_chars,
                 require_evidence=len(user_text.split()) > CHITCHAT_MAX_WORDS, conversation_id=cid,
                 extra_refusal_markers=(_aiT_fallback_no_answer(),), agent=True, hint=hint[:HINT_MAX_CHARS],
-                max_reads=lim["ai_agent_max_reads"], cancel_check=lambda: control.is_stopped(user, cid))
+                max_reads=lim["ai_agent_max_reads"], cancel_check=lambda: control.is_stopped(user, cid),
+                write_tokens=document_write_tokens(provider, user_text))
             composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars, user, cid)
             rec.detail.update({"why": "agent_mode", "composed_document": composed, "steps": len(result.steps), "tools": [s.get("tool") for s in result.steps],
                                "statuses": [s.get("status") for s in result.steps], "llm_calls": result.llm_calls,

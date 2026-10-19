@@ -2,7 +2,8 @@
 // AI Advisor settings: main render orchestrator. Split from the former
 // monolithic ai_advisor.js (200-line rule). Sibling files:
 // - state.js                    Shared window.AIA.state + escapeHtml helper
-// - render_settings_form.js     Builds the settings form HTML
+// - render_settings_form.js     Builds the settings form HTML (provider group + page composition)
+// - layout_helpers.js / settings_groups.js / settings_groups_limits.js  Card/row builders and the other groups
 // - user_limits.js / user_limits_actions.js  Monthly token limits panel (sysadmin)
 // - provider_fields.js          Provider dropdown + dynamic field rendering
 // - connection_test.js          "Test Connection" button handler
@@ -72,15 +73,20 @@ window.AIA.renderAIAdvisorSettings = async function () {
   });
   // Order: settings form -> monthly token limits -> platform card (installed models)
   const keyWarning = window.AIA.state.currentAISettings.encryption_key_default
-    ? `<div class="alert alert-warning m-3" id="aiDefaultKeyWarning" role="alert">
-         <i class="bi bi-shield-exclamation me-2"></i>
-         <span data-i18n="ai_default_key_warning">Stored API keys are protected with the default server key. Set a private WEALTHFLOW_AI_ENCRYPTION_KEY on the server, run "python manage.py rekey_ai_keys --apply", then restart.</span>
+    ? `<div class="aia-notice" id="aiDefaultKeyWarning" role="alert">
+         <i class="bi bi-shield-exclamation"></i>
+         <div class="aia-notice-text">
+           <span data-i18n="ai_key_warning_short">${t("ai_key_warning_short", "Stored API keys use the default server key.")}</span>
+           <div class="aia-notice-more" id="aiDefaultKeyMore" hidden data-i18n="ai_default_key_warning">${t("ai_default_key_warning", 'Stored API keys are protected with the default server key. Set a private WEALTHFLOW_AI_ENCRYPTION_KEY on the server, run "python manage.py rekey_ai_keys --apply", then restart.')}</div>
+         </div>
+         <button type="button" class="btn btn-sm btn-outline-warning" data-i18n="ai_key_warning_how" onclick="document.getElementById('aiDefaultKeyMore').hidden = !document.getElementById('aiDefaultKeyMore').hidden">${t("ai_key_warning_how", "How to fix")}</button>
        </div>`
     : "";
   container.innerHTML = keyWarning + html + '<div id="aiUserLimitsPanel"></div>';
   window.AIA.loadUserLimitsPanel();
 
   window.AIA.renderProviderFields(activeProviderKey);
+  window.AIA.ui.wireChips();
 
   if (typeof applyTranslations === "function") {
     applyTranslations();

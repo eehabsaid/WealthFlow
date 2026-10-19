@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 
 from .compose_descriptions import page_evidence, slug
+from .compose_quality import clean_title
 
 TABS_PER_UNIT = 5
 GETTING_STARTED = {"route": "auth", "title": "Signing up and signing in", "open": "/",
@@ -25,14 +26,13 @@ def units(user) -> list[dict]:
         tabs = page.get("tabs") or []
         chunks = [tabs[i:i + TABS_PER_UNIT] for i in range(0, len(tabs), TABS_PER_UNIT)] or [[]]
         for n, chunk in enumerate(chunks, 1):
-            title = str(page.get("title") or page.get("route") or "")
+            title = clean_title(page.get("title") or page.get("route") or "")
             heading = title if n == 1 else ""     # a screen split in parts is ONE chapter: only its first part carries the "## title"
-            if len(chunks) > 1:
-                title = f"{title} ({n}/{len(chunks)})"
+            label = f"{title} ({n}/{len(chunks)})" if len(chunks) > 1 else title   # for the progress line only, never for the model or the file
             shown = _evidence(page, chunk)
             shown_tabs = {t.get("name"): t for t in shown.get("tabs", [])}
             tab_items = [{**t, **{k: v for k, v in shown_tabs.get(t.get("name"), {}).items() if k in ("description", "dialogs")}} for t in chunk]
-            out.append({"title": title, "heading": heading, "page": str(page.get("title") or page.get("route") or ""), "tabs": [t.get("name", "") for t in chunk],
+            out.append({"title": title, "label": label, "part": (n, len(chunks)), "heading": heading, "page": str(page.get("title") or page.get("route") or ""), "tabs": [t.get("name", "") for t in chunk],
                         "tab_items": tab_items,
                         "evidence": json.dumps(shown, ensure_ascii=False), "fallback": _fallback(heading, shown, tab_items)})
     return out

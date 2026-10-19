@@ -97,25 +97,37 @@ def _headings(text: str) -> int:
     return sum(1 for line in text.splitlines() if line.lstrip().startswith("#"))
 
 
-def acceptable(source: str, text: str, cut: bool, non_latin: bool) -> bool:
-    if cut or not text or len(text) < 0.4 * len(source) or is_refusal(text, True):
-        return False
+def rejection(source: str, text: str, cut: bool, non_latin: bool) -> str:
+    """Why a translation is not accepted (\"\" when it is): the reason is logged so a piece left in English can be explained."""
+    if cut:
+        return "cut off by the output limit"
+    if not text or len(text) < 0.4 * len(source):
+        return "empty or much shorter than the source"
+    if is_refusal(text, True):
+        return "refusal"
     if re.sub(r"\W+", "", text.lower()) == re.sub(r"\W+", "", source.lower()):
-        return False   # returned unchanged
+        return "returned unchanged"
     if non_latin and latin_share(text) > MAX_LATIN_SHARE:
-        return False   # still (mostly) English
+        return "still mostly English (alphabet)"
     if copied_share(source, text) > MAX_COPIED_SHARE:
-        return False   # still (mostly) the source language, also for languages written in the same alphabet (French, German...)
-    return abs(_headings(text) - _headings(source)) <= max(1, _headings(source) // 3)
+        return "still mostly the source language (copied words)"   # also for languages written in the same alphabet (French, German...)
+    return "" if abs(_headings(text) - _headings(source)) <= max(1, _headings(source) // 3) else "headings lost or added"
+
+
+def acceptable(source: str, text: str, cut: bool, non_latin: bool) -> bool:
+    return not rejection(source, text, cut, non_latin)
 
 
 def _try(ask, cut, system: str, chunk: str, non_latin: bool, deadline: float, temperatures=(0.1, 0.3)) -> str:
     for temperature in temperatures:
         if time.monotonic() > deadline - 20:
+            logger.warning("[AI-TRANSLATE] no time left for: %.60s", chunk.strip().replace("\n", " "))
             return ""
         text = ask(system, chunk, temperature)
-        if acceptable(chunk, text, cut(), non_latin):
+        why = rejection(chunk, text, cut(), non_latin)
+        if not why:
             return text.strip()
+        logger.info("[AI-TRANSLATE] rejected (%s) at temperature %s: %.60s", why, temperature, chunk.strip().replace("\n", " "))
     return ""
 
 

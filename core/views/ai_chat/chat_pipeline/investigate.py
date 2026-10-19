@@ -71,17 +71,23 @@ def wants_written_document(text: str) -> bool:
     return any(f.key in ("docx", "pdf", "txt") for f in requested(text))
 
 
+def document_write_tokens(provider, user_text: str) -> int | None:
+    """Output-token limit for the model's own writing while a Word / PDF / text document is requested (None: the chat limit)."""
+    from core.services.ai.agent.settings import document_max_tokens
+
+    return document_max_tokens(provider) if wants_written_document(user_text) else None
+
+
 def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None, conversation_id=None) -> bool:
     """Replace a stub answer ("Let me write it...") by the complete document. True when the content was replaced."""
-    from core.services.ai.investigation.compose import compose_document, drop_model_drafts, generated_file, needs_document
+    from core.services.ai.investigation.compose import compose_document, drop_model_drafts, needs_document
 
     if result.reason == "cancelled" or not wants_written_document(user_text):
         return False
-    # The model wrote a file itself (Agent mode does): a guide to the app is still written by the app from the live screen list,
-    # because the model's own text is shallow, invents details and is repeated in every generate_file call.
-    own_file = generated_file(result.steps) and not needs_document(result)
-    if not own_file and not needs_document(result):
-        return False
+    # A guide to the app is ALWAYS written by the app from the live screen list, whether the model wrote a file itself (Agent
+    # mode), answered with a long text, or only announced it: the model's own text is shallow, invents details and is repeated in
+    # every generate_file call. compose_document keeps the model's text when the request is not about the app itself.
+    own_file = not needs_document(result)
     from core.services.ai.investigation.loop_helpers import publish_legacy
 
     def progress(n, total, title, started):   # the chat's "current step" line: Writing the guide: Balance (3/17)
@@ -164,7 +170,7 @@ def run_investigator_pipeline(*, trace: PipelineTrace, provider, request, conver
                 max_steps=_int_setting(user, "ai_investigator_max_steps", 10, 2, 25),
                 budget_s=_int_setting(user, "ai_investigator_budget_s", 240, 40, 1800),
                 ctx_chars=ctx_chars, require_evidence=(why == "code_question"), conversation_id=conversation.id,
-                extra_refusal_markers=(_aiT_fallback_no_answer(),))
+                extra_refusal_markers=(_aiT_fallback_no_answer(),), write_tokens=document_write_tokens(provider, user_text))
             composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars, user, conversation.id)
             rec.detail.update({"why": why, "composed_document": composed, "steps": len(result.steps), "tools": [s.get("tool") for s in result.steps],
                                "statuses": [s.get("status") for s in result.steps], "llm_calls": result.llm_calls,

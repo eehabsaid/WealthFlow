@@ -3,6 +3,8 @@ model's context window, and a section the model cannot write is filled from the 
 
 from __future__ import annotations
 
+import re
+
 from django.test import TestCase
 
 from core.models import AppSettings
@@ -39,7 +41,8 @@ class GuideProvider:
                 return {"error": "model unavailable"}
             title = ask.split('Write ONLY this section: "', 1)[1].split('"', 1)[0]
             body = "Open the screen from the menu and use its tabs to manage your records. " * 3
-            names = [unit["tabs"] for unit in units(self.user) if unit["title"] == title][0]
+            part = re.search(r"part (\d+) of \d+", ask)
+            names = [unit["tabs"] for unit in units(self.user) if unit["title"] == title and unit["part"][0] == int(part.group(1) if part else 1)][0]
             tabs = names[:-1] if self.drop_last_tab and len(names) > 1 else names
             return {"content": f"\n\n## {title}\n\n{body}\n\n" + "\n\n".join(f"## {n}\n\n{body}" for n in tabs)}
         return {"content": "x" * 600}
@@ -90,8 +93,8 @@ class GuideTest(TestCase):
     def test_each_section_call_only_carries_its_own_tabs(self):
         prov = GuideProvider()
         self.run_guide(self.admin, prov)
-        first = next(c for c in prov.calls if 'Write ONLY this section: "Settings (1/' in c["ask"])
-        last = next(c for c in prov.calls if 'Write ONLY this section: "Settings (4/' in c["ask"])
+        parts = [c for c in prov.calls if 'Write ONLY this section: "Settings"' in c["ask"]]
+        first, last = next(c for c in parts if "part 1 of" in c["ask"]), next(c for c in parts if "part 4 of" in c["ask"])
         self.assertNotEqual(first["ask"].split("SCREEN:")[1], last["ask"].split("SCREEN:")[1])
         self.assertLess(len(first["ask"]), 24000)                          # fits a small local context window
 

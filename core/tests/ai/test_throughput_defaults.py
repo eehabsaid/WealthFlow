@@ -14,7 +14,7 @@ migration = import_module("core.migrations.0035_refresh_ai_throughput_settings")
 class ThroughputDefaultsTest(TestCase):
     def test_estimate_uses_the_current_machine_defaults(self):
         AppSettings.objects.filter(key__in=("ai_prompt_tps", "ai_decode_tps")).delete()
-        self.assertAlmostEqual(estimate_seconds(300, 40), 300 / 700 + 40 / 30, places=3)
+        self.assertAlmostEqual(estimate_seconds(300, 40), 300 / 2500 + 40 / 62, places=3)
 
     def test_migration_replaces_only_the_old_defaults(self):
         AppSettings.set("ai_prompt_tps", "36.9")
@@ -24,3 +24,17 @@ class ThroughputDefaultsTest(TestCase):
         self.assertEqual(AppSettings.get("ai_decode_tps"), "42")
         migration.backwards(django_apps, None)
         self.assertEqual(AppSettings.get("ai_prompt_tps"), "36.9")
+
+
+migration_measured = import_module("core.migrations.0037_measured_ai_throughput_settings")
+
+
+class MeasuredThroughputMigrationTest(TestCase):
+    def test_only_the_previous_estimates_are_replaced(self):
+        AppSettings.set("ai_prompt_tps", "700")
+        AppSettings.set("ai_decode_tps", "45")          # typed by the owner: must stay
+        migration_measured.forwards(django_apps, None)
+        self.assertEqual(AppSettings.get("ai_prompt_tps"), "2500")
+        self.assertEqual(AppSettings.get("ai_decode_tps"), "45")
+        migration_measured.backwards(django_apps, None)
+        self.assertEqual(AppSettings.get("ai_prompt_tps"), "700")

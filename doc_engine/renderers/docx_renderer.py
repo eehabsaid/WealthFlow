@@ -129,7 +129,7 @@ class DocxRenderer:
                         logger.warning(f"Could not add image {s_path} to docx: {e}")
                         
             if item.siblings:
-                doc.add_paragraph("Related Pages:", style='Heading 3')
+                doc.add_paragraph(context['related_title'] + ":", style='Heading 3')
                 for sib in item.siblings:
                     doc.add_paragraph(sib, style='List Bullet')
         doc.save(out_path)
