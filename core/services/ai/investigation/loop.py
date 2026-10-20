@@ -14,6 +14,8 @@ from dataclasses import dataclass, field
 from . import prompt
 from .loop_helpers import compact, digest, label, publish_legacy, result_text, target, trim_history
 from .actions import extract_calls, is_call_leak, salvage_content, strip_think, unavailable_tools
+from core.services.ai.domain_scope import is_out_of_scope
+
 from .defs import investigation_tool_schemas
 from .refusal import is_announcement, is_refusal
 
@@ -51,16 +53,16 @@ def _progress(agent, user, conversation_id, step, max_steps, name, args, text_la
 def investigate(provider, user, user_text: str, *, history=None, max_steps: int = 10, budget_s: int = 240,
                 ctx_chars: int = 24000, require_evidence: bool = False, conversation_id=None,
                 extra_refusal_markers: tuple = (), agent: bool = False, instructions: str | None = None, hint: str = "",
-                max_reads: int | None = None, cancel_check=None, write_tokens: int | None = None) -> Investigation:
+                max_reads: int | None = None, cancel_check=None, write_tokens: int | None = None, domain: str = "") -> Investigation:
     from core.services.ai.tools import validate_and_execute_tool
 
     started = time.monotonic()
     out = Investigation()
-    schemas = investigation_tool_schemas(user)
+    schemas = investigation_tool_schemas(user, domain)
     names = {s["function"]["name"] for s in schemas}
     native = bool(getattr(provider, "supports_tools", False))
     out.native_tools = native
-    system = prompt.build_agent_prompt(user, schemas, native, instructions) if agent else prompt.build_system_prompt(user, schemas, native)
+    system = prompt.build_agent_prompt(user, schemas, native, instructions, domain) if agent else prompt.build_system_prompt(user, schemas, native, domain)
     asked = user_text + (f"\n\n[HINT, not verified by you; confirm or extend it with tools: {hint}]" if hint else "")
     messages = [{"role": "system", "content": system}] + trim_history(history) + [{"role": "user", "content": asked}]
     seen: set = set()
@@ -143,6 +145,9 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
                       "again with valid JSON and short arguments, or write the answer in plain text.")
                 continue
             text = ""
+        if domain and is_out_of_scope(text):   # the question is outside this chat domain: the guard turns it into the no-information answer
+            out.content, out.reason = text, "out_of_scope"
+            break
         investigated = bool(out.steps)
         needs_evidence = require_evidence and not investigated
         if text and is_announcement(text) and out.nudges < NUDGES:

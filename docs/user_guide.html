@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WealthFlow User Guide</title>
+<meta name="description" content="Complete user guide for the WealthFlow personal-finance platform.">
+<style>
+/* ── Reset & tokens ─────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f9fa;--bg-card:#fff;--text:#212529;--text-muted:#6c757d;
+  --accent:#0d6efd;--accent-light:#cfe2ff;--border:#dee2e6;
+  --sidebar-w:280px;--radius:8px;
+  --sysadmin-bg:#fff3cd;--sysadmin-border:#ffc107;--sysadmin-text:#664d03;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#121212;--bg-card:#1e1e1e;--text:#e0e0e0;--text-muted:#9e9e9e;
+    --accent:#4dabf7;--accent-light:#1a3a5c;--border:#333;
+    --sysadmin-bg:#332b00;--sysadmin-border:#665200;--sysadmin-text:#ffc107;
+  }
+}
+html{scroll-behavior:smooth;scroll-padding-top:1rem}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.6;font-size:15px}
+
+/* ── Skip link ──────────────────────────────────────────────────────────── */
+.skip-link{position:absolute;top:-100%;left:0;background:var(--accent);color:#fff;
+  padding:.5rem 1rem;z-index:9999;border-radius:0 0 var(--radius) 0;
+  text-decoration:none;font-weight:600}
+.skip-link:focus{top:0}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.layout{display:flex;min-height:100vh}
+.toc-rail{
+  position:sticky;top:0;width:var(--sidebar-w);height:100vh;overflow-y:auto;
+  background:var(--bg-card);border-right:1px solid var(--border);
+  padding:1rem .75rem;flex-shrink:0;
+}
+.toc-rail h2{font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--text-muted);margin-bottom:.75rem}
+.toc-rail ul{list-style:none}
+.toc-rail li{margin:.15rem 0}
+.toc-rail a{
+  display:block;padding:.3rem .5rem;border-radius:var(--radius);
+  color:var(--text);text-decoration:none;font-size:.85rem;
+  transition:background .15s,color .15s;
+}
+.toc-rail a:hover,.toc-rail a:focus{background:var(--accent-light);color:var(--accent);outline:none}
+.toc-rail a.active{background:var(--accent);color:#fff;font-weight:600}
+.toc-l2 a{padding-left:1.25rem;font-size:.82rem}
+.toc-l3 a{padding-left:2rem;font-size:.8rem}
+.sysadmin-badge{font-size:.75rem;margin-left:.25rem}
+
+main{flex:1;padding:2rem 2.5rem;max-width:860px;min-width:0}
+
+/* ── Mobile TOC toggle ──────────────────────────────────────────────────── */
+.toc-toggle{
+  display:none;position:fixed;top:.75rem;left:.75rem;z-index:1000;
+  background:var(--accent);color:#fff;border:none;border-radius:var(--radius);
+  padding:.5rem .75rem;font-size:1rem;cursor:pointer;
+}
+@media(max-width:768px){
+  .toc-toggle{display:block}
+  .toc-rail{
+    position:fixed;left:0;top:0;transform:translateX(-100%);
+    transition:transform .25s ease;z-index:999;width:260px;
+    box-shadow:2px 0 12px rgba(0,0,0,.15);
+  }
+  .toc-rail.open{transform:translateX(0)}
+  main{padding:4rem 1rem 2rem}
+}
+
+/* ── Sections ───────────────────────────────────────────────────────────── */
+.guide-section{margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.guide-section:last-child{border-bottom:none}
+.section-heading{margin-bottom:.75rem;line-height:1.3}
+h1.section-heading{font-size:1.6rem}
+h2.section-heading{font-size:1.3rem}
+h3.section-heading{font-size:1.1rem}
+.purpose{color:var(--text);margin-bottom:.75rem}
+.steps{padding-left:1.5rem;margin:.5rem 0}
+.steps li{margin:.3rem 0}
+.notes{padding-left:1.5rem;margin:.5rem 0;list-style:disc}
+.notes li{margin:.3rem 0;color:var(--text-muted)}
+.sysadmin-warning{
+  background:var(--sysadmin-bg);border:1px solid var(--sysadmin-border);
+  color:var(--sysadmin-text);padding:.5rem .75rem;border-radius:var(--radius);
+  margin-bottom:.75rem;font-size:.9rem;
+}
+
+/* ── Print ──────────────────────────────────────────────────────────────── */
+@media print{
+  .toc-rail,.toc-toggle,.skip-link{display:none!important}
+  main{max-width:100%;padding:0}
+  .guide-section{break-inside:avoid;page-break-inside:avoid}
+  body{background:#fff;color:#000;font-size:12pt}
+}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<button class="toc-toggle" id="tocToggle" aria-label="Toggle table of contents" aria-expanded="false">☰</button>
+<div class="layout">
+<nav class="toc-rail" id="tocRail" aria-label="Table of Contents">
+  <h2>Contents</h2>
+  <ul>
+<li class="toc-l1"><a href="#sec-1-introduction" data-target="sec-1-introduction">1 Introduction</a></li>
+<li class="toc-l1"><a href="#sec-2-getting-started" data-target="sec-2-getting-started">2 Getting Started</a></li>
+<li class="toc-l1"><a href="#sec-3-navigation-interface" data-target="sec-3-navigation-interface">3 Navigation &amp; Interface</a></li>
+<li class="toc-l1"><a href="#sec-4-dashboard" data-target="sec-4-dashboard">4 Dashboard</a></li>
+<li class="toc-l1"><a href="#sec-5-wealthflow-ai" data-target="sec-5-wealthflow-ai">5 WealthFlow AI</a></li>
+<li class="toc-l1"><a href="#sec-6-financial-advisor" data-target="sec-6-financial-advisor">6 Financial Advisor</a></li>
+<li class="toc-l1"><a href="#sec-7-employment-salary" data-target="sec-7-employment-salary">7 Employment / Salary</a></li>
+<li class="toc-l1"><a href="#sec-8-balance" data-target="sec-8-balance">8 Balance</a></li>
+<li class="toc-l1"><a href="#sec-9-bank-certificates" data-target="sec-9-bank-certificates">9 Bank Certificates</a></li>
+<li class="toc-l1"><a href="#sec-10-fixed-assets" data-target="sec-10-fixed-assets">10 Fixed Assets</a></li>
+<li class="toc-l1"><a href="#sec-11-exchange-rates" data-target="sec-11-exchange-rates">11 Exchange Rates</a></li>
+<li class="toc-l1"><a href="#sec-12-gold-price" data-target="sec-12-gold-price">12 Gold Price</a></li>
+<li class="toc-l1"><a href="#sec-13-expenses" data-target="sec-13-expenses">13 Expenses</a></li>
+<li class="toc-l1"><a href="#sec-14-expense-categories" data-target="sec-14-expense-categories">14 Expense Categories</a></li>
+<li class="toc-l1"><a href="#sec-15-budgets" data-target="sec-15-budgets">15 Budgets</a></li>
+<li class="toc-l1"><a href="#sec-16-import-data" data-target="sec-16-import-data">16 Import Data</a></li>
+<li class="toc-l1"><a href="#sec-17-reports" data-target="sec-17-reports">17 Reports</a></li>
+<li class="toc-l1"><a href="#sec-18-advanced-reports" data-target="sec-18-advanced-reports">18 Advanced Reports</a></li>
+<li class="toc-l1"><a href="#sec-19-settings-overview" data-target="sec-19-settings-overview">19 Settings Overview</a></li>
+<li class="toc-l1"><a href="#sec-20-languages" data-target="sec-20-languages">20 Languages</a></li>
+<li class="toc-l1"><a href="#sec-21-companies" data-target="sec-21-companies">21 Companies</a></li>
+<li class="toc-l1"><a href="#sec-22-banks" data-target="sec-22-banks">22 Banks</a></li>
+<li class="toc-l1"><a href="#sec-23-currency" data-target="sec-23-currency">23 Currency</a></li>
+<li class="toc-l1"><a href="#sec-24-users" data-target="sec-24-users">24 Users <span class="sysadmin-badge" aria-label="Sysadmin only">⚠️</span></a></li>
+<li class="toc-l1"><a href="#sec-25-roles" data-target="sec-25-roles">25 Roles <span class="sysadmin-badge" aria-label="Sysadmin only">⚠️</span></a></li>
+<li class="toc-l1"><a href="#sec-26-billing-plans" data-target="sec-26-billing-plans">26 Billing Plans <span class="sysadmin-badge" aria-label="Sysadmin only">⚠️</span></a></li>
+<li class="toc-l1"><a href="#sec-27-email-templates" data-target="sec-27-email-templates">27 Email Templates</a></li>
+<li class="toc-l1"><a href="#sec-28-translations" data-target="sec-28-translations">28 Translations</a></li>
+<li class="toc-l1"><a href="#sec-29-translation-coverage" data-target="sec-29-translation-coverage">29 Translation Coverage</a></li>
+<li class="toc-l1"><a href="#sec-30-reminders" data-target="sec-30-reminders">30 Reminders</a></li>
+<li class="toc-l1"><a href="#sec-31-certificate-status" data-target="sec-31-certificate-status">31 Certificate Status</a></li>
+<li class="toc-l1"><a href="#sec-32-gold-settings" data-target="sec-32-gold-settings">32 Gold Settings</a></li>
+<li class="toc-l1"><a href="#sec-33-property-valuation" data-target="sec-33-property-valuation">33 Property Valuation</a></li>
+<li class="toc-l1"><a href="#sec-34-dashboard-settings" data-target="sec-34-dashboard-settings">34 Dashboard (Settings)</a></li>
+<li class="toc-l1"><a href="#sec-35-backup-restore" data-target="sec-35-backup-restore">35 Backup &amp; Restore</a></li>
+<li class="toc-l1"><a href="#sec-36-documentation" data-target="sec-36-documentation">36 Documentation</a></li>
+<li class="toc-l1"><a href="#sec-37-ai-advisor" data-target="sec-37-ai-advisor">37 AI Advisor <span class="sysadmin-badge" aria-label="Sysadmin only">⚠️</span></a></li>
+<li class="toc-l1"><a href="#sec-38-legal-text" data-target="sec-38-legal-text">38 Legal Text <span class="sysadmin-badge" aria-label="Sysadmin only">⚠️</span></a></li>
+<li class="toc-l1"><a href="#sec-39-my-ai-settings" data-target="sec-39-my-ai-settings">39 My AI Settings</a></li>
+<li class="toc-l1"><a href="#sec-40-roles-permissions-reference" data-target="sec-40-roles-permissions-reference">40 Roles &amp; Permissions Reference</a></li>
+<li class="toc-l1"><a href="#sec-41-glossary" data-target="sec-41-glossary">41 Glossary</a></li>
+<li class="toc-l1"><a href="#sec-42-troubleshooting-faq" data-target="sec-42-troubleshooting-faq">42 Troubleshooting &amp; FAQ</a></li>
+<li class="toc-l1"><a href="#sec-43-appendix-shortcuts-tips" data-target="sec-43-appendix-shortcuts-tips">43 Appendix: Shortcuts &amp; Tips</a></li>
+  </ul>
+</nav>
+<main id="main-content" role="main">
+<header>
+  <h1>WealthFlow User Guide</h1>
+  <p style="color:var(--text-muted);margin-bottom:1.5rem">Generated 2026-10-20 · Single-tenant personal-finance platform</p>
+</header>
+
+<section id="sec-1-introduction" class="guide-section" aria-labelledby="sec-1-introduction-heading">
+  <h1 id="sec-1-introduction-heading" class="section-heading">1 Introduction</h1>
+  
+  <p class="purpose">WealthFlow is a single-tenant personal-finance platform built with Django and vanilla JavaScript. It tracks multi-currency liquid cash, bank balances, high-yield bank certificates, physical gold, real estate, vehicles, salary income, and expenses. The UI uses Bootstrap 5 with dark/light themes and supports Arabic, English, French, and German via JSON-based i18n. This guide walks through every page, feature, and setting in the order you will encounter them.</p>
+  <ol class="steps">
+  <li>Read this guide top-to-bottom for a first pass, or jump to a section via the Table of Contents.</li>
+  <li>Keep the Roles &amp; Permissions Reference (section 40) handy to understand what your role can access.</li>
+  <li>Use the Glossary (section 41) whenever a term is unfamiliar.</li>
+</ol>
+  <ul class="notes">
+  <li>All data is stored locally in a SQLite database; no data leaves your machine unless you configure an external AI provider.</li>
+  <li>The application is fully offline-capable once loaded (PWA service worker).</li>
+</ul>
+</section>
+
+<section id="sec-2-getting-started" class="guide-section" aria-labelledby="sec-2-getting-started-heading">
+  <h1 id="sec-2-getting-started-heading" class="section-heading">2 Getting Started</h1>
+  
+  <p class="purpose">Covers account creation, email verification, first login, the default Member role, and initial configuration of base currency and language.</p>
+  <ol class="steps">
+  <li>Open the application URL in your browser and click the Sign Up button.</li>
+  <li>Enter your name, email address, and a password (minimum 8 characters, at least one digit).</li>
+  <li>Check your email inbox for a verification link and click it to activate your account.</li>
+  <li>Log in with your verified email and password.</li>
+  <li>On first login you are assigned the Member role, which grants access to all main-app pages and a curated set of Settings tabs.</li>
+  <li>Go to Settings → Languages to choose your preferred display language (Arabic, English, French, or German).</li>
+  <li>Go to Settings → Currency to set your base currency (the currency all amounts are normalised to for reporting).</li>
+</ol>
+  <ul class="notes">
+  <li>The Member role is the default for all self-registered users. A sysadmin can later promote you to a custom role with additional permissions.</li>
+  <li>Your base currency affects how multi-currency balances are aggregated in reports and the dashboard.</li>
+  <li>Email verification is mandatory; unverified accounts cannot log in.</li>
+</ul>
+</section>
+
+<section id="sec-3-navigation-interface" class="guide-section" aria-labelledby="sec-3-navigation-interface-heading">
+  <h1 id="sec-3-navigation-interface-heading" class="section-heading">3 Navigation &amp; Interface</h1>
+  
+  <p class="purpose">Explains the persistent UI chrome: the left sidebar, the top bar, mobile navigation, the date picker, modals, toast notifications, and right-to-left (RTL) / Arabic layout support.</p>
+  <ol class="steps">
+  <li>Use the left sidebar to navigate between main-app pages (Dashboard, WealthFlow AI, Financial Advisor, etc.).</li>
+  <li>The top bar shows the current page title, a language switcher, a theme toggle (light/dark), and your user avatar with an account menu.</li>
+  <li>On screens narrower than 768 px the sidebar collapses into a hamburger menu; tap the icon to open it.</li>
+  <li>Click any date input to open the custom date picker; it supports month/year navigation and locale-aware labels.</li>
+  <li>Modals (dialog boxes) appear over the page for add/edit forms; press Escape or click the backdrop to close.</li>
+  <li>Toast notifications slide in from the top-right to confirm actions (saved, deleted, error).</li>
+  <li>When Arabic is selected the entire layout mirrors to right-to-left automatically.</li>
+</ol>
+  <ul class="notes">
+  <li>The theme preference is stored per-user and persists across sessions.</li>
+  <li>All UI strings are translated via data-i18n attributes; the active language is applied on every render.</li>
+  <li>Keyboard navigation: Tab moves focus through interactive elements; Enter activates buttons and links.</li>
+</ul>
+</section>
+
+<section id="sec-4-dashboard" class="guide-section" aria-labelledby="sec-4-dashboard-heading">
+  <h1 id="sec-4-dashboard-heading" class="section-heading">4 Dashboard</h1>
+  
+  <p class="purpose">The landing page after login. Shows a high-level snapshot of your financial position: net worth, recent transactions, upcoming reminders, certificate maturities, and salary status. Which widgets appear is controlled by Settings → Dashboard.</p>
+  <ol class="steps">
+  <li>Log in; the Dashboard loads automatically.</li>
+  <li>Review the net-worth card (total assets minus liabilities, in your base currency).</li>
+  <li>Check the reminders banner for any upcoming certificate maturities, insurance expiries, or salary-day alerts.</li>
+  <li>Click any card to drill into the corresponding page (Balance, Bank Certificates, Employment, etc.).</li>
+</ol>
+  <ul class="notes">
+  <li>Toggle which widgets are visible in Settings → Dashboard (show certificates, show reminders, show salary).</li>
+  <li>The dashboard refreshes data on every page load; there is no auto-polling.</li>
+</ul>
+</section>
+
+<section id="sec-5-wealthflow-ai" class="guide-section" aria-labelledby="sec-5-wealthflow-ai-heading">
+  <h1 id="sec-5-wealthflow-ai-heading" class="section-heading">5 WealthFlow AI</h1>
+  
+  <p class="purpose">An AI-powered chat assistant that answers questions about your financial data using a read-only pipeline. It can query balances, salary, certificates, gold, expenses, and fixed assets. Supports streaming responses, a context panel, a prompt library, a knowledge base, and conversation history.</p>
+  <ol class="steps">
+  <li>Click WealthFlow AI in the sidebar.</li>
+  <li>Type a question in the chat input (e.g. &#x27;What is my total net worth?&#x27;) and press Enter.</li>
+  <li>Watch the streaming progress indicator while the AI orchestrator runs its investigation loop (up to 5 tool-calling steps).</li>
+  <li>Open the right-hand context panel to view the knowledge base, prompt library, and capability cards.</li>
+  <li>Browse or create prompts in the Prompt Library modal for reusable question templates.</li>
+  <li>View past conversations in the history list; click one to resume it.</li>
+</ol>
+  <ul class="notes">
+  <li>The AI is strictly read-only: it never modifies your data.</li>
+  <li>Supported providers: Ollama (local), OpenAI, Claude, Gemini, Azure OpenAI. The active provider is set in Settings → AI Advisor (sysadmin) or My AI Settings (per-user).</li>
+  <li>Instant Data Answers (direct answers) bypass the LLM for simple data lookups, saving tokens.</li>
+  <li>Multi-agent orchestration lets specialised agents collaborate on complex questions.</li>
+</ul>
+</section>
+
+<section id="sec-6-financial-advisor" class="guide-section" aria-labelledby="sec-6-financial-advisor-heading">
+  <h1 id="sec-6-financial-advisor-heading" class="section-heading">6 Financial Advisor</h1>
+  
+  <p class="purpose">A rule-based (non-AI) analytics engine that provides portfolio overview, cash-flow forecasting, goal planning, risk analysis, spending intelligence, opportunity detection, scenario planning, and wealth-growth projections. All calculations run server-side in Python.</p>
+  <ol class="steps">
+  <li>Click Financial Advisor in the sidebar.</li>
+  <li>Use the tab bar to switch between: Overview, Cash Flow, Goal Planning, Risk Analysis, Spending Intelligence, Opportunities, Scenario Planner, and Projections.</li>
+  <li>In Goal Planning, set a target amount and time horizon; the service calculates the required monthly savings.</li>
+  <li>In the Scenario Planner, add hypothetical events (e.g. a bonus, a purchase) and compare the projected outcome against your baseline.</li>
+  <li>Review the Projections tab for long-term wealth-growth forecasts based on your current income, expenses, and asset growth rates.</li>
+</ol>
+  <ul class="notes">
+  <li>All advisor services are deterministic and do not require an AI provider.</li>
+  <li>Cash-flow forecasts use your salary and recurring expense data.</li>
+  <li>Opportunity detection surfaces under-utilised certificates, low-yield balances, and tax-advantaged moves.</li>
+</ul>
+</section>
+
+<section id="sec-7-employment-salary" class="guide-section" aria-labelledby="sec-7-employment-salary-heading">
+  <h1 id="sec-7-employment-salary-heading" class="section-heading">7 Employment / Salary</h1>
+  
+  <p class="purpose">Manage your employers, record monthly salary entries, track per-diem (daily allowance) payments, and view payroll history. Year pills let you jump between calendar years.</p>
+  <ol class="steps">
+  <li>Click Employment in the sidebar.</li>
+  <li>Select or create a company (employer) from the dropdown.</li>
+  <li>Add a salary entry: month, base amount, bonuses, deductions, and net pay.</li>
+  <li>Record per-diem payments: date, amount, and reason.</li>
+  <li>Use the year pills at the top of the page to switch between years.</li>
+  <li>View the payroll summary table for the selected year.</li>
+</ol>
+  <ul class="notes">
+  <li>Salary data feeds the Financial Advisor&#x27;s cash-flow and goal-planning services.</li>
+  <li>Per-diem entries are treated as supplementary income in reports.</li>
+  <li>You can have multiple employers; each has its own salary history.</li>
+</ul>
+</section>
+
+<section id="sec-8-balance" class="guide-section" aria-labelledby="sec-8-balance-heading">
+  <h1 id="sec-8-balance-heading" class="section-heading">8 Balance</h1>
+  
+  <p class="purpose">Track liquid cash and bank-account balances across multiple currencies. Supports account management, inter-account transfers, currency exchange, credit-card payments, bank interest accrual, and card renewal fees.</p>
+  <ol class="steps">
+  <li>Click Balance in the sidebar.</li>
+  <li>Use the tab bar: Overview, Accounts, Transfers, Currency Exchange, Bank Interest, Credit Card Payment, Card Renewal Fee, Allocation, Forecasts, Recommendations.</li>
+  <li>In Accounts, add a new bank or cash account with a name, bank, currency, and opening balance.</li>
+  <li>In Transfers, move money between your own accounts (source, destination, amount, date).</li>
+  <li>In Currency Exchange, record a conversion between two of your currencies at a given rate.</li>
+  <li>In Bank Interest, log interest credited to a certificate or savings account.</li>
+  <li>In Credit Card Payment, record a payment toward a credit-card balance.</li>
+  <li>In Card Renewal Fee, log annual card-fee charges.</li>
+</ol>
+  <ul class="notes">
+  <li>All amounts are stored in their original currency and normalised to your base currency for aggregation.</li>
+  <li>Transfers do not change total net worth; they move value between accounts.</li>
+  <li>Currency-exchange entries affect the per-currency balances but not total net worth (at the recorded rate).</li>
+</ul>
+</section>
+
+<section id="sec-9-bank-certificates" class="guide-section" aria-labelledby="sec-9-bank-certificates-heading">
+  <h1 id="sec-9-bank-certificates-heading" class="section-heading">9 Bank Certificates</h1>
+  
+  <p class="purpose">Track high-yield bank certificates (fixed deposits): issue date, expiry date, principal amount, interest rate, interest value, and payout frequency (monthly, quarterly, semi-annually, annually, or at maturity).</p>
+  <ol class="steps">
+  <li>Click Bank Certificates in the sidebar.</li>
+  <li>Click Add Certificate to open the modal.</li>
+  <li>Fill in: status, bank, currency, issue date, expiry date, amount, interest rate (%), interest value, and frequency.</li>
+  <li>Save; the certificate appears in the list with a countdown to maturity.</li>
+  <li>Click a certificate to edit or view its interest history.</li>
+</ol>
+  <ul class="notes">
+  <li>Certificate maturity reminders are generated automatically based on the expiry date and your reminder rules (Settings → Reminders).</li>
+  <li>Interest can be accrued monthly or paid at maturity, depending on the frequency you select.</li>
+  <li>Certificates are included in net-worth calculations at their face value plus accrued interest.</li>
+</ul>
+</section>
+
+<section id="sec-10-fixed-assets" class="guide-section" aria-labelledby="sec-10-fixed-assets-heading">
+  <h1 id="sec-10-fixed-assets-heading" class="section-heading">10 Fixed Assets</h1>
+  
+  <p class="purpose">Track non-liquid assets: real estate, vehicles, gold holdings, and other assets. Supports photos, valuation history, acquisition costs, insurance, maintenance, renovations, furniture, rental income, and sale records.</p>
+  <ol class="steps">
+  <li>Click Fixed Assets in the sidebar.</li>
+  <li>Select an asset type: Real Estate, Vehicles, Gold, or Other Assets.</li>
+  <li>Click Add Asset and fill in the type-specific fields (address / VIN / weight / description).</li>
+  <li>Upload photos to document the asset&#x27;s condition.</li>
+  <li>Record the acquisition cost, including optional cost categories (lawyer fees, registration, notary, etc.).</li>
+  <li>Add valuation entries over time to track appreciation or depreciation.</li>
+  <li>For real estate: add renovation records, furniture inventory, insurance policies, and rental receipts.</li>
+  <li>For vehicles: add maintenance logs and insurance details.</li>
+  <li>For gold: the system auto-syncs the current market value using the Gold Price page rates.</li>
+</ol>
+  <ul class="notes">
+  <li>Gold asset values are recalculated automatically when gold prices are refreshed.</li>
+  <li>Property valuations can be sourced from a configured market-rate provider or an external API (Settings → Property Valuation).</li>
+  <li>Sold assets are marked with status &#x27;Sold&#x27; and excluded from current net worth but retained in history.</li>
+</ul>
+</section>
+
+<section id="sec-11-exchange-rates" class="guide-section" aria-labelledby="sec-11-exchange-rates-heading">
+  <h1 id="sec-11-exchange-rates-heading" class="section-heading">11 Exchange Rates</h1>
+  
+  <p class="purpose">View and refresh foreign-exchange rates. Rates are fetched from open.er-api.com (free, no API key) and stored in the local database. A Central Bank of Egypt (CBE) scrape can also run locally.</p>
+  <ol class="steps">
+  <li>Click Exchange Rates in the sidebar.</li>
+  <li>Review the featured currency cards (top currencies by priority).</li>
+  <li>Scroll to the full rate table for all configured currencies.</li>
+  <li>Click Refresh from Internet to fetch the latest rates from the external API.</li>
+</ol>
+  <ul class="notes">
+  <li>Rates are used by the Balance page for currency-exchange calculations and by reports for multi-currency aggregation.</li>
+  <li>The refresh button requires an internet connection; the app remains fully functional offline using the last stored rates.</li>
+</ul>
+</section>
+
+<section id="sec-12-gold-price" class="guide-section" aria-labelledby="sec-12-gold-price-heading">
+  <h1 id="sec-12-gold-price-heading" class="section-heading">12 Gold Price</h1>
+  
+  <p class="purpose">Display current gold prices by purity (24K, 22K, 21K, 18K) and by unit (gram, kilogram, ounce, tola). Prices are fetched from an external API and cached locally.</p>
+  <ol class="steps">
+  <li>Click Gold Price in the sidebar.</li>
+  <li>View the carat cards showing the price per gram for each purity.</li>
+  <li>Switch units using the unit selector (g, kg, oz, tola).</li>
+  <li>Click Refresh to fetch the latest prices from the external API.</li>
+</ol>
+  <ul class="notes">
+  <li>Gold asset values in Fixed Assets are auto-updated when prices are refreshed.</li>
+  <li>Purity percentages: 24K = 99.9 %, 22K = 91.7 %, 21K = 87.5 %, 18K = 75.0 %.</li>
+  <li>Unit conversions: 1 kg = 1000 g, 1 oz = 31.103 g, 1 tola = 11.664 g.</li>
+</ul>
+</section>
+
+<section id="sec-13-expenses" class="guide-section" aria-labelledby="sec-13-expenses-heading">
+  <h1 id="sec-13-expenses-heading" class="section-heading">13 Expenses</h1>
+  
+  <p class="purpose">Record and categorise daily expenses. Each expense has a date, amount, currency, category, payment method, and optional description. Expenses feed budgets, reports, and the AI assistant.</p>
+  <ol class="steps">
+  <li>Click Expenses in the sidebar.</li>
+  <li>Click Add Expense and fill in: date, amount, currency, category, payment method, and description.</li>
+  <li>Filter the list by date range, category, or currency.</li>
+  <li>Edit or delete existing expenses by clicking the row actions.</li>
+</ol>
+  <ul class="notes">
+  <li>Expenses are the primary input for budget tracking and the Financial Advisor&#x27;s spending intelligence.</li>
+  <li>Payment methods: Cash, Card, Bank, Bank Transfer.</li>
+  <li>Expenses can be imported in bulk via the Import Data page.</li>
+</ul>
+</section>
+
+<section id="sec-14-expense-categories" class="guide-section" aria-labelledby="sec-14-expense-categories-heading">
+  <h1 id="sec-14-expense-categories-heading" class="section-heading">14 Expense Categories</h1>
+  
+  <p class="purpose">Define the categories used to classify expenses. Each category has a name, an icon (emoji), and is scoped to your user account.</p>
+  <ol class="steps">
+  <li>Click Expense Categories in the sidebar.</li>
+  <li>Click Add Category and enter a name and choose an icon.</li>
+  <li>Edit or delete categories as needed.</li>
+  <li>Categories are available as dropdown options in the Expense and Budget forms.</li>
+</ol>
+  <ul class="notes">
+  <li>Default categories are seeded on first login (Food, Transport, Utilities, Rent, Entertainment, Health, Shopping, Other).</li>
+  <li>Deleting a category does not delete existing expenses; they retain a reference to the deleted category name.</li>
+</ul>
+</section>
+
+<section id="sec-15-budgets" class="guide-section" aria-labelledby="sec-15-budgets-heading">
+  <h1 id="sec-15-budgets-heading" class="section-heading">15 Budgets</h1>
+  
+  <p class="purpose">Set monthly or yearly spending limits per category. Budgets show a progress bar (spent vs limit), an alert threshold, and support recurring transactions with auto-posting and due-date alerts.</p>
+  <ol class="steps">
+  <li>Click Budgets in the sidebar.</li>
+  <li>Click Add Budget: choose a category, period (monthly / yearly), amount, and alert threshold (%).</li>
+  <li>The progress bar turns green → yellow (at threshold) → red (exceeded).</li>
+  <li>In the Recurring section, add recurring transactions (e.g. monthly rent) with a frequency and next-run date.</li>
+  <li>Pause or resume a recurring transaction with the toggle button.</li>
+  <li>Enable auto-posting on login (Settings → Budgets) to automatically record due recurring transactions.</li>
+</ol>
+  <ul class="notes">
+  <li>Budget alerts appear in the dashboard banner and the Budgets page alert list.</li>
+  <li>Alert types: budget_exceeded, budget_threshold, recurring_due_soon, recurring_overdue.</li>
+  <li>Recurring auto-posting is off by default; enable it in your per-user settings.</li>
+</ul>
+</section>
+
+<section id="sec-16-import-data" class="guide-section" aria-labelledby="sec-16-import-data-heading">
+  <h1 id="sec-16-import-data-heading" class="section-heading">16 Import Data</h1>
+  
+  <p class="purpose">Bulk-import expenses from a CSV or Excel file. The import wizard lets you map columns (date, amount, description, category), choose a default currency and category, and preview sample rows before committing.</p>
+  <ol class="steps">
+  <li>Click Import Data in the sidebar.</li>
+  <li>Upload a CSV or Excel file.</li>
+  <li>Map the file&#x27;s columns to WealthFlow fields: Date, Amount, Description, Category (optional).</li>
+  <li>Select the default currency and category for rows that lack explicit values.</li>
+  <li>Review the preview table (first 10 rows).</li>
+  <li>Click Import to commit all rows.</li>
+</ol>
+  <ul class="notes">
+  <li>Duplicate detection flags rows that match an existing expense (same date + amount + description).</li>
+  <li>The import is atomic: either all rows are inserted or none are, on validation failure.</li>
+</ul>
+</section>
+
+<section id="sec-17-reports" class="guide-section" aria-labelledby="sec-17-reports-heading">
+  <h1 id="sec-17-reports-heading" class="section-heading">17 Reports</h1>
+  
+  <p class="purpose">Generate income-vs-expenses analysis reports for a month, a year, or a custom date range. Reports include charts, category breakdowns, and a PDF export.</p>
+  <ol class="steps">
+  <li>Click Reports in the sidebar.</li>
+  <li>Choose a tab: Monthly, Yearly, or Custom Range.</li>
+  <li>Select the year (and month, for the Monthly tab) or enter a start/end date (Custom Range).</li>
+  <li>Review the income vs expenses chart and the category breakdown table.</li>
+  <li>Click Export PDF to download a formatted report.</li>
+</ol>
+  <ul class="notes">
+  <li>Reports aggregate all expenses and salary income in your base currency.</li>
+  <li>The PDF export includes the WealthFlow logo, date range, and a summary table.</li>
+</ul>
+</section>
+
+<section id="sec-18-advanced-reports" class="guide-section" aria-labelledby="sec-18-advanced-reports-heading">
+  <h1 id="sec-18-advanced-reports-heading" class="section-heading">18 Advanced Reports</h1>
+  
+  <p class="purpose">Deep-dive analytics across four domains: Salary, Company, Balance, and Certificates. Each tab provides charts, KPIs, and trend analysis specific to that domain.</p>
+  <ol class="steps">
+  <li>Click Advanced Reports in the sidebar.</li>
+  <li>Select a tab: Salary, Company, Balance, or Certificates.</li>
+  <li>Review the KPI cards (totals, averages, growth rates).</li>
+  <li>Interact with the charts (hover for crosshair values, zoom where supported).</li>
+</ol>
+  <ul class="notes">
+  <li>Advanced Reports are read-only; they do not modify any data.</li>
+  <li>Charts are rendered client-side with a lightweight canvas library (no external CDN required).</li>
+</ul>
+</section>
+
+<section id="sec-19-settings-overview" class="guide-section" aria-labelledby="sec-19-settings-overview-heading">
+  <h1 id="sec-19-settings-overview-heading" class="section-heading">19 Settings Overview</h1>
+  
+  <p class="purpose">The Settings area contains 20 tabs, each managing a distinct domain. Access to each tab is controlled by your role&#x27;s permission keys. Five tabs are sysadmin-only and cannot be granted to any role: Users, Roles, Billing Plans, AI Advisor, and Legal Text.</p>
+  <ol class="steps">
+  <li>Click Settings in the sidebar.</li>
+  <li>The tab bar shows all tabs your role has access to.</li>
+  <li>Click a tab to load its content into the main panel.</li>
+  <li>Tabs you do not have permission for are hidden from the tab bar.</li>
+</ol>
+  <ul class="notes">
+  <li>Sysadmin-only tabs (Users, Roles, Billing Plans, AI Advisor, Legal Text) are visible only to users with the is_sysadmin flag.</li>
+  <li>The Member role includes: Companies, Banks, Currency, Reminders, Certificate Status, Gold Settings, and My AI Settings.</li>
+  <li>Per-user settings (e.g. dashboard widget visibility, reminder thresholds) are stored per-user and do not affect other users.</li>
+</ul>
+</section>
+
+<section id="sec-20-languages" class="guide-section" aria-labelledby="sec-20-languages-heading">
+  <h1 id="sec-20-languages-heading" class="section-heading">20 Languages</h1>
+  
+  <p class="purpose">Manage the list of languages available in the application and set the default language for new users. Supported languages: Arabic (ar), English (en), French (fr), German (de).</p>
+  <ol class="steps">
+  <li>Go to Settings → Languages.</li>
+  <li>Toggle languages on or off in the available-languages list.</li>
+  <li>Set the default language for newly registered users.</li>
+  <li>Save; the change takes effect on the next page load.</li>
+</ol>
+  <ul class="notes">
+  <li>Translation files are JSON-based and loaded per-language at runtime.</li>
+  <li>Disabling a language removes it from the language switcher for all users.</li>
+</ul>
+</section>
+
+<section id="sec-21-companies" class="guide-section" aria-labelledby="sec-21-companies-heading">
+  <h1 id="sec-21-companies-heading" class="section-heading">21 Companies</h1>
+  
+  <p class="purpose">Manage the list of companies (employers) available in the Employment page and the Financial Advisor. Each company has a name and an optional industry tag.</p>
+  <ol class="steps">
+  <li>Go to Settings → Companies.</li>
+  <li>Click Add Company and enter a name.</li>
+  <li>Edit or delete companies as needed.</li>
+  <li>Companies appear in the Employment page employer dropdown.</li>
+</ol>
+  <ul class="notes">
+  <li>Deleting a company does not delete existing salary entries; they retain the company name.</li>
+</ul>
+</section>
+
+<section id="sec-22-banks" class="guide-section" aria-labelledby="sec-22-banks-heading">
+  <h1 id="sec-22-banks-heading" class="section-heading">22 Banks</h1>
+  
+  <p class="purpose">Manage the list of banks available in the Balance, Bank Certificates, and Employment pages. Each bank has a name and an optional short code.</p>
+  <ol class="steps">
+  <li>Go to Settings → Banks.</li>
+  <li>Click Add Bank and enter a name and optional code.</li>
+  <li>Edit or delete banks as needed.</li>
+  <li>Banks appear in the Balance account form and the Bank Certificate modal.</li>
+</ol>
+  <ul class="notes">
+  <li>Deleting a bank does not delete existing accounts or certificates; they retain the bank name.</li>
+</ul>
+</section>
+
+<section id="sec-23-currency" class="guide-section" aria-labelledby="sec-23-currency-heading">
+  <h1 id="sec-23-currency-heading" class="section-heading">23 Currency</h1>
+  
+  <p class="purpose">Manage the list of currencies available throughout the application and set the base (home) currency. Each currency has a code, name, flag emoji, and an optional exchange rate against the base currency.</p>
+  <ol class="steps">
+  <li>Go to Settings → Currency.</li>
+  <li>Click Add Currency and enter: code (e.g. USD), name, flag emoji, and exchange rate.</li>
+  <li>Set the base (home) currency — all amounts are normalised to this for reporting.</li>
+  <li>Enable or disable multi-currency mode.</li>
+  <li>Save; the change propagates to all forms and reports.</li>
+</ol>
+  <ul class="notes">
+  <li>The base currency is used for net-worth aggregation, budget limits, and report totals.</li>
+  <li>Exchange rates can be refreshed from the internet via the Exchange Rates page.</li>
+</ul>
+</section>
+
+<section id="sec-24-users" class="guide-section" aria-labelledby="sec-24-users-heading">
+  <h1 id="sec-24-users-heading" class="section-heading">24 Users</h1>
+  <p class="sysadmin-warning" role="note">⚠️ <strong>Sysadmin only</strong> — This section is restricted to system administrators.</p>
+  <p class="purpose">Sysadmin-only. Create, edit, suspend, and delete user accounts. Assign roles, toggle the is_sysadmin flag, and manage account status.</p>
+  <ol class="steps">
+  <li>Go to Settings → Users (visible only to sysadmins).</li>
+  <li>Click Add User and enter: name, email, password, and role.</li>
+  <li>Edit a user to change their role, toggle sysadmin, or suspend the account.</li>
+  <li>Delete a user (soft-delete with a 30-day grace period for restoration).</li>
+</ol>
+  <ul class="notes">
+  <li>⚠️ Sysadmin only — this tab cannot be granted to any role.</li>
+  <li>Suspended users cannot log in but their data is retained.</li>
+  <li>The is_sysadmin flag grants access to all five sysadmin-only tabs.</li>
+</ul>
+</section>
+
+<section id="sec-25-roles" class="guide-section" aria-labelledby="sec-25-roles-heading">
+  <h1 id="sec-25-roles-heading" class="section-heading">25 Roles</h1>
+  <p class="sysadmin-warning" role="note">⚠️ <strong>Sysadmin only</strong> — This section is restricted to system administrators.</p>
+  <p class="purpose">Sysadmin-only. Create and manage custom roles. Each role is a named collection of permission keys (main-app pages + settings tabs). Assign roles to users to control their access.</p>
+  <ol class="steps">
+  <li>Go to Settings → Roles (visible only to sysadmins).</li>
+  <li>Click Add Role and enter a name and description.</li>
+  <li>Check the permission keys to grant (main-app pages and settings tabs).</li>
+  <li>Save; the role is now available in the Users tab for assignment.</li>
+  <li>Edit a role to add or remove permissions; changes apply immediately to all users with that role.</li>
+</ol>
+  <ul class="notes">
+  <li>⚠️ Sysadmin only — this tab cannot be granted to any role.</li>
+  <li>The Member role is the default for self-registered users and cannot be deleted.</li>
+  <li>Permission keys are additive: a user&#x27;s effective access is the union of their role&#x27;s keys and any per-user overrides.</li>
+</ul>
+</section>
+
+<section id="sec-26-billing-plans" class="guide-section" aria-labelledby="sec-26-billing-plans-heading">
+  <h1 id="sec-26-billing-plans-heading" class="section-heading">26 Billing Plans</h1>
+  <p class="sysadmin-warning" role="note">⚠️ <strong>Sysadmin only</strong> — This section is restricted to system administrators.</p>
+  <p class="purpose">Sysadmin-only. Manage subscription plans, prices (per currency), the payment gateway (Paymob or Stripe), gateway test, customer list, trial settings, invoices, and upgrade requests.</p>
+  <ol class="steps">
+  <li>Go to Settings → Billing Plans (visible only to sysadmins).</li>
+  <li>Manage plans: add, edit, activate/deactivate, and delete subscription plans.</li>
+  <li>Set prices per plan per currency (prices use the currencies configured in Settings → Currency).</li>
+  <li>Configure the payment gateway: select Paymob or Stripe and enter the API keys.</li>
+  <li>Run a gateway test to verify the connection.</li>
+  <li>View the customer list with subscription status (trialing, active, past_due, canceled, expired, suspended).</li>
+  <li>Configure trial settings (default 14 days).</li>
+  <li>Review invoices (pending, paid, failed, refunded, void).</li>
+  <li>Process upgrade requests submitted by customers.</li>
+</ol>
+  <ul class="notes">
+  <li>⚠️ Sysadmin only — this tab cannot be granted to any role.</li>
+  <li>API keys are encrypted at rest and never returned by the API (only an &#x27;is_set&#x27; flag).</li>
+  <li>Subscription access is granted for statuses: trialing, active, past_due.</li>
+</ul>
+</section>
+
+<section id="sec-27-email-templates" class="guide-section" aria-labelledby="sec-27-email-templates-heading">
+  <h1 id="sec-27-email-templates-heading" class="section-heading">27 Email Templates</h1>
+  
+  <p class="purpose">Configure SMTP settings and manage the email templates used for account verification, password reset, and notification emails.</p>
+  <ol class="steps">
+  <li>Go to Settings → Email Templates.</li>
+  <li>Enter SMTP host, port, username, password, and sender email.</li>
+  <li>Enable or disable the console fallback (log emails to server console instead of sending).</li>
+  <li>Edit the body and subject of each email template (verification, reset, notification).</li>
+  <li>Save and send a test email to verify the configuration.</li>
+</ol>
+  <ul class="notes">
+  <li>SMTP credentials are encrypted at rest and never returned by the API.</li>
+  <li>The console fallback is useful during development when no SMTP server is available.</li>
+</ul>
+</section>
+
+<section id="sec-28-translations" class="guide-section" aria-labelledby="sec-28-translations-heading">
+  <h1 id="sec-28-translations-heading" class="section-heading">28 Translations</h1>
+  
+  <p class="purpose">Manage the translation strings for each supported language. Edit, add, or remove key-value pairs in the JSON translation files.</p>
+  <ol class="steps">
+  <li>Go to Settings → Translations.</li>
+  <li>Select a language from the dropdown.</li>
+  <li>Edit the translation value for any key.</li>
+  <li>Add new keys for UI strings that are not yet translated.</li>
+  <li>Save; the changes are applied on the next page load.</li>
+</ol>
+  <ul class="notes">
+  <li>Translation files are JSON: { &quot;key&quot;: &quot;translated value&quot; }.</li>
+  <li>Untranslated keys fall back to the English (default) value.</li>
+</ul>
+</section>
+
+<section id="sec-29-translation-coverage" class="guide-section" aria-labelledby="sec-29-translation-coverage-heading">
+  <h1 id="sec-29-translation-coverage-heading" class="section-heading">29 Translation Coverage</h1>
+  
+  <p class="purpose">View a report of translation coverage per language: total keys, translated keys, missing keys, and coverage percentage. Helps identify gaps before releasing a new language.</p>
+  <ol class="steps">
+  <li>Go to Settings → Translation Coverage.</li>
+  <li>Review the coverage table: language, total keys, translated, missing, percentage.</li>
+  <li>Click a language to see the list of missing keys.</li>
+  <li>Add the missing translations in the Translations tab.</li>
+</ol>
+  <ul class="notes">
+  <li>Coverage is calculated as (translated keys / total keys) × 100 %.</li>
+  <li>A key is considered translated if its value is non-empty and differs from the English fallback.</li>
+</ul>
+</section>
+
+<section id="sec-30-reminders" class="guide-section" aria-labelledby="sec-30-reminders-heading">
+  <h1 id="sec-30-reminders-heading" class="section-heading">30 Reminders</h1>
+  
+  <p class="purpose">Configure reminder rules for certificate maturity, insurance expiry, vehicle license expiry, property tax, salary day, salary unpaid, and custom reminders. Each rule has a name, type, days-before threshold, and an optional custom message.</p>
+  <ol class="steps">
+  <li>Go to Settings → Reminders.</li>
+  <li>Click Add Rule and select a type: Certificate Maturity, Insurance Expiry, Vehicle License Expiry, Property Tax, Salary Day, Salary Unpaid, or Custom.</li>
+  <li>Set the days-before threshold (e.g. remind 30 days before certificate maturity).</li>
+  <li>For salary rules, set the trigger (day of month, days before end of month, days after start of month) and the salary day.</li>
+  <li>Enable or disable the rule.</li>
+  <li>Active reminders appear in the dashboard banner and the Reminders page.</li>
+</ol>
+  <ul class="notes">
+  <li>Reminder checking is enabled by default; disable it in your per-user settings if needed.</li>
+  <li>Certificate expiry warning days are configurable per-user (default 30).</li>
+  <li>Reminders are evaluated on every page load; there is no background scheduler.</li>
+</ul>
+</section>
+
+<section id="sec-31-certificate-status" class="guide-section" aria-labelledby="sec-31-certificate-status-heading">
+  <h1 id="sec-31-certificate-status-heading" class="section-heading">31 Certificate Status</h1>
+  
+  <p class="purpose">Manage the status options available for bank certificates (e.g. Active, Matured, Redeemed, Cancelled). These statuses appear in the Bank Certificate modal dropdown.</p>
+  <ol class="steps">
+  <li>Go to Settings → Certificate Status.</li>
+  <li>Add, edit, or delete status options.</li>
+  <li>Reorder statuses to control their display order in the dropdown.</li>
+  <li>Save; the changes appear in the Bank Certificate form.</li>
+</ol>
+  <ul class="notes">
+  <li>Deleting a status does not delete existing certificates; they retain the status value.</li>
+</ul>
+</section>
+
+<section id="sec-32-gold-settings" class="guide-section" aria-labelledby="sec-32-gold-settings-heading">
+  <h1 id="sec-32-gold-settings-heading" class="section-heading">32 Gold Settings</h1>
+  
+  <p class="purpose">Manage the gold types and purities available in the Gold Price page and the Fixed Assets gold valuation. Configure which carats are displayed and their purity percentages.</p>
+  <ol class="steps">
+  <li>Go to Settings → Gold Settings.</li>
+  <li>Manage gold types (e.g. jewelry, bars, coins).</li>
+  <li>Manage purities: 24K (99.9 %), 22K (91.7 %), 21K (87.5 %), 18K (75.0 %).</li>
+  <li>Enable or disable specific purities in the Gold Price page.</li>
+  <li>Save; the changes propagate to the Gold Price page and Fixed Assets gold valuation.</li>
+</ol>
+  <ul class="notes">
+  <li>Purity percentages are used to calculate the pure-gold value of an alloy.</li>
+  <li>The Gold Price page displays only the enabled purities.</li>
+</ul>
+</section>
+
+<section id="sec-33-property-valuation" class="guide-section" aria-labelledby="sec-33-property-valuation-heading">
+  <h1 id="sec-33-property-valuation-heading" class="section-heading">33 Property Valuation</h1>
+  
+  <p class="purpose">Configure the property-valuation data source for real-estate assets. Supports a local rate map (scraped from AqarMap), an external API provider, and a configured market-rate provider. Also manages map tile URL and attribution for the asset map view.</p>
+  <ol class="steps">
+  <li>Go to Settings → Property Valuation.</li>
+  <li>Configure the provider order: local rate map, external API, or configured market rate.</li>
+  <li>Enable or disable the external API provider and enter the URL, result path, timeout, and headers.</li>
+  <li>Set the map tile URL and attribution for the asset map view.</li>
+  <li>Save; the changes apply to the Fixed Assets property valuation.</li>
+</ol>
+  <ul class="notes">
+  <li>The local rate map is scraped from AqarMap (aqarmap.com) via a Python management command.</li>
+  <li>Map tile settings are per-user (stored in USER_SCOPED_SETTING_KEYS).</li>
+  <li>Valuation history is retained for each asset to track appreciation over time.</li>
+</ul>
+</section>
+
+<section id="sec-34-dashboard-settings" class="guide-section" aria-labelledby="sec-34-dashboard-settings-heading">
+  <h1 id="sec-34-dashboard-settings-heading" class="section-heading">34 Dashboard (Settings)</h1>
+  
+  <p class="purpose">Control which widgets are displayed on the main Dashboard page. Toggles are per-user and persist across sessions.</p>
+  <ol class="steps">
+  <li>Go to Settings → Dashboard.</li>
+  <li>Toggle: Show Certificates, Show Reminders, Show Salary.</li>
+  <li>Save; the dashboard updates on the next page load.</li>
+</ol>
+  <ul class="notes">
+  <li>These settings are per-user (stored in USER_SCOPED_SETTING_KEYS).</li>
+  <li>All three widgets are enabled by default.</li>
+</ul>
+</section>
+
+<section id="sec-35-backup-restore" class="guide-section" aria-labelledby="sec-35-backup-restore-heading">
+  <h1 id="sec-35-backup-restore-heading" class="section-heading">35 Backup &amp; Restore</h1>
+  
+  <p class="purpose">Create, download, upload, and restore database backups. Supports client-side download (Save dialog), client-side upload (Open dialog), and server-side backup management (list, restore, delete).</p>
+  <ol class="steps">
+  <li>Go to Settings → Backup &amp; Restore.</li>
+  <li>Click Create &amp; Download Backup to generate a portable archive of your database.</li>
+  <li>Upload a previously saved backup file to restore it.</li>
+  <li>View the server-side backup list (filename, size, date).</li>
+  <li>Click Restore to restore a server-side backup (overwrites current data).</li>
+  <li>Click Delete to remove a server-side backup.</li>
+</ol>
+  <ul class="notes">
+  <li>Backups include all data: accounts, transactions, assets, settings, and Arabic notes.</li>
+  <li>Restoring a backup is destructive: all current data is replaced.</li>
+  <li>The backup file is a JSON archive with a manifest for integrity verification.</li>
+</ul>
+</section>
+
+<section id="sec-36-documentation" class="guide-section" aria-labelledby="sec-36-documentation-heading">
+  <h1 id="sec-36-documentation-heading" class="section-heading">36 Documentation</h1>
+  
+  <p class="purpose">Generate and manage the WealthFlow documentation set: user guide, admin guide, and technical guide. The documentation engine captures screenshots, renders HTML/PDF/DOCX/Markdown, and validates inventory coverage.</p>
+  <ol class="steps">
+  <li>Go to Settings → Documentation.</li>
+  <li>Select the guide type: User, Admin, or Technical.</li>
+  <li>Select the language and theme (light/dark).</li>
+  <li>Click Generate to run the documentation engine.</li>
+  <li>Download the generated file (HTML, PDF, DOCX, or Markdown).</li>
+  <li>View the generation history and validation results.</li>
+</ol>
+  <ul class="notes">
+  <li>The documentation engine uses Playwright for screenshot capture and rendering.</li>
+  <li>Inventory coverage validation ensures every page and modal is documented.</li>
+  <li>Generated files are stored on the server and can be re-downloaded from the history.</li>
+</ul>
+</section>
+
+<section id="sec-37-ai-advisor" class="guide-section" aria-labelledby="sec-37-ai-advisor-heading">
+  <h1 id="sec-37-ai-advisor-heading" class="section-heading">37 AI Advisor</h1>
+  <p class="sysadmin-warning" role="note">⚠️ <strong>Sysadmin only</strong> — This section is restricted to system administrators.</p>
+  <p class="purpose">Sysadmin-only. Configure the app-wide AI provider, model, and pipeline settings. Supports Ollama (local), OpenAI, Claude, Gemini, and Azure OpenAI. Manages models, datasets, benchmarks, autonomous learning, permission tiers, and answer validation.</p>
+  <ol class="steps">
+  <li>Go to Settings → AI Advisor (visible only to sysadmins).</li>
+  <li>Select the AI provider: Ollama, OpenAI, Claude, Gemini, or Azure OpenAI.</li>
+  <li>Enter the provider-specific settings: model name, API key, base URL, context size, timeout.</li>
+  <li>Configure sampling parameters: temperature, top-p, top-k, repeat penalty, seed, max tokens.</li>
+  <li>Set the permission tier: Read Only, Read + Execute, or Read + Execute + Modify.</li>
+  <li>Enable or disable: Instant Data Answers, Multi-Agent Orchestration, Code Access (admin only).</li>
+  <li>Set the answer validation mode (flag, warn, block).</li>
+  <li>Configure the AI investigator mode (auto, manual, disabled).</li>
+  <li>Run a connection test to verify the provider is reachable.</li>
+  <li>Manage datasets, benchmarks, and autonomous learning settings.</li>
+</ol>
+  <ul class="notes">
+  <li>⚠️ Sysadmin only — this tab cannot be granted to any role.</li>
+  <li>API keys are encrypted at rest and never returned by the API.</li>
+  <li>The AI is strictly read-only by default; the permission tier controls tool-calling capabilities.</li>
+  <li>Autonomous learning scans the app structure and updates the knowledge base (triggered manually).</li>
+</ul>
+</section>
+
+<section id="sec-38-legal-text" class="guide-section" aria-labelledby="sec-38-legal-text-heading">
+  <h1 id="sec-38-legal-text-heading" class="section-heading">38 Legal Text</h1>
+  <p class="sysadmin-warning" role="note">⚠️ <strong>Sysadmin only</strong> — This section is restricted to system administrators.</p>
+  <p class="purpose">Sysadmin-only. Edit the Privacy Policy and Terms of Service text shown to users during signup and in the legal pages. Manage the legal version and consent tracking.</p>
+  <ol class="steps">
+  <li>Go to Settings → Legal Text (visible only to sysadmins).</li>
+  <li>Edit the Privacy Policy text (HTML supported).</li>
+  <li>Edit the Terms of Service text (HTML supported).</li>
+  <li>Publish a new version; existing users must re-consent on their next login.</li>
+  <li>View the consent history per user.</li>
+</ol>
+  <ul class="notes">
+  <li>⚠️ Sysadmin only — this tab cannot be granted to any role.</li>
+  <li>Users must accept the latest legal version before they can use the app.</li>
+  <li>Consent is tracked per user with a timestamp and the legal version ID.</li>
+</ul>
+</section>
+
+<section id="sec-39-my-ai-settings" class="guide-section" aria-labelledby="sec-39-my-ai-settings-heading">
+  <h1 id="sec-39-my-ai-settings-heading" class="section-heading">39 My AI Settings</h1>
+  
+  <p class="purpose">Per-user AI settings. Choose whether to use the general (sysadmin-configured) AI settings or your own. Configure provider, model, sampling parameters, and view your monthly token usage.</p>
+  <ol class="steps">
+  <li>Go to Settings → My AI Settings.</li>
+  <li>Toggle: Use General AI Settings (on = use sysadmin config, off = use your own).</li>
+  <li>If using your own: select provider (Ollama, OpenAI, Claude, Gemini), enter model and API key.</li>
+  <li>Configure sampling: temperature, max tokens, context size, timeout, top-p, top-k, repeat penalty, history window, context token budget.</li>
+  <li>View your monthly token usage and limit (if set by the sysadmin).</li>
+  <li>Save; the changes apply to your AI chat sessions immediately.</li>
+</ol>
+  <ul class="notes">
+  <li>Only whitelisted keys are editable per-user (see AI_USER_SETTING_KEYS).</li>
+  <li>Sysadmin-only settings (permission tier, code access, pipeline switches) are never shown here.</li>
+  <li>Monthly token limits are set by the sysadmin in the AI Advisor tab.</li>
+</ul>
+</section>
+
+<section id="sec-40-roles-permissions-reference" class="guide-section" aria-labelledby="sec-40-roles-permissions-reference-heading">
+  <h1 id="sec-40-roles-permissions-reference-heading" class="section-heading">40 Roles &amp; Permissions Reference</h1>
+  
+  <p class="purpose">Complete matrix of all permission keys, the roles that include them, and the pages/tabs they unlock. Use this reference to understand exactly what each role can access.</p>
+  <ol class="steps">
+  <li>Review the main-app page permissions (16 pages): Dashboard, WealthFlow AI, Financial Advisor, Employment, Balance, Bank Certificates, Fixed Assets, Exchange Rates, Gold Price, Expenses, Expense Categories, Budgets, Import Data, Reports, Advanced Reports, Settings.</li>
+  <li>Review the settings-tab permissions (20 tabs): Languages, Companies, Banks, Currency, Users, Roles, Billing Plans, Email Templates, Translations, Translation Coverage, Reminders, Certificate Status, Gold Settings, Property Valuation, Dashboard, Backup &amp; Restore, Documentation, AI Advisor, Legal Text, My AI Settings.</li>
+  <li>Identify the five sysadmin-only tabs: Users, Roles, Billing Plans, AI Advisor, Legal Text.</li>
+  <li>Check the Member role&#x27;s default keys to understand what a new user can access.</li>
+</ol>
+  <ul class="notes">
+  <li>Permission keys are additive: a user&#x27;s effective access is the union of their role&#x27;s keys and any per-user overrides.</li>
+  <li>The is_sysadmin flag is separate from roles and grants access to the five sysadmin-only tabs.</li>
+  <li>The legacy &#x27;user_management&#x27; page key is superseded by the &#x27;settings_users&#x27; tab key.</li>
+</ul>
+</section>
+
+<section id="sec-41-glossary" class="guide-section" aria-labelledby="sec-41-glossary-heading">
+  <h1 id="sec-41-glossary-heading" class="section-heading">41 Glossary</h1>
+  
+  <p class="purpose">Definitions of key terms used throughout WealthFlow.</p>
+  
+  <ul class="notes">
+  <li>Base Currency: The currency all amounts are normalised to for reporting and aggregation.</li>
+  <li>Net Worth: Total assets (cash + bank + certificates + gold + fixed assets) minus liabilities.</li>
+  <li>Per Diem: A daily allowance paid in addition to salary, recorded as supplementary income.</li>
+  <li>Purity: The percentage of pure gold in an alloy (e.g. 21K = 87.5 %).</li>
+  <li>Tola: A unit of mass used in South Asian gold markets (1 tola = 11.664 g).</li>
+  <li>Recurring Transaction: A budget item that auto-posts on a schedule (monthly, weekly, etc.).</li>
+  <li>Sysadmin: A user with the is_sysadmin flag, granting access to all five sysadmin-only tabs.</li>
+  <li>Token: A unit of text used by LLMs; monthly token limits cap AI usage per user.</li>
+  <li>Provider: The AI backend (Ollama, OpenAI, Claude, Gemini, Azure OpenAI).</li>
+  <li>Permission Key: A string identifier (e.g. &#x27;settings_billing&#x27;) that grants access to a page or tab.</li>
+</ul>
+</section>
+
+<section id="sec-42-troubleshooting-faq" class="guide-section" aria-labelledby="sec-42-troubleshooting-faq-heading">
+  <h1 id="sec-42-troubleshooting-faq-heading" class="section-heading">42 Troubleshooting &amp; FAQ</h1>
+  
+  <p class="purpose">Common issues and their resolutions.</p>
+  
+  <ul class="notes">
+  <li>Q: I can&#x27;t see a Settings tab. A: Your role does not include the permission key for that tab. Ask a sysadmin to assign a role that includes it.</li>
+  <li>Q: The AI chat is slow. A: Check the provider connection in Settings → AI Advisor. Local Ollama models are slower than cloud providers but work offline.</li>
+  <li>Q: Exchange rates are not updating. A: The refresh button requires an internet connection. Check your network and try again.</li>
+  <li>Q: Gold prices are stale. A: Click Refresh on the Gold Price page to fetch the latest rates from the external API.</li>
+  <li>Q: I forgot my password. A: Use the Forgot Password link on the login page. A reset email is sent to your registered address.</li>
+  <li>Q: My account was suspended. A: Contact a sysadmin to review your account status.</li>
+  <li>Q: The app is in the wrong language. A: Use the language switcher in the top bar, or set your preferred language in Settings → Languages.</li>
+  <li>Q: Data was lost after a restore. A: Restoring a backup is destructive. Always create a new backup before restoring.</li>
+</ul>
+</section>
+
+<section id="sec-43-appendix-shortcuts-tips" class="guide-section" aria-labelledby="sec-43-appendix-shortcuts-tips-heading">
+  <h1 id="sec-43-appendix-shortcuts-tips-heading" class="section-heading">43 Appendix: Shortcuts &amp; Tips</h1>
+  
+  <p class="purpose">Keyboard shortcuts and productivity tips.</p>
+  
+  <ul class="notes">
+  <li>Tab / Shift+Tab: Navigate between interactive elements.</li>
+  <li>Enter: Activate the focused button or link.</li>
+  <li>Escape: Close the active modal or dropdown.</li>
+  <li>Ctrl+K (or the search icon): Quick-search across pages (if enabled).</li>
+  <li>Tip: Use the Prompt Library in WealthFlow AI to save frequently asked questions as reusable prompts.</li>
+  <li>Tip: Enable recurring auto-posting to automatically record monthly rent and subscriptions.</li>
+  <li>Tip: Use the Scenario Planner in Financial Advisor to model the impact of a bonus or a large purchase before committing.</li>
+  <li>Tip: Create a backup before any bulk import or restore operation.</li>
+  <li>Tip: Set your base currency to the one you use most for day-to-day spending to make reports more intuitive.</li>
+</ul>
+</section>
+</main>
+</div>
+<script>
+// ── Mobile TOC toggle ──────────────────────────────────────────────────────
+(function(){
+  var btn=document.getElementById("tocToggle"),rail=document.getElementById("tocRail");
+  btn.addEventListener("click",function(){
+    var open=rail.classList.toggle("open");
+    btn.setAttribute("aria-expanded",open?"true":"false");
+  });
+  // Close on link click (mobile)
+  rail.querySelectorAll("a").forEach(function(a){
+    a.addEventListener("click",function(){
+      if(window.innerWidth<=768){rail.classList.remove("open");btn.setAttribute("aria-expanded","false");}
+    });
+  });
+})();
+
+// ── Active-section highlighting (IntersectionObserver) ─────────────────────
+(function(){
+  var links=document.querySelectorAll(".toc-rail a[data-target]");
+  var map={};
+  links.forEach(function(a){map[a.getAttribute("data-target")]=a;});
+  var sections=document.querySelectorAll(".guide-section");
+  if(!("IntersectionObserver" in window))return;
+  var visible=new Map();
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting)visible.set(e.target.id,e.target);
+      else visible.delete(e.target.id);
+    });
+    // Pick the topmost visible section
+    var top=null;
+    visible.forEach(function(sec){
+      if(!top||sec.getBoundingClientRect().top<top.getBoundingClientRect().top)top=sec;
+    });
+    links.forEach(function(a){a.classList.remove("active");});
+    if(top&&map[top.id]){
+      map[top.id].classList.add("active");
+      // Scroll TOC to keep active link in view
+      map[top.id].scrollIntoView({block:"nearest"});
+    }
+  },{rootMargin:"0px 0px -60% 0px",threshold:0});
+  sections.forEach(function(s){obs.observe(s);});
+})();
+</script>
+</body>
+</html>

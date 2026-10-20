@@ -2761,5 +2761,10 @@
     "ai_detect_capabilities_label": "Fähigkeiten erkennen",
     "ai_detect_capabilities_help": "Misst diesen Rechner und füllt die Felder oben; gespeichert wird erst nach Klick auf Speichern.",
     "ai_test_connection_label": "Verbindung",
-    "ai_test_connection_help": "Prüft, ob der Anbieter mit den obigen Einstellungen antwortet, und listet seine Modelle."
+    "ai_test_connection_help": "Prüft, ob der Anbieter mit den obigen Einstellungen antwortet, und listet seine Modelle.",
+    "ai_grp_domains": "Chat-Bereiche",
+    "ai_grp_domains_desc": "Welche Fragen der KI-Arbeitsbereich annimmt.",
+    "ai_domain_business_help": "Fragen zu den eigenen Finanzdaten des Benutzers. Kein Zugriff auf technische Informationen der Anwendung.",
+    "ai_domain_app_help": "Fragen dazu, wie die Anwendung aufgebaut ist und funktioniert. Kein Zugriff auf die Finanzdaten des Benutzers.",
+    "ai_domain_rule_help": "Sind beide aktiviert, wählen die Benutzer einen Bereich im KI-Arbeitsbereich. Ist nur einer aktiviert, gibt es keine Auswahl und dieser Bereich wird immer verwendet."
 }

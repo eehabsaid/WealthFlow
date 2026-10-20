@@ -13,7 +13,9 @@ async function _handleAIChatSubmit() {
   if (!message || _aiState.loading) return;
 
   const domainSelect = document.getElementById("ai-ws-domain-select");
-  const domain = domainSelect ? domainSelect.value : "business_data_analysis";
+  const single =
+    Array.isArray(_aiState.domains) && _aiState.domains.length === 1 ? _aiState.domains[0] : "";
+  const domain = single || (domainSelect ? domainSelect.value : "business_data_analysis");
 
   inputEl.value = "";
   inputEl.style.height = "auto";

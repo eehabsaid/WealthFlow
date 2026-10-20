@@ -117,3 +117,43 @@ window.AIA.buildInstructionsBox = function (s, o) {
       </div>
     </div>`;
 };
+
+// Chat domains: two checkboxes. One of them always stays checked (the server refuses none, too).
+window.AIA.keepOneDomain = function (box) {
+  const other = document.getElementById(
+    box.id === "aiDomainBusinessToggle" ? "aiDomainAppToggle" : "aiDomainBusinessToggle"
+  );
+  if (!box.checked && other && !other.checked) box.checked = true;
+};
+
+window.AIA.buildDomainsHtml = function (s) {
+  const row = (id, checked, labelKey, label, helpKey, help) =>
+    window.AIA.ui.row({
+      id,
+      labelKey,
+      label,
+      helpKey,
+      help,
+      toggle: true,
+      control: `<div class="form-check m-0"><input class="form-check-input" type="checkbox" id="${id}" ${checked ? "checked" : ""} onchange="window.AIA.keepOneDomain(this)"></div>`,
+    });
+  return (
+    row(
+      "aiDomainBusinessToggle",
+      s.ai_domain_business !== false,
+      "ai_domain_business_data",
+      "Business / Data Analysis",
+      "ai_domain_business_help",
+      "Questions about the user's own financial data. No access to the application's technical information."
+    ) +
+    row(
+      "aiDomainAppToggle",
+      s.ai_domain_app !== false,
+      "ai_domain_app_features",
+      "Application Features & Architecture",
+      "ai_domain_app_help",
+      "Questions about how the application is built and works. No access to the user's financial data."
+    ) +
+    `<div class="aia-row aia-row-wide"><div class="aia-help" data-i18n="ai_domain_rule_help">${t("ai_domain_rule_help", "With both checked, users choose a domain in the AI workspace. With one checked, there is no choice and that domain is always used.")}</div></div>`
+  );
+};

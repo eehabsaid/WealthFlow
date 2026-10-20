@@ -11,6 +11,9 @@ from typing import Any, Callable
 
 from core.models import AppSettings
 
+from core.services.ai.domain_scope import apply_scope
+
+from .domain_gate import guard_text
 from .prefetch import run_prefetch
 from .reason import run_reason
 from .respond import run_respond
@@ -32,6 +35,7 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
     trace.skip("investigate", "normal_path")  # the investigator only runs when this path gives up (investigate.py)
     try:
         retrieval = run_retrieve(trace, request, conversation, user_msg, user_text)
+        apply_scope(retrieval.messages, getattr(understanding, "enforced", ""))   # date + what this domain may touch; App: the data block is removed
         _attach_facts(trace, retrieval, facts_request, request.user)
         if verified_data:
             retrieval.messages.append({"role": "system", "content": "STEP 0 — " + verified_data})
@@ -54,7 +58,9 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
         )
         debug = str(AppSettings.get("ai_pipeline_debug", "false", user=request.user)).strip().lower() in ("true", "1", "yes")
         extra = {"pipeline": trace.to_dict()} if debug else None
-        return run_respond(trace, respond, validation.content, tool.executed, retrieval.sources, extra)
+        evidence = "\n".join(str(m.get("content", "")) for m in retrieval.messages)   # the context and every tool result the model saw
+        content = guard_text(getattr(understanding, "enforced", ""), validation.content, user_text, evidence)
+        return run_respond(trace, respond, content, tool.executed, retrieval.sources, extra)
     finally:
         trace.log_summary()
 

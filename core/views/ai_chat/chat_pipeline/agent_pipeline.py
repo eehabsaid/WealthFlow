@@ -16,6 +16,7 @@ from core.services.ai.agent.sources import build_sources
 from core.services.ai.investigation import loop as inv_loop
 from core.views.ai_chat.ai_chat_helpers import _aiT_fallback_no_answer
 
+from .domain_gate import guard_result
 from .investigate import _int_setting, _setting, document_write_tokens, ensure_document
 from .trace import PipelineTrace, TracedProvider
 
@@ -38,7 +39,7 @@ def _compose(result, user_text: str) -> str:
 
 
 def run_agent_pipeline(*, trace: PipelineTrace, provider, request, conversation, user_msg, user_text: str, hint: str = "",
-                       respond: Callable[..., Any], on_error: Callable[[list, str], Any]):
+                       respond: Callable[..., Any], on_error: Callable[[list, str], Any], domain: str = ""):
     user, cid = request.user, conversation.id
     for stage in ("route", "knowledge", "retrieve", "prefetch", "reason", "tool", "validate"):
         if stage not in trace.records:
@@ -54,8 +55,9 @@ def run_agent_pipeline(*, trace: PipelineTrace, provider, request, conversation,
                 require_evidence=len(user_text.split()) > CHITCHAT_MAX_WORDS, conversation_id=cid,
                 extra_refusal_markers=(_aiT_fallback_no_answer(),), agent=True, hint=hint[:HINT_MAX_CHARS],
                 max_reads=lim["ai_agent_max_reads"], cancel_check=lambda: control.is_stopped(user, cid),
-                write_tokens=document_write_tokens(provider, user_text))
-            composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars, user, cid)
+                write_tokens=document_write_tokens(provider, user_text), domain=domain)
+            composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars, user, cid, domain)
+            guard_result(domain, result, user_text, hint)
             rec.detail.update({"why": "agent_mode", "composed_document": composed, "steps": len(result.steps), "tools": [s.get("tool") for s in result.steps],
                                "statuses": [s.get("status") for s in result.steps], "llm_calls": result.llm_calls,
                                "nudges": result.nudges, "reason": result.reason, "error": result.error,

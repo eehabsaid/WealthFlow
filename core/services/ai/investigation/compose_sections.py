@@ -118,10 +118,13 @@ def missing_tabs(unit: dict, text: str) -> list[dict]:
 
 def knowledge(user, unit: dict, tab: dict | None = None) -> str:
     """The app guide's text about this unit (or one of its tabs): what the screen does, where its data comes from, capped."""
+    from core.services.ai.domains import app_enabled
     from core.services.ai.tools import validate_and_execute_tool
 
     from .loop_helpers import result_text
 
+    if not app_enabled():   # technical information is switched off (Settings > AI Advisor > Chat domains): the guide uses the documented screen text only
+        return ""
     query = " ".join([unit["page"], tab.get("name", "")] if tab else [unit["page"], *unit["tabs"]])[:120]
     try:
         _, res = validate_and_execute_tool("app_knowledge_search", {"query": query}, user)

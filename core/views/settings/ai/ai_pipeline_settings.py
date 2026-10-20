@@ -8,6 +8,7 @@ from django.http import JsonResponse
 
 from core.models import AppSettings
 from core.services.ai.agent.settings import get_agent_settings, persist_agent_settings, validate_agent_settings
+from core.services.ai.domains import KEYS as DOMAIN_KEYS, is_on as domain_is_on
 
 VALIDATE_MODES = ("off", "flag", "regenerate")
 DEFAULT_VALIDATE_MODE = "flag"
@@ -41,6 +42,7 @@ def get_pipeline_settings(user=None) -> dict:
         "ai_pipeline_debug": debug in _TRUE,
         **get_agent_settings(),   # Agent mode: switch, editable instructions (+ default text), step / time / read limits
         "ai_direct_answers": direct not in _FALSE,  # default ON; read by query_engine.is_enabled
+        **{key: domain_is_on(domain) for domain, key in DOMAIN_KEYS.items()},   # Chat domains: business / data and app features / code
     }
 
 
@@ -75,11 +77,17 @@ def validate_pipeline_settings(data):
         except ValueError:
             return None, JsonResponse({"error": f"{key} must be a number"}, status=400)
         limits[key] = _clamped(raw, key)
+    domains = {}
+    for domain, key in DOMAIN_KEYS.items():
+        value = data.get(key, current[key])
+        domains[domain] = value.strip().lower() not in _FALSE if isinstance(value, str) else bool(value)
+    if not any(domains.values()):
+        return None, JsonResponse({"error": "At least one chat domain must stay enabled"}, status=400)
     agent, agent_error = validate_agent_settings(data, current)
     if agent_error:
         return None, JsonResponse({"error": agent_error}, status=400)
     return {"agent": agent, "file_generation": bool(files), "file_limits": limits, "validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct),
-            "investigator_mode": inv, "code_access": bool(code)}, None
+            "investigator_mode": inv, "code_access": bool(code), "domains": domains}, None
 
 
 def persist_pipeline_settings(validated, user=None) -> None:
@@ -90,5 +98,7 @@ def persist_pipeline_settings(validated, user=None) -> None:
     AppSettings.set("ai_investigator_mode", validated["investigator_mode"], user=user)
     AppSettings.set("ai_code_access", "true" if validated["code_access"] else "false", user=None)   # always global
     AppSettings.set("ai_file_generation", "true" if validated["file_generation"] else "false", user=None)   # always global
+    for domain, key in DOMAIN_KEYS.items():
+        AppSettings.set(key, "true" if validated["domains"][domain] else "false", user=None)   # always global (sysadmin)
     for key, value in validated["file_limits"].items():
         AppSettings.set(key, str(value), user=None)

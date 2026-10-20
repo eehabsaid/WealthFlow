@@ -57,6 +57,13 @@ def run_tool_investigation_loop(provider, messages_seq, tools_param, tool_calls_
             # Malformed tool call — stop loop, use content already in content_str
             break
 
+        # A tool that was not offered for this chat domain is never executed, even when the model names it anyway
+        offered = {(t.get("function") or {}).get("name") for t in (tools_param or []) if isinstance(t, dict)}
+        if offered and fn_name not in offered:
+            messages_seq.append({"role": "system", "content": f"TOOL NOT AVAILABLE: {fn_name}. Use only the tools you were given, or answer."})
+            tool_calls_req = []
+            break
+
         # Auto-populate search_query for query_application_data if missing
         if fn_name == "query_application_data" and not fn_args.get("search_query"):
             fn_args["search_query"] = user_text

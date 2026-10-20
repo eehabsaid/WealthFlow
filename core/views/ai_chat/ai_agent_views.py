@@ -12,13 +12,14 @@ from django.views import View
 from core.models import AIConversation
 from core.services.ai.agent import agent_enabled, control, get_chat_mode, set_chat_mode
 from core.services.ai.agent.settings import MODES
+from core.services.ai.domains import enabled_domains
 from core.services.ai.investigation.code_tools import code_access_allowed
 from core.validators.json_body import parse_json_body
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
 
 
 def _state(user) -> dict:
-    return {"mode": get_chat_mode(user), "agent_enabled": agent_enabled(), "code_tools": code_access_allowed(user)}
+    return {"mode": get_chat_mode(user), "agent_enabled": agent_enabled(), "code_tools": code_access_allowed(user), "domains": list(enabled_domains())}
 
 
 class AIChatModeView(View):

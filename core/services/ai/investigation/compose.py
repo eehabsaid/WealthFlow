@@ -15,10 +15,14 @@ a reply the limit still cut off is never trusted: the half-written last tab is r
 
 from __future__ import annotations
 
+import logging
 import time
 
 from .actions import strip_think
-from .compose_quality import replace_blocks, sanitize, thin_tabs
+from core.services.ai.domain_scope import no_info
+from core.services.ai.domains import APP
+
+from .compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
 from .compose_sections import dedupe_headings, knowledge, missing_tabs, tab_fallback, units
 from .compose_translate import target_language, translate_markdown, uses_latin_script
 from .refusal import is_refusal
@@ -91,6 +95,16 @@ def _heading(text: str, unit: dict) -> str:
     return "\n".join(out).rstrip()
 
 
+logger = logging.getLogger("core.ai.pipeline")
+
+
+def _qa(markdown: str, language: str = "") -> str:
+    """The guide, with its quality report in the log (a non-zero count means the gate could not repair something)."""
+    found = report(markdown)
+    (logger.warning if any(v for k, v in found.items() if k != "chapters") else logger.info)("[AI-GUIDE-QA] %s language=%s", found, language or "en")
+    return markdown
+
+
 def _tab_section(provider, user, user_text: str, out, unit: dict, tab: dict, instructions: str, deadline: float) -> str:
     """One tab the section skipped: written alone (small prompt); the app's own tab list when the model cannot or time is up."""
     text = ""
@@ -128,7 +142,8 @@ def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int
         for tab in missing_tabs(unit, section):   # the model dropped these tabs: nothing may be missing from the guide
             section += "\n\n" + _tab_section(provider, user, user_text, out, unit, tab, instructions, deadline)
         parts.append(section)
-    return sanitize(dedupe_headings("\n\n".join(parts)))
+    protect = frozenset({norm(u["page"]) for u in plan} | {norm(t) for u in plan for t in u["tabs"]} - {""})
+    return _qa(sanitize(dedupe_headings("\n\n".join(parts)), protect=protect))
 
 
 def _single(provider, user_text: str, out, instructions: str, ctx_chars: int, deadline: float) -> str:
@@ -147,15 +162,19 @@ def drop_model_drafts(steps: list) -> None:
             args.pop("content", None)
 
 
-def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user=None, progress=None, guide_only: bool = False) -> str:
+def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user=None, progress=None, guide_only: bool = False, domain: str = "") -> str:
     """The full document text, or "" when the model could not produce one (the caller keeps the original answer).
-    guide_only: the model already made a file with generate_file; only a guide to the app itself is rewritten by the app."""
+    guide_only: the model already made a file with generate_file; only a guide to the app itself is rewritten by the app.
+    domain: the user guide describes the application for business users, so it belongs to the Business domain only; a guide
+    requested in the App domain gets the short no-information answer."""
     from core.services.ai.agent.instructions import effective_document_instructions
     from core.services.ai.agent.settings import document_budget_s
 
     instructions, budget_s = effective_document_instructions(), document_budget_s()
     deadline = time.monotonic() + budget_s
     if user is not None and _about_the_app(provider, user_text, out, deadline):
+        if domain == APP:
+            return no_info(user_text)
         def ask(system: str, content: str, temperature: float = 0.2) -> str:
             return _ask(provider, out, system, content, deadline, temperature)
 
@@ -165,7 +184,7 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
         english = _guide(provider, user, f"{user_text}\n\n[Write the document in English; it is translated into {language} afterwards.]",
                          out, instructions, int(budget_s * 0.45), progress)
         non_latin = not uses_latin_script(ask, language)
-        return sanitize(translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, deadline, progress, non_latin), english=False)
+        return _qa(sanitize(translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, deadline, progress, non_latin), english=False), language)
     if guide_only:
         return ""
     return _single(provider, user_text, out, instructions, ctx_chars, deadline)

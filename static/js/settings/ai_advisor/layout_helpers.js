@@ -83,13 +83,56 @@ window.AIA.ui.card = function (o) {
 
 // A group's title and icon, used by the card header and the section chips.
 window.AIA.ui.GROUPS = [
-  ["provider", "bi-gear", "ai_grp_provider", "Provider and model"],
-  ["safety", "bi-shield-check", "ai_grp_safety", "Permissions and safety"],
-  ["routing", "bi-signpost-split", "ai_grp_routing", "Answers and routing"],
-  ["agent", "bi-stopwatch", "ai_grp_agent", "Agent limits"],
-  ["docs", "bi-file-earmark-text", "ai_grp_docs", "Documents"],
-  ["files", "bi-download", "ai_grp_files", "File generation"],
-  ["diag", "bi-bug", "ai_grp_diag", "Diagnostics"],
+  [
+    "provider",
+    "bi-gear",
+    "ai_grp_provider",
+    "Provider and model",
+    "Which AI runs the advisor and how it is called.",
+  ],
+  [
+    "safety",
+    "bi-shield-check",
+    "ai_grp_safety",
+    "Permissions and safety",
+    "What the AI may touch and how its answers are checked.",
+  ],
+  [
+    "domains",
+    "bi-chat-square-text",
+    "ai_grp_domains",
+    "Chat domains",
+    "Which kinds of questions the AI workspace accepts.",
+  ],
+  [
+    "routing",
+    "bi-signpost-split",
+    "ai_grp_routing",
+    "Answers and routing",
+    "How a question is answered before and during an AI run.",
+  ],
+  [
+    "agent",
+    "bi-stopwatch",
+    "ai_grp_agent",
+    "Agent limits",
+    "Ceilings for each question asked in Agent mode.",
+  ],
+  [
+    "docs",
+    "bi-file-earmark-text",
+    "ai_grp_docs",
+    "Documents",
+    "Long documents such as the user guide, written one screen at a time.",
+  ],
+  [
+    "files",
+    "bi-download",
+    "ai_grp_files",
+    "File generation",
+    "Excel, Word, PDF, CSV and code files built from your data.",
+  ],
+  ["diag", "bi-bug", "ai_grp_diag", "Diagnostics", "For troubleshooting only."],
 ];
 
 window.AIA.ui.chips = function () {

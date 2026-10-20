@@ -41,6 +41,15 @@ function _aiPaintModeSwitch() {
   }
 }
 
+// Chat domains the sysadmin allows: with one only there is no choice, so the dropdown is hidden and that domain is used.
+function _aiPaintDomains() {
+  const select = document.getElementById("ai-ws-domain-select");
+  const domains = _aiState.domains;
+  if (!select || !Array.isArray(domains) || !domains.length) return;
+  select.hidden = domains.length < 2;
+  if (domains.length === 1) select.value = domains[0];
+}
+
 async function _aiLoadChatMode() {
   try {
     const res = await fetch(AI_MODE_URL);
@@ -48,11 +57,13 @@ async function _aiLoadChatMode() {
       const data = await res.json();
       _aiState.chatMode = data.mode;
       _aiState.agentEnabled = data.agent_enabled !== false;
+      _aiState.domains = Array.isArray(data.domains) ? data.domains : null;
     }
   } catch (_e) {
     // The switch simply keeps its default (Ask) when the server cannot be reached.
   }
   _aiPaintModeSwitch();
+  _aiPaintDomains();
 }
 
 async function _aiSetChatMode(mode) {

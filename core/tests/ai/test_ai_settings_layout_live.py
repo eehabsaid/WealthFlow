@@ -5,6 +5,7 @@ Chromium is not installed."""
 from __future__ import annotations
 
 import os
+import uuid
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -19,12 +20,12 @@ User = get_user_model()
 IDS = ["aiEnabledToggle", "aiProviderSelect", "aiModelInput", "aiTemperatureInput", "aiContextSizeInput", "aiTimeoutInput",
        "aiRuntimeCapabilitiesBtn", "aiAdvancedAccordion", "aiSystemPromptInput", "aiMaxTokensInput", "aiTopPInput", "aiTopKInput",
        "aiRepeatPenaltyInput", "aiSeedInput", "aiKeepAliveInput", "aiTestConnBtn", "aiTestDiagnosticResult",
-       "aiPermissionTierSelect", "aiCodeAccessToggle", "aiValidateModeSelect", "aiDirectAnswersToggle", "aiMultiAgentToggle",
+       "aiDomainBusinessToggle", "aiDomainAppToggle", "aiPermissionTierSelect", "aiCodeAccessToggle", "aiValidateModeSelect", "aiDirectAnswersToggle", "aiMultiAgentToggle",
        "aiInvestigatorModeSelect", "aiAgentEnabledToggle", "aiAgentInstructionsInput", "aiAgentInstructionsResetBtn",
        "aiAgentMaxStepsInput", "aiAgentBudgetInput", "aiAgentMaxReadsInput", "aiDocumentBudgetInput", "aiDocumentMaxTokensInput",
        "aiDocumentInstructionsInput", "aiDocumentInstructionsResetBtn", "aiFileGenerationToggle", "aiFileMaxMbInput",
        "aiFileMaxRowsInput", "aiPipelineDebugToggle", "aiSaveBtn", "aiUserLimitsPanel"]
-GROUPS = ["provider", "safety", "routing", "agent", "docs", "files", "diag"]
+GROUPS = ["provider", "safety", "domains", "routing", "agent", "docs", "files", "diag"]
 SHOTS = os.environ.get("AI_LAYOUT_SHOTS", "")
 
 
@@ -49,8 +50,8 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
         cls._pw.stop()
         super().tearDownClass()
 
-    def open(self, width, height, theme="dark", rtl=False):
-        admin = User.objects.create_user(username=f"lay_admin_{width}_{theme}_{int(rtl)}", password="pw123456", is_staff=True)
+    def open(self, width, height, theme="dark", rtl=False, route="settings-aiadvisor", ready="#aiSaveBtn"):
+        admin = User.objects.create_user(username=f"lay_admin_{uuid.uuid4().hex[:10]}", password="pw123456", is_staff=True)
         profile = AuthWorkflowService.get_profile(admin)
         profile.is_sysadmin = True
         profile.save(update_fields=["is_sysadmin"])
@@ -63,10 +64,11 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
         self.addCleanup(ctx.close)
         page = ctx.new_page()
         PageDiagnostics(page)
-        first_load(page, f"{self.live_server_url}/#settings-aiadvisor")
-        if "settings-aiadvisor" not in page.url:
-            page.goto(f"{self.live_server_url}/#settings-aiadvisor", wait_until="domcontentloaded")
-        page.wait_for_selector("#aiSaveBtn", timeout=60000)
+        first_load(page, f"{self.live_server_url}/#{route}")
+        if route not in page.url:
+            page.goto(f"{self.live_server_url}/#{route}", wait_until="domcontentloaded")
+        page.wait_for_selector(ready, state="attached", timeout=60000)
+        page.wait_for_load_state("networkidle")
         page.evaluate("([t, r]) => { document.documentElement.setAttribute('data-theme', t); document.body.setAttribute('data-theme', t); if (r) document.documentElement.dir = 'rtl'; }", [theme, rtl])
         return page
 
@@ -102,3 +104,23 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
             self.assertEqual(rows, [], f"{theme} rtl={rtl}")
             if SHOTS:
                 p.screenshot(path=f"{SHOTS}/mobile_{theme}_{'rtl' if rtl else 'ltr'}.png", full_page=True)
+
+    def test_the_workspace_dropdown_follows_the_chat_domains_the_sysadmin_allows(self):
+        from core.models import AppSettings
+
+        for business, app, visible in ((True, True, True), (True, False, False), (False, True, False)):
+            AppSettings.set("ai_domain_business", "true" if business else "false", user=None)
+            AppSettings.set("ai_domain_app", "true" if app else "false", user=None)
+            p = self.open(1300, 900, route="ai", ready="#ai-ws-domain-select")
+            p.wait_for_function("() => Array.isArray(_aiState.domains)", timeout=30000)
+            self.assertEqual(p.evaluate("() => document.getElementById('ai-ws-domain-select').hidden"), not visible, (business, app))
+            if not visible:
+                expected = "business_data_analysis" if business else "app_features_architecture"
+                self.assertEqual(p.evaluate("() => document.getElementById('ai-ws-domain-select').value"), expected)
+
+    def test_the_settings_card_keeps_one_domain_checked(self):
+        p = self.open(1300, 900)
+        p.uncheck("#aiDomainAppToggle")
+        p.click("#aiDomainBusinessToggle")          # the last one cannot be switched off: the page checks it again
+        self.assertTrue(p.is_checked("#aiDomainBusinessToggle"))
+        self.assertFalse(p.is_checked("#aiDomainAppToggle"))

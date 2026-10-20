@@ -2761,5 +2761,10 @@
     "ai_detect_capabilities_label": "Détecter les capacités",
     "ai_detect_capabilities_help": "Mesure cette machine et remplit les champs ci-dessus ; rien n'est enregistré avant d'appuyer sur Enregistrer.",
     "ai_test_connection_label": "Connexion",
-    "ai_test_connection_help": "Vérifie que le fournisseur répond avec les paramètres ci-dessus et liste ses modèles."
+    "ai_test_connection_help": "Vérifie que le fournisseur répond avec les paramètres ci-dessus et liste ses modèles.",
+    "ai_grp_domains": "Domaines de conversation",
+    "ai_grp_domains_desc": "Types de questions acceptées par l'espace de travail IA.",
+    "ai_domain_business_help": "Questions sur les données financières de l'utilisateur. Aucun accès aux informations techniques de l'application.",
+    "ai_domain_app_help": "Questions sur la conception et le fonctionnement de l'application. Aucun accès aux données financières de l'utilisateur.",
+    "ai_domain_rule_help": "Si les deux sont cochés, les utilisateurs choisissent un domaine dans l'espace IA. Si un seul l'est, il n'y a pas de choix et ce domaine est toujours utilisé."
 }

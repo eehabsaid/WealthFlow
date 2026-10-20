@@ -2761,5 +2761,10 @@
     "ai_detect_capabilities_label": "Detect capabilities",
     "ai_detect_capabilities_help": "Measures this machine and fills the fields above; nothing is saved until you press Save.",
     "ai_test_connection_label": "Connection",
-    "ai_test_connection_help": "Checks that the provider answers with the settings above and lists its models."
+    "ai_test_connection_help": "Checks that the provider answers with the settings above and lists its models.",
+    "ai_grp_domains": "Chat domains",
+    "ai_grp_domains_desc": "Which kinds of questions the AI workspace accepts.",
+    "ai_domain_business_help": "Questions about the user's own financial data. No access to the application's technical information.",
+    "ai_domain_app_help": "Questions about how the application is built and works. No access to the user's financial data.",
+    "ai_domain_rule_help": "With both checked, users choose a domain in the AI workspace. With one checked, there is no choice and that domain is always used."
 }

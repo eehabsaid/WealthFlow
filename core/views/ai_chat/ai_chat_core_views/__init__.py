@@ -21,6 +21,7 @@ from core.integrations.ai_provider import get_active_ai_provider
 from core.models import AppSettings
 from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.direct_answers import try_direct_answer
+from core.services.ai.domains import APP, BUSINESS, app_enabled, resolve_domain
 from core.services.ai.exports import ExportNoticeProvider, requested as detect_export_formats, strip_export_terms
 from core.services.ai.query_engine import verified_for_model
 from core.services.ai.orchestration import Orchestrator
@@ -80,7 +81,13 @@ class AIChatView(View):
         # Stage 1 — Understand (deterministic, no LLM): runs before anything else
         trace = PipelineTrace(request.user.id, conversation.id)
         with trace.stage("understand") as rec:
-            understanding = understand(user_text, str(body.get("question_domain", "")))
+            # the sysadmin's allowed chat domains win over what the browser sent (Settings > AI Advisor > Chat domains)
+            chosen = resolve_domain(str(body.get("question_domain", "")))   # "" = none chosen and both allowed: inferred
+            # Strict rules (tools, context, knowledge paths): the App domain, and Business when the sysadmin switched the App domain off.
+            # Business chosen while both are allowed keeps the usual paths (how-do-I-record-it answers use the app knowledge).
+            domain = chosen if chosen == APP or (chosen == BUSINESS and not app_enabled()) else ""
+            understanding = understand(user_text, chosen)
+            understanding.enforced = domain
             rec.detail.update(understanding.to_dict())
 
         # Check if AI provider is active
@@ -112,7 +119,7 @@ class AIChatView(View):
         # Stage 1a' — Agent mode (per-user Ask/Agent switch): the model investigates with tools from the first call.
         agent_response = agent_stage(request=request, body=body, cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation,
                                      user_msg=user_msg, user_text=user_text, route_text=route_text, trace=trace, provider=provider,
-                                     export_formats=export_formats)
+                                     export_formats=export_formats, domain=domain)
         if agent_response is not None:
             return agent_response
 
@@ -124,7 +131,7 @@ class AIChatView(View):
             # the previous user message lets a short follow-up ("and how much do I hold?") inherit its topic
             previous = conversation.messages.filter(role="user", is_deleted=False).exclude(id=user_msg.id) \
                 .order_by("-id").values_list("content", flat=True).first() or ""
-            direct = try_direct_answer(request.user, route_text, provider=provider, understanding=understanding,
+            direct = None if domain == APP else try_direct_answer(request.user, route_text, provider=provider, understanding=understanding,
                                        info=info, elapsed_ms=trace.elapsed_ms(), previous=previous, force=bool(export_formats))
             rec.detail.update(info)
             rec.detail["llm_calls"] = info.get("llm_calls", 0)
@@ -136,7 +143,7 @@ class AIChatView(View):
                 direct["content"], direct["tool_calls"], direct["sources"], request,
             )
         verified_data = None
-        if not direct:
+        if not direct and domain != APP:   # the App domain never sees the user's data, computed or not
             # Direct Answers OFF (or no instant answer): the model still gets the exact computed rows, never just a summary
             verified_data = verified_for_model(request.user, route_text, previous=previous, info=info)
             rec_route = trace.records.get("route")
@@ -155,19 +162,19 @@ class AIChatView(View):
         )
         investigate = lambda why: run_investigator_pipeline(  # noqa: E731
             trace=trace, provider=provider, request=request, conversation=conversation, user_msg=user_msg,
-            user_text=user_text, respond=respond, on_error=on_error, why=why,
+            user_text=user_text, respond=respond, on_error=on_error, why=why, domain=domain,
         )
 
         # Stage 1c — the investigator: code questions (sysadmin) or mode "always" go straight to a tool-using
         # exploration of the whole app; in mode "auto" it takes over below when a normal path gives up.
-        direct_why = should_go_direct(request.user, user_text, computed=bool(verified_data))
+        direct_why = should_go_direct(request.user, user_text, computed=bool(verified_data), domain=domain)
         if direct_why:
             return investigate(direct_why)
         esc_respond, esc_on_error, esc_box = escalating(request.user, respond, on_error)
 
         # Stage 1d — how / where / should questions about using the app: reason from retrieved app
         # knowledge (no data snapshot, no tools). Advice questions with computed facts keep the data path.
-        if not facts_request and workflow_enabled(request.user) and is_workflow_question(user_text):
+        if not facts_request and domain != BUSINESS and workflow_enabled(request.user) and is_workflow_question(user_text):
             result = run_workflow_pipeline(
                 trace=trace, provider=provider, request=request, conversation=conversation, user_msg=user_msg,
                 user_text=user_text, respond=esc_respond, on_error=esc_on_error,
@@ -175,7 +182,7 @@ class AIChatView(View):
             return investigate(esc_box.get("why", "escalation")) if result is ESCALATE else result
 
         multi_agent_str = AppSettings.get("ai_multi_agent_enabled", "false", user=request.user).strip().lower()
-        if multi_agent_str in ("true", "1", "yes"):
+        if multi_agent_str in ("true", "1", "yes") and domain != APP:
             trace.skip_remaining("multi_agent_orchestrator")
             trace.log_summary()
             orchestrator = Orchestrator(provider)

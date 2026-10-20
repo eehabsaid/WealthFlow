@@ -16,12 +16,15 @@ import re
 from typing import Any, Callable
 
 from core.models import AppSettings
+from core.services.ai.domain_scope import is_no_info
+from core.services.ai.domains import BUSINESS
 from core.services.ai.investigation import loop as inv_loop
 from core.services.ai.investigation.defs import CODE_TOOLS
 from core.services.ai.investigation.code_tools import code_access_allowed
 from core.services.ai.investigation.refusal import is_refusal
 from core.views.ai_chat.ai_chat_helpers import _aiT_fallback_no_answer
 
+from .domain_gate import guard_result
 from .trace import PipelineTrace, TracedProvider
 
 MODES = ("auto", "always", "off")
@@ -78,7 +81,7 @@ def document_write_tokens(provider, user_text: str) -> int | None:
     return document_max_tokens(provider) if wants_written_document(user_text) else None
 
 
-def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None, conversation_id=None) -> bool:
+def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None, conversation_id=None, domain: str = "") -> bool:
     """Replace a stub answer ("Let me write it...") by the complete document. True when the content was replaced."""
     from core.services.ai.investigation.compose import compose_document, drop_model_drafts, needs_document
 
@@ -93,14 +96,14 @@ def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None,
     def progress(n, total, title, started):   # the chat's "current step" line: Writing the guide: Balance (3/17)
         publish_legacy(user, conversation_id, n, total, "document_section", f"Writing the document: {title}", started)
 
-    doc = compose_document(provider, user_text, result, ctx_chars, user, progress, guide_only=own_file)
+    doc = compose_document(provider, user_text, result, ctx_chars, user, progress, guide_only=own_file, domain=domain)
     if doc:
         result.content = doc
         drop_model_drafts(result.steps)
     return bool(doc)
 
 
-def should_go_direct(user, text: str, *, computed: bool = False) -> str | None:
+def should_go_direct(user, text: str, *, computed: bool = False, domain: str = "") -> str | None:
     """Reason to skip the normal paths and investigate straight away, or None. `computed`: the instant-answer router
     already holds the exact rows for this question (the model gets them as verified data), so no exploration is needed."""
     mode = investigator_mode(user)
@@ -108,7 +111,7 @@ def should_go_direct(user, text: str, *, computed: bool = False) -> str | None:
         return None
     if mode == "always":
         return "mode_always"
-    if is_code_question(user, text):
+    if domain != BUSINESS and is_code_question(user, text):
         return "code_question"
     # "list ... and export it": the capped context is not enough for a complete file; the investigator has generate_file
     return "export_request" if not computed and wants_data_file(text) else None
@@ -116,8 +119,8 @@ def should_go_direct(user, text: str, *, computed: bool = False) -> str | None:
 
 def answer_failed(content: str, executed: list, sources: list) -> bool:
     """True when a finished normal-path answer is a give-up that the investigator should replace."""
-    if list(sources or []) and all(s in KEEP_SOURCES for s in sources):
-        return False
+    if is_no_info(content) or (list(sources or []) and all(s in KEEP_SOURCES for s in sources)):
+        return False   # the domain's own "no information" answer is final: the investigator would only repeat it
     return is_refusal(content, investigated=bool(executed), extra_markers=(_aiT_fallback_no_answer(),))
 
 
@@ -154,7 +157,7 @@ def _source_keys(steps: list) -> list[str]:
 
 
 def run_investigator_pipeline(*, trace: PipelineTrace, provider, request, conversation, user_msg, user_text: str,
-                              respond: Callable[..., Any], on_error: Callable[[list, str], Any], why: str):
+                              respond: Callable[..., Any], on_error: Callable[[list, str], Any], why: str, domain: str = ""):
     user = request.user
     trace.records.pop("respond", None)   # an escalated normal path already "responded" (intercepted): keep the trace truthful
     for stage in ("knowledge", "retrieve", "prefetch", "reason", "tool", "validate"):
@@ -170,8 +173,9 @@ def run_investigator_pipeline(*, trace: PipelineTrace, provider, request, conver
                 max_steps=_int_setting(user, "ai_investigator_max_steps", 10, 2, 25),
                 budget_s=_int_setting(user, "ai_investigator_budget_s", 240, 40, 1800),
                 ctx_chars=ctx_chars, require_evidence=(why == "code_question"), conversation_id=conversation.id,
-                extra_refusal_markers=(_aiT_fallback_no_answer(),), write_tokens=document_write_tokens(provider, user_text))
-            composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars, user, conversation.id)
+                extra_refusal_markers=(_aiT_fallback_no_answer(),), write_tokens=document_write_tokens(provider, user_text), domain=domain)
+            composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars, user, conversation.id, domain)
+            guard_result(domain, result, user_text)
             rec.detail.update({"why": why, "composed_document": composed, "steps": len(result.steps), "tools": [s.get("tool") for s in result.steps],
                                "statuses": [s.get("status") for s in result.steps], "llm_calls": result.llm_calls,
                                "nudges": result.nudges, "reason": result.reason, "error": result.error,

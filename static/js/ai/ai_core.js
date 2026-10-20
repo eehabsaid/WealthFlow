@@ -45,6 +45,7 @@ let _aiState = {
   aiSettings: null,
   chatMode: "ask",
   agentEnabled: true,
+  domains: null, // chat domains the sysadmin allows (from the chat-mode endpoint); one = no choice
 };
 
 // Safe translation helper

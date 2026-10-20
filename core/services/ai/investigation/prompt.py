@@ -5,6 +5,9 @@ from __future__ import annotations
 import datetime
 from collections import Counter
 
+from core.services.ai.domain_scope import scope_note
+from core.services.ai.domains import BUSINESS
+
 from . import code_tools, paths
 
 RULES = """You are WealthFlow's built-in expert. You can READ everything in this app like a developer who cloned it: the user's own business data, the app's documentation{code_clause}.
@@ -60,20 +63,25 @@ def _tail(user, schemas, native_tools, code_ok) -> str:
     return text
 
 
-def build_agent_prompt(user, schemas: list | None = None, native_tools: bool = True, instructions: str | None = None) -> str:
+def _scope(domain: str) -> str:
+    """The domain's scope note; it overrides any rule above that names tools or answers the domain does not have."""
+    return "\n\n" + scope_note(domain) if domain else ""
+
+
+def build_agent_prompt(user, schemas: list | None = None, native_tools: bool = True, instructions: str | None = None, domain: str = "") -> str:
     """Agent mode: fixed header + the editable instructions (Settings > AI Advisor; default in agent/instructions.py)."""
     from core.services.ai.agent.instructions import effective_instructions
 
-    code_ok = code_tools.code_access_allowed(user)
+    code_ok = code_tools.code_access_allowed(user) and domain != BUSINESS
     head = AGENT_HEADER.format(today=datetime.date.today().isoformat(), username=getattr(user, "username", "user"),
                                code_clause=CODE_CLAUSE if code_ok else "")
-    return head + (instructions or effective_instructions()) + _tail(user, schemas, native_tools, code_ok)
+    return head + (instructions or effective_instructions()) + _scope(domain) + _tail(user, schemas, native_tools, code_ok)
 
 
-def build_system_prompt(user, schemas: list | None = None, native_tools: bool = True) -> str:
-    code_ok = code_tools.code_access_allowed(user)
+def build_system_prompt(user, schemas: list | None = None, native_tools: bool = True, domain: str = "") -> str:
+    code_ok = code_tools.code_access_allowed(user) and domain != BUSINESS
     text = RULES.format(
         today=datetime.date.today().isoformat(), username=getattr(user, "username", "user"),
         code_clause=CODE_CLAUSE if code_ok else "", code_rule=CODE_RULE if code_ok else "",
         evidence="path:line for code, figures with period and currency for data")
-    return text + _tail(user, schemas, native_tools, code_ok)
+    return text + _scope(domain) + _tail(user, schemas, native_tools, code_ok)

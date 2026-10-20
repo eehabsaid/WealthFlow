@@ -54,11 +54,19 @@ INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
 INVESTIGATION_TOOL_DEFS.update(AGENT_TOOL_DEFS)
 
 
-def investigation_tool_schemas(user) -> list[dict[str, Any]]:
-    """Tool schemas offered to the investigator for `user` (code tools only when code access is allowed)."""
+def investigation_tool_schemas(user, domain: str = "") -> list[dict[str, Any]]:
+    """Tool schemas offered to the investigator for `user` (code tools only when code access is allowed). In the Business domain
+    only the tools that read the user's own data; in the App domain everything except them (see core/services/ai/domains.py)."""
+    from core.services.ai.domains import APP, BUSINESS, DATA_TOOLS
+
     from core.services.ai.exports.settings import exports_enabled
     from core.services.ai.exports.tool import TOOL_DEF as file_tool
 
     code_ok = ct.code_access_allowed(user)
-    schemas = [d["schema"] for n, d in INVESTIGATION_TOOL_DEFS.items() if code_ok or n not in CODE_TOOLS]
+    def allowed(name: str) -> bool:
+        if domain == BUSINESS:
+            return name in DATA_TOOLS
+        return (code_ok or name not in CODE_TOOLS) and not (domain == APP and name in DATA_TOOLS)
+
+    schemas = [d["schema"] for n, d in INVESTIGATION_TOOL_DEFS.items() if allowed(n)]
     return schemas + ([file_tool["schema"]] if exports_enabled() else [])

@@ -153,29 +153,21 @@ window.AIA.buildAISettingsFormHtml = function (ctx) {
   const bodies = {
     provider: window.AIA.buildProviderHtml(ctx),
     safety: window.AIA.buildSafetyHtml(s),
+    domains: window.AIA.buildDomainsHtml(s),
     routing: window.AIA.buildRoutingHtml(s),
     agent: window.AIA.buildAgentLimitsHtml(s),
     docs: window.AIA.buildDocumentsHtml(s),
     files: window.AIA.buildFilesHtml(s),
     diag: window.AIA.buildDiagnosticsHtml(s),
   };
-  const descs = {
-    provider: "Which AI runs the advisor and how it is called.",
-    safety: "What the AI may touch and how its answers are checked.",
-    routing: "How a question is answered before and during an AI run.",
-    agent: "Ceilings for each question asked in Agent mode.",
-    docs: "Long documents such as the user guide, written one screen at a time.",
-    files: "Excel, Word, PDF, CSV and code files built from your data.",
-    diag: "For troubleshooting only.",
-  };
-  const cards = ui.GROUPS.map(([id, icon, key, title]) =>
+  const cards = ui.GROUPS.map(([id, icon, key, title, desc]) =>
     ui.card({
       id,
       icon,
       titleKey: key,
       title,
       descKey: `${key}_desc`,
-      desc: descs[id],
+      desc,
       body: bodies[id],
       badge:
         id === "provider"
