@@ -5,6 +5,7 @@ window.AIA = window.AIA || {};
 
 window.AIA.VALIDATE_MODES = ["off", "flag", "regenerate"];
 window.AIA.INVESTIGATOR_MODES = ["auto", "always", "off"];
+window.AIA.THINK_MODES = ["auto", "on", "off"];
 
 window.AIA.resetDocumentInstructions = function () {
   const box = document.getElementById("aiDocumentInstructionsInput");

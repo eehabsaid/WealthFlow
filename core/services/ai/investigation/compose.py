@@ -4,7 +4,7 @@ A model that researched with the tools but then stopped without calling generate
 answer, and that text would become the file. No phrase list can catch every wording, so the rule is structural: a document
 was requested, no generate_file call succeeded and the answer is short -> the app writes the document itself.
 
-Two ways, chosen by the model with a one-word question (no phrase list):
+Two ways, chosen structurally from the evidence (doc_path.py; the one-word question is only an extra signal):
   * a guide to the app itself -> section by section, one model call per screen/tab group of the LIVE app (a local model with a
     small context window cannot write 20 screens in one reply, and was cutting the guide off after a third of it). A section
     the model fails to write, or that does not fit the time budget, is filled from the app's own screen list.
@@ -24,7 +24,9 @@ from core.services.ai.domains import APP
 
 from .compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
 from .compose_sections import dedupe_headings, knowledge, missing_tabs, tab_fallback, units
+from .compose_title import guide_title, with_app_name
 from .compose_translate import target_language, translate_markdown, uses_latin_script
+from .doc_path import choose_path, log_path
 from .refusal import is_refusal
 
 MIN_DOC_CHARS = 1500      # a real guide/report is longer than this; shorter text is an announcement or a stub
@@ -42,7 +44,8 @@ def needs_document(out) -> bool:
     return not generated_file(out.steps) and (len((out.content or "").strip()) < MIN_DOC_CHARS or out.reason == "truncated_call")
 
 
-def _ask(provider, out, system: str, user_content: str, deadline: float, temperature: float = 0.2) -> str:
+def _ask(provider, out, system: str, user_content: str, deadline: float, temperature: float = 0.2, reasoning: str = "on") -> str:
+    """One model call. reasoning "on" (document writing) / "off" (one-word questions, translation): see Settings > AI Advisor > Reasoning."""
     from core.services.ai.agent.settings import document_max_tokens
 
     out.llm_calls += 1
@@ -50,7 +53,7 @@ def _ask(provider, out, system: str, user_content: str, deadline: float, tempera
     limit = document_max_tokens(provider)
     try:
         res = provider.generate([{"role": "system", "content": system}, {"role": "user", "content": user_content}], tools=None,
-                                temperature=temperature, max_tokens=limit, timeout=int(max(20, min(TIMEOUT_S, deadline - time.monotonic()))))
+                                temperature=temperature, max_tokens=limit, reasoning=reasoning, timeout=int(max(20, min(TIMEOUT_S, deadline - time.monotonic()))))
     except Exception:  # noqa: BLE001 - the caller falls back
         return ""
     if not isinstance(res, dict) or res.get("error"):
@@ -68,7 +71,7 @@ def _without_partial_tab(text: str) -> str:
 
 
 def _about_the_app(provider, user_text: str, out, deadline: float) -> bool:
-    return _ask(provider, out, _ABOUT_APP, user_text, deadline, temperature=0).upper().startswith("YES")
+    return _ask(provider, out, _ABOUT_APP, user_text, deadline, temperature=0, reasoning="off").upper().startswith("YES")
 
 
 def _norm(text: str) -> str:
@@ -122,7 +125,7 @@ def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int
     plan = units(user)
     intro = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY the document title (one line starting with '# ') and a short introduction "
                  f"(3-5 sentences) of the guide. Screens: {', '.join(dict.fromkeys(u['title'] for u in plan))}", deadline)
-    parts = [intro if intro.startswith("# ") and len(intro) > 30 else f"# User guide\n\n{intro}".rstrip()]
+    parts = [guide_title(intro)]
     for n, unit in enumerate(plan, 1):
         if progress:
             progress(n, len(plan), unit["label"], started)
@@ -172,11 +175,15 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
 
     instructions, budget_s = effective_document_instructions(), document_budget_s()
     deadline = time.monotonic() + budget_s
-    if user is not None and _about_the_app(provider, user_text, out, deadline):
+    classifier = _about_the_app(provider, user_text, out, deadline) if user is not None else None
+    path, why = choose_path(out, classifier, domain, own_file=guide_only)
+    log_path(path, why, classifier, out)
+    if user is not None and path == "guide":
         if domain == APP:
             return no_info(user_text)
+
         def ask(system: str, content: str, temperature: float = 0.2) -> str:
-            return _ask(provider, out, system, content, deadline, temperature)
+            return _ask(provider, out, system, content, deadline, temperature, reasoning="off")   # language questions and translation: no reasoning
 
         language = target_language(ask, user_text)
         if not language:
@@ -184,7 +191,8 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
         english = _guide(provider, user, f"{user_text}\n\n[Write the document in English; it is translated into {language} afterwards.]",
                          out, instructions, int(budget_s * 0.45), progress)
         non_latin = not uses_latin_script(ask, language)
-        return _qa(sanitize(translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, deadline, progress, non_latin), english=False), language)
+        translated = translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, deadline, progress, non_latin)
+        return _qa(sanitize(with_app_name(translated, english), english=False, source=english), language)
     if guide_only:
         return ""
     return _single(provider, user_text, out, instructions, ctx_chars, deadline)

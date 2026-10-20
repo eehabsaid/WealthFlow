@@ -79,9 +79,9 @@ class LoopTest(TestCase):
         self.assertEqual(res.nudges, 1)
         self.assertEqual(len(res.steps), 1)
 
-    def test_empty_reply_is_nudged(self):
+    def test_empty_reply_is_retried_once_before_a_nudge(self):
         res, _ = self.run_loop([{"content": ""}, {"content": "Done: nothing to add."}])
-        self.assertEqual((res.nudges, res.content), (1, "Done: nothing to add."))
+        self.assertEqual((res.nudges, res.content), (0, "Done: nothing to add."))   # the retry answered: no nudge spent
 
     def test_duplicate_calls_are_blocked_not_reexecuted(self):
         same = tool_call("app_data_models")

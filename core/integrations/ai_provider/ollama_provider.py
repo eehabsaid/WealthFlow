@@ -12,7 +12,7 @@ from core.services.ai.credential_encryption import redact_secrets
 from .base import BaseAIProvider
 from .ollama_options import build_options
 from .ollama_response import parse_message
-from .ollama_payload import apply_runtime_flags, format_timing, is_think_unsupported_error
+from .ollama_payload import apply_runtime_flags, format_timing, is_think_unsupported_error, native_messages, think_setting
 from .ollama_connection_mixin import OllamaConnectionMixin
 
 logger = logging.getLogger(__name__)
@@ -26,6 +26,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
 
     PROVIDER_NAME = "ollama"
     supports_tools: bool = True
+    native_tool_messages: bool = True   # the investigation loop may send assistant tool_calls + role "tool" results (see investigation/native_protocol.py)
 
     def __init__(
         self,
@@ -115,7 +116,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
 
         payload: dict[str, Any] = {
             "model": model_name,
-            "messages": messages,
+            "messages": native_messages(messages),
             "stream": False,
         }
         if options:
@@ -123,7 +124,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
         if tools:
             payload["tools"] = tools
         keep_alive = self.user_options.get("keep_alive") or AppSettings.get("ai_keep_alive", None)
-        apply_runtime_flags(payload, model_name, keep_alive)
+        apply_runtime_flags(payload, model_name, keep_alive, think_setting(), kwargs.get("reasoning"))
 
         data, status, err = make_json_http_request(
             url=chat_url, method="POST", payload=payload, timeout=timeout,
@@ -142,7 +143,8 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
         if not isinstance(data, dict):
             return {"content": "", "tool_calls": None, "prompt_tokens": None, "completion_tokens": None, "error": "Invalid JSON response from Ollama API."}
 
-        content, tool_calls = parse_message(data.get("message", {}))
+        message = data.get("message", {})
+        content, tool_calls = parse_message(message)
 
         # WARNING level on purpose: the project has no LOGGING config, so INFO is hidden.
         logger.warning(format_timing(model_name, data))
@@ -155,6 +157,8 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
             "prompt_tokens": int(prompt_eval) if isinstance(prompt_eval, (int, float)) else None,
             "completion_tokens": int(eval_count) if isinstance(eval_count, (int, float)) else None,
             "error": None,
+            "done_reason": data.get("done_reason"),   # "length": the output limit stopped the reply (thinking can use all of it)
+            "raw_message": message if isinstance(message, dict) else {},   # for the loop's one-off log of an empty reply
         }
 
 

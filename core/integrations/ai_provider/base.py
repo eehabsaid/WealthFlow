@@ -15,6 +15,7 @@ class BaseAIProvider(ABC):
 
     PROVIDER_NAME: str = "unknown"
     supports_tools: bool = False
+    native_tool_messages: bool = False   # True: accepts assistant tool_calls + role "tool" messages as they are (only Ollama today)
 
     @classmethod
     @abstractmethod

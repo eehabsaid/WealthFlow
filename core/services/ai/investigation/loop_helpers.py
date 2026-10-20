@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import time
 
+from . import native_protocol
+
 LABELS = {
     "app_list_dir": "Browsing {path}", "app_find_files": "Finding files ({pattern})", "app_grep": "Searching the code ({pattern})",
     "app_find_definition": "Locating {symbol}", "app_read_file": "Reading {path}", "app_knowledge_search": "Checking the app guide",
@@ -24,12 +26,11 @@ def compact(messages: list, ctx_chars: int) -> None:
     """Shrink the oldest tool-result messages until the conversation fits the context budget."""
     def size() -> int:
         return sum(len(m["content"]) for m in messages)
-    for m in messages:
+    for i, m in enumerate(messages):
         if size() <= ctx_chars:
             return
-        if m["role"] == "system" and m["content"].startswith("TOOL RESULT") and len(m["content"]) > 500:
-            head = m["content"].split("\n", 1)[0]
-            m["content"] = f"{head}\n[older result trimmed to save context]"
+        if native_protocol.is_result(m) and len(m["content"]) > 500:
+            messages[i] = native_protocol.trimmed(m)
 
 
 def result_text(tool_res: dict, limit: int) -> str:
@@ -70,3 +71,18 @@ def publish_legacy(user, conversation_id, step, max_steps, name, label_text, sta
     AICacheManager().set(f"ai_loop_progress:{user.id}:{conversation_id}", {
         "step": step, "max_steps": max_steps, "tool": name, "label": label_text, "status": "running",
         "elapsed_s": round(time.monotonic() - started, 1)}, ttl_seconds=1800.0)
+
+
+def progress(agent, user, conversation_id, step, max_steps, name, args, text_label, started, shown, status) -> None:
+    """Agent: the chat shows every step (label + status) like Continue; the plain investigator keeps its single "current step"."""
+    if not agent:
+        if status == "running":
+            publish_legacy(user, conversation_id, step, max_steps, name, text_label, started)
+        return
+    from core.services.ai.agent.control import publish
+
+    if status == "running":
+        shown.append({"n": len(shown) + 1, "tool": name, "label": text_label, "status": "running", "target": target(args)})
+    elif shown:
+        shown[-1]["status"] = status
+    publish(user, conversation_id, step=step, max_steps=max_steps, tool=name, label=text_label, started=started, steps=shown)

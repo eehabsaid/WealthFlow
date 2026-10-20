@@ -76,6 +76,17 @@ class AgentSettingsApiTest(TestCase):
         self.assertEqual(document_max_tokens(), 1024)                       # never below a usable minimum
         self.assertEqual(self.post(ai_document_max_tokens="lots").status_code, 400)
 
+    def test_reasoning_setting_defaults_to_auto_validates_and_is_saved(self):
+        from core.integrations.ai_provider.ollama_payload import think_setting
+
+        self.assertEqual(self.client.get(self.URL).json()["ai_think"], "auto")
+        self.assertEqual(self.post(ai_think="off").status_code, 200)
+        self.assertEqual((think_setting(), self.client.get(self.URL).json()["ai_think"]), ("off", "off"))
+        self.assertEqual(self.post(ai_think="sometimes").status_code, 400)
+        self.assertEqual(think_setting(), "off")
+        self.post(ai_think="auto")
+        self.assertEqual(think_setting(), "auto")
+
     def test_a_member_cannot_read_or_change_the_agent_settings(self):
         member = make_user("agent_set_member")
         self.client.force_login(member)

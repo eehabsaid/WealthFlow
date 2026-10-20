@@ -8,17 +8,21 @@ writes the answer from the evidence; if that also fails, the gathered results ar
 from __future__ import annotations
 
 import json
+import logging
 import time
 from dataclasses import dataclass, field
 
+from . import native_protocol as proto
 from . import prompt
-from .loop_helpers import compact, digest, label, publish_legacy, result_text, target, trim_history
+from .loop_helpers import compact, digest, label, progress, result_text, trim_history
 from .actions import extract_calls, is_call_leak, salvage_content, strip_think, unavailable_tools
 from core.services.ai.domain_scope import is_out_of_scope
 
 from .defs import investigation_tool_schemas
+from .nudges import investigate_nudge
 from .refusal import is_announcement, is_refusal
 
+logger = logging.getLogger("core.ai.pipeline")
 NUDGES, CALL_TIMEOUT_S = 2, 240
 
 
@@ -35,21 +39,6 @@ class Investigation:
     native_tools: bool = True                          # False: the model was driven through the text-JSON protocol
 
 
-def _progress(agent, user, conversation_id, step, max_steps, name, args, text_label, started, shown, status) -> None:
-    """Agent: the chat shows every step (label + status) like Continue; the plain investigator keeps its single "current step"."""
-    if not agent:
-        if status == "running":
-            publish_legacy(user, conversation_id, step, max_steps, name, text_label, started)
-        return
-    from core.services.ai.agent.control import publish
-
-    if status == "running":
-        shown.append({"n": len(shown) + 1, "tool": name, "label": text_label, "status": "running", "target": target(args)})
-    elif shown:
-        shown[-1]["status"] = status
-    publish(user, conversation_id, step=step, max_steps=max_steps, tool=name, label=text_label, started=started, steps=shown)
-
-
 def investigate(provider, user, user_text: str, *, history=None, max_steps: int = 10, budget_s: int = 240,
                 ctx_chars: int = 24000, require_evidence: bool = False, conversation_id=None,
                 extra_refusal_markers: tuple = (), agent: bool = False, instructions: str | None = None, hint: str = "",
@@ -61,6 +50,7 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
     schemas = investigation_tool_schemas(user, domain)
     names = {s["function"]["name"] for s in schemas}
     native = bool(getattr(provider, "supports_tools", False))
+    wire = native and bool(getattr(provider, "native_tool_messages", False))   # structured tool_calls + role "tool"; else the text protocol
     out.native_tools = native
     system = prompt.build_agent_prompt(user, schemas, native, instructions, domain) if agent else prompt.build_system_prompt(user, schemas, native, domain)
     asked = user_text + (f"\n\n[HINT, not verified by you; confirm or extend it with tools: {hint}]" if hint else "")
@@ -72,17 +62,22 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
     def remaining() -> float:
         return budget_s - (time.monotonic() - started)
 
+    reasoning = "on"   # the agent loop reasons (Settings > AI Advisor > Reasoning); one retry after a cut-off empty reply may turn it off
+
     def call(tools):
+        nonlocal reasoning
         out.llm_calls += 1
         extra = {"max_tokens": write_tokens} if write_tokens else {}   # a document request: the document output limit, not the chat answer limit
-        res = provider.generate(messages, tools=tools, temperature=0.1, timeout=int(max(20, min(CALL_TIMEOUT_S, remaining()))), **extra)
+        res = provider.generate(messages, tools=tools, temperature=0.1, timeout=int(max(20, min(CALL_TIMEOUT_S, remaining()))),
+                                reasoning=reasoning, **extra)
+        reasoning = "on"
         return res if isinstance(res, dict) else {}
 
     def nudge(text: str) -> None:
         out.nudges += 1
         messages.append({"role": "system", "content": text})
 
-    step = 0
+    step, retried, logged = 0, False, False
     while step < max_steps and remaining() > 20:
         if cancel_check and cancel_check():
             out.reason = "cancelled"
@@ -102,34 +97,34 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
             continue
         if calls:
             step += 1
-            messages.append({"role": "assistant", "content": "Calling " + "; ".join(
-                f"{n}({json.dumps(a, default=str, ensure_ascii=False)[:160]})" for n, a in calls)})
+            retried = False
+            messages.append(proto.calls_message(calls, wire))
             for name, args in calls:
                 if cancel_check and cancel_check():
                     out.reason = "cancelled"
                     break
                 fp = f"{name}:{json.dumps(args, sort_keys=True, default=str)}"
                 if fp in seen:
-                    messages.append({"role": "system", "content": f"TOOL RESULT ({name}): you already made this exact call; its result is above. "
-                                     "Use it, or call a different tool / different arguments."})
+                    messages.append(proto.notice_message(wire, name, "you already made this exact call; its result is above. "
+                                                         "Use it, or call a different tool / different arguments."))
                     continue
                 seen.add(fp)
                 reads += name == "app_read_file"
                 if max_reads and reads > max_reads:
                     out.steps.append({"tool": name, "status": "rejected", "rejection_reason": "read limit", "arguments": args, "step": step})
-                    messages.append({"role": "system", "content": f"TOOL RESULT ({name}): the limit of {max_reads} file reads for this question "
-                                     "is reached. Answer from what you have read, or search with app_grep instead."})
+                    messages.append(proto.notice_message(wire, name, f"the limit of {max_reads} file reads for this question "
+                                                         "is reached. Answer from what you have read, or search with app_grep instead."))
                     continue
                 text_label = label(name, args)
-                _progress(agent, user, conversation_id, step, max_steps, name, args, text_label, started, shown, "running")
+                progress(agent, user, conversation_id, step, max_steps, name, args, text_label, started, shown, "running")
                 audit, tool_res = validate_and_execute_tool(name, args, user)
                 audit["step"] = step
                 out.steps.append(audit)
                 text = result_text(tool_res, result_cap)
                 out.results.append((name, args, text))
-                _progress(agent, user, conversation_id, step, max_steps, name, args, text_label, started, shown,
+                progress(agent, user, conversation_id, step, max_steps, name, args, text_label, started, shown,
                           "ok" if audit.get("status") == "success" else "failed")
-                messages.append({"role": "system", "content": f"TOOL RESULT ({name} {json.dumps(args, default=str, ensure_ascii=False)[:140]}):\n{text}"})
+                messages.append(proto.result_message(wire, name, args, text))
             if out.reason == "cancelled":
                 break
             compact(messages, ctx_chars)
@@ -148,6 +143,16 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
         if domain and is_out_of_scope(text):   # the question is outside this chat domain: the guard turns it into the no-information answer
             out.content, out.reason = text, "out_of_scope"
             break
+        if not text and not calls:   # an empty reply: look at it once, and ask again with the same messages before spending a nudge
+            if not logged:
+                logged = True
+                logger.warning("[AI-LOOP] empty reply after %d step(s): done_reason=%s completion_tokens=%s raw=%.400r", len(out.steps),
+                               res.get("done_reason"), res.get("completion_tokens"), res.get("raw_message"))
+            if not retried:
+                retried = True
+                reasoning = "off" if res.get("done_reason") == "length" else "on"   # thinking used the whole output limit: answer without it
+                continue
+        retried = False
         investigated = bool(out.steps)
         needs_evidence = require_evidence and not investigated
         if text and is_announcement(text) and out.nudges < NUDGES:
@@ -157,10 +162,7 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
                   "or, if you already have everything, write the complete answer now." + file_hint)
             continue
         if (not text or needs_evidence or is_refusal(text, investigated, extra_refusal_markers)) and out.nudges < NUDGES:
-            first = "app_data_models" if "app_data_models" in names else sorted(names)[0]
-            nudge("You DO have full read access through your tools. Do not say you lack tools, data or access, and do not answer from memory. "
-                  f"Investigate now: call a tool (for example {first} or app_knowledge_search"
-                  f"{', app_grep' if 'app_grep' in names else ''}), read the result, then answer from it.")
+            nudge(investigate_nudge(names, document=bool(write_tokens), hinted=bool(hint)))
             continue
         if text and not is_refusal(text, investigated, extra_refusal_markers):
             out.content = text

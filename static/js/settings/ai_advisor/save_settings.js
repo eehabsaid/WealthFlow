@@ -33,6 +33,7 @@ window.AIA.saveAISettingsFromGui = async function () {
     ai_domain_app: document.getElementById("aiDomainAppToggle")?.checked !== false,
     ai_investigator_mode: document.getElementById("aiInvestigatorModeSelect")?.value || "auto",
     ai_code_access: document.getElementById("aiCodeAccessToggle")?.checked !== false,
+    ai_think: document.getElementById("aiThinkSelect")?.value || "auto",
     ai_agent_enabled: document.getElementById("aiAgentEnabledToggle")?.checked !== false,
     ai_agent_instructions: window.AIA.agentInstructionsForSave(),
     ai_agent_max_steps: parseInt(

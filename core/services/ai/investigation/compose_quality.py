@@ -92,15 +92,22 @@ def _same_text(a: str, b: str) -> bool:
     return not small or len(small & big) / len(small) >= 0.6
 
 
-def sanitize(markdown: str, english: bool = True, protect: frozenset = frozenset()) -> str:
+def sanitize(markdown: str, english: bool = True, protect: frozenset = frozenset(), source: str = "") -> str:
     """The guide without part markers, code blocks, internals, repeated sub-headings and chapters written twice.
-    Repeats are judged on the English text only: two different English titles may share one translation."""
+    Repeats are judged on the English text only: two different English titles may share one translation. A translation
+    (english=False) is aligned to its English `source` by position instead (compose_align.py); a model-written contents list goes."""
+    from .compose_align import align_to_source
+    from .compose_contents import drop_contents
+
     lines = []
     for line in FENCE.sub("", markdown).splitlines():
         if line.lstrip().startswith("#"):
             line = PART_MARKER.sub("", line)
         lines.append(_without_internals(line))
     text = re.sub(r"\n{3,}", "\n\n", "\n".join(lines))
+    text = drop_contents(text, protect)
+    if not english and source.strip():
+        text = align_to_source(source, text)
     head, chapters = "", []
     for index, chapter in enumerate(_chapters(text)):
         if index == 0 and not chapter.startswith("## "):

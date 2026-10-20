@@ -10,7 +10,8 @@ Tests:
  7. Downloadable answers: Excel / Word / PDF links in the chat, "export it" follow-ups, real downloads (tests/modules/ai_export.py).
  8. Net worth forecast answered from the wealth-growth projection, English and Arabic (tests/modules/ai_wealth.py).
  9. Agent mode: Ask/Agent switch, settings, live steps, Stop button (tests/modules/ai_agent.py).
-10. Clean end-user workspace: no right panel, welcome cards or scan button (tests/modules/ai_workspace_clean.py).
+10. Reasoning (thinking) setting: default, save, reload (tests/modules/ai_think_setting.py).
+11. Clean end-user workspace: no right panel, welcome cards or scan button (tests/modules/ai_workspace_clean.py).
 """
 
 from tests.modules.ai_budgets import test_ai_budgets
@@ -18,6 +19,7 @@ from tests.modules.ai_learning import test_ai_learning
 from tests.modules.ai_export import test_ai_export
 from tests.modules.ai_wealth import test_ai_wealth
 from tests.modules.ai_agent import test_ai_agent
+from tests.modules.ai_think_setting import test_ai_think_setting
 from tests.modules.ai_workspace_clean import test_ai_workspace_clean
 
 
@@ -38,4 +40,5 @@ def test_ai_module(context, reporter, screenshot_logger):
     test_ai_export(context, reporter, screenshot_logger)
     test_ai_wealth(context, reporter, screenshot_logger)
     test_ai_agent(context, reporter, screenshot_logger)
+    test_ai_think_setting(context, reporter, screenshot_logger)
     test_ai_workspace_clean(context, reporter, screenshot_logger)

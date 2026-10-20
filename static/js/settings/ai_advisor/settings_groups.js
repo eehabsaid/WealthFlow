@@ -57,6 +57,7 @@ window.AIA.buildRoutingHtml = function (s) {
   const inv = window.AIA.INVESTIGATOR_MODES.includes(s.ai_investigator_mode)
     ? s.ai_investigator_mode
     : "auto";
+  const think = window.AIA.THINK_MODES.includes(s.ai_think) ? s.ai_think : "auto";
   return (
     ui.toggleRow({
       id: "aiDirectAnswersToggle",
@@ -81,6 +82,14 @@ window.AIA.buildRoutingHtml = function (s) {
       helpKey: "ai_investigator_mode_hint",
       help: "Lets the AI explore the whole app with read-only tools when a normal answer is not enough",
       options: aiaModeOptions(window.AIA.INVESTIGATOR_MODES, inv, "ai_investigator_mode"),
+    }) +
+    ui.selectRow({
+      id: "aiThinkSelect",
+      labelKey: "ai_think_label",
+      label: "Reasoning (thinking)",
+      helpKey: "ai_think_hint",
+      help: "Lets the AI think before it answers. Auto: on for the Agent loop and for writing documents, off for one-word checks and translation.",
+      options: aiaModeOptions(window.AIA.THINK_MODES, think, "ai_think"),
     }) +
     ui.toggleRow({
       id: "aiAgentEnabledToggle",

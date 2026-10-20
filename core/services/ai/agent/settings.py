@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from core.integrations.ai_provider.ollama_payload import THINK_MODES, think_setting
 from core.models import AppSettings
 
 from .instructions import MAX_LENGTH
@@ -69,7 +70,7 @@ def get_agent_settings() -> dict[str, Any]:
 
     return {"ai_agent_enabled": agent_enabled(), "ai_agent_instructions": stored_instructions(),
             "ai_agent_instructions_default": DEFAULT_INSTRUCTIONS, "ai_document_instructions": stored_document_instructions(),
-            "ai_document_instructions_default": DEFAULT_DOCUMENT_INSTRUCTIONS, **limits()}
+            "ai_document_instructions_default": DEFAULT_DOCUMENT_INSTRUCTIONS, "ai_think": think_setting(), **limits()}
 
 
 def validate_agent_settings(data: dict, current: dict) -> tuple[dict | None, str | None]:
@@ -83,7 +84,10 @@ def validate_agent_settings(data: dict, current: dict) -> tuple[dict | None, str
     doc_text = str(data.get("ai_document_instructions", current["ai_document_instructions"]) or "").strip()
     if len(doc_text) > MAX_LENGTH:
         return None, f"ai_document_instructions must be at most {MAX_LENGTH} characters"
-    out: dict[str, Any] = {"enabled": bool(enabled), "instructions": text, "document_instructions": doc_text, "limits": {}}
+    think = str(data.get("ai_think", current["ai_think"]) or "auto").strip().lower()
+    if think not in THINK_MODES:
+        return None, f"ai_think must be one of {list(THINK_MODES)}"
+    out: dict[str, Any] = {"enabled": bool(enabled), "instructions": text, "document_instructions": doc_text, "think": think, "limits": {}}
     for key in LIMITS:
         raw = data.get(key, current[key])
         try:
@@ -98,6 +102,7 @@ def persist_agent_settings(validated: dict) -> None:
     AppSettings.set("ai_agent_enabled", "true" if validated["enabled"] else "false", user=None)
     AppSettings.set("ai_agent_instructions", validated["instructions"], user=None)
     AppSettings.set("ai_document_instructions", validated["document_instructions"], user=None)
+    AppSettings.set("ai_think", validated["think"], user=None)
     for key, value in validated["limits"].items():
         AppSettings.set(key, str(value), user=None)
 
