@@ -4,7 +4,9 @@ The English guide is clean (see compose_quality.sanitize), so its chapters and s
 must be and in which order. A translation that has MORE chapters or sub-headings than its source wrote some twice (a model
 repeating a heading at a chunk boundary, or a section twice): exactly the surplus is removed, repeats of a neighbour first. Two
 different English titles that share one translation are never merged: with the same count nothing is touched, so the judgement
-is by position in the source and never by the translated words."""
+is by position in the source and never by the translated words. Only a real repeat is ever removed (the same heading as the part
+before it, or an earlier part with the same heading and the same text): a section the translator merely re-levelled or re-titled
+is content and stays. Heading levels (### / ####) are restored from the source by position when the counts match."""
 
 from __future__ import annotations
 
@@ -39,7 +41,7 @@ def _rank(parts: list[str], i: int) -> int:
 def _remove_surplus(parts: list[str], surplus: int, keep_longer: bool) -> list[str]:
     parts = list(parts)
     while surplus > 0:
-        ranked = sorted((r, i) for i in range(len(parts)) if (r := _rank(parts, i)) < 9)
+        ranked = sorted((r, i) for i in range(len(parts)) if (r := _rank(parts, i)) <= 1)
         if not ranked:
             break
         i = ranked[0][1]
@@ -52,13 +54,24 @@ def _remove_surplus(parts: list[str], surplus: int, keep_longer: bool) -> list[s
     return parts
 
 
+HEADING = re.compile(r"(?m)^(#{1,6})(?= )")
+
+
+def _levels(translated: str, source: str) -> str:
+    """The translated chapter's heading lines at the source's levels (a translator that flattens #### to ###), same count only."""
+    levels = [m.group(1) for m in HEADING.finditer(source)]
+    if len(levels) != len(HEADING.findall(translated)):
+        return translated
+    it = iter(levels)
+    return HEADING.sub(lambda _m: next(it), translated)
+
+
 def _trim_chapter(translated: str, source: str) -> str:
     t_parts, s_parts = SUB.split(translated), SUB.split(source)
     surplus = len(t_parts) - len(s_parts)
-    if surplus <= 0:
-        return translated
-    first, rest = t_parts[0], t_parts[1:]
-    return first + "".join(_remove_surplus(rest, surplus, keep_longer=False))
+    if surplus > 0:
+        translated = t_parts[0] + "".join(_remove_surplus(t_parts[1:], surplus, keep_longer=False))
+    return _levels(translated, source)
 
 
 def align_to_source(source: str, translated: str) -> str:
