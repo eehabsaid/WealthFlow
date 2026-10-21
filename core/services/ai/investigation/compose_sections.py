@@ -29,7 +29,7 @@ def units(user) -> list[dict]:
             title = clean_title(page.get("title") or page.get("route") or "")
             heading = title if n == 1 else ""     # a screen split in parts is ONE chapter: only its first part carries the "## title"
             label = f"{title} ({n}/{len(chunks)})" if len(chunks) > 1 else title   # for the progress line only, never for the model or the file
-            shown = _evidence(page, chunk)
+            shown = _evidence(page, chunk, n == 1)
             shown_tabs = {t.get("name"): t for t in shown.get("tabs", [])}
             tab_items = [{**t, **{k: v for k, v in shown_tabs.get(t.get("name"), {}).items() if k in ("description", "dialogs")}} for t in chunk]
             out.append({"title": title, "label": label, "part": (n, len(chunks)), "heading": heading, "page": str(page.get("title") or page.get("route") or ""), "tabs": [t.get("name", "") for t in chunk],
@@ -38,9 +38,9 @@ def units(user) -> list[dict]:
     return out
 
 
-def _evidence(page: dict, chunk: list) -> dict:
+def _evidence(page: dict, chunk: list, first: bool = True) -> dict:
     """The screen as the model sees it: its documented purpose and steps, then each tab and dialog with ITS documented text."""
-    found = page_evidence(str(page.get("route")), [str(t.get("id") or "") for t in chunk])
+    found = page_evidence(str(page.get("route")), [str(t.get("id") or "") for t in chunk], [str(t.get("id") or "") for t in page.get("tabs") or []], first)
     names = {slug(a): a for a in page.get("actions") or []}
     for tab in chunk:
         names.update({slug(a): a for a in tab.get("actions") or []})
@@ -49,7 +49,7 @@ def _evidence(page: dict, chunk: list) -> dict:
         return [{**i, "name": names.get(slug(i["name"]), i["name"])} for i in items]
 
     shown = {k: v for k, v in page.items() if k not in ("tabs", "actions")}
-    shown.update({"description": found["description"], "dialogs": named(found["items"]) or page.get("actions") or []})
+    shown.update({"description": found["description"], "dialogs": named(found["items"]) or (page.get("actions") if first else None) or []})
     shown["tabs"] = [{"name": t.get("name"), "description": found["tabs"][str(t.get("id") or "")]["description"],
                       "dialogs": named(found["tabs"][str(t.get("id") or "")]["items"]) or t.get("actions") or []} for t in chunk]
     return {k: v for k, v in shown.items() if v not in (None, [], {})}

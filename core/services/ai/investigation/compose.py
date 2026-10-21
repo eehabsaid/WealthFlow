@@ -26,12 +26,12 @@ from .compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
 from .compose_sections import dedupe_headings, knowledge, missing_tabs, section_heading, tab_fallback, units
 from .compose_title import guide_title, with_app_name
 from .compose_translate import target_language, translate_markdown, uses_latin_script
-from .doc_path import choose_path, log_path
+from .doc_path import choose_path, log_path, yes_no
 from .refusal import is_refusal
 
 MIN_DOC_CHARS = 1500      # a real guide/report is longer than this; shorter text is an announcement or a stub
 MIN_ACCEPT_CHARS, MIN_SECTION_CHARS, TIMEOUT_S = 400, 120, 240
-_ABOUT_APP = ("Answer with exactly one word, YES or NO. Is the user asking for documentation of the application itself (a user guide, "
+_ABOUT_APP = ("Answer with exactly one word, YES or NO (in English, whatever language the request is in). Is the user asking for documentation of the application itself (a user guide, "
               "manual or description of its screens and features), rather than a report or analysis of their own financial data?")
 
 
@@ -76,10 +76,10 @@ def _without_partial_tab(text: str) -> str:
 def _about_the_app(provider, user_text: str, out, deadline: float) -> bool:
     """The one-word question; an answer that is neither YES nor NO (empty) is asked once more with reasoning on."""
     for reasoning in ("off", "on"):
-        word = _ask(provider, out, _ABOUT_APP, user_text, deadline, temperature=0, reasoning=reasoning).upper().strip()
-        if word.startswith(("YES", "NO")):
+        answer = yes_no(_ask(provider, out, _ABOUT_APP, user_text, deadline, temperature=0, reasoning=reasoning))
+        if answer is not None:
             break
-    return word.startswith("YES")
+    return bool(answer)
 
 
 logger = logging.getLogger("core.ai.pipeline")

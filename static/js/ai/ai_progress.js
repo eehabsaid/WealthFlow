@@ -29,7 +29,9 @@ function _updateThinkingBubbleText(text) {
 function _aiShowProgress(data) {
   const desc =
     data.label ||
-    (data.tool ? data.tool.replace(/_/g, " ") : _aiT("ai_ws_thinking_status", "WealthFlow AI is thinking..."));
+    (data.tool
+      ? data.tool.replace(/_/g, " ")
+      : _aiT("ai_ws_thinking_status", "WealthFlow AI is thinking..."));
   const elapsedStr = data.elapsed_s != null ? ` (${_formatElapsed(data.elapsed_s)})` : "";
   const statusText =
     data.step && data.step > 0

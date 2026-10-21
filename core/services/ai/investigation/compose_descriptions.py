@@ -33,6 +33,16 @@ def slug(name: str) -> str:
     return re.sub(r"\W+", "_", str(name).lower()).strip("_")
 
 
+@lru_cache(maxsize=1)
+def _labels() -> dict:
+    """The English interface texts (static/i18n/en.json): a dialog documented under an i18n key is named by the label the user sees."""
+    try:
+        data = json.loads((Path(settings.BASE_DIR) / "static" / "i18n" / "en.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {k: v for k, v in data.items() if isinstance(v, str)}
+
+
 def _entry(key: str) -> dict | None:
     item = _all().get(key)
     if not item:
@@ -45,20 +55,29 @@ def _entry(key: str) -> dict | None:
 
 def _children(prefix: str) -> list[dict]:
     """Every dialog / section documented directly under `prefix` ("route::tab::"), in file order."""
-    out = []
+    out, seen = [], set()
     for key in _all():
         if key.startswith(prefix) and "::" not in key[len(prefix):]:
             tail = key[len(prefix):]
-            out.append({"name": tail.replace("_", " ").replace("-", " ").strip().title(), "_key": tail, **(_entry(key) or {})})
+            label = _labels().get(tail, "").strip()
+            name = label if 0 < len(label) <= 40 else re.sub(r"\d+$", "", tail.replace("_", " ").replace("-", " ").strip()).strip().title()   # "add_perdiem2" is a second text of "Add Perdiem"
+            if name.lower() in seen:
+                continue
+            seen.add(name.lower())
+            out.append({"name": name, "_key": tail, **(_entry(key) or {})})
     return out
 
 
-def page_evidence(route: str, tab_ids: list[str]) -> dict:
-    """{"description", "items": [...]} for the page itself and, per tab id, {"description", "items"}."""
+def page_evidence(route: str, tab_ids: list[str], page_tab_ids: list[str] | None = None, first: bool = True) -> dict:
+    """{"description", "items": [...]} for the page itself and, per tab id, {"description", "items"}.
+    page_tab_ids: EVERY tab of the page. A page split into parts lists only its own tabs in tab_ids; the tabs of the other parts are
+    documented under the same "route::" prefix and must not come back as page-level "dialogs" (the guide printed them as
+    "Settings Aiadvisor" and wrote each tab twice). first: the page's own text and dialogs belong to its first part only."""
     tabs = {tid: {"description": _entry(f"{route}::{tid}"), "items": _children(f"{route}::{tid}::")} for tid in tab_ids}
-    page_items = [i for i in _children(f"{route}::") if i["_key"] not in tab_ids]
-    for alias in ALIASES.get(route, ()):
+    known = set(tab_ids) | set(page_tab_ids or [])
+    page_items = [i for i in _children(f"{route}::") if i["_key"] not in known] if first else []
+    for alias in ALIASES.get(route, ()) if first else ():
         page_items += _children(f"{alias}::")
     strip = lambda items: [{k: v for k, v in i.items() if k != "_key"} for i in items]  # noqa: E731
-    return {"description": _entry(route), "items": strip(page_items),
+    return {"description": _entry(route) if first else None, "items": strip(page_items),
             "tabs": {tid: {"description": t["description"], "items": strip(t["items"])} for tid, t in tabs.items()}}
