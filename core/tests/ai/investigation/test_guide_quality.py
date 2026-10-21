@@ -115,6 +115,7 @@ class GuideCleanTest(TestCase):
     def test_a_report_on_the_users_data_keeps_the_models_text(self):
         res = Result()
         res.content = "Your spending report. " * 100
+        res.results = [("app_data_query", {}, '{"rows":[{"amount":5}]}')]   # the user's own rows are behind it
         prov = GuideProvider(about_app="NO")
         prov.user = self.admin
         self.assertFalse(ensure_document(prov, ASK, res, 24000, self.admin, None))

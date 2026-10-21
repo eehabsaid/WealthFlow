@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 
 from .compose_descriptions import page_evidence, slug
-from .compose_quality import clean_title
+from .compose_quality import clean_title, norm
 
 TABS_PER_UNIT = 5
 GETTING_STARTED = {"route": "auth", "title": "Signing up and signing in", "open": "/",
@@ -131,3 +131,23 @@ def knowledge(user, unit: dict, tab: dict | None = None) -> str:
         return result_text(res, KNOWLEDGE_CHARS)
     except Exception:  # noqa: BLE001 - extra evidence only
         return ""
+
+
+def section_heading(text: str, unit: dict) -> str:
+    """The section as Markdown under exactly one "## title": the model's own first heading is replaced by the unit title, every
+    other H1/H2 becomes H3, and a heading that only repeats the screen's name is dropped (no "Settings / Settings")."""
+    same = {norm(unit["title"]), norm(unit["page"])}
+    head = unit.get("heading", unit["title"])
+    out = [f"## {head}", ""] if head else []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            name = stripped.lstrip("#").strip()
+            if norm(name) in same:
+                continue
+            if stripped.startswith(("# ", "## ")):
+                line = f"### {name}"
+        elif not stripped and not any(x.strip() for x in out[2 if head else 0:]):
+            continue
+        out.append(line)
+    return "\n".join(out).rstrip()

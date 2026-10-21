@@ -56,7 +56,8 @@ def run_agent_pipeline(*, trace: PipelineTrace, provider, request, conversation,
                 extra_refusal_markers=(_aiT_fallback_no_answer(),), agent=True, hint=hint[:HINT_MAX_CHARS],
                 max_reads=lim["ai_agent_max_reads"], cancel_check=lambda: control.is_stopped(user, cid),
                 write_tokens=document_write_tokens(provider, user_text), domain=domain)
-            composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars, user, cid, domain)
+            composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars, user, cid, domain,
+                                      cancel_check=lambda: control.is_stopped(user, cid))
             guard_result(domain, result, user_text, hint)
             rec.detail.update({"why": "agent_mode", "composed_document": composed, "steps": len(result.steps), "tools": [s.get("tool") for s in result.steps],
                                "statuses": [s.get("status") for s in result.steps], "llm_calls": result.llm_calls,

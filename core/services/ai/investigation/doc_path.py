@@ -34,12 +34,10 @@ def has_user_rows(out) -> bool:
 
 
 def choose_path(out, classifier: bool | None, domain: str = "", own_file: bool = False) -> tuple[str, str]:
-    """("guide" | "single", reason). `own_file`: the model already built the file itself; with no tool output at all there is
-    nothing to judge it against, so it stays (single = "keep the model's file")."""
+    """("guide" | "single", reason). `own_file` (the model already built a file itself) changes nothing: a file written from no
+    evidence is exactly the invented guide this rule exists to stop (an Ask run without reasoning wrote one in 2 minutes)."""
     if classifier:
         return "guide", "classifier_yes"
-    if own_file and not evidence_tools(out):
-        return "single", "own_file_no_tool_results"
     if domain == APP:
         return "single", "app_domain_classifier_no"
     if has_user_rows(out):

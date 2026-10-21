@@ -88,7 +88,7 @@ window.AIA.buildRoutingHtml = function (s) {
       labelKey: "ai_think_label",
       label: "Reasoning (thinking)",
       helpKey: "ai_think_hint",
-      help: "Lets the AI think before it answers. Auto: on for the Agent loop and for writing documents, off for one-word checks and translation.",
+      help: "Lets the AI think before it answers. Auto: on for the Agent loop and for reports from your data, off for one-word checks, user-guide sections and translation (no quality gain there, about twice as slow).",
       options: aiaModeOptions(window.AIA.THINK_MODES, think, "ai_think"),
     }) +
     ui.toggleRow({

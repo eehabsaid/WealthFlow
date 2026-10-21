@@ -63,14 +63,19 @@ def digest(results: list) -> str:
 
 
 def publish_legacy(user, conversation_id, step, max_steps, name, label_text, started) -> None:
-    """Progress for the non-agent investigator (single current step)."""
+    """Progress for the document phase and for the non-agent investigator (single current step). An Agent run's step list, Stop
+    flag and start time are carried over, so a page opened or refreshed while the document is written still shows them."""
     if conversation_id is None:
         return
     from core.services.ai.cache_manager import AICacheManager
 
-    AICacheManager().set(f"ai_loop_progress:{user.id}:{conversation_id}", {
-        "step": step, "max_steps": max_steps, "tool": name, "label": label_text, "status": "running",
-        "elapsed_s": round(time.monotonic() - started, 1)}, ttl_seconds=1800.0)
+    cache, key = AICacheManager(), f"ai_loop_progress:{user.id}:{conversation_id}"
+    previous = cache.get(key)
+    state = {"step": step, "max_steps": max_steps, "tool": name, "label": label_text, "status": "running",
+             "elapsed_s": round(time.monotonic() - started, 1)}
+    if isinstance(previous, dict):
+        state.update({k: previous[k] for k in ("steps", "can_stop", "started_at") if k in previous})
+    cache.set(key, state, ttl_seconds=1800.0)
 
 
 def progress(agent, user, conversation_id, step, max_steps, name, args, text_label, started, shown, status) -> None:

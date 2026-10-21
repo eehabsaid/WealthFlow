@@ -89,7 +89,7 @@
     "ai_investigator_mode_always": "Always",
     "ai_investigator_mode_off": "Off",
     "ai_think_label": "Reasoning (thinking)",
-    "ai_think_hint": "Lets the AI think before it answers. Auto: on for the Agent loop and for writing documents, off for one-word checks and translation.",
+    "ai_think_hint": "Lets the AI think before it answers. Auto: on for the Agent loop and for reports from your data, off for one-word checks, user-guide sections and translation (no quality gain there, about twice as slow).",
     "ai_think_auto": "Auto (recommended)",
     "ai_think_on": "Always on",
     "ai_think_off": "Always off",

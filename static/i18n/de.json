@@ -85,7 +85,7 @@
     "ai_investigator_mode_always": "Immer",
     "ai_investigator_mode_off": "Aus",
     "ai_think_label": "Reasoning (Denken)",
-    "ai_think_hint": "Lässt die KI vor der Antwort nachdenken. Auto: an für die Agent-Schleife und das Schreiben von Dokumenten, aus für Ein-Wort-Prüfungen und Übersetzungen.",
+    "ai_think_hint": "Lässt die KI vor der Antwort nachdenken. Auto: an für die Agent-Schleife und Berichte über Ihre Daten, aus für Ein-Wort-Prüfungen, Abschnitte des Benutzerhandbuchs und Übersetzungen (dort kein Qualitätsgewinn, etwa doppelt so langsam).",
     "ai_think_auto": "Auto (empfohlen)",
     "ai_think_on": "Immer an",
     "ai_think_off": "Immer aus",

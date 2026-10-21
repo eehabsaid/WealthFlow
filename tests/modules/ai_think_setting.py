@@ -33,6 +33,8 @@ def _open(page, context):
 
 def _run(context, reporter, screenshot_logger):
     page = context.page
+    context.goto_route("#settings-aiadvisor")
+    page.reload()   # the page may still hold a form rendered before this step reset the setting (an earlier module's stale form)
     _open(page, context)
     default = page.input_value("#aiThinkSelect")
     api_default = page.evaluate(_FETCH, [SETTINGS_URL])["data"].get("ai_think")

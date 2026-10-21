@@ -24,6 +24,21 @@ function _updateThinkingBubbleText(text) {
   }
 }
 
+// One progress payload on screen: the status line, and (Agent) the step list with the Stop button. Used by the poll and when a
+// conversation that is still running is opened again (page refresh, coming back to the chat).
+function _aiShowProgress(data) {
+  const desc =
+    data.label ||
+    (data.tool ? data.tool.replace(/_/g, " ") : _aiT("ai_ws_thinking_status", "WealthFlow AI is thinking..."));
+  const elapsedStr = data.elapsed_s != null ? ` (${_formatElapsed(data.elapsed_s)})` : "";
+  const statusText =
+    data.step && data.step > 0
+      ? `Step ${data.step}/${data.max_steps || 8}: ${desc}${elapsedStr}`
+      : `${desc}${elapsedStr}`;
+  _updateThinkingBubbleText(statusText);
+  _aiRenderAgentSteps(data);
+}
+
 function _startProgressPolling(conversationId) {
   if (_progressPollInterval) {
     clearInterval(_progressPollInterval);
@@ -38,20 +53,7 @@ function _startProgressPolling(conversationId) {
       if (!res.ok) return;
       const data = await res.json();
       if (data.status === "running") {
-        const desc =
-          data.label ||
-          (data.tool
-            ? data.tool.replace(/_/g, " ")
-            : _aiT("ai_ws_thinking_status", "WealthFlow AI is thinking..."));
-        const elapsedStr = data.elapsed_s != null ? ` (${_formatElapsed(data.elapsed_s)})` : "";
-        let statusText = "";
-        if (data.step && data.step > 0) {
-          statusText = `Step ${data.step}/${data.max_steps || 8}: ${desc}${elapsedStr}`;
-        } else {
-          statusText = `${desc}${elapsedStr}`;
-        }
-        _updateThinkingBubbleText(statusText);
-        _aiRenderAgentSteps(data);
+        _aiShowProgress(data);
       } else if (data.status === "done") {
         _stopProgressPolling();
         _setLoadingUI(false);
@@ -150,6 +152,7 @@ function _setLoadingUI(loading, conversationId) {
   }
 }
 
+window._aiShowProgress = _aiShowProgress;
 window._startProgressPolling = _startProgressPolling;
 window._stopProgressPolling = _stopProgressPolling;
 window._setLoadingUI = _setLoadingUI;

@@ -11,6 +11,7 @@ from ..cells import typed_table
 from ..document import ExportDocument, plain
 from ..full_data import code_from_markdown
 from ..registry import ExportFormat, register
+from .guide_html import build_guide_html, is_guide
 
 
 def _rows_as_dicts(doc: ExportDocument) -> list[dict]:
@@ -32,6 +33,8 @@ def _sql(doc: ExportDocument) -> str:
 
 def _builder(ext: str):
     def build(doc: ExportDocument, lang: str) -> bytes:
+        if ext == "html" and is_guide(doc):   # a user guide / manual: the styled single-page guide with its contents rail
+            return build_guide_html(doc, lang)
         has_code = "```" in doc.source or ext in ("md",)
         if ext == "json" and doc.tables() and not has_code:
             text = json.dumps(_rows_as_dicts(doc), ensure_ascii=False, indent=2, default=str) + "\n"
@@ -48,7 +51,7 @@ def _builder(ext: str):
 for _ext, _mime, _label, _terms in (
     ("py", "text/x-python", "Python (.py)", (r"\.py\b|\bpython (?:file|script)\b|ملف بايثون",)),
     ("js", "text/javascript", "JavaScript (.js)", (r"\.js\b|\bjavascript (?:file|script)\b",)),
-    ("html", "text/html", "HTML (.html)", (r"\.html?\b|\bhtml (?:file|page)\b",)),
+    ("html", "text/html", "HTML (.html)", (r"\.html?\b|\bhtml (?:\w+ ){0,2}(?:file|page|guide|document|manual|doc|version)\b", r"ملف html|صفحة html|دليل html")),
     ("css", "text/css", "CSS (.css)", (r"\.css\b|\bcss file\b|\bstylesheet\b",)),
     ("json", "application/json", "JSON (.json)", (r"\.json\b|\bjson file\b",)),
     ("sql", "application/sql", "SQL (.sql)", (r"\.sql\b|\bsql (?:file|script)\b",)),

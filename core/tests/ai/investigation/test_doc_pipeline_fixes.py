@@ -53,7 +53,7 @@ class StructuralPathTest(TestCase):
         self.assertEqual(choose_path(rows, True)[0], "guide")                                          # the classifier is an extra signal
         dataset = out(steps=[{"tool": "generate_file", "status": "success", "arguments": {"dataset": {"model": "Expense"}}}])
         self.assertEqual(choose_path(dataset, False)[0], "single")
-        self.assertEqual(choose_path(out(), False, own_file=True)[0], "single")                        # the model's own file, nothing to judge it by
+        self.assertEqual(choose_path(out(), False, own_file=True)[0], "guide")                         # a file written from no evidence is the invented guide
 
     def test_real_rows_still_get_a_report_in_one_call(self):
         prov = ScriptedProvider([{"content": "NO"}, {"content": "Report text. " * 60}])
@@ -138,15 +138,14 @@ class ThinkReachesTheProviderTest(TestCase):
     def setUpTestData(cls):
         cls.admin = make_user("think_admin", sysadmin=True)
 
-    def test_classifier_off_and_document_writing_on(self):
+    def test_guide_calls_run_without_reasoning(self):
         prov = GuideProvider()
         prov.user = self.admin
         seen = []
         original = prov.generate
         prov.generate = lambda messages, tools=None, **kw: (seen.append((messages[0]["content"][:30], kw.get("reasoning"))), original(messages, tools, **kw))[1]
         ensure_document(prov, ASK, Result(), 24000, self.admin, None)
-        self.assertEqual(seen[0][1], "off")                      # "Answer with exactly one word": the classifier
-        self.assertTrue(all(r == "on" for _, r in seen[2:]))      # intro and sections
+        self.assertTrue(all(r == "off" for _, r in seen))         # classifier, language, intro and guide sections: reasoning adds only time
 
     def test_setting_validation_and_default(self):
         from core.services.ai.agent.settings import get_agent_settings, validate_agent_settings

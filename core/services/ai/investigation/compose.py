@@ -23,7 +23,7 @@ from core.services.ai.domain_scope import no_info
 from core.services.ai.domains import APP
 
 from .compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
-from .compose_sections import dedupe_headings, knowledge, missing_tabs, tab_fallback, units
+from .compose_sections import dedupe_headings, knowledge, missing_tabs, section_heading, tab_fallback, units
 from .compose_title import guide_title, with_app_name
 from .compose_translate import target_language, translate_markdown, uses_latin_script
 from .doc_path import choose_path, log_path
@@ -45,9 +45,12 @@ def needs_document(out) -> bool:
 
 
 def _ask(provider, out, system: str, user_content: str, deadline: float, temperature: float = 0.2, reasoning: str = "on") -> str:
-    """One model call. reasoning "on" (document writing) / "off" (one-word questions, translation): see Settings > AI Advisor > Reasoning."""
+    """One model call. reasoning "on" (a report from data) / "off" (one-word questions, guide sections, translation): Settings > AI Advisor > Reasoning."""
     from core.services.ai.agent.settings import document_max_tokens
 
+    if getattr(out, "cancel_check", None) and out.cancel_check():   # Stop was pressed: no more model calls, the caller sees out.cancelled
+        out.cancelled = True
+        return ""
     out.llm_calls += 1
     out.cut_off = False
     limit = document_max_tokens(provider)
@@ -71,31 +74,12 @@ def _without_partial_tab(text: str) -> str:
 
 
 def _about_the_app(provider, user_text: str, out, deadline: float) -> bool:
-    return _ask(provider, out, _ABOUT_APP, user_text, deadline, temperature=0, reasoning="off").upper().startswith("YES")
-
-
-def _norm(text: str) -> str:
-    return "".join(ch for ch in str(text).lower() if ch.isalnum())
-
-
-def _heading(text: str, unit: dict) -> str:
-    """The section as Markdown under exactly one "## title": the model's own first heading is replaced by the unit title, every
-    other H1/H2 becomes H3, and a heading that only repeats the screen's name is dropped (no "Settings / Settings")."""
-    same = {_norm(unit["title"]), _norm(unit["page"])}
-    head = unit.get("heading", unit["title"])
-    out = [f"## {head}", ""] if head else []
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("#"):
-            name = stripped.lstrip("#").strip()
-            if _norm(name) in same:
-                continue
-            if stripped.startswith(("# ", "## ")):
-                line = f"### {name}"
-        elif not stripped and not any(x.strip() for x in out[2 if head else 0:]):
-            continue
-        out.append(line)
-    return "\n".join(out).rstrip()
+    """The one-word question; an answer that is neither YES nor NO (empty) is asked once more with reasoning on."""
+    for reasoning in ("off", "on"):
+        word = _ask(provider, out, _ABOUT_APP, user_text, deadline, temperature=0, reasoning=reasoning).upper().strip()
+        if word.startswith(("YES", "NO")):
+            break
+    return word.startswith("YES")
 
 
 logger = logging.getLogger("core.ai.pipeline")
@@ -113,7 +97,7 @@ def _tab_section(provider, user, user_text: str, out, unit: dict, tab: dict, ins
     text = ""
     if time.monotonic() < deadline - 20:
         text = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY this sub-section, starting with the line \"### {tab['name']}\": "
-                    f"what the tab is for and the steps to use each action.\n\nTAB:\n{tab}\n\nAPP GUIDE:\n{knowledge(user, unit, tab)}", deadline)
+                    f"what the tab is for and the steps to use each action.\n\nTAB:\n{tab}\n\nAPP GUIDE:\n{knowledge(user, unit, tab)}", deadline, reasoning="off")
     if len(text) < MIN_SECTION_CHARS or is_refusal(text, True):
         return tab_fallback(tab)
     return text if text.lstrip().startswith("###") else f"### {tab['name']}\n\n{text}"
@@ -124,7 +108,7 @@ def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int
     deadline = started + budget_s
     plan = units(user)
     intro = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY the document title (one line starting with '# ') and a short introduction "
-                 f"(3-5 sentences) of the guide. Screens: {', '.join(dict.fromkeys(u['title'] for u in plan))}", deadline)
+                 f"(3-5 sentences) of the guide. Screens: {', '.join(dict.fromkeys(u['title'] for u in plan))}", deadline, reasoning="off")
     parts = [guide_title(intro)]
     for n, unit in enumerate(plan, 1):
         if progress:
@@ -134,13 +118,13 @@ def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int
             part = unit.get("part") or (1, 1)
             more = f" It is part {part[0]} of {part[1]} of one chapter: write only the tabs listed, without a chapter title or introduction." if part[1] > 1 else ""
             text = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY this section: \"{unit['title']}\". Cover every tab and "
-                        f"action listed, with the steps to use them.{more}\n\nSCREEN:\n{unit['evidence']}\n\nAPP GUIDE:\n{knowledge(user, unit)}", deadline)
+                        f"action listed, with the steps to use them.{more}\n\nSCREEN:\n{unit['evidence']}\n\nAPP GUIDE:\n{knowledge(user, unit)}", deadline, reasoning="off")
         if out.cut_off:
             text = _without_partial_tab(text)
         if len(text) < MIN_SECTION_CHARS or is_refusal(text, True):
             parts.append(unit["fallback"])
             continue
-        section = _heading(text, unit)
+        section = section_heading(text, unit)
         section = replace_blocks(section, thin_tabs(unit, section, tab_fallback), tab_fallback)   # a stub where the app documents more
         for tab in missing_tabs(unit, section):   # the model dropped these tabs: nothing may be missing from the guide
             section += "\n\n" + _tab_section(provider, user, user_text, out, unit, tab, instructions, deadline)
@@ -165,7 +149,8 @@ def drop_model_drafts(steps: list) -> None:
             args.pop("content", None)
 
 
-def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user=None, progress=None, guide_only: bool = False, domain: str = "") -> str:
+def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user=None, progress=None, guide_only: bool = False, domain: str = "",
+                     cancel_check=None, strict: bool = False) -> str:
     """The full document text, or "" when the model could not produce one (the caller keeps the original answer).
     guide_only: the model already made a file with generate_file; only a guide to the app itself is rewritten by the app.
     domain: the user guide describes the application for business users, so it belongs to the Business domain only; a guide
@@ -175,9 +160,12 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
 
     instructions, budget_s = effective_document_instructions(), document_budget_s()
     deadline = time.monotonic() + budget_s
+    out.cancel_check, out.cancelled = cancel_check, False
     classifier = _about_the_app(provider, user_text, out, deadline) if user is not None else None
     path, why = choose_path(out, classifier, domain, own_file=guide_only)
     log_path(path, why, classifier, out)
+    if strict and not classifier:   # an HTML request without a yes from the classifier may be code: the model's own answer stays
+        return ""
     if user is not None and path == "guide":
         if domain == APP:
             return no_info(user_text)
@@ -187,12 +175,15 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
 
         language = target_language(ask, user_text)
         if not language:
-            return _guide(provider, user, user_text, out, instructions, budget_s, progress)
-        english = _guide(provider, user, f"{user_text}\n\n[Write the document in English; it is translated into {language} afterwards.]",
-                         out, instructions, int(budget_s * 0.45), progress)
-        non_latin = not uses_latin_script(ask, language)
-        translated = translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, deadline, progress, non_latin)
-        return _qa(sanitize(with_app_name(translated, english), english=False, source=english), language)
+            doc = _guide(provider, user, user_text, out, instructions, budget_s, progress)
+        else:
+            english = _guide(provider, user, f"{user_text}\n\n[Write the document in English; it is translated into {language} afterwards.]",
+                             out, instructions, int(budget_s * 0.45), progress)
+            non_latin = not uses_latin_script(ask, language)
+            translated = translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, deadline, progress, non_latin)
+            doc = _qa(sanitize(with_app_name(translated, english), english=False, source=english), language)
+        return "" if out.cancelled else doc   # Stop pressed: nothing half-written is returned
     if guide_only:
         return ""
-    return _single(provider, user_text, out, instructions, ctx_chars, deadline)
+    doc = _single(provider, user_text, out, instructions, ctx_chars, deadline)
+    return "" if out.cancelled else doc

@@ -31,7 +31,6 @@ from playwright.sync_api import sync_playwright
 from tests.core.test_context import TestContext
 from tests.core.reporter import QAReporter
 from tests.core.screenshot_logger import ScreenshotLogger
-from e2e_module_dispatch import run_module
 
 def main():
     parser = argparse.ArgumentParser(description="WealthFlow Human QA End-to-End Regression Suite")
@@ -51,6 +50,7 @@ def main():
     headed = args.headed and not args.headless
 
     setup_django()
+    from e2e_module_dispatch import run_module
 
     print("\n==================================================================")
     print("  WEALTHFLOW HUMAN QA END-TO-END REGRESSION TEST SUITE            ")

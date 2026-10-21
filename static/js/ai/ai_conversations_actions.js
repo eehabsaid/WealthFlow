@@ -97,6 +97,7 @@ async function _switchAIChatConversation(convId) {
         const progressData = await progressRes.json();
         if (progressData.status === "running") {
           _setLoadingUI(true, convId);
+          if (typeof window._aiShowProgress === "function") window._aiShowProgress(progressData);
         } else if (conv.is_running) {
           _setLoadingUI(true, convId);
         }

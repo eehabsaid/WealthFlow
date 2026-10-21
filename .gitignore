@@ -14,7 +14,7 @@ Apartment_s ceramic.xlsx
 # WealthFlow backup archives
 backups/
 *.wfbackup
-
+.webui_secret_key
 # Documentation Engine
 doc_engine/.auth/
 docs/screenshots/

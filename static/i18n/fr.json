@@ -85,7 +85,7 @@
     "ai_investigator_mode_always": "Toujours",
     "ai_investigator_mode_off": "Désactivé",
     "ai_think_label": "Raisonnement (réflexion)",
-    "ai_think_hint": "Laisse l'IA réfléchir avant de répondre. Auto : activé pour la boucle Agent et la rédaction de documents, désactivé pour les contrôles en un mot et la traduction.",
+    "ai_think_hint": "Laisse l'IA réfléchir avant de répondre. Auto : activé pour la boucle Agent et les rapports sur vos données, désactivé pour les contrôles en un mot, les sections du guide utilisateur et la traduction (aucun gain de qualité, environ deux fois plus lent).",
     "ai_think_auto": "Auto (recommandé)",
     "ai_think_on": "Toujours activé",
     "ai_think_off": "Toujours désactivé",

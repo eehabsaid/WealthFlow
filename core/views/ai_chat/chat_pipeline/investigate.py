@@ -24,6 +24,7 @@ from core.services.ai.investigation.code_tools import code_access_allowed
 from core.services.ai.investigation.refusal import is_refusal
 from core.views.ai_chat.ai_chat_helpers import _aiT_fallback_no_answer
 
+from .document_request import document_write_tokens, html_only, wants_written_document   # noqa: F401 - re-exported for callers and tests
 from .domain_gate import guard_result
 from .trace import PipelineTrace, TracedProvider
 
@@ -67,21 +68,7 @@ def wants_data_file(text: str) -> bool:
     return any(f.key in _DOCUMENT_FORMATS for f in requested(text))
 
 
-def wants_written_document(text: str) -> bool:
-    """Word / PDF / text file requested: the file must contain a document (see investigation/compose.py)."""
-    from core.services.ai.exports import requested
-
-    return any(f.key in ("docx", "pdf", "txt") for f in requested(text))
-
-
-def document_write_tokens(provider, user_text: str) -> int | None:
-    """Output-token limit for the model's own writing while a Word / PDF / text document is requested (None: the chat limit)."""
-    from core.services.ai.agent.settings import document_max_tokens
-
-    return document_max_tokens(provider) if wants_written_document(user_text) else None
-
-
-def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None, conversation_id=None, domain: str = "") -> bool:
+def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None, conversation_id=None, domain: str = "", cancel_check=None) -> bool:
     """Replace a stub answer ("Let me write it...") by the complete document. True when the content was replaced."""
     from core.services.ai.investigation.compose import compose_document, drop_model_drafts, needs_document
 
@@ -96,7 +83,11 @@ def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None,
     def progress(n, total, title, started):   # the chat's "current step" line: Writing the guide: Balance (3/17)
         publish_legacy(user, conversation_id, n, total, "document_section", f"Writing the document: {title}", started)
 
-    doc = compose_document(provider, user_text, result, ctx_chars, user, progress, guide_only=own_file, domain=domain)
+    doc = compose_document(provider, user_text, result, ctx_chars, user, progress, guide_only=own_file, domain=domain, cancel_check=cancel_check,
+                          strict=html_only(user_text))
+    if getattr(result, "cancelled", False):   # Stop was pressed while the document was being written: the agent pipeline adds the "stopped" note
+        result.reason, result.content = "cancelled", ""
+        return False
     if doc:
         result.content = doc
         drop_model_drafts(result.steps)
