@@ -141,7 +141,7 @@ class AppPagesTests(SimpleTestCase):
         pages = app_pages()
         self.assertGreaterEqual(len(pages), 15)
         for p in pages:
-            self.assertTrue({"route", "title", "open"} <= set(p) <= {"route", "title", "open", "tabs", "actions", "admin_only"})
+            self.assertTrue({"route", "title", "open"} <= set(p) <= {"route", "title", "open", "tabs", "actions", "admin_only", "purpose"})
         routes = {p["route"] for p in pages}
         self.assertTrue(any("settings" in r for r in routes))
 

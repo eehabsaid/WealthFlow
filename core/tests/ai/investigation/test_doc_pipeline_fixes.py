@@ -10,9 +10,10 @@ from django.test import SimpleTestCase, TestCase
 
 from core.integrations.ai_provider.ollama_payload import apply_runtime_flags, native_messages, resolve_think
 from core.models import AppSettings
+from core.services.ai.domains import APP
 from core.services.ai.investigation import loop as inv
 from core.services.ai.investigation.compose_sections import units
-from core.services.ai.investigation.doc_path import choose_path
+from core.services.ai.investigation.doc_path import choose_path, has_app_structure_evidence, is_standalone_html_code
 from core.services.ai.investigation.nudges import investigate_nudge
 from core.views.ai_chat.chat_pipeline.investigate import ensure_document
 
@@ -20,8 +21,8 @@ from .support import ScriptedProvider, make_user, tool_call
 from .test_compose_guide import ASK, GuideProvider, Result, user_ok
 
 
-def out(results=(), steps=()):
-    return SimpleNamespace(results=list(results), steps=list(steps))
+def out(results=(), steps=(), content=""):
+    return SimpleNamespace(results=list(results), steps=list(steps), content=content)
 
 
 class StructuralPathTest(TestCase):
@@ -46,14 +47,32 @@ class StructuralPathTest(TestCase):
     def test_decision_table(self):
         rows = out([("app_data_query", {}, '{"rows":[1]}')])
         self.assertEqual(choose_path(rows, False)[0], "single")
-        self.assertEqual(choose_path(out([("app_computed_figures", {}, "{}")]), False)[0], "single")
+        self.assertEqual(choose_path(out([("app_data_query", {}, "total 100.00")]), False)[0], "single")
+        self.assertEqual(choose_path(out([("app_computed_figures", {}, '{"figures":{"total":5}}')]), False)[0], "single")
         self.assertEqual(choose_path(out(), False)[0], "guide")
         self.assertEqual(choose_path(out([("app_data_models", {}, "{}")]), False)[0], "guide")
         self.assertEqual(choose_path(out([("app_data_query", {}, '{"error":"x"}')]), False)[0], "guide")   # a failed query is not evidence
-        self.assertEqual(choose_path(rows, True)[0], "guide")                                          # the classifier is an extra signal
+        self.assertEqual(choose_path(out([("app_data_query", {}, '{"rows":[]}')]), False)[0], "guide")
+        self.assertEqual(choose_path(out([("app_computed_figures", {}, '{"figures":null}')]), False)[0], "guide")
+        self.assertEqual(choose_path(rows, True)[0], "single")                                        # data evidence beats a false-positive classifier
+        self.assertEqual(choose_path(out(), True, APP)[0], "guide")
+        self.assertEqual(choose_path(out(), False, APP)[0], "single")
         dataset = out(steps=[{"tool": "generate_file", "status": "success", "arguments": {"dataset": {"model": "Expense"}}}])
         self.assertEqual(choose_path(dataset, False)[0], "single")
         self.assertEqual(choose_path(out(), False, own_file=True)[0], "guide")                         # a file written from no evidence is the invented guide
+        app_and_rows = out([("app_routes", {}, '{"screens":[{"route":"dashboard"}]}'),
+                            ("app_data_query", {}, '{"rows":[1]}')])
+        self.assertTrue(has_app_structure_evidence(app_and_rows))
+        self.assertEqual(choose_path(app_and_rows, False)[0], "guide")
+
+    def test_standalone_html_code_is_detected_from_the_generated_file(self):
+        result = out(steps=[{"tool": "generate_file", "status": "success", "arguments": {
+            "content": '<!doctype html><form><input type="password"><button>Log in</button></form>'}}])
+        self.assertTrue(is_standalone_html_code(result, self.admin))
+        guide = out(content="<html><body>Dashboard Expenses Budgets Reports Balance</body></html>")
+        self.assertFalse(is_standalone_html_code(guide, self.admin))
+        self.assertTrue(is_standalone_html_code(out(content="<!doctype html><html><body><h1>Login</h1></body></html>"),
+                                                self.admin))
 
     def test_real_rows_still_get_a_report_in_one_call(self):
         prov = ScriptedProvider([{"content": "NO"}, {"content": "Report text. " * 60}])

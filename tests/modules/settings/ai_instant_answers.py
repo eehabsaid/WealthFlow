@@ -66,6 +66,7 @@ def test_ai_instant_answers(context, reporter, screenshot_logger):
 def _run(context, reporter, screenshot_logger):
     page = context.page
     close_global_modal(page)
+    page.reload()
     context.goto_route("#settings-aiadvisor")
     close_global_modal(page)
     reporter.pages_visited.add("Settings -> AI Advisor")

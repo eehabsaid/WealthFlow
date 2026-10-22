@@ -7,6 +7,7 @@ Fixture rental is created in the DISPOSABLE db and removed afterwards. Steps:
 """
 
 from tests.modules.e2e_settings import django_exec, rows
+from tests.modules.settings.common import close_global_modal
 
 NAME = "E2E Rent Flat"
 FIXTURE = (
@@ -41,10 +42,13 @@ def check_rent_received(context, reporter, screenshot_logger):
     django_exec(FIXTURE)
     try:
         asset_id = rows("SELECT id FROM core_fixedasset WHERE name = ?", (NAME,))[0][0]
+        close_global_modal(page)
         context.goto_route("#fixed-assets")
         page.wait_for_timeout(1500)
         before = page.evaluate(TOTAL_JS)
+        close_global_modal(page)
         page.evaluate(f"showFixedAssetDetails({asset_id})")
+        page.wait_for_selector("#assetDetailsTabsContent", timeout=10000)
         page.wait_for_selector("#asset-rental-tab", timeout=10000)
         page.click("#asset-rental-tab")
         page.wait_for_selector("#rentReceivedBtn", timeout=8000)

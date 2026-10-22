@@ -81,7 +81,9 @@ def test_dashboard_module(context, reporter, screenshot_logger):
 
         import openpyxl
 
-        resp = context.page.request.get("http://127.0.0.1:8000/api/export/excel/")
+        from tests.core.test_context import e2e_base_url
+
+        resp = context.page.request.get(f"{e2e_base_url()}/api/export/excel/")
         assert resp.status == 200, f"Excel export returned HTTP {resp.status}"
         wb = openpyxl.load_workbook(io.BytesIO(resp.body()))
         assert "Exchange Rates" in wb.sheetnames, "Workbook has no Exchange Rates sheet"

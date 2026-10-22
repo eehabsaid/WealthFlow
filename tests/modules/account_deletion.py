@@ -9,9 +9,9 @@ Uses a throw-away user created through the admin API (removed again at the end),
 NOTE: tests/core/test_context.py registers ONE global dialog handler (accepts confirm()); do not add another.
 """
 
-from tests.core.test_context import TestContext
+from tests.core.test_context import TestContext, e2e_base_url
 
-BASE = "http://127.0.0.1:8000"
+BASE = e2e_base_url()
 USER, PASSWORD = "e2e_grace_probe", "SecurePass123!"
 _FETCH = (
     "async ([u, m, b]) => { const h = {'Content-Type': 'application/json'};"

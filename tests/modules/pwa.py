@@ -114,7 +114,9 @@ def _check_offline(context, reporter, screenshot_logger):
     try:
         context.goto_route("")
         browser_context.set_offline(True)
-        page.goto("http://127.0.0.1:8000/", wait_until="domcontentloaded")
+        from tests.core.test_context import e2e_base_url
+
+        page.goto(f"{e2e_base_url()}/", wait_until="domcontentloaded")
         page.wait_for_timeout(800)
         shown = page.query_selector("#pwa-offline-retry") is not None
         _step(reporter, screenshot_logger, page, "Offline navigation falls back to the offline page", shown,

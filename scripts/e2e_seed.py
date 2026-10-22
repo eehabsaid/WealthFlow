@@ -36,6 +36,7 @@ def _ensure_plans():
 
 def _ensure_user(username, password, *, admin):
     from django.contrib.auth import get_user_model
+    from axes.models import AccessAttempt
     from core.models import UserProfile
 
     User = get_user_model()
@@ -45,11 +46,15 @@ def _ensure_user(username, password, *, admin):
         if admin:
             user.is_staff = user.is_superuser = True
             user.save(update_fields=["is_staff", "is_superuser"])
+    elif not admin and not user.check_password(password):
+        user.set_password(password)
+        user.save(update_fields=["password"])
     if admin:
         UserProfile.objects.filter(user=user).update(is_sysadmin=True)
     # A fresh account opens the onboarding wizard, a modal that covers the page and swallows every click of a UI step.
     # Seeded users are established accounts (the real db.sqlite3 has the wizard completed).
     UserProfile.objects.filter(user=user).update(onboarding_completed=True)
+    AccessAttempt.objects.filter(username=username).delete()
     return user
 
 

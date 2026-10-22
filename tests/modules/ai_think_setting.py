@@ -36,6 +36,10 @@ def _run(context, reporter, screenshot_logger):
     context.goto_route("#settings-aiadvisor")
     page.reload()   # the page may still hold a form rendered before this step reset the setting (an earlier module's stale form)
     _open(page, context)
+    page.wait_for_function(
+        "() => document.getElementById('aiThinkSelect') && document.getElementById('aiThinkSelect').value === 'auto'",
+        timeout=10000,
+    )
     default = page.input_value("#aiThinkSelect")
     api_default = page.evaluate(_FETCH, [SETTINGS_URL])["data"].get("ai_think")
     _step(reporter, screenshot_logger, page, "AI Reasoning: default is auto", default == "auto" and api_default == "auto",

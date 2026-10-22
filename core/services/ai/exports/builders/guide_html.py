@@ -29,6 +29,14 @@ def _inline(text: str) -> str:
     return "".join(f"<strong>{escape(t)}</strong>" if bold else escape(t) for t, bold in runs(text))
 
 
+def _paragraph(text: str, seen: set[str]) -> str:
+    key = re.sub(r"\s+", " ", text).strip().casefold()
+    if not key or key in seen:
+        return ""
+    seen.add(key)
+    return f'<p class="purpose">{_inline(text)}</p>'
+
+
 def _list(kind: str, items: list[str]) -> str:
     tag, cls = ("ol", "steps") if kind == "ol" else ("ul", "notes")
     return f'<{tag} class="{cls}">' + "".join(f"<li>{_inline(i)}</li>" for i in items) + f"</{tag}>"
@@ -40,7 +48,7 @@ def _table(block) -> str:
     return f'<div class="table-wrap"><table>{head}<tbody>{rows}</tbody></table></div>'
 
 
-def _body(blocks: list, chapter: int, subs: list) -> str:
+def _body(blocks: list, chapter: int, subs: list, seen: set[str]) -> str:
     """The HTML of one chapter's blocks; sub-section links are collected in `subs` as (id, text)."""
     out, run, kind, sub = [], [], "", 0
 
@@ -68,7 +76,9 @@ def _body(blocks: list, chapter: int, subs: list) -> str:
         elif b.kind == "table":
             out.append(_table(b))
         else:
-            out.append(f'<p class="purpose">{_inline(b.text)}</p>')
+            paragraph = _paragraph(b.text, seen)
+            if paragraph:
+                out.append(paragraph)
     flush()
     return "\n".join(out)
 
@@ -83,17 +93,17 @@ def build_guide_html(doc: ExportDocument, lang: str) -> bytes:
             chapters[-1][1].append(b)
         else:
             intro.append(b)
-    toc, sections = [], []
+    toc, sections, seen = [], [], set()
+    lead = "\n".join(_paragraph(b.text, seen) for b in intro if b.kind == "text")
     for n, (title, blocks) in enumerate(chapters, 1):
         sid, subs = f"sec-{n}-{_slug(title)}", []
-        body = _body(blocks, n, subs)
+        body = _body(blocks, n, subs, seen)
         sub_links = "".join(f'<li><a href="#{i}">{escape(t)}</a></li>' for i, t in subs)
         toc.append(f'<li class="toc-l1"><a href="#{sid}" data-target="{sid}">{n} {escape(title)}</a>'
                    + (f'<ul class="toc-sub">{sub_links}</ul>' if sub_links else "") + "</li>")
         sections.append(f'<section id="{sid}" class="guide-section" aria-labelledby="{sid}-heading">\n'
                         f'<h2 id="{sid}-heading" class="section-heading">{n} {escape(title)}</h2>\n{body}\n</section>')
     meta = f'<p class="meta">{escape(doc.generated)}</p>' if doc.generated else ""
-    lead = "\n".join(f'<p class="purpose">{_inline(b.text)}</p>' for b in intro if b.kind == "text")
     page = f"""<!DOCTYPE html>
 <html lang="{escape(lang)}" dir="{'rtl' if lang in _RTL else 'ltr'}">
 <head>

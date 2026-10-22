@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.test import TestCase
 
 from core.services.ai.cache_manager import AICacheManager
+from core.services.ai.investigation.compose_sections import units
 from core.services.ai.investigation.loop_helpers import publish_legacy
 from core.views.ai_chat.chat_pipeline.investigate import ensure_document
 
@@ -91,6 +92,21 @@ class HtmlRequestTest(TestCase):
         self.assertTrue(res.content.startswith("# WealthFlow user guide"))
         prov, res = GuideProvider(about_app="NO"), Result()
         prov.user = self.admin
-        res.content = "Here is the page. " * 120
-        self.assertFalse(ensure_document(prov, "write an html page with a calculator", res, 24000, self.admin, None))
-        self.assertEqual(res.content, "Here is the page. " * 120)
+        res.content = '<!doctype html><form><input name="email"><input type="password"><button>Log in</button></form>'
+        self.assertFalse(ensure_document(prov, "Write me an HTML login page.", res, 24000, self.admin, None))
+        self.assertEqual(res.content, '<!doctype html><form><input name="email"><input type="password"><button>Log in</button></form>')
+
+    def test_html_guide_uses_the_evidence_fallback_after_a_classifier_no(self):
+        prov, res = GuideProvider(about_app="NO"), Result()
+        prov.user = self.admin
+        self.assertTrue(ensure_document(prov, "اكتب دليل مستخدم كامل للتطبيق بصيغة HTML", res, 24000, self.admin, None))
+        self.assertEqual(res.content.count("\n## "), len({u["heading"] for u in units(self.admin) if u["heading"]}))
+
+    def test_an_html_login_form_keeps_the_models_generated_page(self):
+        prov, res = GuideProvider(about_app="NO"), Result()
+        prov.user = self.admin
+        res.content = "Done."
+        res.steps = [{"tool": "generate_file", "status": "success", "arguments": {
+            "content": '<!doctype html><form><input name="email"><input type="password"><button>Log in</button></form>'}}]
+        self.assertFalse(ensure_document(prov, "Write me an HTML login page.", res, 24000, self.admin, None))
+        self.assertEqual(res.content, "Done.")

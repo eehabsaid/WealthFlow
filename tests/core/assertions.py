@@ -7,6 +7,8 @@ Provides reusable helpers for:
  4. Immediate downstream cross-module impact assertions.
 """
 
+from tests.core.test_context import e2e_base_url
+
 
 def fill_form_field(page, selector, value, field_type="text"):
     """Fills a form field based on control type."""
@@ -106,7 +108,7 @@ def verify_downstream_impact(page, source_action, target_route, expected_kpi_sel
     Navigates immediately to affected target route (e.g., #dashboard, #financial-advisor, #reports)
     and verifies that KPI cards, charts, and tables update cleanly without error.
     """
-    page.goto(f"http://127.0.0.1:8000/{target_route}")
+    page.goto(f"{e2e_base_url()}/{target_route}")
     page.wait_for_timeout(1000)
 
     if expected_kpi_selector:

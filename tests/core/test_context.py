@@ -10,6 +10,13 @@ import os
 
 from tests.core.cdn_fallback import install_cdn_fallback
 
+
+def e2e_base_url():
+    host = os.environ.get("WEALTHFLOW_E2E_HOST", "127.0.0.1")
+    port = os.environ.get("WEALTHFLOW_E2E_PORT", "8000")
+    return f"http://{host}:{port}"
+
+
 class TestContext:
     def __init__(self, playwright, headed=False, slow_mo=150, device="desktop", theme="dark"):
         self.playwright = playwright
@@ -103,7 +110,8 @@ class TestContext:
         # already covers the whole run.
         self.page.on("dialog", lambda dialog: dialog.accept())
 
-    def login(self, username=None, password=None, base_url="http://127.0.0.1:8000"):
+    def login(self, username=None, password=None, base_url=None):
+        base_url = base_url or e2e_base_url()
         username = username or os.environ.get("WF_USERNAME")
         password = password or os.environ.get("WF_PASSWORD")
         if not username or not password:
@@ -126,7 +134,8 @@ class TestContext:
         self.page.wait_for_timeout(1000)
         return res.status == 200
 
-    def goto_route(self, hash_route, base_url="http://127.0.0.1:8000"):
+    def goto_route(self, hash_route, base_url=None):
+        base_url = base_url or e2e_base_url()
         url = f"{base_url}/{hash_route}"
         self.page.goto(url)
         self.page.wait_for_timeout(800)

@@ -70,6 +70,11 @@ class GuideHtmlTest(SimpleTestCase):
         self.assertIn("&lt;b&gt;x&lt;/b&gt;", html)
         self.assertNotIn("<b>x</b>", html)
 
+    def test_repeated_paragraphs_are_rendered_once_across_chapters(self):
+        text = "Track bank certificate maturity schedules and expected interest yields."
+        html = build_guide_html(doc(f"## Certificates\n\n{text}\n\n## Reports\n\n{text}\n"), "en").decode()
+        self.assertEqual(html.count(text), 1)
+
     def test_arabic_is_right_to_left_with_arabic_labels_and_anchors(self):
         md = "## البدء\n\nنص.\n\n### إنشاء حساب\n\nنص.\n\n## الرصيد\n\nنص.\n\n## التقارير\n\nنص.\n"
         html = build_guide_html(doc(md, "ar", "دليل WealthFlow"), "ar").decode()
@@ -91,5 +96,12 @@ class GuideHtmlTest(SimpleTestCase):
     def test_html_guide_wording_is_detected_as_a_request(self):
         from core.services.ai.exports.intent import detect
 
-        self.assertIn("html", [f.key for f in detect("generate an html user guide for the app")])
-        self.assertIn("html", [f.key for f in detect("make the guide as an html document")])
+        for text in (
+            "generate an html user guide for the app",
+            "make the guide as an html document",
+            "اكتب دليل مستخدم للتطبيق بصيغة HTML",
+            "Rédige un guide utilisateur en HTML pour l’application",
+            "Schreibe eine HTML-Bedienungsanleitung für die App",
+        ):
+            with self.subTest(text=text):
+                self.assertIn("html", [f.key for f in detect(text)])

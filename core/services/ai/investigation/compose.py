@@ -26,7 +26,7 @@ from .compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
 from .compose_sections import dedupe_headings, knowledge, missing_tabs, section_heading, tab_fallback, units
 from .compose_title import guide_title, with_app_name
 from .compose_translate import target_language, translate_markdown, uses_latin_script
-from .doc_path import choose_path, log_path, yes_no
+from .doc_path import choose_path, is_standalone_html_code, log_path, yes_no
 from .refusal import is_refusal
 
 MIN_DOC_CHARS = 1500      # a real guide/report is longer than this; shorter text is an announcement or a stub
@@ -162,10 +162,11 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
     deadline = time.monotonic() + budget_s
     out.cancel_check, out.cancelled = cancel_check, False
     classifier = _about_the_app(provider, user_text, out, deadline) if user is not None else None
+    if strict and is_standalone_html_code(out, user):
+        log_path("single", "standalone_html_code", classifier, out)
+        return ""
     path, why = choose_path(out, classifier, domain, own_file=guide_only)
     log_path(path, why, classifier, out)
-    if strict and not classifier:   # an HTML request without a yes from the classifier may be code: the model's own answer stays
-        return ""
     if user is not None and path == "guide":
         if domain == APP:
             return no_info(user_text)

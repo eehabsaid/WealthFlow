@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import signal
+import socket
 import sys
 import time
 import urllib.request
@@ -39,6 +40,20 @@ def files_identical(a: str, b: str) -> bool:
                 return False
             if not chunk_a:
                 return True
+
+
+def choose_port(host: str, requested: str, explicit: bool) -> int:
+    """Keep the E2E server isolated from an already-running development server."""
+    with socket.socket() as probe:
+        try:
+            probe.bind((host, int(requested)))
+            return int(requested)
+        except OSError:
+            if explicit:
+                raise
+    with socket.socket() as probe:
+        probe.bind((host, 0))
+        return int(probe.getsockname()[1])
 
 
 def wait_for_server(url: str, timeout_seconds: int) -> bool:

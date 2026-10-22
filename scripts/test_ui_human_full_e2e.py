@@ -1,6 +1,6 @@
 """
 WealthFlow Human QA End-to-End Regression Test Suite Entrypoint
-Runs via Playwright Headed/Headless Chromium against http://127.0.0.1:8000/
+Runs via Playwright Chromium against the isolated WEALTHFLOW_E2E_HOST/PORT server (default 127.0.0.1:8000).
 
 Usage Examples:
   # Full Regression Run (Visual Headed Mode)

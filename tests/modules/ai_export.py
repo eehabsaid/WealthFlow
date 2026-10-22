@@ -51,6 +51,11 @@ def _run(context, reporter, screenshot_logger):
     page = context.page
     context.goto_route("#ai")
     page.wait_for_selector("#ai-ws-input", timeout=10000)
+    page.evaluate("""async () => {
+      if (typeof _aiLoadChatMode === "function") await _aiLoadChatMode();
+      if (typeof _aiSetChatMode === "function") await _aiSetChatMode("ask");
+    }""")
+    page.wait_for_function("() => document.getElementById('ai-ws-mode-ask')?.getAttribute('aria-pressed') === 'true'")
     company_id = None
     try:
         c = page.evaluate(_FETCH, ["/api/companies/", "POST", {"name": COMPANY, "display_name": COMPANY}])

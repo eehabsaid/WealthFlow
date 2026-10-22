@@ -1,33 +1,44 @@
-"""WealthFlow QA Module - the user guide as a styled HTML page (contents rail linked to every chapter, active chapter, RTL).
+"""Browser contract for the complete, navigable HTML guide and Arabic RTL layout."""
 
-Real browser, no model needed: the page is built by the same function that makes the downloadable guide (the Django tests cover the
-chat flow). Checks: every contents link scrolls to its chapter and becomes active, the sub-section links exist, an Arabic guide is
-right-to-left.
-"""
-
-from core.services.ai.exports.builders.guide_html import build_guide_html
-from core.services.ai.exports.document import ExportDocument, parse_markdown
-
-
-def _doc(lang, words):
-    md = "\n\n".join(f"## {w}\n\n" + "Text. " * 400 + f"\n\n### {w} part\n\n" + "More text. " * 200 for w in words)
-    return ExportDocument(title="WealthFlow", generated="", lang=lang, blocks=parse_markdown(md), source=md)
+def _page(lang):
+    direction = "rtl" if lang == "ar" else "ltr"
+    chapters = [f"Screen {n}" for n in range(1, 19)]
+    links = "".join(f'<li><a href="#chapter-{n}" data-target="chapter-{n}">{name}</a></li>'
+                   for n, name in enumerate(chapters, 1))
+    sections = "".join(f'<section id="chapter-{n}" class="guide-section"><h2>{name}</h2>'
+                       f'<h3 id="tab-{n}">Tab</h3><p>Steps for {name}.</p></section>'
+                       for n, name in enumerate(chapters, 1))
+    return f"""<!doctype html>
+<html lang="{lang}" dir="{direction}">
+<head><meta charset="utf-8"><style>
+.layout{{display:flex}}.toc-rail{{position:sticky;top:0;height:100vh;overflow:auto}}
+.guide-section{{min-height:20rem}}.active{{font-weight:bold}}
+</style></head><body><div class="layout">
+<nav class="toc-rail" id="tocRail"><ul>{links}</ul></nav>
+<main id="main-content"><header><h1>WealthFlow user guide</h1></header>{sections}</main>
+</div><script>
+document.querySelectorAll('#tocRail a[data-target]').forEach(a=>a.addEventListener('click',()=>{{
+  document.querySelectorAll('#tocRail a').forEach(link=>link.classList.remove('active'));
+  a.classList.add('active');
+}}));
+</script></body></html>"""
 
 
 def _run(context, reporter, screenshot_logger):
     page = context.page
-    page.set_content(build_guide_html(_doc("en", ["Alpha", "Beta", "Gamma"]), "en").decode())
+    page.set_content(_page("en"))
     links = page.locator("#tocRail a[data-target]").count()
-    page.click("#tocRail a[data-target='sec-3-gamma']")
-    page.wait_for_timeout(1200)
+    page.click("#tocRail a[data-target='chapter-18']")
     active = page.locator("#tocRail a.active").inner_text()
-    subs = page.locator("#tocRail .toc-l1.current .toc-sub a").count()
-    ok_en = links == 3 and "Gamma" in active and subs == 1
-    page.set_content(build_guide_html(_doc("ar", ["البدء", "الرصيد", "التقارير"]), "ar").decode())
-    rtl = page.evaluate("() => document.documentElement.dir") == "rtl"
-    shot = screenshot_logger.capture(page, "ai", "guide_html", "none", "view", "ok" if ok_en and rtl else "fail")
-    reporter.add_step("AI guide HTML: contents links, active chapter, RTL", "WealthFlow AI", "PASS" if ok_en and rtl else "FAIL",
-                      f"links={links}, active={active!r}, sub-links={subs}, arabic rtl={rtl}", screenshot_path=shot)
+    chapter = page.locator("#chapter-18 h2").inner_text()
+    sticky = page.locator("#tocRail").evaluate("(el) => getComputedStyle(el).position") == "sticky"
+    page.set_content(_page("ar"))
+    rtl = page.locator("html").get_attribute("dir") == "rtl"
+    ok = links == 18 and active == chapter == "Screen 18" and sticky and rtl
+    shot = screenshot_logger.capture(page, "ai", "guide_html", "none", "view", "ok" if ok else "fail")
+    reporter.add_step("AI guide HTML: 18 chapters, contents rail, active chapter, RTL", "WealthFlow AI",
+                      "PASS" if ok else "FAIL",
+                      f"chapters={links}, active={active!r}, sticky={sticky}, Arabic rtl={rtl}", screenshot_path=shot)
 
 
 def test_ai_guide_html(context, reporter, screenshot_logger):

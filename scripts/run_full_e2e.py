@@ -64,6 +64,7 @@ from datetime import datetime
 from e2e_process_utils import (
     log,
     err,
+    choose_port,
     files_identical,
     wait_for_server,
     install_signal_handlers,
@@ -78,7 +79,15 @@ READY_TIMEOUT_SECONDS = 30
 
 
 def main() -> int:
+    global SERVER_PORT, READY_URL
     install_signal_handlers()
+    try:
+        SERVER_PORT = str(choose_port(SERVER_HOST, SERVER_PORT, "WEALTHFLOW_E2E_PORT" in os.environ))
+    except OSError as ex:
+        err(f"Requested E2E port {SERVER_PORT} is unavailable: {ex}")
+        return 2
+    READY_URL = f"http://{SERVER_HOST}:{SERVER_PORT}/accounts/login/"
+    log(f"Using isolated E2E server port {SERVER_PORT}")
 
     has_prod_db = os.path.exists(PROD_DB)
     if not has_prod_db:
@@ -97,6 +106,8 @@ def main() -> int:
     env = os.environ.copy()
     env["WEALTHFLOW_DB_NAME"] = os.path.basename(test_db)
     env["DJANGO_SETTINGS_MODULE"] = "wealthflow.settings"
+    env["WEALTHFLOW_E2E_HOST"] = SERVER_HOST
+    env["WEALTHFLOW_E2E_PORT"] = SERVER_PORT
     existing_pythonpath = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = ROOT_DIR + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
 
@@ -129,6 +140,9 @@ def main() -> int:
         log("Waiting for the server to become ready...")
         if not wait_for_server(READY_URL, READY_TIMEOUT_SECONDS):
             err(f"Server did not become ready within {READY_TIMEOUT_SECONDS}s. See {server_log_path}")
+            return 1
+        if server_proc.poll() is not None:
+            err(f"E2E server exited before becoming ready. See {server_log_path}")
             return 1
         log("Server is up.")
 

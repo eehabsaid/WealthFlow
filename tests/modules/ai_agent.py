@@ -30,6 +30,7 @@ def _step(reporter, screenshot_logger, page, name, ok, detail, area="ai", shot_n
 
 
 def _switch(page, context, reporter, screenshot_logger):
+    page.reload()
     context.goto_route("#ai")
     page.wait_for_selector("#ai-ws-mode-switch", timeout=15000)
     before = page.get_attribute("#ai-ws-mode-ask", "aria-pressed")

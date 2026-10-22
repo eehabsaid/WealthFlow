@@ -71,7 +71,9 @@ class ArabicHtmlRequestTest(TestCase):
         self.assertGreater(text.count("\n## "), 5)
 
     def test_a_no_keeps_the_models_own_page_for_a_code_request(self):
-        self.assertEqual(compose_document(GuideProvider(about_app="لا"), "write an html login page", Result(), 24000, self.admin, strict=True), "")
+        result = Result()
+        result.content = '<!doctype html><form><input type="password"><button>Log in</button></form>'
+        self.assertEqual(compose_document(GuideProvider(about_app="لا"), "write an html login page", result, 24000, self.admin, strict=True), "")
 
 
 class DialogNameTest(SimpleTestCase):

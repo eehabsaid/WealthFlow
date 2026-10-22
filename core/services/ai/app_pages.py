@@ -39,6 +39,8 @@ def _catalogue() -> tuple[dict[str, Any], ...]:
             continue
         entry: dict[str, Any] = {"route": page["route"], "title": page.get("title") or page["route"],
                                  "open": f"#{page['route']}" if page["route"] != "dashboard" else "/"}
+        if page.get("purpose"):
+            entry["purpose"] = page["purpose"]
         tabs = [_tab_entry(t) for t in page.get("tabs") or [] if isinstance(t, dict) and t.get("name")]
         if tabs:
             entry["tabs"] = tabs

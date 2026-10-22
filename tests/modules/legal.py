@@ -12,9 +12,9 @@ form is only meaningful logged out). Phase 5 uses the shared admin session.
 NOTE: tests/core/test_context.py registers ONE global dialog handler; do not add another page.on("dialog") here.
 """
 
-from tests.core.test_context import TestContext
+from tests.core.test_context import TestContext, e2e_base_url
 
-BASE = "http://127.0.0.1:8000"
+BASE = e2e_base_url()
 PRIVACY_SECTIONS = 8
 TERMS_SECTIONS = 9
 
