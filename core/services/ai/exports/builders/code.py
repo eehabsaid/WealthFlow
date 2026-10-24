@@ -51,7 +51,7 @@ def _builder(ext: str):
 for _ext, _mime, _label, _terms in (
     ("py", "text/x-python", "Python (.py)", (r"\.py\b|\bpython (?:file|script)\b|ملف بايثون",)),
     ("js", "text/javascript", "JavaScript (.js)", (r"\.js\b|\bjavascript (?:file|script)\b",)),
-    ("html", "text/html", "HTML (.html)", (r"\.html?\b|\bhtml\b",)),
+    ("html", "text/html", "HTML (.html)", (r"\.html?\b|\bhtml (?:\w+ ){0,2}(?:file|page|guide|document|manual|doc|version|format)\b|\b(?:as|in|to|en|als|im|nach)\s+(?:an?\s+)?html\b|\bhtml-\w+", r"(?:ملف|صفح[ةه]|دليل|صيغ[ةه]|بصيغ[ةه])\s*html\b")),
     ("css", "text/css", "CSS (.css)", (r"\.css\b|\bcss file\b|\bstylesheet\b",)),
     ("json", "application/json", "JSON (.json)", (r"\.json\b|\bjson file\b",)),
     ("sql", "application/sql", "SQL (.sql)", (r"\.sql\b|\bsql (?:file|script)\b",)),

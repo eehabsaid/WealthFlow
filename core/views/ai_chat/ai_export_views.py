@@ -30,6 +30,10 @@ class AIMessageExportView(View):
                    .filter(pk=pk, role="assistant", is_deleted=False, conversation__user=request.user, conversation__is_deleted=False).first())
         if export_format is None or message is None:
             return JsonResponse({"error": "not_found"}, status=404)
+        from core.views.ai_chat.ai_chat_core_views.response_finalizer import is_non_answer
+
+        if is_non_answer(message.content):   # a refusal is not a document: never turn it into a file
+            return JsonResponse({"error": "no_content"}, status=404)
         content, filename = build_file(message, export_format)
         if len(content) > cfg.max_bytes:
             return JsonResponse({"error": "too_large", "detail": f"The file would be {len(content) // 1024} KB; the limit is {cfg.max_bytes // 1024 // 1024} MB."}, status=413)

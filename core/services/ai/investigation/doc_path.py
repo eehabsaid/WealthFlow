@@ -23,16 +23,6 @@ _HTML_FORM = re.compile(r"<form\b[\s\S]*?</form>", re.IGNORECASE)
 _FORM_CONTROL = re.compile(r"<(?:input|select|textarea)\b", re.IGNORECASE)
 
 
-YES_WORDS = ("YES", "Y", "نعم", "اجل", "أجل", "OUI", "JA", "SI", "SÍ")   # the one-word question is answered in the user's language too
-NO_WORDS = ("NO", "N", "لا", "NON", "NEIN")
-
-
-def yes_no(word: str) -> bool | None:
-    """True / False for a one-word answer in English, Arabic, French, German or Spanish; None when it is neither (ask again)."""
-    token = (word or "").strip().strip(".!:\"'` ").upper().split(" ")[0] if (word or "").strip() else ""
-    return True if token in YES_WORDS else False if token in NO_WORDS else None
-
-
 def evidence_tools(out) -> list[str]:
     return list(dict.fromkeys(name for name, _, _ in (getattr(out, "results", None) or [])))
 

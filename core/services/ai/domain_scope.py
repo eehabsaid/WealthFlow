@@ -2,7 +2,7 @@
 
 Business: the user's own data only; no application structure, code or technical documentation.
 App: how the application is built and works only; no financial data of the user.
-A question outside the domain gets a short "not enough information / not permitted" answer that names no other domain.
+A question outside the domain gets a short answer (app i18n, user's language) saying what the domain covers and which domain to switch to.
 The model signals a question it cannot answer within its scope with the fixed token OUT_OF_SCOPE (not a phrase list)."""
 
 from __future__ import annotations
@@ -10,6 +10,7 @@ from __future__ import annotations
 import datetime
 import re
 
+from . import scope_text
 from .domains import APP, BUSINESS
 
 SENTINEL = "OUT_OF_SCOPE"
@@ -23,10 +24,6 @@ _NOTE = {
 _RULES = ("Today is {today}: never present data for a date after today as if it existed, and never invent a value, a row or a "
           "day. If the question is outside your scope, or cannot be answered from what you were given, reply with exactly "
           f"{SENTINEL} and nothing else.")
-_NO_INFO = {
-    "en": "I don't have enough information to answer that, or I'm not permitted to access it.",
-    "ar": "ليست لدي معلومات كافية للإجابة عن ذلك، أو لا أملك صلاحية الوصول إليه.",
-}
 _DATE = re.compile(r"\b(20\d\d)-(\d\d)-(\d\d)\b|\b(\d{1,2})[/.](\d{1,2})[/.](20\d\d)\b")
 _ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234567890123456789")
 
@@ -35,14 +32,15 @@ def scope_note(domain: str, today: datetime.date | None = None) -> str:
     return _NOTE.get(domain, "") + _RULES.format(today=(today or datetime.date.today()).isoformat())
 
 
-def no_info(question: str = "") -> str:
-    letters = [c for c in question if c.isalpha()]
-    arabic = letters and sum("\u0600" <= c <= "\u06ff" for c in letters) / len(letters) > 0.5
-    return _NO_INFO["ar" if arabic else "en"]
+def no_info(question: str = "", domain: str = "") -> str:
+    """The refusal in the user's language, from the app's i18n; with `domain` it names what the domain covers and where to switch."""
+    from core.services.ai.query_engine.lexicon import language
+
+    return scope_text.refusal(language(question), domain)
 
 
 def is_no_info(content: str) -> bool:
-    return str(content or "").strip() in _NO_INFO.values()
+    return str(content or "").strip() in scope_text.all_refusals()
 
 
 def is_out_of_scope(content: str) -> bool:
@@ -96,10 +94,10 @@ def guard_answer(domain: str, content: str, question: str, evidence: str) -> str
     from core.views.ai_chat.chat_pipeline.grounding import ground_answer
 
     if is_out_of_scope(content):
-        return no_info(question)
+        return no_info(question, domain)
     text, dropped = drop_future_rows(content, question, evidence)
     if dropped and len(text.strip()) < 0.3 * len(str(content).strip()):
-        return no_info(question)
+        return no_info(question, domain)
     if domain == APP and not ground_answer(text, question, evidence).ok:
-        return no_info(question)
+        return no_info(question, domain)
     return text if dropped else content

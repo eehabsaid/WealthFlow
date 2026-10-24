@@ -2771,5 +2771,9 @@
     "ai_grp_domains_desc": "Which kinds of questions the AI workspace accepts.",
     "ai_domain_business_help": "Questions about the user's own financial data. No access to the application's technical information.",
     "ai_domain_app_help": "Questions about how the application is built and works. No access to the user's financial data.",
-    "ai_domain_rule_help": "With both checked, users choose a domain in the AI workspace. With one checked, there is no choice and that domain is always used."
+    "ai_domain_rule_help": "With both checked, users choose a domain in the AI workspace. With one checked, there is no choice and that domain is always used.",
+    "ai_scope_no_info": "I don't have enough information to answer that, or I'm not permitted to access it.",
+    "ai_scope_refused_business": "This chat domain (“{current}”) only covers your own financial data, so I can't answer this here. For questions about how the application is built and works, switch the chat domain to “{other}”.",
+    "ai_scope_refused_app": "This chat domain (“{current}”) only covers how the application is built and works, not your own financial data or the user guide, so I can't answer this here. For the user guide or your own data, switch the chat domain to “{other}”.",
+    "ai_scope_refused_locked": "Only the chat domain “{current}” is enabled, and it does not cover this question. Ask your administrator to enable “{other}” under Chat domains in the AI Advisor settings."
 }

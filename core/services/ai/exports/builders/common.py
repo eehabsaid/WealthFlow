@@ -14,3 +14,19 @@ def is_wide(doc: ExportDocument) -> bool:
 def intro_lines(doc: ExportDocument) -> list[tuple[str, str]]:
     """[(role, text)] for the title block: role is 'title', 'question' or 'meta'."""
     return [(role, text) for role, text in (("title", doc.title), ("question", doc.question), ("meta", doc.generated)) if text]
+
+
+def guide_blocks(doc: ExportDocument) -> list:
+    """A guide's blocks without a paragraph that repeats earlier text (Word / PDF; the HTML guide drops the same repeats). Steps,
+    bullets, headings and tables are kept."""
+    import re
+
+    seen, out = set(), []
+    for block in doc.blocks:
+        if block.kind == "text" and not re.match(r"^\d+\.\s", block.text):
+            key = re.sub(r"\s+", " ", block.text).strip().casefold()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+        out.append(block)
+    return out

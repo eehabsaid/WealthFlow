@@ -11,6 +11,8 @@ from django.http import JsonResponse
 
 from core.models import AIMessage
 from core.services.ai.exports import append_links, requested as detect_export_formats, formats_from_tool_calls
+from core.services.ai.domain_scope import is_no_info
+from core.services.ai.investigation.refusal import is_announcement, is_refusal
 from core.services.ai.query_engine.lexicon import language
 from core.services.ai.tools.defs import AI_TOOL_REGISTRY
 from core.views.ai_chat.response_sanitizer import strip_latex, strip_leaked_control_tokens
@@ -20,6 +22,15 @@ def json_safe(value):
     """Round-trip through JSON so Decimal / date / datetime / UUID / set values (tool results, agent
     steps) can never break the JSONField save or the response. Non-serialisable leftovers become str."""
     return json.loads(json.dumps(value, cls=DjangoJSONEncoder, default=str))
+
+
+REFUSAL_MAX_CHARS = 700   # a longer answer is content, not a refusal
+
+
+def is_non_answer(content: str) -> bool:
+    """A refusal / no-information answer or an announcement ("Let me write it..."): no file is ever offered for it (a table answer is never one)."""
+    text = str(content or "").strip()
+    return is_no_info(text) or is_announcement(text) or (len(text) < REFUSAL_MAX_CHARS and "|" not in text and is_refusal(text, True))
 
 
 def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
@@ -44,7 +55,7 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
         completion_tokens=meter.completion if meter else None,
     )
 
-    export_formats = (detect_export_formats(user_text) or formats_from_tool_calls(executed_tool_calls)) if offer_export else []
+    export_formats = (detect_export_formats(user_text) or formats_from_tool_calls(executed_tool_calls)) if offer_export and not is_non_answer(content_str) else []
     if export_formats:
         target_id = export_target.id if export_target is not None else ai_msg.id
         ai_msg.content = append_links(ai_msg.content, target_id, export_formats, language(user_text))

@@ -2771,5 +2771,9 @@
     "ai_grp_domains_desc": "Welche Fragen der KI-Arbeitsbereich annimmt.",
     "ai_domain_business_help": "Fragen zu den eigenen Finanzdaten des Benutzers. Kein Zugriff auf technische Informationen der Anwendung.",
     "ai_domain_app_help": "Fragen dazu, wie die Anwendung aufgebaut ist und funktioniert. Kein Zugriff auf die Finanzdaten des Benutzers.",
-    "ai_domain_rule_help": "Sind beide aktiviert, wählen die Benutzer einen Bereich im KI-Arbeitsbereich. Ist nur einer aktiviert, gibt es keine Auswahl und dieser Bereich wird immer verwendet."
+    "ai_domain_rule_help": "Sind beide aktiviert, wählen die Benutzer einen Bereich im KI-Arbeitsbereich. Ist nur einer aktiviert, gibt es keine Auswahl und dieser Bereich wird immer verwendet.",
+    "ai_scope_no_info": "Mir fehlen die nötigen Informationen für eine Antwort, oder ich darf nicht darauf zugreifen.",
+    "ai_scope_refused_business": "Dieser Chat-Bereich („{current}“) deckt nur Ihre eigenen Finanzdaten ab, daher kann ich hier nicht antworten. Für Fragen dazu, wie die Anwendung aufgebaut ist und funktioniert, wechseln Sie den Chat-Bereich zu „{other}“.",
+    "ai_scope_refused_app": "Dieser Chat-Bereich („{current}“) deckt nur Aufbau und Funktionsweise der Anwendung ab, nicht Ihre Finanzdaten und nicht das Benutzerhandbuch, daher kann ich hier nicht antworten. Für das Benutzerhandbuch oder Ihre eigenen Daten wechseln Sie den Chat-Bereich zu „{other}“.",
+    "ai_scope_refused_locked": "Nur der Chat-Bereich „{current}“ ist aktiviert und deckt diese Frage nicht ab. Bitten Sie Ihren Administrator, „{other}“ unter Chat-Bereiche in den KI-Berater-Einstellungen zu aktivieren."
 }

@@ -62,7 +62,8 @@ class AgentGuideDownloadTest(TestCase):
         self.assertTrue(message["content"].startswith("# WealthFlow user guide"))
         file_res = self.client.get(f"/api/financial-advisor/ai/messages/{message['id']}/export/docx/")
         self.assertEqual(file_res.status_code, 200)
-        paragraphs = [p.text for p in docx.Document(io.BytesIO(b"".join(file_res.streaming_content) if file_res.streaming else file_res.content)).paragraphs]
+        document = docx.Document(io.BytesIO(b"".join(file_res.streaming_content) if file_res.streaming else file_res.content))
+        paragraphs = [p.text for p in document.paragraphs if p.style.name.startswith(("Heading", "Title"))]   # the contents list repeats each title on purpose
         self.assertEqual(sum(1 for t in paragraphs if t.startswith("WealthFlow user guide")), 1)
         self.assertFalse([t for t in paragraphs if "الفصل" in t or "دليل المستخدم" in t])      # none of the model's own drafts
         self.assertEqual(sum(1 for t in paragraphs if t == "Signing up and signing in"), 1)     # every chapter once

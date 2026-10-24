@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import datetime
 
-from django.test import SimpleTestCase, TestCase
+from django.test import TestCase
 
 from core.models import AppSettings
 from core.services.ai import domain_scope as scope
@@ -79,7 +79,7 @@ class DomainToolsTest(TestCase):
         self.assertTrue(everything >= business | app)
 
 
-class ScopeTest(SimpleTestCase):
+class ScopeTest(TestCase):
     def test_the_app_domain_loses_the_users_data_and_every_domain_gets_today(self):
         msgs = [{"role": "system", "content": "SYS\n=== FINANCIAL CONTEXT DATA ===\nBalance 9,999.00"}, {"role": "user", "content": "q"}]
         scope.apply_scope(msgs, APP)
@@ -89,13 +89,15 @@ class ScopeTest(SimpleTestCase):
         scope.apply_scope(keep, BUSINESS)
         self.assertIn("9,999", keep[0]["content"])
 
-    def test_a_question_outside_the_domain_gets_a_short_answer_in_the_users_language_without_another_domain(self):
-        self.assertEqual(scope.guard_answer(BUSINESS, "OUT_OF_SCOPE", "how is it built?", ""), scope.no_info("how is it built?"))
+    def test_a_question_outside_the_domain_gets_a_short_answer_in_the_users_language_that_names_where_to_switch(self):
+        english = scope.guard_answer(BUSINESS, "OUT_OF_SCOPE", "how is it built?", "")
+        self.assertEqual(english, scope.no_info("how is it built?", BUSINESS))
+        self.assertIn("Application Features & Architecture", english)      # the UI's own name of the domain to switch to
         arabic = scope.guard_answer(APP, "`OUT_OF_SCOPE`.", "كم رصيدي؟", "")
         self.assertTrue(any("\u0600" <= c <= "\u06ff" for c in arabic))
-        for text in (NO_INFO, arabic):
-            self.assertNotIn("domain", text.lower())
-            self.assertNotIn("switch", text.lower())
+        self.assertIn("تحليل الأعمال والبيانات", arabic)
+        for text in (english, arabic):
+            self.assertTrue(scope.is_no_info(text))
 
     def test_rows_dated_after_today_that_the_data_does_not_hold_are_dropped(self):
         today = datetime.date.today()
@@ -112,6 +114,6 @@ class ScopeTest(SimpleTestCase):
         self.assertIn(fake, scope.guard_answer(BUSINESS, f"- {fake} rent due", f"what is due on {fake}", ""))
 
     def test_the_app_domain_never_states_a_figure_it_cannot_have(self):
-        self.assertEqual(scope.guard_answer(APP, "Your October expenses are 4,500.00 EGP.", "list my expenses", "docs"), NO_INFO)
+        self.assertEqual(scope.guard_answer(APP, "Your October expenses are 4,500.00 EGP.", "list my expenses", "docs"), scope.no_info("list my expenses", APP))
         self.assertEqual(scope.guard_answer(APP, "The Balance screen has three tabs.", "what is on the screen", "docs"),
                          "The Balance screen has three tabs.")

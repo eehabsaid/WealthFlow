@@ -7,13 +7,14 @@ from io import BytesIO
 
 from docx import Document
 from docx.enum.section import WD_ORIENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
 from ..document import ExportDocument, is_bold_cell, plain, runs
 from ..registry import ExportFormat, register
-from .common import intro_lines, is_wide
+from .common import guide_blocks, intro_lines, is_wide
+from .docx_toc import add_contents, request_field_update, word_heading_level
+from .guide_html import is_guide
 
 _HEADER_SHADE = "D9E2F3"
 _TABLE_STYLE = "Table Grid"
@@ -21,8 +22,8 @@ _MAX_HEADING_LEVEL = 4
 
 
 def _rtl_paragraph(paragraph) -> None:
+    # w:bidi alone starts the text at the right edge; an explicit jc="right" is mirrored by Word / LibreOffice for a bidi paragraph
     paragraph._p.get_or_add_pPr().append(OxmlElement("w:bidi"))
-    paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
 
 def _add_runs(paragraph, text: str, rtl: bool, force_bold: bool = False) -> None:
@@ -65,6 +66,7 @@ def _add_table(document, block, rtl: bool) -> None:
 def _build(doc: ExportDocument, lang: str) -> bytes:
     rtl = lang == "ar"
     document = Document()
+    guide = is_guide(doc)
     if is_wide(doc):
         section = document.sections[0]
         section.orientation = WD_ORIENT.LANDSCAPE
@@ -75,17 +77,24 @@ def _build(doc: ExportDocument, lang: str) -> bytes:
             _add_runs(paragraph, text, rtl, force_bold=role == "question")
         if rtl:
             _rtl_paragraph(paragraph)
-    for block in doc.blocks:
+    blocks, contents_done = (guide_blocks(doc) if guide else doc.blocks), not guide
+    for block in blocks:
+        if not contents_done and block.kind == "heading" and block.level == 2:
+            add_contents(document, blocks, lang, rtl)
+            contents_done = True
         if block.kind == "table":
             _add_table(document, block, rtl)
             continue
         if block.kind == "heading":
-            paragraph = document.add_heading(plain(block.text), level=min(max(block.level, 1), _MAX_HEADING_LEVEL))
+            level = word_heading_level(block.level) if guide else min(max(block.level, 1), _MAX_HEADING_LEVEL)
+            paragraph = document.add_heading(plain(block.text), level=level)
         else:
             paragraph = document.add_paragraph(style="List Bullet" if block.kind == "bullet" else None)
             _add_runs(paragraph, block.text, rtl)
         if rtl:
             _rtl_paragraph(paragraph)
+    if guide:
+        request_field_update(document)
     buf = BytesIO()
     document.save(buf)
     return buf.getvalue()

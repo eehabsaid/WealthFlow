@@ -21,18 +21,18 @@ import time
 from .actions import strip_think
 from core.services.ai.domain_scope import no_info
 from core.services.ai.domains import APP
+from core.services.ai.protocol import ABOUT_APP_PROMPT, log_reply, parse_yes_no
 
 from .compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
 from .compose_sections import dedupe_headings, knowledge, missing_tabs, section_heading, tab_fallback, units
 from .compose_title import guide_title, with_app_name
 from .compose_translate import target_language, translate_markdown, uses_latin_script
-from .doc_path import choose_path, is_standalone_html_code, log_path, yes_no
+from .doc_path import choose_path, is_standalone_html_code, log_path
 from .refusal import is_refusal
 
 MIN_DOC_CHARS = 1500      # a real guide/report is longer than this; shorter text is an announcement or a stub
 MIN_ACCEPT_CHARS, MIN_SECTION_CHARS, TIMEOUT_S = 400, 120, 240
-_ABOUT_APP = ("Answer with exactly one word, YES or NO (in English, whatever language the request is in). Is the user asking for documentation of the application itself (a user guide, "
-              "manual or description of its screens and features), rather than a report or analysis of their own financial data?")
+
 
 
 def generated_file(steps: list) -> bool:
@@ -76,7 +76,9 @@ def _without_partial_tab(text: str) -> str:
 def _about_the_app(provider, user_text: str, out, deadline: float) -> bool:
     """The one-word question; an answer that is neither YES nor NO (empty) is asked once more with reasoning on."""
     for reasoning in ("off", "on"):
-        answer = yes_no(_ask(provider, out, _ABOUT_APP, user_text, deadline, temperature=0, reasoning=reasoning))
+        raw = _ask(provider, out, ABOUT_APP_PROMPT, user_text, deadline, temperature=0, reasoning=reasoning)
+        answer = parse_yes_no(raw)
+        log_reply("about_app", raw, answer)
         if answer is not None:
             break
     return bool(answer)
@@ -169,7 +171,7 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
     log_path(path, why, classifier, out)
     if user is not None and path == "guide":
         if domain == APP:
-            return no_info(user_text)
+            return no_info(user_text, domain)
 
         def ask(system: str, content: str, temperature: float = 0.2) -> str:
             return _ask(provider, out, system, content, deadline, temperature, reasoning="off")   # language questions and translation: no reasoning

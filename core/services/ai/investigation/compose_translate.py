@@ -14,6 +14,8 @@ import logging
 import re
 import time
 
+from core.services.ai.protocol import log_reply, parse_yes_no
+
 from .refusal import is_refusal
 
 logger = logging.getLogger(__name__)
@@ -24,6 +26,8 @@ MAX_LATIN_SHARE = 0.5     # a translation into a non-Latin language may keep pro
 _LANGUAGE_Q = ("Answer with one word only: the language the requested document must be written in. Use the language the request "
                "names; if it names none, the language the request itself is written in. Reply with the language's English name "
                "(for example English, Arabic, French) and nothing else.")
+_NAMED_Q = ("Answer YES or NO only. Does the request below explicitly ask for the document to be written in {language}? Answer NO when "
+            "the request only happens to be written in another language or names no language at all.")
 _LATIN_Q = "Answer YES or NO only. Is {language} normally written in the Latin alphabet (like English, French or German)?"
 _TRANSLATE = ("You are a professional translator. Translate the Markdown the user sends into {language}.\n"
               "- Keep the Markdown structure exactly: the same headings (#, ##, ###), bullet and numbered lists, blank lines.\n"
@@ -38,7 +42,10 @@ def target_language(ask, user_text: str) -> str:
     word = ask(_LANGUAGE_Q, user_text, 0).strip().strip(".\"'`*").split("\n")[0].strip()
     if not word or len(word) > 24 or not all(ch.isalpha() or ch in " -" for ch in word) or word.lower().startswith("english"):
         return ""
-    return word
+    raw = ask(_NAMED_Q.format(language=word), user_text, 0)   # a one-word answer can be wrong (an English request came back as Arabic): confirmed once
+    named = parse_yes_no(raw)
+    log_reply("language_named", raw, named)
+    return word if named is not False else ""
 
 
 def uses_latin_script(ask, language: str) -> bool:

@@ -9,7 +9,7 @@ from django.test import SimpleTestCase, TestCase
 from core.services.ai.investigation.compose import compose_document
 from core.services.ai.investigation.compose_descriptions import page_evidence
 from core.services.ai.investigation.compose_sections import units
-from core.services.ai.investigation.doc_path import yes_no
+from core.services.ai.protocol import parse_yes_no
 
 from .support import make_user
 from .test_compose_guide import GuideProvider, Result
@@ -50,13 +50,17 @@ class SplitPagesTest(TestCase):
 
 
 class OneWordAnswerTest(SimpleTestCase):
-    def test_answers_in_any_supported_language(self):
-        for word in ("YES", "yes.", "نعم", "نعم.", "Oui", "Ja", "Sí"):
-            self.assertIs(yes_no(word), True, word)
-        for word in ("NO", "لا", "Non", "Nein", "no."):
-            self.assertIs(yes_no(word), False, word)
-        for word in ("", "maybe", "هذا دليل"):
-            self.assertIsNone(yes_no(word), word)
+    """The classifier protocol is ONE fixed English protocol: lenient on case / markdown / punctuation, nothing else is an answer."""
+
+    def test_protocol_tokens_are_parsed_leniently(self):
+        for raw in ("YES", "yes.", " Yes! ", "**YES**", "`yes`", "<think>hmm no</think>YES", "YES\n"):
+            self.assertIs(parse_yes_no(raw), True, raw)
+        for raw in ("NO", "No.", "**no**", "<think>yes?</think> NO"):
+            self.assertIs(parse_yes_no(raw), False, raw)
+
+    def test_anything_else_is_no_usable_answer(self):
+        for raw in ("", None, "maybe", "هذا دليل", "نعم", "Oui", "!!!", "yes it is a guide", "GUIDE"):
+            self.assertIsNone(parse_yes_no(raw), raw)
 
 
 class ArabicHtmlRequestTest(TestCase):
@@ -64,7 +68,7 @@ class ArabicHtmlRequestTest(TestCase):
     def setUpTestData(cls):
         cls.admin = make_user("html_admin", sysadmin=True)
 
-    def test_a_yes_in_arabic_still_makes_the_app_write_the_html_guide(self):
+    def test_an_unusable_arabic_answer_falls_back_to_the_structural_rule_and_still_writes_the_guide(self):
         res = Result()
         text = compose_document(GuideProvider(about_app="نعم"), ARABIC_HTML, res, 24000, self.admin, strict=True)
         self.assertTrue(text.startswith("# "))

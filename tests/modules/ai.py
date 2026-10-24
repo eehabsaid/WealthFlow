@@ -14,6 +14,7 @@ Tests:
 11. Agent progress + Stop shown while a document is written and after reopening a running chat (tests/modules/ai_progress_resume.py).
 12. User guide as a styled HTML page (tests/modules/ai_guide_html.py).
 13. Clean end-user workspace: no right panel, welcome cards or scan button (tests/modules/ai_workspace_clean.py).
+14. Out-of-domain refusal texts in en/ar/fr/de name the UI's domains (tests/modules/ai_scope_refusal.py).
 """
 
 from tests.modules.ai_budgets import test_ai_budgets
@@ -25,6 +26,7 @@ from tests.modules.ai_guide_html import test_ai_guide_html
 from tests.modules.ai_progress_resume import test_ai_progress_resume
 from tests.modules.ai_think_setting import test_ai_think_setting
 from tests.modules.ai_workspace_clean import test_ai_workspace_clean
+from tests.modules.ai_scope_refusal import test_ai_scope_refusal
 
 
 def test_ai_module(context, reporter, screenshot_logger):
@@ -48,3 +50,4 @@ def test_ai_module(context, reporter, screenshot_logger):
     test_ai_progress_resume(context, reporter, screenshot_logger)
     test_ai_guide_html(context, reporter, screenshot_logger)
     test_ai_workspace_clean(context, reporter, screenshot_logger)
+    test_ai_scope_refusal(context, reporter, screenshot_logger)

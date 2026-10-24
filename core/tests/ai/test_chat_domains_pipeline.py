@@ -16,7 +16,9 @@ from core.tests.billing.test_support import grant_ai_workspace_access
 
 from .investigation.support import make_user, seed_tenant, tool_call
 from .investigation.test_compose_guide import ASK, GuideProvider, Result
-from .test_chat_domains import GP, NO_INFO, VIEW, names, set_domains
+from core.services.ai.domain_scope import no_info
+
+from .test_chat_domains import GP, VIEW, names, set_domains
 
 
 class DomainChatBase(TestCase):
@@ -43,7 +45,7 @@ class DomainChatBase(TestCase):
 class AskModeDomainTest(DomainChatBase):
     def test_the_app_domain_never_receives_the_users_data_and_invented_figures_become_no_information(self):
         content, prov = self.ask("list my expenses of october", ["Your October expenses: 4,500.00 EGP in total."], question_domain=APP)
-        self.assertEqual(content, NO_INFO)
+        self.assertEqual(content, no_info("list my expenses of october", APP))
         sent = json.dumps(prov.generate.call_args_list[0].args[0])
         self.assertNotIn("12,345.67", sent)
         self.assertIn(datetime.date.today().isoformat(), sent)
@@ -51,7 +53,7 @@ class AskModeDomainTest(DomainChatBase):
     def test_the_business_domain_gets_no_technical_tool_and_an_out_of_scope_question_is_not_escalated(self):
         set_domains(True, False)
         content, prov = self.ask("how is the application built?", ["OUT_OF_SCOPE"], ctx="", sources=(), question_domain=APP)   # the browser's choice is ignored
-        self.assertEqual(content, NO_INFO)
+        self.assertEqual(content, no_info("how is the application built?", BUSINESS))   # only Business is on: it says so and who can enable the other
         self.assertEqual(prov.generate.call_count, 1)                  # no investigator run on top
         offered = names(prov.generate.call_args_list[0].kwargs["tools"])
         self.assertFalse(offered & {"read_application_codebase", "read_live_app_structure", "suggest_app_feature"})
@@ -86,7 +88,7 @@ class AgentModeDomainTest(DomainChatBase):
     def test_app_only_agent_has_no_data_tool_and_an_out_of_scope_question_gets_no_information(self):
         set_domains(False, True)
         content, prov = self.agent("what did I spend in october?", ["OUT_OF_SCOPE"])
-        self.assertEqual(content, NO_INFO)
+        self.assertEqual(content, no_info("what did I spend in october?", APP))
         self.assertFalse(names(prov.generate.call_args_list[0].kwargs["tools"]) & set(DATA_TOOLS))
 
 
@@ -95,7 +97,7 @@ class GuideDomainTest(TestCase):
         admin = make_user("dom_guide_admin", sysadmin=True)
         prov = GuideProvider()
         prov.user = admin
-        self.assertEqual(compose_document(prov, ASK, Result(), 24000, admin, None, domain=APP), NO_INFO)
+        self.assertEqual(compose_document(prov, ASK, Result(), 24000, admin, None, domain=APP), no_info(ASK, APP))
         self.assertTrue(compose_document(prov, ASK, Result(), 24000, admin, None, domain=BUSINESS).startswith("# WealthFlow user guide"))
 
     def test_with_technical_information_switched_off_the_guide_uses_the_documented_screen_text_only(self):
