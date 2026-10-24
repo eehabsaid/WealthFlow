@@ -4,7 +4,7 @@ replies, the reasoning setting, translated-guide duplicates, the title and conte
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import patch
+
 
 from django.test import SimpleTestCase, TestCase
 

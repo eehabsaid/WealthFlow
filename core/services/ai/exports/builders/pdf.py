@@ -45,6 +45,41 @@ def _styles(rtl: bool):
 
 
 def _para(text: str, style, rtl: bool, bold_all: bool = False) -> Paragraph:
+    """Create a ReportLab Paragraph handling RTL Arabic text correctly.
+
+    For RTL languages we need to reverse the visual order per line while
+    preserving bold styling. The original implementation applied ``process_pdf_text``
+    to the whole paragraph before ReportLab performed line wrapping, which caused
+    multi‑line Arabic paragraphs to appear with their lines reversed. This version
+    splits the input into logical lines, processes each line individually, reverses
+    the order of runs within each line, and then joins the lines with ``<br/>``
+    tags so ReportLab can wrap them correctly.
+    """
+    if rtl:
+        # Split on explicit line breaks; if none, treat whole text as a single line.
+        lines = text.split('\n')
+        processed_lines = []
+        for line in lines:
+            # ``runs`` returns a list of (segment, is_bold) preserving markdown bold.
+            line_parts = []
+            for chunk, bold in runs(line) or [(plain(line), False)]:
+                # Apply Arabic reshaping and bidi handling.
+                safe = escape(process_pdf_text(chunk))
+                # Preserve bold styling after reversal.
+                line_parts.append(f"<b>{safe}</b>" if bold and not bold_all else safe)
+            # Reverse the visual order of the runs for RTL rendering.
+            line_parts = list(reversed(line_parts))
+            processed_lines.append(' '.join(line_parts))
+        # Join lines with a line‑break tag so ReportLab respects the original line breaks.
+        html = '<br/>'.join(processed_lines)
+        return Paragraph(html, style)
+    else:
+        # Existing LTR handling.
+        parts = []
+        for chunk, bold in runs(text) or [(plain(text), False)]:
+            safe = escape(process_pdf_text(chunk) if rtl or any("\u0600" <= ch <= "\u06FF" for ch in chunk) else chunk)
+            parts.append(f"<b>{safe}</b>" if bold and not bold_all else safe)
+        return Paragraph(''.join(parts), style)
     parts = []
     for chunk, bold in runs(text) or [(plain(text), False)]:
         safe = escape(process_pdf_text(chunk) if rtl or any("؀" <= ch <= "ۿ" for ch in chunk) else chunk)

@@ -44,7 +44,7 @@ class RealOllamaGuideTest(TestCase):
             ("fr", "Rédige un guide utilisateur HTML complet de l’application WealthFlow.", "ask", "on"),
             ("de", "Schreibe eine vollständige HTML-Bedienungsanleitung für die WealthFlow-App.", "agent", "off"),
         )
-        expected_chapters = {unit["heading"] for unit in units(self.admin) if unit["heading"]}
+
         for lang, request, mode, thinking in cases:
             with self.subTest(language=lang, mode=mode, thinking=thinking):
                 result = SimpleNamespace(content="Let me write the guide.", steps=[], results=[], reason="answered",
