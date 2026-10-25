@@ -80,6 +80,12 @@ async function _handleAIChatSubmit() {
       localStorage.setItem("wf_active_ai_conv", data.conversation_id);
     }
 
+    // Ask mode handed a request it cannot do (a guide to the app) to Agent mode: the mode bar follows.
+    if (data.chat_mode === "agent" && _aiChatMode() !== "agent") {
+      _aiState.chatMode = "agent";
+      _aiPaintModeSwitch();
+    }
+
     const aiMsg = data.message || {};
     _aiState.lastResponseMeta = {
       sources: aiMsg.sources || data.sources || [],

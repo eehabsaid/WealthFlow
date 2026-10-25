@@ -117,9 +117,9 @@ class AIChatView(View):
                 return followup
 
         # Stage 1a' — Agent mode (per-user Ask/Agent switch): the model investigates with tools from the first call.
-        agent_response = agent_stage(request=request, body=body, cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation,
-                                     user_msg=user_msg, user_text=user_text, route_text=route_text, trace=trace, provider=provider,
-                                     export_formats=export_formats, domain=domain)
+        stage_args = dict(request=request, body=body, cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation, user_msg=user_msg,
+                          user_text=user_text, route_text=route_text, trace=trace, provider=provider, export_formats=export_formats, domain=domain)
+        agent_response = agent_stage(**stage_args)
         if agent_response is not None:
             return agent_response
 
@@ -142,6 +142,10 @@ class AIChatView(View):
                 cache_mgr, progress_key, conversation, user_msg, user_text,
                 direct["content"], direct["tool_calls"], direct["sources"], request,
             )
+        # Ask mode cannot write a guide to the app (it invents the content): after the instant answers, hand such a request to Agent mode.
+        moved = agent_stage(**stage_args, allow_move=True)
+        if moved is not None:
+            return moved
         verified_data = None
         if not direct and domain != APP:   # the App domain never sees the user's data, computed or not
             # Direct Answers OFF (or no instant answer): the model still gets the exact computed rows, never just a summary
