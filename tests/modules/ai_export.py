@@ -39,6 +39,15 @@ def _download(page, link_locator, extension):
     return path
 
 
+def _footer_step(page, reporter, screenshot_logger, path):
+    """The downloaded Word file has a footer with a live PAGE field on its pages."""
+    import zipfile
+
+    with zipfile.ZipFile(path) as z:
+        xml = "".join(z.read(n).decode("utf8") for n in z.namelist() if n.startswith("word/footer"))
+    _step(reporter, screenshot_logger, page, "Word file has a footer with a page-number field", "PAGE" in xml, f"footer_has_PAGE={'PAGE' in xml}", "export_docx_footer")
+
+
 def _ask_in_ui(page, text):
     before = page.locator("a.ai-ws-link").count()
     page.fill("#ai-ws-input", text)
@@ -82,6 +91,8 @@ def _run(context, reporter, screenshot_logger):
             path = _download(page, link, extension)
             reporter.exports_tested.append(f"WealthFlow AI -> {label} answer download")
             _step(reporter, screenshot_logger, page, f"{label} link downloads a valid .{extension}", True, f"saved {path}", f"export_{extension}")
+            if extension == "docx":
+                _footer_step(page, reporter, screenshot_logger, path)
 
         first = page.evaluate(_FETCH, [CHAT, "POST", {"message": f"list the paid salaries for year {YEAR}"}])
         convo = (first.get("data") or {}).get("conversation_id")

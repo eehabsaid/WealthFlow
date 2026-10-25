@@ -13,6 +13,7 @@ from docx.oxml.ns import qn
 from ..document import ExportDocument, is_bold_cell, plain, runs
 from ..registry import ExportFormat, register
 from .common import guide_blocks, intro_lines, is_wide
+from .docx_footer import add_page_footer
 from .docx_toc import add_contents, request_field_update, word_heading_level
 from .guide_html import is_guide
 
@@ -93,6 +94,7 @@ def _build(doc: ExportDocument, lang: str) -> bytes:
             _add_runs(paragraph, block.text, rtl)
         if rtl:
             _rtl_paragraph(paragraph)
+    add_page_footer(document, doc.title, rtl)
     if guide:
         request_field_update(document)
     buf = BytesIO()
