@@ -14,6 +14,7 @@ from .pdf_flow import HeadingLtr, HeadingRtl, TocLine
 
 OUTLINE_LEVELS = (2, 3)       # markdown heading levels listed in the outline and the contents: chapters, tabs
 MAX_PASSES = 4
+MAX_TOC_ENTRIES = 80          # a longer guide lists only its chapters in the contents (the tabs stay in the outline panel): about one page
 
 
 class _GuideDoc(SimpleDocTemplate):
@@ -44,7 +45,8 @@ def build_guide(intro, body_factory, contents_title, rtl: bool, font: str, margi
     known: list[tuple[int, str, int, str]] = []
     data = b""
     for _ in range(MAX_PASSES):
-        lines = [TocLine(lv, t, pg, key, rtl, font) for lv, t, pg, key in known]
+        shown = [e for e in known if e[0] == OUTLINE_LEVELS[0]] if len(known) > MAX_TOC_ENTRIES else known
+        lines = [TocLine(lv, t, pg, key, rtl, font, 10.5 if lv == OUTLINE_LEVELS[0] else 9) for lv, t, pg, key in shown]
         story = intro() + ([contents_title(), *lines] if lines else []) + [PageBreak()] + body_factory()
         buf = BytesIO()
         doc = _GuideDoc(buf, pagesize=page, leftMargin=margin, rightMargin=margin, topMargin=margin, bottomMargin=margin + 6 * mm, title=title)

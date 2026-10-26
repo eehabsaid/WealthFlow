@@ -30,3 +30,16 @@ def guide_blocks(doc: ExportDocument) -> list:
             seen.add(key)
         out.append(block)
     return out
+
+
+def numbered_guide_blocks(doc: ExportDocument) -> list:
+    """guide_blocks with the chapter headings numbered ("1 Title", as the HTML guide does) so a chapter is told apart from its tabs."""
+    from dataclasses import replace
+
+    out, number = [], 0
+    for block in guide_blocks(doc):
+        if block.kind == "heading" and block.level == 2:
+            number += 1
+            block = replace(block, text=f"{number} {block.text}")
+        out.append(block)
+    return out

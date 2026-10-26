@@ -9,6 +9,7 @@ from django.test import TestCase
 
 from core.models import AppSettings
 from core.services.ai.app_pages import app_pages
+from core.services.ai.investigation.compose_flatten import STYLE_RULE
 from core.services.ai.investigation.compose_sections import units
 from core.views.ai_chat.chat_pipeline.investigate import ensure_document
 
@@ -132,7 +133,7 @@ class GuideTest(TestCase):
         prov = GuideProvider()
         self.run_guide(self.member, prov)
         sections = [c for c in prov.calls if "Write ONLY this section" in c["ask"]]
-        self.assertTrue(sections and all(c["system"] == "CUSTOM RULE: write in short bullet points." for c in sections))
+        self.assertTrue(sections and all(c["system"].startswith("CUSTOM RULE: write in short bullet points.") and c["system"].endswith(STYLE_RULE) for c in sections))   # the editable text first, then the fixed structure rule
 
     def test_a_report_on_the_users_own_data_is_one_call_from_the_tool_evidence(self):
         prov = GuideProvider(about_app="NO")

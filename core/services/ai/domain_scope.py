@@ -34,9 +34,7 @@ def scope_note(domain: str, today: datetime.date | None = None) -> str:
 
 def no_info(question: str = "", domain: str = "") -> str:
     """The refusal in the user's language, from the app's i18n; with `domain` it names what the domain covers and where to switch."""
-    from core.services.ai.query_engine.lexicon import language
-
-    return scope_text.refusal(language(question), domain)
+    return scope_text.refusal(scope_text.reply_language(question), domain)
 
 
 def is_no_info(content: str) -> bool:

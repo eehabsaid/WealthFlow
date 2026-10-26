@@ -47,7 +47,7 @@ class TocLine(Flowable):
         self.width = self.height = 0
 
     def wrap(self, availWidth, availHeight):
-        self.width, self.height = availWidth, self.size * 1.7
+        self.width, self.height = availWidth, self.size * (1.9 if self.level == 2 else 1.4)   # chapters get air, tabs stay compact (a long contents)
         return self.width, self.height
 
     def draw(self):

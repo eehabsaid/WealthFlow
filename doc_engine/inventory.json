@@ -2,7 +2,7 @@
   { "route": "dashboard", "title": "Dashboard", "nested_navigation": [
       { "name": "User Profile", "type": "modal", "trigger": "eval:window.showProfileModal && window.showProfileModal()" }
   ]},
-  { "route": "ai", "title": "WealthFlow AI", "purpose": "Ask for a complete user guide to learn every screen and tab available to your account. Choose Word, PDF, or HTML; Word and PDF pages are numbered; the HTML guide includes linked contents and works right-to-left in Arabic.", "nested_navigation": [
+  { "route": "ai", "title": "WealthFlow AI", "purpose": "Ask for a complete user guide to learn every screen and tab available to your account. Choose Word, PDF, or HTML; Word and PDF pages are numbered, chapters are numbered and each starts on a new page; the HTML guide includes linked contents and works right-to-left in Arabic.", "nested_navigation": [
       { "name": "Pinned Chats", "type": "modal", "trigger": "eval:window.openPinnedChatsModal && window.openPinnedChatsModal()" },
       { "name": "Prompt Library", "type": "modal", "trigger": "eval:window.openPromptLibraryModal && window.openPromptLibraryModal()" },
       { "name": "Create Prompt", "type": "modal", "trigger": "eval:if(window.openPromptLibraryModal){ window.openPromptLibraryModal(); setTimeout(() => { if(window._promptLibNewForm) window._promptLibNewForm(); }, 400); }" },

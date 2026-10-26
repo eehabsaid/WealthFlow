@@ -11,7 +11,7 @@ from core.views.ai_chat.chat_pipeline.investigate import ensure_document
 
 from core.tests.billing.test_support import grant_ai_workspace_access
 
-from .support import ScriptedProvider, make_user
+from .support import make_user
 from .test_compose_guide import ASK, GuideProvider, Result
 
 

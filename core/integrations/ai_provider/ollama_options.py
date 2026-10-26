@@ -11,6 +11,10 @@ def build_options(kwargs: dict[str, Any], user_options: dict[str, Any]) -> dict[
 
     options: dict[str, Any] = {}
     try:
+        options["num_gpu"] = int(kwargs.get("num_gpu") or user_options.get("num_gpu") or AppSettings.get("ai_num_gpu", "999"))
+    except (ValueError, TypeError):
+        pass
+    try:
         options["num_predict"] = int(kwargs.get("max_tokens") or user_options.get("max_tokens") or AppSettings.get("ai_max_tokens", "2048"))
     except (ValueError, TypeError):
         pass

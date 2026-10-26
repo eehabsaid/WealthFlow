@@ -12,13 +12,13 @@ from reportlab.lib.enums import TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from core.reports.pdf_font_utils import get_arabic_pdf_font, process_pdf_text
 
 from ..document import ExportDocument, is_bold_cell, plain, runs
 from ..registry import ExportFormat, register
-from .common import guide_blocks, intro_lines, is_wide
+from .common import intro_lines, is_wide, numbered_guide_blocks
 from .guide_html import is_guide
 from .pdf_flow import HeadingLtr, HeadingRtl, RtlParagraph
 from .pdf_guide import build_guide
@@ -96,7 +96,8 @@ def _table(block, styles, rtl: bool, total: float) -> Table:
 
 def _story(doc: ExportDocument, styles, rtl: bool, page, guide: bool, from_body: bool) -> list:
     """The flowables of the intro (title block + text before the first chapter) or of the body (everything after)."""
-    blocks, story, started = (guide_blocks(doc) if guide else doc.blocks), [], False
+    blocks, story, started = (numbered_guide_blocks(doc) if guide else doc.blocks), [], False
+    chapters = 0
     if not from_body:
         story = [_para(text, styles[role], rtl) for role, text in intro_lines(doc)]
     for block in blocks:
@@ -107,6 +108,9 @@ def _story(doc: ExportDocument, styles, rtl: bool, page, guide: bool, from_body:
             if block.rows or block.header:
                 story += [_table(block, styles, rtl, page[0] - 2 * _MARGIN), Spacer(1, 6)]
         elif block.kind == "heading":
+            chapters += 1 if guide and block.level == 2 else 0
+            if guide and block.level == 2 and chapters > 1:
+                story.append(PageBreak())   # every chapter starts on its own page (the first follows the contents page)
             story.append(_para(block.text, styles["heading"], rtl, heading_level=block.level if guide else 0))
         else:
             story.append(_para(("• " if block.kind == "bullet" else "") + block.text, styles["body"], rtl))

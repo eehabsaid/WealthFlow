@@ -9,7 +9,6 @@ from types import SimpleNamespace
 from django.test import SimpleTestCase, TestCase
 
 from core.integrations.ai_provider.ollama_payload import apply_runtime_flags, native_messages, resolve_think
-from core.models import AppSettings
 from core.services.ai.domains import APP
 from core.services.ai.investigation import loop as inv
 from core.services.ai.investigation.compose_sections import units
@@ -18,7 +17,7 @@ from core.services.ai.investigation.nudges import investigate_nudge
 from core.views.ai_chat.chat_pipeline.investigate import ensure_document
 
 from .support import ScriptedProvider, make_user, tool_call
-from .test_compose_guide import ASK, GuideProvider, Result, user_ok
+from .test_compose_guide import ASK, GuideProvider, Result
 
 
 def out(results=(), steps=(), content=""):

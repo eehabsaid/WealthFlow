@@ -12,6 +12,7 @@ from django.conf import settings
 from .domains import APP, BUSINESS, enabled_domains
 
 LANGS = ("en", "ar", "fr", "de")
+MIN_ARABIC_LETTERS = 4
 _DOMAIN_KEY = {BUSINESS: "ai_domain_business_data", APP: "ai_domain_app_features"}
 
 
@@ -26,6 +27,17 @@ def _locale(lang: str) -> dict:
 
 def text(lang: str, key: str) -> str:
     return str(_locale(lang).get(key) or _locale("en").get(key) or "")
+
+
+def reply_language(question: str) -> str:
+    """The language of the answer: query_engine's detector, except that a request mixing a few Arabic words with Latin terms (\"HTML\",
+    \"PDF\", product names) is still an Arabic request, not an English one."""
+    from core.services.ai.query_engine.lexicon import language
+
+    lang = language(question)
+    letters = [c for c in str(question or "") if c.isalpha()]
+    arabic = sum(1 for c in letters if "\u0600" <= c <= "\u06ff")
+    return "ar" if lang == "en" and arabic >= MIN_ARABIC_LETTERS and arabic >= 0.1 * len(letters) else lang
 
 
 def refusal(lang: str, domain: str = "") -> str:

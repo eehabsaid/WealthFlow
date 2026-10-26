@@ -12,7 +12,7 @@ from docx.oxml.ns import qn
 
 from ..document import ExportDocument, is_bold_cell, plain, runs
 from ..registry import ExportFormat, register
-from .common import guide_blocks, intro_lines, is_wide
+from .common import intro_lines, is_wide, numbered_guide_blocks
 from .docx_footer import add_page_footer
 from .docx_toc import add_contents, request_field_update, word_heading_level
 from .guide_html import is_guide
@@ -78,7 +78,7 @@ def _build(doc: ExportDocument, lang: str) -> bytes:
             _add_runs(paragraph, text, rtl, force_bold=role == "question")
         if rtl:
             _rtl_paragraph(paragraph)
-    blocks, contents_done = (guide_blocks(doc) if guide else doc.blocks), not guide
+    blocks, contents_done, chapters = (numbered_guide_blocks(doc) if guide else doc.blocks), not guide, 0
     for block in blocks:
         if not contents_done and block.kind == "heading" and block.level == 2:
             add_contents(document, blocks, lang, rtl)
@@ -89,6 +89,9 @@ def _build(doc: ExportDocument, lang: str) -> bytes:
         if block.kind == "heading":
             level = word_heading_level(block.level) if guide else min(max(block.level, 1), _MAX_HEADING_LEVEL)
             paragraph = document.add_heading(plain(block.text), level=level)
+            if guide and level == 1:
+                chapters += 1
+                paragraph.paragraph_format.page_break_before = chapters > 1   # a chapter starts on its own page (the first follows the contents)
         else:
             paragraph = document.add_paragraph(style="List Bullet" if block.kind == "bullet" else None)
             _add_runs(paragraph, block.text, rtl)

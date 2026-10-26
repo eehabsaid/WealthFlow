@@ -16,6 +16,7 @@ Tests:
 13. Clean end-user workspace: no right panel, welcome cards or scan button (tests/modules/ai_workspace_clean.py).
 14. Out-of-domain refusal texts in en/ar/fr/de name the UI's domains (tests/modules/ai_scope_refusal.py).
 15. Ask hands a guide request to Agent mode and the mode bar follows (tests/modules/ai_mode_follow.py).
+16. Guide files: numbered chapters, a page per chapter, short PDF contents (tests/modules/ai_guide_structure.py).
 """
 
 from tests.modules.ai_budgets import test_ai_budgets
@@ -24,6 +25,7 @@ from tests.modules.ai_export import test_ai_export
 from tests.modules.ai_wealth import test_ai_wealth
 from tests.modules.ai_agent import test_ai_agent
 from tests.modules.ai_guide_html import test_ai_guide_html
+from tests.modules.ai_guide_structure import test_ai_guide_structure
 from tests.modules.ai_progress_resume import test_ai_progress_resume
 from tests.modules.ai_think_setting import test_ai_think_setting
 from tests.modules.ai_workspace_clean import test_ai_workspace_clean
@@ -54,3 +56,4 @@ def test_ai_module(context, reporter, screenshot_logger):
     test_ai_workspace_clean(context, reporter, screenshot_logger)
     test_ai_scope_refusal(context, reporter, screenshot_logger)
     test_ai_mode_follow(context, reporter, screenshot_logger)
+    test_ai_guide_structure(context, reporter, screenshot_logger)

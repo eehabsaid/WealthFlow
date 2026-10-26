@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 
 from .compose_descriptions import page_evidence, slug
+from .compose_flatten import dialog_names
 from .compose_quality import clean_title, norm
 
 TABS_PER_UNIT = 5
@@ -32,7 +33,7 @@ def units(user) -> list[dict]:
             shown = _evidence(page, chunk, n == 1)
             shown_tabs = {t.get("name"): t for t in shown.get("tabs", [])}
             tab_items = [{**t, **{k: v for k, v in shown_tabs.get(t.get("name"), {}).items() if k in ("description", "dialogs")}} for t in chunk]
-            out.append({"title": title, "label": label, "part": (n, len(chunks)), "heading": heading, "page": str(page.get("title") or page.get("route") or ""), "tabs": [t.get("name", "") for t in chunk],
+            out.append({"title": title, "label": label, "part": (n, len(chunks)), "heading": heading, "page": str(page.get("title") or page.get("route") or ""), "tabs": [t.get("name", "") for t in chunk], "dialogs": dialog_names(shown),
                         "tab_items": tab_items,
                         "evidence": json.dumps(shown, ensure_ascii=False), "fallback": _fallback(heading, shown, tab_items)})
     return out
