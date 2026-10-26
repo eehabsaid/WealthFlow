@@ -59,13 +59,33 @@ def _children(prefix: str) -> list[dict]:
     for key in _all():
         if key.startswith(prefix) and "::" not in key[len(prefix):]:
             tail = key[len(prefix):]
-            label = _labels().get(tail, "").strip()
+            label = _labels().get(tail, "").strip() or str(_all()[key].get("title") or "").strip()   # an interface label, else the entry's own "title"
             name = label if 0 < len(label) <= 40 else re.sub(r"\d+$", "", tail.replace("_", " ").replace("-", " ").strip()).strip().title()   # "add_perdiem2" is a second text of "Add Perdiem"
             if name.lower() in seen:
                 continue
             seen.add(name.lower())
-            out.append({"name": name, "_key": tail, **(_entry(key) or {})})
+            out.append({"name": name, "_key": tail, "_labelled": 0 < len(label) <= 40, **(_entry(key) or {})})
     return out
+
+
+def _same(a: dict | None, b: dict | None) -> bool:
+    return bool(a and b and a.get("purpose") and a.get("purpose") == b.get("purpose") and a.get("steps") == b.get("steps"))
+
+
+def _unique(items: list[dict], parent: dict | None) -> list[dict]:
+    """The documented items without copies: an item with the very text of its tab / page (a placeholder copied into each of
+    its sub-tabs) or of another item is the same fact twice, and the guide would print an empty or doubled heading for it.
+    Of two identical items the one named by an interface label (what the user sees) is kept, not the one named from a key."""
+    kept: list[dict] = []
+    for item in items:
+        if _same(item, parent):
+            continue
+        twin = next((k for k in kept if _same(k, item)), None)
+        if twin is None:
+            kept.append(item)
+        elif item["_labelled"] and not twin["_labelled"]:
+            kept[kept.index(twin)] = item
+    return kept
 
 
 def page_evidence(route: str, tab_ids: list[str], page_tab_ids: list[str] | None = None, first: bool = True) -> dict:
@@ -78,6 +98,7 @@ def page_evidence(route: str, tab_ids: list[str], page_tab_ids: list[str] | None
     page_items = [i for i in _children(f"{route}::") if i["_key"] not in known] if first else []
     for alias in ALIASES.get(route, ()) if first else ():
         page_items += _children(f"{alias}::")
-    strip = lambda items: [{k: v for k, v in i.items() if k != "_key"} for i in items]  # noqa: E731
-    return {"description": _entry(route) if first else None, "items": strip(page_items),
-            "tabs": {tid: {"description": t["description"], "items": strip(t["items"])} for tid, t in tabs.items()}}
+    strip = lambda items: [{k: v for k, v in i.items() if k not in ("_key", "_labelled")} for i in items]  # noqa: E731
+    page = _entry(route) if first else None
+    return {"description": page, "items": strip(_unique(page_items, page)),
+            "tabs": {tid: {"description": t["description"], "items": strip(_unique(t["items"], t["description"]))} for tid, t in tabs.items()}}

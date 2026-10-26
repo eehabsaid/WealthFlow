@@ -777,6 +777,7 @@
     ]
   },
   "expenses::edit_add_expenses": {
+    "title": "Add or Edit Expense",
     "purpose": "Record a new expense or modify an existing transaction.",
     "steps": [
       "Click Add Expense.",

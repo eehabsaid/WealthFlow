@@ -23,7 +23,7 @@ from core.services.ai.domain_scope import no_info
 from core.services.ai.domains import APP
 from core.services.ai.protocol import ABOUT_APP_PROMPT, log_reply, parse_yes_no
 
-from .compose_flatten import STYLE_RULE, flatten_untabbed
+from .compose_flatten import STYLE_RULE, tidy
 from .compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
 from .compose_sections import dedupe_headings, knowledge, missing_tabs, section_heading, tab_fallback, units
 from .compose_title import guide_title, with_app_name
@@ -127,7 +127,7 @@ def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int
         if len(text) < MIN_SECTION_CHARS or is_refusal(text, True):
             parts.append(unit["fallback"])
             continue
-        section = flatten_untabbed(section_heading(text, unit), unit)   # a screen without documented tabs gets no invented sub-headings
+        section = tidy(section_heading(text, unit), unit)   # a screen without documented tabs gets no invented sub-headings
         section = replace_blocks(section, thin_tabs(unit, section, tab_fallback), tab_fallback)   # a stub where the app documents more
         for tab in missing_tabs(unit, section):   # the model dropped these tabs: nothing may be missing from the guide
             section += "\n\n" + _tab_section(provider, user, user_text, out, unit, tab, instructions, deadline)

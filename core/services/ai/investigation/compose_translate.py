@@ -30,7 +30,7 @@ _NAMED_Q = ("Answer YES or NO only. Does the request below explicitly ask for th
             "the request only happens to be written in another language or names no language at all.")
 _LATIN_Q = "Answer YES or NO only. Is {language} normally written in the Latin alphabet (like English, French or German)?"
 _TRANSLATE = ("You are a professional translator. Translate the Markdown the user sends into {language}.\n"
-              "- Keep the Markdown structure exactly: the same headings (#, ##, ###), bullet and numbered lists, blank lines.\n"
+              "- Keep the Markdown structure exactly: the same headings with the same number of # (#, ##, ###, ####), bullet and numbered lists, blank lines.\n"
               "- Translate every heading, sentence and list item; leave no English sentence behind.\n"
               "- Leave product names (WealthFlow), file names, URLs, code, numbers and currency codes unchanged.\n"
               "- A quoted button, tab or menu name: translate it and keep the original in parentheses.\n"
@@ -125,6 +125,16 @@ def acceptable(source: str, text: str, cut: bool, non_latin: bool) -> bool:
     return not rejection(source, text, cut, non_latin)
 
 
+def restore_levels(source: str, text: str) -> str:
+    """The translation with the heading levels of the source: a translator that turns \"####\" into \"###\" makes every dialog a tab.
+    Only done when both texts have the same number of headings (then the n-th heading is the n-th heading)."""
+    levels = [len(m.group(1)) for m in re.finditer(r"(?m)^\s*(#+)\s", source)]
+    if len(levels) != _headings(text):
+        return text
+    it = iter(levels)
+    return re.sub(r"(?m)^(\s*)#+(\s)", lambda m: f"{m.group(1)}{'#' * next(it)}{m.group(2)}", text)
+
+
 def _try(ask, cut, system: str, chunk: str, non_latin: bool, deadline: float, temperatures=(0.1, 0.3)) -> str:
     for temperature in temperatures:
         if time.monotonic() > deadline - 20:
@@ -133,7 +143,7 @@ def _try(ask, cut, system: str, chunk: str, non_latin: bool, deadline: float, te
         text = ask(system, chunk, temperature)
         why = rejection(chunk, text, cut(), non_latin)
         if not why:
-            return text.strip()
+            return restore_levels(chunk, text.strip())
         logger.info("[AI-TRANSLATE] rejected (%s) at temperature %s: %.60s", why, temperature, chunk.strip().replace("\n", " "))
     return ""
 
