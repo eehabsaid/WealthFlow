@@ -2,6 +2,7 @@ from django.urls import path
 from .. import views
 from core.services.billing import feature_required
 from core.views.ai_chat.ai_agent_views import AIChatModeView, AIStopView
+from core.views.ai_chat.ai_memory_views import AIMemoryDetailView, AIMemoryListView
 
 urlpatterns = [
     path(
@@ -108,6 +109,14 @@ urlpatterns = [
     path(
         "api/financial-advisor/ai/chat-mode/",
         feature_required("allows_ai_workspace")(AIChatModeView.as_view()),
+    ),
+    path(
+        "api/financial-advisor/ai/memory/",
+        feature_required("allows_ai_workspace")(AIMemoryListView.as_view()),
+    ),
+    path(
+        "api/financial-advisor/ai/memory/<int:pk>/",
+        feature_required("allows_ai_workspace")(AIMemoryDetailView.as_view()),
     ),
     path(
         "api/financial-advisor/ai/stop/",

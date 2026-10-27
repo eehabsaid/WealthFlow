@@ -9,7 +9,7 @@ from typing import Any
 from core.models import AppSettings
 
 
-def build_system_prompt(user: Any = None, query: str = "", knowledge_token_limit: int = 1500) -> str:
+def build_system_prompt(user: Any = None, query: str = "", knowledge_token_limit: int = 1500, memory_token_limit: int = 300) -> str:
     base_prompt = AppSettings.get(
         "ai_system_prompt",
         "You are the WealthFlow AI Financial Advisor. Answer financial questions strictly using provided data.",
@@ -67,4 +67,7 @@ def build_system_prompt(user: Any = None, query: str = "", knowledge_token_limit
         user=user, query=query, token_limit=knowledge_token_limit
     )
 
-    return f"{base_prompt}{guardrails}{knowledge_context}"
+    from core.services.ai.memory import build_memory_block
+    memory_context = build_memory_block(user, query, token_limit=memory_token_limit)
+
+    return f"{base_prompt}{guardrails}{knowledge_context}{memory_context}"

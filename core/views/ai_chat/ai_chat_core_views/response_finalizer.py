@@ -8,6 +8,7 @@ import json
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
+from django.utils import timezone
 
 from core.models import AIMessage
 from core.services.ai.exports import append_links, requested as detect_export_formats, formats_from_tool_calls
@@ -83,24 +84,11 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
         pass  # Knowledge extraction is non-critical — never fail a chat response
 
     try:
-        # Per-user learned notes (teach / correction), scoped to this user only
-        from core.services.ai.knowledge_engine import AIKnowledgeEngine
-        prev_assistant = (
-            conversation.messages.filter(role="assistant", is_deleted=False)
-            .exclude(id=ai_msg.id).order_by("-id").first()
-        )
-        prev_user = (
-            conversation.messages.filter(role="user", is_deleted=False)
-            .exclude(id=user_msg.id).order_by("-id").first()
-        )
-        AIKnowledgeEngine.record_user_notes_from_turn(
-            user=request.user,
-            user_text=user_text,
-            previous_question=prev_user.content if prev_user else "",
-            previous_used_tools=bool(prev_assistant and prev_assistant.tool_calls),
-        )
+        # The model reviews this chat in the background and updates its own cross-chat memory (never delays the reply)
+        from core.services.ai.memory import schedule_memory_update
+        schedule_memory_update(request.user.id, conversation.id)
     except Exception:
-        pass  # Knowledge extraction is non-critical — never fail a chat response
+        pass  # Memory is non-critical — never fail a chat response
 
     # Update conversation title if default
     if conversation.title in ("New Conversation", ""):
@@ -113,6 +101,7 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
         "user_message": user_msg.to_dict(),
         "message": ai_msg.to_dict(),
         "sources": sources,
+        "memory_since": timezone.now().isoformat(),   # the page polls for notes saved after this moment ("Saved memory" chip)
     }
     if extra:
         payload.update(extra)  # e.g. {"pipeline": trace} when ai_pipeline_debug is on

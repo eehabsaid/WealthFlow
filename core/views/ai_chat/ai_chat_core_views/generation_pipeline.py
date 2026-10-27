@@ -42,7 +42,7 @@ def _infer_question_domain(user_text: str) -> str | None:
 def build_context(request, conversation, user_msg, user_text):
     """Fetch prior messages and assemble the provider message sequence."""
     try:
-        history_window_size = int(AppSettings.get("ai_history_window", "10"))
+        history_window_size = int(AppSettings.get("ai_history_window", "10", user=request.user))
     except (ValueError, TypeError):
         history_window_size = 10
 

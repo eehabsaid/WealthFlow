@@ -55,7 +55,9 @@ Today is {today}. The current user is "{username}". You can read: the user's own
 def _tail(user, schemas, native_tools, code_ok) -> str:
     from core.services.ai.exports.settings import exports_enabled
 
-    text = (FILE_RULE if exports_enabled() else "") + (_map() if code_ok else "")
+    from core.services.ai.memory import build_memory_block_for_ui
+
+    text = (FILE_RULE if exports_enabled() else "") + (_map() if code_ok else "") + build_memory_block_for_ui(user)
     if not native_tools and schemas:
         lines = [f"- {s['function']['name']}: {s['function']['description']} args: "
                  f"{', '.join(s['function']['parameters'].get('properties', {}))}" for s in schemas]

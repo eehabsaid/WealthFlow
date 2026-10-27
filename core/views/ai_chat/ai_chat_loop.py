@@ -116,7 +116,7 @@ def run_tool_investigation_loop(provider, messages_seq, tools_param, tool_calls_
         executed_tool_calls.append(audit_rec)
 
         # Append tool result to messages for the next model call
-        tool_summary_str = compact_tool_result(tool_res)
+        tool_summary_str = compact_tool_result(tool_res, user=user)
         messages_seq.append(
             {
                 "role": "system",

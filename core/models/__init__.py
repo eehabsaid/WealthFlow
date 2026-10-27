@@ -27,6 +27,7 @@ from .ai_conversation import AIConversation
 from .ai_message import AIMessage
 from .ai_feedback import AIAnswerFeedback
 from .ai_knowledge import AIKnowledgeEntry
+from .ai_memory import AIMemoryNote
 from .ai_prompt import AIPromptCategory, AIPrompt
 from .billing import Plan, PlanPrice, Subscription, Invoice, UpgradeRequest
 from .legal import LegalVersion
@@ -101,6 +102,7 @@ __all__ = [
     "AIConversation",
     "AIMessage",
     "AIKnowledgeEntry",
+    "AIMemoryNote",
     "AIPromptCategory",
     "AIPrompt",
     "Plan",

@@ -79,7 +79,7 @@ class AgentModeDomainTest(DomainChatBase):
         content, prov = self.agent("what is my balance?", [tool_call("app_data_models"), "You have 12,345.67 EGP."], question_domain=APP)
         first = prov.generate.call_args_list[0]
         offered = names(first.kwargs["tools"])
-        self.assertTrue(offered <= set(DATA_TOOLS) | {"generate_file"}, offered)
+        self.assertTrue(offered <= set(DATA_TOOLS) | {"generate_file", "read_memory"}, offered)
         system = first.args[0][0]["content"]
         self.assertIn("SCOPE:", system)
         self.assertIn(datetime.date.today().isoformat(), system)

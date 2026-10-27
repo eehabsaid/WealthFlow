@@ -6,6 +6,7 @@ Tests:
  3. Creating a new chat session.
  4. Capture module view screenshot.
  5. Answer feedback (thumbs) and Learned Answers modal (tests/modules/ai_learning.py).
+    AI Memory page, endpoints and "Saved memory" chip (tests/modules/ai_memory.py).
  6. Instant answers for Budgets and Recurring transactions (tests/modules/ai_budgets.py).
  7. Downloadable answers: Excel / Word / PDF links in the chat, "export it" follow-ups, real downloads (tests/modules/ai_export.py).
  8. Net worth forecast answered from the wealth-growth projection, English and Arabic (tests/modules/ai_wealth.py).
@@ -22,6 +23,7 @@ Tests:
 
 from tests.modules.ai_budgets import test_ai_budgets
 from tests.modules.ai_learning import test_ai_learning
+from tests.modules.ai_memory import test_ai_memory
 from tests.modules.ai_export import test_ai_export
 from tests.modules.ai_wealth import test_ai_wealth
 from tests.modules.ai_agent import test_ai_agent
@@ -48,6 +50,7 @@ def test_ai_module(context, reporter, screenshot_logger):
         reporter.add_step("WealthFlow AI Workspace View", "WealthFlow AI", "FAIL", f"Exception: {ex}", screenshot_path=shot_err)
 
     test_ai_learning(context, reporter, screenshot_logger)
+    test_ai_memory(context, reporter, screenshot_logger)
     test_ai_budgets(context, reporter, screenshot_logger)
     test_ai_export(context, reporter, screenshot_logger)
     test_ai_wealth(context, reporter, screenshot_logger)

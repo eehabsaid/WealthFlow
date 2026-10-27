@@ -18,11 +18,11 @@ _MAX_PASSES = 60
 _MAX_STR = 400
 
 
-def tool_result_max_chars() -> int:
+def tool_result_max_chars(user: Any = None) -> int:
     from core.models import AppSettings
 
     try:
-        tokens = int(AppSettings.get("ai_context_token_budget", "2048"))
+        tokens = int(AppSettings.get("ai_context_token_budget", "2048", user=user))
     except (TypeError, ValueError):
         tokens = 2048
     return max(_MIN_CHARS, tokens * 4)
@@ -61,9 +61,9 @@ def _clip_long_strings(node: Any, depth: int = 0) -> Any:
     return node
 
 
-def compact_tool_result(result: Any, max_chars: int | None = None) -> str:
+def compact_tool_result(result: Any, max_chars: int | None = None, user: Any = None) -> str:
     """JSON string of `result`, at most ~max_chars long (plus a short truncation note)."""
-    limit = max_chars or tool_result_max_chars()
+    limit = max_chars or tool_result_max_chars(user)
     text = _dumps(result)
     if len(text) <= limit or not isinstance(result, dict):
         return text if len(text) <= limit else text[:limit] + '…[TRUNCATED]'

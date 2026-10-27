@@ -95,6 +95,25 @@ class BackupCoverageTests(TestCase):
         finally:
             shutil.rmtree(tmp)
 
+    def test_ai_memory_notes_round_trip(self):
+        """AI memory notes survive backup -> delete -> restore, still owned by their user."""
+        from core.models import AIMemoryNote
+
+        user = get_user_model().objects.create_user(username="bk_ai_mem_user", password="Pw123456!")
+        AIMemoryNote.objects.create(user=user, title="Savings goal", body="500000 EGP by June 2027 (2026-10-27)")
+        tmp = tempfile.mkdtemp()
+        try:
+            path = os.path.join(tmp, "m.wfbackup")
+            call_command("backup_data", output=tmp, filename="m.wfbackup", no_compress=True)
+            with zipfile.ZipFile(path) as zf:
+                self.assertTrue(any(n.endswith("_aimemorynote.json") for n in zf.namelist()), zf.namelist())
+            AIMemoryNote.objects.all().delete()
+            call_command("restore_data", path)
+            note = AIMemoryNote.objects.get(user=user)
+            self.assertEqual((note.title, note.body), ("Savings goal", "500000 EGP by June 2027 (2026-10-27)"))
+        finally:
+            shutil.rmtree(tmp)
+
 
 class AuthAndSecurityTablesRoundTripTests(TestCase):
     """Login attempts, admin log, permissions and who-holds-what survive backup -> delete -> restore."""

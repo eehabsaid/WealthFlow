@@ -20,6 +20,7 @@ async function _handleAIChatSubmit() {
   inputEl.value = "";
   inputEl.style.height = "auto";
 
+  window.AIMemChip?.clear();
   _appendMessage("user", message, null, null, new Date().toISOString());
 
   // Pre-create conversation if new so conversation ID is immediately known & persisted
@@ -117,6 +118,7 @@ async function _handleAIChatSubmit() {
     );
 
     _fetchAIChatConversations();
+    window.AIMemChip?.watch(data.memory_since);
   } catch (err) {
     _stopProgressPolling();
     _setLoadingUI(false);

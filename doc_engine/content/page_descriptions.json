@@ -50,6 +50,14 @@
       "Click the clear button on a row to remove your rating; a cleared answer is no longer reused."
     ]
   },
+  "ai::ai_memory": {
+    "purpose": "See the notes the AI wrote for itself from your earlier chats (goals, results with dates, decisions, preferences). The AI saves and updates them on its own and uses them as reminders in new chats, re-checking live data when accuracy matters.",
+    "steps": [
+      "Open AI Memory from the AI Workspace sidebar card, or click the Saved memory chip that appears under a chat after the AI stores something.",
+      "Read each note with the date it was last updated.",
+      "Click the pencil to edit a note, or the bin to delete it; the AI stops using a deleted note."
+    ]
+  },
   "ai::knowledge_search": {
     "purpose": "Search across all Knowledge Base entries and inject relevant results directly into the active AI chat conversation.",
     "steps": [

@@ -60,6 +60,10 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
             "temperature": AppSettings.get("ai_temperature", None, user=user),
             "max_tokens": AppSettings.get("ai_max_tokens", None, user=user),
             "keep_alive": AppSettings.get("ai_keep_alive", None, user=user),
+            "top_k": AppSettings.get("ai_top_k", None, user=user),
+            "top_p": AppSettings.get("ai_top_p", None, user=user),
+            "repeat_penalty": AppSettings.get("ai_repeat_penalty", None, user=user),
+            "seed": AppSettings.get("ai_seed", None, user=user),
         }
         return inst
 

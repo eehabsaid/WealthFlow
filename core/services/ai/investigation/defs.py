@@ -69,4 +69,6 @@ def investigation_tool_schemas(user, domain: str = "") -> list[dict[str, Any]]:
         return (code_ok or name not in CODE_TOOLS) and not (domain == APP and name in DATA_TOOLS)
 
     schemas = [d["schema"] for n, d in INVESTIGATION_TOOL_DEFS.items() if allowed(n)]
-    return schemas + ([file_tool["schema"]] if exports_enabled() else [])
+    from core.services.ai.memory.reader import TOOL_DEF as memory_tool
+
+    return schemas + ([file_tool["schema"]] if exports_enabled() else []) + [memory_tool["schema"]]

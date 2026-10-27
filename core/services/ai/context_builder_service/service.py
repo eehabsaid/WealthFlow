@@ -68,8 +68,8 @@ class ContextBuilderService:
     Enforces priority-based context assembly to prevent JSON truncation syntax corruption.
     """
 
-    def get_token_budget(self) -> int:
-        budget_str = AppSettings.get("ai_context_token_budget", "2048")
+    def get_token_budget(self, user: Any = None) -> int:
+        budget_str = AppSettings.get("ai_context_token_budget", "2048", user=user)
         try:
             val = int(budget_str)
             return max(1000, val)
@@ -112,8 +112,9 @@ class ContextBuilderService:
         # Cap the system-knowledge-manifest section as a fraction of the real
         # configured budget instead of a hardcoded 1500-token limit that
         # ignored ai_context_token_budget entirely.
-        knowledge_token_limit = min(1500, max(300, self.get_token_budget() // 4))
-        return build_system_prompt(user=user, query=query, knowledge_token_limit=knowledge_token_limit)
+        knowledge_token_limit = min(1500, max(300, self.get_token_budget(user) // 4))
+        memory_token_limit = max(150, self.get_token_budget(user) // 5)   # the memory index takes at most a fifth of the UI-set budget
+        return build_system_prompt(user=user, query=query, knowledge_token_limit=knowledge_token_limit, memory_token_limit=memory_token_limit)
 
     def summarize_payload(self, service_key: str, payload: dict[str, Any]) -> str:
         return summarize_payload(service_key, payload)
@@ -134,7 +135,7 @@ class ContextBuilderService:
         5. Historical Monthly Timeline Entries & Raw Items (Degraded Cleanly Section-by-Section if Budget Limit Reached)
         Guarantees 0% broken JSON syntax.
         """
-        token_budget = self.get_token_budget()
+        token_budget = self.get_token_budget(user)
         max_chars = token_budget * 4
 
         # Guaranteed minimum room for actual financial/business data, independent

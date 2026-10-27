@@ -71,7 +71,7 @@ class DomainToolsTest(TestCase):
         admin = make_user("dom_admin", sysadmin=True)
         business, app, everything = (names(investigation_tool_schemas(admin, d)) for d in (BUSINESS, APP, ""))
         self.assertTrue(business >= {"app_data_query", "app_data_models"})
-        self.assertTrue(business <= set(DATA_TOOLS) | {"generate_file"}, business)
+        self.assertTrue(business <= set(DATA_TOOLS) | {"generate_file", "read_memory"}, business)
         for technical in ("app_read_file", "app_grep", "app_routes", "app_knowledge_search", "app_i18n_search"):
             self.assertNotIn(technical, business)
             self.assertIn(technical, app)
