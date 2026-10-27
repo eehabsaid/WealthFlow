@@ -86,3 +86,49 @@ class DocumentedStepsTest(SimpleTestCase):
         names = [i["name"] for i in page_evidence("expenses", [])["items"]]
         self.assertIn("Add or Edit Expense", names)
         self.assertNotIn("Edit Add Expenses", names)
+
+
+class TranslationGuardsTest(SimpleTestCase):
+    SOURCE = "### A\n\nPurpose one is here.\n\n1. Step.\n\n### B\n\nPurpose two is here.\n\n1. Step.\n\n### C\n\nPurpose three.\n\n1. Step.\n\n### D\n\nPurpose four.\n\n1. Step.\n"
+
+    def test_a_translation_that_drops_purpose_sentences_is_rejected(self):
+        from core.services.ai.investigation.compose_translate import rejection
+
+        kept = "### أ\n\nالغرض الأول هنا.\n\n1. خطوة.\n\n### ب\n\nالغرض الثاني هنا.\n\n1. خطوة.\n\n### ج\n\nالغرض الثالث.\n\n1. خطوة.\n\n### د\n\nالغرض الرابع.\n\n1. خطوة.\n"
+        dropped = "### أ\n\nالغرض الأول هنا.\n\n1. خطوة.\n\n### ب\n\n1. خطوة.\n\n### ج\n\n1. خطوة.\n\n### د\n\n1. خطوة.\n"
+        self.assertEqual(rejection(self.SOURCE, kept, False, True), "")
+        self.assertEqual(rejection(self.SOURCE, dropped, False, True), "paragraphs lost")
+
+    def test_translated_headings_lose_a_trailing_english_name_but_steps_keep_theirs(self):
+        from core.services.ai.investigation.compose_translate import clean_headings
+
+        text = "### تبادل العملات (Currency Exchange)\n\n1. انقر على تبادل جديد (New Exchange).\n#### إضافة (Add Role)\n### Plain English (Heading)\n"
+        out = clean_headings(text)
+        self.assertEqual(out.splitlines()[0], "### تبادل العملات")
+        self.assertIn("(New Exchange)", out)
+        self.assertEqual(out.splitlines()[2], "#### إضافة")
+        self.assertEqual(out.splitlines()[3], "### Plain English (Heading)")    # a heading with no translated text is left alone
+
+
+class FinalStepsPassTest(SimpleTestCase):
+    def test_the_finished_guide_gets_documented_steps_whatever_happened_before(self):
+        from core.services.ai.investigation.compose_flatten import ensure_steps_document
+
+        unit = next(u for u in DocumentedStepsTest._units() if "Card Renewal Fee" in u["tabs"])
+        guide = f"# Guide\n\nIntro.\n\n## {unit['title']}\n\nChapter text.\n\n### Card Renewal Fee\n\nRecord fees.\n\n#### Add Card Renewal Fee\n\nAdd a fee.\n\n## Other\n\n### Card Renewal Fee\n\nNot this chapter.\n"
+        out = ensure_steps_document(guide, [unit])
+        self.assertIn("1. Open Balance > Card Renewal Fee.", out)
+        self.assertIn("1. Click New Card Renewal Fee (or Edit on a row).", out)
+        self.assertEqual(out.count("Open Balance > Card Renewal Fee."), 1)     # only in the chapter of that screen
+        self.assertTrue(out.startswith("# Guide\n\nIntro."))
+
+
+class DialogLevelTest(SimpleTestCase):
+    def test_documented_dialogs_written_as_tabs_go_back_to_dialog_level(self):
+        from core.services.ai.investigation.compose_flatten import tidy
+
+        unit = next(u for u in DocumentedStepsTest._units() if "Assets" in u["tabs"] and u["title"] == "Fixed Assets")
+        text = ("## Fixed Assets\n\nIntro.\n\n### Assets\n\nManage assets.\n\n1. Open.\n\n### General\n\nGeneral info.\n\n1. Open General.\n\n"
+                "### Dashboard\n\nSummary.\n\n1. Open.\n")
+        heads = [x for x in tidy(text, unit).splitlines() if x.startswith("#")]
+        self.assertEqual(heads, ["## Fixed Assets", "### Assets", "#### General", "### Dashboard"])

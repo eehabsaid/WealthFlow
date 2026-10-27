@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 CHUNK_CHARS, PIECE_CHARS = 2200, 900
 MAX_COPIED_SHARE, MIN_WORDS_TO_JUDGE = 0.6, 12   # share of a translation's words copied from the source = untranslated (any language)
+MIN_PARAGRAPHS, MIN_KEPT_PARAGRAPHS = 4, 0.8   # a translation keeps at least this share of the source's prose lines
 MAX_LATIN_SHARE = 0.5     # a translation into a non-Latin language may keep product names / quoted labels, not whole sentences
 _LANGUAGE_Q = ("Answer with one word only: the language the requested document must be written in. Use the language the request "
                "names; if it names none, the language the request itself is written in. Reply with the language's English name "
@@ -33,7 +34,10 @@ _TRANSLATE = ("You are a professional translator. Translate the Markdown the use
               "- Keep the Markdown structure exactly: the same headings with the same number of # (#, ##, ###, ####), bullet and numbered lists, blank lines.\n"
               "- Translate every heading, sentence and list item; leave no English sentence behind.\n"
               "- Leave product names (WealthFlow), file names, URLs, code, numbers and currency codes unchanged.\n"
-              "- A quoted button, tab or menu name: translate it and keep the original in parentheses.\n"
+              "- A quoted button, tab or menu name inside a sentence or step: translate it and keep the original in parentheses. "
+              "A heading is translated only, without the original in parentheses.\n"
+              "- Keep every paragraph and list item: one translated line for each source line, never drop or merge a sentence.\n"
+              "- Translate the same English term the same way everywhere in the text.\n"
               "Reply with the translation only, without comments.")
 
 
@@ -100,6 +104,17 @@ def split_chunks(markdown: str, limit: int = CHUNK_CHARS) -> list[str]:
     return [c for c in out if c.strip()]
 
 
+def _paragraphs(text: str) -> int:
+    """The prose lines of a text: not headings, not list items, not blank."""
+    return sum(1 for line in text.splitlines() if line.strip() and not line.lstrip().startswith(("#", "-", "*", "\u2022")) and not re.match(r"\s*\d+[.)]\s", line))
+
+
+def clean_headings(text: str) -> str:
+    """A translated heading without the English name some translators append in parentheses (steps keep theirs, headings never)."""
+    return re.sub(r"(?m)^(\s*#+\s[^\n]*?[^\W\d_][^\n]*?)\s*\([A-Za-z][^()\n]*\)\s*$",
+                  lambda m: m.group(1) if re.search(r"[^\x00-\x7f]", m.group(1)) else m.group(0), text)
+
+
 def _headings(text: str) -> int:
     return sum(1 for line in text.splitlines() if line.lstrip().startswith("#"))
 
@@ -118,6 +133,8 @@ def rejection(source: str, text: str, cut: bool, non_latin: bool) -> str:
         return "still mostly English (alphabet)"
     if copied_share(source, text) > MAX_COPIED_SHARE:
         return "still mostly the source language (copied words)"   # also for languages written in the same alphabet (French, German...)
+    if _paragraphs(source) >= MIN_PARAGRAPHS and _paragraphs(text) < MIN_KEPT_PARAGRAPHS * _paragraphs(source):
+        return "paragraphs lost"   # a purpose sentence dropped under a heading is not noticed by the other checks
     return "" if abs(_headings(text) - _headings(source)) <= max(1, _headings(source) // 3) else "headings lost or added"
 
 
@@ -143,7 +160,7 @@ def _try(ask, cut, system: str, chunk: str, non_latin: bool, deadline: float, te
         text = ask(system, chunk, temperature)
         why = rejection(chunk, text, cut(), non_latin)
         if not why:
-            return restore_levels(chunk, text.strip())
+            return clean_headings(restore_levels(chunk, text.strip())) if non_latin else restore_levels(chunk, text.strip())
         logger.info("[AI-TRANSLATE] rejected (%s) at temperature %s: %.60s", why, temperature, chunk.strip().replace("\n", " "))
     return ""
 

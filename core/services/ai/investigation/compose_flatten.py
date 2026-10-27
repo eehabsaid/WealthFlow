@@ -9,9 +9,12 @@ between sections (and never between languages: the translation has no label to t
 from __future__ import annotations
 
 import json
+import logging
 import re
 
 from .compose_quality import norm
+
+logger = logging.getLogger(__name__)
 
 STYLE_RULE = ("\n\nGUIDE STYLE: write the purpose of a screen, tab or dialog as a plain paragraph and its steps as a numbered list, "
               "without a label such as 'Purpose' or 'Steps' in front of them. Use a sub-heading (###) only for a tab that is listed "
@@ -89,30 +92,64 @@ def _documented_steps(unit: dict) -> dict[str, list[str]]:
     return found
 
 
-def ensure_steps(section: str, unit: dict) -> str:
-    """A tab / dialog the app documents with steps gets them: the model sometimes writes the purpose only. The steps are the
-    documented ones, appended as a numbered list under the heading that has no list at all."""
-    steps = _documented_steps(unit)
-    lines, out, i = section.splitlines(), [], 0
+def _apply_steps(section: str, steps: dict[str, list[str]]) -> tuple[str, list[str]]:
+    lines, out, added, i = section.splitlines(), [], [], 0
     while i < len(lines):
         line = lines[i]
         out.append(line)
         i += 1
-        if line.startswith("###") and norm(line.lstrip("#")) in steps:
+        key = norm(line.lstrip("#")) if line.startswith("###") else ""
+        if key in steps:
             j = i
             while j < len(lines) and not lines[j].startswith("#"):
                 j += 1
             body = lines[i:j]
             out.extend(body)
             if not any(_LIST_LINE.match(x) for x in body):
-                out.extend(["", *(f"{n}. {step}" for n, step in enumerate(steps[norm(line.lstrip("#"))], 1)), ""])
+                out.extend(["", *(f"{n}. {step}" for n, step in enumerate(steps[key], 1)), ""])
+                added.append(line.lstrip("# ").strip())
             i = j
-    return re.sub(r"\n{3,}", "\n\n", "\n".join(out)).rstrip()
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(out)).rstrip(), added
+
+
+def ensure_steps(section: str, unit: dict) -> str:
+    """A tab / dialog the app documents with steps gets them: the model sometimes writes the purpose only. The steps are the
+    documented ones, appended as a numbered list under the heading that has no list at all."""
+    return _apply_steps(section, _documented_steps(unit))[0]
+
+
+def ensure_steps_document(markdown: str, plan: list[dict]) -> str:
+    """The same for the finished guide, chapter by chapter, after every later step (replaced blocks, tabs written on their own,
+    de-duplication) so nothing between the model and the file can leave a documented item without its steps."""
+    steps_of: dict[str, dict[str, list[str]]] = {}
+    for unit in plan:
+        steps_of.setdefault(norm(unit.get("title") or ""), {}).update({k: v for k, v in _documented_steps(unit).items()})
+    out, added = [], []
+    for chapter in re.split(r"(?m)^(?=## )", markdown):
+        first = chapter.split("\n", 1)[0]
+        text, names = _apply_steps(chapter, steps_of.get(norm(first.lstrip("#")), {})) if first.startswith("## ") else (chapter, [])
+        out.append(text)
+        added += names
+    if added:
+        logger.info("[AI-GUIDE-STEPS] documented steps added to %d item(s): %s", len(added), ", ".join(added[:12]))
+    return "\n\n".join(x.strip() for x in out if x.strip())
+
+
+def demote_dialogs(section: str, unit: dict) -> str:
+    """A documented dialog the model wrote as a tab (\"### General\" under the tab Assets) goes back to dialog level (####): the
+    guide's levels are the app's (page > tab > dialog), not the model's, and a translation of it must not change them either."""
+    try:
+        shown = json.loads(unit.get("evidence") or "{}")
+    except ValueError:
+        return section
+    tabs = {norm(t.get("name") or "") for t in shown.get("tabs", [])}
+    dialogs = {norm(d.get("name") if isinstance(d, dict) else d) for t in shown.get("tabs", []) for d in t.get("dialogs", [])} - tabs - {""}
+    return "\n".join(f"#{line}" if line.startswith("### ") and norm(line.lstrip("#")) in dialogs else line for line in section.splitlines())
 
 
 def tidy(section: str, unit: dict) -> str:
     """One section as it goes into the guide: no invented sub-headings on a tab-less screen, no introduction repeated by a
     continuation part, no empty headings."""
-    section = flatten_untabbed(section, unit)
+    section = demote_dialogs(flatten_untabbed(section, unit), unit)
     section = drop_intro(section) if unit.get("part", (1, 1))[0] > 1 else section
     return ensure_steps(drop_empty_headings(section), unit)

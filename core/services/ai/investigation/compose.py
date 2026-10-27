@@ -23,7 +23,7 @@ from core.services.ai.domain_scope import no_info
 from core.services.ai.domains import APP
 from core.services.ai.protocol import ABOUT_APP_PROMPT, log_reply, parse_yes_no
 
-from .compose_flatten import STYLE_RULE, tidy
+from .compose_flatten import STYLE_RULE, ensure_steps_document, tidy
 from .compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
 from .compose_sections import dedupe_headings, knowledge, missing_tabs, section_heading, tab_fallback, units
 from .compose_title import guide_title, with_app_name
@@ -133,7 +133,7 @@ def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int
             section += "\n\n" + _tab_section(provider, user, user_text, out, unit, tab, instructions, deadline)
         parts.append(section)
     protect = frozenset({norm(u["page"]) for u in plan} | {norm(t) for u in plan for t in u["tabs"]} - {""})
-    return _qa(sanitize(dedupe_headings("\n\n".join(parts)), protect=protect))
+    return _qa(ensure_steps_document(sanitize(dedupe_headings("\n\n".join(parts)), protect=protect), plan))
 
 
 def _single(provider, user_text: str, out, instructions: str, ctx_chars: int, deadline: float) -> str:
