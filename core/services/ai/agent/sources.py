@@ -1,7 +1,7 @@
 """Sources for an Agent answer, built ONLY from the tool calls that really ran (never from what the model says it used).
 
 Returns the coarse keys the app already stores (investigation_code / _data / _docs) plus one entry per real read:
-  agent:code:<path>:<start>-<end>   agent:data:<Model>   agent:figures:<capability>   agent:docs:<query>
+  agent:code:<path>:<start>-<end>   agent:data:<Model>   agent:figures:<capability>   agent:screen:<endpoint>   agent:docs:<query>
   agent:app:<route or term>         agent:git:<path>
 """
 
@@ -30,6 +30,8 @@ def _ref(tool: str, args: dict) -> str:
         return f"agent:git:{_arg(args, 'path')}"
     if tool in ("app_data_query", "app_data_models"):
         return f"agent:data:{_arg(args, 'model') or 'tables'}"
+    if tool == "app_screen_data":
+        return f"agent:screen:{_arg(args, 'path', 'search') or 'groups'}"
     if tool == "app_computed_figures":
         return f"agent:figures:{_arg(args, 'question')}"
     if tool == "app_knowledge_search":
@@ -46,7 +48,7 @@ def build_sources(steps: list) -> list[str]:
     keys = []
     if tools & (set(CODE_TOOLS) | {"app_callers", "app_git_history", "app_trace_feature"}):
         keys.append("investigation_code")
-    if tools & {"app_data_models", "app_data_query", "app_computed_figures"}:
+    if tools & {"app_data_models", "app_data_query", "app_computed_figures", "app_screen_data"}:
         keys.append("investigation_data")
     if tools & {"app_knowledge_search", "app_routes", "app_i18n_search"}:
         keys.append("investigation_docs")

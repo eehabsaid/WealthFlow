@@ -7,11 +7,14 @@ from typing import Any
 from . import app_tools as at
 from . import code_extra as cx
 from .defs_helpers import I as _I, S as _S, p as _p, tool as _tool
+from core.services.ai.screen_data import tool as screen_tool
 
 AGENT_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
+    _tool(screen_tool.NAME, screen_tool.DESCRIPTION, screen_tool.handler, screen_tool.PROPERTIES),
     _tool("app_computed_figures",
-          "Ready-made, verified figures for the CURRENT USER from the app's own calculators: net worth, balances, salary, "
-          "expense totals/averages, forecasts. Ask it as a plain question. Prefer it before computing anything by hand.",
+          "Quick figures for the CURRENT USER that the chat can answer directly (net worth, balances, salary, expense totals and "
+          "averages). It does NOT replace a screen: for anything a screen calculates (projections, forecasts, cash flow) use "
+          "app_screen_data. Ask it as a plain question.",
           at.computed_figures, {"question": _p(_S, "e.g. 'what is my net worth' or 'average monthly expenses in 2026'")}, ["question"]),
     _tool("app_routes", "List the app's screens (route, tabs, dialogs/actions inside them); filter with a word of the screen name.",
           at.routes, {"query": _p(_S, "optional word, e.g. 'gold' or 'exchange'")}),

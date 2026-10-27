@@ -70,4 +70,6 @@ def computed_figures(user, params):
     if not figures:
         return {"question": question, "figures": None,
                 "note": "no ready-made computation for this question; use app_data_models + app_data_query to compute it from the records"}
-    return {"question": question, "figures": figures}
+    return {"question": question, "figures": figures,
+            "note": "quick figures only. If the question asks what a screen shows or calculates (a projection, forecast, cash flow, "
+                    "a figure for a future date), read it with app_screen_data instead and answer from that."}

@@ -2686,6 +2686,7 @@
     "ai_agent_tool_app_data_query": "Interrogation de {target}",
     "ai_agent_tool_generate_file": "Création de votre fichier {target}",
     "ai_agent_tool_app_computed_figures": "Calcul de vos chiffres",
+    "ai_agent_tool_app_screen_data": "Lecture des données de l'écran ({target})",
     "ai_agent_tool_app_routes": "Recherche des écrans de l'application",
     "ai_agent_tool_app_i18n_search": "Recherche dans les textes de l'interface",
     "ai_agent_tool_app_callers": "Recherche des usages de {target}",

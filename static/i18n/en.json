@@ -2686,6 +2686,7 @@
     "ai_agent_tool_app_data_query": "Querying {target}",
     "ai_agent_tool_generate_file": "Building your {target} file",
     "ai_agent_tool_app_computed_figures": "Computing your figures",
+    "ai_agent_tool_app_screen_data": "Reading the screen data ({target})",
     "ai_agent_tool_app_routes": "Looking up the app screens",
     "ai_agent_tool_app_i18n_search": "Searching the UI text",
     "ai_agent_tool_app_callers": "Finding where {target} is used",

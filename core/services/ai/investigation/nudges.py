@@ -7,7 +7,7 @@ A tool that is not offered in this chat domain is never named, and when none fit
 from __future__ import annotations
 
 APP_DOCUMENTATION = ("app_routes", "app_knowledge_search", "app_read_file")
-USER_DATA = ("app_data_models", "app_data_query", "app_computed_figures", "app_knowledge_search")
+USER_DATA = ("app_screen_data", "app_data_models", "app_data_query", "app_computed_figures", "app_knowledge_search")
 
 
 def relevant_tools(names: set, *, document: bool, hinted: bool) -> list[str]:

@@ -11,7 +11,7 @@ from core.models import AppSettings
 BUSINESS = "business_data_analysis"
 APP = "app_features_architecture"
 KEYS = {BUSINESS: "ai_domain_business", APP: "ai_domain_app"}
-DATA_TOOLS = ("app_data_models", "app_data_query", "app_computed_figures")   # the investigator's tools that read the user's data
+DATA_TOOLS = ("app_data_models", "app_data_query", "app_computed_figures", "app_screen_data")   # the investigator's tools that read the user's data
 _OFF = ("false", "0", "no", "off")
 
 

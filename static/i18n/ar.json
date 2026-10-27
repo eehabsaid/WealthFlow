@@ -2686,6 +2686,7 @@
     "ai_agent_tool_app_data_query": "الاستعلام عن {target}",
     "ai_agent_tool_generate_file": "إنشاء ملف {target}",
     "ai_agent_tool_app_computed_figures": "حساب أرقامك",
+    "ai_agent_tool_app_screen_data": "قراءة بيانات الشاشة ({target})",
     "ai_agent_tool_app_routes": "البحث في شاشات التطبيق",
     "ai_agent_tool_app_i18n_search": "البحث في نصوص الواجهة",
     "ai_agent_tool_app_callers": "البحث عن أماكن استخدام {target}",

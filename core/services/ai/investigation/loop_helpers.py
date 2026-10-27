@@ -11,7 +11,7 @@ LABELS = {
     "app_list_dir": "Browsing {path}", "app_find_files": "Finding files ({pattern})", "app_grep": "Searching the code ({pattern})",
     "app_find_definition": "Locating {symbol}", "app_read_file": "Reading {path}", "app_knowledge_search": "Checking the app guide",
     "app_data_models": "Looking at your data tables", "app_data_query": "Querying {model}", "generate_file": "Building your {format} file",
-    "app_computed_figures": "Computing your figures", "app_routes": "Looking up the app screens", "app_i18n_search": "Searching the UI text",
+    "app_computed_figures": "Computing your figures", "app_screen_data": "Reading the screen data ({path}{search})", "app_routes": "Looking up the app screens", "app_i18n_search": "Searching the UI text",
     "app_callers": "Finding where {symbol} is used", "app_git_history": "Reading the history of {path}",
     "app_trace_feature": "Tracing the feature ({feature})",
 }
@@ -40,7 +40,7 @@ def result_text(tool_res: dict, limit: int) -> str:
 
 
 def label(name: str, args: dict) -> str:
-    blank = {"path": "", "pattern": "", "symbol": "", "model": "", "format": "", "feature": ""}
+    blank = {"path": "", "pattern": "", "symbol": "", "model": "", "format": "", "feature": "", "search": ""}
     try:
         return LABELS.get(name, name).format(**{k: str(v)[:40] for k, v in {**blank, **args}.items()})
     except (KeyError, IndexError, ValueError):
@@ -49,7 +49,7 @@ def label(name: str, args: dict) -> str:
 
 def target(args: dict) -> str:
     """The one argument that tells the user what a step is about (shown in the live step list, translated in the browser)."""
-    for key in ("path", "pattern", "symbol", "model", "feature", "query", "term", "question", "format"):
+    for key in ("path", "pattern", "symbol", "model", "feature", "search", "query", "term", "question", "format"):
         if args.get(key):
             return str(args[key])[:40]
     return ""

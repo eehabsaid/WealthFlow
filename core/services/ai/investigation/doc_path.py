@@ -17,7 +17,7 @@ import re
 from core.services.ai.domains import APP
 
 logger = logging.getLogger("core.ai.pipeline")
-ROW_TOOLS = ("app_data_query", "app_computed_figures")   # tools whose result is the user's own rows / ready-made figures
+ROW_TOOLS = ("app_data_query", "app_computed_figures", "app_screen_data")   # tools whose result is the user's own rows / ready-made figures
 APP_GUIDE_TOOLS = ("app_routes",)
 _HTML_FORM = re.compile(r"<form\b[\s\S]*?</form>", re.IGNORECASE)
 _FORM_CONTROL = re.compile(r"<(?:input|select|textarea)\b", re.IGNORECASE)
@@ -51,6 +51,9 @@ def has_user_rows(out) -> bool:
                 return True
             raw = str(text or "").strip()
             if raw and not raw.startswith(("{", "[")):
+                return True
+        elif name == "app_screen_data":
+            if data.get("data"):   # a read of a screen's own figures; a search listing is not evidence of data
                 return True
         elif data.get("figures") not in (None, {}, []):
             return True
