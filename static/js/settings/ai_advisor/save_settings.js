@@ -71,6 +71,8 @@ window.AIA.saveAISettingsFromGui = async function () {
     ai_keep_alive: keepAlive,
   };
 
+  window.AIA.addSpeechSettingsPayload(payload);
+
   // Save provider specific models
   if (provider === "ollama") payload.ai_model = model;
   if (provider === "openai") payload.ai_openai_model = model;

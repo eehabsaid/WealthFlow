@@ -132,6 +132,8 @@ window.AIA.buildProviderHtml = function (ctx) {
                 </div>
             </div>
     </div>` +
+    `<div class="aia-row aia-row-wide"><h3 class="h5 mb-1" data-i18n="ai_grp_speech">Speech (STT / TTS)</h3><p class="aia-help" data-i18n="ai_grp_speech_desc">Optional speech services, configured independently from text AI.</p></div>` +
+    window.AIA.buildSpeechSettingsHtml(s) +
     ui.row({
       id: "aiTestConnBtn",
       labelKey: "ai_test_connection_label",

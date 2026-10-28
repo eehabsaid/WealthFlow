@@ -15,6 +15,9 @@ from core.views.settings.ai.ai_pipeline_settings import (
     validate_pipeline_settings,
 )
 from core.views.settings.ai.ai_settings_get_helpers import build_ai_settings_get_payload
+from core.views.settings.ai.ai_speech_settings_helpers import (
+    validate_speech_settings_data, persist_speech_settings,
+)
 from core.views.settings.ai.ai_settings_save_helpers import (
     validate_ai_settings_post_data,
     persist_ai_settings,
@@ -41,12 +44,17 @@ class AISettingsView(AdminRequiredMixin, View):
         if error_response:
             return error_response
 
+        speech_error = validate_speech_settings_data(data)
+        if speech_error:
+            return JsonResponse({"error": speech_error}, status=400)
+
         pipeline_validated, pipeline_error = validate_pipeline_settings(data)
         if pipeline_error:
             return pipeline_error
 
         persist_ai_settings(data, validated, user=None)
         persist_pipeline_settings(pipeline_validated, user=None)
+        persist_speech_settings(data)
         connection_ok, test_error = run_ai_settings_connection_test(
             validated["enabled"], validated["model"], user=None
         )

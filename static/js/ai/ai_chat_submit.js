@@ -107,6 +107,7 @@ async function _handleAIChatSubmit() {
               "The AI model did not answer in time. Check that the model is running, then try again."
             )
           : aiMsg.content || "";
+    if (data.ok !== false && aiMsg.content) window.WFSpeech?.setLastText(aiMsg.content);
     _appendMessage(
       "assistant",
       answerText,

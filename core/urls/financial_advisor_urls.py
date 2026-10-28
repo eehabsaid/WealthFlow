@@ -77,6 +77,9 @@ urlpatterns = [
         "api/financial-advisor/goal-planning/",
         views.GoalPlanningView.as_view(),
     ),
+    path("api/financial-advisor/ai/speech/capabilities/", feature_required("allows_ai_workspace")(views.SpeechCapabilitiesView.as_view())),
+    path("api/financial-advisor/ai/speech/transcribe/", feature_required("allows_ai_workspace")(views.SpeechTranscribeView.as_view())),
+    path("api/financial-advisor/ai/speech/synthesize/", feature_required("allows_ai_workspace")(views.SpeechSynthesizeView.as_view())),
     path(
         "api/financial-advisor/ai/chat/",
         feature_required("allows_ai_workspace")(views.AIChatView.as_view()),

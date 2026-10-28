@@ -13,6 +13,7 @@ from core.services.ai.credential_encryption import decrypt_credential, mask_cred
 from core.services.ai.tools.permissions import resolve_granted_tier
 from core.integrations.ai_provider import AVAILABLE_AI_PROVIDERS
 from core.views.settings.ai.ai_pipeline_settings import get_pipeline_settings
+from core.views.settings.ai.ai_speech_settings_helpers import build_speech_settings_payload
 
 
 def build_ai_settings_get_payload(user=None):
@@ -138,5 +139,5 @@ def build_ai_settings_get_payload(user=None):
         "ai_azure_api_version": get("ai_azure_api_version", "2024-06-01").strip(),
         "providers_schema": providers_schema,
         **get_pipeline_settings(user=user),
+        **build_speech_settings_payload(),
     }
-

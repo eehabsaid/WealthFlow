@@ -32,6 +32,7 @@ STRUCTURE / CONVENTION — read this before adding or splitting a file:
 """
 
 from .exports_pwa import manifest_view, service_worker_view, offline_view
+from .exports_speech import SpeechCapabilitiesView, SpeechTranscribeView, SpeechSynthesizeView, SpeechSettingsTestView
 from .exports_auth import (
     AdminRequiredMixin, SysadminRequiredMixin, PermissionRequiredMixin, LoginAPIView, SignupAPIView, LogoutAPIView,
     CurrentUserView, UpdateProfileView, login_view, signup_view, privacy_view, terms_view,
@@ -157,4 +158,5 @@ __all__ = [
     "BudgetListView", "BudgetDetailView", "RecurringTransactionListView", "RecurringTransactionDetailView",
     "RecurringTransactionProcessDueView", "RecurringTransactionDuePreviewView", "BudgetAlertsView", "ImportPreviewView", "ImportConfirmView",
     "manifest_view", "service_worker_view", "offline_view",
+    "SpeechCapabilitiesView", "SpeechTranscribeView", "SpeechSynthesizeView", "SpeechSettingsTestView",
 ]

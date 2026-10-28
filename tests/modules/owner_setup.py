@@ -37,10 +37,45 @@ def _check_paymob_test(context, reporter, shots):
     _step(reporter, shots, page, "Test connection shows a clear result message", bool(text) and text != "…", f"message={text[:120]}", "paymob_result")
 
 
+
+def _check_speech_settings(context, reporter, shots):
+    page = context.page
+    context.goto_route("#settings-aiadvisor")
+    page.wait_for_selector("#aiaGroup-speech", timeout=15000)
+    api = page.evaluate("fetch('/api/settings/ai/').then(r => r.json())")
+    controls = ["speech_stt_enabled", "speech_stt_provider", "speech_stt_endpoint", "speech_stt_model",
+                "speech_stt_api_key", "speech_tts_enabled", "speech_tts_provider", "speech_tts_endpoint",
+                "speech_tts_model", "speech_tts_api_key", "speech_tts_voice"]
+    missing = [name for name in controls if page.locator(f"#{name}").count() != 1]
+    enabled_matches = all(page.locator(f"#speech_{kind}_enabled").is_checked() == bool(api.get(f"speech_{kind}_enabled"))
+                          for kind in ("stt", "tts"))
+    ok = not missing and enabled_matches and page.locator("#speech_stt_test").count() == 1 and page.locator("#speech_tts_test").count() == 1
+    shot = shots.capture(page, "owner_setup", "speech_settings", "none", "view", "ok" if ok else "fail")
+    reporter.add_step("AI Advisor exposes sysadmin STT/TTS configuration", "Settings", "PASS" if ok else "FAIL",
+                      f"missing={missing}; enabled_matches={enabled_matches}", screenshot_path=shot)
+
+
+
+def _check_speech_workspace_controls(context, reporter, shots):
+    page = context.page
+    context.goto_route("#ai")
+    page.wait_for_selector("#ai-ws-input", timeout=15000)
+    caps = page.evaluate("fetch('/api/financial-advisor/ai/speech/capabilities/').then(r => r.json())")
+    page.wait_for_timeout(500)
+    stt_hidden = page.locator("#ai-ws-stt-btn").evaluate("el => el.hidden")
+    tts_hidden = page.locator("#ai-ws-tts-btn").evaluate("el => el.hidden")
+    ok = stt_hidden == (not bool(caps.get("stt_enabled"))) and tts_hidden == (not bool(caps.get("tts_enabled")))
+    shot = shots.capture(page, "owner_setup", "speech_workspace", "none", "view", "ok" if ok else "fail")
+    reporter.add_step("AI Workspace shows speech controls only when enabled", "WealthFlow AI", "PASS" if ok else "FAIL",
+                      f"stt_enabled={caps.get('stt_enabled')}; tts_enabled={caps.get('tts_enabled')}; stt_hidden={stt_hidden}; tts_hidden={tts_hidden}", screenshot_path=shot)
+
+
 def test_owner_setup_module(context, reporter, shots):
     reporter.pages_visited.add("Settings — owner setup helpers")
     try:
         _check_ai_warning(context, reporter, shots)
+        _check_speech_settings(context, reporter, shots)
+        _check_speech_workspace_controls(context, reporter, shots)
         _check_paymob_test(context, reporter, shots)
     except Exception as ex:
         shot = shots.capture(context.page, "owner_setup", "error", "none", "fail", "fail")
