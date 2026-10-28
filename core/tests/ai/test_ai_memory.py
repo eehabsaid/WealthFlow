@@ -111,8 +111,15 @@ class WriterTests(MemoryTestBase):
 
 
 class IndexAndPromptTests(MemoryTestBase):
-    def test_no_notes_adds_nothing(self):
-        self.assertEqual(build_memory_block(self.user, "anything"), "")
+    def test_no_notes_still_tells_the_model_it_has_memory(self):
+        block = build_memory_block(self.user, "anything")
+        self.assertIn("you do remember across chats", block)
+        self.assertIn("No notes are saved yet", block)
+
+    def test_writer_sets_no_small_output_cap_so_a_thinking_model_can_answer(self):
+        provider = _provider('{"notes": [], "delete": []}')
+        update_memory(self.user, self.conv, provider)
+        self.assertNotIn("max_tokens", provider.generate.call_args.kwargs)
 
     def test_index_is_one_dated_line_per_note_and_user_scoped(self):
         note = AIMemoryNote.objects.create(user=self.user, title="Savings goal", body="500000 EGP by June 2027")

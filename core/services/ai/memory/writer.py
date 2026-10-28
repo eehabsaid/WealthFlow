@@ -74,11 +74,15 @@ def update_memory(user: Any, conversation: Any, provider: Any) -> list:
     messages = build_messages(user, conversation)
     if not messages or provider is None:
         return []
-    res = provider.generate(messages, tools=None, temperature=0, max_tokens=500)
+    # No small max_tokens here: with Settings > Reasoning = on the model thinks first, and a 500-token cap was spent entirely on the
+    # thinking, leaving an empty answer. The UI-set max tokens apply instead; this runs in the background, so length costs the user nothing.
+    res = provider.generate(messages, tools=None, temperature=0)
     if not isinstance(res, dict) or res.get("error"):
+        logger.warning("memory writer: model call failed (%s), nothing stored", (res or {}).get("error") if isinstance(res, dict) else "no answer")
         return []
-    data = _extract_json(str(res.get("content") or ""))
+    answer = str(res.get("content") or "")
+    data = _extract_json(answer)
     if data is None:
-        logger.info("memory writer: unreadable answer, nothing stored")
+        logger.warning("memory writer: answer was not the expected JSON (%d chars: %r), nothing stored", len(answer), answer[:120])
         return []
     return apply_edits(user, data, conversation.id)

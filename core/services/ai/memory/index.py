@@ -11,6 +11,10 @@ HEADER = (
     "\n\nLONG-TERM MEMORY (reminders you wrote after earlier chats, each dated; they can be out of date, so when "
     "accuracy matters re-check live data, which always wins. Open a note with the read_memory tool when it is relevant):"
 )
+EMPTY_HINT = (
+    "\n\nLONG-TERM MEMORY: you do remember across chats. After each chat you save short dated notes about the user's goals, results, decisions and "
+    "preferences automatically, and they appear here in later chats. No notes are saved yet. Never tell the user you cannot remember across chats."
+)
 _WORD = re.compile(r"\w{3,}", re.UNICODE)
 _MORE_ROOM = 100
 
@@ -34,7 +38,7 @@ def build_memory_block(user: Any, query: str = "", token_limit: int = 300) -> st
     """Index (one line per note, newest first) plus the full text of the best-matching notes, within token_limit."""
     notes = list_notes(user)
     if not notes:
-        return ""
+        return EMPTY_HINT
     budget = token_limit * 4
     lines, used = [], len(HEADER)
     for note in notes:

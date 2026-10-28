@@ -10,7 +10,7 @@
 window.AIMemChip = window.AIMemChip || { timer: null };
 
 window.AIMemChip.POLL_MS = 6000;
-window.AIMemChip.MAX_POLLS = 25;
+window.AIMemChip.MAX_POLLS = 100;
 
 window.AIMemChip.clear = function () {
   if (window.AIMemChip.timer) clearTimeout(window.AIMemChip.timer);
