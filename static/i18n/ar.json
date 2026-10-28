@@ -2230,6 +2230,7 @@
     "ai_mem_updated": "آخر تحديث",
     "ai_mem_save_error": "تعذّر حفظ الملاحظة.",
     "ai_mem_delete_error": "تعذّر حذف الملاحظة.",
+    "ai_mem_always": "يُطبَّق دائماً",
     "ai_ks_title": "البحث في المعرفة",
     "ai_ks_subtitle": "ابحث في قاعدة معرفة الذكاء الاصطناعي",
     "ai_ks_placeholder": "ابحث بالعنوان أو المحتوى...",

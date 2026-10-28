@@ -2230,6 +2230,7 @@
     "ai_mem_updated": "Mise à jour",
     "ai_mem_save_error": "Impossible d'enregistrer la note.",
     "ai_mem_delete_error": "Impossible de supprimer la note.",
+    "ai_mem_always": "Toujours appliqué",
     "ai_ks_title": "Recherche de Connaissances",
     "ai_ks_subtitle": "Recherchez dans votre base de connaissances IA",
     "ai_ks_placeholder": "Rechercher par titre ou contenu...",

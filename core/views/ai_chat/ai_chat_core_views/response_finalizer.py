@@ -101,7 +101,7 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
         "user_message": user_msg.to_dict(),
         "message": ai_msg.to_dict(),
         "sources": sources,
-        "memory_since": timezone.now().isoformat(),   # the page polls for notes saved after this moment ("Saved memory" chip)
+        "memory_since": (user_msg.created_at or timezone.now()).isoformat(),   # the page polls for notes saved after this moment ("Saved memory" chip)
     }
     if extra:
         payload.update(extra)  # e.g. {"pipeline": trace} when ai_pipeline_debug is on

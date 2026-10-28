@@ -2234,6 +2234,7 @@
     "ai_mem_updated": "Updated",
     "ai_mem_save_error": "Could not save the note.",
     "ai_mem_delete_error": "Could not delete the note.",
+    "ai_mem_always": "Always applied",
     "ai_ks_title": "Knowledge Search",
     "ai_ks_subtitle": "Search your AI knowledge base",
     "ai_ks_placeholder": "Search by title or content...",

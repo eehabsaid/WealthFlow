@@ -50,6 +50,7 @@ window.AIMem.row = function (it) {
         <input class="form-control form-control-sm mb-2" id="mem-edit-title" maxlength="120" value="${esc(it.title)}">
         <label class="form-label small mb-1" for="mem-edit-body">${esc(t("ai_mem_body_label", "Note"))}</label>
         <textarea class="form-control form-control-sm mb-2" id="mem-edit-body" rows="4" maxlength="700">${esc(it.body)}</textarea>
+        <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="mem-edit-always"${it.always ? " checked" : ""}><label class="form-check-label small" for="mem-edit-always">${esc(t("ai_mem_always", "Always applied"))}</label></div>
         <button class="btn btn-sm btn-primary me-1" id="mem-save" onclick="window.AIMem.save(${esc(it.id)})">${esc(t("ai_mem_save", "Save"))}</button>
         <button class="btn btn-sm btn-outline-secondary" onclick="window.AIMem.edit(null)">${esc(t("ai_mem_cancel", "Cancel"))}</button>
       </div>`;
@@ -59,7 +60,7 @@ window.AIMem.row = function (it) {
     <div class="mem-row d-flex align-items-start px-4 py-3 border-bottom border-secondary-subtle" style="gap:12px;" data-note-id="${esc(it.id)}">
       <i class="bi bi-journal-text mt-1 text-primary"></i>
       <div class="flex-grow-1">
-        <div class="fw-semibold text-body small">${esc(it.title)}</div>
+        <div class="fw-semibold text-body small">${esc(it.title)}${it.always ? ` <span class="badge bg-primary ms-1 mem-always">${esc(t("ai_mem_always", "Always applied"))}</span>` : ""}</div>
         <div class="text-body small">${esc(it.body)}</div>
         <div class="text-muted" style="font-size:0.75rem;">${esc(t("ai_mem_updated", "Updated"))} ${esc(date)}</div>
       </div>
@@ -120,11 +121,12 @@ window.AIMem.ask = function (id) {
 window.AIMem.save = async function (id) {
   const title = document.getElementById("mem-edit-title")?.value || "";
   const body = document.getElementById("mem-edit-body")?.value || "";
+  const always = !!document.getElementById("mem-edit-always")?.checked;
   try {
     const res = await fetch(`/api/financial-advisor/ai/memory/${id}/`, {
       method: "PATCH",
       headers: window.AIMem.headers(),
-      body: JSON.stringify({ title, body }),
+      body: JSON.stringify({ title, body, always }),
     });
     if (!res.ok) throw new Error("save_failed");
     const item = (await res.json()).item;

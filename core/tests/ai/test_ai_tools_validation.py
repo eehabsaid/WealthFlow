@@ -29,7 +29,7 @@ class AIToolsValidationTest(TestCase):
 
     def test_registered_tools_schema_structure(self):
         schemas = get_registered_tool_schemas()
-        self.assertEqual(len(schemas), 11)   # 9 domain tools + generate_file + read_memory
+        self.assertEqual(len(schemas), 13)   # 9 domain tools + generate_file + read/save/forget memory
         self.assertIn("generate_file", [s["function"]["name"] for s in schemas])
         names = [s["function"]["name"] for s in schemas]
         self.assertIn("create_scenario", names)

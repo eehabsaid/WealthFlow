@@ -2230,6 +2230,7 @@
     "ai_mem_updated": "Aktualisiert",
     "ai_mem_save_error": "Die Notiz konnte nicht gespeichert werden.",
     "ai_mem_delete_error": "Die Notiz konnte nicht gelöscht werden.",
+    "ai_mem_always": "Immer angewendet",
     "ai_ks_title": "Wissenssuche",
     "ai_ks_subtitle": "Durchsuchen Sie Ihre KI-Wissensbasis",
     "ai_ks_placeholder": "Nach Titel oder Inhalt suchen...",

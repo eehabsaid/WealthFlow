@@ -1,4 +1,5 @@
-"""Compact memory index for the system prompt, sized from the UI-set token budget (never a fixed backend number)."""
+"""Memory block for the system prompt, sized from the UI-set token budget (never a fixed backend number):
+standing instructions ("always" notes) in full, then a one-line-per-note index, then the notes that match the question."""
 
 from __future__ import annotations
 
@@ -7,14 +8,15 @@ from typing import Any
 
 from .store import list_notes
 
+_HOW = (
+    "You remember across chats: when the user asks you to remember or save something call save_memory; to forget something call forget_memory (note ids "
+    "below); save standing preferences (\"don't ask me again\") with always=true. Say briefly when you did."
+)
 HEADER = (
-    "\n\nLONG-TERM MEMORY (reminders you wrote after earlier chats, each dated; they can be out of date, so when "
-    "accuracy matters re-check live data, which always wins. Open a note with the read_memory tool when it is relevant):"
+    "\n\nLONG-TERM MEMORY: " + _HOW + " Notes are dated reminders and can be out of date; live data wins. read_memory opens a note."
 )
-EMPTY_HINT = (
-    "\n\nLONG-TERM MEMORY: you do remember across chats. After each chat you save short dated notes about the user's goals, results, decisions and "
-    "preferences automatically, and they appear here in later chats. No notes are saved yet. Never tell the user you cannot remember across chats."
-)
+EMPTY_HINT = "\n\nLONG-TERM MEMORY: " + _HOW + " No notes are saved yet. Never say you cannot remember across chats."
+STANDING = "\nSTANDING INSTRUCTIONS FROM THE USER (always follow them):"
 _WORD = re.compile(r"\w{3,}", re.UNICODE)
 _MORE_ROOM = 100
 
@@ -35,12 +37,23 @@ def relevant_notes(notes: list, query: str, limit: int = 2) -> list:
 
 
 def build_memory_block(user: Any, query: str = "", token_limit: int = 300) -> str:
-    """Index (one line per note, newest first) plus the full text of the best-matching notes, within token_limit."""
+    """Standing instructions in full (at most half of the budget), the dated index of all notes, and the best-matching notes, within token_limit."""
     notes = list_notes(user)
     if not notes:
         return EMPTY_HINT
     budget = token_limit * 4
-    lines, used = [], len(HEADER)
+    block, used = HEADER, len(HEADER)
+    standing = [n for n in notes if n.always]
+    if standing:
+        block += STANDING
+        used += len(STANDING)
+        for note in standing:
+            line = f"\n- {note.title}: {note.body}"
+            if used + len(line) > budget // 2 + len(HEADER):
+                break
+            block += line
+            used += len(line)
+    lines = []
     for note in notes:
         line = _line(note)
         if used + len(line) + 1 > budget - _MORE_ROOM:   # keep room for the "older notes" line so the block never exceeds the budget
@@ -48,8 +61,8 @@ def build_memory_block(user: Any, query: str = "", token_limit: int = 300) -> st
             break
         lines.append(line)
         used += len(line) + 1
-    block = HEADER + "\n" + "\n".join(lines)
-    for note in relevant_notes(notes, query):
+    block += "\nNOTES INDEX:\n" + "\n".join(lines)
+    for note in relevant_notes([n for n in notes if not n.always], query):
         extra = f"\n  #{note.id} details: {note.body}"
         if used + len(extra) > budget * 2:
             break

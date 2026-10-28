@@ -55,7 +55,7 @@
     "steps": [
       "Open AI Memory from the AI Workspace sidebar card, or click the Saved memory chip that appears under a chat after the AI stores something.",
       "Read each note with the date it was last updated.",
-      "Click the pencil to edit a note, or the bin to delete it; the AI stops using a deleted note."
+      "Click the pencil to edit a note, or the bin to delete it; the AI stops using a deleted note. Tell the AI in a chat to remember, save or forget something and it does it; standing instructions (\"don't ask me again\") are marked Always applied."
     ]
   },
   "ai::knowledge_search": {

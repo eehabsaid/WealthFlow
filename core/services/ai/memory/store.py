@@ -22,7 +22,7 @@ def list_notes(user: Any) -> list[AIMemoryNote]:
 
 
 def apply_edits(user: Any, data: dict, conversation_id: int | None = None) -> list[AIMemoryNote]:
-    """Apply the model's edits {"notes": [{"id"?, "title", "body"}], "delete": [ids]}; returns the notes created or changed.
+    """Apply the model's edits {"notes": [{"id"?, "title", "body", "always"?}], "delete": [ids]}; returns the notes created or changed.
     An id that is not this user's note is ignored (a note is never created from a foreign id)."""
     changed: list[AIMemoryNote] = []
     if not isinstance(data, dict):
@@ -42,11 +42,13 @@ def apply_edits(user: Any, data: dict, conversation_id: int | None = None) -> li
         if note is None:
             note = AIMemoryNote(user=user)
         note.title, note.body = title, body
+        if isinstance(item.get("always"), bool):
+            note.always = item["always"]
         note.source_conversation_id = conversation_id or note.source_conversation_id
         note.save()
         own[note.id] = note
         changed.append(note)
-    overflow = sorted(own.values(), key=lambda n: (n.updated_at, n.id))[: max(0, len(own) - MAX_NOTES)]
-    for note in overflow:   # oldest-updated notes go first when the model has not consolidated
+    overflow = sorted(own.values(), key=lambda n: (n.always, n.updated_at, n.id))[: max(0, len(own) - MAX_NOTES)]
+    for note in overflow:   # oldest-updated notes go first (standing instructions last) when the model has not consolidated
         note.delete()
     return changed

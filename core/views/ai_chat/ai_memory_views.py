@@ -26,7 +26,7 @@ class AIMemoryListView(View):
 
 class AIMemoryDetailView(View):
     """Edit or delete one note of the requesting user.
-    URL: PATCH /api/financial-advisor/ai/memory/<id>/   body {"title"?, "body"?}      DELETE the same URL"""
+    URL: PATCH /api/financial-advisor/ai/memory/<id>/   body {"title"?, "body"?, "always"?}      DELETE the same URL"""
 
     def _note(self, request, pk):
         return AIMemoryNote.objects.filter(user=request.user, pk=pk).first()
@@ -47,6 +47,8 @@ class AIMemoryDetailView(View):
         if not title or not text:
             return JsonResponse({"error": "empty_note"}, status=400)
         note.title, note.body = title, text
+        if isinstance(body.get("always"), bool):
+            note.always = body["always"]
         note.save()
         return JsonResponse({"item": note.to_dict()})
 

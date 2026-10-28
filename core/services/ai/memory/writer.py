@@ -22,8 +22,11 @@ _INSTRUCTIONS = (
     "results you reached together (with the numbers and their dates), decisions, and preferences. Skip small talk and anything "
     "that is only a live figure the app can look up again. Today is {today}; write dates into the note text. "
     "If a note already covers the topic, update it using its id (rewrite the whole note, do not duplicate). "
-    "Delete a note only if the chat shows it is wrong or no longer true. Each note: a short title and a body under {body_max} characters. "
-    "Answer with JSON only, no other text: {{\"notes\": [{{\"id\": <existing id or null>, \"title\": \"...\", \"body\": \"...\"}}], \"delete\": [<ids>]}}. "
+    "Delete a note if the chat shows it is wrong or no longer true, or the user asks you to forget it. Each note: a short title and a body under {body_max} characters. "
+    "The user's explicit requests come first: if they asked you to remember or save something, save it; if they asked you to forget, remove or ignore "
+    "something, delete the matching note (or rewrite it without that part) and never save it again, even if it appears earlier in the chat; if they gave a "
+    "standing instruction or preference (\"from now on\", \"always\", \"don't ask me again\"), save it with \"always\": true so it applies in every chat. "
+    "Answer with JSON only, no other text: {{\"notes\": [{{\"id\": <existing id or null>, \"title\": \"...\", \"body\": \"...\", \"always\": true or false}}], \"delete\": [<ids>]}}. "
     "If nothing is worth remembering, answer {{\"notes\": [], \"delete\": []}}."
 )
 
@@ -59,7 +62,7 @@ def build_messages(user: Any, conversation: Any) -> list[dict[str, str]] | None:
         chat.append(f"{m.role.upper()}: {(m.content or '')[:per]}")
     notes_text, used = [], 0
     for n in list_notes(user):
-        line = f"#{n.id} [{n.updated_at:%Y-%m-%d}] {n.title}: {n.body}"
+        line = f"#{n.id} [{n.updated_at:%Y-%m-%d}]{' [ALWAYS]' if n.always else ''} {n.title}: {n.body}"
         if used + len(line) > budget // 3:
             break
         notes_text.append(line)

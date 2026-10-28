@@ -113,7 +113,7 @@ class WriterTests(MemoryTestBase):
 class IndexAndPromptTests(MemoryTestBase):
     def test_no_notes_still_tells_the_model_it_has_memory(self):
         block = build_memory_block(self.user, "anything")
-        self.assertIn("you do remember across chats", block)
+        self.assertIn("You remember across chats", block)
         self.assertIn("No notes are saved yet", block)
 
     def test_writer_sets_no_small_output_cap_so_a_thinking_model_can_answer(self):
@@ -241,3 +241,94 @@ class MemoryApiTests(MemoryTestBase):
         self.assertEqual(self.client.delete(f"{API}{self.note.id}/").status_code, 200)
         self.assertFalse(AIMemoryNote.objects.filter(pk=self.note.id).exists())
         self.assertTrue(AIMemoryNote.objects.filter(pk=self.theirs.id).exists())
+
+
+class MemoryCommandTests(MemoryTestBase):
+    """The chat model obeys "remember / forget / from now on" during the chat itself, like Claude does."""
+
+    def _call(self, name, params, user=None):
+        return validate_and_execute_tool(name, params, user or self.user)
+
+    def test_all_three_memory_tools_are_offered_in_every_domain(self):
+        for domain in (None, "business_data_analysis", "app_features_architecture"):
+            names = {s["function"]["name"] for s in get_registered_tool_schemas(domain=domain)}
+            self.assertTrue({"read_memory", "save_memory", "forget_memory"} <= names, domain)
+
+    def test_remember_saves_a_note_at_once(self):
+        audit, res = self._call("save_memory", {"title": "Savings goal", "body": "500000 EGP by June 2027"})
+        self.assertEqual(audit["status"], "success")
+        self.assertTrue(res["data"]["ok"])
+        self.assertEqual(AIMemoryNote.objects.get(user=self.user).body, "500000 EGP by June 2027")
+
+    def test_remember_with_an_id_updates_instead_of_duplicating(self):
+        note = AIMemoryNote.objects.create(user=self.user, title="Savings goal", body="old")
+        self._call("save_memory", {"id": note.id, "title": "Savings goal", "body": "600000 EGP by Dec 2027"})
+        self.assertEqual(AIMemoryNote.objects.filter(user=self.user).count(), 1)
+        self.assertEqual(AIMemoryNote.objects.get(pk=note.id).body, "600000 EGP by Dec 2027")
+
+    def test_standing_instruction_is_always_on_and_shown_in_full(self):
+        self._call("save_memory", {"title": "Do not ask about currency", "body": "User wants EGP only; never ask which currency again.", "always": True})
+        self.assertTrue(AIMemoryNote.objects.get(user=self.user).always)
+        block = build_memory_block(self.user, "unrelated question")
+        self.assertIn("STANDING INSTRUCTIONS", block)
+        self.assertIn("never ask which currency again", block)
+
+    def test_forget_deletes_the_users_own_note_only(self):
+        mine = AIMemoryNote.objects.create(user=self.user, title="Car loan", body="7000 EGP monthly")
+        theirs = AIMemoryNote.objects.create(user=self.other, title="Car loan", body="x")
+        _audit, res = self._call("forget_memory", {"ids": [mine.id, theirs.id]})
+        self.assertEqual(res["data"]["forgotten"], ["Car loan"])
+        self.assertFalse(AIMemoryNote.objects.filter(pk=mine.id).exists())
+        self.assertTrue(AIMemoryNote.objects.filter(pk=theirs.id).exists())
+        _audit, none = self._call("forget_memory", {"ids": [theirs.id]})
+        self.assertIn("error", none["data"])
+
+    def test_missing_title_or_body_is_rejected(self):
+        _audit, res = self._call("save_memory", {"title": "Only a title", "body": "  "})
+        self.assertIn("error", res["data"])
+        self.assertEqual(AIMemoryNote.objects.count(), 0)
+
+    def test_memory_tools_work_in_read_only_mode(self):
+        AppSettings.set("ai_read_only", "true")
+        audit, res = self._call("save_memory", {"title": "Goal", "body": "text"})
+        self.assertEqual(audit["status"], "success")
+        self.assertTrue(res["data"]["ok"])
+
+    def test_prompt_tells_the_model_how_to_obey_memory_commands(self):
+        for block in (build_memory_block(self.user), build_memory_block(self.user, "x") if AIMemoryNote.objects.create(user=self.user, title="t", body="b") else ""):
+            self.assertIn("save_memory", block)
+            self.assertIn("forget_memory", block)
+            self.assertIn("always=true", block)
+
+    def test_standing_notes_are_the_last_dropped_when_the_cap_is_reached(self):
+        keep = AIMemoryNote.objects.create(user=self.user, title="Standing", body="b", always=True)
+        for i in range(MAX_NOTES + 2):
+            AIMemoryNote.objects.create(user=self.user, title=f"n{i}", body="b")
+        apply_edits(self.user, {"notes": [{"title": "newest", "body": "b"}]})
+        self.assertTrue(AIMemoryNote.objects.filter(pk=keep.id).exists())
+
+    def test_writer_is_told_to_honour_forget_and_standing_requests_and_saves_always(self):
+        provider = _provider('{"notes": [{"title": "No currency questions", "body": "EGP only", "always": true}], "delete": []}')
+        saved = update_memory(self.user, self.conv, provider)
+        system = provider.generate.call_args[0][0][0]["content"]
+        self.assertIn("forget", system)
+        self.assertIn("\"always\": true", system)
+        self.assertTrue(saved[0].always)
+
+    def test_chip_window_starts_at_the_users_message_so_a_note_saved_during_the_reply_counts(self):
+        grant_ai_workspace_access(self.user)
+        AppSettings.set("ai_direct_answers", "false")
+        self.client.force_login(self.user)
+        chat_provider = MagicMock()
+        chat_provider.supports_tools = True
+        chat_provider.generate.return_value = {"content": "ok", "tool_calls": None, "prompt_tokens": 1, "completion_tokens": 1, "error": None}
+        with patch("core.views.ai_chat.ai_chat_core_views.get_active_ai_provider", return_value=chat_provider):
+            res = self.client.post("/api/financial-advisor/ai/chat/", json.dumps({"message": "remember my goal"}), content_type="application/json").json()
+        self.assertEqual(res["memory_since"], res["user_message"]["created_at"])
+
+    def test_page_can_toggle_always(self):
+        grant_ai_workspace_access(self.user)
+        self.client.force_login(self.user)
+        note = AIMemoryNote.objects.create(user=self.user, title="t", body="b")
+        res = self.client.patch(f"{API}{note.id}/", json.dumps({"always": True}), content_type="application/json")
+        self.assertTrue(res.json()["item"]["always"])

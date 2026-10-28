@@ -52,11 +52,13 @@ def _run(context, reporter, screenshot_logger):
     if rows:
         page.click(".mem-edit")
         page.fill("#mem-edit-title", "E2E edited title")
+        page.check("#mem-edit-always")
         page.click("#mem-save")
-        page.wait_for_selector(".mem-row .fw-semibold", timeout=5000)
+        page.wait_for_selector(".mem-row .mem-always", timeout=5000)
         after_edit = page.evaluate(_FETCH, [_URL, "GET", None])["data"]["items"]
-        edited = any(i["title"] == "E2E edited title" for i in after_edit)
-        _step(reporter, screenshot_logger, page, "Editing a note in the AI Memory page saves it", edited, f"titles={[i['title'] for i in after_edit][:5]}", "memory_edit")
+        edited = any(i["title"] == "E2E edited title" and i["always"] is True for i in after_edit)
+        _step(reporter, screenshot_logger, page, "Editing a note (title + Always applied) in the AI Memory page saves it and shows the badge", edited,
+              f"titles={[i['title'] for i in after_edit][:5]}", "memory_edit")
         page.click(".mem-delete")
         page.click(".mem-delete-yes")
         page.wait_for_function("(n) => document.querySelectorAll('.mem-row').length === n || !!document.querySelector('#mem-empty')", arg=rows - 1, timeout=5000)
