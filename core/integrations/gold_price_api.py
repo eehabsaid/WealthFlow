@@ -1,7 +1,15 @@
+import json
+import logging
 import ssl as _ssl
 import urllib.request as _ur
 import re
 from html.parser import HTMLParser
+
+logger = logging.getLogger(__name__)
+
+FEED_URL = "https://goldbullioneg.com/wp-json/gbs/prices"   # the site's own live feed; its HTML price table can stay on old numbers
+REQUIRED_CARATS = (24, 22, 21, 18)
+
 
 class GoldTableParser(HTMLParser):
     def __init__(self):
@@ -45,10 +53,61 @@ class GoldTableParser(HTMLParser):
         elif tag == "table" and self.in_table:
             self.in_table = False
 
-def fetch_latest_gold_prices(user_agent: str = "SalaryTracker/1.0") -> dict:
+def _ssl_context():
     ctx = _ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = _ssl.CERT_NONE
+    return ctx
+
+
+def _number(value):
+    try:
+        number = float(str(value).replace(",", "").strip())
+    except ValueError:
+        return None
+    return number if number > 0 else None
+
+
+def parse_price_feed(rows) -> tuple[dict, float | None, float | None]:
+    """(karat prices, USD/EGP, USD per ounce) from the feed's rows. askValue is the higher "buy" figure and bidValue the lower
+    "sell" figure, the same pair as the buy / sell columns of the page table (the sell figure is the one WealthFlow stores)."""
+    prices, usd_to_egp, usd_per_oz = {}, None, None
+    for row in rows if isinstance(rows, list) else []:
+        if not isinstance(row, dict):
+            continue
+        label = str(row.get("description") or "").strip()
+        buy, sell = _number(row.get("askValue")), _number(row.get("bidValue"))
+        if not buy or not sell:
+            continue
+        karat = re.search(r"عيار\s*([0-9]{1,2})", label)
+        if karat:
+            prices[int(karat.group(1))] = {"buy": buy, "sell": sell}
+        elif "دولار" in label.lower():
+            usd_to_egp = sell
+        elif "أونصة" in label.lower() or "ounce" in label.lower():
+            usd_per_oz = sell
+    return prices, usd_to_egp, usd_per_oz
+
+
+def fetch_latest_gold_prices(user_agent: str = "SalaryTracker/1.0") -> dict:
+    """Live prices from the site's feed. The HTML table is used only for the USD/EGP rate or the ounce price when the feed has no
+    row for them (logged); the karat prices always come from the feed, so a stale table can never be saved as fresh."""
+    request = _ur.Request(FEED_URL, headers={"User-Agent": user_agent, "Accept": "application/json"})
+    with _ur.urlopen(request, timeout=15, context=_ssl_context()) as resp:
+        rows = json.loads(resp.read().decode("utf-8", errors="ignore"))
+    prices_egp, usd_to_egp, usd_per_oz = parse_price_feed(rows)
+    if not all(carat in prices_egp for carat in REQUIRED_CARATS):
+        raise ValueError("Missing required karat prices in the goldbullioneg.com price feed")
+    if usd_to_egp is None or usd_per_oz is None:
+        logger.warning("[GOLD] the price feed has no USD/EGP or ounce row; using the page table for them")
+        table = fetch_gold_table_prices(user_agent)
+        usd_to_egp = usd_to_egp or table["usd_to_egp"]
+        usd_per_oz = usd_per_oz or table["usd_per_oz"]
+    return {"prices_egp": prices_egp, "usd_to_egp": usd_to_egp, "usd_per_oz": usd_per_oz}
+
+
+def fetch_gold_table_prices(user_agent: str = "SalaryTracker/1.0") -> dict:
+    ctx = _ssl_context()
 
     page_url = "https://goldbullioneg.com/%D8%A3%D8%B3%D8%B9%D8%A7%D8%B1-%D8%A7%D9%84%D8%B0%D9%87%D8%A8/"
     req = _ur.Request(page_url, headers={"User-Agent": user_agent})
