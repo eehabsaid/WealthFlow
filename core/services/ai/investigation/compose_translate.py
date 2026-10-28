@@ -16,6 +16,7 @@ import time
 
 from core.services.ai.protocol import log_reply, parse_yes_no
 
+from .compose_polish import numbered_steps, tidy_translation
 from .refusal import is_refusal
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,8 @@ _TRANSLATE = ("You are a professional translator. Translate the Markdown the use
               "- A quoted button, tab or menu name inside a sentence or step: translate it and keep the original in parentheses. "
               "A heading is translated only, without the original in parentheses.\n"
               "- Keep every paragraph and list item: one translated line for each source line, never drop or merge a sentence.\n"
+              "- A numbered list stays a numbered list with the same number of items: never turn steps into a paragraph, never merge or drop a step.\n"
+              "- Use plain text: no *asterisk* emphasis; **bold** only where the source has it.\n"
               "- Translate the same English term the same way everywhere in the text.\n"
               "Reply with the translation only, without comments.")
 
@@ -135,6 +138,8 @@ def rejection(source: str, text: str, cut: bool, non_latin: bool) -> str:
         return "still mostly the source language (copied words)"   # also for languages written in the same alphabet (French, German...)
     if _paragraphs(source) >= MIN_PARAGRAPHS and _paragraphs(text) < MIN_KEPT_PARAGRAPHS * _paragraphs(source):
         return "paragraphs lost"   # a purpose sentence dropped under a heading is not noticed by the other checks
+    if numbered_steps(text) < numbered_steps(source):
+        return "numbered steps lost"   # a list rewritten as prose, or two steps merged
     return "" if abs(_headings(text) - _headings(source)) <= max(1, _headings(source) // 3) else "headings lost or added"
 
 
@@ -160,7 +165,8 @@ def _try(ask, cut, system: str, chunk: str, non_latin: bool, deadline: float, te
         text = ask(system, chunk, temperature)
         why = rejection(chunk, text, cut(), non_latin)
         if not why:
-            return clean_headings(restore_levels(chunk, text.strip())) if non_latin else restore_levels(chunk, text.strip())
+            done = restore_levels(chunk, text.strip())
+            return tidy_translation(clean_headings(done) if non_latin else done, non_latin)
         logger.info("[AI-TRANSLATE] rejected (%s) at temperature %s: %.60s", why, temperature, chunk.strip().replace("\n", " "))
     return ""
 
@@ -180,6 +186,8 @@ def translate_markdown(ask, cut, markdown: str, language: str, deadline: float, 
             for piece in pieces:
                 got = _try(ask, cut, system, piece, non_latin, deadline)
                 kept += 0 if got else 1
+                if not got:
+                    logger.warning("[AI-TRANSLATE] piece stayed English (%s): %.80s", language, piece.strip().replace("\n", " "))
                 translated.append(got or piece.strip())
             done = "\n\n".join(translated)
         parts.append(done)

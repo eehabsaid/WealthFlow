@@ -19,6 +19,7 @@ Tests:
 15. Ask hands a guide request to Agent mode and the mode bar follows (tests/modules/ai_mode_follow.py).
 16. Guide files: numbered chapters, a page per chapter, short PDF contents (tests/modules/ai_guide_structure.py).
 17. Agent reads screen data: the Cash Flow endpoint the tool wraps and the translated live step (tests/modules/ai_screen_data.py).
+18. Guide PDF contents on one page (English and Arabic) and translation clean-up (tests/modules/ai_guide_cleanup.py).
 """
 
 from tests.modules.ai_budgets import test_ai_budgets
@@ -28,6 +29,7 @@ from tests.modules.ai_export import test_ai_export
 from tests.modules.ai_wealth import test_ai_wealth
 from tests.modules.ai_agent import test_ai_agent
 from tests.modules.ai_guide_html import test_ai_guide_html
+from tests.modules.ai_guide_cleanup import test_ai_guide_cleanup
 from tests.modules.ai_guide_structure import test_ai_guide_structure
 from tests.modules.ai_progress_resume import test_ai_progress_resume
 from tests.modules.ai_think_setting import test_ai_think_setting
@@ -63,3 +65,4 @@ def test_ai_module(context, reporter, screenshot_logger):
     test_ai_mode_follow(context, reporter, screenshot_logger)
     test_ai_guide_structure(context, reporter, screenshot_logger)
     test_ai_screen_data(context, reporter, screenshot_logger)
+    test_ai_guide_cleanup(context, reporter, screenshot_logger)

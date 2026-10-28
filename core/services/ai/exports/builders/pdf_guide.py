@@ -10,11 +10,12 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.platypus import PageBreak, SimpleDocTemplate
 
-from .pdf_flow import HeadingLtr, HeadingRtl, TocLine
+from .pdf_contents import contents_flowables, pick_layout
+from .pdf_flow import HeadingLtr, HeadingRtl
 
 OUTLINE_LEVELS = (2, 3)       # markdown heading levels listed in the outline and the contents: chapters, tabs
 MAX_PASSES = 4
-MAX_TOC_ENTRIES = 80          # a longer guide lists only its chapters in the contents (the tabs stay in the outline panel): about one page
+MAX_TOC_ENTRIES = 80          # a longer guide lists only its chapters in the contents (the tabs stay in the outline panel)
 
 
 class _GuideDoc(SimpleDocTemplate):
@@ -43,10 +44,11 @@ def _footer(font: str):
 def build_guide(intro, body_factory, contents_title, rtl: bool, font: str, margin: float, title: str, page=A4) -> bytes:
     """`intro()` flowables, then the contents page(s), then `body_factory()` (fresh flowables each pass)."""
     known: list[tuple[int, str, int, str]] = []
-    data = b""
+    data, layout = b"", ""
     for _ in range(MAX_PASSES):
-        shown = [e for e in known if e[0] == OUTLINE_LEVELS[0]] if len(known) > MAX_TOC_ENTRIES else known
-        lines = [TocLine(lv, t, pg, key, rtl, font, 10.5 if lv == OUTLINE_LEVELS[0] else 9) for lv, t, pg, key in shown]
+        if known and not layout:   # the contents is one page: the layout is chosen once, on the real entries
+            layout = pick_layout(known, MAX_TOC_ENTRIES, intro, contents_title, rtl, font, page, margin)
+        lines = contents_flowables(known, layout, rtl, font, page[0] - 2 * margin) if known else []
         story = intro() + ([contents_title(), *lines] if lines else []) + [PageBreak()] + body_factory()
         buf = BytesIO()
         doc = _GuideDoc(buf, pagesize=page, leftMargin=margin, rightMargin=margin, topMargin=margin, bottomMargin=margin + 6 * mm, title=title)

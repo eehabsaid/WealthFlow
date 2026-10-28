@@ -4,6 +4,8 @@ be translated stays English so the guide never has a hole."""
 
 from __future__ import annotations
 
+import re
+
 from django.test import SimpleTestCase, TestCase
 
 from core.services.ai.investigation.compose_sections import units
@@ -24,7 +26,8 @@ def arabic(markdown: str) -> str:
     for line in markdown.splitlines():
         stripped = line.lstrip("#").strip()
         hashes = line[: len(line) - len(line.lstrip("#"))]
-        out.append(f"{hashes} {MARK} {stripped.count(' ') + 1}".strip() if line.strip() and hashes else (f"{MARK} " * max(1, line.count(' ')) if line.strip() else line))
+        step = re.match(r"\s*\d+[.)]\s", line)
+        out.append(f"{hashes} {MARK} {stripped.count(' ') + 1}".strip() if line.strip() and hashes else (f"{step.group(0) if step else ''}{MARK} " * max(1, line.count(' ')) if line.strip() else line))   # a numbered step keeps its number, as a real translation does
     return "\n".join(out)
 
 
