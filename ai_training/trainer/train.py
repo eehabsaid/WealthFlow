@@ -6,6 +6,7 @@ Everything GPU-related is in load_deps(), so the rest can be tested with fakes."
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import os
 import sys
@@ -39,6 +40,15 @@ def sft_config(deps, cfg: dict, out_dir: str):
                           **{length_key: cfg["max_seq_length"]})
 
 
+def trainer_key(deps) -> str:
+    """Newer trl calls the argument `processing_class`, older ones `tokenizer`."""
+    try:
+        names = inspect.signature(deps.SFTTrainer.__init__).parameters
+    except (TypeError, ValueError):
+        return "processing_class"
+    return "processing_class" if "processing_class" in names or "tokenizer" not in names else "tokenizer"
+
+
 def run(cfg: dict, deps=None, log=print) -> dict:
     deps = deps or load_deps()
     out_dir = cfg["out_dir"]
@@ -56,8 +66,8 @@ def run(cfg: dict, deps=None, log=print) -> dict:
     model = deps.FastModel.get_peft_model(model, finetune_vision_layers=False, finetune_language_layers=True, finetune_attention_modules=True,
                                           finetune_mlp_modules=True, r=cfg["lora_rank"], lora_alpha=cfg["lora_alpha"], lora_dropout=0, bias="none",
                                           random_state=3407)
-    trainer = deps.SFTTrainer(model=model, tokenizer=processor, train_dataset=deps.Dataset.from_list([{"text": t} for t in texts]),
-                              args=sft_config(deps, cfg, out_dir))
+    trainer = deps.SFTTrainer(model=model, train_dataset=deps.Dataset.from_list([{"text": t} for t in texts]), args=sft_config(deps, cfg, out_dir),
+                              **{trainer_key(deps): tok})
     trainer = deps.train_on_responses_only(trainer, instruction_part=user_marker, response_part=assistant_marker)
     started = time.time()
     result = trainer.train()
