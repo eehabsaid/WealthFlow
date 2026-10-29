@@ -112,6 +112,15 @@ class TrainStageTest(StageBase):
             train_stage.run(self.cfg, self.user, MODEL, dry_run=True, log=lambda line: None)
         setter.assert_not_called()
 
+    def test_the_model_is_unloaded_from_the_gpu_before_training_starts(self):
+        make_kept(self.user, 3)
+        order = []
+        a, b, c = self.patches()
+        with a, b, c, patch("ai_training.services.train_stage.subprocess.run", side_effect=lambda cmd, **kw: order.append(cmd) or type("R", (), {"returncode": 0})()), \
+                patch.object(wsl, "stream", side_effect=lambda cfg, script, log: order.append("wsl") or 1):
+            train_stage.run(self.cfg, self.user, MODEL, log=lambda line: None)
+        self.assertEqual(order[:2], [["ollama", "stop", MODEL], "wsl"])
+
     def test_a_finished_run_is_reused_unless_fresh(self):
         make_kept(self.user, 3)
         self.go()

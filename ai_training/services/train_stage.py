@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 from typing import Callable
 
 from . import export, preflight, wsl
@@ -36,6 +37,15 @@ def finished_model(cfg: TrainConfig) -> str:
     with open(path, encoding="utf-8") as fh:
         gguf = wsl.from_wsl_path(json.load(fh).get("gguf", ""))
     return gguf if gguf and os.path.exists(gguf) else ""
+
+
+def free_gpu(ollama_model: str, log: Callable[[str], None]) -> None:
+    """Training needs the whole GPU: unload the model Ollama keeps in memory after the last question (it stays up to 30 minutes)."""
+    try:
+        done = subprocess.run(["ollama", "stop", ollama_model], capture_output=True, timeout=60, stdin=subprocess.DEVNULL)
+        log(f"Unloaded {ollama_model} from the GPU." if done.returncode == 0 else f"Could not unload {ollama_model} (maybe not loaded): continuing.")
+    except (OSError, subprocess.SubprocessError):
+        log("Could not ask Ollama to unload the model: continuing.")
 
 
 def dry_stats(cfg: TrainConfig, train_file: str, log: Callable[[str], None]) -> None:
@@ -73,6 +83,7 @@ def run(cfg: TrainConfig, user, ollama_model: str, *, dry_run: bool = False, fre
     if not fresh and finished_model(cfg):
         log("An earlier training run is finished: reusing it (use --fresh to train again).")
         return {"status": "reused", "gguf": finished_model(cfg)}
+    free_gpu(ollama_model, log)
     repo = wsl.quote(wsl.to_wsl_path(REPO_ROOT))
     log(f"Preparing the training tools inside WSL (first time only) ... {ESTIMATE}")
     setup = f"tr -d '\\r' < {repo}/ai_training/trainer/setup_env.sh | bash"   # tr: Windows git may add CR to the .sh file
