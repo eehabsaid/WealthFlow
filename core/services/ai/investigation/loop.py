@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 
 from . import native_protocol as proto
 from . import prompt
-from .loop_helpers import compact, digest, label, progress, result_text, trim_history
+from .loop_helpers import asked_text, compact, digest, label, progress, result_text, trim_history
 from .actions import extract_calls, is_call_leak, salvage_content, strip_think, unavailable_tools
 from core.services.ai.domain_scope import is_out_of_scope
 
@@ -53,7 +53,7 @@ def investigate(provider, user, user_text: str, *, history=None, max_steps: int 
     wire = native and bool(getattr(provider, "native_tool_messages", False))   # structured tool_calls + role "tool"; else the text protocol
     out.native_tools = native
     system = prompt.build_agent_prompt(user, schemas, native, instructions, domain) if agent else prompt.build_system_prompt(user, schemas, native, domain)
-    asked = user_text + (f"\n\n[HINT, not verified by you; confirm or extend it with tools: {hint}]" if hint else "")
+    asked = asked_text(user_text, hint)
     messages = [{"role": "system", "content": system}] + trim_history(history) + [{"role": "user", "content": asked}]
     seen: set = set()
     reads, shown = 0, []

@@ -14,6 +14,7 @@ from core.services.ai.agent.messages import NO_TOOLS, STOPPED, note
 from core.services.ai.agent.settings import limits
 from core.services.ai.agent.sources import build_sources
 from core.services.ai.investigation import loop as inv_loop
+from ai_training.services import recorder
 from core.views.ai_chat.ai_chat_helpers import _aiT_fallback_no_answer
 
 from .domain_gate import guard_result
@@ -59,6 +60,7 @@ def run_agent_pipeline(*, trace: PipelineTrace, provider, request, conversation,
             composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars, user, cid, domain,
                                       cancel_check=lambda: control.is_stopped(user, cid))
             guard_result(domain, result, user_text, hint)
+            recorder.record(user, user_text, hint[:HINT_MAX_CHARS], result, provider=provider, domain=domain)
             rec.detail.update({"why": "agent_mode", "composed_document": composed, "steps": len(result.steps), "tools": [s.get("tool") for s in result.steps],
                                "statuses": [s.get("status") for s in result.steps], "llm_calls": result.llm_calls,
                                "nudges": result.nudges, "reason": result.reason, "error": result.error,

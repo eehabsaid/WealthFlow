@@ -33,6 +33,11 @@ def compact(messages: list, ctx_chars: int) -> None:
             messages[i] = native_protocol.trimmed(m)
 
 
+def asked_text(user_text: str, hint: str = "") -> str:
+    """The user turn exactly as the model receives it (the unverified HINT block is part of it)."""
+    return user_text + (f"\n\n[HINT, not verified by you; confirm or extend it with tools: {hint}]" if hint else "")
+
+
 def result_text(tool_res: dict, limit: int) -> str:
     text = json.dumps(tool_res.get("data") if tool_res.get("ok") else {"error": tool_res.get("error")},
                       default=str, ensure_ascii=False, separators=(",", ":"))

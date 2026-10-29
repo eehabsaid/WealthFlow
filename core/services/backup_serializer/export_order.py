@@ -12,6 +12,8 @@ def get_model_export_order():
     from django.contrib.auth.models import Group, Permission, User
     from django.contrib.contenttypes.models import ContentType
 
+    from ai_training.models import AgentTrace
+
     from core.models import (
         AIConversation, AIKnowledgeEntry, AIMessage,
         AIAnswerFeedback, AIMemoryNote, AIPrompt, AIPromptCategory,
@@ -127,4 +129,5 @@ def get_model_export_order():
         ("76", AIAnswerFeedback,              None),
         ("77", RentReceipt,                   None),
         ("78", AIMemoryNote,                  None),
+        ("79", AgentTrace,                   None),   # recorded Agent runs for AI training (ai_training app)
     ]

@@ -1,0 +1,18 @@
+{
+    "base_model_dir": "D:\\AI-Models\\training\\Qwen3.8-27B",
+    "work_dir": "D:\\AI-Models\\training\\work",
+    "wsl_distro": "",
+    "min_traces": 50,
+    "min_free_gb": 120,
+    "wsl_memory_gb": 52,
+    "max_seq_length": 8192,
+    "lora_rank": 16,
+    "lora_alpha": 16,
+    "epochs": 2,
+    "learning_rate": 0.0002,
+    "batch_size": 1,
+    "grad_accum": 8,
+    "enable_thinking": false,
+    "gguf_quant": "q4_k_m",
+    "model_suffix": "-agent"
+}
