@@ -31,9 +31,13 @@ def write_inputs(cfg: TrainConfig, user) -> tuple[str, int]:
 
 def finished_model(cfg: TrainConfig) -> str:
     """Windows path of the model file of an earlier finished run ("" if none)."""
-    path = os.path.join(run_dir(cfg), "out", "result.json")
-    if not os.path.exists(path):
-        return ""
+    out = os.path.join(run_dir(cfg), "out")
+    path = os.path.join(out, "result.json")
+    if not os.path.exists(path):   # export finished but the result note was not written: use the model file it left
+        from ai_training.trainer import export_gguf
+
+        files = export_gguf.model_files(out)
+        return max(files, key=os.path.getsize) if files and os.path.isdir(os.path.join(out, "adapter")) else ""
     with open(path, encoding="utf-8") as fh:
         gguf = wsl.from_wsl_path(json.load(fh).get("gguf", ""))
     return gguf if gguf and os.path.exists(gguf) else ""

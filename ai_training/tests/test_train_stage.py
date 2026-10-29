@@ -83,6 +83,13 @@ class TrainStageTest(StageBase):
         self.assertEqual(len(open(os.path.join(train_stage.run_dir(self.cfg), "train.jsonl")).read().splitlines()), 3)
         self.assertIn("Dry run: everything above is ready", text)
 
+    def test_a_finished_export_without_result_note_is_found_in_gguf_gguf(self):
+        out = os.path.join(train_stage.run_dir(self.cfg), "out")
+        for sub, name, size in (("gguf_gguf", "M.Q4_K_M.gguf", 50), ("gguf_gguf", "M.BF16-mmproj.gguf", 90), ("adapter", "a.txt", 1)):
+            os.makedirs(os.path.join(out, sub), exist_ok=True)
+            open(os.path.join(out, sub, name), "w").write("x" * size)
+        self.assertTrue(train_stage.finished_model(self.cfg).endswith("M.Q4_K_M.gguf"))
+
     def test_full_run_prepares_then_trains_with_wsl_paths_and_returns_the_model_file(self):
         make_kept(self.user, 3)
         out, _ = self.go()
