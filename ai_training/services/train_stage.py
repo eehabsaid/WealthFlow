@@ -57,6 +57,10 @@ def dry_stats(cfg: TrainConfig, train_file: str, log: Callable[[str], None]) -> 
 def run(cfg: TrainConfig, user, ollama_model: str, *, dry_run: bool = False, fresh: bool = False, log: Callable[[str], None] = print) -> dict:
     traces = len(export.kept_traces(user))
     checks = preflight.base_checks(cfg, traces, ollama_model) + preflight.wsl_checks(cfg)
+    if not dry_run and any(c.name == "WSL memory" and not c.ok for c in checks) and preflight.set_wsl_memory(cfg):
+        log(f"Giving WSL {cfg.wsl_memory_gb} GB of memory in {preflight.wslconfig_path()} and restarting WSL ...")
+        wsl.shutdown()
+        checks = preflight.base_checks(cfg, traces, ollama_model) + preflight.wsl_checks(cfg)
     for line in preflight.describe(checks):
         log(line)
     if preflight.failed(checks):

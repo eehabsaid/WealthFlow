@@ -63,8 +63,25 @@ def wsl_checks(cfg) -> list[Check]:
     code, out = wsl.capture(cfg, "awk '/MemTotal/ {print int($2/1048576)}' /proc/meminfo")
     have = int(out) if out.isdigit() else 0
     memory = Check("WSL memory", have >= cfg.wsl_memory_gb - 4, f"{have} GB for WSL (want about {cfg.wsl_memory_gb})",
-                   f"Create {os.path.expanduser('~/.wslconfig')} with:  [wsl2]  memory={cfg.wsl_memory_gb}GB  then run `wsl --shutdown`.")
+                   f"The real run sets this by itself. To do it now, paste in PowerShell:  Set-Content \"$env:USERPROFILE\\.wslconfig\" \"[wsl2]`nmemory={cfg.wsl_memory_gb}GB\"; wsl --shutdown")
     return [gpu, tools, memory]
+
+
+def wslconfig_path() -> str:
+    return os.path.join(os.path.expanduser("~"), ".wslconfig")
+
+
+def set_wsl_memory(cfg) -> bool:
+    """Gives WSL `wsl_memory_gb` through %USERPROFILE%\\.wslconfig. Never overwrites a memory value you set yourself; True = file changed."""
+    path = wslconfig_path()
+    text = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
+    if "memory=" in text.replace(" ", "").lower():
+        return False
+    line = f"memory={cfg.wsl_memory_gb}GB"
+    text = text.replace("[wsl2]", f"[wsl2]\n{line}", 1) if "[wsl2]" in text else (text.rstrip() + "\n\n" if text.strip() else "") + f"[wsl2]\n{line}\n"
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(text)
+    return True
 
 
 def failed(checks: list[Check]) -> list[Check]:

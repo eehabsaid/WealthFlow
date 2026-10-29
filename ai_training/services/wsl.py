@@ -31,10 +31,10 @@ def available() -> bool:
     return bool(shutil.which("wsl.exe") or shutil.which("wsl"))
 
 
-def _run(cmd: list[str], timeout: int):
-    """subprocess.run that never waits for keyboard input and never raises: None = no answer in time / cannot start."""
+def _run(cmd: list[str], timeout: int, script: bytes = b""):
+    """subprocess.run that never waits for keyboard input (stdin is the script, or empty) and never raises: None = no answer / cannot start."""
     try:
-        return subprocess.run(cmd, capture_output=True, timeout=timeout, stdin=subprocess.DEVNULL)
+        return subprocess.run(cmd, capture_output=True, timeout=timeout, input=script)
     except (subprocess.TimeoutExpired, OSError):
         return None
 
@@ -47,12 +47,14 @@ def distros() -> list[str]:
     return [line.strip() for line in decode(done.stdout).splitlines() if line.strip()]
 
 
-def _command(cfg, script: str) -> list[str]:
-    return ["wsl.exe"] + (["-d", cfg.wsl_distro] if cfg.wsl_distro else []) + ["--", "bash", "-lc", script]
+def _command(cfg) -> list[str]:
+    """The script is NOT part of this line: it goes in through stdin (`bash -ls`), because wsl.exe lets Linux's default shell expand
+    $variables (like $2 or $HOME) in the command line BEFORE bash sees them, which silently broke our checks."""
+    return ["wsl.exe"] + (["-d", cfg.wsl_distro] if cfg.wsl_distro else []) + ["--", "bash", "-ls"]
 
 
 def capture(cfg, script: str, timeout: int = 60) -> tuple[int, str]:
-    done = _run(_command(cfg, script), timeout)
+    done = _run(_command(cfg), timeout, (script + "\n").encode())
     if done is None:
         return 124, f"WSL gave no answer within {timeout} seconds"
     return done.returncode, decode(done.stdout + done.stderr).strip()
@@ -60,7 +62,9 @@ def capture(cfg, script: str, timeout: int = 60) -> tuple[int, str]:
 
 def stream(cfg, script: str, log: Callable[[str], None]) -> int:
     """Runs a long command and passes every output line to `log` as it appears."""
-    proc = subprocess.Popen(_command(cfg, script), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+    proc = subprocess.Popen(_command(cfg), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+    proc.stdin.write((script + "\n").encode())
+    proc.stdin.close()
     for raw in proc.stdout:
         text = decode(raw).rstrip()
         if text:

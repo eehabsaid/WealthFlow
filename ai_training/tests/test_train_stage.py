@@ -95,6 +95,23 @@ class TrainStageTest(StageBase):
         self.assertTrue(wsl_cfg["train_file"].endswith("/train.jsonl"))
         self.assertEqual(wsl_cfg["max_seq_length"], 8192)
 
+    def test_low_wsl_memory_is_fixed_by_the_real_run_and_only_by_it(self):
+        make_kept(self.user, 3)
+        low = [preflight.Check("WSL memory", False, "32 GB", "x")]
+        fixed = [preflight.Check("WSL memory", True, "52 GB")]
+        answers = iter([low, fixed])
+        a, b, c = self.patches()
+        with a, patch.object(preflight, "wsl_checks", side_effect=lambda cfg: next(answers)), c, \
+                patch.object(preflight, "set_wsl_memory", return_value=True) as setter, patch.object(wsl, "shutdown") as shutdown:
+            out = train_stage.run(self.cfg, self.user, MODEL, log=lambda line: None)
+        setter.assert_called_once()
+        shutdown.assert_called_once()
+        self.assertEqual(out["status"], "trained")
+        a, b, c = self.patches(wsl=low)
+        with a, b, c, patch.object(preflight, "set_wsl_memory") as setter:
+            train_stage.run(self.cfg, self.user, MODEL, dry_run=True, log=lambda line: None)
+        setter.assert_not_called()
+
     def test_a_finished_run_is_reused_unless_fresh(self):
         make_kept(self.user, 3)
         self.go()

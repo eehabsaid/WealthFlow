@@ -41,7 +41,17 @@ class WslHelpersTest(SimpleTestCase):
         with patch("ai_training.services.wsl.subprocess.run", return_value=raw) as run:
             self.assertEqual(wsl.distros(), ["Ubuntu", "docker-desktop"])
             wsl.capture(cfg(wsl_distro="Ubuntu"), "echo hi")
-        self.assertEqual(run.call_args.args[0], ["wsl.exe", "-d", "Ubuntu", "--", "bash", "-lc", "echo hi"])
+        self.assertEqual(run.call_args.args[0], ["wsl.exe", "-d", "Ubuntu", "--", "bash", "-ls"])
+        self.assertEqual(run.call_args.kwargs["input"], b"echo hi\n")
+
+    def test_dollar_variables_reach_bash_untouched_because_the_script_goes_through_stdin(self):
+        script = "awk '/MemTotal/ {print int($2/1048576)}' /proc/meminfo; for t in gcc; do command -v $t; done"
+        done = SimpleNamespace(stdout=b"", stderr=b"", returncode=0)
+        with patch("ai_training.services.wsl.subprocess.run", return_value=done) as run:
+            wsl.capture(cfg(), script)
+        self.assertNotIn("$2", " ".join(run.call_args.args[0]))
+        self.assertIn(b"$2/1048576", run.call_args.kwargs["input"])
+        self.assertIn(b"command -v $t", run.call_args.kwargs["input"])
 
 
 class WslNoAnswerTest(SimpleTestCase):
@@ -64,7 +74,28 @@ class WslNoAnswerTest(SimpleTestCase):
         done = SimpleNamespace(stdout=b"", stderr=b"", returncode=0)
         with patch("ai_training.services.wsl.subprocess.run", return_value=done) as run:
             wsl.distros()
-        self.assertEqual(run.call_args.kwargs["stdin"], __import__("subprocess").DEVNULL)
+        self.assertEqual(run.call_args.kwargs["input"], b"")   # nothing can wait for the keyboard
+
+
+class WslConfigTest(SimpleTestCase):
+    def run_fix(self, existing):
+        path = os.path.join(tempfile.mkdtemp(), ".wslconfig")
+        if existing is not None:
+            open(path, "w").write(existing)
+        with patch.object(preflight, "wslconfig_path", return_value=path):
+            changed = preflight.set_wsl_memory(cfg(wsl_memory_gb=52))
+        return changed, open(path).read() if os.path.exists(path) else None
+
+    def test_creates_the_file_when_missing(self):
+        self.assertEqual(self.run_fix(None), (True, "[wsl2]\nmemory=52GB\n"))
+
+    def test_inserts_into_an_existing_wsl2_section_and_keeps_other_lines(self):
+        changed, text = self.run_fix("[wsl2]\nprocessors=8\n")
+        self.assertTrue(changed)
+        self.assertEqual(text, "[wsl2]\nmemory=52GB\nprocessors=8\n")
+
+    def test_a_memory_value_you_set_yourself_is_never_touched(self):
+        self.assertEqual(self.run_fix("[wsl2]\nmemory = 40GB\n"), (False, "[wsl2]\nmemory = 40GB\n"))
 
 
 class ConfigTest(SimpleTestCase):
