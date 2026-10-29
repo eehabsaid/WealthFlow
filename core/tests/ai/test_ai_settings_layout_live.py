@@ -24,8 +24,9 @@ IDS = ["aiEnabledToggle", "aiProviderSelect", "aiModelInput", "aiTemperatureInpu
        "aiInvestigatorModeSelect", "aiAgentEnabledToggle", "aiAgentInstructionsInput", "aiAgentInstructionsResetBtn",
        "aiAgentMaxStepsInput", "aiAgentBudgetInput", "aiAgentMaxReadsInput", "aiDocumentBudgetInput", "aiDocumentMaxTokensInput",
        "aiDocumentInstructionsInput", "aiDocumentInstructionsResetBtn", "aiFileGenerationToggle", "aiFileMaxMbInput",
-       "aiFileMaxRowsInput", "aiPipelineDebugToggle", "aiSaveBtn", "aiUserLimitsPanel"]
-GROUPS = ["provider", "safety", "domains", "routing", "agent", "docs", "files", "diag"]
+       "aiFileMaxRowsInput", "aiPipelineDebugToggle", "aiSaveBtn", "aiUserLimitsPanel",
+       "speech_stt_enabled", "speech_stt_endpoint", "speech_stt_test", "speech_tts_enabled", "speech_tts_endpoint", "speech_tts_test"]
+GROUPS = ["provider", "safety", "domains", "routing", "agent", "docs", "files", "speech", "diag"]
 SHOTS = os.environ.get("AI_LAYOUT_SHOTS", "")
 
 
@@ -83,6 +84,9 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
         self.assertEqual(p.locator("#aiaGroup-agent input[type=number]").count(), 3)
         self.assertEqual(p.locator("#aiaGroup-docs input[type=number]").count(), 2)
         self.assertEqual(p.locator("#aiaGroup-files input[type=number]").count(), 2)
+        self.assertEqual(p.locator("#aiaGroup-speech input[type=number]").count(), 2)   # STT and TTS timeouts
+        self.assertEqual(p.locator("#aiaGroup-speech #speech_stt_test, #aiaGroup-speech #speech_tts_test").count(), 2)
+        self.assertEqual(p.locator("#aiaGroup-provider [id^=speech_]").count(), 0)
         # Test Connection is the last control of the Provider card
         last = p.evaluate("() => [...document.querySelectorAll('#aiaGroup-provider button')].pop().id")
         self.assertEqual(last, "aiTestConnBtn")

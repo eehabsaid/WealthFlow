@@ -132,6 +132,13 @@ window.AIA.ui.GROUPS = [
     "File generation",
     "Excel, Word, PDF, CSV and code files built from your data.",
   ],
+  [
+    "speech",
+    "bi-mic",
+    "ai_grp_speech",
+    "Speech (STT / TTS)",
+    "Optional speech services, configured independently from text AI.",
+  ],
   ["diag", "bi-bug", "ai_grp_diag", "Diagnostics", "For troubleshooting only."],
 ];
 
