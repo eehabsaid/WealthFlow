@@ -5,7 +5,8 @@ VENV="$HOME/ai_training_venv"
 [ -f "$VENV/.ready" ] && echo "training environment already prepared" && exit 0
 command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
-uv venv --python 3.12 "$VENV"
+export UV_HTTP_TIMEOUT=900 UV_HTTP_RETRIES=10   # big downloads on a slow line
+[ -x "$VENV/bin/python" ] || uv venv --python 3.12 "$VENV"
 . "$VENV/bin/activate"
 # RTX 50-series (Blackwell) needs the CUDA 12.8 build of PyTorch
 uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
