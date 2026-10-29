@@ -6,6 +6,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from .settings import get_speech_config
+from .text_prep import speech_chunks
 
 
 def _request(url, body, headers, timeout):
@@ -15,7 +16,7 @@ def _request(url, body, headers, timeout):
             return response.read(), response.headers.get("Content-Type", "application/octet-stream")
     except HTTPError as exc:
         raise RuntimeError(f"Speech API returned HTTP {exc.code}") from None
-    except (URLError, TimeoutError, OSError) as exc:
+    except (URLError, TimeoutError, OSError):
         raise RuntimeError("Speech API connection failed or timed out") from None
 
 
@@ -54,10 +55,7 @@ def transcribe_audio(audio_bytes, filename, content_type):
     return text.strip()
 
 
-def synthesize_speech(text):
-    cfg = get_speech_config("tts", include_secret=True)
-    if not cfg["enabled"] or not cfg["is_configured"]:
-        raise RuntimeError("Text-to-speech is disabled or not configured")
+def _synthesize_chunk(cfg, text):
     payload = {"model": cfg["model"], "input": text, "response_format": "mp3"}
     if cfg["voice"]:
         payload["voice"] = cfg["voice"]
@@ -69,6 +67,22 @@ def synthesize_speech(text):
     if "json" in mime.lower():
         raise RuntimeError("TTS endpoint returned JSON instead of audio; configure an OpenAI-compatible audio endpoint")
     return raw, mime
+
+
+def synthesize_speech(text):
+    """Markdown answer -> (mp3 bytes, mime). Symbols are stripped and long answers are sent in chunks."""
+    cfg = get_speech_config("tts", include_secret=True)
+    if not cfg["enabled"] or not cfg["is_configured"]:
+        raise RuntimeError("Text-to-speech is disabled or not configured")
+    chunks = speech_chunks(text)
+    if not chunks:
+        raise RuntimeError("There is no speakable text")
+    audio, mime = [], ""
+    for chunk in chunks:
+        raw, chunk_mime = _synthesize_chunk(cfg, chunk)
+        audio.append(raw)
+        mime = mime or chunk_mime
+    return b"".join(audio), mime
 
 
 def test_speech_endpoint(kind, overrides=None):

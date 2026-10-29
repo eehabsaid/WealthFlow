@@ -40,7 +40,6 @@ def get_speech_config(kind, include_secret=False):
 
 def save_speech_settings(data):
     pending = {}
-    effective = {}
     for kind in KINDS:
         values = {}
         for field in FIELDS:

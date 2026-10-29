@@ -8,6 +8,7 @@ from core.views.auth_views import PermissionRequiredMixin
 from core.services.ai.speech import get_speech_config, transcribe_audio, synthesize_speech
 
 logger = logging.getLogger(__name__)
+MAX_SPEECH_INPUT_CHARS = 100000  # sanity cap on the request body; the service chunks and caps what is spoken
 
 
 class AIWorkspaceSpeechMixin(PermissionRequiredMixin):
@@ -46,8 +47,8 @@ class SpeechSynthesizeView(AIWorkspaceSpeechMixin, View):
         text = str(data.get("text") or "").strip()
         if not text:
             return JsonResponse({"error": "Text is required"}, status=400)
-        if len(text) > 12000:
-            return JsonResponse({"error": "Text exceeds the 12,000-character limit"}, status=400)
+        if len(text) > MAX_SPEECH_INPUT_CHARS:
+            return JsonResponse({"error": "Text is too long to read aloud"}, status=400)
         try:
             audio, mime = synthesize_speech(text)
             response = HttpResponse(audio, content_type=mime or "audio/mpeg")
