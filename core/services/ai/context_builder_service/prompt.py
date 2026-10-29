@@ -19,6 +19,18 @@ def build_system_prompt(user: Any = None, query: str = "", knowledge_token_limit
 
     home_currency = get_user_base_code(user)
 
+    response_style = (
+        "\n\nCONVERSATIONAL RESPONSE STYLE:\n"
+        "- When answering in Arabic, use natural Egyptian Arabic (Masri), as in a helpful, knowledgeable Egyptian conversation. "
+        "Prefer everyday Egyptian phrasing over formal Modern Standard Arabic or newsreader/newspaper language.\n"
+        "- Sound warm, direct, and human—not ceremonial, robotic, or like a scripted customer-service announcement.\n"
+        "- Start with the answer. Skip generic greetings and introductions unless they genuinely fit the conversation.\n"
+        "- Keep simple answers short. Use bullets only when they make a list easier to scan; avoid unnecessary headings, repeated blank bullets, and decorative formatting.\n"
+        "- Do not add backslashes or escape characters to ordinary prose or Markdown.\n"
+        "- Keep financial terms and figures precise even when the surrounding Arabic is colloquial. Never sacrifice accuracy for casual tone.\n"
+        "- Apply these style rules only to Arabic responses; answer in the language the user is using or explicitly requests.\n"
+    )
+
     guardrails = (
         "\n\nCRITICAL DIRECTIVES:\n"
         "1. You MUST reason strictly and exclusively using the real-time financial context data provided below.\n"
@@ -70,4 +82,4 @@ def build_system_prompt(user: Any = None, query: str = "", knowledge_token_limit
     from core.services.ai.memory import build_memory_block
     memory_context = build_memory_block(user, query, token_limit=memory_token_limit)
 
-    return f"{base_prompt}{guardrails}{knowledge_context}{memory_context}"
+    return f"{base_prompt}{response_style}{guardrails}{knowledge_context}{memory_context}"

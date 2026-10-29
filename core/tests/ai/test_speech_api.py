@@ -2,11 +2,16 @@
 
 import json
 from unittest.mock import patch
+import io
+import wave
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from core.models import AppSettings
 from core.services.ai.speech import get_speech_config, save_speech_settings
-from core.services.ai.speech.client import transcribe_audio, synthesize_speech
+from core.services.ai.speech.client import (
+    _combine_wav_chunks, _local_arabic_chatterbox_config, _voice_for_text,
+    transcribe_audio, synthesize_speech,
+)
 
 
 class SpeechSettingsTests(TestCase):
@@ -58,6 +63,38 @@ class SpeechSettingsTests(TestCase):
         self.assertIn(b"name=\"file\"", args[1])
         self.assertIn(b"asr", args[1])
         self.assertIn(b'name="language"\r\n\r\nar', args[1])
+
+    def test_arabic_local_piper_routes_to_chatterbox_and_preserves_reference_voice(self):
+        cfg = {"endpoint": "http://127.0.0.1:8765/v1/audio/speech", "model": "piper",
+               "voice": "en_US-lessac-medium.onnx", "timeout": 30, "api_key": ""}
+        with patch.dict("os.environ", {"WF_CHATTERBOX_ARABIC_REFERENCE": r"D:\AI-Models\voices\egyptian.wav"}):
+            routed = _local_arabic_chatterbox_config(cfg, "أهلاً، عامل إيه؟")
+        self.assertEqual(routed["endpoint"], "http://127.0.0.1:8766/v1/audio/speech")
+        self.assertEqual(routed["model"], "chatterbox-multilingual-v3")
+        self.assertEqual(routed["voice"], r"D:\AI-Models\voices\egyptian.wav")
+        self.assertIsNone(_local_arabic_chatterbox_config(cfg, "Hello there"))
+        self.assertIsNone(_local_arabic_chatterbox_config(cfg, "أهلاً، عامل إيه؟"))
+        cfg["_chatterbox_arabic_response"] = True
+        self.assertIsNotNone(_local_arabic_chatterbox_config(cfg, "English brand name"))
+
+    def test_non_local_provider_keeps_configured_voice(self):
+        cfg = {"endpoint": "https://speech.example/v1/audio/speech", "model": "piper",
+               "voice": "en_US-lessac-medium.onnx"}
+        self.assertEqual(_voice_for_text(cfg, "أهلاً إيهاب"), "en_US-lessac-medium.onnx")
+
+    def test_wav_chunks_are_combined_into_one_valid_wav(self):
+        def wav_bytes(sample):
+            out = io.BytesIO()
+            with wave.open(out, "wb") as wav:
+                wav.setnchannels(1)
+                wav.setsampwidth(2)
+                wav.setframerate(24000)
+                wav.writeframes(sample)
+            return out.getvalue()
+        combined = _combine_wav_chunks([wav_bytes(b"\x00\x00"), wav_bytes(b"\x01\x00")])
+        with wave.open(io.BytesIO(combined), "rb") as wav:
+            self.assertEqual(wav.getnframes(), 2)
+            self.assertEqual(wav.readframes(2), b"\x00\x00\x01\x00")
 
     @patch("core.services.ai.speech.client._request")
     def test_synthesis_returns_audio_bytes_and_mime_type(self, request_mock):
