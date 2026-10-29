@@ -62,10 +62,13 @@ def judge_attempt(trace) -> list[str]:
     return method_checks(trace.question, trace.answer, trace.steps, trace.reason) + data_check(trace.answer, trace.expected)
 
 
-def repeat_check(attempts: list) -> list[str]:
-    """(c) The same question asked twice must give the same figures (and both runs must have passed on their own)."""
+def repeat_check(attempts: list, expected=None) -> list[str]:
+    """(c) The same question asked twice must give the same figures (and both runs must have passed on their own).
+    With `expected` only the asked-for figures count: extras like a rate or a month number may differ between runs."""
     if len(attempts) < 2:
         return ["not_repeated"]
+    if _expected_values(expected):
+        return [] if all(not data_check(a.answer, expected) for a in attempts) else ["not_repeatable"]
     first, *rest = [figures(a.answer) for a in attempts]
     for other in rest:
         if not all(any(close(a, b, p) for q, bs in other for b in bs) for p, avs in first for a in avs):

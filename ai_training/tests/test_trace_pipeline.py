@@ -93,7 +93,7 @@ class RunnerTest(TraceBase):
         self.run_case(self.script(lambda n: "You have 3 expense records."))
         self.assertIn("wrong_or_missing_figure:4", AgentTrace.objects.first().drop_reasons)
 
-    def test_answers_that_change_between_the_two_runs_are_dropped(self):
+    def test_extra_figures_that_differ_between_the_two_runs_do_not_matter(self):
         calls = []
 
         def handler(payload):
@@ -105,7 +105,7 @@ class RunnerTest(TraceBase):
         server = fo.FakeOllama(handler=handler).start()
         self.addCleanup(server.stop)
         self.run_case(OllamaProvider(base_url=server.url, model=fo.MODEL, timeout=60))
-        self.assertEqual({tuple(t.drop_reasons) for t in AgentTrace.objects.all()}, {("not_repeatable",)})
+        self.assertEqual({tuple(t.drop_reasons) for t in AgentTrace.objects.all()}, {()})
 
     def test_answering_without_looking_is_dropped(self):
         server = fo.FakeOllama(handler=lambda payload: fo.reply("You have 3 expense records.")).start()

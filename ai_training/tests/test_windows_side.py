@@ -141,7 +141,7 @@ class PreflightTest(SimpleTestCase):
             gpu, tools, memory = preflight.wsl_checks(cfg(wsl_memory_gb=52))
         self.assertTrue(gpu.ok)
         self.assertFalse(tools.ok)
-        self.assertIn("apt install", tools.fix)
+        self.assertIn("apt-get install", tools.fix)
         self.assertFalse(memory.ok)
         self.assertIn("memory=52GB", memory.fix)
 

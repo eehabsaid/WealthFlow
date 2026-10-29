@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 from . import wsl
 
-APT_LINE = "wsl sudo apt install -y build-essential cmake curl git libcurl4-openssl-dev"
+APT_LINE = 'wsl sudo bash -c "apt-get update && apt-get install -y build-essential cmake curl git libcurl4-openssl-dev"'
 
 
 @dataclass

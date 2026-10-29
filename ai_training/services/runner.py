@@ -42,7 +42,7 @@ def ask(user, case, attempt: int) -> tuple[AgentTrace | None, str]:
 def judge_case(traces: list[AgentTrace]) -> list[str]:
     """Reasons to drop the whole case (empty = every run passed and the repeat gave the same figures)."""
     reasons = [r for t in traces for r in judges.judge_attempt(t)]
-    return sorted(set(reasons)) or judges.repeat_check(traces)
+    return sorted(set(reasons)) or judges.repeat_check(traces, traces[0].expected if traces else None)
 
 
 def run(user, cases, *, attempts: int = ATTEMPTS, log: Callable[[str], None] = print) -> dict:

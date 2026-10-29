@@ -74,3 +74,6 @@ class DataAndRepeatTest(SimpleTestCase):
         self.assertEqual(judges.repeat_check([T("You have 3 records."), T("3 records in total")]), [])
         self.assertEqual(judges.repeat_check([T("You have 3 records."), T("You have 4 records.")]), ["not_repeatable"])
         self.assertEqual(judges.repeat_check([T("3 records, 50.00"), T("3 records")]), ["not_repeatable"])
+        exp = {"values": ["500.00"]}
+        self.assertEqual(judges.repeat_check([T("500.00 at 49.995"), T("500.00 at 49.9950, month 8")], exp), [])
+        self.assertEqual(judges.repeat_check([T("500.00"), T("510.00")], exp), ["not_repeatable"])
