@@ -12,7 +12,7 @@ class AgentTrace(models.Model):
     """
 
     PENDING, KEPT, DROPPED = "pending", "kept", "dropped"
-    SOURCE_GENERATED, SOURCE_CHAT = "generated", "chat"
+    SOURCE_GENERATED, SOURCE_CHAT, SOURCE_EVAL = "generated", "chat", "eval"   # eval = model test runs: never exported for training
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="agent_traces")
     source = models.CharField(max_length=20, default=SOURCE_CHAT)

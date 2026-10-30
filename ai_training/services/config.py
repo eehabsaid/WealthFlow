@@ -1,10 +1,10 @@
-"""Training settings: ai_training/config.json (edit that file; every key is required, so nothing hides in code)."""
+"""Training and test settings: ai_training/config.json (edit that file; the training keys are required, the model-test keys are optional)."""
 
 from __future__ import annotations
 
 import json
 import os
-from dataclasses import asdict, dataclass, fields
+from dataclasses import MISSING, asdict, dataclass, fields
 
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -28,6 +28,12 @@ class TrainConfig:
     enable_thinking: bool
     gguf_quant: str
     model_suffix: str         # new model name = the model set in Settings + this suffix
+    # Model test settings: optional in config.json (these are the defaults)
+    ollama_models_dir: str = "D:\\ollama\\models"   # used only when the test restarts Ollama and OLLAMA_MODELS is not set
+    eval_questions: int = 40       # test questions asked to EACH model (0 = every test question)
+    eval_seed: int = 2026          # same seed = same test questions (while the data is the same)
+    eval_min_gain_points: int = 5  # the new model must score at least this many percentage points higher
+    eval_max_slower_percent: int = 20  # ... and its median answer time may be at most this much longer
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -37,7 +43,8 @@ def load(path: str = CONFIG_PATH, **overrides) -> TrainConfig:
     with open(path, encoding="utf-8") as fh:
         raw = json.load(fh)
     wanted = {f.name for f in fields(TrainConfig)}
-    missing = sorted(wanted - set(raw))
+    required = {f.name for f in fields(TrainConfig) if f.default is MISSING}
+    missing = sorted(required - set(raw))
     if missing:
         raise ValueError(f"{path} is missing: {', '.join(missing)}")
     raw = {k: v for k, v in raw.items() if k in wanted}

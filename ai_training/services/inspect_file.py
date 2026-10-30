@@ -18,7 +18,8 @@ def export_xlsx(path: str, owner=None) -> int:
     ws = wb.active
     ws.title = "Agent runs"
     ws.append(list(COLUMNS))
-    qs = AgentTrace.objects.filter(owner=owner) if owner else AgentTrace.objects.all()
+    qs = AgentTrace.objects.exclude(source=AgentTrace.SOURCE_EVAL)
+    qs = qs.filter(owner=owner) if owner else qs
     count = 0
     for t in qs.order_by("case_key", "attempt", "id"):
         ws.append([t.pk, t.case_key, t.attempt, t.verdict, "; ".join(t.drop_reasons or []), t.question,

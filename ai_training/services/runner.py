@@ -22,11 +22,11 @@ CHAT_URL = "/api/financial-advisor/ai/chat/"
 ATTEMPTS = 2
 
 
-def ask(user, case, attempt: int) -> tuple[AgentTrace | None, str]:
+def ask(user, case, attempt: int, source: str = AgentTrace.SOURCE_GENERATED) -> tuple[AgentTrace | None, str]:
     """One run of one question as `user`. Returns (trace, problem); problem is "" when a trace was recorded."""
     client = Client(SERVER_NAME="localhost")
     client.force_login(user)
-    with context.collecting(case_key=case.key, attempt=attempt, expected=case.expected) as ctx:
+    with context.collecting(case_key=case.key, attempt=attempt, expected=case.expected, source=source) as ctx:
         res = client.post(CHAT_URL, json.dumps({"message": case.question, "chat_mode": "agent", "question_domain": BUSINESS}), content_type="application/json")
     try:
         data = res.json()

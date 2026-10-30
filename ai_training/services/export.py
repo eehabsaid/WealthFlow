@@ -27,7 +27,7 @@ def to_messages(trace: AgentTrace) -> list[dict]:
 def kept_traces(owner=None):
     """The first kept run of every question (the repeat run proved it; exporting both would only duplicate it)."""
     seen, out = set(), []
-    qs = AgentTrace.objects.filter(verdict=AgentTrace.KEPT).order_by("case_key", "attempt", "id")
+    qs = AgentTrace.objects.filter(verdict=AgentTrace.KEPT).exclude(source=AgentTrace.SOURCE_EVAL).order_by("case_key", "attempt", "id")
     for t in qs.filter(owner=owner) if owner else qs:
         if (t.owner_id, t.case_key) not in seen:
             seen.add((t.owner_id, t.case_key))
@@ -45,7 +45,7 @@ def export_jsonl(path: str, owner=None) -> int:
 
 def report(owner=None) -> dict:
     """Plain counts per question (not per run): kept, dropped, and why."""
-    qs = AgentTrace.objects.filter(attempt=1)
+    qs = AgentTrace.objects.filter(attempt=1).exclude(source=AgentTrace.SOURCE_EVAL)
     qs = qs.filter(owner=owner) if owner else qs
     reasons = Counter(r.split(":")[0] for t in qs.filter(verdict=AgentTrace.DROPPED) for r in (t.drop_reasons or ["unknown"]))
     return {"questions": qs.count(), "kept": qs.filter(verdict=AgentTrace.KEPT).count(), "dropped": qs.filter(verdict=AgentTrace.DROPPED).count(),
