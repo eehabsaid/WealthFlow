@@ -9,7 +9,7 @@ from io import StringIO
 from unittest.mock import patch
 
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from ai_training.services import config, pipeline, preflight, train_stage, wsl
 from core.models import AppSettings
@@ -196,3 +196,12 @@ class DryStatsTest(StageBase):
         def boom(path):
             raise OSError("no tokenizer files")
         self.assertIn("Length check skipped: OSError", self.stats(SimpleNamespace(AutoTokenizer=SimpleNamespace(from_pretrained=boom))))
+
+
+class FailureExplainedTest(SimpleTestCase):
+    def test_a_stopped_training_says_why_in_plain_words(self):
+        text = train_stage.explain({"status": "training_failed", "gguf": "", "exit_code": 137})
+        self.assertIn("NOT FINISHED", text)
+        self.assertIn("exit code 137", text)
+        self.assertIn("ran out of memory", text)
+        self.assertEqual(train_stage.explain({"status": "trained", "gguf": "x"}), "")

@@ -46,7 +46,8 @@ def finished_model(cfg: TrainConfig) -> str:
 def free_gpu(ollama_model: str, log: Callable[[str], None]) -> None:
     """Training needs the whole GPU: unload the model Ollama keeps in memory after the last question (it stays up to 30 minutes)."""
     try:
-        done = subprocess.run(["ollama", "stop", ollama_model], capture_output=True, timeout=60, stdin=subprocess.DEVNULL)
+        # no pipes: if Ollama is closed, `ollama stop` may start the Ollama server, which would keep a captured pipe open and make this call hang for ever
+        done = subprocess.run(["ollama", "stop", ollama_model], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
         log(f"Unloaded {ollama_model} from the GPU." if done.returncode == 0 else f"Could not unload {ollama_model} (maybe not loaded): continuing.")
     except (OSError, subprocess.SubprocessError):
         log("Could not ask Ollama to unload the model: continuing.")
@@ -91,11 +92,31 @@ def run(cfg: TrainConfig, user, ollama_model: str, *, dry_run: bool = False, fre
     repo = wsl.quote(wsl.to_wsl_path(REPO_ROOT))
     log(f"Preparing the training tools inside WSL (first time only) ... {ESTIMATE}")
     setup = f"tr -d '\\r' < {repo}/ai_training/trainer/setup_env.sh | bash"   # tr: Windows git may add CR to the .sh file
-    if wsl.stream(cfg, setup, log) != 0:
-        return {"status": "setup_failed", "gguf": ""}
+    code = wsl.stream(cfg, setup, log)
+    if code != 0:
+        return {"status": "setup_failed", "gguf": "", "exit_code": code}
     cmd = f"cd {repo} && $HOME/ai_training_venv/bin/python -m ai_training.trainer.train --config {wsl.quote(wsl.to_wsl_path(config_path))}"
     log(f"Training on {count} proven traces ...")
-    if wsl.stream(cfg, cmd, log) != 0:
-        return {"status": "training_failed", "gguf": ""}
+    code = wsl.stream(cfg, cmd, log)
+    if code != 0:
+        return {"status": "training_failed", "gguf": "", "exit_code": code}
     gguf = finished_model(cfg)
     return {"status": "trained" if gguf else "no_model_file", "gguf": gguf}
+
+
+WHY = {
+    "blocked": "A check above failed (see the [FAIL] line).",
+    "setup_failed": "Preparing the training tools inside WSL failed (see the lines above).",
+    "training_failed": "Training stopped before it finished. A stop with no error text almost always means WSL ran out of memory and Linux killed the process "
+                       "(exit code 137), or WSL was shut down. Close heavy programs (browsers, VS Code, Ollama app) and run the same command again.",
+    "no_model_file": "Training ended but no model file was made (see the lines above).",
+}
+
+
+def explain(outcome: dict) -> str:
+    """One plain sentence for a stage that did not finish; "" when it did."""
+    status = outcome.get("status", "")
+    if status not in WHY:
+        return ""
+    code = outcome.get("exit_code")
+    return f"NOT FINISHED ({status}{', exit code ' + str(code) if code is not None else ''}): {WHY[status]}"

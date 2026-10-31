@@ -76,6 +76,8 @@ def train_and_register(user, *, dry_run: bool, fresh: bool, min_traces, log) -> 
         return {"status": "no_model"}
     base = ollama_stage.base_name(model, cfg)   # train from and register beside the ORIGINAL model, whichever one Settings holds now
     outcome = train_stage.run(cfg, user, base, dry_run=dry_run, fresh=fresh, log=log)
+    if reason := train_stage.explain(outcome):
+        log(reason)
     if outcome["gguf"]:
         name = cfg.new_model or ollama_stage.new_name(base, cfg.model_suffix)
         ok = ollama_stage.register(base, outcome["gguf"], name, train_stage.run_dir(cfg), log)
