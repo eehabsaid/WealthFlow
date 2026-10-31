@@ -14,7 +14,7 @@ from typing import Callable
 
 from ai_training.models import AgentTrace
 
-from . import eval_report, judges, ollama_ctl, runner, testset, train_stage
+from . import eval_report, judges, ollama_ctl, ollama_stage, runner, testset, train_stage
 from .config import TrainConfig
 from .config import load as load_config
 
@@ -45,9 +45,10 @@ def recover(out_dir: str, log: Callable[[str], None]) -> None:
         os.remove(path)
 
 
-def names(current: str, suffix: str) -> tuple[str, str]:
-    """(old, new): the model in Settings and the same name + suffix; if Settings already holds the new one, the old is the name without it."""
-    return (current[: -len(suffix)], current) if suffix and current.endswith(suffix) else (current, current + suffix)
+def names(current: str, cfg) -> tuple[str, str, str]:
+    """(original, current best, new): the base model, base + an earlier suffix, base + the new suffix. Whichever one Settings holds, the base is found."""
+    base = ollama_stage.base_name(current, cfg)
+    return base, cfg.best_model or base + cfg.previous_suffixes[0], cfg.new_model or base + cfg.model_suffix
 
 
 def prepare(cfg: TrainConfig, model: str, models: tuple, url: str, user, log: Callable[[str], None]) -> str:
@@ -83,11 +84,19 @@ def run_model(user, cases, model: str, log: Callable[[str], None]) -> list[dict]
         timing, trace = timed_ask(user, case)
         reasons = [timing["problem"]] if trace is None else judges.judge_attempt(trace)
         rows.append({"key": case.key, "question": case.question, "expected": case.expected, "passed": not reasons, "reasons": reasons,
+                     "category": case.meta.get("category", ""), "lang": case.meta.get("lang", ""),
                      "seconds": timing["seconds"], "answer": trace.answer if trace else ""})
         if trace:
             trace.delete()
-        log(f"[{model}] [{i}/{len(cases)}] {'PASS' if not reasons else 'FAIL'} {case.key} {timing['seconds']}s {', '.join(reasons)}")
+        log(f"[{model}] [{i}/{len(cases)}] {'PASS' if not reasons else 'FAIL'} {case.key} {timing['seconds']}s {', '.join(r.split(':')[0] for r in reasons)}")
     return rows
+
+
+def lineup(cfg: TrainConfig, current: str, seen) -> list[tuple[str, str]]:
+    """[(role, model)] in test order: original, current best (only if Ollama has it), new."""
+    base, best, new = names(current, cfg)
+    have = lambda m: seen is not None and ollama_ctl.normal(m) in seen   # noqa: E731
+    return [("original", base)] + ([("current best", best)] if have(best) else []) + [("new", new)]
 
 
 def run(user, cfg: TrainConfig, current: str, *, out_dir: str, log: Callable[[str], None] = print) -> dict:
@@ -97,18 +106,19 @@ def run(user, cfg: TrainConfig, current: str, *, out_dir: str, log: Callable[[st
         return {"status": "not_ollama", "report": "The test needs Ollama as the AI provider (Settings > AI Advisor)."}
     os.makedirs(out_dir, exist_ok=True)
     recover(out_dir, log)
-    old, new = names(current, cfg.model_suffix)
-    cases = testset.build(user, limit=cfg.eval_questions, seed=cfg.eval_seed)
+    url = ollama_ctl.base_url()
+    roles = lineup(cfg, current, ollama_ctl.installed(url))
+    cases, retired = testset.build(user, out_dir=out_dir, per_category=cfg.eval_per_category, seed=cfg.eval_seed)
     if not cases:
         return {"status": "no_questions", "report": "No test questions could be built from your data."}
     AgentTrace.objects.filter(source=AgentTrace.SOURCE_EVAL).delete()
-    url, marker, results, how = ollama_ctl.base_url(), os.path.join(out_dir, MARKER), {}, {}
-    log(f"Test: {len(cases)} questions for each of '{old}' and '{new}'. Do not use the AI in the app until it ends. Your model name is restored at the end.")
+    marker, results, how = os.path.join(out_dir, MARKER), {}, {}
+    log(f"Test: {len(cases)} frozen questions for each of: " + ", ".join(f"{r} '{m}'" for r, m in roles) + ". Do not use the AI in the app until it ends. Your model name is restored at the end.")
     with open(marker, "w", encoding="utf-8") as fh:
         json.dump({"ai_model": current}, fh)
     try:
-        for model in (old, new):
-            how[model] = prepare(cfg, model, (old, new), url, user, log)
+        for _, model in roles:
+            how[model] = prepare(cfg, model, tuple(m for _, m in roles), url, user, log)
             results[model] = run_model(user, cases, model, log)
     except EvalError as exc:
         return {"status": "blocked", "report": str(exc)}
@@ -117,24 +127,28 @@ def run(user, cfg: TrainConfig, current: str, *, out_dir: str, log: Callable[[st
         if os.path.exists(marker):
             os.remove(marker)
         AgentTrace.objects.filter(source=AgentTrace.SOURCE_EVAL).delete()
-    sides = {k: {"name": m, "rows": results[m], "stats": eval_report.stats(results[m])} for k, m in (("old", old), ("new", new))}
-    head, why = eval_report.verdict(sides["old"]["stats"], sides["new"]["stats"], cfg.eval_min_gain_points, cfg.eval_max_slower_percent)
-    info = {"when": datetime.now().strftime("%Y-%m-%d %H:%M"), "verdict": head, "why": why, **sides,
+    sides = [{"role": r, "name": m, "rows": results[m], "stats": eval_report.stats(results[m])} for r, m in roles]
+    rival = sides[-2]
+    head, why = eval_report.verdict(rival["stats"], sides[-1]["stats"], cfg.eval_min_gain_points, cfg.eval_max_slower_percent)
+    info = {"when": datetime.now().strftime("%Y-%m-%d %H:%M"), "verdict": head, "why": why, "models": sides, "rival": f"{rival['role']} {rival['name']}",
+            "retired": retired, "regressions": eval_report.regressions(rival["rows"], sides[-1]["rows"]),
             "reset": "restarted" if set(how.values()) == {"restarted"} else "NOT restarted, only unloaded (speed less clean)"}
     paths = eval_report.write_files(out_dir, info)
     return {"status": "done", "verdict": head, "report": eval_report.format_text(info), "paths": paths}
 
 
-def dry(user, cfg: TrainConfig, current: str, log: Callable[[str], None] = print) -> dict:
-    """Readiness check, no questions asked and nothing restarted: how many test questions exist and whether Ollama sees both models."""
-    old, new = names(current, cfg.model_suffix)
-    cases = testset.build(user, limit=cfg.eval_questions, seed=cfg.eval_seed)
+def dry(user, cfg: TrainConfig, current: str, out_dir: str, log: Callable[[str], None] = print) -> dict:
+    """Readiness check, no questions asked and nothing restarted: how many frozen test questions exist and whether Ollama sees the models."""
     seen = ollama_ctl.installed(ollama_ctl.base_url())
-    log(f"Test questions: {len(cases)} (each model gets all of them; fewer than {eval_report.MIN_QUESTIONS} = no fair decision).")
-    for model in (old, new):
-        log(f"[{'ok' if seen is not None and ollama_ctl.normal(model) in seen else 'MISSING'}] Ollama has the model '{model}'")
-    return {"status": "dry_run", "questions": len(cases), "ready": bool(seen is not None and len(cases) >= eval_report.MIN_QUESTIONS
-                                                                      and all(ollama_ctl.normal(m) in seen for m in (old, new)))}
+    base, _, new = names(current, cfg)
+    cases, retired = testset.build(user, out_dir=out_dir, per_category=cfg.eval_per_category, seed=cfg.eval_seed)
+    log(f"Frozen test questions: {len(cases)} (retired: {len(retired)}; fewer than {eval_report.MIN_QUESTIONS} = no fair decision).")
+    for role, model in lineup(cfg, current, seen):
+        log(f"[ok] Ollama has the {role} model '{model}'")
+    ready = seen is not None and all(ollama_ctl.normal(m) in seen for m in (base, new))
+    if not ready:
+        log(f"[MISSING] The test needs both '{base}' and '{new}' in Ollama.")
+    return {"status": "dry_run", "questions": len(cases), "ready": bool(ready and len(cases) >= eval_report.MIN_QUESTIONS)}
 
 
 def current_model() -> str:
@@ -144,10 +158,10 @@ def current_model() -> str:
 
 
 def stage(user, *, dry_run: bool, out_dir: str, log: Callable[[str], None]) -> dict:
-    """The `evaluate` stage of the one command: the model in Settings against the same name + suffix."""
+    """The `evaluate` stage of the one command: original, current best and new model on the same frozen questions."""
     model = current_model()
     if not model:
         log("No model name is set in Settings > AI Advisor: nothing to test.")
         return {"status": "no_model", "report": "No model name is set in Settings > AI Advisor."}
     cfg = load_config()
-    return dry(user, cfg, model, log) if dry_run else run(user, cfg, model, out_dir=out_dir, log=log)
+    return dry(user, cfg, model, out_dir, log) if dry_run else run(user, cfg, model, out_dir=out_dir, log=log)

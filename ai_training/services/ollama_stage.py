@@ -8,6 +8,16 @@ import subprocess
 from typing import Callable
 
 
+def base_name(current: str, cfg) -> str:
+    """The model without any trained suffix ("m-agent2" / "m-agent" -> "m"): the ORIGINAL model new training starts from and registers beside."""
+    if cfg.original_model:
+        return cfg.original_model
+    for suffix in sorted((cfg.model_suffix, *cfg.previous_suffixes), key=len, reverse=True):
+        if suffix and current.endswith(suffix):
+            return current[: -len(suffix)]
+    return current
+
+
 def new_name(current: str, suffix: str) -> str:
     return current if current.endswith(suffix) else current + suffix
 

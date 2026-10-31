@@ -9,7 +9,8 @@ from core.services.ai.domains import DATA_TOOLS
 from core.services.ai.investigation import scope
 from core.services.ai.investigation.actions import is_call_leak
 
-from .textutil import appears, close, figures, pool_of, script_of
+from . import langcheck
+from .textutil import appears, close, figures, pool_of
 
 MODEL_ARG_TOOLS = ("app_data_models", "app_data_query")
 
@@ -18,7 +19,16 @@ def _expected_values(expected) -> list[Decimal]:
     return [Decimal(str(v)) for v in (expected or {}).get("values", [])]
 
 
-def method_checks(question: str, answer: str, steps: list, reason: str) -> list[str]:
+def language_reasons(question: str, answer: str, declared: str = "") -> list[str]:
+    """Same language as the question. French / German answers must be CONFIRMED by the app's own translation words (when in doubt, throw it out);
+    English and Arabic answers only fail when the evidence says another language."""
+    state = langcheck.verdict(question, answer, declared)
+    if state == "other":
+        return ["answer_in_other_language"]
+    return ["language_not_confirmed"] if state == "unconfirmed" and declared in ("fr", "de") else []
+
+
+def method_checks(question: str, answer: str, steps: list, reason: str, declared: str = "") -> list[str]:
     """(b) How the model worked: it looked at the user's own data first, used only data tools, and cited only what it read."""
     out = []
     if reason != "answered":
@@ -44,9 +54,7 @@ def method_checks(question: str, answer: str, steps: list, reason: str) -> list[
     missing = [p for p, vs in figures(answer) if not appears(p, vs, pool)]
     if missing:
         out.append("figure_not_in_tool_results:" + ",".join(missing[:5]))
-    if script_of(answer) != script_of(question):
-        out.append("answer_in_other_language")
-    return sorted(set(out))
+    return sorted(set(out + language_reasons(question, answer, declared)))
 
 
 def data_check(answer: str, expected) -> list[str]:
@@ -58,8 +66,38 @@ def data_check(answer: str, expected) -> list[str]:
     return [f"wrong_or_missing_figure:{v}" for v in values if not any(close(v, r, p) for p, rs in shown for r in rs)]
 
 
+def meta_of(expected) -> dict:
+    return (expected or {}).get("meta") or {}
+
+
+_YEAR = range(1900, 2101)
+
+
+def clarify_checks(trace) -> list[str]:
+    """Ambiguous question: the right answer asks what is meant instead of guessing. Proven by code: the answer ends in a question, gives no
+    figure of its own (years and numbers already in the question excepted), leaks nothing, uses no non-data tool, and stays in the language.
+    Whether the question it asks is a GOOD one is not provable by code."""
+    answer, out = str(trace.answer or ""), []
+    if trace.reason != "answered" or not answer.strip():
+        return ["not_answered"]
+    if is_call_leak(answer) or "<think>" in answer or "</think>" in answer:
+        out.append("leaked_tool_call_or_reasoning")
+    if "?" not in answer[-300:] and "؟" not in answer[-300:]:
+        out.append("no_clarifying_question")
+    allowed = {v for _, vs in figures(trace.question, skip_dates=False) for v in vs}
+    guessed = [p for p, vs in figures(answer) if not any(v in allowed or (v == v.to_integral_value() and int(v) in _YEAR) for v in vs)]
+    if guessed:
+        out.append("guessed_instead_of_asking")
+    if any(s.get("tool") not in DATA_TOOLS for s in trace.steps) or any(str(s.get("result", "")).startswith('{"error"') for s in trace.steps):
+        out.append("used_non_data_tool_or_error")
+    return sorted(set(out + language_reasons(trace.question, answer, meta_of(trace.expected).get("lang", ""))))
+
+
 def judge_attempt(trace) -> list[str]:
-    return method_checks(trace.question, trace.answer, trace.steps, trace.reason) + data_check(trace.answer, trace.expected)
+    meta = meta_of(trace.expected)
+    if meta.get("judge") == "clarify":
+        return clarify_checks(trace)
+    return method_checks(trace.question, trace.answer, trace.steps, trace.reason, meta.get("lang", "")) + data_check(trace.answer, trace.expected)
 
 
 def repeat_check(attempts: list, expected=None) -> list[str]:
@@ -67,6 +105,8 @@ def repeat_check(attempts: list, expected=None) -> list[str]:
     With `expected` only the asked-for figures count: extras like a rate or a month number may differ between runs."""
     if len(attempts) < 2:
         return ["not_repeated"]
+    if meta_of(expected).get("judge") == "clarify":
+        return []   # each run already passed on its own; two different clarifying questions are both fine
     if _expected_values(expected):
         return [] if all(not data_check(a.answer, expected) for a in attempts) else ["not_repeatable"]
     first, *rest = [figures(a.answer) for a in attempts]

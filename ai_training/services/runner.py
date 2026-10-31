@@ -61,5 +61,5 @@ def run(user, cases, *, attempts: int = ATTEMPTS, log: Callable[[str], None] = p
             t.save(update_fields=["verdict", "drop_reasons"])
         summary[verdict] += 1
         reasons.update(r.split(":")[0] for r in drop)
-        log(f"[{i}/{len(cases)}] {verdict.upper()} {case.key} {', '.join(drop)}")
+        log(f"[{i}/{len(cases)}] {verdict.upper()} {case.key} {', '.join(r.split(':')[0] for r in drop)}")   # no figures in the log
     return {"cases": len(cases), "kept": summary[AgentTrace.KEPT], "dropped": summary[AgentTrace.DROPPED], "reasons": dict(reasons)}

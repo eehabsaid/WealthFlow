@@ -62,7 +62,7 @@ class RunnerTest(TraceBase):
         first = traces[0]
         self.assertEqual([s["tool"] for s in first.steps], ["app_data_query"])
         self.assertIn('"count":3', first.steps[0]["result"])
-        self.assertEqual((first.owner, first.expected, first.model_name), (self.user, {"values": [3]}, fo.MODEL))
+        self.assertEqual((first.owner, first.expected, first.model_name), (self.user, {"values": [3], "meta": self.case.expected["meta"]}, fo.MODEL))
         self.assertIn("app_data_query", first.system_prompt)
         self.assertEqual(AIConversation.objects.filter(user=self.user).count(), 0)   # the runner leaves no chat history behind
 
@@ -152,11 +152,11 @@ class GeneratorAndFilesTest(TraceBase):
     def test_questions_come_from_the_users_own_rows_only(self):
         self.more_expenses()
         cases = {c.key: c for c in generator.generate(self.user)}
-        self.assertEqual(cases["Expense:count"].expected, {"values": [5]})
+        self.assertEqual(cases["Expense:count"].expected["values"], [5])
         self.assertEqual(cases["Expense:count"].question, "How many expense records do I have?")
         per_cur = cases["Expense:sum_per_currency:amount"]
-        self.assertEqual(per_cur.expected, {"values": ["250.00"]})                      # the other user's 7 x 99.00 never counts
-        self.assertEqual(cases["Expense:last3:amount:date"].expected, {"values": ["50.00"] * 3})
+        self.assertEqual(per_cur.expected["values"], ["250.00"])                      # the other user's 7 x 99.00 never counts
+        self.assertEqual(cases["Expense:last3:amount:date"].expected["values"], ["50.00"] * 3)
 
     def test_a_tie_at_the_cut_off_is_skipped(self):
         # every seeded expense has its own date, so the "last 3" question exists; two rows on the same date at the cut-off remove it
@@ -175,7 +175,7 @@ class GeneratorAndFilesTest(TraceBase):
         self.assertEqual(a, [c.key for c in generator.generate(self.user, limit=2, seed=5)])
 
     def test_excel_file_lists_every_run_with_its_verdict(self):
-        self.case.expected = {"values": [3]}
+        self.case.expected = {"values": [3], "meta": self.case.expected["meta"]}
         with patch(f"{VIEW}.get_active_ai_provider", return_value=self.script(lambda n: "You have 3 expense records.")), \
                 patch(f"{VIEW}.generation_pipeline.build_context", return_value=CTX):
             runner.run(self.user, [self.case], log=lambda line: None)

@@ -14,5 +14,11 @@
     "grad_accum": 8,
     "enable_thinking": false,
     "gguf_quant": "q4_k_m",
-    "model_suffix": "-agent"
+    "model_suffix": "-agent2",
+    "previous_suffixes": [
+        "-agent"
+    ],
+    "original_model": "qwen3.8:27b-150k",
+    "best_model": "qwen3.8:27b-agent",
+    "new_model": "qwen3.8:27b-agent2"
 }

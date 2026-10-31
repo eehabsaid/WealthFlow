@@ -14,7 +14,7 @@ ESTIMATE = "Unmeasured estimate: several hours for a few hundred examples; the m
 
 
 def run_dir(cfg: TrainConfig) -> str:
-    return os.path.join(cfg.work_dir, "current")
+    return os.path.join(cfg.work_dir, "run" + cfg.model_suffix)   # one folder per model name: an earlier model's files are never reused or overwritten
 
 
 def write_inputs(cfg: TrainConfig, user) -> tuple[str, int]:

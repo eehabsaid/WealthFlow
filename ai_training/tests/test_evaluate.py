@@ -3,47 +3,65 @@
 from __future__ import annotations
 
 import json
+import os
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from ai_training.services import eval_report, generator, ollama_ctl, testset
+from ai_training.services.case import norm_text
 from ai_training.tests.eval_support import Base, add_expenses
 
 
 class TestSetTest(Base):
-    def setUp(self):
-        super().setUp()
-        patcher = patch.object(testset, "PER_TABLE", 99)   # no sampling: look at every question the data allows
-        patcher.start()
-        self.addCleanup(patcher.stop)
-
     def test_questions_are_new_kinds_from_the_users_own_rows(self):
         add_expenses(self.user, ["10.00", "20.00", "30.00", "40.00"])
-        cases = {c.key: c for c in testset.build(self.user, limit=0, seed=1)}
+        cases = {c.key: c for c in testset.live_cases(self.user, 1)}
         self.assertTrue(all(k.startswith("eval:") for k in cases))
         self.assertFalse(set(cases) & {c.key for c in generator.generate(self.user)})
-        self.assertEqual(cases["eval:Expense:max_per_currency:amount"].expected, {"values": ["50.00"]})   # the other user's 99.00 never counts
-        self.assertEqual(cases["eval:Expense:min_per_currency:amount"].expected, {"values": ["10.00"]})
+        self.assertEqual(cases["eval:Expense:max_per_currency:amount"].expected["values"], ["50.00"])   # the other user's 99.00 never counts
+        self.assertEqual(cases["eval:Expense:min_per_currency:amount"].expected["values"], ["10.00"])
         last5 = cases["eval:Expense:last5:amount:date"]
         self.assertEqual(sorted(last5.expected["values"]), ["10.00", "20.00", "30.00", "40.00", "50.00"])
         self.assertIn("last 5", last5.question)
 
     def test_all_zero_answers_and_ties_at_the_cut_off_are_skipped(self):
-        keys = {c.key for c in testset.build(self.user, limit=0, seed=1)}
+        keys = {c.key for c in testset.live_cases(self.user, 1)}
         self.assertFalse(any(":avg:" in k and k.startswith("eval:Company") for k in keys))   # everything is 0.00 there
         add_expenses(self.user, ["10.00", "20.00", "30.00", "40.00"])
-        self.assertIn("eval:Expense:last5:amount:date", {c.key for c in testset.build(self.user, limit=0, seed=1)})
+        self.assertIn("eval:Expense:last5:amount:date", {c.key for c in testset.live_cases(self.user, 1)})
         from core.models import Expense
         newest = list(Expense.objects.filter(owner=self.user).order_by("-date", "-pk"))
         extra = newest[-1]
         extra.pk, extra.date = None, newest[4].date
         extra.save()
-        self.assertFalse(any("last5" in c.key for c in testset.build(self.user, limit=0, seed=1)))
+        self.assertFalse(any("last5" in c.key for c in testset.live_cases(self.user, 1)))
 
-    def test_same_seed_same_questions_and_limit_is_respected(self):
+    def test_every_language_is_asked_and_no_test_wording_is_a_training_question(self):
         add_expenses(self.user, ["10.00", "20.00", "30.00", "40.00"])
-        a = [c.key for c in testset.build(self.user, limit=2, seed=7)]
-        self.assertEqual((len(a), a), (2, [c.key for c in testset.build(self.user, limit=2, seed=7)]))
+        test = testset.live_cases(self.user, 1)
+        self.assertEqual({c.meta["lang"] for c in test}, {"en", "ar", "fr", "de"})
+        train = {norm_text(c.question) for c in generator.generate(self.user)}
+        self.assertFalse(train & {norm_text(c.question) for c in test})
+        blocked = {norm_text(c.question) for c in test}
+        self.assertFalse(blocked & {norm_text(c.question) for c in generator.generate(self.user, blocked=blocked)})
+
+    def test_the_test_is_frozen_in_a_file_and_figures_are_recomputed(self):
+        add_expenses(self.user, ["10.00", "20.00", "30.00", "40.00"])
+        first, retired = testset.build(self.user, out_dir=self.out, per_category=3, seed=5)
+        self.assertTrue(os.path.exists(os.path.join(self.out, testset.FILE)) and not retired)
+        add_expenses(self.user, ["5.00"])                      # data changes after the freeze
+        again, retired = testset.build(self.user, out_dir=self.out, per_category=3, seed=99)   # other seed: the file still wins
+        self.assertEqual({c.key for c in again} | set(retired), {c.key for c in first})   # same frozen questions, none added
+        mx = {c.key: c for c in again}.get("eval:Expense:max_per_currency:amount")
+        if mx:
+            self.assertEqual(mx.expected["values"], ["50.00"])
+
+    def test_questions_are_spread_over_categories_and_languages(self):
+        add_expenses(self.user, ["10.00", "20.00", "30.00", "40.00"])
+        picked = testset.pick(testset.live_cases(self.user, 1), 4, 1)
+        for cat in {c.meta["category"] for c in picked}:
+            self.assertLessEqual(len([c for c in picked if c.meta["category"] == cat]), 4)
+        self.assertGreaterEqual(len({c.meta["lang"] for c in picked}), 3)
 
 
 class ReportTest(Base):

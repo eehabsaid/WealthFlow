@@ -12,7 +12,7 @@ from ai_training.services.config import load
 from ai_training.tests.test_trace_pipeline import TraceBase
 from core.models import AppSettings
 
-OLD, NEW = "qwen3:27b", "qwen3:27b-agent"
+OLD, BEST, NEW = "qwen3:27b", "qwen3:27b-agent", "qwen3:27b-agent2"
 
 
 def add_expenses(user, amounts):
@@ -53,4 +53,4 @@ class Base(TraceBase):
                 patch.object(ollama_ctl, "installed", return_value={OLD, NEW} if seen is None else seen), \
                 patch("ai_training.services.evaluate.train_stage.free_gpu") as unload:
             self.restart_mock, self.unload_mock = rs, unload
-            return evaluate.run(self.user, load(eval_questions=4), OLD, out_dir=self.out, log=lambda line: None)
+            return evaluate.run(self.user, load(eval_per_category=99, original_model="", best_model="", new_model=""), OLD, out_dir=self.out, log=lambda line: None)

@@ -11,9 +11,15 @@ from django.core.management import call_command
 
 from ai_training.models import AgentTrace
 from ai_training.services import eval_report, evaluate, export, inspect_file, ollama_ctl, runner
-from ai_training.tests.eval_support import NEW, OLD, Base, add_expenses
+from ai_training.services.config import load
+from ai_training.tests.eval_support import BEST, NEW, OLD, Base, add_expenses
 from ai_training.tests.test_trace_pipeline import CTX, VIEW
 from core.models import AppSettings
+
+
+def plain_cfg():
+    """The command reads config.json (your real model names); these tests use the generic test names instead."""
+    return patch("ai_training.services.evaluate.load_config", side_effect=lambda: load(original_model="", best_model="", new_model=""))
 
 
 class RunTest(Base):
@@ -38,7 +44,7 @@ class RunTest(Base):
 
     def test_warm_up_is_asked_but_not_counted(self):
         result = self.run_eval()
-        per_model = len(json.load(open(result["paths"]["json"]))["old"]["rows"])
+        per_model = len(json.load(open(result["paths"]["json"]))["models"][0]["rows"])
         self.assertEqual([m for m, _, _ in self.asked].count(OLD), per_model + 1)
 
     def test_a_wrong_model_loses_and_the_report_says_nothing_was_switched(self):
@@ -52,7 +58,7 @@ class RunTest(Base):
         self.assertEqual(self.run_eval(good_for=(OLD, NEW))["verdict"], "NO REAL DIFFERENCE")
 
     def test_default_minimum_stops_a_decision_on_too_few_questions(self):
-        self.assertEqual(self.run_eval(min_q=10)["verdict"], "NOT ENOUGH QUESTIONS")
+        self.assertEqual(self.run_eval(min_q=10_000)["verdict"], "NOT ENOUGH QUESTIONS")
 
     def test_a_crash_still_restores_the_model_name_and_cleans_up(self):
         with self.assertRaises(RuntimeError):
@@ -93,8 +99,9 @@ class RunTest(Base):
         self.assertEqual(self.run_eval()["status"], "not_ollama")
 
     def test_names_follow_the_suffix(self):
-        self.assertEqual(evaluate.names(OLD, "-agent"), (OLD, NEW))
-        self.assertEqual(evaluate.names(NEW, "-agent"), (OLD, NEW))
+        self.assertEqual(evaluate.names(OLD, load(original_model="", best_model="", new_model="")), (OLD, BEST, NEW))
+        self.assertEqual(evaluate.names(NEW, load(original_model="", best_model="", new_model="")), (OLD, BEST, NEW))
+        self.assertEqual(evaluate.names(BEST, load(original_model="", best_model="", new_model="")), (OLD, BEST, NEW))
 
     def test_test_runs_never_reach_the_training_files(self):
         AgentTrace.objects.create(owner=self.user, source="eval", case_key="eval:x", question="q", verdict="kept", expected={"values": [1]})
@@ -106,19 +113,19 @@ class RunTest(Base):
 class CommandTest(Base):
     def test_dry_run_checks_questions_and_models_without_asking(self):
         out = StringIO()
-        with patch.object(ollama_ctl, "installed", return_value={OLD, "qwen3:27b-agent"}), patch("ai_training.services.runner.ask") as ask:
+        with patch.object(ollama_ctl, "installed", return_value={OLD, NEW}), patch("ai_training.services.runner.ask") as ask, plain_cfg():
             call_command("ai_training", "--user", "trace_user", "--stages", "evaluate", "--dry-run", "--out", self.out, stdout=out)
-        self.assertIn("Test questions:", out.getvalue())
-        self.assertIn(f"[ok] Ollama has the model '{OLD}'", out.getvalue())
+        self.assertIn("Frozen test questions:", out.getvalue())
+        self.assertIn(f"[ok] Ollama has the original model '{OLD}'", out.getvalue())
         ask.assert_not_called()
 
     def test_the_command_prints_the_verdict(self):
         add_expenses(self.user, ["10.00", "20.00", "30.00", "40.00"])
         out = StringIO()
         with patch("ai_training.services.runner.ask", side_effect=self.scripted((OLD, NEW))), patch.object(eval_report, "MIN_QUESTIONS", 2), \
-                patch.object(ollama_ctl, "restart", return_value=True), patch.object(ollama_ctl, "installed", return_value={OLD, NEW}):
+                patch.object(ollama_ctl, "restart", return_value=True), patch.object(ollama_ctl, "installed", return_value={OLD, NEW}), plain_cfg():
             call_command("ai_training", "--user", "trace_user", "--stages", "evaluate", "--out", self.out, stdout=out)
-        self.assertIn("VERDICT: NO REAL DIFFERENCE", out.getvalue())
+        self.assertIn("NO REAL DIFFERENCE", out.getvalue())
         self.assertIn("eval_report.txt", out.getvalue())
 
 

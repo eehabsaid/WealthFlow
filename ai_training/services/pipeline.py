@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 
 from ai_training.models import AgentTrace
 
-from . import export, generator, inspect_file, ollama_stage, runner, train_stage
+from . import export, generator, inspect_file, ollama_stage, runner, testset, train_stage
 from .config import load as load_config
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "output")
@@ -54,7 +54,8 @@ def export_files(user, out_dir: str) -> dict:
 
 
 def collect(user, *, limit: int, seed, fresh: bool, attempts: int, log) -> dict:
-    cases = generator.generate(user, limit=limit, seed=seed)
+    blocked = testset.train_blocked(os.path.join(OUTPUT_DIR, testset.FILE))
+    cases = generator.generate(user, limit=limit, seed=seed, blocked=blocked)
     todo, skipped = split_done(user, cases, fresh)
     log(f"{len(cases)} questions from the live data: {len(todo)} to ask, {skipped} already proven.")
     summary = runner.run(user, todo, attempts=attempts, log=log) if todo else {"cases": 0, "kept": 0, "dropped": 0, "reasons": {}}
@@ -73,12 +74,13 @@ def train_and_register(user, *, dry_run: bool, fresh: bool, min_traces, log) -> 
     if not model:
         log("No model name is set in Settings > AI Advisor: nothing to train from.")
         return {"status": "no_model"}
-    outcome = train_stage.run(cfg, user, model, dry_run=dry_run, fresh=fresh, log=log)
+    base = ollama_stage.base_name(model, cfg)   # train from and register beside the ORIGINAL model, whichever one Settings holds now
+    outcome = train_stage.run(cfg, user, base, dry_run=dry_run, fresh=fresh, log=log)
     if outcome["gguf"]:
-        name = ollama_stage.new_name(model, cfg.model_suffix)
-        ok = ollama_stage.register(model, outcome["gguf"], name, train_stage.run_dir(cfg), log)
+        name = cfg.new_model or ollama_stage.new_name(base, cfg.model_suffix)
+        ok = ollama_stage.register(base, outcome["gguf"], name, train_stage.run_dir(cfg), log)
         outcome.update({"new_model": name if ok else "", "status": "registered" if ok else "register_failed"})
-        log(f"New model '{name}' is in Ollama. Your current model '{model}' is unchanged and still the one in use." if ok else "Registering the model in Ollama failed.")
+        log(f"New model '{name}' is in Ollama. Your model in Settings ('{model}') is unchanged and still the one in use." if ok else "Registering the model in Ollama failed.")
     return outcome
 
 

@@ -147,7 +147,7 @@ class CommandStagesTest(StageBase):
     def call(self, *args):
         out = StringIO()
         a, b, c = self.patches()
-        with a, b, c, patch.object(pipeline, "load_config", side_effect=lambda **kw: config.load(base_model_dir=self.base, work_dir=self.cfg.work_dir,
+        with a, b, c, patch.object(pipeline, "load_config", side_effect=lambda **kw: config.load(original_model="", new_model="", base_model_dir=self.base, work_dir=self.cfg.work_dir,
                                                                                                min_free_gb=0, **{k: v for k, v in kw.items() if v is not None})):
             call_command("ai_training", "--user", "train_user", "--out", tempfile.mkdtemp(), *args, stdout=out)
         return out.getvalue()
@@ -164,9 +164,9 @@ class CommandStagesTest(StageBase):
         make_kept(self.user, 3)
         with patch("ai_training.services.pipeline.ollama_stage.register", return_value=True) as register:
             text = self.call("--stages", "train", "--min-traces", "3")
-        self.assertEqual(register.call_args.args[2], MODEL + "-agent")
+        self.assertEqual(register.call_args.args[2], MODEL + "-agent2")
         self.assertEqual(AppSettings.get("ai_model", "", user=None), MODEL)
-        self.assertIn(f"Your current model '{MODEL}' is unchanged", text)
+        self.assertIn(f"Your model in Settings ('{MODEL}') is unchanged", text)
 
     def test_no_model_name_in_settings_means_nothing_is_trained(self):
         AppSettings.set("ai_model", "", user=None)
