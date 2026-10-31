@@ -113,3 +113,53 @@ class NamesAndReportTest(SimpleTestCase):
         self.assertEqual(ollama_stage.base_name("m:agent", cfg), "m:150k")
         from ai_training.services import evaluate
         self.assertEqual(evaluate.names("m:agent", cfg), ("m:150k", "m:agent", "m:agent2"))
+
+
+class RejudgeTest(TestCase):
+    """A calculated figure (what-if total, difference, percentage) is in no tool result; code computed it from the rows, so it must count."""
+
+    def setUp(self):
+        self.user = make_user("rejudge_user")
+        self.expected = make("whatif", "q", ["80.00", "20.00"], category="what_if", level="complex").expected
+        self.steps = [{"tool": "app_data_query", "arguments": {"model": "Expense"}, "result": '{"rows": [{"total": 100.0}]}'}]
+
+    def trace(self, attempt, answer, steps=None, verdict="dropped"):
+        from ai_training.models import AgentTrace
+        return AgentTrace.objects.create(owner=self.user, source="generated", case_key="whatif", attempt=attempt, question="If I cut my total 20 percent?",
+                                         answer=answer, steps=self.steps if steps is None else steps, reason="answered", expected=self.expected,
+                                         verdict=verdict, drop_reasons=["figure_not_in_tool_results:80.00,20.00"])
+
+    def test_calculated_figures_that_match_the_rows_are_accepted(self):
+        t = self.trace(1, "New total 80.00, saving 20.00.")
+        self.assertEqual(judges.judge_attempt(t), [])
+
+    def test_a_made_up_figure_and_a_guess_without_looking_are_still_dropped(self):
+        self.assertTrue(judges.judge_attempt(self.trace(1, "New total 77.00, saving 23.00.")))
+        self.assertIn("did_not_look_at_data", judges.judge_attempt(self.trace(1, "New total 80.00, saving 20.00.", steps=[])))
+
+    def test_rejudge_flips_old_verdicts_without_asking_any_model(self):
+        from ai_training.models import AgentTrace
+        from ai_training.services import rejudge
+        self.trace(1, "New total 80.00, saving 20.00.")
+        self.trace(2, "Saving 20.00, new total 80.00.")
+        out = rejudge.run(self.user, lambda line: None)
+        self.assertEqual((out["questions"], out["now_kept"], out["now_dropped"]), (1, 1, 0))
+        self.assertEqual({t.verdict for t in AgentTrace.objects.all()}, {"kept"})
+        self.assertEqual({tuple(t.drop_reasons) for t in AgentTrace.objects.all()}, {()})
+
+
+class DerivedFigureTest(SimpleTestCase):
+    def check(self, answer, tool_text, expected_values):
+        steps = [{"tool": "app_data_query", "arguments": {"model": "Expense"}, "result": tool_text}]
+        exp = {"values": expected_values}
+        return judges.method_checks("q", answer, steps, "answered", "", exp)
+
+    def test_a_percentage_and_a_count_difference_derived_from_proven_figures_are_accepted(self):
+        text = '{"sep": 10139.08, "oct": 13800.08, "n_sep": 17, "n_oct": 45}'
+        ok = "Sep 10139.08 (17 records), Oct 13800.08 (45 records): +3661.00, that is 36.1%, and 28 more records."
+        self.assertEqual(self.check(ok, text, ["3661.00"]), [])
+
+    def test_an_invented_figure_is_still_dropped(self):
+        text = '{"sep": 10139.08, "oct": 13800.08}'
+        bad = "Sep 10139.08, Oct 13800.08: +3661.00, that is 41.7%."
+        self.assertTrue(any(r.startswith("figure_not_in_tool_results") for r in self.check(bad, text, ["3661.00"])))

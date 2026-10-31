@@ -9,7 +9,7 @@ from core.services.ai.domains import DATA_TOOLS
 from core.services.ai.investigation import scope
 from core.services.ai.investigation.actions import is_call_leak
 
-from . import langcheck
+from . import derive, langcheck
 from .textutil import appears, close, figures, pool_of
 
 MODEL_ARG_TOOLS = ("app_data_models", "app_data_query")
@@ -28,7 +28,7 @@ def language_reasons(question: str, answer: str, declared: str = "") -> list[str
     return ["language_not_confirmed"] if state == "unconfirmed" and declared in ("fr", "de") else []
 
 
-def method_checks(question: str, answer: str, steps: list, reason: str, declared: str = "") -> list[str]:
+def method_checks(question: str, answer: str, steps: list, reason: str, declared: str = "", expected=None) -> list[str]:
     """(b) How the model worked: it looked at the user's own data first, used only data tools, and cited only what it read."""
     out = []
     if reason != "answered":
@@ -51,7 +51,10 @@ def method_checks(question: str, answer: str, steps: list, reason: str, declared
             out.append("tool_error_in_run")
     pool = set().union(*(pool_of(s.get("result", "")) for s in steps)) if steps else set()
     pool |= {v for _, vs in figures(question, skip_dates=False) for v in vs}
-    missing = [p for p, vs in figures(answer) if not appears(p, vs, pool)]
+    pool |= set(_expected_values(expected))   # a calculated figure (difference, percentage, what-if total) is never in a tool result: code computed it from the real rows, so it counts
+    shown = figures(answer)
+    operands = {v for p, vs in shown if appears(p, vs, pool) for v in vs}
+    missing = [p for p, vs in shown if not appears(p, vs, pool) and not derive.derivable(p, vs, operands)]
     if missing:
         out.append("figure_not_in_tool_results:" + ",".join(missing[:5]))
     return sorted(set(out + language_reasons(question, answer, declared)))
@@ -97,7 +100,7 @@ def judge_attempt(trace) -> list[str]:
     meta = meta_of(trace.expected)
     if meta.get("judge") == "clarify":
         return clarify_checks(trace)
-    return method_checks(trace.question, trace.answer, trace.steps, trace.reason, meta.get("lang", "")) + data_check(trace.answer, trace.expected)
+    return method_checks(trace.question, trace.answer, trace.steps, trace.reason, meta.get("lang", ""), trace.expected) + data_check(trace.answer, trace.expected)
 
 
 def repeat_check(attempts: list, expected=None) -> list[str]:

@@ -25,7 +25,7 @@ class Command(BaseCommand):
         parser.add_argument("--attempts", type=int, default=runner.ATTEMPTS, help="times each question is asked (the repeat check needs 2)")
         parser.add_argument("--out", default=pipeline.OUTPUT_DIR, help="folder for the output files")
         parser.add_argument("--dry-run", action="store_true", help="no questions, no training: only check that everything is ready")
-        parser.add_argument("--stages", default="collect,train", help="collect = questions + judging, train = train and register the new model, evaluate = test old vs new model (own run, takes hours)")
+        parser.add_argument("--stages", default="collect,train", help="collect = questions + judging, train = train and register the new model, evaluate = test old vs new model (own run, takes hours), rejudge = judge the stored runs again with the current judges (seconds, asks no model)")
         parser.add_argument("--min-traces", type=int, default=None, help="proven traces needed before training (default: ai_training/config.json)")
 
     def handle(self, *args, **options):

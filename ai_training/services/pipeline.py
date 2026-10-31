@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 
 from ai_training.models import AgentTrace
 
-from . import export, generator, inspect_file, ollama_stage, runner, testset, train_stage
+from . import export, generator, inspect_file, ollama_stage, rejudge, runner, testset, train_stage
 from .config import load as load_config
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "output")
@@ -90,6 +90,8 @@ def run_all(user, *, limit: int = 0, seed: int | None = None, fresh: bool = Fals
     result = {"asked": None, "skipped": 0}
     if "collect" in stages and not dry_run:
         result.update(collect(user, limit=limit, seed=seed, fresh=fresh, attempts=attempts, log=log))
+    if "rejudge" in stages:
+        result["rejudged"] = rejudge.run(user, log)
     result.update(export_files(user, out_dir))
     if "train" in stages:
         result["training"] = train_and_register(user, dry_run=dry_run, fresh=fresh, min_traces=min_traces, log=log)
