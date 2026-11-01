@@ -16,6 +16,7 @@ from django.apps import apps
 from django.conf import settings
 
 GLOBAL_MODELS = frozenset({"ExchangeRate", "ExchangeRateHistory", "GoldPrice", "GoldPriceHistory", "Plan"})
+MODEL_ALIASES = {"certificate": "BankCertificate"}
 DENIED_MODELS = frozenset({
     "AppSettings", "AuthToken", "AuthAuditLog", "PagePermission", "Role", "RolePermission", "UserRole", "UserProfile",
     "EmailTemplate", "DocumentationExecution", "Document", "LegalVersion", "PlanPrice",
@@ -93,7 +94,7 @@ def resolve_model(name: str) -> ModelInfo | None:
         meta = info.model._meta
         keys = {info.name.lower(), str(meta.verbose_name).replace(" ", "").lower(),
                 str(meta.verbose_name_plural).replace(" ", "").lower(), info.name.lower() + "s"}
-        if wanted in keys:
+        if wanted in keys or MODEL_ALIASES.get(wanted) == info.name:
             return info
     return None
 

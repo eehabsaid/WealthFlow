@@ -40,17 +40,24 @@ INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
                          "end_line": _p(_I, "default start+119")}, ["path"]),
     _tool("app_knowledge_search", "Search the app's documentation: what each page does, how data flows, where things are recorded.",
           knowledge_search, {"query": _p(_S, "natural-language question or keywords")}, ["query"]),
-    _tool("app_data_models", "List the user's data tables with row counts, or describe one table's fields (model=Name).",
+    _tool("app_data_models", "List the user's data tables with complete field names and row counts, or describe one table's field types and "
+          "foreign-key target fields (model=Name). Use the canonical model names returned here.",
           dt.models, {"model": _p(_S, "optional table name, e.g. Expense, FixedAsset, SalaryEntry")}),
     _tool("app_data_query",
-          "Read the CURRENT USER's own data from any table: filter, sort, aggregate (sum/avg/min/max/count) and group. "
-          "Use filters like {\"date__gte\":\"2026-09-01\",\"category__name__icontains\":\"food\"}.",
+          "Read the CURRENT USER's own data. Use exact model and field names from app_data_models. Foreign-key fields take IDs; "
+          "filter/group by related labels or codes with paths such as currency__code__iexact='EGP' or bank__name__icontains='QNB'. "
+          "For Expense, amount_base is the base-currency value and amount is the transaction-currency value. "
+          "BankCertificate.interest_value is distinct from posted BankCertificateInterestHistory.interest_amount. "
+          "Aggregate keys are only count, sum, avg, min, max; use sum for totals instead of adding rows. "
+          "For duplicate checks, group by all identity fields and "
+          "filter groups with having such as {\"count__gt\":1}.",
           dt.query, {"model": _p(_S, "table name from app_data_models"), "filters": _p(_O, "{field__lookup: value}; lookups: "
-                     "exact iexact contains icontains startswith gt gte lt lte in isnull range year month day"),
+                     "exact iexact contains icontains startswith gt gte lt lte in isnull range year month day; use relation__field for FK text"),
                      "fields": _p(_A, "columns to return (default: first 14)"), "order_by": _p(_A, "e.g. ['-date']"),
                      "limit": _p(_I, "rows, default 25, max 100"),
-                     "aggregate": _p(_O, "e.g. {\"sum\":\"amount_base\",\"count\":\"*\"}"),
-                     "group_by": _p(_S, "field to group aggregates by, e.g. category__name or month")}, ["model"]),
+                     "aggregate": _p(_O, "only count, sum, avg, min, max; e.g. {\"sum\":\"amount_base\",\"count\":\"*\"}"),
+                     "group_by": _p(_S, "one field or comma-separated fields, e.g. category__name or date,amount_base,category"),
+                     "having": _p(_O, "optional aggregate filter after grouping, e.g. {\"count__gt\":1}")}, ["model"]),
 )}
 
 INVESTIGATION_TOOL_DEFS.update(AGENT_TOOL_DEFS)
