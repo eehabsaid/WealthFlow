@@ -35,8 +35,11 @@ def pick_user(username: str = ""):
 
 def split_done(user, cases, fresh: bool = False) -> tuple[list, int]:
     """(cases still to ask, number skipped). Old traces of a case that will be asked again are deleted first."""
-    done = {} if fresh else {t.case_key: t.expected for t in AgentTrace.objects.filter(owner=user, verdict=AgentTrace.KEPT, attempt=1)}
-    todo = [c for c in cases if done.get(c.key) != c.expected]
+    done = {} if fresh else {
+        t.case_key: (t.expected, t.question)
+        for t in AgentTrace.objects.filter(owner=user, verdict=AgentTrace.KEPT, attempt=1)
+    }
+    todo = [c for c in cases if done.get(c.key) != (c.expected, c.question)]
     AgentTrace.objects.filter(owner=user, case_key__in=[c.key for c in todo]).delete()
     return todo, len(cases) - len(todo)
 
@@ -78,9 +81,10 @@ def train_and_register(user, *, dry_run: bool, fresh: bool, min_traces, log) -> 
     outcome = train_stage.run(cfg, user, base, dry_run=dry_run, fresh=fresh, log=log)
     if reason := train_stage.explain(outcome):
         log(reason)
-    if outcome["gguf"]:
+    if outcome.get("gguf") and outcome.get("mmproj") and outcome.get("vision_assets"):
         name = cfg.new_model or ollama_stage.new_name(base, cfg.model_suffix)
-        ok = ollama_stage.register(base, outcome["gguf"], name, train_stage.run_dir(cfg), log)
+        gguf_files = outcome.get("gguf_files") or [outcome["gguf"]]
+        ok = ollama_stage.register(base, gguf_files, outcome["mmproj"], name, train_stage.run_dir(cfg), log)
         outcome.update({"new_model": name if ok else "", "status": "registered" if ok else "register_failed"})
         log(f"New model '{name}' is in Ollama. Your model in Settings ('{model}') is unchanged and still the one in use." if ok else "Registering the model in Ollama failed.")
     return outcome

@@ -153,7 +153,10 @@ class GeneratorAndFilesTest(TraceBase):
         self.more_expenses()
         cases = {c.key: c for c in generator.generate(self.user)}
         self.assertEqual(cases["Expense:count"].expected["values"], [5])
-        self.assertEqual(cases["Expense:count"].question, "How many expense records do I have?")
+        self.assertEqual(
+            cases["Expense:count"].question,
+            "How many expense records do I have? Give only the count, with no other figures.",
+        )
         per_cur = cases["Expense:sum_per_currency:amount"]
         self.assertEqual(per_cur.expected["values"], ["250.00"])                      # the other user's 7 x 99.00 never counts
         self.assertEqual(cases["Expense:last3:amount:date"].expected["values"], ["50.00"] * 3)
@@ -184,4 +187,3 @@ class GeneratorAndFilesTest(TraceBase):
         rows = list(load_workbook(path).active.iter_rows(values_only=True))
         self.assertEqual(rows[0][3], "Verdict")
         self.assertEqual({r[3] for r in rows[1:]}, {"kept"})
-

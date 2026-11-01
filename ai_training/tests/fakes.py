@@ -66,19 +66,32 @@ class FakeModel:
     def save_pretrained(self, path):
         self.log.append(("save_pretrained", path))
 
-    def save_pretrained_gguf(self, path, tokenizer, quantization_method):
+    def save_pretrained_gguf(self, path, processor, quantization_method):
         import os
         os.makedirs(path, exist_ok=True)
         for name, size in (("model.Q4_K_M.gguf", 50), ("mmproj-F16.gguf", 90)):
             with open(os.path.join(path, name), "wb") as fh:
                 fh.write(b"x" * size)
-        self.log.append(("gguf", quantization_method))
+        self.log.append(("gguf", quantization_method, hasattr(processor, "tokenizer")))
+
+
+class FakeProcessor:
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+
+    def save_pretrained(self, path):
+        import os
+
+        os.makedirs(path, exist_ok=True)
+        for name in ("processor_config.json", "preprocessor_config.json", "tokenizer.json"):
+            with open(os.path.join(path, name), "w", encoding="utf-8") as fh:
+                fh.write("{}")
 
 
 def fake_deps(log, trl_key="max_length", tok=None):
     """A stand-in for unsloth / trl / datasets that records every call."""
     tok = tok or FakeTokenizer()
-    processor = type("Processor", (), {"tokenizer": tok, "save_pretrained": lambda self, path: None})()
+    processor = FakeProcessor(tok)
     config_cls = type("SFTConfig", (), {"__dataclass_fields__": {trl_key: 1}, "__init__": lambda self, **kw: log.append(("sft_config", kw)) or setattr(self, "kw", kw)})
 
     class FastModel:

@@ -3,9 +3,9 @@ the kinds they produce are DISJOINT, so a test question is never a training ques
 
 from __future__ import annotations
 
-from . import ambiguous, assets, budget, explain, income, overview, quality, spend, whatif
+from . import ambiguous, assets, balance, banking, budget, explain, income, overview, quality, spend, whatif
 
-MODULES = (spend, whatif, explain, quality, income, assets, budget, overview, ambiguous)
+MODULES = (spend, whatif, explain, quality, income, assets, banking, balance, budget, overview, ambiguous)
 
 
 def train_cases(user, langs, rng) -> list:

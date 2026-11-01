@@ -63,9 +63,22 @@ class ResumeTest(TraceBase):
 
     def test_proven_for_the_same_data_is_skipped(self):
         from ai_training.services import pipeline
-        self.make(self.case.expected)
+        AgentTrace.objects.create(
+            owner=self.user, case_key=self.case.key, attempt=1, question=self.case.question,
+            expected=self.case.expected, verdict="kept",
+        )
         todo, skipped = pipeline.split_done(self.user, [self.case])
         self.assertEqual((todo, skipped, AgentTrace.objects.count()), ([], 1, 1))
+
+    def test_changed_question_text_is_asked_again_even_when_expected_figures_match(self):
+        from ai_training.services import pipeline
+        trace = AgentTrace.objects.create(
+            owner=self.user, case_key=self.case.key, attempt=1, question=self.case.question,
+            expected=self.case.expected, verdict="kept",
+        )
+        changed = type(self.case)(self.case.key, self.case.question + " Give only the count.", self.case.expected)
+        todo, skipped = pipeline.split_done(self.user, [changed])
+        self.assertEqual((todo, skipped, AgentTrace.objects.filter(pk=trace.pk).exists()), ([changed], 0, False))
 
     def test_changed_data_dropped_or_fresh_means_ask_again_and_old_rows_are_removed(self):
         from ai_training.services import pipeline

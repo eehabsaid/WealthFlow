@@ -55,7 +55,8 @@ def field_label(field, lang: str) -> str | None:
 
 
 def month(lang: str, year: int, mon: int) -> str:
-    return month_label(lang, year, mon)
+    labels = {"en": "month", "ar": "الشهر", "fr": "mois", "de": "Monat"}
+    return f"{month_label(lang, year, mon)} ({labels[lang]} {mon})"
 
 
 def variants(intent: str, lang: str) -> int:

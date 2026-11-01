@@ -96,6 +96,13 @@ class NamesAndReportTest(SimpleTestCase):
             self.assertEqual(ollama_stage.base_name(current, cfg), "m:27b")
         self.assertEqual(ollama_stage.new_name("m:27b", cfg.model_suffix), "m:27b-agent2")
 
+    def test_config_preserves_the_original_previous_and_exact_new_model_names(self):
+        cfg = load()
+        self.assertEqual(
+            (cfg.original_model, cfg.best_model, cfg.new_model),
+            ("qwen3.8:27b-150k", "qwen3.8:27b-agent", "qwen3.8:27b-agent2"),
+        )
+
     def row(self, key, ok, reasons=(), cat="expenses"):
         return {"key": key, "passed": ok, "reasons": list(reasons), "seconds": 1.0, "category": cat, "lang": "en"}
 

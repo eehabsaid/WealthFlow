@@ -29,18 +29,62 @@ def write_inputs(cfg: TrainConfig, user) -> tuple[str, int]:
     return path, count
 
 
-def finished_model(cfg: TrainConfig) -> str:
-    """Windows path of the model file of an earlier finished run ("" if none)."""
+def finished_export(cfg: TrainConfig) -> dict:
+    """Local paths for a complete model/projector/processor export, allowing incomplete exports to be diagnosed."""
     out = os.path.join(run_dir(cfg), "out")
     path = os.path.join(out, "result.json")
-    if not os.path.exists(path):   # export finished but the result note was not written: use the model file it left
+    result = {}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as fh:
+            result = json.load(fh)
+    else:
         from ai_training.trainer import export_gguf
 
-        files = export_gguf.model_files(out)
-        return max(files, key=os.path.getsize) if files and os.path.isdir(os.path.join(out, "adapter")) else ""
-    with open(path, encoding="utf-8") as fh:
-        gguf = wsl.from_wsl_path(json.load(fh).get("gguf", ""))
-    return gguf if gguf and os.path.exists(gguf) else ""
+        if os.path.isdir(os.path.join(out, "adapter")):
+            files = export_gguf.model_files(out)
+            projectors = export_gguf.projector_files(out)
+            if files:
+                result["gguf_files"] = files
+                result["gguf"] = max(files, key=os.path.getsize)
+            if len(projectors) == 1:
+                result["mmproj"] = projectors[0]
+            result["vision_assets"] = os.path.join(out, "vision")
+
+    raw_files = result.get("gguf_files") or ([result["gguf"]] if result.get("gguf") else [])
+    gguf_files = [wsl.from_wsl_path(file) for file in raw_files]
+    gguf_files = [file for file in gguf_files if os.path.isfile(file)]
+    gguf = wsl.from_wsl_path(result.get("gguf", ""))
+    if not gguf and gguf_files:
+        gguf = max(gguf_files, key=os.path.getsize)
+    mmproj = wsl.from_wsl_path(result.get("mmproj", ""))
+    if not mmproj and not os.path.exists(path):
+        from ai_training.trainer import export_gguf
+
+        projectors = export_gguf.projector_files(out)
+        if len(projectors) == 1:
+            mmproj = projectors[0]
+    if mmproj and not os.path.isfile(mmproj):
+        mmproj = ""
+    vision_assets = wsl.from_wsl_path(result.get("vision_assets", os.path.join(out, "vision")))
+    if not _vision_assets_ready(vision_assets):
+        vision_assets = ""
+    return {"gguf": gguf if os.path.isfile(gguf) else "", "gguf_files": gguf_files, "mmproj": mmproj, "vision_assets": vision_assets}
+
+
+def _vision_assets_ready(path: str) -> bool:
+    if not path or not os.path.isdir(path) or not os.path.isfile(os.path.join(path, "config.json")):
+        return False
+    with open(os.path.join(path, "config.json"), encoding="utf-8") as fh:
+        model_config = json.load(fh)
+        has_image_processor = any(os.path.isfile(os.path.join(path, name)) for name in ("preprocessor_config.json", "image_processor_config.json"))
+        has_tokenizer = any(os.path.isfile(os.path.join(path, name)) for name in ("tokenizer.json", "tokenizer.model", "vocab.json"))
+        return isinstance(model_config.get("vision_config"), dict) and has_image_processor and has_tokenizer
+
+
+def finished_model(cfg: TrainConfig) -> str:
+    """Windows path of a fully exported model with its vision assets ("" if incomplete)."""
+    export = finished_export(cfg)
+    return export["gguf"] if export["mmproj"] and export["vision_assets"] else ""
 
 
 def free_gpu(ollama_model: str, log: Callable[[str], None]) -> None:
@@ -85,9 +129,10 @@ def run(cfg: TrainConfig, user, ollama_model: str, *, dry_run: bool = False, fre
         dry_stats(cfg, os.path.join(run_dir(cfg), "train.jsonl"), log)
         log("Dry run: everything above is ready. " + ESTIMATE)
         return {"status": "dry_run", "gguf": ""}
+    previous = finished_export(cfg)
     if not fresh and finished_model(cfg):
         log("An earlier training run is finished: reusing it (use --fresh to train again).")
-        return {"status": "reused", "gguf": finished_model(cfg)}
+        return {"status": "reused", **previous}
     free_gpu(ollama_model, log)
     repo = wsl.quote(wsl.to_wsl_path(REPO_ROOT))
     log(f"Preparing the training tools inside WSL (first time only) ... {ESTIMATE}")
@@ -100,8 +145,16 @@ def run(cfg: TrainConfig, user, ollama_model: str, *, dry_run: bool = False, fre
     code = wsl.stream(cfg, cmd, log)
     if code != 0:
         return {"status": "training_failed", "gguf": "", "exit_code": code}
-    gguf = finished_model(cfg)
-    return {"status": "trained" if gguf else "no_model_file", "gguf": gguf}
+    exported = finished_export(cfg)
+    if not exported["gguf"]:
+        status = "no_model_file"
+    elif not exported["mmproj"]:
+        status = "no_vision_projector"
+    elif not exported["vision_assets"]:
+        status = "no_vision_assets"
+    else:
+        status = "trained"
+    return {"status": status, **exported}
 
 
 WHY = {
@@ -110,6 +163,8 @@ WHY = {
     "training_failed": "Training stopped before it finished. A stop with no error text almost always means WSL ran out of memory and Linux killed the process "
                        "(exit code 137), or WSL was shut down. Close heavy programs (browsers, VS Code, Ollama app) and run the same command again.",
     "no_model_file": "Training ended but no model file was made (see the lines above).",
+    "no_vision_projector": "Training exported no GGUF vision projector (mmproj); the model was not registered.",
+    "no_vision_assets": "Training did not preserve the base model's vision processor/config; the model was not registered.",
 }
 
 

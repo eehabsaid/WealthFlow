@@ -147,11 +147,29 @@ class PreflightTest(SimpleTestCase):
 
 
 class OllamaStageTest(SimpleTestCase):
-    def test_modelfile_keeps_template_and_settings_with_one_from(self):
-        text = ollama_stage.rewrite_modelfile(MODELFILE, r"D:\w\m.gguf")
-        self.assertEqual([l for l in text.splitlines() if l.startswith("FROM ")], [r"FROM D:\w\m.gguf", "FROM inside a template line must stay"])
+    def test_modelfile_keeps_template_and_settings_and_imports_the_projector(self):
+        text = ollama_stage.rewrite_modelfile(MODELFILE, [r"D:\w\m.gguf"], r"D:\w\mmproj.gguf")
+        self.assertEqual(
+            [l for l in text.splitlines() if l.startswith("FROM ")],
+            [r"FROM D:\w\m.gguf", r"FROM D:\w\mmproj.gguf", "FROM inside a template line must stay"],
+        )
         self.assertIn("PARAMETER num_ctx 153600", text)
         self.assertNotIn("sha256", text)
+
+    def test_modelfile_keeps_all_exported_gguf_shards(self):
+        text = ollama_stage.rewrite_modelfile(
+            MODELFILE,
+            [r"D:\w\m-00001-of-00002.gguf", r"D:\w\m-00002-of-00002.gguf"],
+            r"D:\w\mmproj.gguf",
+        )
+        self.assertEqual(
+            [line for line in text.splitlines() if line.startswith("FROM ")][:3],
+            [
+                r"FROM D:\w\m-00001-of-00002.gguf",
+                r"FROM D:\w\m-00002-of-00002.gguf",
+                r"FROM D:\w\mmproj.gguf",
+            ],
+        )
 
     def test_new_name_never_doubles_the_suffix(self):
         self.assertEqual(ollama_stage.new_name("qwen3.8:27b-150k", "-agent"), "qwen3.8:27b-150k-agent")
@@ -159,17 +177,73 @@ class OllamaStageTest(SimpleTestCase):
 
     def test_register_creates_the_model_from_the_rewritten_file(self):
         folder, calls = tempfile.mkdtemp(), []
+        model = os.path.join(folder, "m.gguf")
+        mmproj = os.path.join(folder, "mmproj.gguf")
+        open(model, "wb").write(b"model")
+        open(mmproj, "wb").write(b"projector")
 
         def fake_run(cmd, **kw):
             calls.append(cmd)
+            if cmd == ["ollama", "list"]:
+                return SimpleNamespace(returncode=0, stdout=b"NAME ID SIZE MODIFIED\n", stderr=b"")
             return SimpleNamespace(returncode=0, stdout=MODELFILE.encode() if "--modelfile" in cmd else b"success", stderr=b"")
 
         with patch("ai_training.services.ollama_stage.subprocess.run", side_effect=fake_run):
-            self.assertTrue(ollama_stage.register("qwen3.8:27b-150k", r"D:\w\m.gguf", "qwen3.8:27b-150k-agent", folder, lambda line: None))
-        self.assertEqual(calls[1][:3], ["ollama", "create", "qwen3.8:27b-150k-agent"])
-        self.assertIn(r"FROM D:\w\m.gguf", open(os.path.join(folder, "Modelfile.new")).read())
+            self.assertTrue(ollama_stage.register("qwen3.8:27b-150k", [model], mmproj, "qwen3.8:27b-150k-agent", folder, lambda line: None))
+        self.assertEqual(calls[-1][:3], ["ollama", "create", "qwen3.8:27b-150k-agent"])
+        text = open(os.path.join(folder, "Modelfile.new")).read()
+        self.assertIn(f"FROM {model}", text)
+        self.assertIn(f"FROM {mmproj}", text)
+
+    def test_registration_never_overwrites_an_existing_model_name(self):
+        folder = tempfile.mkdtemp()
+        model = os.path.join(folder, "m.gguf")
+        mmproj = os.path.join(folder, "mmproj.gguf")
+        open(model, "wb").write(b"model")
+        open(mmproj, "wb").write(b"projector")
+        lines, calls = [], []
+
+        def fake_run(cmd, **kw):
+            calls.append(cmd)
+            return SimpleNamespace(returncode=0, stdout=b"NAME ID SIZE MODIFIED\nqwen3.8:27b-agent2 abc 10GB now\n", stderr=b"")
+
+        with patch("ai_training.services.ollama_stage.subprocess.run", side_effect=fake_run):
+            self.assertFalse(ollama_stage.register("base", [model], mmproj, "qwen3.8:27b-agent2", folder, lines.append))
+        self.assertEqual(calls, [["ollama", "list"]])
+        self.assertIn("already exists", lines[0])
+
+    def test_registration_fails_closed_when_the_existing_name_cannot_be_checked(self):
+        folder = tempfile.mkdtemp()
+        model = os.path.join(folder, "m.gguf")
+        mmproj = os.path.join(folder, "mmproj.gguf")
+        open(model, "wb").write(b"model")
+        open(mmproj, "wb").write(b"projector")
+        lines = []
+        with patch("ai_training.services.ollama_stage.subprocess.run", return_value=SimpleNamespace(
+            returncode=0, stdout=b"unexpected output", stderr=b"",
+        )) as run:
+            self.assertFalse(ollama_stage.register("base", [model], mmproj, "new", folder, lines.append))
+        run.assert_called_once_with(["ollama", "list"], capture_output=True, timeout=120)
+        self.assertIn("unexpected model list", lines[0])
+
+    def test_missing_projector_prevents_registration(self):
+        folder, lines = tempfile.mkdtemp(), []
+        model = os.path.join(folder, "m.gguf")
+        open(model, "wb").write(b"model")
+        with patch("ai_training.services.ollama_stage.subprocess.run") as run:
+            self.assertFalse(ollama_stage.register("base", [model], os.path.join(folder, "missing-mmproj.gguf"), "new", folder, lines.append))
+        run.assert_not_called()
+        self.assertIn("projector files are missing", lines[0])
 
     def test_failure_to_read_the_current_model_is_reported(self):
+        folder = tempfile.mkdtemp()
+        model = os.path.join(folder, "m.gguf")
+        mmproj = os.path.join(folder, "mmproj.gguf")
+        open(model, "wb").write(b"model")
+        open(mmproj, "wb").write(b"projector")
         bad = SimpleNamespace(returncode=1, stdout=b"", stderr=b"not found")
-        with patch("ai_training.services.ollama_stage.subprocess.run", return_value=bad):
-            self.assertFalse(ollama_stage.register("m", "g", "n", tempfile.mkdtemp(), lambda line: None))
+        with patch("ai_training.services.ollama_stage.subprocess.run", side_effect=[
+            SimpleNamespace(returncode=0, stdout=b"NAME ID SIZE MODIFIED\n", stderr=b""),
+            bad,
+        ]):
+            self.assertFalse(ollama_stage.register("m", [model], mmproj, "n", folder, lambda line: None))

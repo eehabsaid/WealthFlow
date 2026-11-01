@@ -72,7 +72,7 @@ def run(cfg: dict, deps=None, log=print) -> dict:
     started = time.time()
     result = trainer.train()
     log(f"Training finished in {(time.time() - started) / 60:.0f} min, final loss {getattr(result, 'training_loss', 'n/a')}")
-    files = export_gguf.save_all(model, processor, out_dir, cfg["gguf_quant"])
+    files = export_gguf.save_all(model, processor, out_dir, cfg["gguf_quant"], cfg["base_model_dir"])
     summary = {**files, "examples": stats["kept"], "minutes": round((time.time() - started) / 60)}
     with open(os.path.join(out_dir, "result.json"), "w", encoding="utf-8") as fh:
         json.dump(summary, fh, indent=4)

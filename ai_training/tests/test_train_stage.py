@@ -42,9 +42,16 @@ class StageBase(TestCase):
                 out = os.path.join(train_stage.run_dir(self.cfg), "out")
                 os.makedirs(out, exist_ok=True)
                 gguf = os.path.join(out, "gguf", "m.gguf")
+                mmproj = os.path.join(out, "gguf", "mmproj-F16.gguf")
+                vision = os.path.join(out, "vision")
                 os.makedirs(os.path.dirname(gguf), exist_ok=True)
+                os.makedirs(vision, exist_ok=True)
                 open(gguf, "w").write("x")
-                json.dump({"gguf": gguf}, open(os.path.join(out, "result.json"), "w"))
+                open(mmproj, "w").write("x")
+                json.dump({"vision_config": {"model_type": "test"}}, open(os.path.join(vision, "config.json"), "w"))
+                open(os.path.join(vision, "preprocessor_config.json"), "w").write("{}")
+                open(os.path.join(vision, "tokenizer.json"), "w").write("{}")
+                json.dump({"gguf": gguf, "gguf_files": [gguf], "mmproj": mmproj, "vision_assets": vision}, open(os.path.join(out, "result.json"), "w"))
             return 0
         return fake
 
@@ -83,11 +90,16 @@ class TrainStageTest(StageBase):
         self.assertEqual(len(open(os.path.join(train_stage.run_dir(self.cfg), "train.jsonl")).read().splitlines()), 3)
         self.assertIn("Dry run: everything above is ready", text)
 
-    def test_a_finished_export_without_result_note_is_found_in_gguf_gguf(self):
+    def test_a_finished_export_without_result_note_keeps_its_model_projector_and_vision_assets(self):
         out = os.path.join(train_stage.run_dir(self.cfg), "out")
         for sub, name, size in (("gguf_gguf", "M.Q4_K_M.gguf", 50), ("gguf_gguf", "M.BF16-mmproj.gguf", 90), ("adapter", "a.txt", 1)):
             os.makedirs(os.path.join(out, sub), exist_ok=True)
             open(os.path.join(out, sub, name), "w").write("x" * size)
+        vision = os.path.join(out, "vision")
+        os.makedirs(vision, exist_ok=True)
+        json.dump({"vision_config": {"model_type": "test"}}, open(os.path.join(vision, "config.json"), "w"))
+        open(os.path.join(vision, "preprocessor_config.json"), "w").write("{}")
+        open(os.path.join(vision, "tokenizer.json"), "w").write("{}")
         self.assertTrue(train_stage.finished_model(self.cfg).endswith("M.Q4_K_M.gguf"))
 
     def test_full_run_prepares_then_trains_with_wsl_paths_and_returns_the_model_file(self):
@@ -95,6 +107,8 @@ class TrainStageTest(StageBase):
         out, _ = self.go()
         self.assertEqual(out["status"], "trained")
         self.assertTrue(out["gguf"].endswith("m.gguf"))
+        self.assertTrue(out["mmproj"].endswith("mmproj-F16.gguf"))
+        self.assertTrue(out["vision_assets"].endswith("vision"))
         self.assertIn("setup_env.sh", self.streams[0])
         self.assertIn("-m ai_training.trainer.train --config", self.streams[1])
         wsl_cfg = json.load(open(os.path.join(train_stage.run_dir(self.cfg), "run_config.json")))
@@ -164,7 +178,8 @@ class CommandStagesTest(StageBase):
         make_kept(self.user, 3)
         with patch("ai_training.services.pipeline.ollama_stage.register", return_value=True) as register:
             text = self.call("--stages", "train", "--min-traces", "3")
-        self.assertEqual(register.call_args.args[2], MODEL + "-agent2")
+        self.assertEqual(register.call_args.args[3], MODEL + "-agent2")
+        self.assertEqual(register.call_args.args[2].endswith("mmproj-F16.gguf"), True)
         self.assertEqual(AppSettings.get("ai_model", "", user=None), MODEL)
         self.assertIn(f"Your model in Settings ('{MODEL}') is unchanged", text)
 

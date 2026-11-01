@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from django.db.models import Sum
 
+from core.services.shared.base_currency import get_user_base_code
+
 from ..fam_util import dec, expand, money, nonzero, percent, rows, unique_names
 
 
@@ -33,6 +35,20 @@ def train(user, langs, rng) -> list:
         total = dec(mort.aggregate(t=Sum("monthly_installment"))["t"])
         if nonzero([total]):
             out += expand("mortgage_monthly", "mortgage_monthly", rng, langs, [money(total)], lambda l: {"x": "y"}, category="liabilities")
+
+    owned = qs.filter(status="Owned") if qs is not None else None
+    mortgages = rows(user, "AssetMortgage")
+    if owned is not None and mortgages is not None:
+        for loan in mortgages.filter(asset__status="Owned").select_related("asset"):
+            name = names.get(loan.asset_id)
+            if not name or loan.asset.current_market_value is None:
+                continue
+            equity = dec(loan.asset.current_market_value) - dec(loan.remaining_balance)
+            if nonzero([equity]):
+                out += expand(
+                    f"asset_equity:{loan.asset_id}", "asset_equity", rng, langs, [money(equity)],
+                    lambda l, n=name: {"asset": n}, category="cross", level="complex",
+                )
     return out
 
 
@@ -49,4 +65,35 @@ def evaluate(user, langs, rng) -> list:
         share = percent(dec(loan.loan_amount) - dec(loan.remaining_balance), loan.loan_amount) if loan else None
         if share and nonzero([share]):
             out += expand(f"mortgage_repaid:{aid}", "mortgage_repaid", rng, langs, [share], lambda l, n=name: {"asset": n}, category="liabilities", level="complex", prefix="eval:")
+
+    furniture = rows(user, "AssetFurniture")
+    if furniture is not None:
+        groups = furniture.filter(asset__status="Owned").exclude(amount_base__isnull=True).values(
+            "asset_id"
+        ).annotate(total=Sum("amount_base"))
+        for row in groups:
+            name = names.get(row["asset_id"])
+            total = dec(row["total"])
+            if name and nonzero([total]):
+                out += expand(
+                    f"furniture_cost:{row['asset_id']}", "furniture_cost", rng, langs, [money(total)],
+                    lambda l, n=name: {"asset": n}, category="fixed_assets", level="intermediate", prefix="eval:",
+                )
+
+    receipts = rows(user, "RentReceipt")
+    base = str(get_user_base_code(user) or "").upper()
+    if receipts is not None and names:
+        groups = receipts.filter(currency__code__iexact=base, rental__asset__owner=user).values(
+            "rental__asset_id", "received_date__year"
+        ).annotate(total=Sum("amount"))
+        for row in groups:
+            name = names.get(row["rental__asset_id"])
+            total = dec(row["total"])
+            if name and nonzero([total]):
+                out += expand(
+                    f"rent_receipts_year:{row['rental__asset_id']}:{row['received_date__year']}",
+                    "rent_receipts_year", rng, langs, [money(total)],
+                    lambda l, n=name, y=row["received_date__year"], c=base: {"asset": n, "year": y, "currency": c},
+                    category="income", level="intermediate", prefix="eval:",
+                )
     return out
