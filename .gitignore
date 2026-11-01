@@ -26,3 +26,4 @@ test_reports/
 unused.json
 .pytest_cache
 file-line-counts.txt
+media/voice_samples
