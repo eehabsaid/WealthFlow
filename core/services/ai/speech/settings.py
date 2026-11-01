@@ -3,8 +3,8 @@
 from core.models import AppSettings
 from core.services.ai.credential_encryption import encrypt_credential, decrypt_credential, is_masked, mask_credential
 
-KINDS = ("stt", "tts")
-FIELDS = ("enabled", "provider", "endpoint", "model", "api_key", "timeout", "voice", "language")
+KINDS = ("stt", "tts", "tts_ar")  # tts_ar = optional Arabic voice profile used for Arabic text
+FIELDS = ("enabled", "provider", "endpoint", "model", "api_key", "timeout", "voice", "language", "format")
 
 
 def _get(key, default=""):
@@ -26,6 +26,7 @@ def get_speech_config(kind, include_secret=False):
         "timeout": _get(f"{kind}_timeout", "60"),
         "voice": _get(f"{kind}_voice"),
         "language": _get(f"{kind}_language", "auto"),
+        "format": _get(f"{kind}_format"),
     }
     raw_key = decrypt_credential(_get(f"{kind}_api_key"))
     cfg["api_key"] = raw_key if include_secret else mask_credential(raw_key)

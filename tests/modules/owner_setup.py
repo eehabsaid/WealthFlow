@@ -6,6 +6,9 @@
 NOTE: tests/core/test_context.py registers ONE global dialog handler; do not add another page.on("dialog") here.
 """
 
+import io
+import wave
+
 
 def _step(reporter, shots, page, name, ok, detail, tab):
     shot = shots.capture(page, "owner_setup", tab, "none", "view", "ok" if ok else "fail")
@@ -45,11 +48,14 @@ def _check_speech_settings(context, reporter, shots):
     api = page.evaluate("fetch('/api/settings/ai/').then(r => r.json())")
     controls = ["speech_stt_enabled", "speech_stt_provider", "speech_stt_endpoint", "speech_stt_model",
                 "speech_stt_api_key", "speech_tts_enabled", "speech_tts_provider", "speech_tts_endpoint",
-                "speech_tts_model", "speech_tts_api_key", "speech_tts_voice"]
+                "speech_tts_model", "speech_tts_api_key", "speech_tts_voice", "speech_tts_format", "speech_tts_language",
+                "speech_tts_ar_enabled", "speech_tts_ar_provider", "speech_tts_ar_endpoint", "speech_tts_ar_model",
+                "speech_tts_ar_api_key", "speech_tts_ar_voice"]
     missing = [name for name in controls if page.locator(f"#{name}").count() != 1]
     enabled_matches = all(page.locator(f"#speech_{kind}_enabled").is_checked() == bool(api.get(f"speech_{kind}_enabled"))
-                          for kind in ("stt", "tts"))
-    ok = not missing and enabled_matches and page.locator("#speech_stt_test").count() == 1 and page.locator("#speech_tts_test").count() == 1
+                          for kind in ("stt", "tts", "tts_ar"))
+    tests = all(page.locator(f"#speech_{kind}_test").count() == 1 for kind in ("stt", "tts", "tts_ar"))
+    ok = not missing and enabled_matches and tests
     shot = shots.capture(page, "owner_setup", "speech_settings", "none", "view", "ok" if ok else "fail")
     reporter.add_step("AI Advisor exposes sysadmin STT/TTS configuration", "Settings", "PASS" if ok else "FAIL",
                       f"missing={missing}; enabled_matches={enabled_matches}", screenshot_path=shot)
@@ -70,12 +76,49 @@ def _check_speech_workspace_controls(context, reporter, shots):
                       f"stt_enabled={caps.get('stt_enabled')}; tts_enabled={caps.get('tts_enabled')}; stt_hidden={stt_hidden}; tts_hidden={tts_hidden}", screenshot_path=shot)
 
 
+def _silent_wav(seconds=2, rate=8000):
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes(b"\x00\x00" * rate * seconds)
+    return buf.getvalue()
+
+
+def _check_speech_stop_and_layout(context, reporter, shots):
+    """Stubbed TTS: speaking shows the wave + Stop button, Stop ends audio at once and keeps the full answer."""
+    page = context.page
+    context.goto_route("#ai")
+    page.wait_for_selector("#ai-ws-input", timeout=15000)
+    wav = _silent_wav()
+    page.route("**/api/financial-advisor/ai/speech/synthesize/", lambda route: route.fulfill(status=200, body=wav, content_type="audio/wav"))
+    grouped = page.locator(".ai-ws-input-bottombar .ai-ws-input-actions #ai-ws-stt-btn, .ai-ws-input-bottombar .ai-ws-input-actions #ai-ws-tts-btn, "
+                           ".ai-ws-input-bottombar .ai-ws-input-actions .ai-ws-send-btn").count() == 3
+    page.evaluate("""() => { window.WFSpeech.caps.tts = true; _aiState.conversationId = _aiState.conversationId || 0;
+        _appendMessage('assistant', 'First sentence. Second sentence. السلام عليكم ورحمة الله.', null, null, new Date().toISOString());
+        window.WFSpeech.speak('First sentence. Second sentence. السلام عليكم ورحمة الله.', { content: window.WFSpeech.lastAssistantContent() }); }""")
+    page.wait_for_selector("#ai-ws-tts-stop-btn:not([hidden])", timeout=10000)
+    wave_visible = page.locator(".wf-wave[data-mode=speaking]").count() == 1
+    shot = shots.capture(page, "owner_setup", "speech_speaking", "none", "view", "ok")
+    page.click("#ai-ws-tts-stop-btn")
+    page.wait_for_timeout(300)
+    state = page.evaluate("""() => ({ stopHidden: document.getElementById('ai-ws-tts-stop-btn').hidden,
+        speakerNormal: !document.getElementById('ai-ws-tts-btn').classList.contains('is-speaking'),
+        wave: document.querySelectorAll('.wf-wave[data-mode=speaking]').length,
+        text: window.WFSpeech.lastAssistantContent().textContent })""")
+    ok = grouped and wave_visible and state["stopHidden"] and state["speakerNormal"] and state["wave"] == 0 and "Second sentence" in state["text"]
+    reporter.add_step("Speaking shows wave + Stop; Stop halts audio and keeps the full answer", "WealthFlow AI", "PASS" if ok else "FAIL",
+                      f"grouped={grouped}; wave_visible={wave_visible}; state={state}", screenshot_path=shot)
+
+
 def test_owner_setup_module(context, reporter, shots):
     reporter.pages_visited.add("Settings — owner setup helpers")
     try:
         _check_ai_warning(context, reporter, shots)
         _check_speech_settings(context, reporter, shots)
         _check_speech_workspace_controls(context, reporter, shots)
+        _check_speech_stop_and_layout(context, reporter, shots)
         _check_paymob_test(context, reporter, shots)
     except Exception as ex:
         shot = shots.capture(context.page, "owner_setup", "error", "none", "fail", "fail")

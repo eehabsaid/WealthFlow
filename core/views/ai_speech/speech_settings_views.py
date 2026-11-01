@@ -7,6 +7,7 @@ from django.views import View
 from core.views.auth_views import SysadminRequiredMixin
 from core.validators.json_body import parse_json_body
 from core.services.ai.speech import test_speech_endpoint
+from core.services.ai.speech.settings import KINDS
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +17,8 @@ class SpeechSettingsTestView(SysadminRequiredMixin, View):
         try:
             data = parse_json_body(request)
             kind = str(data.get("kind") or "").strip().lower()
-            if kind not in {"stt", "tts"}:
-                return JsonResponse({"error": "kind must be stt or tts"}, status=400)
+            if kind not in KINDS:
+                return JsonResponse({"error": f"kind must be one of {', '.join(KINDS)}"}, status=400)
             result = test_speech_endpoint(kind, data)
             return JsonResponse(result, status=200 if result.get("ok") else 502)
         except (json.JSONDecodeError, ValueError) as exc:

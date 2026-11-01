@@ -17,6 +17,7 @@ async function _handleAIChatSubmit() {
     Array.isArray(_aiState.domains) && _aiState.domains.length === 1 ? _aiState.domains[0] : "";
   const domain = single || (domainSelect ? domainSelect.value : "business_data_analysis");
 
+  window.WFSpeech?.stop(); // a new question ends any speech still playing
   inputEl.value = "";
   inputEl.style.height = "auto";
 
@@ -117,6 +118,7 @@ async function _handleAIChatSubmit() {
       data.ok === false ? null : aiMsg.id,
       0
     );
+    if (data.ok !== false && aiMsg.content) window.WFSpeech?.afterAnswer(aiMsg.content);
 
     _fetchAIChatConversations();
     window.AIMemChip?.watch(data.memory_since);

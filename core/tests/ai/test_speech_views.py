@@ -10,7 +10,7 @@ from django.test import TestCase
 from core.authentication.services import AuthWorkflowService
 from core.models import AppSettings
 from core.services.ai.speech import save_speech_settings
-from core.services.ai.speech.client import synthesize_speech
+from core.services.ai.speech.tts import synthesize_speech
 from core.services.ai.speech.text_prep import speakable_text, speech_chunks
 from core.tests.billing.test_support import grant_ai_workspace_access
 
@@ -41,6 +41,27 @@ class SpeechViewsTests(TestCase):
         self.assertEqual(self.client.get(CAPS).json(), {"stt_enabled": False, "tts_enabled": False})
         save_speech_settings({"speech_tts_enabled": True, "speech_tts_endpoint": "http://speech.test/tts", "speech_tts_model": "voice"})
         self.assertEqual(self.client.get(CAPS).json(), {"stt_enabled": False, "tts_enabled": True})
+
+    def test_capabilities_report_tts_when_only_the_arabic_voice_is_enabled(self):
+        save_speech_settings({"speech_tts_ar_enabled": True, "speech_tts_ar_endpoint": "http://speech.test/ar", "speech_tts_ar_model": "voice"})
+        self.assertEqual(self.client.get(CAPS).json(), {"stt_enabled": False, "tts_enabled": True})
+
+    def test_endpoint_test_accepts_the_arabic_profile_and_rejects_unknown_kinds(self):
+        url = "/api/settings/ai/speech/test/"
+        self.assertEqual(_json(self.client, url, {"kind": "piper"}).status_code, 400)
+        payload = {"kind": "tts_ar", "speech_tts_ar_endpoint": "http://speech.test/ar", "speech_tts_ar_model": "voice",
+                   "speech_tts_ar_voice": "ref.wav"}
+        with patch("core.services.ai.speech.client._request", return_value=(b"wav", "audio/wav")) as mocked:
+            response = _json(self.client, url, payload)
+        self.assertEqual(response.status_code, 200)
+        sent = json.loads(mocked.call_args.args[1].decode())
+        self.assertEqual((sent["voice"], mocked.call_args.args[0]), ("ref.wav", "http://speech.test/ar"))
+
+    def test_synthesize_returns_204_when_a_segment_has_nothing_to_say(self):
+        with patch(f"{VIEWS}.synthesize_speech") as mocked:
+            response = _json(self.client, TTS, {"text": "---"})
+        self.assertEqual(response.status_code, 204)
+        mocked.assert_not_called()
 
     def test_access_is_gated_by_login_plan_and_permission(self):
         self.client.logout()

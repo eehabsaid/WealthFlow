@@ -8,9 +8,9 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from core.models import AppSettings
 from core.services.ai.speech import get_speech_config, save_speech_settings
-from core.services.ai.speech.client import (
-    _combine_wav_chunks, _local_arabic_chatterbox_config, _voice_for_text,
-    transcribe_audio, synthesize_speech,
+from core.services.ai.speech.client import transcribe_audio
+from core.services.ai.speech.tts import (
+    _combine_wav_chunks, build_tts_payload, is_arabic_text, select_tts_profile, synthesize_speech, tts_available,
 )
 
 
@@ -64,23 +64,66 @@ class SpeechSettingsTests(TestCase):
         self.assertIn(b"asr", args[1])
         self.assertIn(b'name="language"\r\n\r\nar', args[1])
 
-    def test_arabic_local_piper_routes_to_chatterbox_and_preserves_reference_voice(self):
-        cfg = {"endpoint": "http://127.0.0.1:8765/v1/audio/speech", "model": "piper",
-               "voice": "en_US-lessac-medium.onnx", "timeout": 30, "api_key": ""}
-        with patch.dict("os.environ", {"WF_CHATTERBOX_ARABIC_REFERENCE": r"D:\AI-Models\voices\egyptian.wav"}):
-            routed = _local_arabic_chatterbox_config(cfg, "أهلاً، عامل إيه؟")
-        self.assertEqual(routed["endpoint"], "http://127.0.0.1:8766/v1/audio/speech")
-        self.assertEqual(routed["model"], "chatterbox-multilingual-v3")
-        self.assertEqual(routed["voice"], r"D:\AI-Models\voices\egyptian.wav")
-        self.assertIsNone(_local_arabic_chatterbox_config(cfg, "Hello there"))
-        self.assertIsNone(_local_arabic_chatterbox_config(cfg, "أهلاً، عامل إيه؟"))
-        cfg["_chatterbox_arabic_response"] = True
-        self.assertIsNotNone(_local_arabic_chatterbox_config(cfg, "English brand name"))
+    def test_arabic_text_is_detected_by_script_not_by_word_lists(self):
+        self.assertTrue(is_arabic_text("أهلاً، عامل إيه؟"))
+        self.assertTrue(is_arabic_text("رصيدك 5000 EGP في البنك"))
+        self.assertFalse(is_arabic_text("Your balance is 5000 EGP"))
+        self.assertFalse(is_arabic_text("Bonjour, ça va ? Guten Tag"))
+        self.assertFalse(is_arabic_text("1234 ..."))
 
-    def test_non_local_provider_keeps_configured_voice(self):
-        cfg = {"endpoint": "https://speech.example/v1/audio/speech", "model": "piper",
-               "voice": "en_US-lessac-medium.onnx"}
-        self.assertEqual(_voice_for_text(cfg, "أهلاً إيهاب"), "en_US-lessac-medium.onnx")
+    def test_arabic_profile_is_used_only_for_arabic_text(self):
+        save_speech_settings({"speech_tts_enabled": True, "speech_tts_endpoint": "http://general.test/speech", "speech_tts_model": "general"})
+        save_speech_settings({"speech_tts_ar_enabled": True, "speech_tts_ar_endpoint": "http://arabic.test/v1/audio/speech",
+                              "speech_tts_ar_model": "arabic", "speech_tts_ar_voice": r"D:\voices\egyptian_arabic_reference.wav"})
+        arabic = select_tts_profile("أهلاً إيهاب، رصيدك كذا")
+        self.assertEqual(arabic["endpoint"], "http://arabic.test/v1/audio/speech")
+        self.assertEqual(arabic["voice"], r"D:\voices\egyptian_arabic_reference.wav")
+        for text in ("Hello there", "Bonjour tout le monde", "Guten Tag"):
+            self.assertEqual(select_tts_profile(text)["endpoint"], "http://general.test/speech")
+
+    def test_arabic_text_falls_back_to_general_voice_when_arabic_profile_is_off(self):
+        save_speech_settings({"speech_tts_enabled": True, "speech_tts_endpoint": "http://general.test/speech", "speech_tts_model": "general"})
+        self.assertEqual(select_tts_profile("مرحبا")["endpoint"], "http://general.test/speech")
+
+    def test_only_arabic_profile_enabled_speaks_arabic_but_not_other_text(self):
+        save_speech_settings({"speech_tts_ar_enabled": True, "speech_tts_ar_endpoint": "http://arabic.test/speech", "speech_tts_ar_model": "arabic"})
+        self.assertTrue(tts_available())
+        self.assertEqual(select_tts_profile("مرحبا")["model"], "arabic")
+        with self.assertRaises(RuntimeError):
+            select_tts_profile("Hello")
+
+    def test_tts_unavailable_when_nothing_is_enabled(self):
+        self.assertFalse(tts_available())
+        with self.assertRaises(RuntimeError):
+            select_tts_profile("مرحبا")
+
+    def test_payload_matches_the_server_contract_and_has_no_hardcoded_values(self):
+        cfg = {"model": "m", "voice": r"D:\ref.wav", "format": "", "language": "auto"}
+        self.assertEqual(build_tts_payload(cfg, "نص"), {"model": "m", "input": "نص", "voice": r"D:\ref.wav"})
+        cfg.update(format="wav", language="ar")
+        self.assertEqual(build_tts_payload(cfg, "x"), {"model": "m", "input": "x", "voice": r"D:\ref.wav",
+                                                       "response_format": "wav", "language": "ar"})
+        self.assertNotIn("voice", build_tts_payload({"model": "m", "voice": "", "format": "", "language": "auto"}, "x"))
+
+    @patch("core.services.ai.speech.client._request")
+    def test_arabic_synthesis_posts_reference_voice_to_the_arabic_endpoint(self, request_mock):
+        save_speech_settings({"speech_tts_enabled": True, "speech_tts_endpoint": "http://general.test/speech", "speech_tts_model": "general"})
+        save_speech_settings({"speech_tts_ar_enabled": True, "speech_tts_ar_endpoint": "http://arabic.test/v1/audio/speech",
+                              "speech_tts_ar_model": "arabic", "speech_tts_ar_voice": r"D:\voices\egyptian_arabic_reference.wav"})
+        request_mock.return_value = (b"RIFF-wav", "audio/wav")
+        audio, mime = synthesize_speech("أهلاً بيك")
+        self.assertEqual((audio, mime), (b"RIFF-wav", "audio/wav"))
+        self.assertEqual(request_mock.call_args.args[0], "http://arabic.test/v1/audio/speech")
+        payload = json.loads(request_mock.call_args.args[1].decode())
+        self.assertEqual(payload["voice"], r"D:\voices\egyptian_arabic_reference.wav")
+        self.assertEqual(payload["input"], "أهلاً بيك")
+
+    def test_arabic_profile_settings_are_saved_validated_and_exposed(self):
+        with self.assertRaisesMessage(ValueError, "Configure the TTS_AR endpoint and model"):
+            save_speech_settings({"speech_tts_ar_enabled": True})
+        save_speech_settings({"speech_tts_ar_voice": "ref.wav", "speech_tts_ar_format": "wav"})
+        cfg = get_speech_config("tts_ar")
+        self.assertEqual((cfg["voice"], cfg["format"], cfg["enabled"]), ("ref.wav", "wav", False))
 
     def test_wav_chunks_are_combined_into_one_valid_wav(self):
         def wav_bytes(sample):

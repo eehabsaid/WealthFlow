@@ -119,12 +119,15 @@ async function renderAI() {
                   <span><kbd>Enter</kbd> send</span>
                   <span><kbd>Shift+Enter</kbd> newline</span>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="ai-ws-stt-btn" hidden onclick="window.WFSpeech.toggleRecording()" title="${_aiT("speech_dictate", "Dictate")}" aria-label="${_aiT("speech_dictate", "Dictate")}"><i class="bi bi-mic"></i></button>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="ai-ws-tts-btn" hidden onclick="window.WFSpeech.speakLast()" title="${_aiT("speech_read_answer", "Read latest answer aloud")}" aria-label="${_aiT("speech_read_answer", "Read latest answer aloud")}"><i class="bi bi-volume-up"></i></button>
-                <button class="ai-ws-send-btn" onclick="_handleAIChatSubmit()" title="${_aiT("ai_chat_send_button", "Send")}">
-                  <span data-i18n="ai_chat_send_button">Send</span>
-                  <i class="bi bi-send"></i>
-                </button>
+                <div class="ai-ws-input-actions">
+                  <button type="button" class="btn btn-sm btn-outline-secondary ai-ws-voice-btn" id="ai-ws-stt-btn" hidden title="${_aiT("speech_dictate", "Hold to talk, release to send")}" aria-label="${_aiT("speech_dictate", "Hold to talk, release to send")}"><i class="bi bi-mic"></i></button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary ai-ws-voice-btn" id="ai-ws-tts-btn" hidden title="${_aiT("speech_read_answer", "Read latest answer aloud")}" aria-label="${_aiT("speech_read_answer", "Read latest answer aloud")}" aria-pressed="false"><i class="bi bi-volume-up"></i></button>
+                  <button type="button" class="btn btn-sm btn-danger ai-ws-voice-btn" id="ai-ws-tts-stop-btn" hidden title="${_aiT("speech_stop", "Stop speaking")}" aria-label="${_aiT("speech_stop", "Stop speaking")}"><i class="bi bi-stop-fill"></i></button>
+                  <button class="ai-ws-send-btn" onclick="_handleAIChatSubmit()" title="${_aiT("ai_chat_send_button", "Send")}">
+                    <span data-i18n="ai_chat_send_button">Send</span>
+                    <i class="bi bi-send"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

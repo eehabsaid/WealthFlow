@@ -1,13 +1,14 @@
 """Speech settings payload, validation, and persistence helpers for the AI settings page."""
 
 from core.services.ai.speech import get_speech_config, save_speech_settings
+from core.services.ai.speech.settings import FIELDS, KINDS
 
 
 def build_speech_settings_payload():
     payload = {}
-    for kind in ("stt", "tts"):
+    for kind in KINDS:
         cfg = get_speech_config(kind)
-        for field in ("enabled", "provider", "endpoint", "model", "api_key", "timeout", "voice", "language"):
+        for field in FIELDS:
             payload[f"speech_{kind}_{field}"] = cfg[field]
         payload[f"speech_{kind}_configured"] = cfg["is_configured"]
         payload[f"speech_{kind}_api_key_is_configured"] = cfg["api_key_is_configured"]
@@ -15,7 +16,7 @@ def build_speech_settings_payload():
 
 
 def validate_speech_settings_data(data):
-    for kind in ("stt", "tts"):
+    for kind in KINDS:
         enabled = str(data.get(f"speech_{kind}_enabled", "false")).strip().lower() in {"true", "1", "yes", "on"}
         endpoint = str(data.get(f"speech_{kind}_endpoint", "")).strip()
         model = str(data.get(f"speech_{kind}_model", "")).strip()

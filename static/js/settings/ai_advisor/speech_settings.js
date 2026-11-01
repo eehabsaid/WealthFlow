@@ -65,35 +65,67 @@ window.AIA.buildSpeechSettingsHtml = function (s) {
           "number",
           "1–300"
         ) +
-          (kind === "tts"
+          (kind !== "stt"
             ? field(
                 `${prefix}_voice`,
                 "Voice (optional)",
-                s.speech_tts_voice,
+                s[`${prefix}_voice`],
                 "text",
-                "Provider-specific voice"
+                "Provider voice, or reference audio path on the speech server"
               )
             : ""),
         2
       ) +
+      (kind !== "stt"
+        ? ui.grid(
+            field(
+              `${prefix}_format`,
+              "Audio format (optional)",
+              s[`${prefix}_format`],
+              "text",
+              "e.g. mp3 or wav; empty = provider default"
+            ) +
+              field(
+                `${prefix}_language`,
+                "Language code (optional)",
+                s[`${prefix}_language`] === "auto" ? "" : s[`${prefix}_language`],
+                "text",
+                "Leave empty if the service has no language option"
+              ),
+            2
+          )
+        : "") +
       `<div class="aia-row"><div class="aia-row-text"><label class="aia-label" data-i18n="speech_test_label">Test endpoint</label><div class="aia-help" data-i18n="speech_test_help">Tests the configured API endpoint; compatibility is confirmed by an actual recording or generated audio.</div></div><div class="aia-row-control"><button type="button" class="btn btn-outline-info" id="speech_${kind}_test" onclick="window.AIA.testSpeechEndpoint('${kind}')"><i class="bi bi-activity me-1"></i><span data-i18n="speech_test_button">Test endpoint</span></button></div></div><div id="speech_${kind}_test_result" class="mb-2" hidden></div>`
     );
   };
   return (
     group("stt", "Speech to text (STT)", "Transcribe microphone recordings into the chat input.") +
-    group("tts", "Text to speech (TTS)", "Generate spoken audio for an AI answer when requested.")
+    group("tts", "Text to speech (TTS)", "Generate spoken audio for an AI answer when requested.") +
+    group(
+      "tts_ar",
+      "Arabic voice (optional)",
+      "Used instead of the general voice when the text is Arabic, e.g. a voice-cloning server with an Egyptian Arabic reference recording."
+    )
   );
 };
 
 window.AIA.addSpeechSettingsPayload = function (payload) {
-  ["stt", "tts"].forEach((kind) => {
-    ["enabled", "provider", "endpoint", "model", "api_key", "timeout", "voice", "language"].forEach(
-      (field) => {
-        const el = document.getElementById(`speech_${kind}_${field}`);
-        if (el)
-          payload[`speech_${kind}_${field}`] = field === "enabled" ? el.checked : el.value.trim();
-      }
-    );
+  ["stt", "tts", "tts_ar"].forEach((kind) => {
+    [
+      "enabled",
+      "provider",
+      "endpoint",
+      "model",
+      "api_key",
+      "timeout",
+      "voice",
+      "language",
+      "format",
+    ].forEach((field) => {
+      const el = document.getElementById(`speech_${kind}_${field}`);
+      if (el)
+        payload[`speech_${kind}_${field}`] = field === "enabled" ? el.checked : el.value.trim();
+    });
   });
 };
 
