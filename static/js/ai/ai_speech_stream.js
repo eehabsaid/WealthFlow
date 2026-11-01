@@ -29,7 +29,9 @@
       _appendMessage("assistant", "", null, null, new Date().toISOString(), null, 0);
       session.placeholder = S.lastAssistantContent();
       session.placeholder?.setAttribute("dir", "auto");
-      const role = session.placeholder?.closest(".ai-ws-msg-body")?.querySelector(".ai-ws-msg-role");
+      const role = session.placeholder
+        ?.closest(".ai-ws-msg-body")
+        ?.querySelector(".ai-ws-msg-role");
       S.indicator.show(role, "speaking", t("speech_generating", "Preparing voice…"));
     }
     if (session.placeholder) session.placeholder.innerHTML = _renderMarkdown(session.text);

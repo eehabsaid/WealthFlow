@@ -66,9 +66,7 @@ async function _handleAIChatSubmit() {
 
   try {
     const res = await fetch(
-      voiceStreamId
-        ? "/api/financial-advisor/ai/chat/voice/"
-        : "/api/financial-advisor/ai/chat/",
+      voiceStreamId ? "/api/financial-advisor/ai/chat/voice/" : "/api/financial-advisor/ai/chat/",
       {
         method: "POST",
         headers: {

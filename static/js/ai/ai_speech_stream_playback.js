@@ -85,7 +85,10 @@
         S.notify(error.message || t("speech_tts_failed", "Speech generation failed."), "error");
       } else if (session.autoplayBlocked) {
         S.notify(
-          t("speech_autoplay_blocked", "The browser blocked audio playback. Press the speaker button to listen."),
+          t(
+            "speech_autoplay_blocked",
+            "The browser blocked audio playback. Press the speaker button to listen."
+          ),
           "warning"
         );
       }
