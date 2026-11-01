@@ -22,7 +22,9 @@ async function _handleAIChatSubmit() {
   inputEl.style.height = "auto";
 
   window.AIMemChip?.clear();
+  const attached = window.AIAttach?.take() || [];
   _appendMessage("user", message, null, null, new Date().toISOString());
+  window.AIAttach?.paintLast(attached);
 
   // Pre-create conversation if new so conversation ID is immediately known & persisted
   if (!_aiState.conversationId) {
@@ -59,7 +61,7 @@ async function _handleAIChatSubmit() {
   _setLoadingUI(true, _aiState.conversationId);
   const speech = window.WFSpeech;
   const voiceStreamId =
-    speech?.voiceTurn && speech.caps.tts && window.crypto?.randomUUID
+    speech?.voiceTurn && !attached.length && speech.caps.tts && window.crypto?.randomUUID
       ? window.crypto.randomUUID()
       : "";
   if (voiceStreamId) speech.startStream(voiceStreamId);
@@ -78,6 +80,7 @@ async function _handleAIChatSubmit() {
           conversation_id: _aiState.conversationId,
           question_domain: domain,
           chat_mode: _aiChatMode(),
+          attachment_ids: attached.map((a) => a.id),
           ...(voiceStreamId ? { voice_stream_id: voiceStreamId } : {}),
         }),
       }
@@ -98,6 +101,8 @@ async function _handleAIChatSubmit() {
       _aiPaintModeSwitch();
     }
 
+    window.AIBlocks?.remember(data.message);
+    window.AICM?.tagLastUser(data.user_message && data.user_message.id);
     const aiMsg = data.message || {};
     _aiState.lastResponseMeta = {
       sources: aiMsg.sources || data.sources || [],

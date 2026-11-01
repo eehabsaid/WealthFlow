@@ -11,6 +11,7 @@ import wave
 from . import client
 from .settings import get_speech_config, speech_runtime_enabled
 from .text_prep import speech_chunks
+from .voice_sample import voice_sample_path
 
 _ARABIC_RANGES = ((0x0600, 0x06FF), (0x0750, 0x077F), (0x08A0, 0x08FF), (0xFB50, 0xFDFF), (0xFE70, 0xFEFF))
 
@@ -26,15 +27,22 @@ def _usable(cfg):
     return cfg["enabled"] and cfg["is_configured"]
 
 
+def _with_uploaded_voice(cfg):
+    """A Chatterbox profile with no voice of its own speaks in the voice sample uploaded in Settings (any language)."""
+    if "chatterbox" in str(cfg.get("model") or "").lower() and not cfg.get("voice") and (sample := voice_sample_path()):
+        return {**cfg, "voice": sample}
+    return cfg
+
+
 def select_tts_profile(text):
     arabic = get_speech_config("tts_ar", include_secret=True)
     if is_arabic_text(text) and _usable(arabic):
         if arabic.get("language") in {"", "auto"}:
             arabic["language"] = "ar"
-        return arabic
+        return _with_uploaded_voice(arabic)
     general = get_speech_config("tts", include_secret=True)
     if _usable(general):
-        return general
+        return _with_uploaded_voice(general)
     raise RuntimeError("Text-to-speech is disabled or not configured for this text")
 
 

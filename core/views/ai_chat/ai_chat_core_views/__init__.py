@@ -32,6 +32,7 @@ from core.views.ai_chat.chat_pipeline import (ESCALATE, PipelineTrace, escalatin
                                               run_workflow_pipeline, should_go_direct, understand, workflow_enabled)
 from core.views.ai_chat.chat_pipeline.trace import log_request_start
 
+from .attachment_stage import attachment_response
 from .agent_stage import agent_stage
 from .conversation_setup import (
     build_provider_disabled_response,
@@ -105,6 +106,10 @@ class AIChatView(View):
             return build_token_limit_response(cache_mgr, progress_key, conversation, user_msg, usage)
         request._ai_token_meter = TokenMeter()
         provider = MeteredProvider(provider, request._ai_token_meter)
+
+        # Stage 0 — attached files go straight to the model (attachment_stage.py)
+        if (with_files := attachment_response(request=request, body=body, cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation, user_msg=user_msg, user_text=user_text, provider=provider, trace=trace)) is not None:
+            return with_files
 
         # Stage 1a — Export follow-up ("export it to Excel"): see export_stage.py. Data questions that also ask for a file
         # are answered normally and finalize_success attaches the links to their own answer.

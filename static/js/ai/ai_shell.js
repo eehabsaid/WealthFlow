@@ -45,6 +45,9 @@ async function renderAI() {
               <span data-i18n="ai_chat_new_chat_btn">New Chat</span>
             </button>
           </div>
+          <div class="ai-ws-conv-search">
+            <input type="search" id="ai-ws-conv-search" class="form-control form-control-sm" autocomplete="off" placeholder="${_aiT("ai_ws_search_chats", "Search all chats")}" oninput="AICM.search(this.value)">
+          </div>
           <div class="ai-ws-conv-scroll" id="ai-ws-conv-list">
             <!-- Populated via JS -->
           </div>
@@ -113,6 +116,7 @@ async function renderAI() {
                 </button>
               </div>
 
+              <div id="ai-ws-attach-chips" class="ai-attach-chips"></div>
               <textarea id="ai-ws-input" class="ai-ws-textarea" rows="1" placeholder="${_aiT("ai_chat_input_placeholder_business", "Ask WealthFlow AI a question about business metrics, financial planning, or architecture...")}" onkeydown="_handleInputKeydown(event)"></textarea>
               <div class="ai-ws-input-bottombar">
                 <div class="ai-ws-input-hints">
@@ -120,6 +124,8 @@ async function renderAI() {
                   <span><kbd>Shift+Enter</kbd> newline</span>
                 </div>
                 <div class="ai-ws-input-actions">
+                  <input type="file" id="ai-ws-attach-input" hidden multiple accept=".csv,.xlsx,.txt,.md,.pdf,.docx,.png,.jpg,.jpeg,.webp" onchange="AIAttach.upload(this)">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="ai-ws-attach-btn" onclick="document.getElementById('ai-ws-attach-input').click()" title="${_aiT("ai_attach_btn", "Attach files")}" aria-label="${_aiT("ai_attach_btn", "Attach files")}"><i class="bi bi-paperclip"></i></button>
                   <button type="button" class="btn btn-sm btn-outline-secondary ai-ws-voice-btn" id="ai-ws-stt-btn" hidden title="${_aiT("speech_dictate", "Click to start recording; click again to stop")}" aria-label="${_aiT("speech_dictate", "Click to start recording; click again to stop")}"><i class="bi bi-mic"></i></button>
                   <button type="button" class="btn btn-sm btn-outline-secondary ai-ws-voice-btn" id="ai-ws-tts-btn" hidden title="${_aiT("speech_read_answer", "Read latest answer aloud")}" aria-label="${_aiT("speech_read_answer", "Read latest answer aloud")}" aria-pressed="false"><i class="bi bi-volume-up"></i></button>
                   <button type="button" class="btn btn-sm btn-danger ai-ws-voice-btn" id="ai-ws-tts-stop-btn" hidden title="${_aiT("speech_stop", "Stop speaking")}" aria-label="${_aiT("speech_stop", "Stop speaking")}"><i class="bi bi-stop-fill"></i></button>

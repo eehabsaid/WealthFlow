@@ -21,6 +21,7 @@ function _renderEmptyState() {
         <div class="ai-ws-empty-desc" data-i18n="ai_ws_welcome_desc">Your cross-application intelligence workspace for business data reasoning, financial planning insights, and application architecture understanding.</div>
       </div>
 
+      <div id="ai-ws-insights" class="ai-insights"></div>
       <div class="ai-ws-suggestions-title" data-i18n="ai_ws_suggestions_title">Suggested Quick Analyses</div>
       <div class="ai-ws-empty-suggestions">
         <div class="ai-ws-suggestion-chip" onclick="_aiSuggestionClick('ai_ws_suggest_networth', 'What is my net worth?')">
@@ -43,6 +44,7 @@ function _renderEmptyState() {
     </div>
   `;
   _applyTranslations();
+  window.AIInsights?.paintWelcome();
 }
 
 function _aiSuggestionClick(i18nKey, defaultText) {
@@ -73,11 +75,15 @@ function _renderMessageHTML(role, content, toolCalls, sources, timestamp, messag
   }
 
   const processedContent = _renderMarkdown(content);
+  // Extension hook: other modules add blocks under a message (edit button, charts, action cards, attachments)
+  const extras = (window._aiMessageExtras || [])
+    .map((fn) => fn({ role, content, toolCalls, messageId }) || "")
+    .join("");
   const feedbackBar =
     !isUser && messageId && content ? _renderFeedbackBar(messageId, feedback) : "";
 
   return `
-    <div class="ai-ws-msg">
+    <div class="ai-ws-msg"${messageId ? ` data-msg-id="${messageId}"` : ""} data-role="${role}">
       <div class="ai-ws-msg-avatar ${isUser ? "user" : "assistant"}">
         <i class="bi ${icon}"></i>
       </div>
@@ -88,6 +94,7 @@ function _renderMessageHTML(role, content, toolCalls, sources, timestamp, messag
         </div>
         ${toolBadges}
         <div class="ai-ws-msg-content">${processedContent}</div>
+        ${extras}
         ${feedbackBar}
       </div>
     </div>

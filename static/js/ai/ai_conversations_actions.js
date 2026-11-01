@@ -21,6 +21,7 @@ async function _refreshActiveConversation(convId) {
     container.innerHTML = "";
     if (messages.length > 0) {
       messages.forEach((msg) => {
+        window.AIBlocks?.remember(msg);
         _appendMessage(
           msg.role,
           msg.content,

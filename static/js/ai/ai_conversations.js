@@ -29,15 +29,16 @@ async function _fetchAIChatConversations() {
       older: [],
     };
 
-    const now = new Date();
+    // Group by LAST ACTIVITY in calendar days (the list itself is already newest-activity-first)
+    const dayStart = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const today0 = dayStart(new Date());
     data.conversations.forEach((conv) => {
-      const date = new Date(conv.created_at || conv.updated_at);
-      const diffTime = Math.abs(now - date);
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays === 0 && date.getDate() === now.getDate()) {
+      const diffDays = Math.round(
+        (today0 - dayStart(new Date(conv.updated_at || conv.created_at))) / 86400000
+      );
+      if (diffDays <= 0) {
         groups.today.push(conv);
-      } else if (diffDays <= 1) {
+      } else if (diffDays === 1) {
         groups.yesterday.push(conv);
       } else if (diffDays <= 7) {
         groups.thisWeek.push(conv);
@@ -58,9 +59,12 @@ async function _fetchAIChatConversations() {
           ? `<span class="spinner-grow spinner-grow-sm text-primary me-1" style="width:0.65rem;height:0.65rem;" role="status" title="${_escapeHtml(_aiT("ai_ws_generating", "Generating..."))}"></span>`
           : "";
         html += `
-          <div class="ai-ws-conv-item ${isActive}" onclick="_switchAIChatConversation('${conv.id}')">
+          <div class="ai-ws-conv-item ${isActive}" data-conv-id="${conv.id}" onclick="_switchAIChatConversation('${conv.id}')">
             <div class="ai-ws-conv-header-row">
               <div class="ai-ws-conv-title">${runningBadge}${_escapeHtml(conv.title || _aiT("ai_ws_untitled", "Untitled"))}</div>
+              <button class="ai-ws-btn-delete" onclick="event.stopPropagation(); AICM.rename('${conv.id}')" title="${_escapeHtml(_aiT("ai_ws_rename", "Rename"))}" style="opacity:0.4;">
+                <i class="bi bi-pencil"></i>
+              </button>
               <button class="ai-ws-btn-delete" onclick="event.stopPropagation(); togglePinConversation('${conv.id}', ${isPinned})" title="${isPinned ? "Unpin" : "Pin"}" style="opacity:${isPinned ? 1 : 0.4};">
                 <i class="bi bi-pin-angle${isPinned ? "-fill" : ""}"></i>
               </button>

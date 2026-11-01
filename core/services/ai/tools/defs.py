@@ -16,8 +16,9 @@ from core.services.ai.tools.defs_app import APP_TOOL_DEFS
 from core.services.ai.exports.tool import NAME as FILE_TOOL_NAME, TOOL_DEF as FILE_TOOL_DEF
 from core.services.ai.investigation.defs import INVESTIGATION_TOOL_DEFS
 from core.services.ai.memory.commands import MEMORY_TOOL_DEFS
+from core.services.ai.actions.tool import NAME as ACTION_TOOL_NAME, TOOL_DEF as ACTION_TOOL_DEF, CHART_NAME, CHART_TOOL_DEF
 
-AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {**SCENARIO_TOOL_DEFS, **APP_TOOL_DEFS, **INVESTIGATION_TOOL_DEFS, FILE_TOOL_NAME: FILE_TOOL_DEF, **MEMORY_TOOL_DEFS}
+AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {**SCENARIO_TOOL_DEFS, **APP_TOOL_DEFS, **INVESTIGATION_TOOL_DEFS, FILE_TOOL_NAME: FILE_TOOL_DEF, **MEMORY_TOOL_DEFS, ACTION_TOOL_NAME: ACTION_TOOL_DEF, CHART_NAME: CHART_TOOL_DEF}
 
 
 def get_registered_tool_schemas(domain: str | None = None) -> list[dict[str, Any]]:

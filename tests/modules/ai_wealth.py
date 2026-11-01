@@ -1,17 +1,24 @@
 """WealthFlow QA Module - AI net worth forecast.
 
 In the REAL chat UI, with Instant Answers pinned ON, asks "please analyze my wealth and tell me how much will it be on
-30-Nov-2026, in details" (the question that used to answer "the data only contains expense history") and checks that the
+<last day of the month two months from today>, in details" (the question that used to answer "the data only contains expense history") and checks that the
 answer is the forecast table (a Net worth row, a Now column and an Expected - or, when all scenarios are equal, a single Forecast - column) with real money values and no expense text.
 The same wording in Arabic must answer in Arabic. The step pins its own precondition (a funded cash balance, removed afterwards): a user with no money correctly
 gets "not enough data for a forecast". Nothing else is created or changed except the chat itself.
 """
 
+import calendar
+from datetime import date
+
 from tests.modules.e2e_settings import AI_ENGINE_PINS, pinned
 from tests.modules.rent_receipts import fund_asset_purchases, unfund_asset_purchases
 
-EN = "please analyze my wealth and tell me how much will it be on 30-Nov-2026, in details"
-AR = "كم ستكون ثروتي في 30 نوفمبر 2026 بالتفصيل"
+_AR_MONTHS = ("يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر")
+_N = date.today().month + 1
+_Y, _M = date.today().year + _N // 12, _N % 12 + 1      # the month two months from today: always in the future, so the step does not age
+_D = calendar.monthrange(_Y, _M)[1]
+EN = f"please analyze my wealth and tell me how much will it be on {_D}-{calendar.month_abbr[_M]}-{_Y}, in details"
+AR = f"كم ستكون ثروتي في {_D} {_AR_MONTHS[_M - 1]} {_Y} بالتفصيل"
 
 
 def _ask(page, text):

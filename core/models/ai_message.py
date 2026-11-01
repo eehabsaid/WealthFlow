@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from datetime import date, datetime
 from .ai_conversation import AIConversation
 
@@ -35,6 +36,13 @@ class AIMessage(models.Model):
     class Meta:
         ordering = ["created_at", "id"]
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new and self.role in ("user", "assistant"):
+            # A new message moves its chat to the top of the sidebar (queryset update: no extra save signal, no recursion)
+            AIConversation.objects.filter(pk=self.conversation_id).update(updated_at=timezone.now())
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -47,4 +55,6 @@ class AIMessage(models.Model):
             "completion_tokens": self.completion_tokens,
             "is_deleted": self.is_deleted,
             "created_at": _date_to_iso(self.created_at),
+            "blocks": [b.to_dict() for b in self.blocks.all()],
+            "attachments": [a.to_dict() for a in self.attachments.all()],
         }

@@ -10,6 +10,9 @@ function renderTopbar() {
         </button>
         <div id="breadcrumb" style="font-weight:600;font-size:14px;color:var(--text-secondary)"></div>
         <div style="display:flex;align-items:center;gap:12px">
+            <button id="ai-insight-bell" class="btn-icon position-relative" hidden tabindex="0" title="Insights">
+                <i class="bi bi-bell"></i><span class="ai-insight-count badge bg-danger"></span>
+            </button>
             <button id="desktop-sidebar-mode-btn" class="btn-icon" onclick="toggleSidebarDesktopMode()" title="Sidebar Mode">
                 <i class="bi bi-layout-sidebar-inset"></i>
             </button>
@@ -35,6 +38,7 @@ function renderTopbar() {
             </button>
         </div>`;
   loadLangMenu();
+  window.AIInsights?.paintBell();
   updateSidebarModeButton();
 }
 

@@ -95,9 +95,13 @@ window.AIA.buildSpeechSettingsHtml = function (s) {
             2
           )
         : "") +
+      (kind === "tts"
+        ? `<div class="aia-row"><div class="aia-row-text"><label class="aia-label" data-i18n="speech_clone_label">${t("speech_clone_label", "My voice (voice cloning)")}</label><div class="aia-help" data-i18n="speech_clone_help">${t("speech_clone_help", "Upload about 10 seconds of clear speech (.wav, .flac, .mp3, .ogg). Used by a Chatterbox voice profile (TTS or Arabic) whose Voice field is empty. A Voice you type in a profile always wins.")}</div><div class="aia-help" id="speech_clone_status"></div></div><div class="aia-row-control"><input type="file" id="speech_clone_file" accept=".wav,.flac,.mp3,.ogg" onchange="window.AIA.uploadVoiceSample(this)"> <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.AIA.removeVoiceSample()" data-i18n="speech_clone_remove">${t("speech_clone_remove", "Remove")}</button></div></div>`
+        : "") +
       `<div class="aia-row"><div class="aia-row-text"><label class="aia-label" data-i18n="speech_test_label">Test endpoint</label><div class="aia-help" data-i18n="speech_test_help">Tests the configured API endpoint; compatibility is confirmed by an actual recording or generated audio.</div></div><div class="aia-row-control"><button type="button" class="btn btn-outline-info" id="speech_${kind}_test" onclick="window.AIA.testSpeechEndpoint('${kind}')"><i class="bi bi-activity me-1"></i><span data-i18n="speech_test_button">Test endpoint</span></button></div></div><div id="speech_${kind}_test_result" class="mb-2" hidden></div>`
     );
   };
+  setTimeout(() => window.AIA.paintVoiceSample?.(), 0);
   return (
     group("stt", "Speech to text (STT)", "Transcribe microphone recordings into the chat input.") +
     group("tts", "Text to speech (TTS)", "Generate spoken audio for an AI answer when requested.") +

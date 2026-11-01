@@ -10,6 +10,8 @@ from core.services.ai.app_knowledge import ratings_for
 from core.services.ai.cache_manager import AICacheManager
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
 
+TITLE_MAX = 80
+
 
 class AIProgressView(View):
     """
@@ -166,5 +168,12 @@ class AIConversationDetailView(View):
         if "is_pinned" in body:
             conversation.is_pinned = bool(body["is_pinned"])
             conversation.save(update_fields=["is_pinned"])
+
+        if "title" in body:
+            title = " ".join(str(body["title"] or "").split())[:TITLE_MAX]
+            if not title:
+                return JsonResponse({"error": "empty_title"}, status=400)
+            conversation.title = title
+            conversation.save(update_fields=["title"])  # a rename does not move the chat in the list
 
         return JsonResponse({"conversation": conversation.to_dict()})

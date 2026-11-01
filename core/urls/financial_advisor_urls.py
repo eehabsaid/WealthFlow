@@ -4,6 +4,10 @@ from core.services.billing import feature_required
 from core.views.ai_chat.ai_agent_views import AIChatModeView, AIStopView
 from core.views.ai_chat.ai_memory_views import AIMemoryDetailView, AIMemoryListView
 from core.views.ai_speech.voice_stream_views import VoiceChatView, VoiceSentencePollView
+from core.views.ai_chat.ai_insights_views import AIInsightsView
+from core.views.ai_chat.ai_attachment_views import AIAttachmentDetailView, AIAttachmentUploadView
+from core.views.ai_chat.ai_blocks_views import AIBlockCancelView, AIBlockConfirmView
+from core.views.ai_chat.ai_chat_manage_views import AIConversationSearchView, AIMessageRewindView
 
 urlpatterns = [
     path(
@@ -96,6 +100,19 @@ urlpatterns = [
     path(
         "api/financial-advisor/ai/conversations/",
         feature_required("allows_ai_workspace")(views.AIConversationListView.as_view()),
+    ),
+    path("api/financial-advisor/ai/insights/", feature_required("allows_ai_workspace")(AIInsightsView.as_view())),
+    path("api/financial-advisor/ai/attachments/", feature_required("allows_ai_workspace")(AIAttachmentUploadView.as_view())),
+    path("api/financial-advisor/ai/attachments/<int:pk>/", feature_required("allows_ai_workspace")(AIAttachmentDetailView.as_view())),
+    path("api/financial-advisor/ai/blocks/<int:pk>/confirm/", feature_required("allows_ai_workspace")(AIBlockConfirmView.as_view())),
+    path("api/financial-advisor/ai/blocks/<int:pk>/cancel/", feature_required("allows_ai_workspace")(AIBlockCancelView.as_view())),
+    path(
+        "api/financial-advisor/ai/conversations/search/",
+        feature_required("allows_ai_workspace")(AIConversationSearchView.as_view()),
+    ),
+    path(
+        "api/financial-advisor/ai/messages/<int:pk>/rewind/",
+        feature_required("allows_ai_workspace")(AIMessageRewindView.as_view()),
     ),
     path(
         "api/financial-advisor/ai/conversations/<int:pk>/",

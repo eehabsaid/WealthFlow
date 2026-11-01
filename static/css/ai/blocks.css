@@ -1,0 +1,100 @@
+.ai-act-card,
+.ai-chart-card {
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  margin: 0.5rem 0;
+  max-width: 34rem;
+}
+
+.ai-act-title,
+.ai-chart-title {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.ai-act-rows th {
+  font-weight: 500;
+  padding-inline-end: 0.8rem;
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+.ai-act-foot {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.ai-act-status-confirmed {
+  color: #198754;
+}
+
+.ai-act-status-failed {
+  color: #dc3545;
+}
+
+.ai-chart-pie {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ai-chart-key {
+  font-size: 0.8rem;
+  margin-inline-end: 0.6rem;
+}
+
+.ai-chart-key i {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-inline-end: 0.3rem;
+  border-radius: 2px;
+}
+
+.ai-ws-conv-search {
+  padding: 0.4rem 0.6rem;
+}
+
+.ai-ws-msg-edit-btn {
+  opacity: 0.5;
+}
+
+.ai-attach-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.ai-attach-chip {
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 1rem;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.ai-insights {
+  margin: 0.8rem auto;
+  max-width: 40rem;
+}
+
+.ai-insight-item {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.5rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+}
+
+#ai-insight-bell .ai-insight-count {
+  position: absolute;
+  top: -4px;
+  inset-inline-end: -4px;
+  font-size: 0.6rem;
+}
+
+#ai-insight-bell .ai-insight-count:empty {
+  display: none;
+}

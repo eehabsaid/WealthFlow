@@ -56,7 +56,7 @@ class PrefetchTest(TestCase):
     def test_reason_after_prefetch_offers_no_tools(self):
         calls = []
 
-        def fake(provider, msgs, dom, offer_tools=True):
+        def fake(provider, msgs, dom, offer_tools=True, **_kw):
             calls.append(offer_tools)
             return None, None, "answer", []
 

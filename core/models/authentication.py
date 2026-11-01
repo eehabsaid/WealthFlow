@@ -88,6 +88,7 @@ AUTH_TOKEN_PURPOSE_CHOICES = [
 ]
 
 AUTH_AUDIT_EVENT_CHOICES = [
+    ("ai_action_confirmed", "AI Action Confirmed"),
     ("registration", "Registration"),
     ("email_verified", "Email Verified"),
     ("admin_approved", "Administrator Approved"),

@@ -14,10 +14,12 @@ from . import data_tools as dt
 from .defs_agent import AGENT_TOOL_DEFS
 from .defs_helpers import A as _A, B as _B, DOMAIN, I as _I, O as _O, S as _S, p as _p, tool as _tool
 from .knowledge_tool import knowledge_search
+from core.services.ai.coding import tools as coding
 
 __all__ = ["CODE_TOOLS", "DOMAIN", "INVESTIGATION_TOOL_DEFS", "investigation_tool_schemas"]
 CODE_TOOLS = ("app_list_dir", "app_find_files", "app_grep", "app_find_definition", "app_read_file",
-              "app_callers", "app_git_history", "app_trace_feature")   # sysadmin only (see code_tools.code_access_allowed)
+              "app_callers", "app_git_history", "app_trace_feature",
+              "app_coding_context", "app_plan_files", "app_repo_index")   # sysadmin only (see code_tools.code_access_allowed)
 
 
 INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
@@ -52,6 +54,14 @@ INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
 )}
 
 INVESTIGATION_TOOL_DEFS.update(AGENT_TOOL_DEFS)
+INVESTIGATION_TOOL_DEFS.update({t["name"]: t for t in (
+    _tool("app_coding_context", "For a coding task: the project skills, past decisions and files that matter, cut to a size. Call it first.",
+          coding.coding_context, {"task": _p(_S, "the task in a sentence"), "max_chars": _p(_I, "size limit, default 6000")}, ["task"]),
+    _tool("app_plan_files", "Before proposing a change: for the files you would change, which are protected (need the owner's approval), who calls them, "
+          "which tests cover them and their line counts.", coding.plan_files, {"files": _p(_A, "repo-relative paths")}, ["files"]),
+    _tool("app_repo_index", "Search the auto-built repo index by file, class, function, model or route name; callers=true lists who imports it.",
+          coding.repo_index, {"query": _p(_S, "name part"), "callers": _p(_B, "also list files that import it")}, ["query"]),
+)})
 
 
 def investigation_tool_schemas(user, domain: str = "") -> list[dict[str, Any]]:

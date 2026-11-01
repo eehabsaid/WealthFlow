@@ -2,6 +2,8 @@
 projection (same numbers as the Wealth Growth screen), in four languages, with and without Instant Answers, and the
 context builder no longer lets one data-heavy topic push another matched source out silently."""
 
+import calendar
+from datetime import date
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
@@ -11,18 +13,29 @@ from core.integrations.ai_provider import OllamaProvider
 from core.models import AppSettings
 from core.services.ai.context_builder_service.service import _fit_blocks
 from core.services.ai.query_engine import route
+from core.services.ai.query_engine.labels import month_label
 from core.services.financial_advisor.registry import get_financial_advisor_payload
 from . import qe_fixtures as fx
 
 NO_LLM = patch.object(OllamaProvider, "generate", side_effect=AssertionError("LLM must not be called"))
 GP = "core.views.ai_chat.ai_chat_core_views.generation_pipeline.build_context"
 VIEW = "core.views.ai_chat.ai_chat_core_views"
-REPORTED = "please analyze my wealth and tell me how much will it be on 30-Nov-2026, in details"
+
+
+def _target():
+    """The last day of the month two months from today: always a future month, so the test does not age."""
+    n = date.today().month + 1
+    y, m = date.today().year + n // 12, n % 12 + 1
+    return y, m, calendar.monthrange(y, m)[1]
+
+
+TY, TM, TD = _target()
+REPORTED = f"please analyze my wealth and tell me how much will it be on {TD}-{calendar.month_abbr[TM]}-{TY}, in details"
 QUESTIONS = {
-    "en": "How much will my wealth be on 30 November 2026?",
-    "ar": "كم ستكون ثروتي في 30 نوفمبر 2026 بالتفصيل",
-    "fr": "Quel sera mon patrimoine net le 30 novembre 2026 ?",
-    "de": "Wie hoch ist mein Nettovermögen am 30. November 2026?",
+    "en": f"How much will my wealth be on {TD} {month_label('en', TY, TM)}?",
+    "ar": f"كم ستكون ثروتي في {TD} {month_label('ar', TY, TM)} بالتفصيل",
+    "fr": f"Quel sera mon patrimoine net le {TD} {month_label('fr', TY, TM)} ?",
+    "de": f"Wie hoch ist mein Nettovermögen am {TD}. {month_label('de', TY, TM)}?",
 }
 
 
@@ -35,7 +48,7 @@ class RoutingTests(SimpleTestCase):
         for lang, q in QUESTIONS.items():
             with self.subTest(lang=lang):
                 r = route(q)
-                self.assertEqual((r.status, r.capability, r.request.periods), ("ready", "wealth_forecast", [(2026, 11)]))
+                self.assertEqual((r.status, r.capability, r.request.periods), ("ready", "wealth_forecast", [(TY, TM)]))
         self.assertEqual(route(REPORTED).status, "ready")      # "analyze" / "in details" no longer make it advice
 
     def test_what_if_and_neighbours_are_untouched(self):
@@ -48,7 +61,7 @@ class ForecastChatTests(TestCase):
     def setUp(self):
         fx.build(self)
         self.payload = get_financial_advisor_payload("wealth_growth", self.user)
-        self.nov = next(p for p in self.payload["series"]["expected"]["points"] if p["month_end"] == "2026-11-30")
+        self.nov = next(p for p in self.payload["series"]["expected"]["points"] if p["month_end"] == f"{TY}-{TM:02d}-{TD:02d}")
 
     def ask(self, q):
         with NO_LLM as gen:
@@ -79,7 +92,7 @@ class ForecastChatTests(TestCase):
         self.assertNotIn("no earlier answer", text)
 
     def test_date_inside_a_month_beyond_the_horizon_and_in_the_past(self):
-        self.assertIn("projects month-end values", self.ask("how much will my wealth be on 15-Nov-2026"))
+        self.assertIn("projects month-end values", self.ask(f"how much will my wealth be on 15-{calendar.month_abbr[TM]}-{TY}"))
         far = self.ask("how much will my wealth be on 31-Dec-2031")
         self.assertIn("The forecast model reaches", far)
         self.assertIn(money(self.payload["series"]["expected"]["points"][-1]["net_worth"]), far)
