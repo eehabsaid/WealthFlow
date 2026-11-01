@@ -31,3 +31,12 @@ class MeteredProvider:
         res = self._provider.generate(*args, **kwargs)
         self.meter.add(res)
         return res
+
+    def generate_stream(self, *args: Any, **kwargs: Any) -> Any:
+        stream = getattr(self._provider, "generate_stream", None)
+        if not callable(stream):
+            kwargs.pop("on_text", None)
+            return self.generate(*args, **kwargs)
+        res = stream(*args, **kwargs)
+        self.meter.add(res)
+        return res

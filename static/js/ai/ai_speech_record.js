@@ -1,6 +1,6 @@
 "use strict";
 
-/* Press-and-hold voice message: record, transcribe (STT) and submit to WealthFlow AI automatically. */
+/* Click-to-toggle voice message: record, transcribe (STT), then submit automatically. */
 (function () {
   const S = window.WFSpeech;
   S.rec = {

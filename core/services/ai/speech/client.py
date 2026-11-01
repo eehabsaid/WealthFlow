@@ -1,6 +1,7 @@
 """OpenAI-compatible speech transport and speech-to-text, using only Python's standard library."""
 
 import json
+import time
 import uuid
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -8,15 +9,29 @@ from urllib.request import Request, urlopen
 from .settings import get_speech_config
 
 
-def _request(url, body, headers, timeout):
+def _request(url, body, headers, timeout, retries=0):
     req = Request(url, data=body, headers=headers, method="POST")
-    try:
-        with urlopen(req, timeout=timeout) as response:
-            return response.read(), response.headers.get("Content-Type", "application/octet-stream")
-    except HTTPError as exc:
-        raise RuntimeError(f"Speech API returned HTTP {exc.code}") from None
-    except (URLError, TimeoutError, OSError):
-        raise RuntimeError("Speech API connection failed or timed out") from None
+    for attempt in range(retries + 1):
+        try:
+            with urlopen(req, timeout=timeout) as response:
+                return response.read(), response.headers.get("Content-Type", "application/octet-stream")
+        except HTTPError as exc:
+            try:
+                detail = exc.read(2048).decode("utf-8", errors="replace").strip()
+            except OSError:
+                detail = ""
+            if exc.code in {500, 502, 503, 504} and attempt < retries:
+                time.sleep(attempt + 1)
+                continue
+            detail = " ".join(detail.split())[:500]
+            suffix = f": {detail}" if detail else ""
+            raise RuntimeError(f"Speech API returned HTTP {exc.code}{suffix}") from None
+        except (URLError, TimeoutError, OSError):
+            if attempt < retries:
+                time.sleep(attempt + 1)
+                continue
+            raise RuntimeError("Speech API connection failed or timed out") from None
+    raise RuntimeError("Speech API request failed")
 
 
 def _auth_headers(cfg):
@@ -43,7 +58,7 @@ def transcribe_audio(audio_bytes, filename, content_type):
     body = b"".join(parts)
     headers = _auth_headers(cfg)
     headers["Content-Type"] = f"multipart/form-data; boundary={boundary}"
-    raw, _ = _request(cfg["endpoint"], body, headers, cfg["timeout"])
+    raw, _ = _request(cfg["endpoint"], body, headers, cfg["timeout"], retries=2)
     try:
         payload = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:

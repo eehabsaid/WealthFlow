@@ -57,21 +57,33 @@ async function _handleAIChatSubmit() {
 
   // Pass conversationId so progress polling can start immediately
   _setLoadingUI(true, _aiState.conversationId);
+  const speech = window.WFSpeech;
+  const voiceStreamId =
+    speech?.voiceTurn && speech.caps.tts && window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : "";
+  if (voiceStreamId) speech.startStream(voiceStreamId);
 
   try {
-    const res = await fetch("/api/financial-advisor/ai/chat/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": window.wfGetCsrfToken?.() || "",
-      },
-      body: JSON.stringify({
-        message: message,
-        conversation_id: _aiState.conversationId,
-        question_domain: domain,
-        chat_mode: _aiChatMode(),
-      }),
-    });
+    const res = await fetch(
+      voiceStreamId
+        ? "/api/financial-advisor/ai/chat/voice/"
+        : "/api/financial-advisor/ai/chat/",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": window.wfGetCsrfToken?.() || "",
+        },
+        body: JSON.stringify({
+          message: message,
+          conversation_id: _aiState.conversationId,
+          question_domain: domain,
+          chat_mode: _aiChatMode(),
+          ...(voiceStreamId ? { voice_stream_id: voiceStreamId } : {}),
+        }),
+      }
+    );
 
     if (!res.ok) throw new Error("Network response was not ok");
 
@@ -109,6 +121,8 @@ async function _handleAIChatSubmit() {
             )
           : aiMsg.content || "";
     if (data.ok !== false && aiMsg.content) window.WFSpeech?.setLastText(aiMsg.content);
+    if (data.ok === false || !aiMsg.content) speech?.cancelStream();
+    else speech?.prepareStreamFinal?.();
     _appendMessage(
       "assistant",
       answerText,
@@ -123,6 +137,7 @@ async function _handleAIChatSubmit() {
     _fetchAIChatConversations();
     window.AIMemChip?.watch(data.memory_since);
   } catch (err) {
+    speech?.cancelStream();
     _stopProgressPolling();
     _setLoadingUI(false);
     _appendMessage(

@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from core.authentication.services import AuthWorkflowService
 from core.models import AppSettings
@@ -25,6 +25,7 @@ def _json(client, url, payload):
     return client.post(url, json.dumps(payload), content_type="application/json")
 
 
+@override_settings(DEBUG=True)
 class SpeechViewsTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_user(username="speech-admin", password="pw12345!")
@@ -41,6 +42,21 @@ class SpeechViewsTests(TestCase):
         self.assertEqual(self.client.get(CAPS).json(), {"stt_enabled": False, "tts_enabled": False})
         save_speech_settings({"speech_tts_enabled": True, "speech_tts_endpoint": "http://speech.test/tts", "speech_tts_model": "voice"})
         self.assertEqual(self.client.get(CAPS).json(), {"stt_enabled": False, "tts_enabled": True})
+
+    @override_settings(DEBUG=False)
+    def test_local_speech_is_disabled_in_production(self):
+        save_speech_settings({
+            "speech_stt_enabled": True,
+            "speech_stt_endpoint": "http://127.0.0.1:8765/v1/audio/transcriptions",
+            "speech_stt_model": "large-v3",
+            "speech_tts_ar_enabled": True,
+            "speech_tts_ar_endpoint": "http://127.0.0.1:8766/v1/audio/speech",
+            "speech_tts_ar_model": "chatterbox-multilingual-v3",
+        })
+        self.assertEqual(self.client.get(CAPS).json(), {"stt_enabled": False, "tts_enabled": False})
+        audio = SimpleUploadedFile("rec.webm", b"audio", content_type="audio/webm")
+        self.assertEqual(self.client.post(STT, {"audio": audio}).status_code, 404)
+        self.assertEqual(_json(self.client, TTS, {"text": "مرحبا"}).status_code, 404)
 
     def test_capabilities_report_tts_when_only_the_arabic_voice_is_enabled(self):
         save_speech_settings({"speech_tts_ar_enabled": True, "speech_tts_ar_endpoint": "http://speech.test/ar", "speech_tts_ar_model": "voice"})
@@ -126,6 +142,14 @@ class SpeechTextPrepTests(TestCase):
         self.assertIn("the report", text)
         self.assertIn("Month: Jan, Paid: 100.", text)
         self.assertIn("first item", text)
+
+
+    def test_arabic_speech_removes_english_glosses_and_reads_slashes_as_or(self):
+        text = speakable_text("الفئة (Category): أكل / مواصلات.\nالعملة (Currency): جنيه / دولار.")
+        self.assertNotIn("Category", text)
+        self.assertNotIn("Currency", text)
+        self.assertIn("أكل أو مواصلات", text)
+        self.assertIn("جنيه أو دولار", text)
 
     def test_chunks_respect_the_limit_and_the_cap(self):
         long_line = "word " * 3000

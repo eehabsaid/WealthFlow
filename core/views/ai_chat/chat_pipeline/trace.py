@@ -134,3 +134,17 @@ class TracedProvider:
             info.get("prompt_tokens"), info.get("completion_tokens"), info.get("error"),
         )
         return res
+
+    def generate_stream(self, *args: Any, **kwargs: Any) -> Any:
+        stream = getattr(self._provider, "generate_stream", None)
+        if not callable(stream):
+            kwargs.pop("on_text", None)
+            return self.generate(*args, **kwargs)
+        t0 = time.monotonic()
+        res = stream(*args, **kwargs)
+        info = res if isinstance(res, dict) else {}
+        self._trace.record_llm_call(
+            int((time.monotonic() - t0) * 1000),
+            info.get("prompt_tokens"), info.get("completion_tokens"), info.get("error"),
+        )
+        return res

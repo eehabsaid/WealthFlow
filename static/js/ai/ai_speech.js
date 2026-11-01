@@ -40,38 +40,14 @@ window.WFSpeech.setLastText = function (text) {
   window.WFSpeech.lastText = String(text || "");
 };
 
-/* Press-and-hold microphone (pointer + keyboard); speaker toggles read/stop; Stop button. */
+/* Click-to-toggle microphone; keyboard activation follows the native button click. */
 window.WFSpeech.bindControls = function () {
   const S = window.WFSpeech;
-  const stt = document.getElementById("ai-ws-stt-btn");
-  if (stt) {
-    stt.addEventListener("pointerdown", (event) => {
-      if (event.button > 0) return;
-      event.preventDefault();
-      try {
-        stt.setPointerCapture(event.pointerId);
-      } catch (_error) {
-        /* capture is best effort */
-      }
-      S.startRecording();
-    });
-    ["pointerup", "pointercancel", "lostpointercapture", "blur"].forEach((name) =>
-      stt.addEventListener(name, () => S.stopRecording())
-    );
-    stt.addEventListener("keydown", (event) => {
-      if ((event.key === " " || event.key === "Enter") && !event.repeat) {
-        event.preventDefault();
-        S.startRecording();
-      }
-    });
-    stt.addEventListener("keyup", (event) => {
-      if (event.key === " " || event.key === "Enter") {
-        event.preventDefault();
-        S.stopRecording();
-      }
-    });
-    stt.addEventListener("contextmenu", (event) => event.preventDefault());
-  }
+  document.getElementById("ai-ws-stt-btn")?.addEventListener("click", () => {
+    const rec = S.rec || {};
+    if (rec.active || rec.starting) S.stopRecording();
+    else S.startRecording();
+  });
   document.getElementById("ai-ws-tts-btn")?.addEventListener("click", () => S.toggleSpeakLast());
   document.getElementById("ai-ws-tts-stop-btn")?.addEventListener("click", () => S.stop());
 };
@@ -93,12 +69,16 @@ window.WFSpeech.paintRecording = function (state) {
   if (!button) return;
   const S = window.WFSpeech;
   const labels = {
-    recording: t("speech_recording", "Recording… release to send"),
+    recording: t("speech_recording", "Recording… click to stop"),
     processing: t("speech_processing", "Transcribing…"),
   };
   button.classList.toggle("is-recording", state === "recording");
   button.classList.toggle("is-processing", state === "processing");
   button.disabled = state === "processing";
+  button.setAttribute("aria-pressed", state === "recording" ? "true" : "false");
+  const idleLabel = t("speech_dictate", "Click to start recording; click again to stop");
+  button.setAttribute("aria-label", labels[state] || idleLabel);
+  button.title = labels[state] || idleLabel;
   button.innerHTML =
     state === "processing"
       ? '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>'

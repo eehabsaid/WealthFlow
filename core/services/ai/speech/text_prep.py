@@ -8,13 +8,31 @@ CHUNK_CHARS = 3500   # below the 4096-character input limit of common cloud TTS 
 MAX_CHUNKS = 12      # longer answers are spoken up to this many chunks
 
 
+def _arabic_letter_count(text):
+    return sum("\u0600" <= char <= "\u06ff" for char in text if char.isalpha())
+
+
+def normalize_spoken_text(text):
+    """Remove redundant English glosses from Arabic and verbalize separators."""
+    value = str(text or "")
+    if _arabic_letter_count(value):
+        value = re.sub(
+            r"\s*[（(]\s*[^()（）]*[A-Za-z][^()（）]*[）)]",
+            "",
+            value,
+        )
+        value = re.sub(r"\s*/\s*", " أو ", value)
+    value = value.replace("\\", " ")
+    return re.sub(r"\s+", " ", value).strip()
+
+
 def _table_lines(block):
     header = [plain(c) for c in block.header]
     lines = []
     for row in block.rows:
         cells = [plain(c) for c in row]
         pairs = [f"{h}: {c}" if h and c else c for h, c in zip(header, cells)] if header else cells
-        line = ", ".join(p for p in pairs if p)
+        line = normalize_spoken_text(", ".join(p for p in pairs if p))
         if line:
             lines.append(line + ".")
     return lines
@@ -27,9 +45,11 @@ def speakable_text(markdown):
         if block.kind == "table":
             lines.extend(_table_lines(block))
         elif block.kind == "heading":
-            lines.append(block.text.rstrip(".:") + ".")
+            text = normalize_spoken_text(block.text.rstrip(".:"))
+            if text:
+                lines.append(text + ".")
         else:
-            text = plain(block.text)
+            text = normalize_spoken_text(plain(block.text))
             if text:
                 lines.append(text)
     return "\n".join(lines)

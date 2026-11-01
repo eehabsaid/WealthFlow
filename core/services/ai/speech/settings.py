@@ -1,10 +1,17 @@
 """Global STT/TTS configuration stored in AppSettings; no speech model is required by default."""
 
+from django.conf import settings
+
 from core.models import AppSettings
 from core.services.ai.credential_encryption import encrypt_credential, decrypt_credential, is_masked, mask_credential
 
 KINDS = ("stt", "tts", "tts_ar")  # tts_ar = optional Arabic voice profile used for Arabic text
 FIELDS = ("enabled", "provider", "endpoint", "model", "api_key", "timeout", "voice", "language", "format")
+
+
+def speech_runtime_enabled():
+    """Local speech services must never be called from the hosted production app."""
+    return bool(settings.DEBUG)
 
 
 def _get(key, default=""):

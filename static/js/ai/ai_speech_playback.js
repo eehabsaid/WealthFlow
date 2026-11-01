@@ -55,8 +55,27 @@
     if (box) box.scrollTop = box.scrollHeight;
   }
 
+  function groupSegments(segments, limit = 240) {
+    const groups = [];
+    let current = null;
+    segments.forEach((segment) => {
+      const text = segment.text.trim();
+      if (current && current.text.length + text.length + 1 > limit) {
+        groups.push(current);
+        current = null;
+      }
+      if (!current) current = { text, end: segment.end };
+      else {
+        current.text += ` ${text}`;
+        current.end = segment.end;
+      }
+    });
+    if (current) groups.push(current);
+    return groups;
+  }
+
   async function run(session) {
-    const segments = session.segments;
+    const segments = session.groups;
     const start = (segment) => {
       const request = synthesize(segment.text, session);
       request.catch(() => {}); // surfaced when awaited below
@@ -114,12 +133,12 @@
   S.speak = async function (markdown, options = {}) {
     S.stop();
     if (!S.caps.tts) return;
-    const segments = S.splitSegments(markdown);
-    if (!segments.length)
+    const sentenceSegments = S.splitSegments(markdown);
+    if (!sentenceSegments.length)
       return S.notify(t("speech_no_answer", "There is no answer to read aloud yet."), "warning");
     const content = options.content || null;
     const session = {
-      segments,
+      groups: groupSegments(sentenceSegments),
       content,
       full: String(markdown),
       abort: new AbortController(),

@@ -9,7 +9,7 @@ import json
 import wave
 
 from . import client
-from .settings import get_speech_config
+from .settings import get_speech_config, speech_runtime_enabled
 from .text_prep import speech_chunks
 
 _ARABIC_RANGES = ((0x0600, 0x06FF), (0x0750, 0x077F), (0x08A0, 0x08FF), (0xFB50, 0xFDFF), (0xFE70, 0xFEFF))
@@ -29,6 +29,8 @@ def _usable(cfg):
 def select_tts_profile(text):
     arabic = get_speech_config("tts_ar", include_secret=True)
     if is_arabic_text(text) and _usable(arabic):
+        if arabic.get("language") in {"", "auto"}:
+            arabic["language"] = "ar"
         return arabic
     general = get_speech_config("tts", include_secret=True)
     if _usable(general):
@@ -37,7 +39,9 @@ def select_tts_profile(text):
 
 
 def tts_available():
-    return any(_usable(get_speech_config(kind)) for kind in ("tts", "tts_ar"))
+    return speech_runtime_enabled() and any(
+        _usable(get_speech_config(kind)) for kind in ("tts", "tts_ar")
+    )
 
 
 def build_tts_payload(cfg, text):

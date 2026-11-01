@@ -7,13 +7,15 @@ from django.views import View
 from core.views.auth_views import SysadminRequiredMixin
 from core.validators.json_body import parse_json_body
 from core.services.ai.speech import test_speech_endpoint
-from core.services.ai.speech.settings import KINDS
+from core.services.ai.speech.settings import KINDS, speech_runtime_enabled
 
 logger = logging.getLogger(__name__)
 
 
 class SpeechSettingsTestView(SysadminRequiredMixin, View):
     def post(self, request):
+        if not speech_runtime_enabled():
+            return JsonResponse({"ok": False, "error": "Local speech endpoint tests are disabled outside local development."}, status=404)
         try:
             data = parse_json_body(request)
             kind = str(data.get("kind") or "").strip().lower()

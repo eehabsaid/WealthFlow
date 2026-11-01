@@ -3,6 +3,7 @@ from .. import views
 from core.services.billing import feature_required
 from core.views.ai_chat.ai_agent_views import AIChatModeView, AIStopView
 from core.views.ai_chat.ai_memory_views import AIMemoryDetailView, AIMemoryListView
+from core.views.ai_speech.voice_stream_views import VoiceChatView, VoiceSentencePollView
 
 urlpatterns = [
     path(
@@ -83,6 +84,14 @@ urlpatterns = [
     path(
         "api/financial-advisor/ai/chat/",
         feature_required("allows_ai_workspace")(views.AIChatView.as_view()),
+    ),
+    path(
+        "api/financial-advisor/ai/chat/voice/",
+        feature_required("allows_ai_workspace")(VoiceChatView.as_view()),
+    ),
+    path(
+        "api/financial-advisor/ai/speech/voice-chunks/<uuid:turn_id>/",
+        feature_required("allows_ai_workspace")(VoiceSentencePollView.as_view()),
     ),
     path(
         "api/financial-advisor/ai/conversations/",

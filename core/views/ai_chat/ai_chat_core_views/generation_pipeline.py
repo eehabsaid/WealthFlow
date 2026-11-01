@@ -59,7 +59,7 @@ def build_context(request, conversation, user_msg, user_text):
     return messages_seq, sources
 
 
-def initial_generate(provider, messages_seq, question_domain, offer_tools=True):
+def initial_generate(provider, messages_seq, question_domain, offer_tools=True, on_text=None):
     """Run the first provider call, retrying once if the reply is silently empty.
 
     offer_tools=False (retrieval already grounded the answer) sends no tool schemas:
@@ -69,7 +69,15 @@ def initial_generate(provider, messages_seq, question_domain, offer_tools=True):
         tools_param = get_registered_tool_schemas(domain=question_domain)
 
     # ── Initial provider call ─────────────────────────────────────────────
-    res = provider.generate(messages_seq, tools=tools_param)
+    if on_text is not None and tools_param is None:
+        res = provider.generate_stream(messages_seq, tools=None, on_text=on_text)
+        if res.get("error"):
+            fail_stream = getattr(on_text, "fail", None)
+            if callable(fail_stream):
+                fail_stream()
+            res = provider.generate(messages_seq, tools=None)
+    else:
+        res = provider.generate(messages_seq, tools=tools_param)
     error_str = res.get("error")
     content_str = res.get("content", "")
     tool_calls_req = res.get("tool_calls") or []

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from core.integrations.provider_utils import make_json_http_request
 from core.services.ai.ai_defaults import DEFAULT_OLLAMA_MODEL
@@ -165,4 +165,13 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
             "raw_message": message if isinstance(message, dict) else {},   # for the loop's one-off log of an empty reply
         }
 
+    def generate_stream(
+        self,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
+        on_text: Callable[[str], None] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        from .ollama_stream import generate_stream
 
+        return generate_stream(self, messages, tools=tools, on_text=on_text, **kwargs)

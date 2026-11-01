@@ -5,7 +5,10 @@ import logging
 from django.http import JsonResponse, HttpResponse
 from django.views import View
 from core.views.auth_views import PermissionRequiredMixin
-from core.services.ai.speech import get_speech_config, transcribe_audio, synthesize_speech, has_speakable_text, tts_available
+from core.services.ai.speech import (
+    get_speech_config, transcribe_audio, synthesize_speech, has_speakable_text,
+    tts_available, speech_runtime_enabled,
+)
 
 logger = logging.getLogger(__name__)
 MAX_SPEECH_INPUT_CHARS = 100000  # sanity cap on the request body; the service chunks and caps what is spoken
@@ -18,12 +21,14 @@ class AIWorkspaceSpeechMixin(PermissionRequiredMixin):
 class SpeechCapabilitiesView(AIWorkspaceSpeechMixin, View):
     def get(self, request):
         stt = get_speech_config("stt")
-        return JsonResponse({"stt_enabled": stt["enabled"] and stt["is_configured"],
+        return JsonResponse({"stt_enabled": speech_runtime_enabled() and stt["enabled"] and stt["is_configured"],
                              "tts_enabled": tts_available()})
 
 
 class SpeechTranscribeView(AIWorkspaceSpeechMixin, View):
     def post(self, request):
+        if not speech_runtime_enabled():
+            return JsonResponse({"error": "Local speech is disabled outside local development."}, status=404)
         audio = request.FILES.get("audio")
         if not audio:
             return JsonResponse({"error": "Audio recording is required"}, status=400)
@@ -39,6 +44,8 @@ class SpeechTranscribeView(AIWorkspaceSpeechMixin, View):
 
 class SpeechSynthesizeView(AIWorkspaceSpeechMixin, View):
     def post(self, request):
+        if not speech_runtime_enabled():
+            return JsonResponse({"error": "Local speech is disabled outside local development."}, status=404)
         try:
             data = json.loads(request.body or b"{}")
         except (json.JSONDecodeError, UnicodeDecodeError):

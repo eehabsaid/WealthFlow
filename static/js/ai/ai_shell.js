@@ -120,7 +120,7 @@ async function renderAI() {
                   <span><kbd>Shift+Enter</kbd> newline</span>
                 </div>
                 <div class="ai-ws-input-actions">
-                  <button type="button" class="btn btn-sm btn-outline-secondary ai-ws-voice-btn" id="ai-ws-stt-btn" hidden title="${_aiT("speech_dictate", "Hold to talk, release to send")}" aria-label="${_aiT("speech_dictate", "Hold to talk, release to send")}"><i class="bi bi-mic"></i></button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary ai-ws-voice-btn" id="ai-ws-stt-btn" hidden title="${_aiT("speech_dictate", "Click to start recording; click again to stop")}" aria-label="${_aiT("speech_dictate", "Click to start recording; click again to stop")}"><i class="bi bi-mic"></i></button>
                   <button type="button" class="btn btn-sm btn-outline-secondary ai-ws-voice-btn" id="ai-ws-tts-btn" hidden title="${_aiT("speech_read_answer", "Read latest answer aloud")}" aria-label="${_aiT("speech_read_answer", "Read latest answer aloud")}" aria-pressed="false"><i class="bi bi-volume-up"></i></button>
                   <button type="button" class="btn btn-sm btn-danger ai-ws-voice-btn" id="ai-ws-tts-stop-btn" hidden title="${_aiT("speech_stop", "Stop speaking")}" aria-label="${_aiT("speech_stop", "Stop speaking")}"><i class="bi bi-stop-fill"></i></button>
                   <button class="ai-ws-send-btn" onclick="_handleAIChatSubmit()" title="${_aiT("ai_chat_send_button", "Send")}">

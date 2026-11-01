@@ -41,7 +41,8 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
             retrieval.messages.append({"role": "system", "content": "STEP 0 — " + verified_data})
         pre = run_prefetch(trace, retrieval, understanding, user_text, request.user)
         reasoning = run_reason(trace, provider, retrieval.messages, understanding.question_domain,
-                               retrieval, understanding, prefetched=pre.used or bool(verified_data))
+                               retrieval, understanding, prefetched=pre.used or bool(verified_data),
+                               request=request)
 
         if reasoning.error:
             trace.skip("tool", "provider_error")

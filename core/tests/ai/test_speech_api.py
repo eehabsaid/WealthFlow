@@ -4,7 +4,7 @@ import json
 from unittest.mock import patch
 import io
 import wave
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
 from core.models import AppSettings
 from core.services.ai.speech import get_speech_config, save_speech_settings
@@ -14,6 +14,7 @@ from core.services.ai.speech.tts import (
 )
 
 
+@override_settings(DEBUG=True)
 class SpeechSettingsTests(TestCase):
     def tearDown(self):
         AppSettings.objects.filter(owner=None, key__startswith="speech_").delete()
@@ -63,6 +64,7 @@ class SpeechSettingsTests(TestCase):
         self.assertIn(b"name=\"file\"", args[1])
         self.assertIn(b"asr", args[1])
         self.assertIn(b'name="language"\r\n\r\nar', args[1])
+        self.assertEqual(request_mock.call_args.kwargs.get("retries"), 2)
 
     def test_arabic_text_is_detected_by_script_not_by_word_lists(self):
         self.assertTrue(is_arabic_text("أهلاً، عامل إيه؟"))
