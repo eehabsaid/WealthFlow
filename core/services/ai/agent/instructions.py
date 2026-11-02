@@ -3,7 +3,7 @@ value means "use this default" (so a code update improves every install that nev
 
 from __future__ import annotations
 
-MAX_LENGTH = 60000
+MAX_LENGTH = 6000
 
 DEFAULT_INSTRUCTIONS = """HOW YOU WORK (Agent mode)
 1. Orient: decide whether the question is about the user's data, how the app works, or the code, and which tools can answer it.

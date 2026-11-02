@@ -2888,11 +2888,13 @@
     "ai_insight_salary_unpaid": "Salary from {company} for {month} {year} is not marked paid yet.",
     "ai_insight_month_vs_last": "Spending so far this month is {this_month} {currency}, {change_percent}% versus the same days last month ({last_month} {currency}).",
     "speech_clone_label": "My voice (voice cloning)",
-    "speech_clone_help": "Upload about 10 seconds of clear speech (.wav, .flac, .mp3, .ogg). Used by a Chatterbox voice profile (TTS or Arabic) whose Voice field is empty. A Voice you type in a profile always wins.",
+    "speech_clone_help": "Upload 10 to 30 seconds of clear speech (.wav, .flac, .mp3, .ogg). Used by a Chatterbox voice profile (TTS or Arabic) whose Voice field is empty. A Voice you type in a profile always wins.",
     "speech_clone_remove": "Remove",
-    "speech_clone_saved": "A voice sample is saved.",
+    "speech_clone_saved": "Saved: {name} ({size} KB). It is used by a Chatterbox profile whose Voice field is empty.",
     "speech_clone_none": "No voice sample saved.",
     "speech_clone_err_unsupported_type": "Use a .wav, .flac, .mp3 or .ogg recording.",
     "speech_clone_err_too_large": "The recording is larger than 20 MB.",
-    "speech_clone_err_too_small": "The recording is too short; use about 10 seconds of clear speech."
+    "speech_clone_err_too_small": "The recording is too short to be a voice sample; use 10 to 30 seconds of clear speech.",
+    "speech_clone_toast": "Voice sample saved.",
+    "ai_act_rec_code_file": "Code file"
 }

@@ -2888,11 +2888,13 @@
     "ai_insight_salary_unpaid": "راتب {company} لشهر {month} {year} لم يُسجَّل كمدفوع بعد.",
     "ai_insight_month_vs_last": "الإنفاق حتى الآن هذا الشهر {this_month} {currency}، بنسبة {change_percent}% مقارنة بنفس الأيام من الشهر الماضي ({last_month} {currency}).",
     "speech_clone_label": "صوتي (استنساخ الصوت)",
-    "speech_clone_help": "ارفع حوالي 10 ثوانٍ من كلام واضح (.wav, .flac, .mp3, .ogg). يُستخدم مع ملف صوت Chatterbox (العام أو العربي) حقل الصوت فيه فارغ. الصوت المكتوب في الملف له الأولوية دائماً.",
+    "speech_clone_help": "ارفع من 10 إلى 30 ثانية من كلام واضح (.wav, .flac, .mp3, .ogg). يُستخدم مع ملف صوت Chatterbox (العام أو العربي) حقل الصوت فيه فارغ. الصوت المكتوب في الملف له الأولوية دائماً.",
     "speech_clone_remove": "إزالة",
-    "speech_clone_saved": "تم حفظ عينة صوت.",
+    "speech_clone_saved": "تم الحفظ: {name} ({size} KB). يُستخدم مع ملف Chatterbox حقل الصوت فيه فارغ.",
     "speech_clone_none": "لا توجد عينة صوت محفوظة.",
     "speech_clone_err_unsupported_type": "استخدم تسجيلًا بصيغة .wav أو .flac أو .mp3 أو .ogg.",
     "speech_clone_err_too_large": "التسجيل أكبر من 20 ميجابايت.",
-    "speech_clone_err_too_small": "التسجيل قصير جدًا؛ استخدم حوالي 10 ثوانٍ من كلام واضح."
+    "speech_clone_err_too_small": "التسجيل قصير جداً ولا يصلح كعينة صوت؛ استخدم من 10 إلى 30 ثانية من كلام واضح.",
+    "speech_clone_toast": "تم حفظ عينة الصوت.",
+    "ai_act_rec_code_file": "ملف كود"
 }

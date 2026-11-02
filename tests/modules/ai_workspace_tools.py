@@ -12,6 +12,7 @@ _FETCH = """async ([url, method, body]) => {
 }"""
 _API = "/api/financial-advisor/ai/"
 _SAMPLE_CARD = {"id": 987654, "kind": "action", "status": "pending", "payload": {"record": "expense", "op": "edit", "rows": [{"label": "description", "before": "lunch", "after": "dinner"}]}}
+_CODE_CARD = {"id": 987655, "kind": "action", "status": "pending", "payload": {"record": "code_file", "op": "edit", "rows": [{"label": "file", "before": "", "after": "core/app.py"}]}}
 _SAMPLE_CHART = {"kind": "chart", "payload": {"type": "bar", "title": "Expenses by month", "labels": ["Jan", "Feb"], "series": [{"name": "Expenses", "values": [10, 20]}], "unit": "EGP"}}
 
 
@@ -62,12 +63,14 @@ def _run(context, reporter, screenshot_logger):
     card_ok = "ai-act-card" in html and "Confirm" in html and "dinner" in html
     gone = page.evaluate(_FETCH, [_API + "blocks/987654/cancel/", "POST", None])
     _step(reporter, screenshot_logger, page, "Action card shows before/after with Confirm; unknown cards are refused (404)", card_ok and gone["status"] == 404, f"status={gone['status']}", "tools_action_card")
+    code = page.evaluate("(c) => { AIBlocks.remember({id: 2, blocks: [c]}); return window._aiMessageExtras.map(f => f({role: 'assistant', messageId: 2})).join(''); }", _CODE_CARD)
+    _step(reporter, screenshot_logger, page, "A code-change card is drawn in monospace with Confirm", "ai-act-code" in code and "Confirm" in code, f"len={len(code)}", "tools_code_card")
     svg = page.evaluate("(c) => AIChart.draw(c)", _SAMPLE_CHART)
     _step(reporter, screenshot_logger, page, "Chart is drawn as an SVG with its title and unit", "<svg" in svg and "Expenses by month" in svg and "EGP" in svg, f"len={len(svg)}", "tools_chart")
 
     # 5. Voice sample endpoint (system administrator)
     vs = page.evaluate(_FETCH, ["/api/settings/ai/speech/voice-sample/", "GET", None])
-    _step(reporter, screenshot_logger, page, "Voice sample endpoint answers for the system administrator", vs["status"] == 200 and "has_sample" in (vs["data"] or {}), f"status={vs['status']}", "tools_voice")
+    _step(reporter, screenshot_logger, page, "Voice sample endpoint answers for the system administrator", vs["status"] == 200 and {"has_sample", "name", "size_kb"} <= set(vs["data"] or {}), f"status={vs['status']}", "tools_voice")
     reporter.pages_visited.add("WealthFlow AI -> Workspace tools")
 
 

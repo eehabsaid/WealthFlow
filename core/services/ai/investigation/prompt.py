@@ -25,7 +25,10 @@ FILE_RULE = """
 FILES: you CAN create files (Excel xlsx, Word docx, PDF, CSV, txt/code). When the user asks to export, download, save or "give me a file" of anything, call generate_file with a `dataset` (model, filters, fields, order_by, group_by, aggregate, total_columns): the numbers come straight from the database, there is no row cap, never type them yourself. Find the model and fields with app_data_models first. For a WRITTEN document (user guide, report, summary, explanation of the app) investigate with the tools, then call generate_file with the complete text in `content` (Markdown: # headings, lists, **bold**); do not announce that you will generate it, call the tool in the same reply. The app attaches the download link itself: never write a link, and never say you cannot create or send a file."""
 CODE_CLAUSE = ", and its full source code (secrets are masked)"
 CODE_RULE = ("   Code questions (how is X implemented, where is Y, why does Z happen): app_find_definition or app_grep to locate, "
-             "app_read_file to confirm, and quote path:line.\n")
+             "app_read_file to confirm, and quote path:line.\n"
+             "   Code changes (only when asked): app_coding_context and app_plan_files first (protected files are refused), app_read_file to copy the exact old text, "
+             "then ONE app_propose_edit per change (it shows a confirmation card; the file is written only when the administrator confirms), then app_run_checks on the changed files. "
+             "Report the check results exactly; never say a change works unless the checks passed.\n")
 TEXT_PROTOCOL = """
 To use a tool, reply with ONLY a JSON object, nothing else: {{"name": "<tool>", "arguments": {{...}}}}
 Tools:
@@ -46,7 +49,7 @@ def _map() -> str:
            "(script-global), i18n in static/i18n/{en,ar,fr,de}.json, AI chat in core/views/ai_chat and core/services/ai."
 
 
-AGENT_HEADER = """You are WealthFlow's built-in agent. You investigate the app with read-only tools and answer from facts, like a developer with the project open.
+AGENT_HEADER = """You are WealthFlow's built-in agent. You investigate the app with read-only tools and answer from facts, like a developer with the project open. Changing the user's records is done only through propose_action, which shows a confirmation card; nothing is saved until the user confirms.
 Today is {today}. The current user is "{username}". You can read: the user's own business data, the app's documentation and screens{code_clause}.
 
 """

@@ -104,7 +104,8 @@ class OllamaCtlTest(Base):
         self.assertEqual(popen.call_args.kwargs["env"]["OLLAMA_MODELS"], r"D:\ollama\models")
 
     def test_restart_is_refused_off_windows_and_when_starting_fails(self):
-        self.assertFalse(ollama_ctl.restart("", "http://x", print))
+        with patch.object(ollama_ctl, "os", SimpleNamespace(name="posix", environ={})):   # never the real os.name: on Windows this would kill and restart the real Ollama
+            self.assertFalse(ollama_ctl.restart("", "http://x", print))
         with patch.object(ollama_ctl, "os", SimpleNamespace(name="nt", environ={})), patch.object(ollama_ctl.subprocess, "run", side_effect=OSError("no")), \
                 patch.object(ollama_ctl.time, "sleep"):
             self.assertFalse(ollama_ctl.restart("", "http://x", print))

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from . import context, index
+from . import ROOT, context, index
 from .plan import plan_check
 
 
@@ -44,3 +44,55 @@ def repo_index(user, params):
     if not query:
         return {"error": "give a `query`: part of a file, class, function, model or route name"}
     return {"matches": index.find(query), "callers": index.callers(query) if params.get("callers") else None}
+
+
+def _local_only(user):
+    """The change / run tools: sysadmin with code access, on the local development server only."""
+    from . import edit
+
+    denied = _guard(user)
+    if denied:
+        return denied
+    return None if edit.enabled() else {"error": "Changing and running code is available only on the local development server (DEBUG on)."}
+
+
+def propose_edit(user, params):
+    denied = _local_only(user)
+    if denied:
+        return denied
+    from core.services.ai.actions.codefile import propose_card
+
+    return propose_card(user, {k: params.get(k) for k in ("path", "old_str", "new_str", "content")})
+
+
+def run_checks(user, params):
+    denied = _local_only(user)
+    if denied:
+        return denied
+    from .verify import verify
+
+    files = [str(f).replace("\\", "/") for f in (params.get("files") or []) if str(f).strip()][:30]
+    if not files:
+        return {"error": "give `files`: the paths you changed"}
+    result = verify(files, full_suite=bool(params.get("full_suite")), timeout=600)
+    return {"overall": result["overall"], "steps": [{"step": s["step"], "status": s["status"], "detail": s["detail"][-400:]} for s in result["steps"]],
+            "protected_files_changed": result["protected_files_changed"]}
+
+
+def git_diff(user, params):
+    import subprocess
+
+    from core.services.ai.investigation import paths
+
+    denied = _guard(user)
+    if denied:
+        return denied
+    path = str(params.get("path") or "").strip().replace("\\", "/")
+    try:
+        if path:
+            paths.resolve(path)
+    except paths.PathError as exc:
+        return {"error": str(exc)}
+    cmd = ["git", "diff", "--", path] if path else ["git", "status", "--porcelain"]
+    done = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=60)
+    return {"output": paths.redact(done.stdout)[:6000], "truncated": len(done.stdout) > 6000}

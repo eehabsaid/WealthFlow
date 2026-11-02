@@ -11,6 +11,7 @@ from django.conf import settings
 from core.models import AppSettings
 
 KEY = "speech_tts_voice_sample"
+NAME_KEY = "speech_tts_voice_sample_name"   # the file name as the sysadmin uploaded it, shown in Settings
 EXTENSIONS = (".wav", ".flac", ".mp3", ".ogg")
 MAX_BYTES = 20 * 1024 * 1024
 MIN_BYTES = 20 * 1024     # anything smaller cannot hold a usable voice sample
@@ -30,6 +31,15 @@ def voice_sample_path() -> str:
     return path if path and os.path.isfile(path) else ""
 
 
+def voice_sample_info() -> dict:
+    """What Settings shows: whether a sample is saved, its original file name and size in KB."""
+    path = voice_sample_path()
+    if not path:
+        return {"has_sample": False, "name": "", "size_kb": 0}
+    return {"has_sample": True, "name": str(AppSettings.get(NAME_KEY, "", user=None) or os.path.basename(path)),
+            "size_kb": max(1, os.path.getsize(path) // 1024)}
+
+
 def save_voice_sample(name: str, raw: bytes) -> str:
     ext = os.path.splitext(name or "")[1].lower()
     if ext not in EXTENSIONS:
@@ -44,6 +54,7 @@ def save_voice_sample(name: str, raw: bytes) -> str:
     with open(path, "wb") as handle:
         handle.write(raw)
     AppSettings.set(KEY, path, user=None)
+    AppSettings.set(NAME_KEY, os.path.basename(name or "")[:120], user=None)
     return path
 
 
@@ -52,3 +63,4 @@ def delete_voice_sample() -> None:
     if path and os.path.isfile(path) and os.path.dirname(os.path.abspath(path)) == os.path.abspath(_folder()):
         os.remove(path)
     AppSettings.set(KEY, "", user=None)
+    AppSettings.set(NAME_KEY, "", user=None)

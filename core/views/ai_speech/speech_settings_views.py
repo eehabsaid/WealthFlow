@@ -8,7 +8,7 @@ from core.views.auth_views import SysadminRequiredMixin
 from core.validators.json_body import parse_json_body
 from core.services.ai.speech import test_speech_endpoint
 from core.services.ai.speech.settings import KINDS, speech_runtime_enabled
-from core.services.ai.speech.voice_sample import VoiceSampleError, delete_voice_sample, save_voice_sample, voice_sample_path
+from core.services.ai.speech.voice_sample import VoiceSampleError, delete_voice_sample, save_voice_sample, voice_sample_info
 
 logger = logging.getLogger(__name__)
 
@@ -32,14 +32,14 @@ class SpeechSettingsTestView(SysadminRequiredMixin, View):
 
 
 VOICE_REASONS = {"unsupported_type": "Use a .wav, .flac, .mp3 or .ogg recording.", "too_large": "The recording is larger than 20 MB.",
-                 "too_small": "The recording is too short; use about 10 seconds of clear speech."}
+                 "too_small": "The recording is too short to be a voice sample; use 10 to 30 seconds of clear speech."}
 
 
 class SpeechVoiceSampleView(SysadminRequiredMixin, View):
     """GET -> {has_sample}; POST (multipart `file`) saves the reference voice; DELETE removes it. Sysadmin only."""
 
     def get(self, request):
-        return JsonResponse({"has_sample": bool(voice_sample_path())})
+        return JsonResponse(voice_sample_info())
 
     def post(self, request):
         upload = request.FILES.get("file")
@@ -49,8 +49,8 @@ class SpeechVoiceSampleView(SysadminRequiredMixin, View):
             save_voice_sample(upload.name, upload.read())
         except VoiceSampleError as exc:
             return JsonResponse({"error": str(exc), "message": VOICE_REASONS.get(str(exc), "Upload failed.")}, status=400)
-        return JsonResponse({"has_sample": True}, status=201)
+        return JsonResponse(voice_sample_info(), status=201)
 
     def delete(self, request):
         delete_voice_sample()
-        return JsonResponse({"has_sample": False})
+        return JsonResponse(voice_sample_info())

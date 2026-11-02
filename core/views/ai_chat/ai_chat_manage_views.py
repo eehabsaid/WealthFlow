@@ -1,11 +1,11 @@
 """Chat management beyond the basics: search across the user's chats, and edit-and-resend.
 Every query is scoped to the requesting user; deleted chats and messages never appear."""
 
-from django.db.models import Q
 from django.http import JsonResponse
 from django.views import View
 
 from core.models import AIConversation, AIMessage
+from core.services.ai.actions import cancel_cards_of
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
 
 MIN_QUERY = 2
@@ -58,5 +58,8 @@ class AIMessageRewindView(View):
         msg = AIMessage.objects.filter(pk=pk, role="user", is_deleted=False, conversation__user=request.user, conversation__is_deleted=False).first()
         if msg is None:
             return JsonResponse({"error": "not_found"}, status=404)
-        hidden = AIMessage.objects.filter(conversation_id=msg.conversation_id, is_deleted=False).filter(Q(id__gte=msg.id)).update(is_deleted=True)
+        later = AIMessage.objects.filter(conversation_id=msg.conversation_id, is_deleted=False, id__gte=msg.id)
+        ids = list(later.values_list("id", flat=True))
+        hidden = later.update(is_deleted=True)
+        cancel_cards_of(request.user, ids)
         return JsonResponse({"ok": True, "hidden": hidden, "conversation_id": msg.conversation_id})

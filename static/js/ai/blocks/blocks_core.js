@@ -36,7 +36,7 @@ const AIBlocks = (() => {
     } else {
       foot = `<span class="small ai-act-status-${b.status}">${esc(T("ai_act_status_" + b.status, b.status))}${b.result ? " — " + esc(b.result) : ""}</span>`;
     }
-    return `<div class="ai-act-card" data-block-id="${b.id}"><div class="ai-act-title">${esc(title)}</div><table class="ai-act-rows">${rows}</table><div class="ai-act-foot">${foot}</div></div>`;
+    return `<div class="ai-act-card" data-block-id="${b.id}"><div class="ai-act-title">${esc(title)}</div><table class="ai-act-rows${p.record === "code_file" ? " ai-act-code" : ""}">${rows}</table><div class="ai-act-foot">${foot}</div></div>`;
   }
 
   function render(ctx) {

@@ -2,6 +2,8 @@
 
 Package layout (the 200-line-per-file convention):
 - conversation_setup.py    conversation lookup, progress-cache bootstrap
+- understand_stage.py      stage 1: domain + intent (no LLM)
+- orchestrator_stage.py    the optional multi-agent branch
 - export_stage.py          "export it to Excel" follow-ups (previous answer -> file)
 - generation_pipeline.py   context assembly, provider-generation + retry
 - response_finalizer.py    persistence, knowledge extraction, response build
@@ -18,22 +20,23 @@ from django.views import View
 
 from core.validators.json_body import parse_json_body
 from core.integrations.ai_provider import get_active_ai_provider
-from core.models import AppSettings
+from core.services.ai.actions.notice import ActionNoticeProvider
 from core.services.ai.cache_manager import AICacheManager
 from core.services.ai.direct_answers import try_direct_answer
-from core.services.ai.domains import APP, BUSINESS, app_enabled, resolve_domain
+from core.services.ai.domains import APP, BUSINESS
 from core.services.ai.exports import ExportNoticeProvider, requested as detect_export_formats, strip_export_terms
 from core.services.ai.query_engine import verified_for_model
-from core.services.ai.orchestration import Orchestrator
 from core.services.ai.usage import MeteredProvider, TokenMeter, limit_status
 from core.views.ai_chat.ai_chat_helpers import _api_auth_required
 from core.services.ai.app_knowledge import is_workflow_question
 from core.views.ai_chat.chat_pipeline import (ESCALATE, PipelineTrace, escalating, run_default_pipeline, run_investigator_pipeline,
-                                              run_workflow_pipeline, should_go_direct, understand, workflow_enabled)
+                                              run_workflow_pipeline, should_go_direct, workflow_enabled)
 from core.views.ai_chat.chat_pipeline.trace import log_request_start
 
 from .attachment_stage import attachment_response
 from .agent_stage import agent_stage
+from .orchestrator_stage import orchestrator_response
+from .understand_stage import understand_request
 from .conversation_setup import (
     build_provider_disabled_response,
     build_token_limit_response,
@@ -79,17 +82,9 @@ class AIChatView(View):
         cache_mgr = AICacheManager()
         progress_key = init_progress(cache_mgr, request, conversation)
 
-        # Stage 1 — Understand (deterministic, no LLM): runs before anything else
+        # Stage 1 — Understand (deterministic, no LLM): runs before anything else (understand_stage.py)
         trace = PipelineTrace(request.user.id, conversation.id)
-        with trace.stage("understand") as rec:
-            # the sysadmin's allowed chat domains win over what the browser sent (Settings > AI Advisor > Chat domains)
-            chosen = resolve_domain(str(body.get("question_domain", "")))   # "" = none chosen and both allowed: inferred
-            # Strict rules (tools, context, knowledge paths): the App domain, and Business when the sysadmin switched the App domain off.
-            # Business chosen while both are allowed keeps the usual paths (how-do-I-record-it answers use the app knowledge).
-            domain = chosen if chosen == APP or (chosen == BUSINESS and not app_enabled()) else ""
-            understanding = understand(user_text, chosen)
-            understanding.enforced = domain
-            rec.detail.update(understanding.to_dict())
+        domain, understanding = understand_request(body, user_text, trace)
 
         # Check if AI provider is active
         provider = get_active_ai_provider(user=request.user)
@@ -110,6 +105,7 @@ class AIChatView(View):
         # Stage 0 — attached files go straight to the model (attachment_stage.py)
         if (with_files := attachment_response(request=request, body=body, cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation, user_msg=user_msg, user_text=user_text, provider=provider, trace=trace)) is not None:
             return with_files
+        provider = ActionNoticeProvider(provider)   # tells the model it CAN propose add / edit / delete (confirmation card) and charts
 
         # Stage 1a — Export follow-up ("export it to Excel"): see export_stage.py. Data questions that also ask for a file
         # are answered normally and finalize_success attaches the links to their own answer.
@@ -190,18 +186,9 @@ class AIChatView(View):
             )
             return investigate(esc_box.get("why", "escalation")) if result is ESCALATE else result
 
-        multi_agent_str = AppSettings.get("ai_multi_agent_enabled", "false", user=request.user).strip().lower()
-        if multi_agent_str in ("true", "1", "yes") and domain != APP:
-            trace.skip_remaining("multi_agent_orchestrator")
-            trace.log_summary()
-            orchestrator = Orchestrator(provider)
-            state = orchestrator.run(user_text, request.user)
-            content_str = state.final_answer or "The orchestrator could not complete this task."
-            sources = sorted({step["agent"] for step in state.steps})
-            return finalize_success(
-                cache_mgr, progress_key, conversation, user_msg, user_text,
-                content_str, state.steps, sources, request,
-            )
+        if (orchestrated := orchestrator_response(trace=trace, provider=provider, request=request, conversation=conversation, user_msg=user_msg,
+                                                  user_text=user_text, cache_mgr=cache_mgr, progress_key=progress_key, domain=domain)) is not None:
+            return orchestrated
 
         # Stages 2-6 — Retrieve -> Reason -> Tool -> Validate -> Respond
         result = run_default_pipeline(

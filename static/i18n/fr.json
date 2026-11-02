@@ -2888,11 +2888,13 @@
     "ai_insight_salary_unpaid": "Le salaire de {company} pour {month} {year} n'est pas encore marqué comme payé.",
     "ai_insight_month_vs_last": "Les dépenses de ce mois jusqu'ici sont de {this_month} {currency}, {change_percent}% par rapport aux mêmes jours du mois dernier ({last_month} {currency}).",
     "speech_clone_label": "Ma voix (clonage vocal)",
-    "speech_clone_help": "Téléversez environ 10 secondes de parole claire (.wav, .flac, .mp3, .ogg). Utilisée par un profil vocal Chatterbox (général ou arabe) dont le champ Voix est vide. Une voix saisie dans un profil est toujours prioritaire.",
+    "speech_clone_help": "Téléversez 10 à 30 secondes de parole claire (.wav, .flac, .mp3, .ogg). Utilisée par un profil vocal Chatterbox (général ou arabe) dont le champ Voix est vide. Une voix saisie dans un profil est toujours prioritaire.",
     "speech_clone_remove": "Retirer",
-    "speech_clone_saved": "Un échantillon de voix est enregistré.",
+    "speech_clone_saved": "Enregistré : {name} ({size} Ko). Utilisé par un profil Chatterbox dont le champ Voix est vide.",
     "speech_clone_none": "Aucun échantillon de voix enregistré.",
     "speech_clone_err_unsupported_type": "Utilisez un enregistrement .wav, .flac, .mp3 ou .ogg.",
     "speech_clone_err_too_large": "L'enregistrement dépasse 20 Mo.",
-    "speech_clone_err_too_small": "L'enregistrement est trop court ; utilisez environ 10 secondes de parole claire."
+    "speech_clone_err_too_small": "L'enregistrement est trop court pour un échantillon de voix ; utilisez 10 à 30 secondes de parole claire.",
+    "speech_clone_toast": "Échantillon de voix enregistré.",
+    "ai_act_rec_code_file": "Fichier de code"
 }

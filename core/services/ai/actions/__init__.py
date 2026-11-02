@@ -8,27 +8,27 @@ from django.utils import timezone
 
 from core.models import AIChatBlock
 
-from . import expense, income, reminder
+from . import codefile, expense, income, reminder
+from .cards import make_card
 from .common import ActionError
 
-HANDLERS = {"expense": expense, "reminder": reminder, "income": income}
+HANDLERS = {"expense": expense, "reminder": reminder, "income": income, "code_file": codefile}
+MODEL_RECORDS = ("expense", "reminder", "income")   # what propose_action may touch; code_file only through app_propose_edit
 OPS = ("add", "edit", "delete")
 
 
 def propose_action(user, params: dict) -> dict:
     """Tool handler: build a pending card. Never writes business data."""
     record, op = str(params.get("record") or ""), str(params.get("op") or "")
-    if record not in HANDLERS or op not in OPS:
-        return {"error": f"`record` must be one of {list(HANDLERS)} and `op` one of {list(OPS)}"}
+    if record not in MODEL_RECORDS or op not in OPS:
+        return {"error": f"`record` must be one of {list(MODEL_RECORDS)} and `op` one of {list(OPS)}"}
     target = params.get("target") if isinstance(params.get("target"), dict) else {}
     values = params.get("values") if isinstance(params.get("values"), dict) else {}
     try:
         payload = HANDLERS[record].propose(user, op, target, values)
     except ActionError as exc:
         return {"error": str(exc)}
-    block = AIChatBlock.objects.create(user=user, kind=AIChatBlock.KIND_ACTION, status=AIChatBlock.STATUS_PENDING, payload=payload)
-    return {"ok": True, "pending_confirmation": True, "card_id": block.id,
-            "note": "A confirmation card is now shown under your answer. NOTHING is saved yet. Tell the user briefly what the card will do and that they must press Confirm. Never say it is done."}
+    return make_card(user, payload)
 
 
 def decide(user, block_id: int, confirm: bool) -> tuple[dict, int]:
@@ -58,6 +58,12 @@ def decide(user, block_id: int, confirm: bool) -> tuple[dict, int]:
         except Exception:
             pass  # the audit trail must never undo a saved change
     return {"block": block.to_dict()}, 200
+
+
+def cancel_cards_of(user, message_ids) -> int:
+    """Edit-and-resend hides old messages: their cards that were never confirmed are cancelled so they cannot be confirmed later."""
+    return AIChatBlock.objects.filter(user=user, kind=AIChatBlock.KIND_ACTION, status=AIChatBlock.STATUS_PENDING, message_id__in=list(message_ids)).update(
+        status=AIChatBlock.STATUS_CANCELLED, decided_at=timezone.now())
 
 
 def attach_blocks(user, since, message) -> None:

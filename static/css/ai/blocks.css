@@ -98,3 +98,10 @@
 #ai-insight-bell .ai-insight-count:empty {
   display: none;
 }
+
+.ai-act-code td {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

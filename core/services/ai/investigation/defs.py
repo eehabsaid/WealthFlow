@@ -19,7 +19,7 @@ from core.services.ai.coding import tools as coding
 __all__ = ["CODE_TOOLS", "DOMAIN", "INVESTIGATION_TOOL_DEFS", "investigation_tool_schemas"]
 CODE_TOOLS = ("app_list_dir", "app_find_files", "app_grep", "app_find_definition", "app_read_file",
               "app_callers", "app_git_history", "app_trace_feature",
-              "app_coding_context", "app_plan_files", "app_repo_index")   # sysadmin only (see code_tools.code_access_allowed)
+              "app_coding_context", "app_plan_files", "app_repo_index", "app_propose_edit", "app_run_checks", "app_git_diff")   # sysadmin only (see code_tools.code_access_allowed)
 
 
 INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
@@ -68,7 +68,21 @@ INVESTIGATION_TOOL_DEFS.update({t["name"]: t for t in (
           "which tests cover them and their line counts.", coding.plan_files, {"files": _p(_A, "repo-relative paths")}, ["files"]),
     _tool("app_repo_index", "Search the auto-built repo index by file, class, function, model or route name; callers=true lists who imports it.",
           coding.repo_index, {"query": _p(_S, "name part"), "callers": _p(_B, "also list files that import it")}, ["query"]),
+    _tool("app_propose_edit", "Propose ONE change to a source file. It only shows a confirmation card with the before/after text; the file is written only when the "
+          "system administrator presses Confirm. Edit: path + old_str (exact text, must appear once) + new_str. New file: path + content. Protected files are refused. "
+          "Call app_plan_files first, app_read_file to copy the exact old_str, and app_run_checks after the change is confirmed.",
+          coding.propose_edit, {"path": _p(_S, "repo-relative file path"), "old_str": _p(_S, "exact text to replace (edit)"),
+                                "new_str": _p(_S, "replacement text (edit)"), "content": _p(_S, "full text of a NEW file")}, ["path"]),
+    _tool("app_run_checks", "Verify changed files with the project's own checks: manage.py check, targeted tests, pyflakes, migrations, i18n parity, file length. "
+          "Reports each step PASSED / FAILED / NOT RUN; never claim more than it says. Takes minutes.",
+          coding.run_checks, {"files": _p(_A, "repo-relative paths you changed"), "full_suite": _p(_B, "run the whole test suite (default false)")}, ["files"]),
+    _tool("app_git_diff", "Git changes in the working tree: no path = the list of changed files, with a path = its diff.",
+          coding.git_diff, {"path": _p(_S, "optional repo-relative path")}),
 )})
+
+
+INVESTIGATION_TOOL_DEFS["app_propose_edit"]["tier"] = "modify"    # it only proposes, but it is the code-writing tool: needs the Modify permission
+INVESTIGATION_TOOL_DEFS["app_run_checks"]["tier"] = "execute"
 
 
 def investigation_tool_schemas(user, domain: str = "") -> list[dict[str, Any]]:
@@ -86,6 +100,9 @@ def investigation_tool_schemas(user, domain: str = "") -> list[dict[str, Any]]:
         return (code_ok or name not in CODE_TOOLS) and not (domain == APP and name in DATA_TOOLS)
 
     schemas = [d["schema"] for n, d in INVESTIGATION_TOOL_DEFS.items() if allowed(n)]
+    from core.services.ai.actions.tool import CHART_TOOL_DEF, TOOL_DEF as action_tool
     from core.services.ai.memory.commands import MEMORY_TOOL_DEFS
 
-    return schemas + ([file_tool["schema"]] if exports_enabled() else []) + [d["schema"] for d in MEMORY_TOOL_DEFS.values()]
+    # propose_action (confirmation card) and show_chart are offered in every domain, like the memory tools
+    return schemas + ([file_tool["schema"]] if exports_enabled() else []) + [d["schema"] for d in MEMORY_TOOL_DEFS.values()] \
+        + [action_tool["schema"], CHART_TOOL_DEF["schema"]]

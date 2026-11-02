@@ -53,15 +53,15 @@ def changed_files() -> list[str]:
     return [l[3:].strip().strip('"').replace("\\", "/") for l in out.splitlines() if l[3:].strip()]
 
 
-def verify(files: list[str] | None = None, full_suite: bool = False) -> dict:
+def verify(files: list[str] | None = None, full_suite: bool = False, timeout: int = 1800) -> dict:
     files = [f for f in (files if files is not None else changed_files()) if f]
     py = [f for f in files if f.endswith(".py") and (ROOT / f).is_file()]
     steps = [_run("manage.py check", [sys.executable, "manage.py", "check"])]
     modules = sorted({m for m in (test_module(f) for f in files) if m})
     if full_suite or not modules:
-        steps.append(_run("full Django test suite", [sys.executable, "manage.py", "test"]))
+        steps.append(_run("full Django test suite", [sys.executable, "manage.py", "test"], timeout))
     else:
-        steps.append(_run("targeted tests: " + ", ".join(modules), [sys.executable, "manage.py", "test", *modules]))
+        steps.append(_run("targeted tests: " + ", ".join(modules), [sys.executable, "manage.py", "test", *modules], timeout))
     steps.append(_run("pyflakes on changed files", [sys.executable, "-m", "pyflakes", *py]) if py else {"step": "pyflakes", "status": "NOT RUN", "detail": "no Python files changed"})
     steps += [_run("makemigrations --check", [sys.executable, "manage.py", "makemigrations", "--check", "--dry-run"]), i18n_parity(), line_limits(files)]
     steps.append({"step": "browser E2E (scripts/run_full_e2e.py)", "status": "NOT RUN", "detail": "runs on the owner's PC only; never claim it passed"})

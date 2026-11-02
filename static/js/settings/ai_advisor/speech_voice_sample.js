@@ -2,17 +2,24 @@
 // Voice cloning sample upload in Settings > AI Advisor > Text to speech.
 window.AIA = window.AIA || {};
 
-window.AIA.paintVoiceSample = async function (message) {
+window.AIA.paintVoiceSample = async function (info, error) {
   const el = document.getElementById("speech_clone_status");
   if (!el) return;
-  if (message) {
-    el.textContent = message;
+  if (error) {
+    el.className = "alert alert-danger py-1 px-2 mt-2 mb-0";
+    el.textContent = error;
     return;
   }
-  const res = await fetch("/api/settings/ai/speech/voice-sample/");
-  const data = res.ok ? await res.json() : {};
-  el.textContent = data.has_sample
-    ? t("speech_clone_saved", "A voice sample is saved.")
+  if (!info) {
+    const res = await fetch("/api/settings/ai/speech/voice-sample/");
+    info = res.ok ? await res.json() : {};
+  }
+  el.className =
+    (info.has_sample ? "alert alert-success" : "alert alert-secondary") + " py-1 px-2 mt-2 mb-0";
+  el.textContent = info.has_sample
+    ? t("speech_clone_saved", "Saved: {name} ({size} KB).")
+        .replace("{name}", info.name)
+        .replace("{size}", info.size_kb)
     : t("speech_clone_none", "No voice sample saved.");
 };
 
@@ -28,16 +35,21 @@ window.AIA.uploadVoiceSample = async function (input) {
   });
   const data = await res.json().catch(() => ({}));
   input.value = "";
-  window.AIA.paintVoiceSample(
-    res.ok ? "" : t("speech_clone_err_" + data.error, data.message || "Upload failed.")
-  );
-  if (res.ok) window.AIA.paintVoiceSample();
+  if (!res.ok) {
+    window.AIA.paintVoiceSample(
+      null,
+      t("speech_clone_err_" + data.error, data.message || "Upload failed.")
+    );
+    return;
+  }
+  window.AIA.paintVoiceSample(data);
+  window.showToast?.(t("speech_clone_toast", "Voice sample saved."), "success");
 };
 
 window.AIA.removeVoiceSample = async function () {
-  await fetch("/api/settings/ai/speech/voice-sample/", {
+  const res = await fetch("/api/settings/ai/speech/voice-sample/", {
     method: "DELETE",
     headers: { "X-CSRFToken": window.wfGetCsrfToken?.() || "" },
   });
-  window.AIA.paintVoiceSample();
+  window.AIA.paintVoiceSample(res.ok ? await res.json() : null);
 };
