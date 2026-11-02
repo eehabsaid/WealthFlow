@@ -63,6 +63,12 @@ class TrainRunTest(SimpleTestCase):
             self.assertEqual(entry(log, "sft_config")["max_length" if key == "max_length" else "max_seq_length"], 8192)
             self.assertEqual(entry(log, "sft_config")["learning_rate"], 0.0002)
 
+    def test_profile_checkpoint_directory_is_used_by_the_shared_trainer(self):
+        folder, log = tempfile.mkdtemp(), []
+        cfg = make_cfg(folder, [{"messages": messages(), "tools": TOOLS}], checkpoint_dir=os.path.join(folder, "profile-checkpoints"))
+        train.run(cfg, fake_deps(log), log=lambda line: None)
+        self.assertEqual(entry(log, "sft_config")["output_dir"], cfg["checkpoint_dir"])
+
     def test_examples_that_are_too_long_are_skipped_and_none_left_is_an_error(self):
         folder = tempfile.mkdtemp()
         rows = [{"messages": messages(), "tools": TOOLS}, {"messages": messages(result="word " * 500), "tools": TOOLS}]

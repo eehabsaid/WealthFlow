@@ -35,12 +35,13 @@ def _ollama_has(model: str) -> bool:
         return False
 
 
-def base_checks(cfg, traces: int, ollama_model: str) -> list[Check]:
+def base_checks(cfg, traces: int, ollama_model: str, count_name: str = "proven traces") -> list[Check]:
     shards = glob.glob(os.path.join(cfg.base_model_dir, "*.safetensors"))
     free = _free_gb(cfg.work_dir)
     return [
-        Check("proven traces", traces >= cfg.min_traces, f"{traces} (need {cfg.min_traces})",
-              "Run `python manage.py ai_training` without --limit so more questions are asked."),
+        Check(count_name, traces >= cfg.min_traces, f"{traces} (need {cfg.min_traces})",
+              "Run `python manage.py ai_training` without --limit so more questions are asked."
+              if count_name == "proven traces" else "Add valid examples to the prepared Recovery dataset."),
         Check("base model files", bool(shards) and os.path.exists(os.path.join(cfg.base_model_dir, "config.json")),
               f"{len(shards)} weight files in {cfg.base_model_dir}", "Download Qwen/Qwen3.8-27B into that folder, or fix base_model_dir in ai_training/config.json."),
         Check("free disk", free >= cfg.min_free_gb, f"{free:.0f} GB free where {cfg.work_dir} is (need {cfg.min_free_gb})",

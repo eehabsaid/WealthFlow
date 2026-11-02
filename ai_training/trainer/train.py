@@ -36,7 +36,8 @@ def sft_config(deps, cfg: dict, out_dir: str):
     length_key = "max_length" if "max_length" in fields else "max_seq_length"   # renamed between trl versions
     return deps.SFTConfig(dataset_text_field="text", per_device_train_batch_size=cfg["batch_size"], gradient_accumulation_steps=cfg["grad_accum"],
                           warmup_steps=5, num_train_epochs=cfg["epochs"], learning_rate=cfg["learning_rate"], logging_steps=1, optim="adamw_8bit",
-                          weight_decay=0.001, lr_scheduler_type="linear", seed=3407, report_to="none", output_dir=os.path.join(out_dir, "checkpoints"),
+                          weight_decay=0.001, lr_scheduler_type="linear", seed=3407, report_to="none",
+                          output_dir=cfg.get("checkpoint_dir") or os.path.join(out_dir, "checkpoints"),
                           **{length_key: cfg["max_seq_length"]})
 
 

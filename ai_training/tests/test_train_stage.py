@@ -90,6 +90,34 @@ class TrainStageTest(StageBase):
         self.assertEqual(len(open(os.path.join(train_stage.run_dir(self.cfg), "train.jsonl")).read().splitlines()), 3)
         self.assertIn("Dry run: everything above is ready", text)
 
+    def test_prepared_dataset_uses_profile_specific_run_export_and_checkpoint_paths(self):
+        folder = tempfile.mkdtemp()
+        source = os.path.join(folder, "prepared.jsonl")
+        with open(source, "w", encoding="utf-8") as fh:
+            fh.write('{"messages": []}\n')
+        run_dir = os.path.join(folder, "run-recovery")
+        out_dir = os.path.join(run_dir, "out")
+        checkpoint_dir = os.path.join(out_dir, "checkpoints")
+        cfg = config.load(
+            base_model_dir=self.base,
+            work_dir=os.path.join(folder, "work"),
+            run_dir_override=run_dir,
+            out_dir_override=out_dir,
+            checkpoint_dir_override=checkpoint_dir,
+            min_traces=3,
+            min_free_gb=0,
+        )
+        with patch.object(preflight, "base_checks", return_value=[]), patch.object(preflight, "wsl_checks", return_value=[]), \
+                patch.object(train_stage, "dry_stats") as stats:
+            result = train_stage.run_prepared(cfg, source, 3, MODEL, dry_run=True, log=lambda _: None)
+        self.assertEqual(result["status"], "dry_run")
+        stats.assert_called_once()
+        self.assertEqual(stats.call_args.args[:2], (cfg, os.path.join(run_dir, "train.jsonl")))
+        run_config = json.load(open(os.path.join(run_dir, "run_config.json"), encoding="utf-8"))
+        self.assertEqual(run_config["train_file"], wsl.to_wsl_path(os.path.join(run_dir, "train.jsonl")))
+        self.assertEqual(run_config["out_dir"], wsl.to_wsl_path(out_dir))
+        self.assertEqual(run_config["checkpoint_dir"], wsl.to_wsl_path(checkpoint_dir))
+
     def test_a_finished_export_without_result_note_keeps_its_model_projector_and_vision_assets(self):
         out = os.path.join(train_stage.run_dir(self.cfg), "out")
         for sub, name, size in (("gguf_gguf", "M.Q4_K_M.gguf", 50), ("gguf_gguf", "M.BF16-mmproj.gguf", 90), ("adapter", "a.txt", 1)):

@@ -4,6 +4,32 @@ Everything for teaching the local model how to investigate lives here (one folde
 
     python manage.py ai_training
 
+## Isolated Recovery profile
+
+The default profile remains `wealthflow` and continues to read the existing `config.json`, AgentTrace data, and `output/`.
+Recovery has its own prepared Q&A dataset, quality report, training run/checkpoints, export paths, and Ollama name:
+
+```powershell
+python manage.py ai_training --profile recovery --stages validate
+python manage.py ai_training --profile recovery --stages train
+python manage.py ai_training --profile recovery --stages register
+```
+
+`train` validates and exports the prepared dataset if needed, then uses the shared WSL QLoRA trainer. To run all four
+stages (validate, export, train, register) in order:
+
+```powershell
+python manage.py ai_training --profile recovery
+```
+
+The complete prepared dataset is `datasets/recovery/questions.jsonl`; validation and generated reports are isolated in
+`datasets/recovery/reports/`. Recovery-specific paths, hyperparameters, export quantization, and registration names are in
+`profiles/recovery.json`. The mirrored `profiles/wealthflow.json` documents the current WealthFlow values; the default
+workflow continues to use `config.json` so existing edits and commands retain their behavior.
+
+The Recovery examples support authorized software analysis and recovery. They require approval before executable changes
+or irreversible operations and do not provide license-circumvention or unauthorized-modification instructions.
+
 Stages: questions from the live data -> ask the model (twice each) -> judge with code -> files in `output/`
 (`agent_traces.jsonl`, `agent_runs.xlsx`, `report.txt`) -> if enough traces are proven: QLoRA training in WSL2 on the original
 model -> merged 4-bit GGUF plus its vision projector -> registered in Ollama under the distinct configured name `qwen3.8:27b-agent2`. The configured

@@ -34,13 +34,20 @@ class TrainConfig:
     best_model: str = ""           # optional: the current best trained model to compare with ("" = base + first previous suffix)
     new_model: str = ""            # optional: exact name for the newly trained model ("" = base + model_suffix)
     previous_suffixes: tuple = ("-agent",)   # suffixes of earlier trained models: stripped to find the base model, and tested as "current best"
+    run_dir_override: str = ""     # optional profile-specific run directory
+    out_dir_override: str = ""     # optional profile-specific trainer output directory
+    checkpoint_dir_override: str = ""  # optional profile-specific trainer checkpoint directory
     eval_per_category: int = 8     # frozen test: questions per category (all four languages, round-robin)
     eval_seed: int = 2026          # same seed = same test questions (while the data is the same)
     eval_min_gain_points: int = 5  # the new model must score at least this many percentage points higher
     eval_max_slower_percent: int = 20  # ... and its median answer time may be at most this much longer
 
     def as_dict(self) -> dict:
-        return asdict(self)
+        values = asdict(self)
+        for key in ("run_dir_override", "out_dir_override", "checkpoint_dir_override"):
+            if not values[key]:
+                values.pop(key)
+        return values
 
 
 def load(path: str = CONFIG_PATH, **overrides) -> TrainConfig:

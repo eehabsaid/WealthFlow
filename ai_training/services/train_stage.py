@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 from typing import Callable
 
@@ -14,7 +15,11 @@ ESTIMATE = "Unmeasured estimate: several hours for a few hundred examples; the m
 
 
 def run_dir(cfg: TrainConfig) -> str:
-    return os.path.join(cfg.work_dir, "run" + cfg.model_suffix)   # one folder per model name: an earlier model's files are never reused or overwritten
+    return cfg.run_dir_override or os.path.join(cfg.work_dir, "run" + cfg.model_suffix)   # one folder per model name: an earlier model's files are never reused or overwritten
+
+
+def model_out_dir(cfg: TrainConfig) -> str:
+    return cfg.out_dir_override or os.path.join(run_dir(cfg), "out")
 
 
 def write_inputs(cfg: TrainConfig, user) -> tuple[str, int]:
@@ -22,7 +27,9 @@ def write_inputs(cfg: TrainConfig, user) -> tuple[str, int]:
     train_file = os.path.join(run_dir(cfg), "train.jsonl")
     count = export.export_jsonl(train_file, user)
     wsl_cfg = {**cfg.as_dict(), "base_model_dir": wsl.to_wsl_path(cfg.base_model_dir), "train_file": wsl.to_wsl_path(train_file),
-               "out_dir": wsl.to_wsl_path(os.path.join(run_dir(cfg), "out"))}
+               "out_dir": wsl.to_wsl_path(model_out_dir(cfg))}
+    if cfg.checkpoint_dir_override:
+        wsl_cfg["checkpoint_dir"] = wsl.to_wsl_path(cfg.checkpoint_dir_override)
     path = os.path.join(run_dir(cfg), "run_config.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(wsl_cfg, fh, indent=4)
@@ -31,7 +38,7 @@ def write_inputs(cfg: TrainConfig, user) -> tuple[str, int]:
 
 def finished_export(cfg: TrainConfig) -> dict:
     """Local paths for a complete model/projector/processor export, allowing incomplete exports to be diagnosed."""
-    out = os.path.join(run_dir(cfg), "out")
+    out = model_out_dir(cfg)
     path = os.path.join(out, "result.json")
     result = {}
     if os.path.exists(path):
@@ -113,20 +120,55 @@ def dry_stats(cfg: TrainConfig, train_file: str, log: Callable[[str], None]) -> 
         log(f"Length check skipped: {type(exc).__name__}: {str(exc)[:160]}")
 
 
-def run(cfg: TrainConfig, user, ollama_model: str, *, dry_run: bool = False, fresh: bool = False, log: Callable[[str], None] = print) -> dict:
-    traces = len(export.kept_traces(user))
-    checks = preflight.base_checks(cfg, traces, ollama_model) + preflight.wsl_checks(cfg)
+def _training_checks(cfg: TrainConfig, count: int, ollama_model: str, *, dry_run: bool,
+                     count_name: str, log: Callable[[str], None]) -> list[preflight.Check]:
+    checks = preflight.base_checks(cfg, count, ollama_model, count_name=count_name) + preflight.wsl_checks(cfg)
     if not dry_run and any(c.name == "WSL memory" and not c.ok for c in checks) and preflight.set_wsl_memory(cfg):
         log(f"Giving WSL {cfg.wsl_memory_gb} GB of memory in {preflight.wslconfig_path()} and restarting WSL ...")
         wsl.shutdown()
-        checks = preflight.base_checks(cfg, traces, ollama_model) + preflight.wsl_checks(cfg)
+        checks = preflight.base_checks(cfg, count, ollama_model, count_name=count_name) + preflight.wsl_checks(cfg)
     for line in preflight.describe(checks):
         log(line)
+    return checks
+
+
+def run(cfg: TrainConfig, user, ollama_model: str, *, dry_run: bool = False, fresh: bool = False, log: Callable[[str], None] = print) -> dict:
+    traces = len(export.kept_traces(user))
+    checks = _training_checks(cfg, traces, ollama_model, dry_run=dry_run, count_name="proven traces", log=log)
     if preflight.failed(checks):
         return {"status": "blocked", "gguf": ""}
     config_path, count = write_inputs(cfg, user)
+    train_file = os.path.join(run_dir(cfg), "train.jsonl")
+    return _run_training(cfg, config_path, train_file, count, ollama_model, dry_run=dry_run, fresh=fresh, log=log)
+
+
+def run_prepared(cfg: TrainConfig, train_file: str, count: int, ollama_model: str, *, dry_run: bool = False,
+                 fresh: bool = False, log: Callable[[str], None] = print) -> dict:
+    """Train a validated, pre-prepared JSONL dataset through the same QLoRA engine."""
+    checks = _training_checks(cfg, count, ollama_model, dry_run=dry_run, count_name="validated examples", log=log)
+    if preflight.failed(checks):
+        return {"status": "blocked", "gguf": ""}
+    if not os.path.isfile(train_file):
+        raise FileNotFoundError(f"prepared training dataset does not exist: {train_file}")
+    os.makedirs(run_dir(cfg), exist_ok=True)
+    run_train_file = os.path.join(run_dir(cfg), "train.jsonl")
+    if os.path.abspath(train_file) != os.path.abspath(run_train_file):
+        shutil.copy2(train_file, run_train_file)
+    wsl_cfg = {**cfg.as_dict(), "base_model_dir": wsl.to_wsl_path(cfg.base_model_dir),
+               "train_file": wsl.to_wsl_path(run_train_file), "out_dir": wsl.to_wsl_path(model_out_dir(cfg))}
+    if cfg.checkpoint_dir_override:
+        wsl_cfg["checkpoint_dir"] = wsl.to_wsl_path(cfg.checkpoint_dir_override)
+    config_path = os.path.join(run_dir(cfg), "run_config.json")
+    with open(config_path, "w", encoding="utf-8") as fh:
+        json.dump(wsl_cfg, fh, indent=4)
+    return _run_training(cfg, config_path, run_train_file, count, ollama_model, dry_run=dry_run, fresh=fresh, log=log,
+                         count_name="validated examples")
+
+
+def _run_training(cfg: TrainConfig, config_path: str, train_file: str, count: int, ollama_model: str, *,
+                  dry_run: bool, fresh: bool, log: Callable[[str], None], count_name: str = "proven traces") -> dict:
     if dry_run:
-        dry_stats(cfg, os.path.join(run_dir(cfg), "train.jsonl"), log)
+        dry_stats(cfg, train_file, log)
         log("Dry run: everything above is ready. " + ESTIMATE)
         return {"status": "dry_run", "gguf": ""}
     previous = finished_export(cfg)
@@ -141,7 +183,7 @@ def run(cfg: TrainConfig, user, ollama_model: str, *, dry_run: bool = False, fre
     if code != 0:
         return {"status": "setup_failed", "gguf": "", "exit_code": code}
     cmd = f"cd {repo} && $HOME/ai_training_venv/bin/python -m ai_training.trainer.train --config {wsl.quote(wsl.to_wsl_path(config_path))}"
-    log(f"Training on {count} proven traces ...")
+    log(f"Training on {count} {count_name} ...")
     code = wsl.stream(cfg, cmd, log)
     if code != 0:
         return {"status": "training_failed", "gguf": "", "exit_code": code}
