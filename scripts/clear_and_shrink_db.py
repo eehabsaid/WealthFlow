@@ -14,6 +14,7 @@ from django.db import connection
 # Delete all AI training traces
 with connection.cursor() as cursor:
     cursor.execute('DELETE FROM "ai_training_agenttrace"')
+    cursor.execute('DELETE FROM "axes_accesslog"')
 
 print("All AI training traces deleted.")
 
