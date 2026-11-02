@@ -5,9 +5,10 @@ from __future__ import annotations
 import json
 import os
 from collections import Counter
+from dataclasses import replace
 from typing import Callable
 
-from . import ollama_stage, train_stage
+from . import evaluate, ollama_stage, pipeline, train_stage
 from .config import REPO_ROOT, load as load_config
 
 PROFILE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "profiles", "recovery.json")
@@ -135,11 +136,11 @@ def export_dataset(profile: dict) -> tuple[str, dict]:
     return target, report
 
 
-def run(stages: str | None = None, *, dry_run: bool = False, fresh: bool = False,
+def run(stages: str | None = None, *, dry_run: bool = False, fresh: bool = False, username: str = "",
         log: Callable[[str], None] = print) -> dict:
     profile, cfg = load_profile()
-    requested = set((stages or "validate,export,train,register").split(","))
-    allowed = {"validate", "export", "train", "register"}
+    requested = set((stages or "validate,export,train,register,evaluate").split(","))
+    allowed = {"validate", "export", "train", "register", "evaluate"}
     unknown = requested - allowed
     if unknown or not requested:
         raise ValueError(f"unknown Recovery stage(s): {', '.join(sorted(unknown or requested))}")
@@ -189,7 +190,26 @@ def run(stages: str | None = None, *, dry_run: bool = False, fresh: bool = False
         result["model_name"] = name
         log(f"Recovery model registered in Ollama as {name}.")
 
-    if report is None:
+    if "evaluate" in requested:
+        user = pipeline.pick_user(username)
+        comparison_model = profile.get("compare_model_name") or profile["base_ollama_model"]
+        if comparison_model == profile["ollama_model_name"]:
+            raise ValueError("Recovery comparison model and Recovery model name must be different.")
+        evaluation_cfg = replace(load_config(), ollama_models_dir=cfg.ollama_models_dir)
+        roles = [("WealthFlow", comparison_model), ("Recovery", profile["ollama_model_name"])]
+        if dry_run:
+            result["evaluation"] = evaluate.dry(
+                user, evaluation_cfg, pipeline.current_model(), resolve_path(profile["reports_dir"]), log,
+                model_roles=roles, benchmark_dir=pipeline.OUTPUT_DIR,
+            )
+        else:
+            result["evaluation"] = evaluate.run(
+                user, evaluation_cfg, evaluate.current_model(), out_dir=resolve_path(profile["reports_dir"]), log=log,
+                model_roles=roles, benchmark_dir=pipeline.OUTPUT_DIR,
+            )
+        result["paths"].update(result["evaluation"].get("paths", {}))
+
+    if report is None and "evaluate" not in requested:
         report = validate_dataset(profile)
-    result["report"] = format_report(report)
+    result["report"] = format_report(report) if report is not None else ""
     return result

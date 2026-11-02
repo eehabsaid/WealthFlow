@@ -99,7 +99,16 @@ def lineup(cfg: TrainConfig, current: str, seen) -> list[tuple[str, str]]:
     return [("original", base)] + ([("current best", best)] if have(best) else []) + [("new", new)]
 
 
-def run(user, cfg: TrainConfig, current: str, *, out_dir: str, log: Callable[[str], None] = print) -> dict:
+def run(
+    user,
+    cfg: TrainConfig,
+    current: str,
+    *,
+    out_dir: str,
+    log: Callable[[str], None] = print,
+    model_roles: list[tuple[str, str]] | None = None,
+    benchmark_dir: str | None = None,
+) -> dict:
     from core.models import AppSettings
 
     if str(AppSettings.get("ai_provider", "ollama", user=None) or "ollama").lower() != "ollama":
@@ -107,8 +116,9 @@ def run(user, cfg: TrainConfig, current: str, *, out_dir: str, log: Callable[[st
     os.makedirs(out_dir, exist_ok=True)
     recover(out_dir, log)
     url = ollama_ctl.base_url()
-    roles = lineup(cfg, current, ollama_ctl.installed(url))
-    cases, retired = testset.build(user, out_dir=out_dir, per_category=cfg.eval_per_category, seed=cfg.eval_seed)
+    seen = ollama_ctl.installed(url)
+    roles = model_roles if model_roles is not None else lineup(cfg, current, seen)
+    cases, retired = testset.build(user, out_dir=benchmark_dir or out_dir, per_category=cfg.eval_per_category, seed=cfg.eval_seed)
     if not cases:
         return {"status": "no_questions", "report": "No test questions could be built from your data."}
     AgentTrace.objects.filter(source=AgentTrace.SOURCE_EVAL).delete()
@@ -137,17 +147,28 @@ def run(user, cfg: TrainConfig, current: str, *, out_dir: str, log: Callable[[st
     return {"status": "done", "verdict": head, "report": eval_report.format_text(info), "paths": paths}
 
 
-def dry(user, cfg: TrainConfig, current: str, out_dir: str, log: Callable[[str], None] = print) -> dict:
+def dry(
+    user,
+    cfg: TrainConfig,
+    current: str,
+    out_dir: str,
+    log: Callable[[str], None] = print,
+    model_roles: list[tuple[str, str]] | None = None,
+    benchmark_dir: str | None = None,
+) -> dict:
     """Readiness check, no questions asked and nothing restarted: how many frozen test questions exist and whether Ollama sees the models."""
     seen = ollama_ctl.installed(ollama_ctl.base_url())
     base, _, new = names(current, cfg)
-    cases, retired = testset.build(user, out_dir=out_dir, per_category=cfg.eval_per_category, seed=cfg.eval_seed)
+    roles = model_roles if model_roles is not None else lineup(cfg, current, seen)
+    cases, retired = testset.build(user, out_dir=benchmark_dir or out_dir, per_category=cfg.eval_per_category, seed=cfg.eval_seed)
     log(f"Frozen test questions: {len(cases)} (retired: {len(retired)}; fewer than {eval_report.MIN_QUESTIONS} = no fair decision).")
-    for role, model in lineup(cfg, current, seen):
-        log(f"[ok] Ollama has the {role} model '{model}'")
-    ready = seen is not None and all(ollama_ctl.normal(m) in seen for m in (base, new))
+    for role, model in roles:
+        status = "[ok]" if model_roles is None or seen is not None and ollama_ctl.normal(model) in seen else "[MISSING]"
+        log(f"{status} Ollama has the {role} model '{model}'")
+    required = [model for _, model in roles] if model_roles is not None else [base, new]
+    ready = seen is not None and all(ollama_ctl.normal(m) in seen for m in required)
     if not ready:
-        log(f"[MISSING] The test needs both '{base}' and '{new}' in Ollama.")
+        log("[MISSING] The test needs all compared models in Ollama: " + ", ".join(f"'{model}'" for model in required))
     return {"status": "dry_run", "questions": len(cases), "ready": bool(ready and len(cases) >= eval_report.MIN_QUESTIONS)}
 
 

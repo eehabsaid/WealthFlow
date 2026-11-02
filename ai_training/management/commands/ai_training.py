@@ -28,7 +28,7 @@ class Command(BaseCommand):
         parser.add_argument("--attempts", type=int, default=runner.ATTEMPTS, help="times each question is asked (the repeat check needs 2)")
         parser.add_argument("--out", default=pipeline.OUTPUT_DIR, help="folder for the output files")
         parser.add_argument("--dry-run", action="store_true", help="no questions, no training: only check that everything is ready")
-        parser.add_argument("--stages", default=None, help="WealthFlow: collect,train,evaluate,rejudge. Recovery: validate,export,train,register.")
+        parser.add_argument("--stages", default=None, help="WealthFlow: collect,train,evaluate,rejudge. Recovery: validate,export,train,register,evaluate.")
         parser.add_argument("--min-traces", type=int, default=None, help="proven traces needed before training (default: ai_training/config.json)")
 
     def handle(self, *args, **options):
@@ -37,12 +37,18 @@ class Command(BaseCommand):
 
             try:
                 result = recovery.run(stages=options["stages"], dry_run=options["dry_run"], fresh=options["fresh"],
-                                     log=self.stdout.write)
+                                     username=options["user"], log=self.stdout.write)
+            except (LookupError, get_user_model().DoesNotExist) as exc:
+                raise CommandError(str(exc) or "unknown user") from None
             except (ValueError, FileNotFoundError, RuntimeError) as exc:
                 raise CommandError(str(exc)) from None
-            self.stdout.write("\n" + result["report"])
+            if result["report"]:
+                self.stdout.write("\n" + result["report"])
             if result.get("paths"):
                 self.stdout.write("Files: " + ", ".join(result["paths"].values()))
+            evaluation = result.get("evaluation")
+            if evaluation:
+                self.stdout.write("\n" + (evaluation.get("report") or f"Test check: {evaluation}"))
             return
         try:
             user = pipeline.pick_user(options["user"])

@@ -110,6 +110,36 @@ class RunTest(Base):
         self.assertEqual(inspect_file.export_xlsx(os.path.join(self.out, "r.xlsx"), self.user), 0)
 
 
+class ExplicitComparisonTest(Base):
+    def test_explicit_two_model_comparison_reuses_benchmark_but_writes_separate_reports(self):
+        add_expenses(self.user, ["10.00", "20.00", "30.00", "40.00"])
+        benchmark_dir = self.out
+        report_dir = os.path.join(self.out, "recovery-reports")
+        roles = [("WealthFlow", "qwen3:27b-agent2"), ("Recovery", "qwen3:27b-recovery")]
+        cfg = load(eval_per_category=99, original_model="", best_model="", new_model="")
+        with patch("ai_training.services.runner.ask", side_effect=self.scripted(tuple(model for _, model in roles))), \
+                patch.object(eval_report, "MIN_QUESTIONS", 2), \
+                patch.object(ollama_ctl, "restart", return_value=True), \
+                patch.object(ollama_ctl, "installed", return_value=set(model for _, model in roles)):
+            result = evaluate.run(
+                self.user, cfg, OLD, out_dir=report_dir, log=lambda _: None,
+                model_roles=roles, benchmark_dir=benchmark_dir,
+            )
+        self.assertEqual(result["status"], "done")
+        info = json.load(open(result["paths"]["json"], encoding="utf-8"))
+        self.assertEqual([(side["role"], side["name"]) for side in info["models"]], roles)
+        frozen = json.load(open(os.path.join(benchmark_dir, "frozen_testset.json"), encoding="utf-8"))["questions"]
+        self.assertEqual(len(info["models"][0]["rows"]), len(frozen))
+        self.assertEqual(
+            [row["key"] for row in info["models"][0]["rows"]],
+            [row["key"] for row in info["models"][1]["rows"]],
+        )
+        self.assertTrue(os.path.isfile(os.path.join(benchmark_dir, "frozen_testset.json")))
+        self.assertFalse(os.path.exists(os.path.join(report_dir, "frozen_testset.json")))
+        self.assertEqual(os.path.dirname(result["paths"]["report"]), report_dir)
+        self.assertEqual(AppSettings.get("ai_model", "", user=None), OLD)
+
+
 class CommandTest(Base):
     def test_dry_run_checks_questions_and_models_without_asking(self):
         out = StringIO()

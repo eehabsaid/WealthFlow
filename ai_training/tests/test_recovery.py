@@ -23,8 +23,11 @@ class RecoveryProfileTest(SimpleTestCase):
             legacy_json = json.load(fh)
         with open(wealthflow_profile_path, encoding="utf-8") as fh:
             profile_json = json.load(fh)
-        self.assertEqual(legacy_json, profile_json)
+        self.assertEqual(wealthflow.base_model_dir, legacy_json["base_model_dir"])
         self.assertEqual(wealthflow.work_dir, legacy_json["work_dir"])
+        self.assertEqual(wealthflow.new_model, legacy_json["new_model"])
+        self.assertIn("base_model_dir", profile_json)
+        self.assertIn("work_dir", profile_json)
         self.assertEqual(recovered.model_suffix, "-recovery")
         self.assertEqual(recovered.new_model, "qwen3.8:27b-recovery")
         self.assertNotEqual(recovered.work_dir, wealthflow.work_dir)
@@ -102,3 +105,50 @@ class RecoveryDatasetTest(SimpleTestCase):
         self.assertEqual(train.call_args.args[3], profile["base_ollama_model"])
         self.assertTrue(os.path.isfile(profile["exported_dataset_path"]))
         self.assertEqual(result["training"]["status"], "dry_run")
+
+    def test_evaluate_stage_compares_the_configured_models_using_the_shared_frozen_set(self):
+        profile, cfg = recovery.load_profile()
+        profile = {
+            **profile,
+            "compare_model_name": "qwen3.8:27b-agent2",
+            "ollama_model_name": "qwen3.8:27b-recovery",
+            "reports_dir": tempfile.mkdtemp(),
+        }
+        user = object()
+        with patch.object(recovery, "load_profile", return_value=(profile, cfg)), \
+                patch.object(recovery.pipeline, "pick_user", return_value=user) as pick_user, \
+                patch.object(recovery.evaluate, "current_model", return_value="selected-model"), \
+                patch.object(recovery, "load_config", return_value=config.load(eval_per_category=7, eval_seed=19)), \
+                patch.object(recovery.evaluate, "run", return_value={"status": "done", "paths": {"report": "report.txt"}}) as evaluate_run:
+            result = recovery.run(stages="evaluate", username="trace_user", log=lambda _: None)
+        pick_user.assert_called_once_with("trace_user")
+        evaluate_run.assert_called_once()
+        self.assertIs(evaluate_run.call_args.args[0], user)
+        self.assertEqual(evaluate_run.call_args.args[2], "selected-model")
+        self.assertEqual(evaluate_run.call_args.args[1].eval_per_category, 7)
+        self.assertEqual(evaluate_run.call_args.args[1].eval_seed, 19)
+        self.assertEqual(evaluate_run.call_args.kwargs["model_roles"], [
+            ("WealthFlow", "qwen3.8:27b-agent2"),
+            ("Recovery", "qwen3.8:27b-recovery"),
+        ])
+        self.assertEqual(evaluate_run.call_args.kwargs["benchmark_dir"], recovery.pipeline.OUTPUT_DIR)
+        self.assertEqual(evaluate_run.call_args.kwargs["out_dir"], profile["reports_dir"])
+        self.assertEqual(result["paths"], {"report": "report.txt"})
+        self.assertEqual(result["report"], "")
+
+    def test_evaluate_dry_run_uses_the_same_models_and_frozen_benchmark_location(self):
+        profile, cfg = recovery.load_profile()
+        user = object()
+        with patch.object(recovery, "load_profile", return_value=(profile, cfg)), \
+                patch.object(recovery.pipeline, "pick_user", return_value=user), \
+                patch.object(recovery.pipeline, "current_model", return_value="selected-model"), \
+                patch.object(recovery, "load_config", return_value=config.load()), \
+                patch.object(recovery.evaluate, "dry", return_value={"status": "dry_run", "ready": True}) as evaluate_dry:
+            result = recovery.run(stages="evaluate", dry_run=True, log=lambda _: None)
+        evaluate_dry.assert_called_once()
+        self.assertEqual(evaluate_dry.call_args.kwargs["benchmark_dir"], recovery.pipeline.OUTPUT_DIR)
+        self.assertEqual(evaluate_dry.call_args.kwargs["model_roles"], [
+            ("WealthFlow", profile["compare_model_name"]),
+            ("Recovery", profile["ollama_model_name"]),
+        ])
+        self.assertTrue(result["evaluation"]["ready"])

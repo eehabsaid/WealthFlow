@@ -13,10 +13,13 @@ Recovery has its own prepared Q&A dataset, quality report, training run/checkpoi
 python manage.py ai_training --profile recovery --stages validate
 python manage.py ai_training --profile recovery --stages train
 python manage.py ai_training --profile recovery --stages register
+python manage.py ai_training --profile recovery --stages evaluate
 ```
 
-`train` validates and exports the prepared dataset if needed, then uses the shared WSL QLoRA trainer. To run all four
-stages (validate, export, train, register) in order:
+`evaluate` compares the configured WealthFlow model with Recovery using WealthFlow's shared frozen benchmark, judges,
+scoring, and report formats. The benchmark stays in `output/frozen_testset.json`; Recovery reports are written under
+`datasets/recovery/reports/`. `train` validates and exports the prepared dataset if needed, then uses the shared WSL QLoRA
+trainer. To run the complete workflow (validate, export, train, register, evaluate) in order:
 
 ```powershell
 python manage.py ai_training --profile recovery
