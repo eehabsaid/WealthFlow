@@ -19,11 +19,17 @@ python manage.py ai_training --profile recovery --stages evaluate
 `evaluate` compares the configured WealthFlow model with Recovery using WealthFlow's shared frozen benchmark, judges,
 scoring, and report formats. The benchmark stays in `output/frozen_testset.json`; Recovery reports are written under
 `datasets/recovery/reports/`. `train` validates and exports the prepared dataset if needed, then uses the shared WSL QLoRA
-trainer. To run the complete workflow (validate, export, train, register, evaluate) in order:
+trainer, continuing from the saved Agent2 LoRA adapter at the path configured by `initial_adapter_dir` in
+`profiles/recovery.json`. It verifies the adapter's source model, base-model path, and LoRA rank; a missing or incompatible
+Agent2 adapter blocks training rather than falling back to the untouched Qwen checkpoint. To run the complete workflow
+(validate, export, train, register, evaluate) in order:
 
 ```powershell
 python manage.py ai_training --profile recovery
 ```
+
+Agent2-based Recovery artifacts are written to `D:\AI-Models\training\recovery\run-recovery-agent2\`. Any existing
+`run-recovery\` outputs are retained separately and are not reused as Agent2-based results.
 
 The complete prepared dataset is `datasets/recovery/questions.jsonl`; validation and generated reports are isolated in
 `datasets/recovery/reports/`. Recovery-specific paths, hyperparameters, export quantization, and registration names are in

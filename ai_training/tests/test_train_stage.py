@@ -118,6 +118,40 @@ class TrainStageTest(StageBase):
         self.assertEqual(run_config["out_dir"], wsl.to_wsl_path(out_dir))
         self.assertEqual(run_config["checkpoint_dir"], wsl.to_wsl_path(checkpoint_dir))
 
+    def test_prepared_training_passes_the_verified_initial_agent_adapter_to_wsl(self):
+        folder = tempfile.mkdtemp()
+        source = os.path.join(folder, "prepared.jsonl")
+        with open(source, "w", encoding="utf-8") as fh:
+            fh.write('{"messages": []}\n')
+        source_run = os.path.join(folder, "agent2-run")
+        source_out = os.path.join(source_run, "out")
+        adapter_dir = os.path.join(source_out, "adapter")
+        os.makedirs(adapter_dir)
+        with open(os.path.join(adapter_dir, "adapter_config.json"), "w", encoding="utf-8") as fh:
+            json.dump({"peft_type": "LORA", "base_model_name_or_path": self.base, "r": 16}, fh)
+        open(os.path.join(adapter_dir, "adapter_model.safetensors"), "wb").write(b"weights")
+        with open(os.path.join(source_run, "run_config.json"), "w", encoding="utf-8") as fh:
+            json.dump({"new_model": "agent2", "base_model_dir": self.base}, fh)
+        with open(os.path.join(source_out, "result.json"), "w", encoding="utf-8") as fh:
+            json.dump({"adapter": adapter_dir}, fh)
+        run_dir = os.path.join(folder, "run-recovery")
+        cfg = config.load(
+            base_model_dir=self.base,
+            work_dir=os.path.join(folder, "work"),
+            run_dir_override=run_dir,
+            min_traces=3,
+            min_free_gb=0,
+            initial_adapter_dir=adapter_dir,
+            initial_adapter_model="agent2",
+        )
+        with patch.object(preflight, "base_checks", return_value=[]), patch.object(preflight, "wsl_checks", return_value=[]), \
+                patch.object(train_stage, "dry_stats"):
+            result = train_stage.run_prepared(cfg, source, 3, MODEL, dry_run=True, log=lambda _: None)
+        self.assertEqual(result["status"], "dry_run")
+        run_config = json.load(open(os.path.join(run_dir, "run_config.json"), encoding="utf-8"))
+        self.assertEqual(run_config["initial_adapter_dir"], wsl.to_wsl_path(adapter_dir))
+        self.assertEqual(run_config["initial_adapter_model"], "agent2")
+
     def test_a_finished_export_without_result_note_keeps_its_model_projector_and_vision_assets(self):
         out = os.path.join(train_stage.run_dir(self.cfg), "out")
         for sub, name, size in (("gguf_gguf", "M.Q4_K_M.gguf", 50), ("gguf_gguf", "M.BF16-mmproj.gguf", 90), ("adapter", "a.txt", 1)):

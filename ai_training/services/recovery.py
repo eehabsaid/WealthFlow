@@ -31,6 +31,8 @@ def load_profile() -> tuple[dict, object]:
         raise ValueError("Recovery dataset_format must be qa_jsonl")
     if profile.get("export_format") != "gguf":
         raise ValueError("Recovery export_format must be gguf")
+    if not profile.get("initial_adapter_dir") or not profile.get("initial_adapter_model"):
+        raise ValueError("Recovery requires initial_adapter_dir and initial_adapter_model; refusing to train from the base model alone")
     cfg = load_config(PROFILE_PATH)
     return profile, cfg
 

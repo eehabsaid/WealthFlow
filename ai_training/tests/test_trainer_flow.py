@@ -33,6 +33,22 @@ def make_cfg(folder, rows, **over):
     return {**cfg, **over}
 
 
+def make_adapter_checkpoint(folder, base_model_dir, model_name="agent2", rank=16):
+    run_dir = os.path.join(folder, "agent2-run")
+    out_dir = os.path.join(run_dir, "out")
+    adapter_dir = os.path.join(out_dir, "adapter")
+    os.makedirs(adapter_dir, exist_ok=True)
+    with open(os.path.join(adapter_dir, "adapter_config.json"), "w", encoding="utf-8") as fh:
+        json.dump({"peft_type": "LORA", "base_model_name_or_path": base_model_dir, "r": rank}, fh)
+    with open(os.path.join(adapter_dir, "adapter_model.safetensors"), "wb") as fh:
+        fh.write(b"adapter")
+    with open(os.path.join(run_dir, "run_config.json"), "w", encoding="utf-8") as fh:
+        json.dump({"new_model": model_name, "base_model_dir": base_model_dir}, fh)
+    with open(os.path.join(out_dir, "result.json"), "w", encoding="utf-8") as fh:
+        json.dump({"adapter": adapter_dir}, fh)
+    return adapter_dir
+
+
 class TrainRunTest(SimpleTestCase):
     def test_full_flow_in_order_and_outputs(self):
         folder, log = tempfile.mkdtemp(), []
@@ -68,6 +84,35 @@ class TrainRunTest(SimpleTestCase):
         cfg = make_cfg(folder, [{"messages": messages(), "tools": TOOLS}], checkpoint_dir=os.path.join(folder, "profile-checkpoints"))
         train.run(cfg, fake_deps(log), log=lambda line: None)
         self.assertEqual(entry(log, "sft_config")["output_dir"], cfg["checkpoint_dir"])
+
+    def test_training_loads_the_actual_agent_adapter_without_initializing_a_new_lora(self):
+        folder, log = tempfile.mkdtemp(), []
+        cfg = make_cfg(folder, [{"messages": messages(), "tools": TOOLS}])
+        adapter_dir = make_adapter_checkpoint(folder, cfg["base_model_dir"])
+        cfg.update({"initial_adapter_dir": adapter_dir, "initial_adapter_model": "agent2"})
+        train.run(cfg, fake_deps(log), log=lambda line: None)
+        load = entry(log, "load")
+        self.assertEqual(load["model_name"], adapter_dir)
+        self.assertEqual([name for name, *_ in log if name == "peft"], [])
+        self.assertEqual(json.load(open(os.path.join(cfg["out_dir"], "result.json"), encoding="utf-8"))["initial_adapter_model"], "agent2")
+
+    def test_missing_or_incompatible_initial_adapter_fails_before_model_loading(self):
+        folder, log = tempfile.mkdtemp(), []
+        cfg = make_cfg(folder, [{"messages": messages(), "tools": TOOLS}])
+        with self.assertRaisesRegex(FileNotFoundError, "initial Agent2 adapter directory"):
+            train.run({**cfg, "initial_adapter_dir": os.path.join(folder, "missing"), "initial_adapter_model": "agent2"},
+                      fake_deps(log), log=lambda line: None)
+        self.assertEqual(log, [])
+        adapter_dir = make_adapter_checkpoint(folder, cfg["base_model_dir"])
+        with self.assertRaisesRegex(ValueError, "base mismatch"):
+            train.run({**cfg, "initial_adapter_dir": adapter_dir, "initial_adapter_model": "agent2",
+                       "base_model_dir": os.path.join(folder, "another-base")}, fake_deps(log), log=lambda line: None)
+        self.assertEqual(log, [])
+        wrong_rank_dir = make_adapter_checkpoint(os.path.join(folder, "wrong-rank"), cfg["base_model_dir"], rank=8)
+        with self.assertRaisesRegex(ValueError, "rank"):
+            train.run({**cfg, "initial_adapter_dir": wrong_rank_dir, "initial_adapter_model": "agent2", "lora_rank": 16},
+                      fake_deps(log), log=lambda line: None)
+        self.assertEqual(log, [])
 
     def test_examples_that_are_too_long_are_skipped_and_none_left_is_an_error(self):
         folder = tempfile.mkdtemp()

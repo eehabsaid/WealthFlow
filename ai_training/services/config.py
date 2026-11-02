@@ -37,6 +37,8 @@ class TrainConfig:
     run_dir_override: str = ""     # optional profile-specific run directory
     out_dir_override: str = ""     # optional profile-specific trainer output directory
     checkpoint_dir_override: str = ""  # optional profile-specific trainer checkpoint directory
+    initial_adapter_dir: str = ""  # optional trained PEFT adapter to continue from
+    initial_adapter_model: str = ""  # expected source model name for initial_adapter_dir
     eval_per_category: int = 8     # frozen test: questions per category (all four languages, round-robin)
     eval_seed: int = 2026          # same seed = same test questions (while the data is the same)
     eval_min_gain_points: int = 5  # the new model must score at least this many percentage points higher
@@ -44,7 +46,7 @@ class TrainConfig:
 
     def as_dict(self) -> dict:
         values = asdict(self)
-        for key in ("run_dir_override", "out_dir_override", "checkpoint_dir_override"):
+        for key in ("run_dir_override", "out_dir_override", "checkpoint_dir_override", "initial_adapter_dir", "initial_adapter_model"):
             if not values[key]:
                 values.pop(key)
         return values

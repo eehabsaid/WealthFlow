@@ -30,6 +30,9 @@ def write_inputs(cfg: TrainConfig, user) -> tuple[str, int]:
                "out_dir": wsl.to_wsl_path(model_out_dir(cfg))}
     if cfg.checkpoint_dir_override:
         wsl_cfg["checkpoint_dir"] = wsl.to_wsl_path(cfg.checkpoint_dir_override)
+    if cfg.initial_adapter_dir:
+        wsl_cfg["initial_adapter_dir"] = wsl.to_wsl_path(cfg.initial_adapter_dir)
+        wsl_cfg["initial_adapter_model"] = cfg.initial_adapter_model
     path = os.path.join(run_dir(cfg), "run_config.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(wsl_cfg, fh, indent=4)
@@ -145,6 +148,9 @@ def run(cfg: TrainConfig, user, ollama_model: str, *, dry_run: bool = False, fre
 def run_prepared(cfg: TrainConfig, train_file: str, count: int, ollama_model: str, *, dry_run: bool = False,
                  fresh: bool = False, log: Callable[[str], None] = print) -> dict:
     """Train a validated, pre-prepared JSONL dataset through the same QLoRA engine."""
+    from ai_training.trainer.train import validate_initial_adapter
+
+    validate_initial_adapter(cfg.as_dict())
     checks = _training_checks(cfg, count, ollama_model, dry_run=dry_run, count_name="validated examples", log=log)
     if preflight.failed(checks):
         return {"status": "blocked", "gguf": ""}
@@ -158,6 +164,9 @@ def run_prepared(cfg: TrainConfig, train_file: str, count: int, ollama_model: st
                "train_file": wsl.to_wsl_path(run_train_file), "out_dir": wsl.to_wsl_path(model_out_dir(cfg))}
     if cfg.checkpoint_dir_override:
         wsl_cfg["checkpoint_dir"] = wsl.to_wsl_path(cfg.checkpoint_dir_override)
+    if cfg.initial_adapter_dir:
+        wsl_cfg["initial_adapter_dir"] = wsl.to_wsl_path(cfg.initial_adapter_dir)
+        wsl_cfg["initial_adapter_model"] = cfg.initial_adapter_model
     config_path = os.path.join(run_dir(cfg), "run_config.json")
     with open(config_path, "w", encoding="utf-8") as fh:
         json.dump(wsl_cfg, fh, indent=4)
@@ -172,9 +181,20 @@ def _run_training(cfg: TrainConfig, config_path: str, train_file: str, count: in
         log("Dry run: everything above is ready. " + ESTIMATE)
         return {"status": "dry_run", "gguf": ""}
     previous = finished_export(cfg)
-    if not fresh and finished_model(cfg):
-        log("An earlier training run is finished: reusing it (use --fresh to train again).")
+    finished_path = os.path.join(model_out_dir(cfg), "result.json")
+    lineage_matches = not cfg.initial_adapter_dir
+    if cfg.initial_adapter_dir and os.path.isfile(finished_path):
+        with open(finished_path, encoding="utf-8") as fh:
+            finished_info = json.load(fh)
+        lineage_matches = (
+            wsl.to_wsl_path(finished_info.get("initial_adapter_dir", "")) == wsl.to_wsl_path(cfg.initial_adapter_dir)
+            and finished_info.get("initial_adapter_model") == cfg.initial_adapter_model
+        )
+    if not fresh and finished_model(cfg) and lineage_matches:
+        log("An earlier training run from the configured starting checkpoint is finished: reusing it (use --fresh to train again).")
         return {"status": "reused", **previous}
+    if not fresh and finished_model(cfg) and not lineage_matches:
+        log("An earlier export has no matching starting-checkpoint record; training will run from the configured checkpoint.")
     free_gpu(ollama_model, log)
     repo = wsl.quote(wsl.to_wsl_path(REPO_ROOT))
     log(f"Preparing the training tools inside WSL (first time only) ... {ESTIMATE}")

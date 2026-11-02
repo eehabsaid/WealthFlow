@@ -30,6 +30,8 @@ class RecoveryProfileTest(SimpleTestCase):
         self.assertIn("work_dir", profile_json)
         self.assertEqual(recovered.model_suffix, "-recovery")
         self.assertEqual(recovered.new_model, "qwen3.8:27b-recovery")
+        self.assertEqual(profile["initial_adapter_model"], "qwen3.8:27b-agent2")
+        self.assertTrue(profile["initial_adapter_dir"].endswith(r"run-agent2\out\adapter"))
         self.assertNotEqual(recovered.work_dir, wealthflow.work_dir)
         self.assertNotEqual(recovered.run_dir_override, "")
         self.assertNotEqual(recovered.checkpoint_dir_override, "")
