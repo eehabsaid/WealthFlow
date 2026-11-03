@@ -99,6 +99,7 @@ class WhatIfSimulatorService(ComputationMixin):
             salary_change_pct=salary_change_pct,
             expenses_change_pct=expenses_change_pct,
             gold_allocation_target_pct=gold_allocation_target_pct,
+            gold_target_supplied=gold_allocation_target_pct is not None,
             certificate_reinvestment_choice=certificate_reinvestment_choice,
         )
 

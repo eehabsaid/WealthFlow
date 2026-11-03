@@ -64,25 +64,32 @@ class OverridesMixin:
             if has_timeline_overrides:
                 base_salary = portfolio.get("monthly_salary", 0.0)
                 original_timeline = portfolio.get("cash_timeline", [])
-                if original_timeline:
-                    salary_delta_per_month = (base_salary * (salary_scale - 1.0)) + salary_delta_val
 
-                    # Estimate monthly expense from timeline events
+                # ── Compute monthly deltas ──────────────────────────────────
+                salary_delta_per_month = (base_salary * (salary_scale - 1.0)) + salary_delta_val
+
+                if original_timeline:
+                    # Estimate monthly expense from timeline events. Expense events
+                    # carry negative amounts (outflows), so take the absolute value
+                    # to get a positive monthly burn rate.
                     expense_per_month = 0.0
                     for month in original_timeline[:3]:
                         for ev in month.get("events", []):
                             if str(ev.get("type", "")).startswith("expense") or str(ev.get("type", "")) == "mortgage":
-                                expense_per_month += _to_float(ev.get("amount", 0))
+                                expense_per_month += abs(_to_float(ev.get("amount", 0)))
                     expense_per_month /= min(3, len(original_timeline[:3])) if original_timeline[:3] else 1
-                    expense_delta_per_month = (expense_per_month * (expense_scale - 1.0)) + expense_delta_val
+                else:
+                    # No timeline events: fall back to the portfolio's baseline
+                    # monthly expenses (from NetWorthService certificate forecast).
+                    expense_per_month = _to_float(portfolio.get("monthly_expenses", 0.0))
 
+                expense_delta_per_month = (expense_per_month * (expense_scale - 1.0)) + expense_delta_val
+
+                if original_timeline:
                     cumulative_delta = 0.0
                     new_timeline = []
                     for idx, month in enumerate(original_timeline):
-                        # Accumulate monthly income - expense deltas
                         cumulative_delta += salary_delta_per_month - expense_delta_per_month
-
-                        # Apply lump sum outflows/inflows that occur in or before this month
                         for out_item in lump_outflows:
                             m_idx = int(out_item.get("month_index", 0))
                             if m_idx == idx + 1:
@@ -91,11 +98,33 @@ class OverridesMixin:
                             m_idx = int(in_item.get("month_index", 0))
                             if m_idx == idx + 1:
                                 cumulative_delta += float(in_item.get("amount", 0.0))
-
                         new_month = dict(month)
                         original_ending = _to_float(month.get("ending_cash", 0.0))
                         new_month["ending_cash"] = round(original_ending + cumulative_delta, 2)
                         new_timeline.append(new_month)
+                    portfolio["cash_timeline"] = new_timeline
+                else:
+                    # No cash timeline: the baseline series reads cash as 0 for
+                    # every month (see SeriesBuilderMixin._month_end_cash), so the
+                    # adjusted timeline must start from the same 0 baseline — not
+                    # from current_cash — or the delta would be offset by the
+                    # entire cash balance. The series builder maps month_index i
+                    # to timeline[i], so timeline[i] must carry exactly i months
+                    # of the net monthly delta, with lump sums landing in their
+                    # own month (no fabricated events).
+                    months_ahead = self.MONTHS_AHEAD
+                    monthly_net = salary_delta_per_month - expense_delta_per_month
+                    cumulative = 0.0
+                    new_timeline = [{"ending_cash": 0.0, "events": []}]  # index 0 = baseline
+                    for idx in range(1, months_ahead + 1):
+                        cumulative += monthly_net
+                        for out_item in lump_outflows:
+                            if int(out_item.get("month_index", 0)) == idx:
+                                cumulative -= float(out_item.get("amount", 0.0))
+                        for in_item in lump_inflows:
+                            if int(in_item.get("month_index", 0)) == idx:
+                                cumulative += float(in_item.get("amount", 0.0))
+                        new_timeline.append({"ending_cash": round(cumulative, 2), "events": []})
                     portfolio["cash_timeline"] = new_timeline
 
             # ── Certificate reinvestment choice ───────────────────────────────

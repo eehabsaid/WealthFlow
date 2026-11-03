@@ -20,6 +20,13 @@ def _expenses(user):
     return qs.exclude(amount_base__isnull=True) if qs is not None else None
 
 
+def _monthly_salary(user):
+    """The owner's real current monthly salary (the same source the simulator uses)."""
+    from core.services.salary.salary_service import get_current_monthly_salary
+
+    return dec(get_current_monthly_salary(user))
+
+
 def train(user, langs, rng) -> list:
     qs, out = _expenses(user), []
     if qs is None or not qs.exists():
@@ -40,6 +47,25 @@ def train(user, langs, rng) -> list:
         if nonzero([total]):
             out += expand(f"whatif_cut_month:{y}-{m:02d}:{pct}", "whatif_cut_month", rng, langs, [money(total * (100 - pct) / 100), money(total * pct / 100)],
                           lambda l, y=y, m=m, p=pct: {"month": phrasing.month(l, y, m), "pct": p}, category="what_if", level="complex")
+    # Salary what-ifs: base figure is the owner's real monthly salary.
+    salary = _monthly_salary(user)
+    if salary > 0:
+        for pct in PCTS[:2]:
+            new_salary = salary * (100 + pct) / 100
+            out += expand(f"whatif_salary_raise:{pct}", "whatif_salary_raise", rng, langs, [money(new_salary), money(new_salary - salary)],
+                          lambda l, p=pct: {"pct": p}, category="what_if", level="complex")
+        for pct in PCTS[:2]:
+            new_salary = salary * (100 - pct) / 100
+            out += expand(f"whatif_salary_cut:{pct}", "whatif_salary_cut", rng, langs, [money(new_salary), money(salary - new_salary)],
+                          lambda l, p=pct: {"pct": p}, category="what_if", level="complex")
+    # Extra monthly savings: base figure is the owner's real monthly expenses.
+    last = list(qs.values("date__year", "date__month").annotate(t=Sum("amount_base")).order_by("-date__year", "-date__month")[:1])
+    if last:
+        monthly = dec(last[0]["t"])
+        extra = rng.choice(EXTRAS[:4])
+        if nonzero([monthly, extra]):
+            out += expand(f"whatif_extra_savings:{extra}", "whatif_extra_savings", rng, langs, [money(monthly + extra), money(extra)],
+                          lambda l, e=extra: {"extra": e}, category="what_if", level="complex")
     return out
 
 
@@ -59,4 +85,10 @@ def evaluate(user, langs, rng) -> list:
         if extra:
             out += expand(f"whatif_goal:{gid}:{extra}", "whatif_goal", rng, langs, [math.ceil(left / extra)],
                           lambda l, n=name, e=extra: {"goal": n, "extra": e}, category="what_if", level="complex", prefix="eval:")
+    # Salary what-ifs (evaluation): distinct phrasings from the training frames.
+    salary = _monthly_salary(user)
+    if salary > 0:
+        pct = rng.choice(PCTS)
+        out += expand(f"whatif_salary_eval:{pct}", "whatif_salary_eval", rng, langs, [money(salary * (100 + pct) / 100)],
+                      lambda l, p=pct: {"pct": p}, category="what_if", level="complex", prefix="eval:")
     return out

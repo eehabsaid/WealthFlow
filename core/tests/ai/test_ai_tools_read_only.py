@@ -22,7 +22,7 @@ class NewAIToolsReadOnlyTest(TestCase):
 
     def test_registered_tools_count_and_domains(self):
         schemas_all = get_registered_tool_schemas()
-        self.assertEqual(len(schemas_all), 15)   # 9 domain tools + generate_file + the 3 memory tools + propose_action + show_chart (offered on every domain)
+        self.assertEqual(len(schemas_all), 16)   # 10 domain tools + generate_file + the 3 memory tools + propose_action + show_chart (offered on every domain)
         self.assertIn("generate_file", [s["function"]["name"] for s in schemas_all])
         self.assertIn("read_memory", [s["function"]["name"] for s in schemas_all])
 

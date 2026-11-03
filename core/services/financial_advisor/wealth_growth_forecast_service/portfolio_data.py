@@ -33,6 +33,7 @@ class PortfolioDataMixin:
             "monthly_salary": _to_float(forecast["monthly_salary"]),
             "monthly_certificate_income": _to_float(forecast["monthly_certificate_income"]),
             "total_monthly_income": _to_float(forecast["total_monthly_income"]),
+            "monthly_expenses": _to_float(forecast.get("avg_monthly_expenses", 0.0)),
         }
 
     def _get_active_certs(self):

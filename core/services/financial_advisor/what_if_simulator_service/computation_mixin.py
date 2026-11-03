@@ -70,6 +70,7 @@ class ComputationMixin:
         avg_monthly_expenses: float,
         salary_change_pct: float,
         expenses_change_pct: float,
+        monthly_salary: Optional[float] = None,
     ) -> Optional[float]:
         """Compute cash coverage using the same formula as NetWorthService.
 
@@ -80,11 +81,17 @@ class ComputationMixin:
         hardcoded), then re-apply the exact same division.
 
         Salary change over 12 months adds to the cash balance as accumulated
-        additional inflow.  Expense change alters the monthly burn rate.
+        additional inflow: 12 * (monthly_salary * salary_change_pct / 100).
+        Expense change alters the monthly burn rate.
         """
-        salary_delta_12m = cash_balance * (salary_change_pct / 100.0)  # proxy: salary ~ (cash balance / 12)
-        # More precise: if we have monthly_salary we add 12 * monthly_salary_delta
-        # but cash_balance already reflects current cash; we use it as a proportion.
+        base_salary = _to_float(monthly_salary)
+        if base_salary > 0:
+            salary_delta_12m = 12.0 * base_salary * (salary_change_pct / 100.0)
+        else:
+            # No real salary on file: fall back to the legacy cash-balance proxy
+            # so the figure degrades gracefully instead of silently dropping the
+            # salary effect entirely.
+            salary_delta_12m = cash_balance * (salary_change_pct / 100.0)
         adjusted_cash = max(0.0, cash_balance + salary_delta_12m)
         adjusted_expenses = avg_monthly_expenses * (1.0 + expenses_change_pct / 100.0)
         adjusted_expenses = max(0.0, adjusted_expenses)

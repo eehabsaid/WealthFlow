@@ -12,6 +12,7 @@ class WhatIfContext:
     salary_change_pct: float = 0.0
     expenses_change_pct: float = 0.0
     gold_allocation_target_pct: Optional[float] = None
+    gold_target_supplied: bool = False
     certificate_reinvestment_choice: str = "reinvest"
 
     current: Dict[str, Any] = field(default_factory=dict)

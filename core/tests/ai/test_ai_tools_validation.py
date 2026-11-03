@@ -29,7 +29,7 @@ class AIToolsValidationTest(TestCase):
 
     def test_registered_tools_schema_structure(self):
         schemas = get_registered_tool_schemas()
-        self.assertEqual(len(schemas), 15)   # 9 domain tools + generate_file + read/save/forget memory + propose_action + show_chart
+        self.assertEqual(len(schemas), 16)   # 10 domain tools + generate_file + read/save/forget memory + propose_action + show_chart
         self.assertIn("generate_file", [s["function"]["name"] for s in schemas])
         names = [s["function"]["name"] for s in schemas]
         self.assertIn("create_scenario", names)
@@ -37,6 +37,7 @@ class AIToolsValidationTest(TestCase):
         self.assertIn("summarize_report", names)
         self.assertIn("explain_chart", names)
         self.assertIn("suggest_optimizations", names)
+        self.assertIn("what_if_scenario", names)
         self.assertIn("read_live_app_structure", names)
         self.assertIn("suggest_app_feature", names)
         self.assertIn("query_application_data", names)

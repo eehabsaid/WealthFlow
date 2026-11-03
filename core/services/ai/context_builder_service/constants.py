@@ -12,7 +12,14 @@ TOPIC_KEYWORD_MAP: dict[str, list[str]] = {
     "spending_intelligence": ["spending", "expense", "category", "budget", "trend", "cost", "discretionary"],
     "opportunity_detection": ["opportunity", "idle cash", "yield", "optimize", "savings", "return"],
     "performance": ["performance", "return", "historical", "gain", "loss", "metric"],
-    "what_if_simulator": ["what if", "simulate", "simulation", "salary increase", "windfall"],
+    "what_if_simulator": [
+        "what if", "simulate", "simulation", "salary increase", "windfall",
+        "if my salary", "if my expenses", "if i save", "extra savings", "save more",
+        "reach my goal", "how much earlier", "one-time bonus",
+        "لو زادت", "لو خفضت", "لو ادخرت", "إذا زادت", "إذا خفضت",
+        "si mon salaire", "si mes dépenses", "si j'épargne", "épargne en plus",
+        "wenn mein gehalt", "wenn meine ausgaben", "wenn ich mehr spare", "zusätzlich spare",
+    ],
     "scenario_planner": ["scenario", "recession", "stress test", "crisis", "inflation"],
 }
 

@@ -24,7 +24,11 @@ ADVISOR_SERVICE_DESCRIPTIONS: dict[str, str] = {
     "spending_intelligence": "spending habits, category trends, overspending, discretionary costs, ways to cut expenses",
     "opportunity_detection": "idle cash, better savings yield, certificate opportunities, ways to earn more on money",
     "performance": "historical investment performance, gains and losses, returns over time",
-    "what_if_simulator": "what if simulation, hypothetical changes such as salary raise or windfall",
+    "what_if_simulator": (
+        "what if simulation, hypothetical changes such as a salary raise or cut, expense increase or "
+        "decrease, saving an extra amount each month, reaching a financial goal earlier, a one-time "
+        "bonus or windfall, and comparing multiple hypothetical scenarios"
+    ),
     "scenario_planner": "stress test scenarios such as recession, inflation, currency devaluation or job loss",
 }
 

@@ -65,9 +65,11 @@ def build_forecast_overrides(ctx: WhatIfContext) -> None:
     ctx.salary_scale = 1.0 + ctx.salary_change_pct / 100.0
     ctx.expense_scale = 1.0 + ctx.expenses_change_pct / 100.0
 
-    # Gold value override: scale current gold to reach target % of net worth
+    # Gold value override: scale current gold to reach target % of net worth.
+    # Only when the caller explicitly supplied a gold target — otherwise the
+    # original gold value is preserved exactly (no rounding drift).
     ctx.target_gold_value = None
-    if ctx.total_net_worth > 0 and ctx.gold_allocation_target_pct is not None:
+    if ctx.gold_target_supplied and ctx.total_net_worth > 0 and ctx.gold_allocation_target_pct is not None:
         ctx.target_gold_value = (ctx.gold_allocation_target_pct / 100.0) * ctx.total_net_worth
 
     forecast_overrides: Dict[str, Any] = {}
@@ -100,7 +102,8 @@ def compute_adjusted(ctx: WhatIfContext) -> None:
 
     # ── Adjusted cash coverage via NetWorthService formula ────────────
     ctx.adjusted_cash_coverage = service._compute_cash_coverage(
-        ctx.cash_balance, ctx.avg_monthly_expenses, ctx.salary_change_pct, ctx.expenses_change_pct
+        ctx.cash_balance, ctx.avg_monthly_expenses, ctx.salary_change_pct, ctx.expenses_change_pct,
+        monthly_salary=ctx.monthly_salary,
     )
 
 
