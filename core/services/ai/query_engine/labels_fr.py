@@ -30,6 +30,7 @@ TABLE = {
     "export_download": "Télécharger en {format}", "export_title": "WealthFlow AI", "export_question": "Question",
     "export_generated": "Généré le {date}", "export_followup": "Téléchargez la réponse précédente :",
     "export_nothing": "Il n'y a pas encore de réponse précédente à exporter. Posez d'abord votre question, puis demandez-moi de l'exporter.",
+    "translate_incomplete": "Je n'ai pas pu traduire toute la réponse de façon fiable (langue : {language}), donc je ne fournis pas de traduction incomplète. Veuillez réessayer.",
     "bal_total": "Solde total : {amount} sur {n} compte(s).", "bal_gold": "Or : {grams} g, d'une valeur de {amount}.",
     "bal_gold_note": "L'or est inclus dans le total ({amount}).", "bal_none": "Aucun compte de solde n'est enregistré.",
     "bal_cur": "Solde en {cur} : {amount} sur {n} compte(s) (≈ {home}).", "bal_cur_none": "Aucun solde en {cur} n'est enregistré.",

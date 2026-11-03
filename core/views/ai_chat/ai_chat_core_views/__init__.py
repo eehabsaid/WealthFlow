@@ -4,7 +4,7 @@ Package layout (the 200-line-per-file convention):
 - conversation_setup.py    conversation lookup, progress-cache bootstrap
 - understand_stage.py      stage 1: domain + intent (no LLM)
 - orchestrator_stage.py    the optional multi-agent branch
-- export_stage.py          "export it to Excel" follow-ups (previous answer -> file)
+- export_stage.py          "export it to Excel" follow-ups (previous answer -> file); translate_stage.py "translate it to Arabic"
 - generation_pipeline.py   context assembly, provider-generation + retry
 - response_finalizer.py    persistence, knowledge extraction, response build
 
@@ -44,7 +44,7 @@ from .conversation_setup import (
     resolve_conversation,
     save_user_message,
 )
-from .export_stage import export_followup_response
+from .export_stage import followup_response
 from .generation_pipeline import build_provider_error_response
 from .response_finalizer import finalize_success
 
@@ -111,11 +111,10 @@ class AIChatView(View):
         # are answered normally and finalize_success attaches the links to their own answer.
         export_formats = detect_export_formats(user_text)
         route_text = strip_export_terms(user_text) if export_formats else user_text  # the router sees the question only
-        if export_formats:
-            followup = export_followup_response(cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation, user_msg=user_msg,
-                                                user_text=user_text, route_text=route_text, understanding=understanding, request=request, trace=trace)
-            if followup is not None:
-                return followup
+        followup = followup_response(provider=provider, export_formats=export_formats, cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation,
+                                     user_msg=user_msg, user_text=user_text, route_text=route_text, understanding=understanding, request=request, trace=trace)
+        if followup is not None:
+            return followup
 
         # Stage 1a' — Agent mode (per-user Ask/Agent switch): the model investigates with tools from the first call.
         stage_args = dict(request=request, body=body, cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation, user_msg=user_msg,

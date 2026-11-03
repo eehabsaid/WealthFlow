@@ -137,5 +137,8 @@ def formats_from_tool_calls(calls: Any) -> list:
     """Download formats the model chose with generate_file when the user's own words named none."""
     from .intent import exports_enabled_formats
 
-    return exports_enabled_formats([c.get("arguments", {}).get("format") for c in (calls or [])
-                                    if isinstance(c, dict) and c.get("tool") == TOOL_NAME and c.get("status") == "success"])
+    keys = [c.get("arguments", {}).get("format") for c in (calls or []) if isinstance(c, dict) and c.get("tool") == TOOL_NAME and c.get("status") == "success"]
+    for c in calls or []:   # a translate follow-up carries the formats its new answer is offered in
+        if isinstance(c, dict) and c.get("tool") == "translate_followup" and c.get("complete"):
+            keys += list(c.get("formats") or [])
+    return exports_enabled_formats(keys)

@@ -1,5 +1,5 @@
 """Chat stage 1a: a bare "export it to Excel" / "and as a PDF?" turns the previous answer into the requested files
-(no model call). Data questions that also ask for a file are answered normally and finalize_success attaches the
+(no model call); "translate it to Arabic" is translate_stage.py. Data questions that also ask for a file are answered normally and finalize_success attaches the
 links to their own answer."""
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ from core.services.ai.query_engine.labels import t as label
 from core.services.ai.query_engine.lexicon import language
 
 from .response_finalizer import finalize_success
+from .translate_stage import translate_followup_response
 
 
 def export_followup_response(*, cache_mgr: Any, progress_key: Any, conversation: Any, user_msg: Any, user_text: str, route_text: str,
@@ -31,3 +32,14 @@ def export_followup_response(*, cache_mgr: Any, progress_key: Any, conversation:
         [{"tool": FOLLOWUP_TOOL, "target_message_id": target.id if target else None}], [], request,
         export_target=target, offer_export=target is not None,
     )
+
+
+def followup_response(*, provider: Any, export_formats: Any, **stage: Any):
+    """Stage 1a: "export it to Excel" (only when the message names a file) and then "translate it to Arabic"; None when it is neither."""
+    if export_formats:
+        done = export_followup_response(**stage)
+        if done is not None:
+            return done
+    return translate_followup_response(provider=provider, cache_mgr=stage["cache_mgr"], progress_key=stage["progress_key"], conversation=stage["conversation"],
+                                       user_msg=stage["user_msg"], user_text=stage["user_text"], request=stage["request"], trace=stage["trace"],
+                                       understanding=stage["understanding"])
