@@ -21,13 +21,16 @@ const AIBlocks = (() => {
 
   function actionCard(b) {
     const p = b.payload || {};
-    const rows = (p.rows || [])
-      .map((r) =>
-        "after" in r
-          ? `<tr><th>${esc(r.label)}</th><td><s>${esc(r.before)}</s> → <b>${esc(r.after)}</b></td></tr>`
-          : `<tr><th>${esc(r.label)}</th><td>${esc(r.value)}</td></tr>`
-      )
-      .join("");
+    const editable = b.status === "pending" && p.editable && window.AIBlockForm;
+    const rows = editable
+      ? AIBlockForm.rows(p)
+      : (p.rows || [])
+          .map((r) =>
+            "after" in r
+              ? `<tr><th>${esc(r.label)}</th><td><s>${esc(r.before)}</s> → <b>${esc(r.after)}</b></td></tr>`
+              : `<tr><th>${esc(r.label)}</th><td>${esc(r.value)}</td></tr>`
+          )
+          .join("");
     const title = `${T("ai_act_op_" + p.op, p.op)}: ${T("ai_act_rec_" + p.record, p.record)}`;
     let foot;
     if (b.status === "pending") {
@@ -36,7 +39,16 @@ const AIBlocks = (() => {
     } else {
       foot = `<span class="small ai-act-status-${b.status}">${esc(T("ai_act_status_" + b.status, b.status))}${b.result ? " — " + esc(b.result) : ""}</span>`;
     }
-    return `<div class="ai-act-card" data-block-id="${b.id}"><div class="ai-act-title">${esc(title)}</div><table class="ai-act-rows${p.record === "code_file" ? " ai-act-code" : ""}">${rows}</table><div class="ai-act-foot">${foot}</div></div>`;
+    return `<div class="ai-act-card" data-block-id="${b.id}"${editable ? " data-editable" : ""}><div class="ai-act-title">${esc(title)}</div><table class="ai-act-rows${p.record === "code_file" ? " ai-act-code" : ""}">${rows}</table><div class="ai-act-foot">${foot}</div></div>`;
+  }
+
+  function repaintPending() {
+    document.querySelectorAll(".ai-act-card[data-editable]").forEach((el) => {
+      const b = Object.values(byMsg)
+        .flat()
+        .find((x) => x.id === Number(el.dataset.blockId));
+      if (b && b.status === "pending") el.outerHTML = actionCard(b);
+    });
   }
 
   function render(ctx) {
@@ -55,14 +67,21 @@ const AIBlocks = (() => {
   }
 
   async function decide(id, confirm) {
+    const card = document.querySelector(`.ai-act-card[data-block-id="${id}"]`);
+    const edits = confirm && card?.hasAttribute("data-editable") ? AIBlockForm.collect(card) : null;
     const res = await fetch(
       `/api/financial-advisor/ai/blocks/${id}/${confirm ? "confirm" : "cancel"}/`,
       {
         method: "POST",
-        headers: { "X-CSRFToken": window.wfGetCsrfToken?.() || "" },
+        headers: {
+          "X-CSRFToken": window.wfGetCsrfToken?.() || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ edits }),
       }
     );
     const data = await res.json().catch(() => ({}));
+    if (res.status === 422 && data.error) return AIBlockForm.showError(card, data.error);
     if (data.block) {
       const old = document.querySelector(`.ai-act-card[data-block-id="${id}"]`);
       if (old) old.outerHTML = actionCard(data.block);
@@ -70,7 +89,7 @@ const AIBlocks = (() => {
   }
 
   (window._aiMessageExtras = window._aiMessageExtras || []).push(render);
-  return { remember, decide };
+  return { remember, decide, repaintPending };
 })();
 
 window.AIBlocks = AIBlocks;

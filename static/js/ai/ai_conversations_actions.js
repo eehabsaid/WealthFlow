@@ -68,6 +68,7 @@ async function _switchAIChatConversation(convId) {
     const messages = conv.messages || [];
     if (messages.length > 0) {
       messages.forEach((msg) => {
+        window.AIBlocks?.remember(msg); // cards, charts and file chips of this chat
         _appendMessage(
           msg.role,
           msg.content,

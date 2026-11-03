@@ -96,7 +96,10 @@ def propose(user, op: str, target: dict, values: dict) -> dict:
             values["currency"] = get_user_base_code(user)
         data, human = _clean(user, values)
         data["currency_id"] = data.get("currency_id")
-        return {"record": "expense", "op": "add", "params": {"data": _jsonable(data)}, "rows": [{"label": k, "value": v} for k, v in human.items()]}
+        for key in ("category", "subcategory"):
+            human.setdefault(key, "")   # always shown, so the user can pick them on the card
+        return {"record": "expense", "op": "add", "params": {"data": _jsonable(data)}, "editable": True,
+                "rows": [{"label": k, "value": v} for k, v in human.items()]}
     exp = find(user, target)
     current = _row(exp)
     if op == "delete":
@@ -105,7 +108,26 @@ def propose(user, op: str, target: dict, values: dict) -> dict:
     rows = changed_rows(current, human)
     if not rows:
         raise ActionError("nothing would change; ask the user what to change")
-    return {"record": "expense", "op": "edit", "params": {"id": exp.id, "data": _jsonable(data)}, "rows": rows}
+    return {"record": "expense", "op": "edit", "params": {"id": exp.id, "data": _jsonable(data)}, "editable": True, "rows": rows}
+
+
+EDITABLE = ("amount", "currency", "date", "description", "category", "subcategory", "payment_method", "bank", "notes")
+
+
+def apply_edits(user, payload: dict, edits: dict) -> dict:
+    """The card's params after the user changed values on it. Everything is checked again by _clean (names must exist in the user's own lists)."""
+    edits = {k: " ".join(str(v).split()) for k, v in (edits or {}).items() if k in EDITABLE}
+    if payload["op"] == "add":
+        values = {r["label"]: r["value"] for r in payload.get("rows", []) if "value" in r}
+        values = {k: v for k, v in {**values, **edits}.items() if v not in (None, "")}
+        if "amount" not in values:
+            raise ActionError("an expense needs an `amount`")
+        data, _ = _clean(user, values)
+        return {"data": _jsonable(data)}
+    values = {k: v for k, v in edits.items() if v != ""}
+    exp = find(user, {"id": payload["params"]["id"]})
+    data, _ = _clean(user, values, {"category_id": exp.category_id})
+    return {"id": exp.id, "data": _jsonable(data)}
 
 
 def _jsonable(data: dict) -> dict:

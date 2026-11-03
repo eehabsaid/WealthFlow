@@ -1,4 +1,6 @@
-"""Confirm / cancel an AI action card. Owner-scoped; a card can be decided once."""
+"""Confirm / cancel an AI action card. Owner-scoped; a card can be decided once. Confirm may carry the values the user edited on the card."""
+
+import json
 
 from django.http import JsonResponse
 from django.views import View
@@ -14,7 +16,11 @@ class AIBlockConfirmView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        body, status = decide(request.user, pk, True)
+        try:
+            edits = json.loads(request.body or b"{}").get("edits")
+        except (ValueError, AttributeError):
+            edits = None
+        body, status = decide(request.user, pk, True, edits if isinstance(edits, dict) else None)
         return JsonResponse(body, status=status)
 
 

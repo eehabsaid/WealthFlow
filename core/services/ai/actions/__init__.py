@@ -31,14 +31,21 @@ def propose_action(user, params: dict) -> dict:
     return make_card(user, payload)
 
 
-def decide(user, block_id: int, confirm: bool) -> tuple[dict, int]:
-    """Confirm or cancel one pending card of this user. Returns (json, http status)."""
+def decide(user, block_id: int, confirm: bool, edits: dict | None = None) -> tuple[dict, int]:
+    """Confirm or cancel one pending card of this user (with the values the user changed on the card). Returns (json, http status)."""
     with transaction.atomic():
         block = AIChatBlock.objects.select_for_update().filter(pk=block_id, user=user, kind=AIChatBlock.KIND_ACTION).first()
         if block is None:
             return {"error": "not_found"}, 404
         if block.status != AIChatBlock.STATUS_PENDING:
             return {"error": "already_decided", "block": block.to_dict()}, 409
+        if confirm and edits and block.payload.get("editable") and hasattr(HANDLERS[block.payload["record"]], "apply_edits"):
+            try:   # a wrong value typed on the card is sent back to the user; the card stays pending so it can be corrected
+                params = HANDLERS[block.payload["record"]].apply_edits(user, block.payload, edits)
+                rows = [{**r, ("after" if "after" in r else "value"): str(edits.get(r["label"], r.get("after", r.get("value"))))} for r in block.payload["rows"]]
+                block.payload = {**block.payload, "params": params, "rows": rows}   # the finished card shows what was really saved
+            except ActionError as exc:
+                return {"error": str(exc), "block": block.to_dict()}, 422
         block.decided_at = timezone.now()
         if not confirm:
             block.status, block.result = AIChatBlock.STATUS_CANCELLED, ""

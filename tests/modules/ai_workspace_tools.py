@@ -12,6 +12,8 @@ _FETCH = """async ([url, method, body]) => {
 }"""
 _API = "/api/financial-advisor/ai/"
 _SAMPLE_CARD = {"id": 987654, "kind": "action", "status": "pending", "payload": {"record": "expense", "op": "edit", "rows": [{"label": "description", "before": "lunch", "after": "dinner"}]}}
+_EDIT_CARD = {"id": 987656, "kind": "action", "status": "pending", "payload": {"record": "expense", "op": "add", "editable": True, "rows": [
+    {"label": "amount", "value": "50"}, {"label": "category", "value": ""}, {"label": "subcategory", "value": ""}]}}
 _CODE_CARD = {"id": 987655, "kind": "action", "status": "pending", "payload": {"record": "code_file", "op": "edit", "rows": [{"label": "file", "before": "", "after": "core/app.py"}]}}
 _SAMPLE_CHART = {"kind": "chart", "payload": {"type": "bar", "title": "Expenses by month", "labels": ["Jan", "Feb"], "series": [{"name": "Expenses", "values": [10, 20]}], "unit": "EGP"}}
 
@@ -63,6 +65,8 @@ def _run(context, reporter, screenshot_logger):
     card_ok = "ai-act-card" in html and "Confirm" in html and "dinner" in html
     gone = page.evaluate(_FETCH, [_API + "blocks/987654/cancel/", "POST", None])
     _step(reporter, screenshot_logger, page, "Action card shows before/after with Confirm; unknown cards are refused (404)", card_ok and gone["status"] == 404, f"status={gone['status']}", "tools_action_card")
+    form = page.evaluate("""(c) => { AIBlocks.remember({id: 3, blocks: [c]}); return window._aiMessageExtras.map(f => f({role: 'assistant', messageId: 3})).join(''); }""", _EDIT_CARD)
+    _step(reporter, screenshot_logger, page, "An expense card is a form: Category and Subcategory lists and an Amount box can be edited before Confirm", all(k in form for k in ('data-ai-field="category"', 'data-ai-field="subcategory"', 'data-ai-field="amount"')), f"len={len(form)}", "tools_card_form")
     code = page.evaluate("(c) => { AIBlocks.remember({id: 2, blocks: [c]}); return window._aiMessageExtras.map(f => f({role: 'assistant', messageId: 2})).join(''); }", _CODE_CARD)
     _step(reporter, screenshot_logger, page, "A code-change card is drawn in monospace with Confirm", "ai-act-code" in code and "Confirm" in code, f"len={len(code)}", "tools_code_card")
     svg = page.evaluate("(c) => AIChart.draw(c)", _SAMPLE_CHART)

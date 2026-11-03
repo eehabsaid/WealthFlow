@@ -108,7 +108,13 @@ async function showRecurringModal(rec) {
       </div>
       <div class="mb-3">
         <label class="form-label" data-i18n="budget_category">Category</label>
-        <select class="form-select" id="rCat">${_budgetCategoryOptions(rec ? rec.category_id : null, false)}</select>
+        <select class="form-select" id="rCat" onchange="updateRecurringSubcategories()">${_budgetCategoryOptions(rec ? rec.category_id : null, false)}</select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" data-i18n="subcategory">Subcategory</label>
+        <select class="form-select" id="rSubcat">
+          <option value="" data-i18n="none_option">— None —</option>
+        </select>
       </div>
       <div class="row">
         <div class="col-6 mb-3">
@@ -177,5 +183,5 @@ async function showRecurringModal(rec) {
       <button class="btn btn-primary" onclick="saveRecurring(${rec ? rec.id : "null"})" data-i18n="btn_save">Save</button>
     </div>`;
   showModal(html);
-  applyTranslations();
+  updateRecurringSubcategories(rec ? rec.subcategory_id : null);
 }

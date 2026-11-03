@@ -36,6 +36,20 @@ def test_recurring_crud(context, reporter, screenshot_logger):
         backfill_off = page.query_selector("#rBackfill") is not None and not page.is_checked("#rBackfill")
         checker.add_manual_step(backfill_off)
 
+        # The Subcategory list exists and follows the Category list (same data as Expense Categories, nothing hardcoded).
+        sub_ok = page.evaluate("""() => {
+            const cats = (window._expCategories || []).filter((c) => (c.subcategories || []).length);
+            const sel = document.getElementById('rSubcat');
+            if (!sel) return false;
+            if (!cats.length) return sel.options.length === 1;
+            const cat = cats[0];
+            document.getElementById('rCat').value = String(cat.id);
+            document.getElementById('rCat').dispatchEvent(new Event('change'));
+            const got = Array.from(document.getElementById('rSubcat').options).slice(1).map((o) => o.textContent);
+            return JSON.stringify(got) === JSON.stringify(cat.subcategories.map((s) => s.name));
+        }""")
+        checker.add_manual_step(bool(sub_ok))
+
         if page.query_selector("#rName"):
             page.fill("#rName", name)
             page.fill("#rAmount", "1")

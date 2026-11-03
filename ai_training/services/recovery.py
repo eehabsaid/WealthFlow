@@ -38,7 +38,11 @@ def load_profile() -> tuple[dict, object]:
 
 
 def resolve_path(path: str) -> str:
-    return path if os.path.isabs(path) else os.path.join(REPO_ROOT, path)
+    if os.path.isabs(path):
+        return path
+    if os.sep != "\\" and not (len(path) > 1 and path[1] == ":"):
+        path = path.replace("\\", os.sep)   # profile paths are written with Windows slashes; a project-relative one must also work elsewhere
+    return os.path.join(REPO_ROOT, path)
 
 
 def dataset_path(profile: dict) -> str:

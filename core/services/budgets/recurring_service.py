@@ -23,6 +23,15 @@ def _advance(current: date, frequency: str, interval: int) -> date:
     return current + relativedelta(months=interval)  # monthly (default)
 
 
+def _valid_subcategory(category_id, subcategory_id):
+    """The subcategory id when it really belongs to that category, else None (a stale or mismatched pick is dropped, never stored)."""
+    if not (category_id and subcategory_id):
+        return None
+    from core.models import ExpenseSubcategory
+
+    return subcategory_id if ExpenseSubcategory.objects.filter(pk=subcategory_id, category_id=category_id).exists() else None
+
+
 class RecurringService:
     @staticmethod
     @transaction.atomic
@@ -41,7 +50,7 @@ class RecurringService:
             owner=owner,
             name=data["name"],
             category_id=data.get("category_id"),
-            subcategory_id=data.get("subcategory_id"),
+            subcategory_id=_valid_subcategory(data.get("category_id"), data.get("subcategory_id")),
             amount=Decimal(str(data.get("amount", 0) or 0)),
             currency_id=data.get("currency_id"),
             payment_method=data.get("payment_method", "Cash"),
@@ -64,6 +73,8 @@ class RecurringService:
         for field in ("category_id", "subcategory_id", "currency_id", "bank_id"):
             if field in data:
                 setattr(rec, field, data[field])
+        if "category_id" in data or "subcategory_id" in data:
+            rec.subcategory_id = _valid_subcategory(rec.category_id, rec.subcategory_id)
         if "amount" in data:
             rec.amount = Decimal(str(data["amount"] or 0))
         if "interval" in data:

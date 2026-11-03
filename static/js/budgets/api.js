@@ -41,6 +41,7 @@ async function saveRecurring(id) {
   const body = {
     name: document.getElementById("rName").value.trim(),
     category_id: parseInt(document.getElementById("rCat").value) || null,
+    subcategory_id: parseInt(document.getElementById("rSubcat")?.value) || null,
     amount: parseFloat(document.getElementById("rAmount").value) || 0,
     currency_id: parseInt(document.getElementById("rCurrency").value) || null,
     payment_method: document.getElementById("rMethod").value,
