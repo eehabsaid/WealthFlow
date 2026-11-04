@@ -159,6 +159,7 @@ window.AIA.buildAISettingsFormHtml = function (ctx) {
     docs: window.AIA.buildDocumentsHtml(s),
     files: window.AIA.buildFilesHtml(s),
     speech: window.AIA.buildSpeechSettingsHtml(s),
+    image: window.AIA.buildImageSettingsHtml(s),
     diag: window.AIA.buildDiagnosticsHtml(s),
   };
   const cards = ui.GROUPS.map(([id, icon, key, title, desc]) =>

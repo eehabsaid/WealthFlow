@@ -27,6 +27,7 @@ from tests.modules.ai_budgets import test_ai_budgets
 from tests.modules.ai_learning import test_ai_learning
 from tests.modules.ai_memory import test_ai_memory
 from tests.modules.ai_export import test_ai_export
+from tests.modules.ai_image_generation import test_ai_image_generation
 from tests.modules.ai_wealth import test_ai_wealth
 from tests.modules.ai_agent import test_ai_agent
 from tests.modules.ai_guide_html import test_ai_guide_html
@@ -60,6 +61,7 @@ def test_ai_module(context, reporter, screenshot_logger):
     test_ai_wealth(context, reporter, screenshot_logger)
     test_ai_agent(context, reporter, screenshot_logger)
     test_ai_think_setting(context, reporter, screenshot_logger)
+    test_ai_image_generation(context, reporter, screenshot_logger)
     test_ai_progress_resume(context, reporter, screenshot_logger)
     test_ai_guide_html(context, reporter, screenshot_logger)
     test_ai_workspace_clean(context, reporter, screenshot_logger)

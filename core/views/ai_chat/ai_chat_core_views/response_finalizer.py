@@ -58,6 +58,9 @@ def finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text,
 
     from core.services.ai.actions import attach_blocks
     attach_blocks(request.user, user_msg.created_at, ai_msg)   # confirmation cards / charts made while answering belong to this answer
+    from core.services.ai.image_generation import attach_generated_images
+
+    attach_generated_images(request.user, user_msg.created_at, ai_msg)   # so do the images generate_image made
 
     export_formats = (detect_export_formats(user_text) or formats_from_tool_calls(executed_tool_calls)) if offer_export and not is_non_answer(content_str) else []
     if export_formats:

@@ -15,7 +15,7 @@ LABELS = {
     "app_callers": "Finding where {symbol} is used", "app_git_history": "Reading the history of {path}",
     "app_trace_feature": "Tracing the feature ({feature})",
     "app_coding_context": "Picking the project notes for the task", "app_plan_files": "Checking the files to change", "app_repo_index": "Searching the repo index ({query})",
-    "propose_action": "Preparing a confirmation card", "show_chart": "Drawing a chart",
+    "propose_action": "Preparing a confirmation card", "show_chart": "Drawing a chart", "generate_image": "Generating your image",
 }
 
 

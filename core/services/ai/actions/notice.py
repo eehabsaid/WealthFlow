@@ -26,9 +26,12 @@ class ActionNoticeProvider:
         return getattr(self._provider, name)
 
     def generate(self, messages: list[dict[str, Any]], *args: Any, **kwargs: Any) -> Any:
+        from core.services.ai.image_generation import NOTICE as IMAGE_NOTICE, image_generation_available
+
+        notice = f"{NOTICE} {IMAGE_NOTICE}" if image_generation_available() else NOTICE   # the image sentence only while generate_image is offered
         messages = [dict(m) for m in messages or []]
         if messages and messages[0].get("role") == "system":
-            messages[0]["content"] = f"{messages[0].get('content', '')}\n\n{NOTICE}"
+            messages[0]["content"] = f"{messages[0].get('content', '')}\n\n{notice}"
         else:
-            messages.insert(0, {"role": "system", "content": NOTICE})
+            messages.insert(0, {"role": "system", "content": notice})
         return self._provider.generate(messages, *args, **kwargs)

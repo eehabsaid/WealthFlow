@@ -1,0 +1,17 @@
+"""Configurable AI image generation: a provider-independent `generate_image` tool (text-to-image and image editing).
+
+  settings.py    the five AppSettings fields (enabled, provider, model, endpoint, api_key) and the availability check
+  providers/     the provider interface, registry and the ComfyUI provider (workflow templates are JSON data files)
+  service.py     generate_image(): provider call + saving; test_connection() for the settings page
+  storage.py     images are stored as AIAttachment rows (owner-scoped) and linked to the answer that made them
+  tool.py        the registry entry the AI agent loads
+"""
+
+from .providers import provider_catalog
+from .service import generate_image, test_connection
+from .settings import get_image_config, image_generation_available, save_image_settings, validate_image_settings
+from .storage import attach_generated_images
+from .tool import NAME, NOTICE, TOOL_DEF
+
+__all__ = ["NAME", "NOTICE", "TOOL_DEF", "attach_generated_images", "generate_image", "get_image_config", "image_generation_available",
+           "provider_catalog", "save_image_settings", "test_connection", "validate_image_settings"]

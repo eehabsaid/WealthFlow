@@ -73,6 +73,7 @@ window.AIA.saveAISettingsFromGui = async function () {
   };
 
   window.AIA.addSpeechSettingsPayload(payload);
+  window.AIA.addImageSettingsPayload(payload);
 
   // Save provider specific models
   if (provider === "ollama") payload.ai_model = model;

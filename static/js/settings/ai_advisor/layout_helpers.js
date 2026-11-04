@@ -139,6 +139,13 @@ window.AIA.ui.GROUPS = [
     "Speech (STT / TTS)",
     "Optional speech services, configured independently from text AI.",
   ],
+  [
+    "image",
+    "bi-image",
+    "ai_grp_image",
+    "Image generation",
+    "Optional image creation and editing by the AI agent through a configurable provider.",
+  ],
   ["diag", "bi-bug", "ai_grp_diag", "Diagnostics", "For troubleshooting only."],
 ];
 

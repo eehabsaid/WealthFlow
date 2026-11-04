@@ -50,5 +50,9 @@ class AIAttachmentDetailView(View):
             return JsonResponse({"error": "not_found"}, status=404)
         response = HttpResponse(bytes(item.data or b""), content_type=item.mime or "application/octet-stream")
         response["X-Content-Type-Options"] = "nosniff"
-        response["Content-Disposition"] = "inline"
+        safe = "".join(c for c in item.name if c.isprintable() and c not in '"\\')
+        if request.GET.get("download"):   # the Download button: the file is saved instead of shown
+            response["Content-Disposition"] = f'attachment; filename="{safe}"'
+        else:
+            response["Content-Disposition"] = "inline"
         return response

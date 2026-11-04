@@ -2,6 +2,9 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
+GENERATED_PREFIX = "generated-image\n"   # an image made by the generate_image tool starts its `text` with this, followed by the prompt
+
+
 class AIAttachment(models.Model):
     """A file the user attached to a chat message. Text is extracted by code when it is uploaded (table, PDF, Word, text);
     pictures are kept as bytes and sent to the model as images. Per user, never shared."""
@@ -20,4 +23,4 @@ class AIAttachment(models.Model):
         ordering = ["id"]
 
     def to_dict(self):
-        return {"id": self.id, "name": self.name, "kind": self.kind, "size": self.size}
+        return {"id": self.id, "name": self.name, "kind": self.kind, "size": self.size, "generated": (self.text or "").startswith(GENERATED_PREFIX)}

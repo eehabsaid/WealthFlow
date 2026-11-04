@@ -103,6 +103,8 @@ def investigation_tool_schemas(user, domain: str = "") -> list[dict[str, Any]]:
     from core.services.ai.actions.tool import CHART_TOOL_DEF, TOOL_DEF as action_tool
     from core.services.ai.memory.commands import MEMORY_TOOL_DEFS
 
-    # propose_action (confirmation card) and show_chart are offered in every domain, like the memory tools
+    # propose_action (confirmation card), show_chart and (when enabled) generate_image are offered in every domain, like the memory tools
+    from core.services.ai.image_generation import TOOL_DEF as image_tool, image_generation_available
+
     return schemas + ([file_tool["schema"]] if exports_enabled() else []) + [d["schema"] for d in MEMORY_TOOL_DEFS.values()] \
-        + [action_tool["schema"], CHART_TOOL_DEF["schema"]]
+        + [action_tool["schema"], CHART_TOOL_DEF["schema"]] + ([image_tool["schema"]] if image_generation_available() else [])

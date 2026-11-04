@@ -23,6 +23,7 @@ TOOL_PROGRESS_LABELS = {
     "explain_chart": "Analyzing chart data",
     "suggest_optimizations": "Looking for optimizations",
     "suggest_app_feature": "Reviewing feature context",
+    "generate_image": "Generating your image",
 }
 
 # Which argument key to surface in {arg} for each tool, if any.

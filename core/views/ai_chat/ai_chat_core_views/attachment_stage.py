@@ -8,6 +8,7 @@ from typing import Any
 from core.models import AppSettings
 from core.services.ai.attachments import link_to_message, model_input
 
+from . import image_edit_turn
 from .generation_pipeline import build_provider_error_response
 from .response_finalizer import finalize_success
 
@@ -37,10 +38,14 @@ def attachment_response(*, request: Any, body: dict, cache_mgr: Any, progress_ke
     last = {"role": "user", "content": text}
     if images:
         last["images"] = images
-    result = provider.generate([{"role": "system", "content": SYSTEM}, *history, last])
+    with_tool = image_edit_turn.offered(provider, attachments)   # a picture is attached and image generation is on: the model may edit it
+    messages = [{"role": "system", "content": SYSTEM + (image_edit_turn.system_note(attachments) if with_tool else "")}, *history, last]
+    result, executed = (provider.generate(messages, tools=[image_edit_turn.TOOL_DEF["schema"]]) if with_tool else provider.generate(messages)), []
+    if with_tool and not result.get("error"):
+        result, executed = image_edit_turn.run(provider, request.user, messages, result)
     trace.skip_remaining("attachments")
     trace.log_summary()
     if result.get("error") or not (result.get("content") or "").strip():
         return build_provider_error_response(cache_mgr, progress_key, conversation, [], user_msg, result.get("error") or "empty answer")
     sources = [a.name for a in attachments]
-    return finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text, result["content"], [], sources, request, offer_export=False)
+    return finalize_success(cache_mgr, progress_key, conversation, user_msg, user_text, result["content"], executed, sources, request, offer_export=False)

@@ -1,5 +1,6 @@
 from django.urls import path
 from core.views.ai_speech.speech_settings_views import SpeechVoiceSampleView
+from core.views.settings.ai.ai_image_test_view import ImageSettingsTestView
 from .. import views
 from ..views import ExportExcelWorkbookView
 from core.views.settings.billing.gateway_test_views import PaymobGatewayTestView
@@ -24,6 +25,7 @@ urlpatterns = [
     path("api/settings/ai/runtime-capabilities/", views.AIRuntimeCapabilitiesView.as_view()),
     path("api/settings/ai/speech/test/", views.SpeechSettingsTestView.as_view()),
     path("api/settings/ai/speech/voice-sample/", SpeechVoiceSampleView.as_view()),
+    path("api/settings/ai/image-generation/test/", ImageSettingsTestView.as_view()),
     path("api/settings/gold-types/", views.GoldTypeSettingsListView.as_view()),
     path("api/settings/gold-types/<int:pk>/", views.GoldTypeSettingsDetailView.as_view()),
     path("api/settings/gold-purities/", views.GoldPuritySettingsListView.as_view()),

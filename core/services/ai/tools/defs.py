@@ -15,11 +15,13 @@ from core.services.ai.tools.defs_scenario import SCENARIO_TOOL_DEFS
 from core.services.ai.tools.defs_whatif import WHATIF_TOOL_DEFS
 from core.services.ai.tools.defs_app import APP_TOOL_DEFS
 from core.services.ai.exports.tool import NAME as FILE_TOOL_NAME, TOOL_DEF as FILE_TOOL_DEF
+from core.services.ai.image_generation.tool import NAME as IMAGE_TOOL_NAME, TOOL_DEF as IMAGE_TOOL_DEF
 from core.services.ai.investigation.defs import INVESTIGATION_TOOL_DEFS
 from core.services.ai.memory.commands import MEMORY_TOOL_DEFS
 from core.services.ai.actions.tool import NAME as ACTION_TOOL_NAME, TOOL_DEF as ACTION_TOOL_DEF, CHART_NAME, CHART_TOOL_DEF
 
-AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {**SCENARIO_TOOL_DEFS, **WHATIF_TOOL_DEFS, **APP_TOOL_DEFS, **INVESTIGATION_TOOL_DEFS, FILE_TOOL_NAME: FILE_TOOL_DEF, **MEMORY_TOOL_DEFS, ACTION_TOOL_NAME: ACTION_TOOL_DEF, CHART_NAME: CHART_TOOL_DEF}
+AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {**SCENARIO_TOOL_DEFS, **WHATIF_TOOL_DEFS, **APP_TOOL_DEFS, **INVESTIGATION_TOOL_DEFS, FILE_TOOL_NAME: FILE_TOOL_DEF, **MEMORY_TOOL_DEFS, ACTION_TOOL_NAME: ACTION_TOOL_DEF, CHART_NAME: CHART_TOOL_DEF,
+                                          IMAGE_TOOL_NAME: IMAGE_TOOL_DEF}
 
 
 def get_registered_tool_schemas(domain: str | None = None) -> list[dict[str, Any]]:
@@ -28,6 +30,10 @@ def get_registered_tool_schemas(domain: str | None = None) -> list[dict[str, Any
     for tool_def in AI_TOOL_REGISTRY.values():
         if tool_def.get("offer_all_domains"):   # memory tools (read / save / forget): offered on every domain
             schemas.append(tool_def["schema"])
+            continue
+        if tool_def.get("offer_if"):   # generate_image: offered on every domain only while it is enabled and configured
+            if tool_def["offer_if"]():
+                schemas.append(tool_def["schema"])
             continue
         if tool_def.get("offer_always"):   # generate_file: offered on every domain while file generation is enabled
             from core.services.ai.exports.settings import exports_enabled

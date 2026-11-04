@@ -42,6 +42,24 @@ const AIBlocks = (() => {
     return `<div class="ai-act-card" data-block-id="${b.id}"${editable ? " data-editable" : ""}><div class="ai-act-title">${esc(title)}</div><table class="ai-act-rows${p.record === "code_file" ? " ai-act-code" : ""}">${rows}</table><div class="ai-act-foot">${foot}</div></div>`;
   }
 
+  // A picture made (or edited) by the generate_image tool: shown under the answer with a download button.
+  function imageCard(f) {
+    const src = `/api/financial-advisor/ai/attachments/${f.id}/`;
+    const alt = esc(T("ai_image_alt", "Generated image"));
+    return `<figure class="ai-gen-image" data-att-id="${f.id}"><a href="${src}" target="_blank" rel="noopener"><img src="${src}" alt="${alt}" loading="lazy" data-fail="${esc(T("ai_image_load_failed", "The image could not be loaded."))}" onerror="this.closest('figure').classList.add('ai-gen-image-failed'); this.alt=this.dataset.fail"></a><figcaption><a class="btn btn-sm btn-outline-secondary" href="${src}?download=1" download="${esc(f.name)}"><i class="bi bi-download"></i> ${esc(T("ai_image_download", "Download"))}</a></figcaption></figure>`;
+  }
+
+  // The pictures the user attached to a message (for editing), as small previews next to the file chips.
+  function thumbs(files) {
+    return files
+      .filter((f) => f.kind === "image" && !f.generated)
+      .map(
+        (f) =>
+          `<img class="ai-attach-thumb" src="/api/financial-advisor/ai/attachments/${f.id}/" alt="${esc(f.name)}" loading="lazy">`
+      )
+      .join("");
+  }
+
   function repaintPending() {
     document.querySelectorAll(".ai-act-card[data-editable]").forEach((el) => {
       const b = Object.values(byMsg)
@@ -52,18 +70,27 @@ const AIBlocks = (() => {
   }
 
   function render(ctx) {
-    if (ctx.role === "user" && ctx.messageId)
-      return window.AIAttach?.chips(filesByMsg[ctx.messageId] || []) || "";
+    if (ctx.role === "user" && ctx.messageId) {
+      const mine = filesByMsg[ctx.messageId] || [];
+      return (window.AIAttach?.chips(mine) || "") + thumbs(mine);
+    }
     if (ctx.role !== "assistant" || !ctx.messageId) return "";
-    return (byMsg[ctx.messageId] || [])
-      .map((b) =>
-        b.kind === "action"
-          ? actionCard(b)
-          : b.kind === "chart"
-            ? window.AIChart?.draw(b) || ""
-            : ""
-      )
+    const pictures = (filesByMsg[ctx.messageId] || [])
+      .filter((f) => f.generated)
+      .map(imageCard)
       .join("");
+    return (
+      pictures +
+      (byMsg[ctx.messageId] || [])
+        .map((b) =>
+          b.kind === "action"
+            ? actionCard(b)
+            : b.kind === "chart"
+              ? window.AIChart?.draw(b) || ""
+              : ""
+        )
+        .join("")
+    );
   }
 
   async function decide(id, confirm) {
