@@ -92,6 +92,14 @@ window.AIA.buildRoutingHtml = function (s) {
       options: aiaModeOptions(window.AIA.THINK_MODES, think, "ai_think"),
     }) +
     ui.toggleRow({
+      id: "aiTraceRecordingToggle",
+      checked: s.ai_trace_recording === true,
+      labelKey: "ai_trace_recording_label",
+      label: "Record Agent answers for training",
+      helpKey: "ai_trace_recording_help",
+      help: "Saves each Agent answer with the steps it took, for the model training tool (ai_training). Off by default; the saved data stays in your database.",
+    }) +
+    ui.toggleRow({
       id: "aiAgentEnabledToggle",
       checked: s.ai_agent_enabled !== false,
       labelKey: "ai_agent_enabled_label",

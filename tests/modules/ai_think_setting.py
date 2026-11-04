@@ -1,10 +1,11 @@
-"""WealthFlow QA Module - Settings > AI Advisor > Reasoning (thinking) (ai_think: auto | on | off, default auto).
+"""WealthFlow QA Module - Settings > AI Advisor > Reasoning (thinking) (ai_think: auto | on | off, default auto) and the "Record Agent answers for training" switch (ai_trace_recording, default off).
 
 Real browser, real settings API (no model needed: how the loop, the guide and the provider use the value is covered by the
 Django tests with scripted providers):
   1. With no stored row the control shows the default "auto" and the API reports "auto".
   2. Choosing "off" and saving stores it on the server; the control still shows it after a reload.
   3. Restoring "auto" and saving brings the default back.
+  4. The training-recording switch is off by default, saving it on is stored (and survives a reload), and it is turned off again.
 Every setting it changes is restored at the end.
 """
 
@@ -56,11 +57,33 @@ def _run(context, reporter, screenshot_logger):
     _save(page)
     back = page.evaluate(_FETCH, [SETTINGS_URL])["data"].get("ai_think")
     _step(reporter, screenshot_logger, page, "AI Reasoning: auto restored", back == "auto", f"stored={back!r}", "ai_think_auto")
+    _trace(context, reporter, screenshot_logger)
+
+
+def _trace(context, reporter, screenshot_logger):
+    page = context.page
+    _open(page, context)
+    api = lambda: page.evaluate(_FETCH, [SETTINGS_URL])["data"].get("ai_trace_recording")
+    default_ui, default_api = page.is_checked("#aiTraceRecordingToggle"), api()
+    _step(reporter, screenshot_logger, page, "Training recording: off by default", default_ui is False and default_api is False,
+          f"control={default_ui!r}, api={default_api!r}", "ai_trace_default")
+    page.check("#aiTraceRecordingToggle")
+    _save(page)
+    stored = api()
+    page.reload()
+    _open(page, context)
+    after = page.is_checked("#aiTraceRecordingToggle")
+    _step(reporter, screenshot_logger, page, "Training recording: on is saved and survives a reload", stored is True and after is True,
+          f"stored={stored!r}, control after reload={after!r}", "ai_trace_on")
+    page.uncheck("#aiTraceRecordingToggle")
+    _save(page)
+    off = api()
+    _step(reporter, screenshot_logger, page, "Training recording: turned off again", off is False, f"stored={off!r}", "ai_trace_off")
 
 
 def test_ai_think_setting(context, reporter, screenshot_logger):
     try:
-        with pinned({**AI_ENGINE_PINS}), fresh_state(["ai_think"]):
+        with pinned({**AI_ENGINE_PINS}), fresh_state(["ai_think", "ai_trace_recording"]):
             _run(context, reporter, screenshot_logger)
     except Exception as ex:
         shot = screenshot_logger.capture(context.page, "settings", "ai_think_error", "none", "fail", "fail")

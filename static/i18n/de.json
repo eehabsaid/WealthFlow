@@ -89,6 +89,8 @@
     "ai_think_auto": "Auto (empfohlen)",
     "ai_think_on": "Immer an",
     "ai_think_off": "Immer aus",
+    "ai_trace_recording_label": "Agent-Antworten für das Training aufzeichnen",
+    "ai_trace_recording_help": "Speichert jede Agent-Antwort mit den ausgeführten Schritten für das Modelltraining (ai_training). Standardmäßig aus; die Daten bleiben in Ihrer Datenbank.",
     "ai_code_access_label": "KI darf den Quellcode lesen (nur Admin)",
     "ai_code_access_help": "Nur Lesezugriff; Geheimnisse und Datenbanken werden nie offengelegt. Kunden erhalten nie Codezugriff",
     "ai_tool_activity_read_live_app_structure": "Live-App-Struktur entdecken...",

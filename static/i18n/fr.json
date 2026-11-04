@@ -89,6 +89,8 @@
     "ai_think_auto": "Auto (recommandé)",
     "ai_think_on": "Toujours activé",
     "ai_think_off": "Toujours désactivé",
+    "ai_trace_recording_label": "Enregistrer les réponses de l'agent pour l'entraînement",
+    "ai_trace_recording_help": "Enregistre chaque réponse de l'agent avec les étapes suivies, pour l'outil d'entraînement du modèle (ai_training). Désactivé par défaut ; les données restent dans votre base.",
     "ai_code_access_label": "Autoriser l'IA à lire le code source (admin uniquement)",
     "ai_code_access_help": "Lecture seule ; les secrets et les bases de données ne sont jamais exposés. Les clients n'ont jamais accès au code",
     "ai_tool_activity_read_live_app_structure": "Découverte de la structure de l'application...",

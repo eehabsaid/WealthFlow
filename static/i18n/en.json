@@ -93,6 +93,8 @@
     "ai_think_auto": "Auto (recommended)",
     "ai_think_on": "Always on",
     "ai_think_off": "Always off",
+    "ai_trace_recording_label": "Record Agent answers for training",
+    "ai_trace_recording_help": "Saves each Agent answer with the steps it took, for the model training tool (ai_training). Off by default; the saved data stays in your database.",
     "ai_code_access_label": "Let the AI read the source code (admin only)",
     "ai_code_access_help": "Read-only; secrets and databases are never exposed. Customers never get code access",
     "ai_tool_activity_read_live_app_structure": "Discovering live app structure...",

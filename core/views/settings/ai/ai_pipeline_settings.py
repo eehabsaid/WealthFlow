@@ -1,4 +1,4 @@
-"""AI chat pipeline settings (ai_validate_mode, ai_pipeline_debug, ai_direct_answers, ai_investigator_mode, ai_code_access, ai_file_generation + max size / max rows, Agent mode ai_agent_*): get / validate / persist.
+"""AI chat pipeline settings (ai_validate_mode, ai_pipeline_debug, ai_direct_answers, ai_investigator_mode, ai_code_access, ai_trace_recording, ai_file_generation + max size / max rows, Agent mode ai_agent_*): get / validate / persist.
 
 Kept separate from ai_settings_get_helpers / ai_settings_save_helpers (200-line rule).
 Stored app-wide like the other AI settings; read by chat_pipeline.validate / runner.
@@ -33,10 +33,12 @@ def get_pipeline_settings(user=None) -> dict:
     inv = str(AppSettings.get("ai_investigator_mode", "auto", user=user) or "auto").strip().lower()
     code = str(AppSettings.get("ai_code_access", "true", user=None) or "true").strip().lower()   # global: a sysadmin security switch
     files = str(AppSettings.get("ai_file_generation", "true", user=None) or "true").strip().lower()   # global: sysadmin switch
+    trace = str(AppSettings.get("ai_trace_recording", "false", user=None) or "false").strip().lower()   # global: read by ai_training recorder
     return {
         "ai_file_generation": files not in _FALSE,   # default ON: the AI can build Excel / Word / PDF / CSV / code files for the user
         **{key: _clamped(AppSettings.get(key, str(default), user=None), key) for key, (_, _, default) in FILE_LIMITS.items()},
         "ai_investigator_mode": inv if inv in INVESTIGATOR_MODES else "auto",
+        "ai_trace_recording": trace in _TRUE,   # default OFF: Agent answers are saved as training traces only when a sysadmin turns it on
         "ai_code_access": code not in _FALSE,   # default ON; source-code tools are sysadmin-only either way
         "ai_validate_mode": mode if mode in VALIDATE_MODES else DEFAULT_VALIDATE_MODE,
         "ai_pipeline_debug": debug in _TRUE,
@@ -69,6 +71,9 @@ def validate_pipeline_settings(data):
     files = data.get("ai_file_generation", current["ai_file_generation"])
     if isinstance(files, str):
         files = files.strip().lower() not in _FALSE
+    trace = data.get("ai_trace_recording", current["ai_trace_recording"])
+    if isinstance(trace, str):
+        trace = trace.strip().lower() in _TRUE
     limits = {}
     for key in FILE_LIMITS:
         raw = data.get(key, current[key])
@@ -86,7 +91,7 @@ def validate_pipeline_settings(data):
     agent, agent_error = validate_agent_settings(data, current)
     if agent_error:
         return None, JsonResponse({"error": agent_error}, status=400)
-    return {"agent": agent, "file_generation": bool(files), "file_limits": limits, "validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct),
+    return {"agent": agent, "file_generation": bool(files), "file_limits": limits, "validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct), "trace_recording": bool(trace),
             "investigator_mode": inv, "code_access": bool(code), "domains": domains}, None
 
 
@@ -96,6 +101,7 @@ def persist_pipeline_settings(validated, user=None) -> None:
     AppSettings.set("ai_pipeline_debug", "true" if validated["pipeline_debug"] else "false", user=user)
     AppSettings.set("ai_direct_answers", "true" if validated["direct_answers"] else "false", user=user)
     AppSettings.set("ai_investigator_mode", validated["investigator_mode"], user=user)
+    AppSettings.set("ai_trace_recording", "true" if validated["trace_recording"] else "false", user=None)   # always global
     AppSettings.set("ai_code_access", "true" if validated["code_access"] else "false", user=None)   # always global
     AppSettings.set("ai_file_generation", "true" if validated["file_generation"] else "false", user=None)   # always global
     for domain, key in DOMAIN_KEYS.items():
