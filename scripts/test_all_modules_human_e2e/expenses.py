@@ -1,6 +1,7 @@
 """Phase 3: Expenses E2E test. Split out of
 scripts/test_all_modules_human_e2e.py."""
 
+from datetime import date
 from decimal import Decimal
 
 from core.models import ExpenseCategory
@@ -12,16 +13,16 @@ def run_expenses_test(ctx):
     # 3. EXPENSES MODULE TEST
     # ------------------------------------------------------------------
     print("\n--- 3. EXPENSES E2E TEST ---")
-    cat, _ = ExpenseCategory.objects.get_or_create(name="QA Travel Expenses")
+    cat, _ = ExpenseCategory.objects.get_or_create(owner=ctx.user, name="QA Travel Expenses")
     expense_data = {
         "title": "QA Overseas Hotel Expense",
         "category_id": cat.id,
-        "date": "2026-08-05",
+        "date": date.today().isoformat(),   # the QA rate is stored now: a rate dated after the expense does not count (strict_rate)
         "amount": 150.00,
         "currency_id": ctx.usd.id,
         "payment_method": "cash"
     }
-    exp = ExpenseService.create_expense(expense_data)
+    exp = ExpenseService.create_expense(expense_data, ctx.user)
     exp.refresh_from_db()
     # CurrencyConversionService uses buy_rate (50.0) -> amount_base = 150 * 50 = 7500.00 EGP
     assert exp.exchange_rate == Decimal("50.000000"), f"Expense rate failed: {exp.exchange_rate}"
@@ -30,7 +31,7 @@ def run_expenses_test(ctx):
 
     # Update Expense
     update_data = {"amount": 200.00}
-    exp = ExpenseService.update_expense(exp.id, update_data)
+    exp = ExpenseService.update_expense(exp.id, update_data, ctx.user)
     exp.refresh_from_db()
     assert exp.amount_base == Decimal("10000.00"), f"Expense edit amount_base failed: {exp.amount_base}"
     print(f"  [PASS] Expense Edit with Buy Rate: updated to {exp.amount} USD -> {exp.amount_base} EGP.")

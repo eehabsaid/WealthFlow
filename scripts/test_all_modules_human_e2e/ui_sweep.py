@@ -14,7 +14,7 @@ def run_ui_sweep():
     # 5. UI PLAYWRIGHT HUMAN EXPERIENCE SWEEP
     # ------------------------------------------------------------------
     print("\n--- 5. UI PLAYWRIGHT HUMAN EXPERIENCE SWEEP ---")
-    out_dir = r"C:\Users\ehab.alqabbani\.gemini\antigravity\brain\88030822-0997-48fc-bf5b-17fe11e74582\screenshots"
+    out_dir = "test_reports/screenshots"   # same folder as scripts/test_ui_human_full_e2e.py (created below when missing)
     os.makedirs(out_dir, exist_ok=True)
 
     with sync_playwright() as p:
