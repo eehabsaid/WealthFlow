@@ -24,7 +24,13 @@ def _state(user) -> dict:
 
 class AIChatModeView(View):
     def get(self, request):
-        return _api_auth_required(request) or JsonResponse(_state(request.user))
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        from core.services.ai.image_generation import warm_start_if_enabled
+
+        warm_start_if_enabled()   # the workspace opened: have the image server ready (background; no-op when off or already running)
+        return JsonResponse(_state(request.user))
 
     def post(self, request):
         auth_error = _api_auth_required(request)

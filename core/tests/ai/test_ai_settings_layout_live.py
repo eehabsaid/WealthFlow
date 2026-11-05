@@ -27,7 +27,7 @@ IDS = ["aiEnabledToggle", "aiProviderSelect", "aiModelInput", "aiTemperatureInpu
        "aiFileMaxRowsInput", "aiPipelineDebugToggle", "aiSaveBtn", "aiUserLimitsPanel",
        "speech_stt_enabled", "speech_stt_endpoint", "speech_stt_test", "speech_tts_enabled", "speech_tts_endpoint", "speech_tts_test",
        "speech_tts_ar_enabled", "speech_tts_ar_endpoint", "speech_tts_ar_test",
-       "image_gen_enabled", "image_gen_provider", "image_gen_model", "image_gen_endpoint", "image_gen_api_key", "image_gen_test"]
+       "image_gen_enabled", "image_gen_provider", "image_gen_model", "image_gen_endpoint", "image_gen_api_key", "image_gen_start_command", "image_gen_test"]
 GROUPS = ["provider", "safety", "domains", "routing", "agent", "docs", "files", "speech", "image", "diag"]
 SHOTS = os.environ.get("AI_LAYOUT_SHOTS", "")
 
@@ -88,7 +88,7 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
         self.assertEqual(p.locator("#aiaGroup-files input[type=number]").count(), 2)
         self.assertEqual(p.locator("#aiaGroup-speech input[type=number]").count(), 3)   # STT, TTS and Arabic-voice timeouts
         self.assertEqual(p.locator("#aiaGroup-speech #speech_stt_test, #aiaGroup-speech #speech_tts_test, #aiaGroup-speech #speech_tts_ar_test").count(), 3)
-        self.assertEqual(p.locator("#aiaGroup-image [id^=image_gen_]").count(), 7)   # switch, provider, model, URL, key, test button, test result
+        self.assertEqual(p.locator("#aiaGroup-image [id^=image_gen_]").count(), 8)   # switch, provider, model, URL, key, start command, test button, test result
         self.assertEqual(p.locator("#aiaGroup-provider [id^=speech_], #aiaGroup-provider [id^=image_gen_]").count(), 0)
         # Test Connection is the last control of the Provider card
         last = p.evaluate("() => [...document.querySelectorAll('#aiaGroup-provider button')].pop().id")

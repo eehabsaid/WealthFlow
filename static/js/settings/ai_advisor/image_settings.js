@@ -55,12 +55,20 @@ window.AIA.buildImageSettingsHtml = function (s) {
         ),
       2
     ) +
+    field(
+      "image_gen_start_command",
+      "Server start command (optional)",
+      s.image_gen_start_command,
+      "text",
+      "Full command that starts the provider's server; {host} and {port} come from the API URL"
+    ) +
+    `<div class="aia-help mb-2" data-i18n="image_gen_start_command_help">${t("image_gen_start_command_help", "When set, WealthFlow starts the server in the background whenever image generation is enabled, waits until it answers, never starts a second copy, and stops it when you switch image generation off or WealthFlow exits. Leave empty if you run the server yourself.")}</div>` +
     `<div class="aia-row"><div class="aia-row-text"><label class="aia-label" data-i18n="image_gen_test_label">${t("image_gen_test_label", "Test connection")}</label><div class="aia-help" data-i18n="image_gen_test_help">${t("image_gen_test_help", "Checks that the provider answers with the values above and that its model files are installed.")}</div></div><div class="aia-row-control"><button type="button" class="btn btn-outline-info" id="image_gen_test" onclick="window.AIA.testImageProvider()"><i class="bi bi-activity me-1"></i><span data-i18n="image_gen_test_button">${t("image_gen_test_button", "Test connection")}</span></button></div></div><div id="image_gen_test_result" class="mb-2" hidden></div>`
   );
 };
 
 window.AIA.addImageSettingsPayload = function (payload) {
-  ["enabled", "provider", "model", "endpoint", "api_key"].forEach((f) => {
+  ["enabled", "provider", "model", "endpoint", "api_key", "start_command"].forEach((f) => {
     const el = document.getElementById(`image_gen_${f}`);
     if (el) payload[`image_gen_${f}`] = f === "enabled" ? el.checked : el.value.trim();
   });
@@ -74,7 +82,10 @@ window.AIA.testImageProvider = async function () {
   window.AIA.addImageSettingsPayload(payload);
   result.hidden = false;
   result.className = "alert alert-info mb-2";
-  result.textContent = t("image_gen_testing", "Testing connection...");
+  result.textContent = t(
+    "image_gen_testing",
+    "Testing connection (starting the server first if needed, this can take a minute)..."
+  );
   button.disabled = true;
   try {
     const response = await fetch("/api/settings/ai/image-generation/test/", {

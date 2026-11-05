@@ -2911,11 +2911,13 @@
     "image_gen_test_label": "Test connection",
     "image_gen_test_help": "Checks that the provider answers with the values above and that its model files are installed.",
     "image_gen_test_button": "Test connection",
-    "image_gen_testing": "Testing connection...",
+    "image_gen_testing": "Testing connection (starting the server first if needed, this can take a minute)...",
     "image_gen_test_failed": "Connection test failed",
     "ai_image_alt": "Generated image",
     "ai_image_download": "Download",
     "ai_image_load_failed": "The image could not be loaded.",
     "ai_agent_tool_generate_image": "Generating your image",
-    "ai_tool_activity_generate_image": "Generating your image..."
+    "ai_tool_activity_generate_image": "Generating your image...",
+    "image_gen_start_command_label": "Server start command (optional)",
+    "image_gen_start_command_help": "When set, WealthFlow starts the server in the background whenever image generation is enabled, waits until it answers, never starts a second copy, and stops it when you switch image generation off or WealthFlow exits. Leave empty if you run the server yourself."
 }

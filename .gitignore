@@ -21,6 +21,7 @@ doc_engine/.auth/
 docs/screenshots/
 docs/generated/
 test_downloads/
+runtime/
 test_reports/
 # i18n audit – unused keys archive
 unused.json

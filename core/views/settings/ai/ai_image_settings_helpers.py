@@ -1,6 +1,6 @@
 """Image generation settings payload, validation and persistence for the AI settings page (same flow as the speech settings)."""
 
-from core.services.ai.image_generation import get_image_config, provider_catalog, save_image_settings, validate_image_settings
+from core.services.ai.image_generation import apply_settings_change, get_image_config, provider_catalog, save_image_settings, validate_image_settings
 from core.services.ai.image_generation.settings import FIELDS
 
 
@@ -18,3 +18,4 @@ def validate_image_settings_data(data):
 
 def persist_image_settings(data):
     save_image_settings(data)
+    apply_settings_change()   # enabled: start the provider server in the background; switched off: stop the one WealthFlow started

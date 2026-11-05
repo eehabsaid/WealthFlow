@@ -4,15 +4,24 @@ Real browser, real APIs (no image provider is needed: the provider is exercised 
   1. The Image generation card is there, off by default; the generate_image tool is not offered (the settings API says so).
   2. Entering a provider / model / URL and pressing Test connection shows a clear error for an unreachable server (no crash).
   3. Saving with the switch on and incomplete values is refused; saving complete values stores them (key masked) and survives a reload.
+  3b. WealthFlow starts the server itself: with a start command saved, Test connection starts a real (fake ComfyUI) process, reports
+     it, the server then answers on its port, and switching image generation off stops it again.
   4. A generated picture row (made by the ORM, like the tool would) is shown under the answer in the chat with an <img> and a
      Download button; the download link returns an attachment; another user's / unknown id answers 404.
 Every setting and row it creates is removed at the end.
 """
 
+import os
+import socket
+import sys
+import time
+
+import requests
+
 from tests.modules.e2e_settings import AI_ENGINE_PINS, django_exec, fresh_state, pinned
 
 SETTINGS_URL = "/api/settings/ai/"
-KEYS = [f"image_gen_{f}" for f in ("enabled", "provider", "model", "endpoint", "api_key")]
+KEYS = [f"image_gen_{f}" for f in ("enabled", "provider", "model", "endpoint", "api_key", "start_command")]
 _FETCH = """async ([url, method, body]) => { const res = await fetch(url, {method: method || "GET",
   headers: {"Content-Type": "application/json", "X-CSRFToken": (window.wfGetCsrfToken && window.wfGetCsrfToken()) || ""},
   body: body ? JSON.stringify(body) : undefined});
@@ -75,6 +84,49 @@ def _settings_steps(context, reporter, screenshot_logger):
     _step(reporter, screenshot_logger, page, "Complete image settings are saved, key masked, survive a reload", ok, f"status={status} key={stored.get('image_gen_api_key')!r}", "image_gen_saved")
 
 
+FAKE_SERVER = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "core", "tests", "ai", "fake_comfy_server.py")
+STOP_SERVER = "from core.services.ai.image_generation.server import stop_server; stop_server()"
+
+
+def _answers(port):
+    try:
+        return requests.get(f"http://127.0.0.1:{port}/system_stats", timeout=1).status_code == 200
+    except requests.RequestException:
+        return False
+
+
+def _wait(predicate, seconds):
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if predicate():
+            return True
+        time.sleep(0.5)
+    return False
+
+
+def _managed_server_steps(context, reporter, screenshot_logger):
+    page = context.page
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    try:
+        page.fill("#image_gen_endpoint", f"http://127.0.0.1:{port}")
+        page.fill("#image_gen_start_command", f'"{sys.executable}" "{FAKE_SERVER}" --port {{port}}')
+        page.click("#image_gen_test")
+        page.wait_for_selector("#image_gen_test_result.alert-success", timeout=90000)
+        msg = page.inner_text("#image_gen_test_result")
+        up = _answers(port)
+        _step(reporter, screenshot_logger, page, "Test connection starts the image server by itself", up and "started by WealthFlow" in msg, msg[:140], "image_gen_managed_start")
+        status = _save(page)
+        _step(reporter, screenshot_logger, page, "Saving with the start command keeps the server up (no duplicate)", status == 200 and _answers(port), f"status={status}", "image_gen_managed_saved")
+        page.uncheck("#image_gen_enabled")
+        status = _save(page)
+        stopped = _wait(lambda: not _answers(port), 20)
+        _step(reporter, screenshot_logger, page, "Switching image generation off stops the server WealthFlow started", status == 200 and stopped, f"status={status} stopped={stopped}", "image_gen_managed_stop")
+    finally:
+        django_exec(STOP_SERVER)
+
+
 def _chat_steps(context, reporter, screenshot_logger):
     page = context.page
     convo, att = django_exec(MAKE_ROW).split()[-2:]
@@ -100,6 +152,7 @@ def test_ai_image_generation(context, reporter, screenshot_logger):
     try:
         with fresh_state(KEYS), pinned(AI_ENGINE_PINS):
             _settings_steps(context, reporter, screenshot_logger)
+            _managed_server_steps(context, reporter, screenshot_logger)
             _chat_steps(context, reporter, screenshot_logger)
     except Exception as ex:
         shot = screenshot_logger.capture(context.page, "settings", "image_gen_error", "none", "fail", "fail")

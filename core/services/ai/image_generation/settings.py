@@ -11,7 +11,7 @@ from core.services.ai.credential_encryption import decrypt_credential, encrypt_c
 
 from .providers.registry import get_provider_class
 
-FIELDS = ("enabled", "provider", "model", "endpoint", "api_key")
+FIELDS = ("enabled", "provider", "model", "endpoint", "api_key", "start_command")
 _TRUE = {"true", "1", "yes", "on"}
 
 
@@ -36,7 +36,7 @@ def is_configured(cfg: dict) -> bool:
 def get_image_config(include_secret: bool = False) -> dict:
     raw_key = decrypt_credential(_get("api_key"))
     cfg = {"enabled": _truth(_get("enabled", "false")), "provider": _get("provider").strip().lower(), "model": _get("model").strip(),
-           "endpoint": _get("endpoint").strip(), "api_key": raw_key if include_secret else mask_credential(raw_key)}
+           "endpoint": _get("endpoint").strip(), "start_command": _get("start_command").strip(), "api_key": raw_key if include_secret else mask_credential(raw_key)}
     cfg["api_key_is_configured"] = bool(raw_key)
     cfg["is_configured"] = is_configured({**cfg, "api_key": raw_key})
     return cfg
@@ -57,6 +57,18 @@ def validate_image_settings(data: dict) -> str | None:
     model = str(data.get("image_gen_model", cur["model"]) or "").strip()
     key = str(data.get("image_gen_api_key", "") or "").strip()
     key = cur["api_key"] if (not key or is_masked(key)) else key
+    command = str(data.get("image_gen_start_command", cur["start_command"]) or "").strip()
+    cls = get_provider_class(provider)
+    if command and cls is not None and not cls.supports_managed_server:
+        return f"The provider '{provider}' has no server that WealthFlow can start; clear the start command"
+    if command and cls is not None:
+        from .server import process
+        from .server.errors import ServerError
+        try:
+            args = process.build_args(command, endpoint or "http://127.0.0.1:8188")
+            process.check_executable(args)
+        except ServerError as exc:
+            return str(exc)
     if endpoint and not endpoint.lower().startswith(("http://", "https://")):
         return "Image generation API URL must start with http:// or https://"
     if provider and get_provider_class(provider) is None:

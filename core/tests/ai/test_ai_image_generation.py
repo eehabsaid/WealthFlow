@@ -105,10 +105,11 @@ class SettingsTests(ImageBase):
         self.assertIn("http", validate_image_settings({**CFG, "image_gen_endpoint": "ftp://x"}))
         self.assertIn("Unknown", validate_image_settings({**CFG, "image_gen_provider": "nope"}))
 
-    def test_no_settings_key_outside_the_five_fields(self):
+    def test_no_settings_key_outside_the_known_fields(self):
         save_image_settings(CFG)
         keys = set(AppSettings.objects.filter(key__startswith="image_gen_").values_list("key", flat=True))
-        self.assertEqual(keys, {f"image_gen_{f}" for f in ("enabled", "provider", "model", "endpoint", "api_key")})
+        self.assertTrue(keys <= {f"image_gen_{f}" for f in ("enabled", "provider", "model", "endpoint", "api_key", "start_command")})
+        self.assertEqual(len(keys), 5)   # nothing else is created; the optional start command only when one is given
 
 
 class ToolTests(ImageBase):

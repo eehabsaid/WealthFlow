@@ -2911,11 +2911,13 @@
     "image_gen_test_label": "اختبار الاتصال",
     "image_gen_test_help": "يتحقق من استجابة المزوّد بالقيم أعلاه ومن تثبيت ملفات النموذج.",
     "image_gen_test_button": "اختبار الاتصال",
-    "image_gen_testing": "جارٍ اختبار الاتصال...",
+    "image_gen_testing": "جارٍ اختبار الاتصال (مع تشغيل الخادم أولاً عند الحاجة، وقد يستغرق دقيقة)...",
     "image_gen_test_failed": "فشل اختبار الاتصال",
     "ai_image_alt": "صورة مولَّدة",
     "ai_image_download": "تنزيل",
     "ai_image_load_failed": "تعذّر تحميل الصورة.",
     "ai_agent_tool_generate_image": "جارٍ توليد الصورة",
-    "ai_tool_activity_generate_image": "جارٍ توليد الصورة..."
+    "ai_tool_activity_generate_image": "جارٍ توليد الصورة...",
+    "image_gen_start_command_label": "أمر تشغيل الخادم (اختياري)",
+    "image_gen_start_command_help": "عند ضبطه يشغّل WealthFlow الخادم في الخلفية كلما كان توليد الصور مفعّلاً، وينتظر حتى يستجيب، ولا يشغّل نسخة ثانية، ويوقفه عند تعطيل توليد الصور أو إغلاق WealthFlow. اتركه فارغاً إذا كنت تشغّل الخادم بنفسك."
 }

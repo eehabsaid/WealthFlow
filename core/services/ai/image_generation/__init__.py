@@ -7,11 +7,12 @@
   tool.py        the registry entry the AI agent loads
 """
 
+from .lifecycle import apply_settings_change, warm_start_if_enabled
 from .providers import provider_catalog
 from .service import generate_image, test_connection
 from .settings import get_image_config, image_generation_available, save_image_settings, validate_image_settings
 from .storage import attach_generated_images
 from .tool import NAME, NOTICE, TOOL_DEF
 
-__all__ = ["NAME", "NOTICE", "TOOL_DEF", "attach_generated_images", "generate_image", "get_image_config", "image_generation_available",
+__all__ = ["NAME", "NOTICE", "TOOL_DEF", "apply_settings_change", "attach_generated_images", "warm_start_if_enabled", "generate_image", "get_image_config", "image_generation_available",
            "provider_catalog", "save_image_settings", "test_connection", "validate_image_settings"]

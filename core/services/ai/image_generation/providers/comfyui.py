@@ -13,6 +13,7 @@ import uuid
 
 import requests
 
+from ..server import ServerError, ensure_running, stop_server, warm_start
 from .base import ImageProvider, ImageProviderError, ImageResult, SourceImage
 from .comfyui_workflows import MODES, build_graph, pick_template
 from .registry import register
@@ -40,6 +41,31 @@ class ComfyUIProvider(ImageProvider):
     requires_endpoint = True
     requires_api_key = False
     supports_edit = True
+    supports_managed_server = True
+
+    def _alive(self) -> bool:
+        """True when a ComfyUI answers on the saved API URL."""
+        try:
+            response = requests.get(self._url("/system_stats"), headers=self._headers(), timeout=3)
+            return response.status_code == 200 and "system" in response.json()
+        except (requests.RequestException, ValueError):
+            return False
+
+    def prepare(self) -> str:
+        command = self.cfg.get("start_command", "")
+        if not command:                      # no start command saved: the server is run by whoever owns it
+            return ""
+        try:
+            return ensure_running(command, self.cfg["endpoint"], self._alive)
+        except ServerError as exc:
+            raise ImageProviderError(str(exc)) from None
+
+    def warm_start(self) -> None:
+        if self.cfg.get("start_command"):
+            warm_start(self.cfg["start_command"], self.cfg["endpoint"], self._alive)
+
+    def shutdown(self) -> None:
+        stop_server()
 
     def _url(self, path: str) -> str:
         return self.cfg["endpoint"].rstrip("/") + path
@@ -67,6 +93,7 @@ class ComfyUIProvider(ImageProvider):
             raise ImageProviderError(f"ComfyUI {what} returned an unreadable answer.") from None
 
     def test_connection(self) -> str:
+        note = self.prepare()
         self._json(self._call("GET", "/system_stats"), "connection test")
         template = pick_template(self.cfg["model"])
         graphs = {m: build_graph(self.cfg["model"], m, {"prompt": "", "width": 512, "height": 512, "seed": 0, "source": ""}) for m in MODES if m in template}
@@ -88,7 +115,7 @@ class ComfyUIProvider(ImageProvider):
                     absent.append(f"{name}={value}")
         if absent:
             raise ImageProviderError(f"ComfyUI is reachable but these files are not installed on it: {', '.join(absent)}.")
-        return "ComfyUI is reachable; the workflow nodes and model files are installed."
+        return (note + ". " if note else "") + "ComfyUI is reachable; the workflow nodes and model files are installed."
 
     def _upload(self, source: SourceImage) -> str:
         ext = source.name.rsplit(".", 1)[-1].lower() if "." in source.name else "png"
@@ -122,6 +149,7 @@ class ComfyUIProvider(ImageProvider):
         raise ImageProviderError("ComfyUI did not finish within the time limit.")
 
     def generate(self, prompt: str, *, width: int, height: int, source: SourceImage | None = None) -> ImageResult:
+        self.prepare()
         values = {"prompt": prompt, "width": width, "height": height, "seed": random.randint(0, 2**53 - 1)}
         if source is not None:
             values["source"] = self._upload(source)
