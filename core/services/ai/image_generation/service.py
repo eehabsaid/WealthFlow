@@ -25,7 +25,7 @@ def clamp_size(value, fallback: int = SIZE_DEFAULT) -> int:
 
 def build_provider(overrides: dict | None = None):
     """The provider selected in the settings (optionally with unsaved form values, for the Test button)."""
-    cfg = {**get_image_config(include_secret=True), **{k: v for k, v in (overrides or {}).items() if v not in (None, "")}}
+    cfg = {**get_image_config(include_secret=True), **{k: v for k, v in (overrides or {}).items() if v is not None and (v != "" or k == "start_command")}}
     cls = get_provider_class(cfg.get("provider", ""))
     if cls is None:
         raise ImageProviderError("No image generation provider is selected.")

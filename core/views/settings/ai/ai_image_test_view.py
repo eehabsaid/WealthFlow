@@ -24,6 +24,8 @@ class ImageSettingsTestView(SysadminRequiredMixin, View):
         except json.JSONDecodeError:
             return JsonResponse({"ok": False, "error": "Invalid JSON body"}, status=400)
         overrides = {f: str(data.get(f"image_gen_{f}") or "").strip() for f in ("provider", "model", "endpoint", "api_key")}
+        if "image_gen_start_command" in data:   # what is typed in the form, even when emptied (empty = nothing is started)
+            overrides["start_command"] = str(data.get("image_gen_start_command") or "").strip()
         if is_masked(overrides["api_key"]):
             overrides["api_key"] = ""   # an unchanged masked key means "use the saved one"
         endpoint = overrides["endpoint"]

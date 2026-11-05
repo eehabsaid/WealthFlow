@@ -99,3 +99,14 @@ class ManagedServerFlowTests(ImageBase):
         out = generate_image(self.admin, {"prompt": "x"})
         self.assertIn("error", out)                                        # nothing listening, nothing started
         self.assertFalse(os.path.exists(os.path.join(self.tmp, "runtime", "image_server", "state.json")))
+
+    def test_test_connection_uses_the_start_command_typed_in_the_form_before_saving(self):
+        body = {k: v for k, v in self.settings_body().items() if k != "image_gen_enabled"}
+        res = self.client.post("/api/settings/ai/image-generation/test/", json.dumps(body), content_type="application/json")
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertIn("started by WealthFlow", res.json()["detail"])
+        self.assertIsNotNone(state.read_state())                           # started from the unsaved form value
+        stop_server()                                                      # a server that already answers needs no command at all
+        bad = self.client.post("/api/settings/ai/image-generation/test/", json.dumps({**body, "image_gen_start_command": "/no/such/program"}), content_type="application/json")
+        self.assertEqual(bad.status_code, 502)
+        self.assertIn("not found", bad.json()["error"])

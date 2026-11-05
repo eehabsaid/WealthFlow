@@ -1,0 +1,97 @@
+{
+ "id": "20261105-110437-add-a-small-reusable-utility-t",
+ "goal": "Add a small reusable utility to the existing frontend that formats monetary amounts consistently using the application's existing currency and locale settings. First inspect the existing implementation and reuse its conventions. Do not duplicate existing functionality. List every file that needs to change, explain the changes, and identify the tests. Do not modify protected financial calculations.",
+ "created": "2026-11-05T11:04:37",
+ "updated": "2026-11-05T11:05:21",
+ "status": "awaiting_approval",
+ "stop_reason": "",
+ "plan": {
+  "summary": "Add a reusable fmtCurrency(n, code?) helper to the existing formatting module (static/js/app/formatting.js) that formats a monetary amount using the app's existing locale convention (getNumberLocale from the same file) plus the user's currency (baseCurrencyCode()/baseCurrencySymbol() from static/js/utils/base_currency.js, loaded earlier). This reuses, not duplicates, the existing fmt/fmtpresent and base-currency helpers. Bump the ?v= cachebust for formatting.js in the script partial.",
+  "steps": [
+   {
+    "id": "S1",
+    "title": "Inspect existing formatting + base-currency conventions",
+    "files": [
+     "static/js/app/formatting.js",
+     "static/js/utils/base_currency.js",
+     "static/js/app/index.js",
+     "templates/partials/scripts/02_reports_app_shell.html",
+     "templates/partials/scripts/01_vendor_i18n_datepicker.html"
+    ]
+   },
+   {
+    "id": "S2",
+    "title": "Add fmtCurrency helper and export it",
+    "files": [
+     "static/js/app/formatting.js",
+     "static/js/app/index.js"
+    ]
+   },
+   {
+    "id": "S3",
+    "title": "Bump cache version for formatting.js",
+    "files": [
+     "templates/partials/scripts/02_reports_app_shell.html"
+    ]
+   }
+  ],
+  "files_add": [],
+  "files_edit": [
+   "static/js/app/formatting.js",
+   "static/js/app/index.js",
+   "templates/partials/scripts/02_reports_app_shell.html"
+  ],
+  "files_delete": [],
+  "files_rename": [],
+  "tests": [
+   "No JS unit-test harness exists in the repo (tests/ only covers Python/E2E). Validate with: node --check static/js/app/formatting.js, npm run validate, npm run format. Optionally a Playwright/E2E module could assert the rendered output, but none is required for this utility-only change.",
+   "Risks: none to financial calculations (read-only use of base currency settings); cache-bust bump is required so browsers pick up the new function."
+  ],
+  "risks": [
+   "fmtCurrency must guard against window.WF_BASE not yet loaded (auth pages) — fall back to code-only or plain fmt(n) output.",
+   "Existing callers of fmt/fmtpresent are untouched, so no behavior change elsewhere."
+  ],
+  "needs_owner_approval": []
+ },
+ "plan_sha": "81bc95e790f43f47a7d9e29785b95885569c9cf1c3e8307fe7d05388e24e50e6",
+ "approved_at": "",
+ "packages": [
+  {
+   "id": "P1",
+   "title": "Inspect existing formatting + 2 more",
+   "steps": [
+    "S1",
+    "S2",
+    "S3"
+   ],
+   "files": [
+    "static/js/app/formatting.js",
+    "static/js/app/index.js",
+    "static/js/utils/base_currency.js",
+    "templates/partials/scripts/01_vendor_i18n_datepicker.html",
+    "templates/partials/scripts/02_reports_app_shell.html"
+   ],
+   "est_tokens": 20980,
+   "status": "pending",
+   "summary": "",
+   "oversize": false
+  }
+ ],
+ "files": {},
+ "approvals": [],
+ "verification": [],
+ "proposals": [],
+ "agent_summaries": [],
+ "usage": {
+  "input_tokens": 97411,
+  "output_tokens": 1901
+ },
+ "events": [
+  {
+   "t": "2026-11-05T11:05:21",
+   "kind": "status",
+   "status": "awaiting_approval",
+   "reason": ""
+  }
+ ]
+}

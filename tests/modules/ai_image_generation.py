@@ -46,6 +46,8 @@ def _step(reporter, screenshot_logger, page, name, ok, detail, shot_name):
 
 def _open(page, context):
     context.goto_route("#settings-aiadvisor")
+    page.reload()   # earlier modules already loaded this page: start from what the server holds now, not their in-memory form
+    context.goto_route("#settings-aiadvisor")
     page.wait_for_selector("#image_gen_enabled", timeout=20000)
 
 
@@ -60,8 +62,10 @@ def _settings_steps(context, reporter, screenshot_logger):
     page = context.page
     _open(page, context)
     api = page.evaluate(_FETCH, [SETTINGS_URL])["data"]
-    ok = not page.is_checked("#image_gen_enabled") and api.get("image_gen_enabled") is False and "comfyui" in [p["key"] for p in api.get("image_gen_providers", [])]
-    _step(reporter, screenshot_logger, page, "Image generation: card present and off by default", ok, f"enabled={api.get('image_gen_enabled')}", "image_gen_default")
+    ui_on, api_on = page.is_checked("#image_gen_enabled"), api.get("image_gen_enabled")
+    providers = [p["key"] for p in api.get("image_gen_providers", [])]
+    ok = not ui_on and api_on is False and "comfyui" in providers
+    _step(reporter, screenshot_logger, page, "Image generation: card present and off by default", ok, f"control={ui_on}, api={api_on}, providers={providers}", "image_gen_default")
     page.select_option("#image_gen_provider", "comfyui")
     page.fill("#image_gen_model", "flux-2-klein-4b.safetensors")
     page.fill("#image_gen_endpoint", "http://127.0.0.1:9")
@@ -113,10 +117,10 @@ def _managed_server_steps(context, reporter, screenshot_logger):
         page.fill("#image_gen_endpoint", f"http://127.0.0.1:{port}")
         page.fill("#image_gen_start_command", f'"{sys.executable}" "{FAKE_SERVER}" --port {{port}}')
         page.click("#image_gen_test")
-        page.wait_for_selector("#image_gen_test_result.alert-success", timeout=90000)
-        msg = page.inner_text("#image_gen_test_result")
+        page.wait_for_selector("#image_gen_test_result.alert-success, #image_gen_test_result.alert-danger", timeout=120000)
+        msg = page.inner_text("#image_gen_test_result")   # a failure shows its real message instead of timing out
         up = _answers(port)
-        _step(reporter, screenshot_logger, page, "Test connection starts the image server by itself", up and "started by WealthFlow" in msg, msg[:140], "image_gen_managed_start")
+        _step(reporter, screenshot_logger, page, "Test connection starts the image server by itself", up and "started by WealthFlow" in msg, msg[:300], "image_gen_managed_start")
         status = _save(page)
         _step(reporter, screenshot_logger, page, "Saving with the start command keeps the server up (no duplicate)", status == 200 and _answers(port), f"status={status}", "image_gen_managed_saved")
         page.uncheck("#image_gen_enabled")
