@@ -45,5 +45,223 @@
     "core/services/reports": "core.tests.reports",
     "core/views/settings": "core.tests.settings",
     "static/i18n": "core.tests.i18n"
+  },
+  "agent_index_roots": [
+    "core",
+    "wealthflow",
+    "scripts",
+    "static/js",
+    "templates",
+    "tests",
+    "dev_agent"
+  ],
+  "forbidden": [
+    "core/migrations/*",
+    "*/migrations/*.py",
+    "db.sqlite3",
+    ".env"
+  ],
+  "secret_files": [
+    ".env",
+    "*.env",
+    "*.pem",
+    "*id_rsa*",
+    "*.pfx",
+    ".webui_secret_key"
+  ],
+  "test_command": [
+    "python",
+    "manage.py",
+    "test",
+    "{modules}"
+  ],
+  "commands": {
+    "allow": [
+      [
+        "python",
+        "manage.py",
+        "check"
+      ],
+      [
+        "python",
+        "manage.py",
+        "test"
+      ],
+      [
+        "python",
+        "manage.py",
+        "makemigrations"
+      ],
+      [
+        "python",
+        "-m",
+        "pyflakes"
+      ],
+      [
+        "python",
+        "-m",
+        "pytest"
+      ],
+      [
+        "npx",
+        "eslint"
+      ],
+      [
+        "npx",
+        "htmlhint"
+      ],
+      [
+        "npx",
+        "stylelint"
+      ],
+      [
+        "npx",
+        "prettier"
+      ]
+    ],
+    "ask": [
+      [
+        "python",
+        "manage.py",
+        "migrate"
+      ],
+      [
+        "python",
+        "scripts",
+        "run_full_e2e.py"
+      ]
+    ],
+    "deny": [
+      [
+        "python",
+        "manage.py",
+        "flush"
+      ],
+      [
+        "python",
+        "manage.py",
+        "sqlflush"
+      ],
+      [
+        "python",
+        "manage.py",
+        "dbshell"
+      ]
+    ],
+    "ask_args": [
+      "--fix",
+      "--write",
+      "-w",
+      "--fix-type"
+    ]
+  },
+  "verify_steps": [
+    {
+      "name": "django check",
+      "argv": [
+        "python",
+        "manage.py",
+        "check"
+      ]
+    },
+    {
+      "name": "makemigrations --check",
+      "argv": [
+        "python",
+        "manage.py",
+        "makemigrations",
+        "--check",
+        "--dry-run"
+      ],
+      "ext": [
+        ".py"
+      ]
+    },
+    {
+      "name": "pyflakes",
+      "argv": [
+        "python",
+        "-m",
+        "pyflakes",
+        "{files}"
+      ],
+      "ext": [
+        ".py"
+      ]
+    },
+    {
+      "name": "django tests",
+      "argv": [
+        "python",
+        "manage.py",
+        "test",
+        "{modules}"
+      ],
+      "ext": [
+        ".py"
+      ]
+    },
+    {
+      "name": "eslint",
+      "argv": [
+        "npx",
+        "eslint",
+        "--no-eslintrc",
+        "-c",
+        "config/linting/.eslintrc.json",
+        "{files}"
+      ],
+      "ext": [
+        ".js"
+      ]
+    },
+    {
+      "name": "stylelint",
+      "argv": [
+        "npx",
+        "stylelint",
+        "--config",
+        "config/linting/.stylelintrc.json",
+        "{files}"
+      ],
+      "ext": [
+        ".css"
+      ]
+    },
+    {
+      "name": "htmlhint",
+      "argv": [
+        "npx",
+        "htmlhint",
+        "--config",
+        "config/linting/.htmlhintrc",
+        "{files}"
+      ],
+      "ext": [
+        ".html"
+      ]
+    },
+    {
+      "name": "prettier",
+      "argv": [
+        "npx",
+        "prettier",
+        "--config",
+        "config/linting/.prettierrc.json",
+        "--check",
+        "{files}"
+      ],
+      "ext": [
+        ".js",
+        ".css"
+      ]
+    }
+  ],
+  "e2e": {
+    "paths": [
+      "static/*",
+      "templates/*"
+    ],
+    "command": "python scripts/run_full_e2e.py"
   }
 }

@@ -1,0 +1,26 @@
+{
+  "provider": "ollama",
+  "model": "qwen3.8:27b-agent2",
+  "providers": {
+    "ollama": {
+      "base_url": "http://127.0.0.1:11434"
+    },
+    "anthropic": {
+      "base_url": "https://api.anthropic.com"
+    },
+    "openai": {
+      "base_url": "https://api.openai.com/v1"
+    },
+    "gemini": {
+      "base_url": "https://generativelanguage.googleapis.com"
+    }
+  },
+  "context_window": 150000,
+  "reserve_tokens": 28000,
+  "max_output_tokens": 4096,
+  "timeout_s": 3600,
+  "command_timeout_s": 1800,
+  "max_steps_per_package": 200,
+  "max_fix_rounds": 12,
+  "max_tool_result_chars": 8000
+}

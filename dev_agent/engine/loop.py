@@ -1,0 +1,97 @@
+"""The agent: plan (read-only investigation) -> owner approves once -> execute work packages from the ledger -> verify and fix -> report."""
+
+from __future__ import annotations
+
+from ..core import context
+from ..core.index import Index
+from ..ledger import plan as planlib
+from ..ledger.ledger import Ledger
+from ..tools import DenyAll, ToolContext
+from . import packages, report
+from .fix import verify_and_fix
+from .protocol import PLAN_FORMAT, system_prompt
+from .session import run_phase
+
+
+class AgentError(RuntimeError):
+    pass
+
+
+class Agent:
+    def __init__(self, project, provider, settings: dict, approver=None, emit=None):
+        self.project, self.provider, self.settings = project, provider, settings
+        self.approver, self.emit = approver or DenyAll(), emit or (lambda event: None)
+        self.index = Index(project)
+
+    def _ctx(self, ledger: Ledger, readonly: bool, scope=None, package: str = "") -> ToolContext:
+        return ToolContext(self.project, self.settings, self.index, ledger, self.approver, scope, readonly, package, {}, ledger.approved_keys(), self.emit)
+
+    def plan(self, task: str) -> Ledger:
+        ledger = Ledger.create(self.project, task)
+        ctx = self._ctx(ledger, True)
+        background = context.render(context.pick(self.project, self.index, task))
+        problems: list[str] = []
+        for attempt in range(3):
+            fix = "\n\nYour previous plan was rejected:\n- " + "\n- ".join(problems) if problems else ""
+            first = f"TASK: {task}\n\n{background}\n\n{PLAN_FORMAT}{fix}"
+            res = run_phase(ctx, self.provider, system_prompt(True), first, {"plan"}, self.settings["max_steps_per_package"])
+            if res.kind == "stopped":
+                ledger.set_status("stopped", res.reason)
+                return ledger
+            plan, problems = planlib.validate(self.project, res.payload)
+            if not problems:
+                break
+        else:
+            ledger.set_status("stopped", "no valid plan after 3 attempts: " + "; ".join(problems[:4]))
+            return ledger
+        pkgs = packages.split(self.project, plan, self.settings["context_window"], self.settings["reserve_tokens"])
+        ledger.data.update(plan=plan, plan_sha=planlib.digest(plan), packages=pkgs)
+        ledger.set_status("awaiting_approval")
+        return ledger
+
+    def approve(self, task_id: str) -> Ledger:
+        ledger = Ledger.load(self.project, task_id)
+        if ledger.data["status"] != "awaiting_approval" or not ledger.data["plan"]:
+            raise AgentError(f"task {task_id} has no plan waiting for approval (status: {ledger.data['status']})")
+        ledger.data["approved_at"] = ledger.data["updated"]
+        ledger.set_status("approved")
+        return ledger
+
+    def execute(self, task_id: str) -> Ledger:
+        ledger = Ledger.load(self.project, task_id)
+        d = ledger.data
+        if not d["approved_at"] or not d["plan"] or d["status"] not in ("approved", "executing", "stopped"):
+            raise AgentError(f"task {task_id} is not approved (status: {d['status']})")
+        if planlib.digest(d["plan"]) != d["plan_sha"]:
+            raise AgentError("the plan was changed after it was shown to you; plan again")
+        scope = planlib.PlanScope(d["plan"])
+        ledger.set_status("executing")
+        for pkg in d["packages"]:
+            if pkg["status"] == "done":
+                continue   # resume: finished packages are never repeated
+            ctx = self._ctx(ledger, False, scope, pkg["id"])
+            self.emit({"type": "package", "id": pkg["id"], "title": pkg["title"]})
+            pkg["status"] = "running"
+            task = (f"{ledger.brief(pkg['id'])}\n\nDo ONLY the steps of package {pkg['id']}: {', '.join(pkg['steps'])}. Files: {', '.join(pkg['files'])}.\n"
+                    "When finished, reply {\"final\": \"what you changed and what you did not check\"}.")
+            res = run_phase(ctx, self.provider, system_prompt(False), task, {"final"}, self.settings["max_steps_per_package"])
+            if res.kind == "stopped":
+                return self._stop(ledger, pkg, res.reason)
+            pkg["summary"] = str(res.payload)[:400]
+            d["agent_summaries"].append({"package": pkg["id"], "text": str(res.payload)[:500]})
+            ok, why = verify_and_fix(ctx, self.provider, pkg["id"], lambda: ledger.changed_files())
+            if not ok:
+                return self._stop(ledger, pkg, why)
+            pkg["status"] = "done"
+            ledger.save()
+        ctx = self._ctx(ledger, False, scope, "final")
+        ok, why = verify_and_fix(ctx, self.provider, "final", lambda: ledger.changed_files())
+        ledger.set_status("completed" if ok else "stopped", why)
+        report.write(ledger)
+        return ledger
+
+    def _stop(self, ledger: Ledger, pkg: dict, reason: str) -> Ledger:
+        pkg["status"] = "stopped"
+        ledger.set_status("stopped", f"{pkg['id']}: {reason}")
+        report.write(ledger)
+        return ledger
