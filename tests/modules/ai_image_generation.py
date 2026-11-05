@@ -89,6 +89,7 @@ def _settings_steps(context, reporter, screenshot_logger):
 
 
 FAKE_SERVER = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "core", "tests", "ai", "fake_comfy_server.py")
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 STOP_SERVER = "from core.services.ai.image_generation.server import stop_server; stop_server()"
 
 
@@ -97,6 +98,18 @@ def _answers(port):
         return requests.get(f"http://127.0.0.1:{port}/system_stats", timeout=1).status_code == 200
     except requests.RequestException:
         return False
+
+
+def _diagnostics(port):
+    """What WealthFlow's managed server left behind (log tail, state file) so a hang is explained in the report."""
+    parts = [f"port answers={_answers(port)}"]
+    for name in ("server.log", "state.json"):
+        try:
+            with open(os.path.join(REPO_ROOT, "runtime", "image_server", name), encoding="utf-8", errors="replace") as fh:
+                parts.append(f"{name}: " + " | ".join(line.strip() for line in fh.read().splitlines()[-8:] if line.strip())[-500:])
+        except OSError:
+            parts.append(f"{name}: missing")
+    return "; ".join(parts)
 
 
 def _wait(predicate, seconds):
@@ -117,10 +130,13 @@ def _managed_server_steps(context, reporter, screenshot_logger):
         page.fill("#image_gen_endpoint", f"http://127.0.0.1:{port}")
         page.fill("#image_gen_start_command", f'"{sys.executable}" "{FAKE_SERVER}" --port {{port}}')
         page.click("#image_gen_test")
-        page.wait_for_selector("#image_gen_test_result.alert-success, #image_gen_test_result.alert-danger", timeout=120000)
-        msg = page.inner_text("#image_gen_test_result")   # a failure shows its real message instead of timing out
+        finished = _wait(lambda: any(c in (page.get_attribute("#image_gen_test_result", "class") or "") for c in ("alert-success", "alert-danger")), 150)
+        msg = page.inner_text("#image_gen_test_result")   # a failure or a hang is reported with its message and the server's own log
         up = _answers(port)
-        _step(reporter, screenshot_logger, page, "Test connection starts the image server by itself", up and "started by WealthFlow" in msg, msg[:300], "image_gen_managed_start")
+        ok = finished and up and "started by WealthFlow" in msg
+        _step(reporter, screenshot_logger, page, "Test connection starts the image server by itself", ok, msg[:300] if ok else f"finished={finished}; message={msg[:300]}; {_diagnostics(port)}", "image_gen_managed_start")
+        if not ok:
+            return
         status = _save(page)
         _step(reporter, screenshot_logger, page, "Saving with the start command keeps the server up (no duplicate)", status == 200 and _answers(port), f"status={status}", "image_gen_managed_saved")
         page.uncheck("#image_gen_enabled")

@@ -6,6 +6,7 @@
 import argparse
 import base64
 import json
+import socketserver
 import sys
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -54,6 +55,15 @@ class Handler(BaseHTTPRequestHandler):
             self._json({}, 404)
 
 
+class Server(ThreadingHTTPServer):
+    daemon_threads = True
+
+    def server_bind(self):
+        """No reverse-DNS lookup (HTTPServer's getfqdn can block for a long time on some Windows networks) before listening."""
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[0], self.server_address[1]
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, required=True)
@@ -66,4 +76,6 @@ if __name__ == "__main__":
         sys.exit(a.exit_code)
     print("fake comfy loading", flush=True)
     time.sleep(a.delay)
-    ThreadingHTTPServer((a.host, a.port), Handler).serve_forever()
+    server = Server((a.host, a.port), Handler)
+    print(f"fake comfy listening on {a.host}:{a.port}", flush=True)
+    server.serve_forever()
