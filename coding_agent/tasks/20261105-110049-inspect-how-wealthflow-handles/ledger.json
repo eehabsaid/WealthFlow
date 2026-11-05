@@ -1,0 +1,30 @@
+{
+ "id": "20261105-110049-inspect-how-wealthflow-handles",
+ "goal": "Inspect how WealthFlow handles expense categories and subcategories. Trace the relevant Django models, services, API endpoints, frontend JavaScript, and translation files. Explain how a new expense category is created and used. Identify any inconsistencies between backend and frontend. Do not modify anything. List the exact files involved and explain their responsibilities.",
+ "created": "2026-11-05T11:00:49",
+ "updated": "2026-11-05T11:01:39",
+ "status": "answered",
+ "stop_reason": "",
+ "plan": null,
+ "plan_sha": "",
+ "approved_at": "",
+ "packages": [],
+ "files": {},
+ "approvals": [],
+ "verification": [],
+ "proposals": [],
+ "agent_summaries": [],
+ "usage": {
+  "input_tokens": 130650,
+  "output_tokens": 2143
+ },
+ "events": [
+  {
+   "t": "2026-11-05T11:01:39",
+   "kind": "status",
+   "status": "answered",
+   "reason": ""
+  }
+ ],
+ "answer": "Read-only investigation complete. WealthFlow expense categories/subcategories work as follows.\n\nMODELS — core/models/expenses.py\n- ExpenseCategory: owner FK (multi-tenant), name, icon, color_hex, order; unique_together [owner, name]; to_dict() exposes id/name/icon/color_hex/order.\n- ExpenseSubcategory: category FK (CASCADE, related_name subcategories), name, order; unique_together [category, name]; to_dict() includes category id/name/icon/color. No owner FK — ownership inherited via parent category.\n- Expense: category and subcategory are both nullable SET_NULL FKs (so deleting a category nulls expenses rather than cascading).\n\nSERVICES — category/subcategory CRUD has NO service layer; it's written directly in the views (unlike Expense rows which go through ExpenseService). This is an architectural inconsistency: the skills say business logic belongs in a service, but category creation mutates models directly in views.\n\nVIEWS — core/views/expense_category_views.py\n- ExpenseCategoryListView GET (lists cats + nested subcategories), POST (creates category).\n- ExpenseCategoryDetailView PUT/DELETE (delete cascades subcategories).\n- ExpenseSubcategoryListView POST (create sub).\n- ExpenseSubcategoryDetailView PUT/DELETE.\n- All start with _api_auth_required; ownership via _owned_object_or_404 / _child_owned_object_or_404 (parent_field=\"category\").\n\nURLS — core/urls/financial_core_urls.py lines 48-54: api/expense-categories/, api/expense-categories/<pk>/, api/expense-subcategories/, api/expense-subcategories/<pk>/.\n\nFRONTEND (vanilla JS, static/js/expenses/)\n- categories.js: renderExpenseCategories() + showCategoryModal(); UI for add/edit/delete category, color picker.\n- subcategories.js: showSubcategoryModal(), addSubcategory(), saveSubcategory(), deleteSubcategory(); manages subs inside a category modal.\n- api.js: saveCategory(), patchCategoryColor(), deleteCategory(), saveSubcategory(), deleteSubcategory() — the fetch calls.\n- categories.js/subcategories.js/api.js are the three files directly responsible.\n\nHOW A NEW CATEGORY IS CREATED\n1. User clicks \"Add Category\" → showCategoryModal(null) renders form (name/icon/color).\n2. Save → saveCategory(null) in api.js POSTs {name, icon, color_hex} to /api/expense-categories/.\n3. ExpenseCategoryListView.post creates the row (owner=request.user) and returns to_dict (201).\n4. renderExpenseCategories() refreshes; subcategories added later via addSubcategory() → POST /api/expense-subcategories/ with {category_id, name}.\n\nINCONSISTENCIES FOUND (backend vs frontend / vs conventions)\n1. No service layer for category/subcategory CRUD — views write models directly, contradicting the \"business logic in a service\" rule that Expense rows follow.\n2. Frontend fetch calls for category/subcategory POST/PUT/DELETE (api.js, subcategories.js) do NOT send the X-CSRFToken header, whereas the project convention (ai/* files) is to include X-CSRFToken from window.wfGetCsrfToken(). This may rely on Django's session-cookie CSRF (SameSite Lax) rather than the header convention — an inconsistency worth verifying.\n3. Order field: backend supports order on both category and subcategory, but the frontend never exposes or sends order (always default 0).\n4. saveCategory only sends name/icon/color_hex; the backend also accepts order — order is never settable from the UI.\n5. Hardcoded user-facing strings in frontend (e.g. 'Name required', 'Category saved ✓', 'Error', 'Deleted') instead of t()/data-i18n, violating the i18n rule.\n6. Frontend uses parseFloat for amounts (api.js saveExpense) while the money-handling skill mandates Decimal/never float — a backend/frontend numeric inconsistency (backend stores Decimal).\n7. deleteSubcategory in api.js takes a catId param but the deleteSubcategory call in subcategories.js passes (subId, catId); consistent, but api.js signature includes an unused catId in some call paths.\n\nFILES INVOLVED (exact):\n- core/models/expenses.py (models)\n- core/views/expense_category_views.py (CRUD views)\n- core/urls/financial_core_urls.py (routes)\n- static/js/expenses/api.js (fetch layer)\n- static/js/expenses/categories.js (category UI)\n- static/js/expenses/subcategories.js (subcategory UI)\n- (related consumers) static/js/expenses/dashboard.js, static/js/budgets/page.js, static/js/import/page.js, static/js/ai/blocks/blocks_form.js\n\nNo files were modified. I did not run the test suite or verify CSRF behavior at runtime — those are flagged as items to check, not confirmed."
+}

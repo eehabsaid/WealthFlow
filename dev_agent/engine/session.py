@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from ..providers.base import ProviderError
 from ..tools import call
 from .budget import Budget, ContextOverflow, clip_text
-from .protocol import parse_reply
+from .protocol import NUDGE, parse_reply
 
 
 @dataclass
@@ -37,9 +37,11 @@ def run_phase(ctx, provider, system: str, first_user: str, accept: set[str], max
         action = parse_reply(reply.text)
         if action.kind == "invalid":
             invalid += 1
+            if ctx.ledger:
+                ctx.ledger.event("invalid_reply", text=reply.text[:1500], note=str(action.payload)[:200])
             if invalid >= 3:
                 return PhaseResult("stopped", reason=f"the model gave 3 replies in a row that were not valid protocol JSON ({action.payload})")
-            messages.append({"role": "user", "content": f"Invalid reply ({action.payload}). Reply with exactly one JSON object as described."})
+            messages.append({"role": "user", "content": f"{NUDGE} ({action.payload[:80]})"})
             continue
         invalid = 0
         if action.kind in accept:

@@ -34,15 +34,22 @@ class Agent:
         for attempt in range(3):
             fix = "\n\nYour previous plan was rejected:\n- " + "\n- ".join(problems) if problems else ""
             first = f"TASK: {task}\n\n{background}\n\n{PLAN_FORMAT}{fix}"
-            res = run_phase(ctx, self.provider, system_prompt(True), first, {"plan"}, self.settings["max_steps_per_package"])
+            res = run_phase(ctx, self.provider, system_prompt(True), first, {"plan", "final"}, self.settings["max_steps_per_package"])
             if res.kind == "stopped":
                 ledger.set_status("stopped", res.reason)
+                report.write(ledger)
+                return ledger
+            if res.kind == "final":   # a question, or a task that needs no file changes
+                ledger.data["answer"] = str(res.payload)
+                ledger.set_status("answered")
+                report.write(ledger)
                 return ledger
             plan, problems = planlib.validate(self.project, res.payload)
             if not problems:
                 break
         else:
             ledger.set_status("stopped", "no valid plan after 3 attempts: " + "; ".join(problems[:4]))
+            report.write(ledger)
             return ledger
         pkgs = packages.split(self.project, plan, self.settings["context_window"], self.settings["reserve_tokens"])
         ledger.data.update(plan=plan, plan_sha=planlib.digest(plan), packages=pkgs)

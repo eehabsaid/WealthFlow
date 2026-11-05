@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 
-from ..tools import specs
+from ..tools import REGISTRY, specs
 
 RULES = """You are an autonomous software-development agent working inside a local project through tools.
 Reply with EXACTLY ONE JSON object per message and nothing else:
@@ -23,7 +24,8 @@ PLAN_FORMAT = """Investigate with the read-only tools, then reply with:
 {"plan": {"summary": "...", "steps": [{"title": "...", "files": ["files this step reads or changes"]}],
  "files_add": [], "files_edit": [], "files_delete": [], "files_rename": [{"from": "a", "to": "b"}],
  "tests": ["tests to add or update (paths) and what to run"], "risks": ["..."]}}
-List EVERY file you will add, edit, delete or rename: nothing outside the plan may be changed later. Deleting or renaming only works if listed."""
+List EVERY file you will add, edit, delete or rename: nothing outside the plan may be changed later. Deleting or renaming only works if listed.
+If the task is only a question or needs no file changes, answer it with {"final": "your answer"} instead of a plan."""
 
 
 @dataclass
@@ -36,24 +38,60 @@ def system_prompt(readonly: bool) -> str:
     return f"{RULES}\n\nTools:\n{specs(readonly)}"
 
 
-def parse_reply(text: str) -> Action:
-    """Find the first JSON object in the reply (tolerates code fences and chatter) and read it."""
-    decoder, pos = json.JSONDecoder(), 0
-    while True:
-        start = text.find("{", pos)
-        if start < 0:
-            return Action("invalid", "no JSON object found")
+THINK = re.compile(r"<think>.*?(?:</think>|\Z)", re.S | re.I)
+ARG_KEYS = ("args", "arguments", "parameters", "input")
+
+
+def _as_dict(value) -> dict | None:
+    if isinstance(value, str):
         try:
-            obj, end = decoder.raw_decode(text, start)
+            value = json.loads(value)
         except ValueError:
-            pos = start + 1
-            continue
+            return None
+    return value if isinstance(value, dict) else None
+
+
+def _read(obj: dict) -> Action | None:
+    """One JSON object -> an Action. Accepts the documented shapes and the common drift of local models (name/arguments, an unwrapped plan)."""
+    if isinstance(obj.get("tool"), str):
+        args = _as_dict(obj.get("args"))
+        return Action("tool", (obj["tool"], {} if obj.get("args") in (None, "") else args if args is not None else obj["args"]))
+    if isinstance(obj.get("final"), str):
+        return Action("final", obj["final"])
+    if isinstance(obj.get("plan"), dict):
+        return Action("plan", obj["plan"])
+    name = obj.get("name") or (obj.get("function") if isinstance(obj.get("function"), str) else None)
+    if isinstance(name, str) and name in REGISTRY:
+        key = next((k for k in ARG_KEYS if k in obj), None)
+        args = _as_dict(obj[key]) if key else {}
+        return Action("tool", (name, {} if args is None else args))
+    if isinstance(obj.get("summary"), str) and isinstance(obj.get("steps"), list):
+        return Action("plan", obj)
+    return None
+
+
+def _scan(text: str) -> Action | None:
+    decoder, pos = json.JSONDecoder(), 0
+    while (start := text.find("{", pos)) >= 0:
         pos = start + 1
-        if not isinstance(obj, dict):
+        try:
+            obj, _ = decoder.raw_decode(text, start)
+        except ValueError:
             continue
-        if isinstance(obj.get("tool"), str):
-            return Action("tool", (obj["tool"], obj.get("args") or {}))
-        if isinstance(obj.get("final"), str):
-            return Action("final", obj["final"])
-        if isinstance(obj.get("plan"), dict):
-            return Action("plan", obj["plan"])
+        found = _read(obj) if isinstance(obj, dict) else None
+        if found:
+            return found
+    return None
+
+
+def parse_reply(text: str) -> Action:
+    """Find the first usable JSON object (tolerates code fences, chatter and <think> blocks; falls back to JSON inside the thinking)."""
+    found = _scan(THINK.sub("", text)) or _scan(text)
+    if found:
+        return found
+    shown = " ".join(THINK.sub("", text).split())[:120] or "(empty reply)"
+    return Action("invalid", f"no usable JSON object; the reply began: {shown}")
+
+
+NUDGE = ("Your last reply was not valid. Reply with EXACTLY ONE JSON object and no other text, for example "
+         '{"tool": "read_file", "args": {"path": "app/x.py"}} or {"final": "your answer"} or the {"plan": {...}} object. No explanations outside the JSON.')

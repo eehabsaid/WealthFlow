@@ -10,6 +10,8 @@ def build(ledger) -> str:
     d = ledger.data
     final = next((v for v in reversed(d["verification"]) if v["label"] == "final"), None)
     lines = [f"# Task {d['id']}", f"Goal: {d['goal']}", f"Status: {d['status'].upper()}" + (f" - {d['stop_reason']}" if d["stop_reason"] else ""), ""]
+    if d.get("answer"):
+        lines += ["## Answer (no file changes were made)", d["answer"], ""]
     lines.append("## Work done")
     for p in d["packages"]:
         lines.append(f"- {p['id']} {p['title']}: {p['status']}" + (f" - {p['summary']}" if p["summary"] else ""))

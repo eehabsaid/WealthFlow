@@ -54,6 +54,13 @@ def _agent(project, with_keys: bool = True) -> Agent:
 def _show_plan(ledger: Ledger) -> None:
     d = ledger.data
     print(f"\nTask {ledger.id}: {d['status']}" + (f" - {d['stop_reason']}" if d["stop_reason"] else ""))
+    if d.get("answer"):
+        print(d["answer"])
+    bad = [e for e in d["events"] if e["kind"] == "invalid_reply"]
+    if bad and d["status"] == "stopped":
+        print(f"Last invalid model reply (also in {ledger.file.name}):\n{bad[-1]['text'][:600]}")
+    if d["status"] in ("stopped", "answered"):
+        print(f"Report: {ledger.dir / 'report.md'}")
     if d["plan"]:
         print(planlib.summary_text(d["plan"], d["packages"]))
 
