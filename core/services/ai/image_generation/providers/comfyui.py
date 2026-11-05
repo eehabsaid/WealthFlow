@@ -65,7 +65,7 @@ class ComfyUIProvider(ImageProvider):
             warm_start(self.cfg["start_command"], self.cfg["endpoint"], self._alive)
 
     def shutdown(self) -> None:
-        stop_server()
+        stop_server(self.cfg["endpoint"])
 
     def _url(self, path: str) -> str:
         return self.cfg["endpoint"].rstrip("/") + path

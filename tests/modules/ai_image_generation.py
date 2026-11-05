@@ -90,7 +90,7 @@ def _settings_steps(context, reporter, screenshot_logger):
 
 FAKE_SERVER = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "core", "tests", "ai", "fake_comfy_server.py")
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-STOP_SERVER = "from core.services.ai.image_generation.server import stop_server; stop_server()"
+STOP_SERVER = "from core.services.ai.image_generation.server import stop_server; stop_server('http://127.0.0.1:%d')"   # only this test's own server
 
 
 def _answers(port):
@@ -103,7 +103,8 @@ def _answers(port):
 def _diagnostics(port):
     """What WealthFlow's managed server left behind (log tail, state file) so a hang is explained in the report."""
     parts = [f"port answers={_answers(port)}"]
-    for name in ("server.log", "state.json"):
+    key = f"127_0_0_1_{port}"   # servers are told apart by API URL (state.endpoint_key)
+    for name in (f"server-{key}.log", f"state-{key}.json"):
         try:
             with open(os.path.join(REPO_ROOT, "runtime", "image_server", name), encoding="utf-8", errors="replace") as fh:
                 parts.append(f"{name}: " + " | ".join(line.strip() for line in fh.read().splitlines()[-8:] if line.strip())[-500:])
@@ -144,7 +145,7 @@ def _managed_server_steps(context, reporter, screenshot_logger):
         stopped = _wait(lambda: not _answers(port), 20)
         _step(reporter, screenshot_logger, page, "Switching image generation off stops the server WealthFlow started", status == 200 and stopped, f"status={status} stopped={stopped}", "image_gen_managed_stop")
     finally:
-        django_exec(STOP_SERVER)
+        django_exec(STOP_SERVER % port)
 
 
 def _chat_steps(context, reporter, screenshot_logger):

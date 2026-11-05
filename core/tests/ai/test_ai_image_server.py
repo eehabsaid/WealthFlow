@@ -35,11 +35,12 @@ class ServerCase(SimpleTestCase):
         self.override.enable()
         self.port = free_port()
         self.endpoint = f"http://127.0.0.1:{self.port}"
-        manager._child = None
+        self.key = state.endpoint_key(self.endpoint)
+        manager._children.clear()
 
     def tearDown(self):
-        stop_server()
-        saved = state.read_state()
+        stop_server(self.endpoint)
+        saved = state.read_state(self.key)
         if saved and state.pid_alive(saved["pid"]) and state.is_same_process(saved):
             state.kill_tree(saved["pid"], True)
         self.override.disable()
@@ -52,7 +53,7 @@ class ServerCase(SimpleTestCase):
             return False
 
     def starts(self) -> int:
-        with open(state.log_path(), encoding="utf-8") as fh:
+        with open(state.log_path(self.key), encoding="utf-8") as fh:
             return fh.read().count("=== starting")
 
 
@@ -60,10 +61,10 @@ class LifecycleTests(ServerCase):
     def test_starts_waits_until_ready_and_reuses_the_running_server(self):
         note = ensure_running(command("--delay 1"), self.endpoint, self.probe, timeout=30)
         self.assertIn("started by WealthFlow", note)
-        pid = state.read_state()["pid"]
+        pid = state.read_state(self.key)["pid"]
         self.assertTrue(state.pid_alive(pid) and self.probe())
         self.assertIn("already running", ensure_running(command(), self.endpoint, self.probe, timeout=5).lower().replace("is running", "already running"))
-        self.assertEqual(state.read_state()["pid"], pid)
+        self.assertEqual(state.read_state(self.key)["pid"], pid)
         self.assertEqual(self.starts(), 1)
 
     def test_concurrent_requests_start_exactly_one_server(self):
@@ -84,22 +85,22 @@ class LifecycleTests(ServerCase):
         with self.assertRaises(ServerError) as ctx:      # the first caller gives up while the models are still loading
             ensure_running(command("--delay 6"), self.endpoint, self.probe, timeout=2)
         self.assertIn("still starting", str(ctx.exception))
-        pid = state.read_state()["pid"]
-        manager._child = None                            # the next caller (another Django process) only has the state file
+        pid = state.read_state(self.key)["pid"]
+        manager._children.clear()                            # the next caller (another Django process) only has the state file
         note = ensure_running(command("--delay 6"), self.endpoint, self.probe, timeout=30)
-        self.assertEqual(state.read_state()["pid"], pid)
+        self.assertEqual(state.read_state(self.key)["pid"], pid)
         self.assertEqual(self.starts(), 1)
         self.assertIn(str(pid), note)
-        self.assertTrue(stop_server())                   # a verified earlier server can still be stopped without the Popen object
+        self.assertTrue(stop_server(self.endpoint))                   # a verified earlier server can still be stopped without the Popen object
 
     def test_stop_ends_the_process_tree_and_clears_state(self):
         ensure_running(command(), self.endpoint, self.probe, timeout=30)
-        pid = state.read_state()["pid"]
-        self.assertTrue(stop_server())
+        pid = state.read_state(self.key)["pid"]
+        self.assertTrue(stop_server(self.endpoint))
         self.assertFalse(state.pid_alive(pid))
         self.assertFalse(self.probe())
-        self.assertIsNone(state.read_state())
-        self.assertFalse(stop_server())
+        self.assertIsNone(state.read_state(self.key))
+        self.assertFalse(stop_server(self.endpoint))
 
     def test_a_server_not_started_by_wealthflow_is_never_stopped(self):
         external = subprocess.Popen([sys.executable, FAKE, "--port", str(self.port)])
@@ -108,23 +109,55 @@ class LifecycleTests(ServerCase):
             while not self.probe() and time.monotonic() < deadline:
                 time.sleep(0.1)
             self.assertIn("is running", ensure_running(command(), self.endpoint, self.probe, timeout=5))
-            self.assertFalse(stop_server())
+            self.assertFalse(stop_server(self.endpoint))
             self.assertIsNone(external.poll())
-            self.assertEqual(os.path.exists(state.log_path()), False)   # nothing was spawned
+            self.assertEqual(os.path.exists(state.log_path(self.key)), False)   # nothing was spawned
         finally:
             external.kill()
             external.wait()
 
     def test_a_recycled_pid_is_never_killed(self):
-        state.write_state({"pid": os.getpid(), "start_time": 1.0, "command": "x", "endpoint": self.endpoint})
-        self.assertFalse(state.is_same_process(state.read_state()))
-        self.assertFalse(stop_server())          # would terminate this very test process if the guard failed
-        self.assertIsNone(state.read_state())
+        state.write_state(self.key, {"pid": os.getpid(), "start_time": 1.0, "command": "x", "endpoint": self.endpoint})
+        self.assertFalse(state.is_same_process(state.read_state(self.key)))
+        self.assertFalse(stop_server(self.endpoint))          # would terminate this very test process if the guard failed
+        self.assertIsNone(state.read_state(self.key))
 
     def test_stale_state_of_a_dead_process_is_replaced(self):
-        state.write_state({"pid": 2**22 + 12345, "start_time": 1.0, "command": "x", "endpoint": self.endpoint})
+        state.write_state(self.key, {"pid": 2**22 + 12345, "start_time": 1.0, "command": "x", "endpoint": self.endpoint})
         self.assertIn("started by WealthFlow", ensure_running(command(), self.endpoint, self.probe, timeout=30))
         self.assertEqual(self.starts(), 1)
+
+
+class TwoServersTests(ServerCase):
+    """The E2E hang: another endpoint's server (your real ComfyUI) must never be mistaken for this one's."""
+
+    def test_another_endpoints_server_is_neither_waited_for_nor_adopted_nor_stopped(self):
+        real_port = free_port()
+        real = f"http://127.0.0.1:{real_port}"
+        def real_probe():
+            try:
+                return requests.get(real + "/system_stats", timeout=1).status_code == 200
+            except requests.RequestException:
+                return False
+        ensure_running(command(), real, real_probe, timeout=30)
+        real_state = state.read_state(state.endpoint_key(real))
+        started = time.monotonic()
+        note = ensure_running(command(), self.endpoint, self.probe, timeout=30)       # a different port: its own server, quickly
+        self.assertLess(time.monotonic() - started, 20)
+        self.assertIn("started by WealthFlow", note)
+        self.assertNotEqual(state.read_state(self.key)["pid"], real_state["pid"])
+        self.assertTrue(stop_server(self.endpoint))
+        self.assertTrue(state.pid_alive(real_state["pid"]))                         # the other server is untouched
+        self.assertTrue(stop_server(real))
+
+    def test_a_state_file_from_before_keying_is_adopted_only_for_its_own_endpoint(self):
+        legacy = os.path.join(state.runtime_dir(), "state.json")
+        with open(legacy, "w", encoding="utf-8") as fh:
+            fh.write('{"pid": %d, "start_time": 1.0, "command": "x", "endpoint": "http://127.0.0.1:1"}' % os.getpid())
+        self.assertIsNone(state.read_state(self.key))                               # another endpoint: not ours
+        self.assertTrue(os.path.exists(legacy))
+        self.assertIsNotNone(state.read_state(state.endpoint_key("http://127.0.0.1:1")))
+        self.assertFalse(os.path.exists(legacy))                                    # migrated to the keyed name
 
 
 class ErrorTests(ServerCase):
@@ -133,7 +166,7 @@ class ErrorTests(ServerCase):
             ensure_running(command("--exit-code 3"), self.endpoint, self.probe, timeout=30)
         self.assertIn("exit code 3", str(ctx.exception))
         self.assertIn("boom: cannot load model", str(ctx.exception))
-        self.assertIsNone(state.read_state())
+        self.assertIsNone(state.read_state(self.key))
 
     def test_a_port_held_by_something_else_times_out_with_a_clear_message(self):
         with socket.socket() as blocker:
@@ -150,7 +183,7 @@ class ErrorTests(ServerCase):
             ensure_running('"unbalanced', self.endpoint, self.probe, timeout=5)
         with self.assertRaises(ServerError):
             ensure_running("   ", self.endpoint, self.probe, timeout=5)
-        self.assertFalse(os.path.exists(state.log_path()))
+        self.assertFalse(os.path.exists(state.log_path(self.key)))
 
     def test_host_and_port_come_from_the_api_url(self):
         args = process.build_args('"C:\\\\Comfy\\\\python.exe" main.py --listen {host} --port {port}', "http://10.0.0.5:9000")

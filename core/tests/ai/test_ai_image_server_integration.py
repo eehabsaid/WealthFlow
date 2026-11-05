@@ -22,14 +22,16 @@ class ManagedServerFlowTests(ImageBase):
         self.tmp = tempfile.mkdtemp()
         self.override = override_settings(BASE_DIR=self.tmp)
         self.override.enable()
-        manager._child = None
+        manager._children.clear()
         self.port = free_port()
+        self.endpoint = f"http://127.0.0.1:{self.port}"
+        self.key = state.endpoint_key(self.endpoint)
         self.admin = make_user("srv-admin", sysadmin=True)
         self.client.force_login(self.admin)
 
     def tearDown(self):
-        stop_server()
-        saved = state.read_state()
+        stop_server(self.endpoint)
+        saved = state.read_state(self.key)
         if saved and state.pid_alive(saved["pid"]):
             state.kill_tree(saved["pid"], True)
         self.override.disable()
@@ -47,7 +49,7 @@ class ManagedServerFlowTests(ImageBase):
     def wait_for_server(self, timeout=30):
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
-            saved = state.read_state()
+            saved = state.read_state(self.key)
             if saved and state.is_same_process(saved):
                 return saved["pid"]
             time.sleep(0.2)
@@ -60,7 +62,7 @@ class ManagedServerFlowTests(ImageBase):
         out = generate_image(self.admin, {"prompt": "a lighthouse"})
         self.assertTrue(out.get("ok"), out)                                # text-to-image through the managed server
         self.assertEqual(AIAttachment.objects.get(pk=out["image_id"]).mime, "image/png")
-        self.assertEqual(state.read_state()["pid"], pid)                   # reused, not restarted
+        self.assertEqual(state.read_state(self.key)["pid"], pid)                   # reused, not restarted
         edit = generate_image(self.admin, {"prompt": "darker", "source_image_id": out["image_id"]})
         self.assertTrue(edit.get("ok") and edit["edited"], edit)
         self.assertIn("started by WealthFlow", test_connection())
@@ -69,15 +71,15 @@ class ManagedServerFlowTests(ImageBase):
         while state.pid_alive(pid) and time.monotonic() < deadline:
             time.sleep(0.2)
         self.assertFalse(state.pid_alive(pid))                             # switched off -> the server WealthFlow started is stopped
-        self.assertIsNone(state.read_state())
+        self.assertIsNone(state.read_state(self.key))
 
     def test_first_generation_starts_the_server_when_nothing_warmed_it_up(self):
         from core.services.ai.image_generation import save_image_settings
         save_image_settings(self.settings_body())                          # saved without the view: no warm start
-        self.assertIsNone(state.read_state())
+        self.assertIsNone(state.read_state(self.key))
         out = generate_image(self.admin, {"prompt": "a lighthouse"})
         self.assertTrue(out.get("ok"), out)
-        self.assertIsNotNone(state.read_state())
+        self.assertIsNotNone(state.read_state(self.key))
 
     def test_a_server_that_crashes_is_reported_and_chat_keeps_working(self):
         from core.services.ai.image_generation import save_image_settings
@@ -98,15 +100,15 @@ class ManagedServerFlowTests(ImageBase):
         save_image_settings(self.settings_body(image_gen_start_command=""))
         out = generate_image(self.admin, {"prompt": "x"})
         self.assertIn("error", out)                                        # nothing listening, nothing started
-        self.assertFalse(os.path.exists(os.path.join(self.tmp, "runtime", "image_server", "state.json")))
+        self.assertFalse(os.path.exists(os.path.join(self.tmp, "runtime", "image_server", f"state-{self.key}.json")))
 
     def test_test_connection_uses_the_start_command_typed_in_the_form_before_saving(self):
         body = {k: v for k, v in self.settings_body().items() if k != "image_gen_enabled"}
         res = self.client.post("/api/settings/ai/image-generation/test/", json.dumps(body), content_type="application/json")
         self.assertEqual(res.status_code, 200, res.content)
         self.assertIn("started by WealthFlow", res.json()["detail"])
-        self.assertIsNotNone(state.read_state())                           # started from the unsaved form value
-        stop_server()                                                      # a server that already answers needs no command at all
+        self.assertIsNotNone(state.read_state(self.key))                           # started from the unsaved form value
+        stop_server(self.endpoint)                                         # a server that already answers needs no command at all
         bad = self.client.post("/api/settings/ai/image-generation/test/", json.dumps({**body, "image_gen_start_command": "/no/such/program"}), content_type="application/json")
         self.assertEqual(bad.status_code, 502)
         self.assertIn("not found", bad.json()["error"])

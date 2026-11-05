@@ -6,17 +6,11 @@ import os
 import shlex
 import shutil
 import subprocess
-from urllib.parse import urlparse
 
 from . import state
 from .errors import ServerError
 
 CREATE_NO_WINDOW, CREATE_NEW_PROCESS_GROUP, DETACHED_PROCESS = 0x08000000, 0x00000200, 0x00000008
-
-
-def _host_port(endpoint: str) -> tuple[str, str]:
-    parsed = urlparse(endpoint if "//" in endpoint else f"http://{endpoint}")
-    return parsed.hostname or "127.0.0.1", str(parsed.port or (443 if parsed.scheme == "https" else 8188))
 
 
 def _split_windows(text: str) -> list[str]:
@@ -42,7 +36,7 @@ def _split_windows(text: str) -> list[str]:
 
 def build_args(template: str, endpoint: str) -> list[str]:
     """Argument list for the command. {host} and {port} are filled from the saved API URL (so they are written only once)."""
-    host, port = _host_port(endpoint)
+    host, port = state.host_port(endpoint)
     text = str(template or "").replace("{host}", host).replace("{port}", port).strip()
     try:
         args = _split_windows(text) if state.IS_WINDOWS else shlex.split(text)
@@ -64,9 +58,9 @@ def working_dir(args: list[str]) -> str | None:
     return path if os.path.isdir(path) else None
 
 
-def spawn(args: list[str]) -> subprocess.Popen:
+def spawn(args: list[str], key: str) -> subprocess.Popen:
     """Detached and windowless: no console window, nothing the user has to keep open; stdout/stderr go to the server log."""
-    path = state.log_path()
+    path = state.log_path(key)
     if os.path.exists(path) and os.path.getsize(path) > state.LOG_MAX_BYTES:
         os.replace(path, path + ".old")
     log = open(path, "ab")

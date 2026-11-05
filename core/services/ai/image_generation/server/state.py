@@ -8,8 +8,10 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import re
 import subprocess
 import time
+from urllib.parse import urlparse
 
 from django.conf import settings
 
@@ -25,37 +27,55 @@ def runtime_dir() -> str:
     return path
 
 
+def host_port(endpoint: str) -> tuple[str, str]:
+    parsed = urlparse(endpoint if "//" in endpoint else f"http://{endpoint}")
+    return parsed.hostname or "127.0.0.1", str(parsed.port or (443 if parsed.scheme == "https" else 8188))
+
+
+def endpoint_key(endpoint: str) -> str:
+    """One server per API URL: its state file, lock and log are named by host and port, so two configured servers (or a test
+    server next to the real one) never mistake each other's process for their own."""
+    return re.sub(r"[^A-Za-z0-9]+", "_", ":".join(host_port(endpoint)))
+
+
 def _file(name: str) -> str:
     return os.path.join(runtime_dir(), name)
 
 
-def log_path() -> str:
-    return _file("server.log")
+def log_path(key: str) -> str:
+    return _file(f"server-{key}.log")
 
 
-def read_state() -> dict | None:
+def read_state(key: str) -> dict | None:
+    path = _file(f"state-{key}.json")
+    legacy = _file("state.json")   # written before servers were keyed by endpoint: adopt it for its own endpoint only
     try:
-        with open(_file("state.json"), encoding="utf-8") as fh:
+        if not os.path.exists(path) and os.path.exists(legacy):
+            with open(legacy, encoding="utf-8") as fh:
+                old = json.load(fh)
+            if isinstance(old, dict) and endpoint_key(str(old.get("endpoint", ""))) == key:
+                os.replace(legacy, path)
+        with open(path, encoding="utf-8") as fh:
             data = json.load(fh)
         return data if isinstance(data, dict) and isinstance(data.get("pid"), int) else None
     except (OSError, ValueError):
         return None
 
 
-def write_state(state: dict) -> None:
-    with open(_file("state.json"), "w", encoding="utf-8") as fh:
+def write_state(key: str, state: dict) -> None:
+    with open(_file(f"state-{key}.json"), "w", encoding="utf-8") as fh:
         json.dump(state, fh)
 
 
-def clear_state() -> None:
+def clear_state(key: str) -> None:
     with contextlib.suppress(OSError):
-        os.remove(_file("state.json"))
+        os.remove(_file(f"state-{key}.json"))
 
 
 @contextlib.contextmanager
-def file_lock(timeout: float):
-    """Exclusive lock across processes, so two workers never start the server at the same time."""
-    fh = open(_file("start.lock"), "a+b")
+def file_lock(key: str, timeout: float):
+    """Exclusive lock across processes, so two workers never start the same server at the same time."""
+    fh = open(_file(f"start-{key}.lock"), "a+b")
     deadline = time.monotonic() + timeout
     try:
         while True:
@@ -162,10 +182,10 @@ def kill_tree(pid: int, force: bool) -> None:
         os.killpg(os.getpgid(pid), signal.SIGKILL if force else signal.SIGTERM)
 
 
-def log_tail(lines: int = 12, limit: int = 700) -> str:
+def log_tail(key: str, lines: int = 12, limit: int = 700) -> str:
     try:
-        with open(log_path(), "rb") as fh:
-            fh.seek(max(0, os.path.getsize(log_path()) - 8192))
+        with open(log_path(key), "rb") as fh:
+            fh.seek(max(0, os.path.getsize(log_path(key)) - 8192))
             text = fh.read().decode("utf-8", "replace")
     except OSError:
         return ""
