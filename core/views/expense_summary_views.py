@@ -92,17 +92,12 @@ class ExpenseSummaryView(View):
         if month:
             target_year = int(year) if year else datetime.date.today().year
             target_month = int(month)
-            prev_month = target_month - 1
-            prev_year = target_year
-            if prev_month == 0:
-                prev_month = 12
-                prev_year -= 1
 
-            prev_month_name = month_names[prev_month - 1]
+            target_month_name = month_names[target_month - 1]
             salary_qs = SalaryEntry.objects.filter(
                 company__owner=owner,
-                year=prev_year,
-                month__iexact=prev_month_name,
+                year=target_year,
+                month__iexact=target_month_name,
             )
             salary_amount = float(
                 salary_qs.aggregate(total=Sum("paid"))["total"] or 0

@@ -158,7 +158,12 @@ def _chat_steps(context, reporter, screenshot_logger):
         page.wait_for_selector("#ai-ws-input", timeout=15000)
         page.evaluate("async (id) => { await _switchAIChatConversation(String(id)); }", int(convo))
         page.wait_for_selector(".ai-gen-image img", timeout=15000)
-        shown = page.evaluate("() => { const i = document.querySelector('.ai-gen-image img'); return i.complete && i.naturalWidth > 0; }")
+        page.evaluate("() => document.querySelector('.ai-gen-image img').scrollIntoView()")   # the image is loading="lazy"
+        try:   # the element exists before its bytes arrive: wait for the browser to finish loading it, however slow the machine is
+            page.wait_for_function("() => { const i = document.querySelector('.ai-gen-image img'); return i && i.complete && i.naturalWidth > 0; }", timeout=20000)
+        except Exception:
+            pass
+        shown = page.evaluate("() => { const i = document.querySelector('.ai-gen-image img'); return !!i && i.complete && i.naturalWidth > 0; }")
         link = page.get_attribute(".ai-gen-image a.btn", "href")
         _step(reporter, screenshot_logger, page, "Generated image is shown under the answer with a Download button", shown and "download=1" in link, f"loaded={shown} href={link}", "image_gen_chat")
         got = page.evaluate(_FETCH, [f"/api/financial-advisor/ai/attachments/{att}/?download=1"])
