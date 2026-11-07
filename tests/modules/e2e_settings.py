@@ -28,7 +28,10 @@ def _db_path() -> str:
 # before the instant engine runs). Nothing here needs a reachable model: instant answers and file export use 0 LLM calls.
 AI_ENGINE_PINS = {"ai_enabled": "true", "ai_provider": "ollama", "ai_investigator_mode": "auto", "ai_file_generation": "true",
                   "ai_file_max_mb": "10", "ai_file_max_rows": "50000",
-                  "ai_chat_mode": "ask"}   # Agent mode (a saved per-user choice) skips the instant-answer engine these steps test
+                  "ai_chat_mode": "ask",   # Agent mode (a saved per-user choice) skips the instant-answer engine these steps test
+                  # The settings Save validates the image-server start command's program; the developer's copied DB holds a
+                  # machine-specific path that does not exist elsewhere and made every AI settings save answer 400.
+                  "image_gen_start_command": ""}
 
 
 def _connect() -> sqlite3.Connection:

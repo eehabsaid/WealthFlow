@@ -828,11 +828,12 @@
     ]
   },
   "reports::monthly": {
-    "purpose": "View monthly income, expense breakdowns, and monthly financial performance summaries.",
+    "purpose": "View monthly income, expense breakdowns, and monthly financial performance summaries. Total Income is that month's own salary, certificate interest and rental income plus any manual income you add for the month; the PDF shows the same figure.",
     "steps": [
       "Navigate to Expenses Reports -> Reports.",
       "Select the Monthly tab.",
-      "Choose the desired month and year to view category-wise spending and income comparisons."
+      "Choose the desired month and year to view category-wise spending and income comparisons.",
+      "Click the Total Income card to add extra manual income for that month only; other months are not affected."
     ]
   },
   "reports::yearly": {
@@ -840,7 +841,7 @@
     "steps": [
       "Navigate to Expenses Reports -> Reports.",
       "Select the Yearly tab.",
-      "Select the evaluation year to review annual charts and overall financial health metrics."
+      "Select the evaluation year to review annual charts and overall financial health metrics. Total Income is the sum of the twelve months (including each month's manual income) and is read-only here."
     ]
   },
   "reports::custom": {

@@ -1,41 +1,23 @@
 import datetime
-from django.db.models import Sum
-from core.models import SalaryEntry
+
+from core.services.reports.income_summary_service import build_income_summary
+
 
 class ReportService(object):
     @staticmethod
     def get_period_income(owner, rtype, year, month, start_date=None, end_date=None):
-        total_inc = 0.0
+        """Total income for a report period: the same figure the Expenses Report card shows
+        (salary + certificate interest + rental income + manual income)."""
         if rtype == "monthly":
-            # Target the previous month relative to the report month
-            curr_date = datetime.date(year, month, 1)
-            prev_date = curr_date - datetime.timedelta(days=1)
-            sal_qs = SalaryEntry.objects.filter(
-                company__owner=owner, year=prev_date.year, month=prev_date.strftime("%B")
-            )
+            summary = build_income_summary(owner, year, month)
         elif rtype == "yearly":
-            sal_qs = SalaryEntry.objects.filter(company__owner=owner, year=year)
+            summary = build_income_summary(owner, year)
         else:
-            from datetime import date as _date
             if not start_date or not end_date:
                 return 0.0
-            sd = _date.fromisoformat(start_date)
-            ed = _date.fromisoformat(end_date)
-            MONTHS = [
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-            ]
-            sal_qs = SalaryEntry.objects.none()
-            for year_num in range(sd.year, ed.year + 1):
-                year_entries = SalaryEntry.objects.filter(company__owner=owner, year=year_num)
-                for entry in year_entries:
-                    try:
-                        month_index = MONTHS.index(entry.month) + 1
-                        entry_date = _date(year_num, month_index, 1)
-                        if sd <= entry_date <= ed:
-                            sal_qs |= SalaryEntry.objects.filter(pk=entry.pk, company__owner=owner)
-                    except Exception:
-                        pass
-
-        total_inc = float(sal_qs.aggregate(t=Sum("paid"))["t"] or 0)
-        return total_inc
+            summary = build_income_summary(
+                owner,
+                start=datetime.date.fromisoformat(str(start_date)),
+                end=datetime.date.fromisoformat(str(end_date)),
+            )
+        return summary["total_income"]

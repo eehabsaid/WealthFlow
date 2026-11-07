@@ -33,6 +33,7 @@ from .ai_attachment import AIAttachment
 from .ai_prompt import AIPromptCategory, AIPrompt
 from .billing import Plan, PlanPrice, Subscription, Invoice, UpgradeRequest
 from .legal import LegalVersion
+from .income_adjustment import MonthlyIncomeAdjustment
 from .budget import Budget, RecurringTransaction, BUDGET_PERIOD_CHOICES, RECURRING_FREQUENCY_CHOICES
 
 __all__ = [
@@ -116,6 +117,7 @@ __all__ = [
     "UpgradeRequest",
     "LegalVersion",
     "Budget",
+    "MonthlyIncomeAdjustment",
     "RecurringTransaction",
     "BUDGET_PERIOD_CHOICES",
     "RECURRING_FREQUENCY_CHOICES",

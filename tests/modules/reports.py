@@ -7,6 +7,7 @@ Tests:
 """
 
 from tests.core.download_verifier import verify_downloaded_file
+from tests.modules.reports_monthly_income import test_reports_monthly_income
 
 def test_reports_module(context, reporter, screenshot_logger):
     context.goto_route("#reports")
@@ -48,3 +49,6 @@ def test_reports_module(context, reporter, screenshot_logger):
         reporter.add_step("Yearly PDF Report Download", "Advanced Reports", "PASS", f"Verified PDF file: {save_path}", screenshot_path=shot_y)
     except Exception as ex:
         reporter.add_step("Yearly PDF Report Download", "Advanced Reports", "FAIL", f"Exception: {ex}")
+
+    # Per-month editable Total Income card
+    test_reports_monthly_income(context, reporter)

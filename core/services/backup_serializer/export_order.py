@@ -21,7 +21,7 @@ def get_model_export_order():
         AssetMaintenance, AssetMortgage, AssetPhoto, AssetPurchasePayment,
         AssetRental, RentReceipt, AssetRenovation, AssetSale, AssetValuationHistory,
         AuthAuditLog, AuthToken,
-        Budget, RecurringTransaction,
+        Budget, RecurringTransaction, MonthlyIncomeAdjustment,
         Bank, BankCertificate, BankCertificateInterestHistory, BankInterest,
         BalanceEntry, BalanceTransfer,
         CardRenewalFee, CertificateStatus, Company, CreditCardPayment,
@@ -131,5 +131,6 @@ def get_model_export_order():
         ("78", AIMemoryNote,                  None),
         ("78b", AIChatBlock,                 None),
         ("78c", AIAttachment,                None),
+        ("78d", MonthlyIncomeAdjustment,     None),
         ("79", AgentTrace,                   None),   # recorded Agent runs for AI training (ai_training app)
     ]

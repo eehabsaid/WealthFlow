@@ -69,7 +69,7 @@ from .onboarding_views import OnboardingStatusView, OnboardingCompleteView
 
 from .exports_expense_reports import (
     ExpenseCategoryListView, ExpenseCategoryDetailView, ExpenseSubcategoryListView, ExpenseSubcategoryDetailView,
-    ExpenseListView, ExpenseDetailView, User, ExpenseSummaryView,
+    ExpenseListView, ExpenseDetailView, User, ExpenseSummaryView, MonthlyIncomeAdjustmentView,
     ExportExcelWorkbookView, export_excel, GenerateReportView, SalaryReportView,
     BalanceReportView, CertificateReportView, FixedAssetPdfReportView, FixedAssetExcelReportView,
     format_arabic, get_text, _fixed_asset_report_queryset, _fixed_asset_report_context,
@@ -134,7 +134,7 @@ __all__ = [
     "BankInterestListView", "BankInterestDetailView", "CardRenewalFeeListView", "CardRenewalFeeDetailView", "CreditCardPaymentListView", "CreditCardPaymentDetailView", "CurrencyExchangeListView",
     "CurrencyExchangeDetailView", "CurrencyExchangeCalculateView", "CurrencyExchangeFormOptionsView", "OnboardingStatusView", "OnboardingCompleteView", "ExpenseCategoryListView", "ExpenseCategoryDetailView",
     "ExpenseSubcategoryListView", "ExpenseSubcategoryDetailView", "ExpenseListView", "ExpenseDetailView", "User",
-    "ExpenseSummaryView", "ExportExcelWorkbookView", "export_excel", "GenerateReportView", "SalaryReportView",
+    "ExpenseSummaryView", "MonthlyIncomeAdjustmentView", "ExportExcelWorkbookView", "export_excel", "GenerateReportView", "SalaryReportView",
     "BalanceReportView", "CertificateReportView", "FixedAssetPdfReportView", "FixedAssetExcelReportView", "format_arabic",
     "get_text", "_fixed_asset_report_queryset", "_fixed_asset_report_context", "_fixed_asset_display_value", "_fixed_asset_report_label",
     "_fixed_asset_user_text", "_fixed_asset_pdf_table", "_build_fixed_asset_pdf_story", "month_sort_key", "FixedAssetListView",

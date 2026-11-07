@@ -55,4 +55,5 @@ urlpatterns = [
     path("api/expenses/", views.ExpenseListView.as_view()),
     path("api/expenses/<int:pk>/", views.ExpenseDetailView.as_view()),
     path("api/expenses/summary/", views.ExpenseSummaryView.as_view()),
+    path("api/expenses/manual-income/", views.MonthlyIncomeAdjustmentView.as_view()),
 ]

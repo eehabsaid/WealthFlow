@@ -34,6 +34,7 @@ async function loadReportData() {
     }
     expUrl = `/api/expenses/?start=${startVal}&end=${endVal}`;
     sumUrl = `/api/expenses/summary/?year=${year}`;
+    if (startVal && endVal) sumUrl += `&start=${startVal}&end=${endVal}`;
   }
 
   const [expRes, sumRes] = await Promise.all([fetch(expUrl), fetch(sumUrl)]);
@@ -93,9 +94,10 @@ async function loadReportData() {
     trend = sumData.monthly_trend || [];
   }
 
-  let manualIncome = parseFloat(localStorage.getItem("manualIncome") || 0);
   const incomeSummary = sumData.income_summary || {};
-  let totalInc = parseFloat(incomeSummary.total_income || 0) + manualIncome;
+  const totalInc = parseFloat(incomeSummary.total_income || 0);
+  // Manual income is stored per month, so only the Monthly tab can edit it
+  const incomeEditable = tab === "monthly" && month > 0;
   const netSav = totalInc - totalExp;
   const savRate = totalInc > 0 ? (netSav / totalInc) * 100 : 0;
 
@@ -103,9 +105,9 @@ async function loadReportData() {
   const kpiEl = document.getElementById("reportKPIs");
   if (kpiEl) {
     kpiEl.innerHTML = `
-        <div class="col-6 col-lg-3" onclick="editIncome()" style="cursor:pointer">
+        <div class="col-6 col-lg-3" ${incomeEditable ? 'onclick="editIncome()" style="cursor:pointer"' : ""}>
             <div class="kpi-card h-100">
-                <div class="kpi-label" data-i18n="total_income_edit">${t("total_income_edit", "Total Income (edit)")}</div>
+                <div class="kpi-label" data-i18n="${incomeEditable ? "total_income_edit" : "total_income"}">${incomeEditable ? t("total_income_edit", "Total Income (edit)") : t("total_income", "Total Income")}</div>
                 <div class="kpi-value">${fmt(totalInc)}</div>
             </div>
         </div>
@@ -120,12 +122,26 @@ async function loadReportData() {
   applyTranslations();
 }
 
-function editIncome() {
-  const current = localStorage.getItem("manualIncome") || 0;
-  const val = prompt(t("enter_additional_manual_income"), current);
-  if (val !== null && !isNaN(val)) {
-    localStorage.setItem("manualIncome", val);
+async function editIncome() {
+  const year = currentReportYear;
+  const month = parseInt(document.getElementById("rMonth")?.value || 0);
+  if (!month) return;
+  const period = `${t(REPORT_MONTH_I18N_KEYS[month - 1])} ${year}`;
+  try {
+    const cur = await (
+      await fetch(`/api/expenses/manual-income/?year=${year}&month=${month}`)
+    ).json();
+    const val = prompt(`${t("enter_additional_manual_income")} (${period})`, cur.amount || 0);
+    if (val === null || val.trim() === "" || isNaN(val) || parseFloat(val) < 0) return;
+    const res = await fetch("/api/expenses/manual-income/", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ year, month, amount: val }),
+    });
+    if (!res.ok) throw new Error("save failed");
     loadReportData();
+  } catch (_err) {
+    showToast(t("manual_income_save_failed", "Could not save manual income"), "error");
   }
 }
 

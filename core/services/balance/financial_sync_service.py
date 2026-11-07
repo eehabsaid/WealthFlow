@@ -58,6 +58,34 @@ class FinancialSyncService:
             total += self.rental_income_amount(rental)
         return total.quantize(Decimal("0.01"))
 
+    def rental_income_for_month(self, owner, year: int, month: int) -> Decimal:
+        """Rental income for ONE calendar month.
+
+        A rental counts only while its contract overlaps the month. A recorded RentReceipt for that
+        month replaces the projected amount (monthly rent x occupancy), so the money counts once.
+        """
+        import calendar
+        from datetime import date
+
+        from core.models import RentReceipt
+
+        start = date(year, month, 1)
+        end = date(year, month, calendar.monthrange(year, month)[1])
+        rentals = AssetRental.objects.select_related("asset").filter(
+            asset__asset_type__in=REAL_ESTATE_ASSET_TYPES, asset__status="Owned"
+        )
+        if owner is not None:
+            rentals = rentals.filter(asset__owner=owner)
+        total = Decimal("0")
+        for rental in rentals:
+            if rental.contract_start and rental.contract_start > end:
+                continue
+            if rental.contract_end and rental.contract_end < start:
+                continue
+            receipt = RentReceipt.objects.filter(rental=rental, period_start=start).first()
+            total += _to_decimal(receipt.amount) if receipt else self.rental_income_amount(rental)
+        return total.quantize(Decimal("0.01"))
+
     def period_rental_income_total(self, period: str | None = None, owner=None) -> Decimal:
         monthly_total = self.monthly_rental_income_total(owner)
         period_value = str(period or "month").strip().lower()

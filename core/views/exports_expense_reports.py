@@ -18,6 +18,7 @@ from .expense_category_views import (
 )
 from .expense_views import ExpenseListView, ExpenseDetailView, User
 from .expense_summary_views import ExpenseSummaryView
+from .income_adjustment_views import MonthlyIncomeAdjustmentView
 from .report_views import (
     ExportExcelWorkbookView,
     export_excel,
@@ -50,6 +51,7 @@ __all__ = [
     "ExpenseDetailView",
     "User",
     "ExpenseSummaryView",
+    "MonthlyIncomeAdjustmentView",
     "ExportExcelWorkbookView",
     "export_excel",
     "GenerateReportView",

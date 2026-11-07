@@ -11,14 +11,14 @@ User = get_user_model()
 
 
 class ExpenseSummaryIncomeTest(TestCase):
-    def test_income_summary_uses_previous_month_salary_and_certificate_interest_window(self):
+    def test_income_summary_uses_selected_month_salary_and_certificate_interest_window(self):
         self.user = User.objects.create_user(username="testuser_expsum", password="pass12345")
         self.client.force_login(self.user)
         company = Company.objects.create(owner=self.user, name="Acme", display_name="Acme")
         SalaryEntry.objects.create(
             company=company,
             year=2026,
-            month="june",
+            month="july",
             expected=10000,
             paid=5000,
             bonus=0,
@@ -69,5 +69,5 @@ class ExpenseSummaryIncomeTest(TestCase):
         income_summary = payload["income_summary"]
 
         self.assertEqual(income_summary["total_salary"], 5000.0)
-        self.assertEqual(income_summary["total_interest"], 300.0)
-        self.assertEqual(income_summary["total_income"], 5300.0)
+        self.assertEqual(income_summary["total_interest"], 100.0)
+        self.assertEqual(income_summary["total_income"], 5100.0)
