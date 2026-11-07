@@ -1,0 +1,16 @@
+.ln.meta {
+  color: var(--muted);
+}
+
+dialog {
+  max-width: 520px;
+  width: 92vw;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}

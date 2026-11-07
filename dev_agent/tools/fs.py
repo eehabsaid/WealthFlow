@@ -34,6 +34,8 @@ def delete_file(ctx, args):
         before = fsutil.sha(fsutil.read_bytes(full))
         if ctx.seen.get(rel) and ctx.seen[rel] != before:
             raise ToolError("conflict: the file changed since it was read; read it again")
+        if ctx.ledger:
+            ctx.ledger.snapshot_original(rel, fsutil.read_bytes(full))
         _remove(full)
     ctx.seen.pop(rel, None)
     if ctx.ledger:
@@ -59,6 +61,9 @@ def rename_file(ctx, args):
         digest = fsutil.sha(fsutil.read_bytes(src))
         if ctx.seen.get(src_rel) and ctx.seen[src_rel] != digest:
             raise ToolError("conflict: the file changed since it was read; read it again")
+        if ctx.ledger:
+            ctx.ledger.snapshot_original(src_rel, fsutil.read_bytes(src))
+            ctx.ledger.snapshot_alias(dst_rel, src_rel)
         dst.parent.mkdir(parents=True, exist_ok=True)
         fsutil.replace_retry(src, dst)
     ctx.seen.pop(src_rel, None)

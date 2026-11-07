@@ -8,6 +8,7 @@ from ..ledger import plan as planlib
 from ..ledger.ledger import Ledger
 from ..tools import DenyAll, ToolContext
 from . import packages, report
+from .cancel import CancelToken
 from .fix import verify_and_fix
 from .protocol import PLAN_FORMAT, system_prompt
 from .session import run_phase
@@ -18,16 +19,25 @@ class AgentError(RuntimeError):
 
 
 class Agent:
-    def __init__(self, project, provider, settings: dict, approver=None, emit=None):
+    def __init__(self, project, provider, settings: dict, approver=None, emit=None, cancel=None):
         self.project, self.provider, self.settings = project, provider, settings
         self.approver, self.emit = approver or DenyAll(), emit or (lambda event: None)
+        self.cancel = cancel or CancelToken()
         self.index = Index(project)
 
     def _ctx(self, ledger: Ledger, readonly: bool, scope=None, package: str = "") -> ToolContext:
-        return ToolContext(self.project, self.settings, self.index, ledger, self.approver, scope, readonly, package, {}, ledger.approved_keys(), self.emit)
+        return ToolContext(self.project, self.settings, self.index, ledger, self.approver, scope, readonly, package, {}, ledger.approved_keys(), self.emit, self.cancel)
 
-    def plan(self, task: str) -> Ledger:
-        ledger = Ledger.create(self.project, task)
+    def _load(self, task_id: str) -> Ledger:
+        ledger = Ledger.load(self.project, task_id)
+        ledger.listener = self.emit   # ledger events (status changes, invalid replies) reach the live feed too
+        return ledger
+
+    def plan(self, task: str, ledger: Ledger | None = None) -> Ledger:
+        """Investigate read-only and propose a plan. `ledger` lets a UI create the task first so it knows the task id at once."""
+        ledger = ledger or Ledger.create(self.project, task)
+        ledger.listener = self.emit
+        self.emit({"type": "phase", "phase": "planning"})
         ctx = self._ctx(ledger, True)
         background = context.render(context.pick(self.project, self.index, task))
         problems: list[str] = []
@@ -57,7 +67,7 @@ class Agent:
         return ledger
 
     def approve(self, task_id: str) -> Ledger:
-        ledger = Ledger.load(self.project, task_id)
+        ledger = self._load(task_id)
         if ledger.data["status"] != "awaiting_approval" or not ledger.data["plan"]:
             raise AgentError(f"task {task_id} has no plan waiting for approval (status: {ledger.data['status']})")
         ledger.data["approved_at"] = ledger.data["updated"]
@@ -65,7 +75,7 @@ class Agent:
         return ledger
 
     def execute(self, task_id: str) -> Ledger:
-        ledger = Ledger.load(self.project, task_id)
+        ledger = self._load(task_id)
         d = ledger.data
         if not d["approved_at"] or not d["plan"] or d["status"] not in ("approved", "executing", "stopped"):
             raise AgentError(f"task {task_id} is not approved (status: {d['status']})")
@@ -76,8 +86,10 @@ class Agent:
         for pkg in d["packages"]:
             if pkg["status"] == "done":
                 continue   # resume: finished packages are never repeated
+            if self.cancel.is_set():
+                return self._stop(ledger, pkg, self.cancel.reason)
             ctx = self._ctx(ledger, False, scope, pkg["id"])
-            self.emit({"type": "package", "id": pkg["id"], "title": pkg["title"]})
+            self.emit({"type": "package", "id": pkg["id"], "title": pkg["title"], "status": "running"})
             pkg["status"] = "running"
             task = (f"{ledger.brief(pkg['id'])}\n\nDo ONLY the steps of package {pkg['id']}: {', '.join(pkg['steps'])}. Files: {', '.join(pkg['files'])}.\n"
                     "When finished, reply {\"final\": \"what you changed and what you did not check\"}.")
@@ -91,7 +103,9 @@ class Agent:
                 return self._stop(ledger, pkg, why)
             pkg["status"] = "done"
             ledger.save()
+            self.emit({"type": "package", "id": pkg["id"], "title": pkg["title"], "status": "done"})
         ctx = self._ctx(ledger, False, scope, "final")
+        self.emit({"type": "phase", "phase": "final checks"})
         ok, why = verify_and_fix(ctx, self.provider, "final", lambda: ledger.changed_files())
         ledger.set_status("completed" if ok else "stopped", why)
         report.write(ledger)

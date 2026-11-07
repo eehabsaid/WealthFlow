@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>dev_agent</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="layout.css" />
+    <link rel="stylesheet" href="components.css" />
+  </head>
+  <body>
+    <header class="top">
+      <h1>dev_agent</h1>
+      <span id="run-state" class="pill">idle</span>
+      <span class="spacer"></span>
+      <button id="stop-btn" class="danger" type="button" disabled>Stop</button>
+      <button id="settings-btn" type="button">Settings</button>
+    </header>
+    <div id="banner" class="banner" hidden></div>
+    <div id="approvals"></div>
+    <div class="layout">
+      <aside class="side">
+        <form id="new-task">
+          <label for="goal">New task</label>
+          <textarea
+            id="goal"
+            rows="5"
+            maxlength="8000"
+            placeholder="Describe what the agent should do"
+          ></textarea>
+          <button id="start-btn" type="submit" class="primary">
+            Plan task
+          </button>
+        </form>
+        <h2>Tasks</h2>
+        <ul id="task-list" class="tasks"></ul>
+      </aside>
+      <main id="detail" class="detail">
+        <p class="muted">Select a task or start a new one.</p>
+      </main>
+    </div>
+    <dialog id="settings-dialog"></dialog>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

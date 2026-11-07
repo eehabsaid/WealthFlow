@@ -7,14 +7,17 @@ from .http import post_json
 
 
 class _Base(Provider):
+    cancel = None
+
     def _post(self, url: str, headers: dict, body: dict) -> dict:
-        return post_json(url, headers, body, self.timeout, secrets=(self.api_key,), backoff=getattr(self, "backoff", 1.0))
+        return post_json(url, headers, body, self.timeout, secrets=(self.api_key,), backoff=getattr(self, "backoff", 1.0), cancel=self.cancel)
 
 
 class Ollama(_Base):
     name = "ollama"
 
-    def complete(self, system, messages):
+    def complete(self, system, messages, cancel=None):
+        self.cancel = cancel
         body = {"model": self.model, "stream": False, "messages": [{"role": "system", "content": system}, *merge_roles(messages)],
                 "options": {"num_ctx": self.context_window, "num_predict": self.max_output}}
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
@@ -28,7 +31,8 @@ class Ollama(_Base):
 class Anthropic(_Base):
     name = "anthropic"
 
-    def complete(self, system, messages):
+    def complete(self, system, messages, cancel=None):
+        self.cancel = cancel
         body = {"model": self.model, "max_tokens": self.max_output, "system": system, "messages": merge_roles(messages)}
         data = self._post(f"{self.base_url}/v1/messages", {"x-api-key": self.api_key, "anthropic-version": "2023-06-01"}, body)
         try:
@@ -42,7 +46,8 @@ class Anthropic(_Base):
 class OpenAI(_Base):
     name = "openai"
 
-    def complete(self, system, messages):
+    def complete(self, system, messages, cancel=None):
+        self.cancel = cancel
         body = {"model": self.model, "max_completion_tokens": self.max_output,
                 "messages": [{"role": "system", "content": system}, *merge_roles(messages)]}
         data = self._post(f"{self.base_url}/chat/completions", {"Authorization": f"Bearer {self.api_key}"}, body)
@@ -56,7 +61,8 @@ class OpenAI(_Base):
 class Gemini(_Base):
     name = "gemini"
 
-    def complete(self, system, messages):
+    def complete(self, system, messages, cancel=None):
+        self.cancel = cancel
         contents = [{"role": "model" if m["role"] == "assistant" else "user", "parts": [{"text": m["content"]}]} for m in merge_roles(messages)]
         body = {"systemInstruction": {"parts": [{"text": system}]}, "contents": contents, "generationConfig": {"maxOutputTokens": self.max_output}}
         data = self._post(f"{self.base_url}/v1beta/models/{self.model}:generateContent", {"x-goog-api-key": self.api_key}, body)

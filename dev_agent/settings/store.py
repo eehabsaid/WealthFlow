@@ -83,16 +83,26 @@ class Settings:
         validate(data)
         fsutil.atomic_write(self.path, (json.dumps(data, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
 
-    def set(self, dotted: str, raw: str) -> dict:
+    def update(self, values: dict) -> dict:
+        """Apply several dotted-key changes (e.g. {"model": "x", "providers.ollama.base_url": "..."}); nothing is saved unless all are valid."""
+        if not isinstance(values, dict) or not values:
+            raise SettingsError("give the settings to change")
         data = self.load()
-        node, keys = data, dotted.split(".")
-        for key in keys[:-1]:
-            if not isinstance(node.get(key), dict):
+        for dotted, raw in values.items():
+            node, keys = data, str(dotted).split(".")
+            for key in keys[:-1]:
+                if not isinstance(node.get(key), dict):
+                    raise SettingsError(f"unknown setting '{dotted}'")
+                node = node[key]
+            if keys[-1] not in node or isinstance(node[keys[-1]], dict):
                 raise SettingsError(f"unknown setting '{dotted}'")
-            node = node[key]
-        if keys[-1] not in node:
-            raise SettingsError(f"unknown setting '{dotted}'")
-        old = node[keys[-1]]
-        node[keys[-1]] = int(raw) if isinstance(old, int) and not isinstance(old, bool) else raw
+            old = node[keys[-1]]
+            try:
+                node[keys[-1]] = int(raw) if isinstance(old, int) and not isinstance(old, bool) else str(raw)
+            except (TypeError, ValueError) as exc:
+                raise SettingsError(f"'{dotted}' must be a number") from exc
         self.save(data)
         return data
+
+    def set(self, dotted: str, raw: str) -> dict:
+        return self.update({dotted: raw})

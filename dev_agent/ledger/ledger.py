@@ -4,6 +4,7 @@ atomically after every change at coding_agent/tasks/<id>/ledger.json. Every work
 from __future__ import annotations
 
 import datetime
+import hashlib
 import json
 import re
 
@@ -19,6 +20,7 @@ def _now() -> str:
 class Ledger:
     def __init__(self, project, task_id: str, data: dict):
         self.project, self.id, self.data = project, task_id, data
+        self.listener = None   # called with every ledger event, e.g. to stream it to a UI
         self.dir = project.agent_dir / "tasks" / task_id
         self.file = self.dir / "ledger.json"
 
@@ -62,6 +64,34 @@ class Ledger:
     def event(self, kind: str, **info) -> None:
         self.data["events"] = (self.data["events"] + [{"t": _now(), "kind": kind, **info}])[-MAX_EVENTS:]
         self.save()
+        if self.listener:
+            self.listener({"type": kind, **info})
+
+    def snapshot_original(self, rel: str, content: bytes | None) -> None:
+        """Keep the content a file had before the agent first touched it (None = it did not exist), so a diff can be shown later."""
+        snaps = self.data.setdefault("snapshots", {})
+        if rel in snaps:
+            return
+        name = None
+        if content is not None:
+            name = hashlib.sha1(rel.encode("utf-8")).hexdigest()[:16] + ".orig"
+            fsutil.atomic_write(self.dir / "snapshots" / name, content)
+        snaps[rel] = {"file": name}
+        self.save()
+
+    def snapshot_alias(self, new_rel: str, old_rel: str) -> None:
+        """After a rename the new path's original is the old path's original."""
+        snaps = self.data.setdefault("snapshots", {})
+        if old_rel in snaps and new_rel not in snaps:
+            snaps[new_rel] = {**snaps[old_rel], "from": old_rel}
+            self.save()
+
+    def original(self, rel: str):
+        """(known, bytes-or-None): the content before the agent changed `rel`."""
+        snap = self.data.get("snapshots", {}).get(rel)
+        if snap is None:
+            return False, None
+        return True, ((self.dir / "snapshots" / snap["file"]).read_bytes() if snap["file"] else None)
 
     def add_usage(self, usage: dict) -> None:
         for key in ("input_tokens", "output_tokens"):

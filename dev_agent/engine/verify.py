@@ -52,9 +52,9 @@ def run(ctx, changed: list[str]) -> list[dict]:
             if decision.action != "allow":
                 outcome, detail = "NOT RUN", f"command is not whitelisted: {decision.reason}"
                 break
-            res = runner.run(argv, project.root, ctx.settings["command_timeout_s"], ctx.settings["max_tool_result_chars"])
-            if res["status"] == "NOT RUN":
-                outcome, detail = "NOT RUN", res["output"]
+            res = runner.run(argv, project.root, ctx.settings["command_timeout_s"], ctx.settings["max_tool_result_chars"], cancel=ctx.cancel)
+            if res["status"] in ("NOT RUN", "CANCELLED"):
+                outcome, detail = "NOT RUN", res["output"] if res["status"] == "NOT RUN" else "stopped by user"
                 break
             if res["status"] == "FAILED":
                 outcome, detail = "FAILED", ("TIMED OUT\n" if res["timed_out"] else "") + res["output"]

@@ -15,8 +15,8 @@ Phase 3 (coding-only training, separate from business training): `training.json`
 - `--stages train`: needs at least `min_examples` verified examples, fine-tunes in WSL, registers `<current model>-coder`; never switches the app model.
 - `--stages evaluate`: runs the old and the new model on the held-out tasks, applies each patch and runs the real tests; reports correctness, regressions, protected-file touches, speed.
 
-## Standalone agent (`dev_agent/`, M1)
-An autonomous coding agent that works on this repo from the command line; independent of Django, the database and WealthFlow's AI settings.
+## Standalone agent (`dev_agent/`, M1-M2)
+An autonomous coding agent that works on this repo from the command line, a local Web UI or a native VS Code extension; independent of Django, the database and WealthFlow's AI settings.
 - It reads this folder: `config.json` (protected/forbidden files, commands, verify steps, test areas), `skills/`, `MEMORY.md`.
 - It writes here: `agent_settings.json` (provider/model, no secrets), `tasks/<id>/ledger.json` and `report.md`.
 - Credentials are never here: OS keyring, or an encrypted file outside the repo (`%APPDATA%\dev_agent\secrets.enc` on Windows).

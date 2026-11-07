@@ -21,6 +21,8 @@ def build(ledger) -> str:
     if final:
         lines.append(f"Overall: {verify.overall(final['results'])}")
         lines += [f"- {r['step']}: {r['status']}" + (f" - {r['detail'].splitlines()[0][:160]}" if r["detail"] else "") for r in final["results"]]
+    elif d["status"] == "answered":
+        lines.append("Not applicable: no files were changed.")
     else:
         lines.append("Overall: NOT VERIFIED - the final checks did not run (the task did not finish).")
         last = d["verification"][-1] if d["verification"] else None

@@ -17,8 +17,8 @@ def execute(ctx, argv: list[str], reason: str = "") -> dict:
         why = f"{reason or 'no reason given'} | {decision.reason}"
         if not ctx.ask("command", f"cmd:{shown}", f"run `{shown}` ({why})"):
             raise ToolError(f"the owner did not approve `{shown}` ({decision.reason}); find another way or report it")
-    result = runner.run(argv, ctx.project.root, ctx.settings["command_timeout_s"], ctx.settings["max_tool_result_chars"])
-    ctx.emit({"type": "command", "command": shown, "status": result["status"]})
+    result = runner.run(argv, ctx.project.root, ctx.settings["command_timeout_s"], ctx.settings["max_tool_result_chars"], cancel=ctx.cancel)
+    ctx.emit({"type": "command", "command": shown[:300], "status": result["status"], "duration_s": result["duration_s"]})
     return {"command": shown, **result}
 
 

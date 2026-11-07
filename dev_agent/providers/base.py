@@ -42,5 +42,5 @@ class Provider(ABC):
         self.timeout, self.max_output, self.context_window = timeout, max_output, context_window
 
     @abstractmethod
-    def complete(self, system: str, messages: list[dict]) -> Reply:
-        """Send the system prompt and user/assistant messages; return the reply text and token usage."""
+    def complete(self, system: str, messages: list[dict], cancel=None) -> Reply:
+        """Send the system prompt and user/assistant messages; return the reply text and token usage. `cancel` (a CancelToken) aborts the request."""

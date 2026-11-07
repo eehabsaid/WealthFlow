@@ -79,9 +79,17 @@ def main(argv=None) -> int:
     st.add_argument("value", nargs="?")
     sub.add_parser("set-key").add_argument("provider", choices=sorted(PROVIDERS))
     sub.add_parser("keys")
+    sv = sub.add_parser("serve", help="start the local server for the web UI and the VS Code extension (127.0.0.1 only)")
+    sv.add_argument("--port", type=int, default=0, help="0 = any free port (default)")
+    sv.add_argument("--parent-pid", type=int, default=0, help="stop when this process exits (used by the VS Code extension)")
+    sv.add_argument("--open", action="store_true", dest="open_browser", help="open the web UI in your browser")
+    sv.add_argument("--verbose", action="store_true")
     args = parser.parse_args(argv)
     project = Project(Path(args.root).resolve() if args.root else find_root(Path.cwd()))
     try:
+        if args.cmd == "serve":
+            from .server.run import serve
+            return serve(project, args.port, args.parent_pid or None, args.open_browser, args.verbose)
         if args.cmd == "settings":
             store = Settings(project)
             data = store.set(args.key, args.value) if args.action == "set" and args.key and args.value is not None else store.load()

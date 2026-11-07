@@ -121,6 +121,8 @@ def _commit(ctx, preps: list[Prep]) -> str:
             return "a file was modified concurrently; nothing was written"
         written = []
         for p in todo:
+            if ctx.ledger:
+                ctx.ledger.snapshot_original(p.rel, p.before)   # the original must be safe before anything is written
             try:
                 fsutil.atomic_write(p.abs, p.new)
                 if fsutil.sha(_current(p) or b"") != p.sha_after:

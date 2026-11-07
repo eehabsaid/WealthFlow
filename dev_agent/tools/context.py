@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from ..engine.cancel import CancelToken
 from ..guard import paths
 
 
@@ -27,6 +28,7 @@ class ToolContext:
     seen: dict = field(default_factory=dict)
     approved: set = field(default_factory=set)
     emit: object = lambda event: None
+    cancel: object = field(default_factory=CancelToken)
 
     def ask(self, kind: str, key: str, message: str) -> bool:
         """Ask the owner once per key; the answer is saved in the ledger."""

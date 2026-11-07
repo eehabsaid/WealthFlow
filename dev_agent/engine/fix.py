@@ -13,9 +13,13 @@ def verify_and_fix(ctx, provider, label: str, files_fn) -> tuple[bool, str]:
     """(ok, stop_reason). ok means no check FAILED; NOT RUN steps are kept in the ledger and reported, never hidden."""
     tracker, rounds, limit = RetryTracker(), 0, ctx.settings["max_fix_rounds"]
     while True:
+        if ctx.cancel.is_set():
+            return False, ctx.cancel.reason
         results = verify.run(ctx, files_fn())
         ctx.ledger.add_verification(label, results)
-        ctx.emit({"type": "verify", "label": label, "overall": verify.overall(results)})
+        ctx.emit({"type": "verify", "label": label, "overall": verify.overall(results), "results": [{"step": r["step"], "status": r["status"]} for r in results]})
+        if ctx.cancel.is_set():
+            return False, ctx.cancel.reason
         failed = [r for r in results if r["status"] == "FAILED"]
         if not failed:
             tracker.success()

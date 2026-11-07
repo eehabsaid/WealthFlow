@@ -14,7 +14,7 @@ class Scripted(Provider):
         super().__init__("fake", "http://localhost")
         self.replies, self.calls = list(replies), []
 
-    def complete(self, system, messages):
+    def complete(self, system, messages, cancel=None):
         self.calls.append((system, [dict(m) for m in messages]))
         if not self.replies:
             raise ProviderError("scripted model has no more replies")
@@ -47,3 +47,21 @@ def plan(steps=None, **kw) -> str:
 
 def edit(*edits) -> str:
     return tool("edit_files", edits=list(edits))
+
+
+class Blocking(Provider):
+    """Answers the scripted replies, then waits like a model that is still generating until Stop cuts it off."""
+    name = "blocking"
+
+    def __init__(self, replies=()):
+        super().__init__("fake", "http://localhost")
+        self.replies, self.started = list(replies), __import__("threading").Event()
+
+    def complete(self, system, messages, cancel=None):
+        if self.replies:
+            return Reply(self.replies.pop(0), {"input_tokens": 1, "output_tokens": 1})
+        self.started.set()
+        if cancel is not None and cancel.wait(30):
+            from ..engine.cancel import Cancelled
+            raise Cancelled(cancel.reason)
+        raise ProviderError("blocking model timed out")

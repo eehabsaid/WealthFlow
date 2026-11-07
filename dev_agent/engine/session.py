@@ -7,6 +7,7 @@ import json
 from dataclasses import dataclass
 
 from ..providers.base import ProviderError
+from .cancel import Cancelled
 from ..tools import call
 from .budget import Budget, ContextOverflow, clip_text
 from .protocol import NUDGE, parse_reply
@@ -19,14 +20,38 @@ class PhaseResult:
     reason: str = ""
 
 
+def _brief(args) -> str:
+    text = json.dumps(args, ensure_ascii=False, default=str)
+    return text if len(text) <= 240 else text[:237] + "..."
+
+
+def _summary(name: str, result: dict) -> str:
+    """One short line for the live feed (never file contents)."""
+    if "error" in result:
+        return str(result["error"])[:240]
+    if name == "edit_files":
+        return ", ".join(f"{f['path']}: {f['state']}" for f in result.get("files", []))[:240]
+    if name in ("run_command", "git", "run_tests"):
+        return f"{result.get('status')} (exit {result.get('exit_code')}, {result.get('duration_s')}s)"
+    if name == "read_file":
+        return f"{result.get('path')} lines {result.get('start')}-{result.get('end')} of {result.get('total_lines')}"
+    if name in ("grep", "search_index"):
+        return f"{len(result.get('matches') or result.get('results') or [])} results"
+    return "ok"
+
+
 def run_phase(ctx, provider, system: str, first_user: str, accept: set[str], max_steps: int) -> PhaseResult:
     s = ctx.settings
     budget, messages = Budget(s["context_window"], s["reserve_tokens"]), [{"role": "user", "content": first_user}]
     invalid, repeats, last_key = 0, 0, None
     for _ in range(max_steps):
+        if ctx.cancel.is_set():
+            return PhaseResult("stopped", reason=ctx.cancel.reason)
         try:
             budget.compact(system, messages)
-            reply = provider.complete(system, messages)
+            reply = provider.complete(system, messages, cancel=ctx.cancel)
+        except Cancelled:
+            return PhaseResult("stopped", reason=ctx.cancel.reason or "stopped by user")
         except ContextOverflow as exc:
             return PhaseResult("stopped", reason=str(exc))
         except ProviderError as exc:
@@ -59,6 +84,6 @@ def run_phase(ctx, provider, system: str, first_user: str, accept: set[str], max
             messages.append({"role": "user", "content": f"TOOL RESULT {name}:\nYou already made this exact call twice. Change approach or finish."})
             continue
         result = call(ctx, name, args)
-        ctx.emit({"type": "tool", "name": name, "ok": "error" not in result})
+        ctx.emit({"type": "tool", "name": name, "ok": "error" not in result, "args": _brief(args), "summary": _summary(name, result)})
         messages.append({"role": "user", "content": f"TOOL RESULT {name}:\n" + clip_text(json.dumps(result, ensure_ascii=False, default=str), s["max_tool_result_chars"])})
     return PhaseResult("stopped", reason=f"step limit ({max_steps}) reached")
