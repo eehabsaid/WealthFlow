@@ -5,7 +5,6 @@ import * as path from "node:path";
 import { AgentClient } from "../client";
 import { findPython } from "../pythonFinder";
 import { ServerProcess } from "../serverProcess";
-import { Store } from "../state";
 
 export const REPO = path.resolve(__dirname, "../../../..");
 export const AGENT = path.join(REPO, "dev_agent");
@@ -33,14 +32,13 @@ export const PLAN = (extra: Record<string, unknown> = {}): string =>
 export const WRITE = reply({ tool: "edit_files", args: { edits: [{ path: "app/more.py", content: "X = 1\n" }] } });
 export const DONE = reply({ final: "done" });
 
-// A throw-away project + fake Ollama (script of replies), the real `dev_agent serve` on top of them, and a Store, all torn down by close().
+// A throw-away project + fake Ollama (script of replies) and the real `dev_agent serve` on top of them, all torn down by close().
 export class Env {
   fake: ChildProcess | undefined;
   server = new ServerProcess();
   logs: string[] = [];
   project = "";
   client!: AgentClient;
-  store = new Store(() => this.server.client);
 
   static async create(script: unknown[], startServer = true): Promise<Env> {
     const env = new Env();
@@ -61,7 +59,6 @@ export class Env {
   }
 
   async close(): Promise<void> {
-    this.store.stop();
     await this.server.stop();
     this.fake?.kill("SIGKILL");
   }

@@ -42,16 +42,16 @@ const serverProcess_1 = require("./serverProcess");
 // Owns the hidden Python server for this window: finds Python, starts it, restarts it on request, stops it on exit. No manual steps for the user.
 class ServerManager {
     log;
-    store;
+    poller;
     status = "stopped";
     error = "";
     server = new serverProcess_1.ServerProcess();
     emitter = new vscode.EventEmitter();
     onStatus = this.emitter.event;
     stopping = false;
-    constructor(log, store) {
+    constructor(log, poller) {
         this.log = log;
-        this.store = store;
+        this.poller = poller;
     }
     get client() {
         return this.server.client;
@@ -88,7 +88,7 @@ class ServerManager {
                 this.set("error", `The agent server stopped unexpectedly (code ${code}). Use "dev_agent: Restart server".`);
             };
             await this.server.start({ python, projectRoot, agentPath, log: (l) => this.log.line(l) });
-            this.store.start();
+            this.poller.start();
             this.set("running");
             this.log.line(`agent server ready on 127.0.0.1:${this.server.client?.port}`);
         }
@@ -99,7 +99,7 @@ class ServerManager {
     }
     async stop() {
         this.stopping = true;
-        this.store.reset();
+        this.poller.reset();
         await this.server.stop();
         this.set("stopped");
     }

@@ -1,102 +1,115 @@
 import * as assert from "node:assert/strict";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { test } from "node:test";
-import { answers, calls, config, state } from "./vscodeMock"; // must be imported before the extension: it installs the fake `vscode`
+import { calls, config, state } from "./vscodeMock"; // must be imported before the extension: it installs the fake `vscode`
 import { Env, DONE, PLAN, PYTHON, REPO, WRITE, alive, until } from "./env";
 
 type Ext = typeof import("../extension");
+type Res = { type: string; id?: number; ok?: boolean; data?: any; error?: any; event?: any };
 
-// Activate the extension against a project and wait until its hidden server is up; fail fast (with the reason) if it goes offline instead.
-async function boot(ext: Ext, env: Env): Promise<void> {
+// Activate the extension, open its chat view like VS Code would, and give back a function that makes the same calls the webview page makes.
+async function boot(env: Env) {
+  const ext = require("../extension") as Ext;
   state.folder = env.project;
   config.pythonPath = PYTHON;
   config.agentPath = REPO;
-  calls.contexts.delete("devAgent.connected");
-  ext.activate({ subscriptions: [] } as never);
-  await until(() => {
-    if (/offline/.test(state.statusItem.text)) throw new Error(`the extension went offline: ${String(state.statusItem.tooltip)}`);
-    return calls.contexts.get("devAgent.connected") === true;
-  }, 30000, "server to start");
+  const context = { subscriptions: [] as { dispose(): unknown }[], extensionUri: { path: "/ext", scheme: "file", fsPath: "/ext" } };
+  ext.activate(context as never);
+  await until(() => calls.contexts.get("devAgent.connected") === true || (/offline/.test(state.statusItem.text) && (() => { throw new Error(`offline: ${String(state.statusItem.tooltip)}`); })()), 30000, "server to start");
+  const out: Res[] = [];
+  let receive: (m: unknown) => void = () => undefined;
+  const view = {
+    visible: true,
+    webview: { options: {} as any, html: "", cspSource: "vscode-webview://x", asWebviewUri: (u: any) => u, postMessage: async (m: Res) => void out.push(m), onDidReceiveMessage: (fn: (m: unknown) => void) => void (receive = fn) },
+    onDidDispose: () => undefined,
+  };
+  calls.views.get("devAgent.chat").resolveWebviewView(view);
+  let n = 0;
+  const call = async (name: string, args: Record<string, unknown> = {}): Promise<Res> => {
+    const id = ++n;
+    receive({ type: "call", id, name, args });
+    return until(() => out.find((m) => m.type === "res" && m.id === id), 20000, `reply to ${name}`);
+  };
+  // like VS Code on shutdown: deactivate(), then dispose everything the extension registered
+  const closing = { deactivate: async () => (await ext.deactivate(), context.subscriptions.forEach((d) => void d.dispose())) };
+  return { ext: closing, view, out, call };
 }
 
-test("the whole extension against a real agent server: start, task, plan dialog, run, tree views, diff, stop on deactivate", async () => {
+test("the chat view runs a whole task against a real server: plan, approve, change, native diff, report", async () => {
   const env = await Env.create([PLAN(), WRITE, DONE], false);
-  const ext = require("../extension") as typeof import("../extension");
+  const { ext, view, out, call } = await boot(env);
   try {
-    answers.info.push("Approve and run"); // the plan-ready modal
-    await boot(ext, env);
-    assert.match(state.statusItem.text, /dev_agent/);
-
-    answers.input.push("add more");
-    await calls.commands.get("devAgent.newTask")?.();
-    const tasks = calls.trees.get("devAgent.tasks");
-    const row = await until(() => tasks.getChildren()[0], 10000, "task row");
-    assert.equal(tasks.getTreeItem(row).command.command, "devAgent.selectTask");
-    await calls.commands.get("devAgent.selectTask")?.(row.id);
-
-    await until(() => calls.infos.length > 0, 20000, "plan-ready dialog");
-    assert.equal(calls.infos[0][0], "The plan is ready for your review");
-    assert.match((calls.infos[0][1] as { detail: string }).detail, /Add: app\/more\.py/);
-    assert.equal(calls.infos[0][1].modal, true);
-
-    const files = calls.trees.get("devAgent.files");
-    await until(() => files.getChildren().length === 1, 25000, "changed file after the run");
-    assert.equal(files.getTreeItem(files.getChildren()[0]).description, "written");
-    const plan = calls.trees.get("devAgent.plan");
-    assert.ok(plan.getChildren().some((n: { label: string }) => n.label.startsWith("Add")));
-    const progress = calls.trees.get("devAgent.progress");
-    const labels = (): string[] => progress.getChildren().map((r: { label: string }) => r.label);
-    await until(() => labels().some((l) => l.startsWith("Finished: completed")), 15000, "the finished row");
-    assert.ok(progress.getChildren().some((r: { children?: unknown[] }) => (r.children?.length ?? 0) > 0), "tool calls are grouped under their package");
-
-    await calls.commands.get("devAgent.openDiff")?.("app/more.py");
+    assert.match(view.webview.html, /Content-Security-Policy/);
+    assert.ok(!/connect-src/.test(view.webview.html), "no network permission for the page");
+    assert.deepEqual(view.webview.options.localResourceRoots.map((r: any) => r.path), ["/ext/media/chat"]);
+    assert.equal((await call("request", { method: "GET", path: "/api/state" })).data.busy, false);
+    const { data } = await call("submit", { goal: "add more" });
+    await call("subscribe", { taskId: data.id });
+    await until(() => out.some((m) => m.type === "event" && m.event.type === "status" && m.event.status === "awaiting_approval"), 30000, "plan event");
+    assert.equal((await call("request", { method: "POST", path: `/api/tasks/${data.id}/approve`, body: {} })).ok, true);
+    await until(async () => (await call("request", { method: "GET", path: `/api/tasks/${data.id}` })).data.status === "completed", 30000, "completed");
+    assert.equal(fs.readFileSync(path.join(env.project, "app/more.py"), "utf8"), "X = 1\n");
+    await call("openDiff", { taskId: data.id, path: "app/more.py" });
     const diff = calls.executed.find((c) => c[0] === "vscode.diff");
-    assert.ok(diff, "native diff editor must be opened");
-    assert.equal(diff[1].path, `/original/${row.id}/app/more.py`);
-    const content = await calls.providers.get("devagent").provideTextDocumentContent(diff[1]);
-    assert.equal(content, "", "a file created by the task has an empty original side");
-
-    assert.deepEqual(calls.errors, []);
+    assert.ok(diff, "VS Code's native diff editor is used");
+    assert.equal(diff[1].scheme, "devagent");
+    const original = await calls.providers.get("devagent").provideTextDocumentContent(diff[1]);
+    assert.equal(original, "", "a new file's original side is empty");
+    await call("openReport", { taskId: data.id });
+    assert.match(calls.docs.at(-1).content, /./);
   } finally {
     await ext.deactivate();
     await env.close();
   }
 });
 
-test("a protected-file approval shows a modal and the answer reaches the engine", async () => {
-  const read = JSON.stringify({ tool: "read_file", args: { path: "app/money.py" } });
-  const change = JSON.stringify({ tool: "edit_files", args: { edits: [{ path: "app/money.py", replacements: [{ old: "1", new: "2" }] }] } });
-  const env = await Env.create([PLAN({ files_add: [], files_edit: ["app/money.py"], steps: [{ title: "x", files: ["app/money.py"] }] }), read, change, DONE], false);
-  const ext = require("../extension") as typeof import("../extension");
-  try {
-    answers.info.push("Approve and run");
-    answers.warning.push("Deny");
-    await boot(ext, env);
-    answers.input.push("change balance");
-    await calls.commands.get("devAgent.newTask")?.();
-    const warn = await until(() => calls.warnings.find((w) => String(w[0]).includes("approval")), 30000, "approval modal");
-    assert.equal(warn[1].modal, true);
-    assert.match(warn[1].detail, /PROTECTED/);
-    assert.deepEqual(warn.slice(2), ["Approve", "Deny"]);
-    await until(() => calls.trees.get("devAgent.tasks").getChildren()[0]?.status === "completed" || calls.trees.get("devAgent.tasks").getChildren()[0]?.status === "stopped", 30000, "task end");
-    const fs = require("node:fs") as typeof import("node:fs");
-    assert.equal(fs.readFileSync(`${env.project}/app/money.py`, "utf8"), "BALANCE = 1\n", "denied: the protected file is untouched");
-  } finally {
-    await ext.deactivate();
-    await env.close();
-  }
-});
-
-test("deactivate stops the hidden server process", async () => {
+test("Stop from the command palette reaches the engine; deactivate kills the hidden server", async () => {
   const env = await Env.create([PLAN()], false);
-  const ext = require("../extension") as typeof import("../extension");
+  const { ext, call } = await boot(env);
   try {
-    await boot(ext, env);
     const { execFileSync } = require("node:child_process") as typeof import("node:child_process");
     const before = execFileSync("pgrep", ["-f", `dev_agent --root ${env.project} serve`]).toString().trim().split("\n").map(Number);
     assert.ok(before.length >= 1);
+    assert.equal((await call("request", { method: "POST", path: "/api/stop", body: {} })).ok, true);
+    await calls.commands.get("devAgent.stop")?.();
     await ext.deactivate();
     await until(() => before.every((pid) => !alive(pid)), 10000, "server to be gone");
   } finally {
+    await env.close();
+  }
+});
+
+test("the webview can reach only the allowlist, and never sees the token or a key", async () => {
+  const env = await Env.create([PLAN()], false);
+  const { ext, view, out, call } = await boot(env);
+  try {
+    const blocked: [string, string, unknown][] = [
+      ["PUT", "/api/keys/openai", { value: "sk-x" }],
+      ["DELETE", "/api/keys/openai", undefined],
+      ["POST", "/api/shutdown", {}],
+      ["POST", "/api/tasks", { goal: "x" }],
+      ["PUT", "/api/settings", { values: { project_root: "/", provider: "ollama" } }],
+      ["GET", "/api/tasks/abc/file?path=.env", undefined],
+      ["GET", "http://evil.example/api/state", undefined],
+    ];
+    for (const [method, path, body] of blocked) {
+      const r = await call("request", { method, path, body });
+      assert.equal(r.ok, false, `${method} ${path}`);
+      assert.equal(r.error.code, "blocked");
+    }
+    assert.equal((await call("nonsense")).ok, false);
+    assert.equal((await call("setApiKey", { provider: "bogus" })).ok, false);
+    // the token lives only in the server's environment (and the host's memory): read it from the server process
+    const pid = Number((require("node:child_process") as typeof import("node:child_process")).execFileSync("pgrep", ["-f", `dev_agent --root ${env.project} serve`]).toString().trim().split("\n")[0]);
+    const token = /DEV_AGENT_TOKEN=([^\0]+)/.exec(fs.readFileSync(`/proc/${pid}/environ`, "utf8"))?.[1] ?? "";
+    assert.ok(token.length >= 32, "found the server's token");
+    await call("request", { method: "GET", path: "/api/keys" });
+    const everything = JSON.stringify([out, view.webview.html]);
+    assert.ok(!everything.includes(token), "the access token never reaches the page");
+    assert.ok(!/sk-[a-z]/i.test(everything));
+  } finally {
+    await ext.deactivate();
     await env.close();
   }
 });

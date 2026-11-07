@@ -1,28 +1,38 @@
 import * as vscode from "vscode";
-import { Approvals } from "./approvals";
+import { ChatView } from "./chatView";
 import { registerCommands } from "./commands";
 import * as diff from "./diff";
+import { createHost } from "./host";
 import { Log } from "./log";
 import { ServerManager } from "./manager";
-import { Store } from "./state";
+import { Status } from "./status";
 import { StatusBar } from "./statusBar";
-import { FilesView } from "./views/files";
-import { PlanView } from "./views/plan";
-import { ProgressView } from "./views/progress";
-import { TasksView } from "./views/tasks";
 
 let manager: ServerManager | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   const log = new Log();
-  const store = new Store(() => manager?.client);
-  manager = new ServerManager(log, store);
-  const approvals = new Approvals(store, manager);
-  const status = new StatusBar(manager, store, approvals);
-  const tree = (id: string, provider: vscode.TreeDataProvider<any>): vscode.Disposable => vscode.window.createTreeView(id, { treeDataProvider: provider, showCollapseAll: false });
-  context.subscriptions.push(log, status, tree("devAgent.tasks", new TasksView(store)), tree("devAgent.plan", new PlanView(store)), tree("devAgent.progress", new ProgressView(store)), tree("devAgent.files", new FilesView(store)));
+  const poller = new Status(() => manager?.client);
+  manager = new ServerManager(log, poller);
+  const chat = new ChatView(context, createHost(manager));
+  context.subscriptions.push(
+    log,
+    chat,
+    new StatusBar(manager, poller),
+    vscode.window.registerWebviewViewProvider(ChatView.viewType, chat, { webviewOptions: { retainContextWhenHidden: true } }),
+  );
+  // A request that blocks the engine must not go unnoticed when the chat is not on screen (first one wins, whichever interface answers).
+  let notified = "";
+  context.subscriptions.push({
+    dispose: poller.onChange(() => {
+      const first = poller.state?.approvals[0];
+      if (!first || first.id === notified || chat.visible) return;
+      notified = first.id;
+      void vscode.window.showInformationMessage("dev_agent needs your approval.", "Open chat").then((choice) => choice && chat.focus());
+    }),
+  });
   diff.register(context, manager);
-  registerCommands({ context, log, manager, store, approvals });
+  registerCommands({ context, log, manager, chat });
   context.subscriptions.push({ dispose: () => void manager?.stop() });
   void manager.start();
 }

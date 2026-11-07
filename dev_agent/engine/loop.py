@@ -8,6 +8,7 @@ from ..ledger import plan as planlib
 from ..ledger.ledger import Ledger
 from ..tools import DenyAll, ToolContext
 from . import packages, report
+from .attachments import Attachments, AttachmentError
 from .cancel import CancelToken
 from .fix import verify_and_fix
 from .protocol import PLAN_FORMAT, system_prompt
@@ -26,7 +27,11 @@ class Agent:
         self.index = Index(project)
 
     def _ctx(self, ledger: Ledger, readonly: bool, scope=None, package: str = "") -> ToolContext:
-        return ToolContext(self.project, self.settings, self.index, ledger, self.approver, scope, readonly, package, {}, ledger.approved_keys(), self.emit, self.cancel)
+        try:
+            attachments = Attachments.load(ledger)
+        except AttachmentError as exc:
+            raise AgentError(str(exc)) from exc
+        return ToolContext(self.project, self.settings, self.index, ledger, self.approver, scope, readonly, package, {}, ledger.approved_keys(), self.emit, self.cancel, attachments)
 
     def _load(self, task_id: str) -> Ledger:
         ledger = Ledger.load(self.project, task_id)

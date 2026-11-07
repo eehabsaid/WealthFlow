@@ -54,9 +54,11 @@ def test_body_must_be_json_and_small(api):
     assert api.json("POST", "/api/tasks", raw=b"{not json")[0] == 400
     assert api.json("POST", "/api/tasks", raw=b"[1]")[0] == 400
     try:   # the server refuses before reading the body, so the client may see 413 or a reset connection; either way nothing is accepted
-        assert api.json("POST", "/api/tasks", raw=b'{"goal":"' + b"a" * 1_100_000 + b'"}')[0] == 413
+        assert api.json("PUT", "/api/settings", raw=b'{"values":{"model":"' + b"a" * 1_100_000 + b'"}}')[0] == 413
     except OSError:
         pass
+    # only task creation (attachments) may be big, and even that has a limit: the size is judged from Content-Length before anything is read
+    assert api.json("POST", "/api/tasks", raw=b'{"goal":"x"}', headers={"Content-Length": "23000000"})[0] == 413
     assert api.json("GET", "/api/tasks")[1]["tasks"] == []
 
 

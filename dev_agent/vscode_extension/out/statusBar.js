@@ -37,21 +37,19 @@ exports.StatusBar = void 0;
 const vscode = __importStar(require("vscode"));
 class StatusBar {
     manager;
-    store;
-    approvals;
+    poller;
     item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 50);
-    constructor(manager, store, approvals) {
+    constructor(manager, poller) {
         this.manager = manager;
-        this.store = store;
-        this.approvals = approvals;
+        this.poller = poller;
         manager.onStatus(() => this.update());
-        store.onChange(() => this.update());
+        poller.onChange(() => this.update());
         this.update();
         this.item.show();
     }
     update() {
         const { status, error } = this.manager;
-        const state = this.store.state;
+        const state = this.poller.state;
         const set = (text, tip, command, bad = false) => {
             this.item.text = text;
             this.item.tooltip = tip;
@@ -64,12 +62,12 @@ class StatusBar {
             return set("$(error) dev_agent: offline", `${error}\nClick to restart`, "devAgent.restartServer", true);
         if (status === "stopped")
             return set("$(circle-slash) dev_agent: stopped", "Click to start", "devAgent.restartServer");
-        if (this.approvals.pending.length > 0)
-            return set("$(bell) dev_agent: approval needed", this.approvals.pending[0].message.slice(0, 200), "devAgent.showApproval", true);
+        if (state && state.approvals.length > 0)
+            return set("$(bell) dev_agent: approval needed", state.approvals[0].message.slice(0, 200), "devAgent.focus", true);
         const model = state ? `${state.provider}: ${state.model || "no model chosen"}` : "";
         if (state?.busy)
-            return set(`$(sync~spin) dev_agent: ${state.current?.phase ?? "working"}`, `Working (${model}). Click to see progress.`, "devAgent.showProgress");
-        set("$(robot) dev_agent", `Idle (${model})`, "devAgent.newTask");
+            return set(`$(sync~spin) dev_agent: ${state.current?.phase ?? "working"}`, `Working (${model}). Click to open the chat.`, "devAgent.focus");
+        set("$(robot) dev_agent", `Idle (${model})`, "devAgent.focus");
     }
     dispose() {
         this.item.dispose();

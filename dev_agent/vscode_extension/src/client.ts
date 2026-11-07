@@ -76,7 +76,8 @@ export class AgentClient {
   fileText = (id: string, path: string, version: Version) =>
     this.request<string>("GET", `/api/tasks/${id}/file?path=${encodeURIComponent(path)}&version=${version}`);
   report = (id: string) => this.request<string>("GET", `/api/tasks/${id}/report`);
-  startTask = async (goal: string) => (await this.request<{ id: string }>("POST", "/api/tasks", { goal })).id;
+  startTask = async (goal: string, attachments: unknown[] = [], override: { provider?: string; model?: string } = {}) =>
+    (await this.request<{ id: string }>("POST", "/api/tasks", { goal, attachments, ...override }, 120000)).id;
   approvePlan = (id: string) => this.request("POST", `/api/tasks/${id}/approve`, {});
   rejectPlan = (id: string) => this.request("POST", `/api/tasks/${id}/reject`, {});
   resume = (id: string) => this.request("POST", `/api/tasks/${id}/resume`, {});

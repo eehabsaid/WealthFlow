@@ -36,28 +36,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
-const approvals_1 = require("./approvals");
+const chatView_1 = require("./chatView");
 const commands_1 = require("./commands");
 const diff = __importStar(require("./diff"));
+const host_1 = require("./host");
 const log_1 = require("./log");
 const manager_1 = require("./manager");
-const state_1 = require("./state");
+const status_1 = require("./status");
 const statusBar_1 = require("./statusBar");
-const files_1 = require("./views/files");
-const plan_1 = require("./views/plan");
-const progress_1 = require("./views/progress");
-const tasks_1 = require("./views/tasks");
 let manager;
 function activate(context) {
     const log = new log_1.Log();
-    const store = new state_1.Store(() => manager?.client);
-    manager = new manager_1.ServerManager(log, store);
-    const approvals = new approvals_1.Approvals(store, manager);
-    const status = new statusBar_1.StatusBar(manager, store, approvals);
-    const tree = (id, provider) => vscode.window.createTreeView(id, { treeDataProvider: provider, showCollapseAll: false });
-    context.subscriptions.push(log, status, tree("devAgent.tasks", new tasks_1.TasksView(store)), tree("devAgent.plan", new plan_1.PlanView(store)), tree("devAgent.progress", new progress_1.ProgressView(store)), tree("devAgent.files", new files_1.FilesView(store)));
+    const poller = new status_1.Status(() => manager?.client);
+    manager = new manager_1.ServerManager(log, poller);
+    const chat = new chatView_1.ChatView(context, (0, host_1.createHost)(manager));
+    context.subscriptions.push(log, chat, new statusBar_1.StatusBar(manager, poller), vscode.window.registerWebviewViewProvider(chatView_1.ChatView.viewType, chat, { webviewOptions: { retainContextWhenHidden: true } }));
+    // A request that blocks the engine must not go unnoticed when the chat is not on screen (first one wins, whichever interface answers).
+    let notified = "";
+    context.subscriptions.push({
+        dispose: poller.onChange(() => {
+            const first = poller.state?.approvals[0];
+            if (!first || first.id === notified || chat.visible)
+                return;
+            notified = first.id;
+            void vscode.window.showInformationMessage("dev_agent needs your approval.", "Open chat").then((choice) => choice && chat.focus());
+        }),
+    });
     diff.register(context, manager);
-    (0, commands_1.registerCommands)({ context, log, manager, store, approvals });
+    (0, commands_1.registerCommands)({ context, log, manager, chat });
     context.subscriptions.push({ dispose: () => void manager?.stop() });
     void manager.start();
 }

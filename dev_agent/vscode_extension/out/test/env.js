@@ -43,7 +43,6 @@ const os = __importStar(require("node:os"));
 const path = __importStar(require("node:path"));
 const pythonFinder_1 = require("../pythonFinder");
 const serverProcess_1 = require("../serverProcess");
-const state_1 = require("../state");
 exports.REPO = path.resolve(__dirname, "../../../..");
 exports.AGENT = path.join(exports.REPO, "dev_agent");
 exports.PYTHON = process.env.DEV_AGENT_TEST_PYTHON ?? "python3";
@@ -66,14 +65,13 @@ const PLAN = (extra = {}) => reply({
 exports.PLAN = PLAN;
 exports.WRITE = reply({ tool: "edit_files", args: { edits: [{ path: "app/more.py", content: "X = 1\n" }] } });
 exports.DONE = reply({ final: "done" });
-// A throw-away project + fake Ollama (script of replies), the real `dev_agent serve` on top of them, and a Store, all torn down by close().
+// A throw-away project + fake Ollama (script of replies) and the real `dev_agent serve` on top of them, all torn down by close().
 class Env {
     fake;
     server = new serverProcess_1.ServerProcess();
     logs = [];
     project = "";
     client;
-    store = new state_1.Store(() => this.server.client);
     static async create(script, startServer = true) {
         const env = new Env();
         const dir = fs.mkdtempSync(path.join(os.tmpdir(), "devagent-ext-"));
@@ -93,7 +91,6 @@ class Env {
         return env;
     }
     async close() {
-        this.store.stop();
         await this.server.stop();
         this.fake?.kill("SIGKILL");
     }

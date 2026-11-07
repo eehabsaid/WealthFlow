@@ -6,26 +6,18 @@ from __future__ import annotations
 import re
 import threading
 
+from ..engine import attachments as attachmentlib
 from ..engine.cancel import CancelToken
 from ..engine.loop import Agent, AgentError
 from ..ledger.ledger import Ledger
+from ..settings import store as settings_store
 from ..tools import proctree
 from .approvals import QueueApprover
+from .errors import Busy, ServiceError
 from .events import EventLog
 
 
 TASK_ID = re.compile(r"^\d{8}-\d{6}-[a-z0-9-]{1,60}$")
-
-
-class ServiceError(RuntimeError):
-    def __init__(self, message: str, code: str = "bad_request"):
-        super().__init__(message)
-        self.code = code
-
-
-class Busy(ServiceError):
-    def __init__(self, message: str = "another task is running; stop it or wait"):
-        super().__init__(message, "busy")
 
 
 class Run:
@@ -76,20 +68,29 @@ class TaskService:
         return rows
 
     # ---- actions ----
-    def start_task(self, goal: str) -> str:
+    def start_task(self, goal: str, attachments=None, override=None) -> str:
+        """`override` ({provider, model}) applies to this task only (also when it is approved or resumed later); the shared settings are not touched."""
         goal = (goal or "").strip()
         if not goal or len(goal) > 8000:
             raise ServiceError("give a task of 1-8000 characters")
-        settings, provider = self._provider()
+        override = self._override(override)
+        settings, provider = self._provider(override)
+        records = attachmentlib.prepare(self.project, attachments, settings, provider.has_vision())   # refuses with a clear message, never drops
         with self._lock:
             self._check_free()
             ledger = Ledger.create(self.project, goal)
+            if override:
+                ledger.data["model_override"] = override
+            if records:
+                meta = attachmentlib.save(ledger, records)
+                self.log(ledger.id).append({"type": "attachments", "items": [{k: m[k] for k in ("name", "kind", "chars", "omitted")} for m in meta]})
+            ledger.save()
             run = self._new_run(ledger.id)
             self._launch(run, lambda agent: agent.plan(goal, ledger), settings, provider)
         return ledger.id
 
     def approve_plan(self, task_id: str) -> None:
-        settings, provider = self._provider()
+        settings, provider = self._provider(self.ledger(task_id).data.get("model_override"))
         with self._lock:
             self._check_free()
             if self.ledger(task_id).data["status"] != "awaiting_approval":
@@ -97,7 +98,7 @@ class TaskService:
             self._launch(self._new_run(task_id), lambda agent: (agent.approve(task_id), agent.execute(task_id)), settings, provider)
 
     def resume(self, task_id: str) -> None:
-        settings, provider = self._provider()
+        settings, provider = self._provider(self.ledger(task_id).data.get("model_override"))
         with self._lock:
             self._check_free()
             d = self.ledger(task_id).data
@@ -137,8 +138,19 @@ class TaskService:
             log.close()
 
     # ---- internals ----
-    def _provider(self):
+    @staticmethod
+    def _override(override) -> dict | None:
+        if not override:
+            return None
+        if not isinstance(override, dict) or not all(isinstance(override.get(k, ""), str) for k in ("provider", "model")):
+            raise ServiceError("the model choice must be {provider, model} as text")
+        return {k: override[k].strip() for k in ("provider", "model") if override.get(k, "").strip()} or None
+
+    def _provider(self, override: dict | None = None):
         settings = self.settings_loader()
+        if override:
+            settings = {**settings, **override}
+            settings_store.validate(settings)   # unknown provider / credential-looking value -> SettingsError (HTTP 400)
         return settings, self.provider_factory(settings)
 
     def _check_free(self) -> None:

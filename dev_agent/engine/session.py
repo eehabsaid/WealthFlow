@@ -7,6 +7,7 @@ import json
 from dataclasses import dataclass
 
 from ..providers.base import ProviderError
+from .attachments import AttachmentError
 from .cancel import Cancelled
 from ..tools import call
 from .budget import Budget, ContextOverflow, clip_text
@@ -40,9 +41,15 @@ def _summary(name: str, result: dict) -> str:
     return "ok"
 
 
-def run_phase(ctx, provider, system: str, first_user: str, accept: set[str], max_steps: int) -> PhaseResult:
+def run_phase(ctx, provider, system: str, first_user: str, accept: set[str], max_steps: int, attach: bool = True) -> PhaseResult:
     s = ctx.settings
-    budget, messages = Budget(s["context_window"], s["reserve_tokens"]), [{"role": "user", "content": first_user}]
+    first = {"role": "user", "content": first_user}
+    if attach and getattr(ctx, "attachments", None):
+        try:
+            first = ctx.attachments.message(first_user, provider.has_vision())
+        except AttachmentError as exc:
+            return PhaseResult("stopped", reason=str(exc))
+    budget, messages = Budget(s["context_window"], s["reserve_tokens"]), [first]
     invalid, repeats, last_key = 0, 0, None
     for _ in range(max_steps):
         if ctx.cancel.is_set():

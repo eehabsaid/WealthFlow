@@ -1,7 +1,7 @@
 {
   "name": "dev-agent",
   "displayName": "dev_agent",
-  "description": "Native VS Code front end for the standalone dev_agent coding agent: tasks, plan approval, progress, diffs, logs.",
+  "description": "Chat sidebar for the standalone dev_agent coding agent: plan review, live steps, diffs, approvals, Stop.",
   "version": "0.1.0",
   "publisher": "wealthflow",
   "private": true,
@@ -13,9 +13,11 @@
     "Other"
   ],
   "main": "./out/extension.js",
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "scripts": {
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && node scripts/copy-web.js",
     "test": "npm run compile && node --test \"out/test/*.test.js\"",
     "package": "npm run compile && vsce package --allow-missing-repository --no-dependencies"
   },
@@ -38,94 +40,24 @@
     "views": {
       "devAgent": [
         {
-          "id": "devAgent.tasks",
-          "name": "Tasks"
-        },
-        {
-          "id": "devAgent.plan",
-          "name": "Plan"
-        },
-        {
-          "id": "devAgent.progress",
-          "name": "Progress"
-        },
-        {
-          "id": "devAgent.files",
-          "name": "Changed files"
+          "type": "webview",
+          "id": "devAgent.chat",
+          "name": "Chat",
+          "icon": "static/images/favicon.ico"
         }
       ]
     },
-    "viewsWelcome": [
-      {
-        "view": "devAgent.tasks",
-        "contents": "The agent server is not running.\n[Restart server](command:devAgent.restartServer)\n[Show log](command:devAgent.showLog)",
-        "when": "!devAgent.connected"
-      },
-      {
-        "view": "devAgent.tasks",
-        "contents": "No tasks yet.\n[New task...](command:devAgent.newTask)\n[Choose provider](command:devAgent.chooseProvider)\n[Choose model](command:devAgent.chooseModel)\n[Set API key](command:devAgent.setApiKey)",
-        "when": "devAgent.connected"
-      }
-    ],
     "commands": [
       {
-        "command": "devAgent.newTask",
-        "title": "New task...",
-        "category": "dev_agent",
-        "icon": "$(add)"
-      },
-      {
-        "command": "devAgent.newTaskFromEditor",
-        "title": "New task from editor text",
-        "category": "dev_agent",
-        "icon": "$(edit)"
-      },
-      {
-        "command": "devAgent.approvePlan",
-        "title": "Approve plan and run",
-        "category": "dev_agent",
-        "icon": "$(check)"
-      },
-      {
-        "command": "devAgent.rejectPlan",
-        "title": "Reject plan",
-        "category": "dev_agent",
-        "icon": "$(close)"
-      },
-      {
-        "command": "devAgent.resume",
-        "title": "Resume stopped task",
-        "category": "dev_agent",
-        "icon": "$(debug-continue)"
-      },
-      {
-        "command": "devAgent.stop",
-        "title": "Stop (kill running commands)",
-        "category": "dev_agent",
-        "icon": "$(debug-stop)"
-      },
-      {
-        "command": "devAgent.showReport",
-        "title": "Show report",
-        "category": "dev_agent",
-        "icon": "$(output)"
-      },
-      {
-        "command": "devAgent.showApproval",
-        "title": "Show pending approval",
-        "category": "dev_agent",
-        "icon": "$(bell)"
-      },
-      {
-        "command": "devAgent.showProgress",
-        "title": "Show progress",
+        "command": "devAgent.focus",
+        "title": "Open chat",
         "category": "dev_agent"
       },
       {
-        "command": "devAgent.refresh",
-        "title": "Refresh",
+        "command": "devAgent.stop",
+        "title": "Stop the running task",
         "category": "dev_agent",
-        "icon": "$(refresh)"
+        "icon": "$(debug-stop)"
       },
       {
         "command": "devAgent.restartServer",
@@ -139,16 +71,6 @@
         "category": "dev_agent"
       },
       {
-        "command": "devAgent.chooseProvider",
-        "title": "Choose provider",
-        "category": "dev_agent"
-      },
-      {
-        "command": "devAgent.chooseModel",
-        "title": "Choose model",
-        "category": "dev_agent"
-      },
-      {
         "command": "devAgent.setApiKey",
         "title": "Set API key",
         "category": "dev_agent"
@@ -157,102 +79,8 @@
         "command": "devAgent.deleteApiKey",
         "title": "Remove API key",
         "category": "dev_agent"
-      },
-      {
-        "command": "devAgent.selectTask",
-        "title": "Open task",
-        "category": "dev_agent"
-      },
-      {
-        "command": "devAgent.openDiff",
-        "title": "Show diff",
-        "category": "dev_agent"
       }
     ],
-    "menus": {
-      "view/title": [
-        {
-          "command": "devAgent.newTask",
-          "when": "view == devAgent.tasks",
-          "group": "navigation@1"
-        },
-        {
-          "command": "devAgent.refresh",
-          "when": "view == devAgent.tasks",
-          "group": "navigation@2"
-        },
-        {
-          "command": "devAgent.newTaskFromEditor",
-          "when": "view == devAgent.tasks",
-          "group": "1_task"
-        },
-        {
-          "command": "devAgent.chooseProvider",
-          "when": "view == devAgent.tasks",
-          "group": "2_settings@1"
-        },
-        {
-          "command": "devAgent.chooseModel",
-          "when": "view == devAgent.tasks",
-          "group": "2_settings@2"
-        },
-        {
-          "command": "devAgent.setApiKey",
-          "when": "view == devAgent.tasks",
-          "group": "2_settings@3"
-        },
-        {
-          "command": "devAgent.deleteApiKey",
-          "when": "view == devAgent.tasks",
-          "group": "2_settings@4"
-        },
-        {
-          "command": "devAgent.restartServer",
-          "when": "view == devAgent.tasks",
-          "group": "3_server@1"
-        },
-        {
-          "command": "devAgent.showLog",
-          "when": "view == devAgent.tasks",
-          "group": "3_server@2"
-        },
-        {
-          "command": "devAgent.approvePlan",
-          "when": "view == devAgent.plan && devAgent.awaitingApproval",
-          "group": "navigation@1"
-        },
-        {
-          "command": "devAgent.rejectPlan",
-          "when": "view == devAgent.plan && devAgent.awaitingApproval",
-          "group": "navigation@2"
-        },
-        {
-          "command": "devAgent.resume",
-          "when": "view == devAgent.plan && devAgent.canResume",
-          "group": "navigation@1"
-        },
-        {
-          "command": "devAgent.stop",
-          "when": "view == devAgent.progress",
-          "group": "navigation@1"
-        },
-        {
-          "command": "devAgent.showReport",
-          "when": "view == devAgent.progress",
-          "group": "navigation@2"
-        }
-      ],
-      "commandPalette": [
-        {
-          "command": "devAgent.selectTask",
-          "when": "false"
-        },
-        {
-          "command": "devAgent.openDiff",
-          "when": "false"
-        }
-      ]
-    },
     "configuration": {
       "title": "dev_agent",
       "properties": {
@@ -272,6 +100,35 @@
           "description": "Folder that contains the dev_agent package. Empty = the project folder."
         }
       }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "devAgent.stop",
+          "when": "view == devAgent.chat",
+          "group": "navigation@1"
+        },
+        {
+          "command": "devAgent.restartServer",
+          "when": "view == devAgent.chat",
+          "group": "1_server"
+        },
+        {
+          "command": "devAgent.showLog",
+          "when": "view == devAgent.chat",
+          "group": "1_server"
+        },
+        {
+          "command": "devAgent.setApiKey",
+          "when": "view == devAgent.chat",
+          "group": "2_keys"
+        },
+        {
+          "command": "devAgent.deleteApiKey",
+          "when": "view == devAgent.chat",
+          "group": "2_keys"
+        }
+      ]
     }
   }
 }

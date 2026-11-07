@@ -42,12 +42,16 @@ export interface ServerState {
   approvals: Approval[];
   provider: string;
   model: string;
+  vision: boolean;
+  vision_note: string;
 }
 
 export interface FileRow {
   path: string;
   state: string;
   detail: string;
+  added: number | null;
+  removed: number | null;
 }
 
 export interface AgentEvent {

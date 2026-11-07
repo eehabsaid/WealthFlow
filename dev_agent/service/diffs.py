@@ -62,3 +62,16 @@ def file_diff(ledger, project, raw: str) -> dict:
         out["diff"] = "\n".join(difflib.unified_diff((old or "").split("\n") if old is not None else [], (new or "").split("\n") if new is not None else [],
                                                      f"a/{rel}" if before is not None else "/dev/null", f"b/{rel}" if after is not None else "/dev/null", lineterm=""))
     return out
+
+
+def line_counts(ledger, project, raw: str):
+    """(added, removed) line counts, or None when there is no text diff (binary, too large, unreadable). Counts real lines, not a trailing newline."""
+    rel = _check(ledger, project, raw)
+    known, before = ledger.original(rel)
+    full = project.root / rel
+    after = full.read_bytes() if full.is_file() else None
+    (old, old_bin, cut_a), (new, new_bin, cut_b) = _text(before), _text(after)
+    if old_bin or new_bin or cut_a or cut_b:
+        return None
+    changes = [line[0] for line in difflib.unified_diff((old or "").splitlines(), (new or "").splitlines(), lineterm="", n=0) if line[:1] in "+-" and line[:3] not in ("+++", "---")]
+    return changes.count("+"), changes.count("-")

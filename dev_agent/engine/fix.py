@@ -33,7 +33,7 @@ def verify_and_fix(ctx, provider, label: str, files_fn) -> tuple[bool, str]:
         report = "\n\n".join(f"CHECK FAILED: {r['step']}\n{r['detail']}" for r in failed[:3])
         task = (f"{ctx.ledger.brief(ctx.package)}\n\nThe automatic checks on your changes FAILED (fix attempt {tracker.failed_fixes + 1} of 3 for this error).\n{report}\n\n"
                 "Fix the cause with tools, then reply {\"final\": ...} saying what you changed. Do not weaken or delete tests to make them pass.")
-        res = run_phase(ctx, provider, system_prompt(False), task, {"final"}, ctx.settings["max_steps_per_package"])
+        res = run_phase(ctx, provider, system_prompt(False), task, {"final"}, ctx.settings["max_steps_per_package"], attach=False)
         if res.kind == "stopped":
             return False, res.reason
         ctx.ledger.data["agent_summaries"].append({"package": ctx.package, "fix": True, "text": str(res.payload)[:500]})

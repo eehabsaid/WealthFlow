@@ -6,6 +6,29 @@ from .base import Provider, ProviderError, Reply, merge_roles
 from .http import post_json
 
 
+def _anthropic(m):
+    if not m.get("images"):
+        return {"role": m["role"], "content": m["content"]}
+    parts = [{"type": "image", "source": {"type": "base64", "media_type": i["mime"], "data": i["data"]}} for i in m.get("images", ())]
+    return {"role": m["role"], "content": [*parts, {"type": "text", "text": m["content"]}]}
+
+
+def _ollama(m):
+    return {"role": m["role"], "content": m["content"], **({"images": [i["data"] for i in m.get("images", ())]} if m.get("images") else {})}
+
+
+def _openai(m):
+    if not m.get("images"):
+        return {"role": m["role"], "content": m["content"]}
+    parts = [{"type": "image_url", "image_url": {"url": f"data:{i['mime']};base64,{i['data']}"}} for i in m.get("images", ())]
+    return {"role": m["role"], "content": [{"type": "text", "text": m["content"]}, *parts]}
+
+
+def _gemini(m):
+    parts = [{"text": m["content"]}, *({"inline_data": {"mime_type": i["mime"], "data": i["data"]}} for i in m.get("images", ()))]
+    return {"role": "model" if m["role"] == "assistant" else "user", "parts": parts}
+
+
 class _Base(Provider):
     cancel = None
 
@@ -18,7 +41,7 @@ class Ollama(_Base):
 
     def complete(self, system, messages, cancel=None):
         self.cancel = cancel
-        body = {"model": self.model, "stream": False, "messages": [{"role": "system", "content": system}, *merge_roles(messages)],
+        body = {"model": self.model, "stream": False, "messages": [{"role": "system", "content": system}, *(_ollama(m) for m in merge_roles(messages))],
                 "options": {"num_ctx": self.context_window, "num_predict": self.max_output}}
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
         data = self._post(f"{self.base_url}/api/chat", headers, body)
@@ -33,7 +56,7 @@ class Anthropic(_Base):
 
     def complete(self, system, messages, cancel=None):
         self.cancel = cancel
-        body = {"model": self.model, "max_tokens": self.max_output, "system": system, "messages": merge_roles(messages)}
+        body = {"model": self.model, "max_tokens": self.max_output, "system": system, "messages": [_anthropic(m) for m in merge_roles(messages)]}
         data = self._post(f"{self.base_url}/v1/messages", {"x-api-key": self.api_key, "anthropic-version": "2023-06-01"}, body)
         try:
             text = "".join(b.get("text", "") for b in data["content"] if b.get("type") == "text")
@@ -49,7 +72,7 @@ class OpenAI(_Base):
     def complete(self, system, messages, cancel=None):
         self.cancel = cancel
         body = {"model": self.model, "max_completion_tokens": self.max_output,
-                "messages": [{"role": "system", "content": system}, *merge_roles(messages)]}
+                "messages": [{"role": "system", "content": system}, *(_openai(m) for m in merge_roles(messages))]}
         data = self._post(f"{self.base_url}/chat/completions", {"Authorization": f"Bearer {self.api_key}"}, body)
         try:
             usage = data.get("usage", {})
@@ -63,7 +86,7 @@ class Gemini(_Base):
 
     def complete(self, system, messages, cancel=None):
         self.cancel = cancel
-        contents = [{"role": "model" if m["role"] == "assistant" else "user", "parts": [{"text": m["content"]}]} for m in merge_roles(messages)]
+        contents = [_gemini(m) for m in merge_roles(messages)]
         body = {"systemInstruction": {"parts": [{"text": system}]}, "contents": contents, "generationConfig": {"maxOutputTokens": self.max_output}}
         data = self._post(f"{self.base_url}/v1beta/models/{self.model}:generateContent", {"x-goog-api-key": self.api_key}, body)
         try:

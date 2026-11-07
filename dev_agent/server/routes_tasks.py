@@ -25,7 +25,10 @@ def list_tasks(r: Req):
 
 
 def create_task(r: Req):
-    return Resp({"id": r.service.start_task(r.field("goal"))}, 202)
+    """Optional: `attachments` (files/images, see engine.attachments) and `provider`/`model` for this task only."""
+    body = r.body or {}
+    override = {k: body[k] for k in ("provider", "model") if k in body}
+    return Resp({"id": r.service.start_task(r.field("goal"), body.get("attachments"), override)}, 202)
 
 
 def get_task(r: Req):
@@ -55,9 +58,18 @@ def stop(r: Req):
     return {"stopped": r.service.stop()}
 
 
+def _counts(ledger, project, rel: str) -> dict:
+    """Added/removed line counts for the changed-files list; None when there is no text diff."""
+    try:
+        found = diffs.line_counts(ledger, project, rel)
+    except (diffs.NotInTask, PathError, OSError):
+        found = None
+    return {"added": found[0] if found else None, "removed": found[1] if found else None}
+
+
 def files(r: Req):
-    data = r.service.ledger(r.match["id"]).data
-    return {"files": [{"path": p, **f} for p, f in sorted(data["files"].items())]}
+    ledger = r.service.ledger(r.match["id"])
+    return {"files": [{"path": p, **f, **_counts(ledger, r.project, p)} for p, f in sorted(ledger.data["files"].items())]}
 
 
 def _diff_call(r: Req, fn, *extra):

@@ -29,6 +29,7 @@ class ToolContext:
     approved: set = field(default_factory=set)
     emit: object = lambda event: None
     cancel: object = field(default_factory=CancelToken)
+    attachments: object = None   # owner attachments (engine.attachments.Attachments), added to the first message of a phase
 
     def ask(self, kind: str, key: str, message: str) -> bool:
         """Ask the owner once per key; the answer is saved in the ledger."""

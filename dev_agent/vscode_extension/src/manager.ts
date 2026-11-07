@@ -5,7 +5,7 @@ import type { AgentClient } from "./client";
 import type { Log } from "./log";
 import { findPython } from "./pythonFinder";
 import { ServerProcess } from "./serverProcess";
-import type { Store } from "./state";
+import type { Status as Poller } from "./status";
 
 export type Status = "stopped" | "starting" | "running" | "error";
 
@@ -20,7 +20,7 @@ export class ServerManager {
 
   constructor(
     private readonly log: Log,
-    private readonly store: Store,
+    private readonly poller: Poller,
   ) {}
 
   get client(): AgentClient | undefined {
@@ -57,7 +57,7 @@ export class ServerManager {
         this.set("error", `The agent server stopped unexpectedly (code ${code}). Use "dev_agent: Restart server".`);
       };
       await this.server.start({ python, projectRoot, agentPath, log: (l) => this.log.line(l) });
-      this.store.start();
+      this.poller.start();
       this.set("running");
       this.log.line(`agent server ready on 127.0.0.1:${this.server.client?.port}`);
     } catch (error) {
@@ -68,7 +68,7 @@ export class ServerManager {
 
   async stop(): Promise<void> {
     this.stopping = true;
-    this.store.reset();
+    this.poller.reset();
     await this.server.stop();
     this.set("stopped");
   }

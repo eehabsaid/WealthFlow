@@ -8,7 +8,9 @@ import re
 import urllib.request
 
 from .. import __version__
+from ..providers import vision
 from ..settings.store import Settings
+from . import auth
 from .http import HttpError, Req, Resp
 
 
@@ -18,7 +20,15 @@ def health(r: Req):
 
 def state(r: Req):
     settings = Settings(r.project).load()
-    return {**r.service.state(), "provider": settings["provider"], "model": settings["model"]}
+    provider, model = r.query.get("provider") or settings["provider"], r.query.get("model") or settings["model"]   # ?provider=&model=: a choice for one task
+    ok, why = vision.check(provider, model, settings["providers"].get(provider, {}).get("base_url", ""))
+    return {**r.service.state(), "provider": settings["provider"], "model": settings["model"], "vision": ok, "vision_note": why}
+
+
+def session(r: Req):
+    """The web page trades the one-time token (from the address fragment) for an HttpOnly cookie, so page scripts never hold it afterwards."""
+    cookie = f"{auth.cookie_name(r.server.port)}={r.server.token}; HttpOnly; SameSite=Strict; Path=/api"
+    return Resp({"ok": True}, 200, headers={"Set-Cookie": cookie})
 
 
 def get_settings(r: Req):
@@ -69,6 +79,7 @@ def shutdown(r: Req):
 ROUTES = [
     ("GET", re.compile(r"/api/health"), health),
     ("GET", re.compile(r"/api/state"), state),
+    ("POST", re.compile(r"/api/session"), session),
     ("GET", re.compile(r"/api/settings"), get_settings),
     ("PUT", re.compile(r"/api/settings"), put_settings),
     ("GET", re.compile(r"/api/keys"), keys_status),

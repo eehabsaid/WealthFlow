@@ -11,6 +11,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from ..core.project import PathError
+from ..engine.attachments import AttachmentError
 from ..providers.base import ProviderError
 from ..providers.registry import build_provider
 from ..service import diffs
@@ -22,6 +23,7 @@ from . import auth, routes_misc, routes_tasks, static
 from .http import HttpError, Req, Resp, Stream
 
 MAX_BODY = 1_000_000
+MAX_TASK_BODY = 22_000_000   # POST /api/tasks may carry attachments (up to 5 images of 3 MB as base64, plus text files)
 ROUTES = routes_tasks.ROUTES + routes_misc.ROUTES
 SERVICE_STATUS = {"not_found": 404, "conflict": 409, "busy": 409, "bad_request": 400}
 
@@ -34,6 +36,8 @@ def _error_for(exc: Exception) -> HttpError:
     if isinstance(exc, SecretsError):
         locked = str(exc) == "passphrase_required"
         return HttpError(423 if locked else 400, "passphrase_required" if locked else "secrets", str(exc))
+    if isinstance(exc, AttachmentError):
+        return HttpError(400, "attachments", str(exc))
     if isinstance(exc, ProviderError):
         return HttpError(400, "provider", str(exc))
     if isinstance(exc, SettingsError):
@@ -86,9 +90,9 @@ class Handler(BaseHTTPRequestHandler):
             if method != "GET":
                 raise HttpError(405, "bad_request", "method not allowed")
             return static.serve(split.path, self.server.web_dir)
-        if not auth.token_ok(self.server.token, self.headers.get("Authorization")):
+        if not auth.request_ok(self.server.token, self.headers, port):
             raise HttpError(401, "unauthorized", "missing or wrong access token")
-        body = self._body(method)
+        body = self._body(method, split.path)
         query = {k: v[0] for k, v in urllib.parse.parse_qs(split.query).items()}
         known = False
         for route_method, rx, fn in ROUTES:
@@ -99,7 +103,7 @@ class Handler(BaseHTTPRequestHandler):
                     return fn(Req(self.server, method, split.path, found, query, body, self.headers))
         raise HttpError(405 if known else 404, "not_found", "no such endpoint")
 
-    def _body(self, method: str):
+    def _body(self, method: str, path: str = ""):
         if method not in ("POST", "PUT", "DELETE"):
             return None
         if self.headers.get("Transfer-Encoding"):
@@ -108,7 +112,7 @@ class Handler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length") or 0)
         except ValueError:
             raise HttpError(400, "bad_request", "bad Content-Length") from None
-        if length > MAX_BODY or length < 0:
+        if length > (MAX_TASK_BODY if path == "/api/tasks" else MAX_BODY) or length < 0:
             raise HttpError(413, "too_large", "request body too large")
         if length == 0:
             return None

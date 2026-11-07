@@ -1,0 +1,131 @@
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+button:hover:not(:disabled) {
+  background: var(--panel-2);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: 1px;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+button.danger {
+  background: var(--bad);
+  border-color: var(--bad);
+  color: #fff;
+}
+
+button.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-color: transparent;
+}
+
+button.link {
+  border: 0;
+  padding: 0;
+  color: var(--focus);
+  text-align: left;
+}
+
+.icon-svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-svg.solid {
+  fill: currentcolor;
+  stroke: none;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pill {
+  display: inline-block;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.pill.s-completed,
+.pill.s-written,
+.pill.s-answered {
+  color: var(--good);
+  border-color: var(--good);
+}
+
+.pill.s-stopped,
+.pill.s-failed,
+.pill.s-rejected,
+.pill.s-conflict {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+
+.pill.s-awaiting_approval,
+.pill.s-executing,
+.pill.s-planning {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+pre {
+  margin: 0;
+  font: calc(var(--size) - 1px) / 1.4 var(--mono);
+}
+
+.wrap {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

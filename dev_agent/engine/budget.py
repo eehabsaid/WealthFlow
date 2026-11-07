@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import re
 
+from .attachments import IMAGE_TOKENS
+
 IMPORTANT = re.compile(r"error|fail|traceback|exception|assert|warning|✖|not found|denied", re.I)
 
 
@@ -49,7 +51,7 @@ class Budget:
         self.limit = window - reserve
 
     def used(self, system: str, messages: list[dict]) -> int:
-        return tokens(system) + sum(tokens(m["content"]) + 4 for m in messages)
+        return tokens(system) + sum(tokens(m["content"]) + 4 + len(m.get("images", ())) * IMAGE_TOKENS for m in messages)
 
     def compact(self, system: str, messages: list[dict]) -> int:
         """Shrink `messages` in place until they fit; returns how many were touched. ContextOverflow if even the minimum does not fit."""
@@ -59,14 +61,14 @@ class Budget:
         for i in range(1, max(1, len(messages) - 4)):
             msg = messages[i]
             if msg["content"].startswith("TOOL RESULT") and len(msg["content"]) > 700:
-                messages[i] = {"role": msg["role"], "content": clip_log(msg["content"], 600)}
+                messages[i] = {**msg, "content": clip_log(msg["content"], 600)}
                 touched += 1
                 if self.used(system, messages) <= self.limit:
                     return touched
         while len(messages) > 5 and self.used(system, messages) > self.limit:
             del messages[1:3]   # drop the oldest assistant/user exchange; roles keep alternating
             touched += 1
-            messages[0] = {"role": "user", "content": messages[0]["content"] + "\n\n[earlier steps were dropped to save context; the task ledger above is the record]"} \
+            messages[0] = {**messages[0], "content": messages[0]["content"] + "\n\n[earlier steps were dropped to save context; the task ledger above is the record]"} \
                 if "earlier steps were dropped" not in messages[0]["content"] else messages[0]
         if self.used(system, messages) > self.limit:
             raise ContextOverflow(f"the work package does not fit the {self.limit}-token budget even after trimming; split the task into smaller steps")

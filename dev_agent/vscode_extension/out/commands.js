@@ -35,10 +35,9 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerCommands = registerCommands;
 const vscode = __importStar(require("vscode"));
-const diff_1 = require("./diff");
 const settingsCommands_1 = require("./settingsCommands");
 function registerCommands(d) {
-    const { manager, store, log } = d;
+    const { manager, log } = d;
     const add = (id, fn) => {
         d.context.subscriptions.push(vscode.commands.registerCommand(`devAgent.${id}`, async (...args) => {
             try {
@@ -56,48 +55,12 @@ function registerCommands(d) {
             throw new Error(manager.error || "the agent server is not running (try dev_agent: Restart server)");
         return c;
     };
-    const taskId = () => {
-        if (!store.selectedId)
-            throw new Error("select a task first");
-        return store.selectedId;
-    };
-    const submit = async (goal) => {
-        const id = await client().startTask(goal.trim());
-        store.expect(id);
-        store.select(id);
-        void vscode.commands.executeCommand("devAgent.progress.focus");
-        log.line(`task ${id} started`);
-    };
-    add("newTask", async () => {
-        const goal = await vscode.window.showInputBox({ prompt: "What should the agent do?", placeHolder: "e.g. add input validation to app/forms.py", ignoreFocusOut: true });
-        if (goal?.trim())
-            await submit(goal);
-    });
-    add("newTaskFromEditor", async () => {
-        const editor = vscode.window.activeTextEditor;
-        const text = editor ? (editor.selection.isEmpty ? editor.document.getText() : editor.document.getText(editor.selection)) : "";
-        if (!text.trim())
-            throw new Error("open an editor with the task text (or select it) first");
-        await submit(text);
-    });
-    add("selectTask", (id) => store.select(id));
-    add("approvePlan", async () => client().approvePlan(taskId()));
-    add("rejectPlan", async () => client().rejectPlan(taskId()));
-    add("resume", async () => client().resume(taskId()));
+    add("focus", () => d.chat.focus());
     add("stop", async () => {
         const stopped = await client().stop();
         void vscode.window.showInformationMessage(stopped ? "Stopping: running commands are being terminated." : "Nothing is running.");
-        await store.refresh();
     });
-    add("openDiff", async (rel) => (0, diff_1.openDiff)(store, manager.settings().projectRoot ?? "", rel));
-    add("showReport", async () => {
-        const text = await client().report(taskId());
-        await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({ language: "markdown", content: text }), { preview: true });
-    });
-    add("showApproval", () => d.approvals.reopen());
-    add("showProgress", () => vscode.commands.executeCommand("devAgent.progress.focus"));
-    add("refresh", () => store.refresh());
     add("restartServer", () => manager.restart());
     add("showLog", () => log.show());
-    (0, settingsCommands_1.registerSettingsCommands)(add, client, store);
+    (0, settingsCommands_1.registerSettingsCommands)(add, client);
 }

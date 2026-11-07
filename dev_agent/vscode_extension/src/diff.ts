@@ -3,7 +3,6 @@ import * as path from "node:path";
 import * as vscode from "vscode";
 import { ApiError } from "./client";
 import type { ServerManager } from "./manager";
-import type { Store } from "./state";
 import type { Version } from "./types";
 
 const SCHEME = "devagent";
@@ -32,9 +31,7 @@ export function register(context: vscode.ExtensionContext, manager: ServerManage
   context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(SCHEME, new DiffProvider(manager)));
 }
 
-export async function openDiff(store: Store, root: string, rel: string): Promise<void> {
-  const id = store.selectedId;
-  if (!id) return;
+export async function openDiff(root: string, id: string, rel: string): Promise<void> {
   const onDisk = path.join(root, rel);
   const right = fs.existsSync(onDisk) ? vscode.Uri.file(onDisk) : DiffProvider.uri("current", id, rel);
   await vscode.commands.executeCommand("vscode.diff", DiffProvider.uri("original", id, rel), right, `${rel} (changed by dev_agent)`);

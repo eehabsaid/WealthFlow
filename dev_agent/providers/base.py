@@ -5,6 +5,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
+from . import vision
+
 
 class ProviderError(RuntimeError):
     pass
@@ -24,22 +26,30 @@ def redact(text: str, secrets) -> str:
 
 
 def merge_roles(messages: list[dict]) -> list[dict]:
-    """Providers require alternating roles: merge consecutive messages of the same role."""
+    """Providers require alternating roles: merge consecutive messages of the same role. A message may carry `images` ([{mime, data(base64)}])."""
     out: list[dict] = []
     for msg in messages:
+        images = list(msg.get("images", []))
         if out and out[-1]["role"] == msg["role"]:
+            images = out[-1].get("images", []) + images
             out[-1] = {"role": msg["role"], "content": out[-1]["content"] + "\n\n" + msg["content"]}
         else:
             out.append({"role": msg["role"], "content": msg["content"]})
+        if images:
+            out[-1]["images"] = images
     return out
 
 
 class Provider(ABC):
     name = ""
+    vision = None   # True/False forces the answer (tests); None = ask providers.vision
 
     def __init__(self, model: str, base_url: str, api_key: str = "", timeout: int = 3600, max_output: int = 4096, context_window: int = 150000):
         self.model, self.base_url, self.api_key = model, base_url.rstrip("/"), api_key
         self.timeout, self.max_output, self.context_window = timeout, max_output, context_window
+
+    def has_vision(self) -> bool:
+        return self.vision if self.vision is not None else vision.supports_images(self.name, self.model, self.base_url)
 
     @abstractmethod
     def complete(self, system: str, messages: list[dict], cancel=None) -> Reply:

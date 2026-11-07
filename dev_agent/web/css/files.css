@@ -1,0 +1,80 @@
+.files-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.files-list li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.files-list .path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plus {
+  color: var(--good);
+}
+
+.minus {
+  color: var(--bad);
+}
+
+.diff-view {
+  margin-top: 6px;
+}
+
+.diff-head {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.diff-body {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 0;
+}
+
+.ln {
+  display: block;
+  padding: 0 8px;
+  white-space: pre;
+}
+
+.ln.add {
+  background: var(--add-bg);
+}
+
+.ln.del {
+  background: var(--del-bg);
+}
+
+.ln.hunk {
+  background: var(--hunk-bg);
+  color: var(--muted);
+}
+
+.ln.meta {
+  color: var(--muted);
+}
+
+.final .stamp {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.final .summary {
+  padding: 0 10px 10px 36px;
+}

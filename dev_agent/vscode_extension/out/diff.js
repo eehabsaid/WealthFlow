@@ -67,10 +67,7 @@ exports.DiffProvider = DiffProvider;
 function register(context, manager) {
     context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(SCHEME, new DiffProvider(manager)));
 }
-async function openDiff(store, root, rel) {
-    const id = store.selectedId;
-    if (!id)
-        return;
+async function openDiff(root, id, rel) {
     const onDisk = path.join(root, rel);
     const right = fs.existsSync(onDisk) ? vscode.Uri.file(onDisk) : DiffProvider.uri("current", id, rel);
     await vscode.commands.executeCommand("vscode.diff", DiffProvider.uri("original", id, rel), right, `${rel} (changed by dev_agent)`);

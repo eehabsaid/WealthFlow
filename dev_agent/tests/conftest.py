@@ -10,7 +10,10 @@ from ..ledger.ledger import Ledger
 from ..ledger.plan import PlanScope
 from ..settings.store import Settings
 from ..tools import ToolContext
+from .browserfix import browser, page
 from .fakes import Approver
+
+__all__ = ["browser", "page"]   # Playwright fixtures for the browser tests
 
 FILES = {
     "conftest.py": "",

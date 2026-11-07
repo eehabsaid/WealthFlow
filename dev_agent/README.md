@@ -22,9 +22,10 @@ Run from anywhere inside the repo, or pass `--root <folder>`.
 The CLI, the Web UI and the VS Code extension all drive the same `Agent`; each works on its own.
     python -m dev_agent serve --open       # local server + Web UI; the address printed contains your private token (#token=...)
 - **Web UI** (`dev_agent/web`, plain HTML/JS/CSS, no build step): task, plan review/approve, live steps, diffs, Stop, provider/model/key settings, approvals.
-- **VS Code extension** (`dev_agent/vscode_extension`, native, no webview): sidebar (Tasks, Plan, Progress, Changed files), native diff editors, modal approvals,
-  Output channel, status bar. It starts and stops the Python server itself. Install: `cd dev_agent/vscode_extension && npm install && npm run package`, then
-  VS Code > Extensions > ... > Install from VSIX. Settings: `devAgent.pythonPath` / `projectRoot` / `agentPath` (all optional).
+- **VS Code extension** (`dev_agent/vscode_extension`): a chat sidebar (webview) with the same UI as the Web UI: plan Approve/Reject, live steps, approvals,
+  changed files (native diff editor), final report, model picker, file/image attachments (images only for vision models), Stop. It starts and stops the
+  Python server itself. Install: `cd dev_agent/vscode_extension && npm install && npm run package`, then VS Code > Extensions > ... > Install from VSIX.
+  Settings: `devAgent.pythonPath` / `projectRoot` / `agentPath` (all optional).
 - Server security: binds 127.0.0.1 only (exclusive port on Windows); bearer token on every /api call (extension: random per session via environment, never argv/logs);
   exact Host check (DNS rebinding), cross-site Origin refused, no CORS, JSON-only bodies, 1 MB limit, task ids validated, file/diff only for files recorded in the task,
   API keys never returned, strict CSP, the server exits if the editor that started it disappears.
@@ -43,7 +44,7 @@ The CLI, the Web UI and the VS Code extension all drive the same `Agent`; each w
 
 ## Tests
     python -m pytest dev_agent/tests -q
-    cd dev_agent/vscode_extension && npm test              # extension: real Python server + fake Ollama, extension code against a mocked `vscode`
+    cd dev_agent/vscode_extension && npm test              # extension: real Python server + fake Ollama; extension code against a mocked `vscode`; the real chat UI in Chromium under the webview CSP
 Scripted fake models only: no real Ollama/cloud model, real keyring, Windows or real VS Code is exercised by them.
 Windows-only test to run on your PC: `python -m pytest dev_agent/tests/test_cancel.py -k windows -v` (Stop kills cmd/python grandchildren).
 Browser tests (`test_web_e2e.py`) need Playwright + Chromium and skip themselves otherwise.

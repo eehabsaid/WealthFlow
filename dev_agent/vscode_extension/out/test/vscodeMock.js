@@ -4,11 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.state = exports.config = exports.answers = exports.calls = void 0;
-// A minimal stand-in for the `vscode` module so the extension's own code (activate, commands, tree views, dialogs, diff, status bar) runs in plain Node.
-// It records what the extension asks VS Code to do. It is NOT VS Code: real-editor behaviour is not covered by these tests.
+// A minimal stand-in for the `vscode` module so the extension's own code (activate, commands, chat view, diff, status bar) runs in plain Node.
+// It records what the extension asks VS Code to do. It is NOT VS Code: real-editor behaviour (webview runtime, CSP enforcement) is not covered here.
 const node_module_1 = __importDefault(require("node:module"));
-exports.calls = { commands: new Map(), trees: new Map(), executed: [], warnings: [], infos: [], errors: [], contexts: new Map(), providers: new Map() };
-exports.answers = { warning: [], info: [], input: [], pick: [] };
+exports.calls = { commands: new Map(), executed: [], infos: [], errors: [], contexts: new Map(), providers: new Map(), views: new Map(), docs: [] };
+exports.answers = { info: [], input: [], pick: [], open: [] };
 exports.config = {};
 exports.state = { folder: "", statusItem: { text: "", command: "", tooltip: "" } };
 class Emitter {
@@ -18,57 +18,33 @@ class Emitter {
         this.fns.forEach((f) => f(v));
     }
 }
-class TreeItem {
-    label;
-    collapsibleState;
-    description;
-    tooltip;
-    iconPath;
-    command;
-    contextValue;
-    constructor(label, collapsibleState = 0) {
-        this.label = label;
-        this.collapsibleState = collapsibleState;
-    }
-}
+const uri = (p) => ({ scheme: "file", path: p, fsPath: p, toString: () => `vscode-resource:${p}` });
 const vscode = {
     EventEmitter: Emitter,
-    TreeItem,
-    TreeItemCollapsibleState: { None: 0, Collapsed: 1, Expanded: 2 },
-    ThemeIcon: class {
-        id;
-        constructor(id) {
-            this.id = id;
-        }
-    },
     ThemeColor: class {
         id;
         constructor(id) {
             this.id = id;
         }
     },
-    MarkdownString: class {
-        value = "";
-        appendText(t) { this.value += t; return this; }
-    },
     StatusBarAlignment: { Left: 1 },
-    Uri: { file: (p) => ({ scheme: "file", path: p, fsPath: p }), from: (o) => ({ ...o, fsPath: o.path }) },
+    Uri: { file: uri, joinPath: (b, ...p) => uri([b.path, ...p].join("/")), from: (o) => ({ ...o, fsPath: o.path }) },
     window: {
-        createOutputChannel: () => ({ appendLine: (l) => void (process.env.DEV_AGENT_TRACE && process.stderr.write(`[log ${Date.now() % 100000}] ${l}\n`)), show: () => undefined, dispose: () => undefined }),
-        createStatusBarItem: () => ({ ...exports.state.statusItem, show() { }, dispose() { }, set text(v) { exports.state.statusItem.text = v; }, get text() { return exports.state.statusItem.text; }, set command(v) { exports.state.statusItem.command = v; }, set tooltip(v) { exports.state.statusItem.tooltip = v; }, set backgroundColor(_v) { } }),
-        createTreeView: (id, o) => (exports.calls.trees.set(id, o.treeDataProvider), { dispose: () => undefined }),
-        showWarningMessage: async (...a) => (exports.calls.warnings.push(a), exports.answers.warning.shift()),
+        createOutputChannel: () => ({ appendLine: (l) => void (process.env.DEV_AGENT_TRACE && process.stderr.write(`[log] ${l}\n`)), show: () => undefined, dispose: () => undefined }),
+        createStatusBarItem: () => ({ show() { }, dispose() { }, set text(v) { exports.state.statusItem.text = v; }, get text() { return exports.state.statusItem.text; }, set command(v) { exports.state.statusItem.command = v; }, set tooltip(v) { exports.state.statusItem.tooltip = v; }, set backgroundColor(_v) { } }),
+        registerWebviewViewProvider: (id, p) => (exports.calls.views.set(id, p), { dispose: () => undefined }),
         showInformationMessage: async (...a) => (exports.calls.infos.push(a), exports.answers.info.shift()),
         showErrorMessage: async (m) => void exports.calls.errors.push(m),
         showInputBox: async () => exports.answers.input.shift(),
         showQuickPick: async () => exports.answers.pick.shift(),
+        showOpenDialog: async () => (exports.answers.open.shift() ?? []).map(uri),
         showTextDocument: async () => undefined,
     },
     workspace: {
         get workspaceFolders() { return [{ uri: { fsPath: exports.state.folder } }]; },
         getConfiguration: () => ({ get: (k) => exports.config[k] }),
         registerTextDocumentContentProvider: (scheme, p) => (exports.calls.providers.set(scheme, p), { dispose: () => undefined }),
-        openTextDocument: async (o) => o,
+        openTextDocument: async (o) => (exports.calls.docs.push(o), o),
     },
     commands: {
         registerCommand: (id, fn) => (exports.calls.commands.set(id, fn), { dispose: () => undefined }),

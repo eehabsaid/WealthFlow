@@ -1,0 +1,175 @@
+.composer {
+  border-top: 1px solid var(--line);
+  padding: 8px 10px 10px;
+  position: relative;
+}
+
+.composer-box {
+  max-width: 880px;
+  margin: 0 auto;
+  background: var(--input-bg);
+  border: 1px solid var(--input-line);
+  border-radius: var(--radius);
+  padding: 6px;
+}
+
+.composer-box:focus-within {
+  border-color: var(--focus);
+}
+
+.composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 38px;
+  max-height: 180px;
+  resize: none;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  padding: 4px 6px;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.bar .spacer {
+  flex: 1;
+}
+
+.model-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 55%;
+  border-radius: 12px;
+  padding: 2px 8px;
+  color: var(--muted);
+}
+
+.model-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.send,
+.stop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+}
+
+.stop:not(:disabled) {
+  background: var(--bad);
+  border-color: var(--bad);
+  color: #fff;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 2px 2px 4px;
+}
+
+.chips:empty {
+  display: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1px 4px 1px 8px;
+  font-size: 12px;
+}
+
+.chip.problem {
+  border-color: var(--warn);
+}
+
+.chip .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hint {
+  max-width: 880px;
+  margin: 4px auto 0;
+  font-size: 11px;
+}
+
+.picker {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(100% - 4px);
+  max-width: 880px;
+  margin: 0 auto;
+  z-index: 6;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 35%);
+}
+
+.picker[hidden] {
+  display: none;
+}
+
+.picker h4 {
+  margin: 8px 0 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.seg button.on {
+  border-color: var(--focus);
+  background: var(--panel-2);
+}
+
+.picker input[type="text"] {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--input-line);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+.models {
+  max-height: 140px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.models button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border-color: transparent;
+}
+
+.models button.on {
+  background: var(--panel-2);
+}

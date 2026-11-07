@@ -47,7 +47,10 @@ def serve(script: list) -> ThreadingHTTPServer:
             self._json({"models": [{"name": "fake"}, {"name": "fake-2"}]})
 
         def do_POST(self):
-            self.rfile.read(int(self.headers.get("Content-Length") or 0))
+            body = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+            if self.path.endswith("/api/show"):   # the vision check: a model whose name contains "vision" reports the capability; no script reply is used
+                name = json.loads(body or b"{}").get("model", "")
+                return self._json({"capabilities": ["completion", "vision"] if "vision" in name else ["completion"]})
             with lock:
                 item = script[min(state["n"], len(script) - 1)] if script else ""
                 state["n"] += 1
