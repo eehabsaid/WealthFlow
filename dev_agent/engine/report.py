@@ -36,7 +36,8 @@ def build(ledger) -> str:
     lines += [f"- Refused/not approved: {a['message']}" for a in d["approvals"] if not a["approved"]]
     if d["stop_reason"]:
         lines.append(f"- Stopped: {d['stop_reason']}")
-    lines.append("- Browser E2E, real model quality and anything not listed above as PASSED were not verified by this run.")
+    e2e_passed = bool(final) and any(r["step"] == "browser E2E" and r["status"] == "PASSED" for r in final["results"])
+    lines.append("- " + ("Real" if e2e_passed else "Browser E2E, real") + " model quality and anything not listed above as PASSED were not verified by this run.")
     lines += ["", f"Tokens (as reported by the provider): in {d['usage']['input_tokens']}, out {d['usage']['output_tokens']}"]
     agent = [s["text"] for s in d["agent_summaries"] if not s.get("fix")]
     if agent:

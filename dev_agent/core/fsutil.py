@@ -15,6 +15,15 @@ class LockTimeout(RuntimeError):
     pass
 
 
+def _current_umask() -> int:
+    mask = os.umask(0)   # read once at import (nothing else is running yet); toggling it later would briefly change the mask of other threads
+    os.umask(mask)
+    return mask
+
+
+UMASK = _current_umask()
+
+
 def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -61,9 +70,7 @@ def atomic_write(path, data: bytes) -> None:
         if existed:
             shutil.copymode(path, tmp)
         else:
-            umask = os.umask(0)
-            os.umask(umask)
-            os.chmod(tmp, 0o666 & ~umask)
+            os.chmod(tmp, 0o666 & ~UMASK)
         replace_retry(tmp, path)
     except BaseException:
         with contextlib.suppress(OSError):
@@ -71,9 +78,20 @@ def atomic_write(path, data: bytes) -> None:
         raise
 
 
+def _owner_is_gone(name: Path) -> bool:
+    """True when the lock file names a process id that is not running. An unreadable or half-written file is left to the age rule."""
+    from ..tools.proctree import pid_alive   # imported here: the tools package imports this module
+    try:
+        pid = int(name.read_text(encoding="ascii").split()[0])
+    except (OSError, ValueError, IndexError):
+        return False
+    return pid > 0 and not pid_alive(pid)
+
+
 @contextlib.contextmanager
 def file_lock(lock_dir, key: str, timeout: float = 30.0, stale: float = 600.0):
-    """Cross-platform advisory lock: an exclusively created lock file named after `key`. Locks older than `stale` seconds are broken."""
+    """Cross-platform advisory lock: an exclusively created lock file named after `key`. A lock whose process no longer exists (it crashed while
+    holding it) is broken at once; any lock older than `stale` seconds is broken too."""
     lock_dir = Path(lock_dir)
     lock_dir.mkdir(parents=True, exist_ok=True)
     name = lock_dir / (hashlib.sha1(key.lower().encode("utf-8")).hexdigest()[:24] + ".lock")
@@ -86,7 +104,7 @@ def file_lock(lock_dir, key: str, timeout: float = 30.0, stale: float = 600.0):
             break
         except FileExistsError:
             with contextlib.suppress(OSError):
-                if time.time() - name.stat().st_mtime > stale:
+                if time.time() - name.stat().st_mtime > stale or _owner_is_gone(name):
                     name.unlink()
                     continue
             if time.monotonic() > deadline:

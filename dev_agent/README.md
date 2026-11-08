@@ -1,4 +1,4 @@
-# dev_agent - standalone autonomous coding agent (Milestone 1: command line)
+# dev_agent - standalone autonomous coding agent (M1 core, M2 interfaces, M3 E2E + memory + recovery)
 
 Python 3.12+. No Django. WealthFlow-specific rules live in `coding_agent/config.json`, not in code.
 
@@ -15,7 +15,8 @@ Credentials: OS keyring first (Windows Credential Manager). If no usable keyring
     python -m dev_agent plan "task"        # investigate read-only, print the plan, write nothing
     python -m dev_agent run "task"         # plan -> you approve once -> execute -> verify -> report
     python -m dev_agent execute <task-id>  # approve and run a saved plan, or resume a stopped task
-    python -m dev_agent status [task-id]   # list tasks / show a report
+    python -m dev_agent status [task-id]   # list tasks / show a report (also recovers tasks a crash left running)
+    python -m dev_agent memory show|add|forget [architecture|decisions|lessons] [text]   # what the agent remembers
 Run from anywhere inside the repo, or pass `--root <folder>`.
 
 ## Three interfaces, one engine (M2)
@@ -33,6 +34,19 @@ The CLI, the Web UI and the VS Code extension all drive the same `Agent`; each w
 - Local API: `/api/tasks` (GET/POST), `/api/tasks/<id>` (+ `/events` JSON or SSE with Last-Event-ID, `/approve`, `/reject`, `/resume`, `/files`, `/diff?path=`,
   `/file?path=&version=original|current`, `/report`), `/api/stop`, `/api/approvals[/<id>]`, `/api/state`, `/api/settings`, `/api/keys[/<provider>|/unlock]`, `/api/models`, `/api/shutdown`.
 
+## Browser E2E, memory, recovery (M3)
+- **Browser E2E**: when a changed file matches `e2e.paths` in `coding_agent/config.json` (UI files), the final checks run `e2e.command` (default
+  `python scripts/run_full_e2e.py`, optional `e2e.args`, `e2e.timeout_s` default 7200). It runs once, at the end, can take hours, and Stop cancels it. The command comes from
+  config only. If it cannot run (script missing, Playwright not installed, Chromium missing) the step is **NOT RUN** with the exact reason, the report says
+  NOT VERIFIED, and running it is left to you. A real failure goes back to the model like any other failed check.
+- **Memory** (inside the repo, tracked by git): `coding_agent/memory/{tasks.jsonl, architecture.md, decisions.md, lessons.md}`. Written automatically from the ledger when a task ends
+  (goal, files, check results; lessons from stops; decisions from refused approvals and rejected plans; added/removed/renamed files). Entries sharing words with a new task
+  are put in its planning context (max 2000 characters). Never stores secrets (entries that look like one are refused); each file is capped at 150 entries.
+  `MEMORY.md` stays the owner's own hand-written decisions file.
+- **Crash/resume**: a run takes `tasks/<id>/run.lock` (process id), so two processes cannot run one task. If the process dies, the next `status`, `execute` or server start marks the task
+  `stopped` ("interrupted ... Resume continues it"), marks the interrupted package, and makes the ledger match the files on disk. Resume repeats no finished package.
+  Lock files and the event log also survive a crash (stale locks of dead processes are broken; a torn last log line no longer corrupts the next event).
+
 ## Rules enforced in code (each has tests)
 - Nothing is written before the plan is approved; only files listed in the plan may change; delete/rename only if listed.
 - Protected files (config.json) ask you first; forbidden files (migrations, db.sqlite3, .env, secrets, .git) are never edited or read.
@@ -48,3 +62,4 @@ The CLI, the Web UI and the VS Code extension all drive the same `Agent`; each w
 Scripted fake models only: no real Ollama/cloud model, real keyring, Windows or real VS Code is exercised by them.
 Windows-only test to run on your PC: `python -m pytest dev_agent/tests/test_cancel.py -k windows -v` (Stop kills cmd/python grandchildren).
 Browser tests (`test_web_e2e.py`) need Playwright + Chromium and skip themselves otherwise.
+The real `scripts/run_full_e2e.py` is never started by the tests (they use a stand-in script); run it yourself once on your PC.

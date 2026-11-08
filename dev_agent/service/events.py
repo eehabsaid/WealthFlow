@@ -26,12 +26,15 @@ class EventLog:
         self.path, self.closed = Path(path), False
         self._events: list[dict] = []
         self._cond = threading.Condition()
+        self._repair = False
         try:
-            for line in self.path.read_text(encoding="utf-8").splitlines():
+            text = self.path.read_text(encoding="utf-8", errors="replace")
+            for line in text.splitlines():
                 try:
                     self._events.append(json.loads(line))
                 except ValueError:
                     continue   # a torn last line after a crash
+            self._repair = bool(text) and not text.endswith("\n")   # the torn line has no newline: the next event must not be glued onto it
         except OSError:
             pass
 
@@ -40,7 +43,8 @@ class EventLog:
             rec = {"seq": len(self._events) + 1, "t": datetime.datetime.now().isoformat(timespec="seconds"), **_clip(event)}
             self.path.parent.mkdir(parents=True, exist_ok=True)
             with self.path.open("a", encoding="utf-8", newline="\n") as handle:
-                handle.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                handle.write(("\n" if self._repair else "") + json.dumps(rec, ensure_ascii=False) + "\n")
+            self._repair = False
             self._events.append(rec)
             self._cond.notify_all()
         return rec

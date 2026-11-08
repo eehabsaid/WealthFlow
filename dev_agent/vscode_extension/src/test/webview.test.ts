@@ -6,7 +6,7 @@ import * as path from "node:path";
 import { test } from "node:test";
 import { Bridge, type Host } from "../bridge";
 import { webviewHtml } from "../html";
-import { Env, DONE, PLAN, WRITE, until } from "./env";
+import { Env, DONE, PLAN, WRITE, spawned, until } from "./env";
 
 // The REAL chat UI (media/chat) in a real Chromium, under the REAL webview CSP, talking through the REAL bridge to a REAL agent server.
 // Only VS Code itself is replaced by a shim (acquireVsCodeApi -> postMessage). Skipped when Playwright/Chromium is not installed.
@@ -69,7 +69,7 @@ test("chat UI in Chromium under the webview CSP: attach, plan, approve, diff, no
     await until(() => diffs.length > 0, 10000, "diff request");
     assert.equal(diffs[0][1], "app/more.py");
 
-    const token = /DEV_AGENT_TOKEN=([^\0]+)/.exec(fs.readFileSync(`/proc/${(await env.client.health()).pid}/environ`, "utf8"))?.[1] ?? "";
+    const token = spawned.at(-1)?.token ?? "";
     assert.ok(token.length >= 32);
     assert.ok(!(await page.content()).includes(token) && !JSON.stringify(posted).includes(token), "no token in the page");
     assert.deepEqual(problems.filter((p) => !/favicon|api\/health/.test(p)), [], "no console errors or CSP violations");

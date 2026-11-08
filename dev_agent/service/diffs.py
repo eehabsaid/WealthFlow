@@ -47,6 +47,15 @@ def current_bytes(ledger, project, raw: str):
     return full.read_bytes() if full.is_file() else None
 
 
+def _unified(old: str | None, new: str | None, name_a: str, name_b: str, context: int = 3) -> list[str]:
+    """The one place a diff is computed (file_diff and line_counts both use it). Real lines only: splitlines() has no phantom empty last line,
+    which a plain split("\\n") adds after a trailing newline and which showed up as an extra +/- line."""
+    lines = list(difflib.unified_diff((old or "").splitlines(), (new or "").splitlines(), name_a, name_b, lineterm="", n=context))
+    if not lines and old is not None and new is not None and old != new:
+        return ["\\ only the line endings or the trailing newline changed"]
+    return lines
+
+
 def file_diff(ledger, project, raw: str) -> dict:
     rel = _check(ledger, project, raw)
     known, before = ledger.original(rel)
@@ -59,8 +68,7 @@ def file_diff(ledger, project, raw: str) -> dict:
            "existed_before": before is not None, "exists_now": after is not None, "binary": old_bin or new_bin, "truncated": cut_a or cut_b,
            "renamed_from": ledger.data.get("snapshots", {}).get(rel, {}).get("from"), "diff": ""}
     if not out["binary"]:
-        out["diff"] = "\n".join(difflib.unified_diff((old or "").split("\n") if old is not None else [], (new or "").split("\n") if new is not None else [],
-                                                     f"a/{rel}" if before is not None else "/dev/null", f"b/{rel}" if after is not None else "/dev/null", lineterm=""))
+        out["diff"] = "\n".join(_unified(old, new, f"a/{rel}" if before is not None else "/dev/null", f"b/{rel}" if after is not None else "/dev/null"))
     return out
 
 
@@ -73,5 +81,6 @@ def line_counts(ledger, project, raw: str):
     (old, old_bin, cut_a), (new, new_bin, cut_b) = _text(before), _text(after)
     if old_bin or new_bin or cut_a or cut_b:
         return None
-    changes = [line[0] for line in difflib.unified_diff((old or "").splitlines(), (new or "").splitlines(), lineterm="", n=0) if line[:1] in "+-" and line[:3] not in ("+++", "---")]
-    return changes.count("+"), changes.count("-")
+    lines = _unified(old, new, "a", "b", 0)
+    body = lines[2:] if len(lines) > 1 else []                      # skip the two ---/+++ header lines by position, not by prefix (a real line can start with ++ or --)
+    return sum(1 for line in body if line[:1] == "+"), sum(1 for line in body if line[:1] == "-")

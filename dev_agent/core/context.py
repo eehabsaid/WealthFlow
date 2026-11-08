@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import re
 
+from ..memory import recall
 from . import memory
 
 WORD = re.compile(r"[a-z0-9_]{3,}")
@@ -20,7 +21,7 @@ def _score(task: set[str], text: str, name: str = "") -> int:
 
 
 def pick(project, index, task: str, budget: int = 6000) -> dict:
-    """{skills: [{name, text}], decisions: [...], files: [...], used_chars}; skills and decisions first, then index hits."""
+    """{skills: [{name, text}], decisions: [...], memory: {...}, files: [...], used_chars}; skills, decisions and remembered tasks first, then index hits."""
     words, left = _words(task), budget
     skills = []
     folder = project.agent_dir / "skills"
@@ -39,19 +40,23 @@ def pick(project, index, task: str, budget: int = 6000) -> dict:
             break
         decisions.append(entry[:300])
         left -= len(decisions[-1])
+    remembered = recall.pick(project, task, min(2000, max(0, left)))
+    left -= sum(len(r) for rows in remembered.values() for r in rows)
     files = []
     for row in index.search(task, 12):
         if left < 120:
             break
         files.append(row)
         left -= 120
-    return {"skills": skills, "decisions": decisions, "files": files, "used_chars": budget - left}
+    return {"skills": skills, "decisions": decisions, "memory": remembered, "files": files, "used_chars": budget - left}
 
 
 def render(picked: dict) -> str:
     parts = [f"## Skill: {s['name']}\n{s['text']}" for s in picked["skills"]]
     if picked["decisions"]:
         parts.append("## Past decisions\n" + "\n".join(f"- {d}" for d in picked["decisions"]))
+    if picked.get("memory"):
+        parts.append(recall.render(picked["memory"]))
     if picked["files"]:
         parts.append("## Likely files\n" + "\n".join(f"- {f['path']} ({f['lines']} lines)" for f in picked["files"]))
     return "\n\n".join(parts)

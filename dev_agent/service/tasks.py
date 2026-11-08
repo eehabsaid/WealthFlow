@@ -3,32 +3,28 @@ background thread, one run at a time, and exposes start / approve / reject / sto
 
 from __future__ import annotations
 
-import re
 import threading
 
 from ..engine import attachments as attachmentlib
+from ..engine import recovery
 from ..engine.cancel import CancelToken
 from ..engine.loop import Agent, AgentError
 from ..ledger.ledger import Ledger
+from ..memory.capture import capture
 from ..settings import store as settings_store
 from ..tools import proctree
 from .approvals import QueueApprover
 from .errors import Busy, ServiceError
 from .events import EventLog
-
-
-TASK_ID = re.compile(r"^\d{8}-\d{6}-[a-z0-9-]{1,60}$")
-
-
-class Run:
-    def __init__(self, task_id: str, cancel: CancelToken, approver: QueueApprover):
-        self.task_id, self.cancel, self.approver, self.phase, self.thread = task_id, cancel, approver, "starting", None
+from .runstate import TASK_ID, Run
 
 
 class TaskService:
     def __init__(self, project, provider_factory, settings_loader):
         self.project, self.provider_factory, self.settings_loader = project, provider_factory, settings_loader
         self._lock, self._run, self._logs = threading.RLock(), None, {}
+        for task_id, reason in recovery.recover(project):   # tasks a crash left "running" become stopped, resumable tasks
+            self.log(task_id).append({"type": "status", "status": "stopped", "reason": reason})
 
     # ---- state ----
     def log(self, task_id: str) -> EventLog:
@@ -113,6 +109,7 @@ class TaskService:
             if ledger.data["status"] != "awaiting_approval":
                 raise ServiceError("this task has no plan waiting for approval", "conflict")
             ledger.set_status("rejected", "plan rejected by the owner")
+            capture(ledger)
             self.log(task_id).append({"type": "status", "status": "rejected", "reason": "plan rejected by the owner"})
 
     def stop(self) -> bool:

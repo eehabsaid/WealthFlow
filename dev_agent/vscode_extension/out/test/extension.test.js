@@ -98,15 +98,15 @@ async function boot(env) {
     const env = await env_1.Env.create([(0, env_1.PLAN)()], false);
     const { ext, call } = await boot(env);
     try {
-        const { execFileSync } = require("node:child_process");
-        const before = execFileSync("pgrep", ["-f", `dev_agent --root ${env.project} serve`]).toString().trim().split("\n").map(Number);
-        assert.ok(before.length >= 1);
+        const before = [env_1.spawned.at(-1)?.pid]; // the hidden server this extension just started
+        assert.ok(before[0] && (0, env_1.alive)(before[0]));
         assert.equal((await call("request", { method: "POST", path: "/api/stop", body: {} })).ok, true);
         await vscodeMock_1.calls.commands.get("devAgent.stop")?.();
         await ext.deactivate();
         await (0, env_1.until)(() => before.every((pid) => !(0, env_1.alive)(pid)), 10000, "server to be gone");
     }
     finally {
+        await ext.deactivate(); // also when an assertion above failed: a server left running would keep the test runner from ever exiting
         await env.close();
     }
 });
@@ -131,8 +131,7 @@ async function boot(env) {
         assert.equal((await call("nonsense")).ok, false);
         assert.equal((await call("setApiKey", { provider: "bogus" })).ok, false);
         // the token lives only in the server's environment (and the host's memory): read it from the server process
-        const pid = Number(require("node:child_process").execFileSync("pgrep", ["-f", `dev_agent --root ${env.project} serve`]).toString().trim().split("\n")[0]);
-        const token = /DEV_AGENT_TOKEN=([^\0]+)/.exec(fs.readFileSync(`/proc/${pid}/environ`, "utf8"))?.[1] ?? "";
+        const token = env_1.spawned.at(-1)?.token ?? "";
         assert.ok(token.length >= 32, "found the server's token");
         await call("request", { method: "GET", path: "/api/keys" });
         const everything = JSON.stringify([out, view.webview.html]);

@@ -8,10 +8,11 @@ import sys
 from pathlib import Path
 
 from .core.project import Project
-from .engine import report
+from .engine import recovery, report
 from .engine.loop import Agent, AgentError
 from .ledger import plan as planlib
 from .ledger.ledger import Ledger
+from .memory import store as memstore
 from .providers.base import ProviderError
 from .providers.registry import KEY_OPTIONAL, PROVIDERS, build_provider
 from .settings.secrets import SecretsError, SecretStore
@@ -65,6 +66,20 @@ def _show_plan(ledger: Ledger) -> None:
         print(planlib.summary_text(d["plan"], d["packages"]))
 
 
+def _memory(project, args) -> int:
+    if args.action == "show":
+        for kind in memstore.KINDS:
+            print(f"== {kind}: " + (f"{len(memstore.entries(project, kind))} entries" if memstore.entries(project, kind) else "empty"))
+            print("\n".join(f"- {e}" for e in memstore.entries(project, kind)[-20:]))
+        print(f"== tasks: {len(memstore.tasks(project))} remembered (newest 10)")
+        print("\n".join(f"- {r['date']} {r['id']} [{r['status']}] {r['goal'][:70]}" for r in memstore.tasks(project)[-10:]))
+    elif args.action == "add":
+        print(memstore.add(project, args.kind or "", args.text))
+    else:
+        print(f"removed {memstore.forget(project, args.kind or '', args.text or '')} entries")
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="dev_agent", description="Standalone autonomous coding agent (M1: command line for testing).")
     parser.add_argument("--root", default=None, help="project folder (default: the folder holding coding_agent/config.json above the current one)")
@@ -79,6 +94,10 @@ def main(argv=None) -> int:
     st.add_argument("value", nargs="?")
     sub.add_parser("set-key").add_argument("provider", choices=sorted(PROVIDERS))
     sub.add_parser("keys")
+    mem = sub.add_parser("memory", help="what the agent remembers between tasks (stored in coding_agent/memory/)")
+    mem.add_argument("action", choices=["show", "add", "forget"])
+    mem.add_argument("kind", nargs="?", help="architecture | decisions | lessons")
+    mem.add_argument("text", nargs="?")
     sv = sub.add_parser("serve", help="start the local server for the web UI and the VS Code extension (127.0.0.1 only)")
     sv.add_argument("--port", type=int, default=0, help="0 = any free port (default)")
     sv.add_argument("--parent-pid", type=int, default=0, help="stop when this process exits (used by the VS Code extension)")
@@ -102,7 +121,11 @@ def main(argv=None) -> int:
             print(f"credential backend: {secrets.backend}")
             print("(key values are never shown; use set-key to add or replace one)")
             print("providers needing no key: " + ", ".join(sorted(KEY_OPTIONAL)))
+        elif args.cmd == "memory":
+            return _memory(project, args)
         elif args.cmd == "status":
+            for task_id, reason in recovery.recover(project):
+                print(f"{task_id}: {reason}")
             if args.task_id:
                 print(report.build(Ledger.load(project, args.task_id)))
             else:
@@ -120,6 +143,7 @@ def main(argv=None) -> int:
                     agent.approve(ledger.id)
                     print(report.write(agent.execute(ledger.id)))
         elif args.cmd == "execute":
+            recovery.recover(project)
             agent = _agent(project)
             ledger = Ledger.load(project, args.task_id)
             if ledger.data["status"] == "awaiting_approval":
@@ -128,7 +152,7 @@ def main(argv=None) -> int:
                     return 1
                 agent.approve(args.task_id)
             print(report.write(agent.execute(args.task_id)))
-    except (SettingsError, SecretsError, ProviderError, AgentError, FileNotFoundError) as exc:
+    except (SettingsError, SecretsError, ProviderError, AgentError, FileNotFoundError, memstore.MemoryRefused) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     return 0

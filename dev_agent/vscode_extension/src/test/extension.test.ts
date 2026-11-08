@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { test } from "node:test";
 import { calls, config, state } from "./vscodeMock"; // must be imported before the extension: it installs the fake `vscode`
-import { Env, DONE, PLAN, PYTHON, REPO, WRITE, alive, until } from "./env";
+import { Env, DONE, PLAN, PYTHON, REPO, WRITE, alive, spawned, until } from "./env";
 
 type Ext = typeof import("../extension");
 type Res = { type: string; id?: number; ok?: boolean; data?: any; error?: any; event?: any };
@@ -68,14 +68,14 @@ test("Stop from the command palette reaches the engine; deactivate kills the hid
   const env = await Env.create([PLAN()], false);
   const { ext, call } = await boot(env);
   try {
-    const { execFileSync } = require("node:child_process") as typeof import("node:child_process");
-    const before = execFileSync("pgrep", ["-f", `dev_agent --root ${env.project} serve`]).toString().trim().split("\n").map(Number);
-    assert.ok(before.length >= 1);
+    const before = [spawned.at(-1)?.pid as number];     // the hidden server this extension just started
+    assert.ok(before[0] && alive(before[0]));
     assert.equal((await call("request", { method: "POST", path: "/api/stop", body: {} })).ok, true);
     await calls.commands.get("devAgent.stop")?.();
     await ext.deactivate();
     await until(() => before.every((pid) => !alive(pid)), 10000, "server to be gone");
   } finally {
+    await ext.deactivate();      // also when an assertion above failed: a server left running would keep the test runner from ever exiting
     await env.close();
   }
 });
@@ -101,8 +101,7 @@ test("the webview can reach only the allowlist, and never sees the token or a ke
     assert.equal((await call("nonsense")).ok, false);
     assert.equal((await call("setApiKey", { provider: "bogus" })).ok, false);
     // the token lives only in the server's environment (and the host's memory): read it from the server process
-    const pid = Number((require("node:child_process") as typeof import("node:child_process")).execFileSync("pgrep", ["-f", `dev_agent --root ${env.project} serve`]).toString().trim().split("\n")[0]);
-    const token = /DEV_AGENT_TOKEN=([^\0]+)/.exec(fs.readFileSync(`/proc/${pid}/environ`, "utf8"))?.[1] ?? "";
+    const token = spawned.at(-1)?.token ?? "";
     assert.ok(token.length >= 32, "found the server's token");
     await call("request", { method: "GET", path: "/api/keys" });
     const everything = JSON.stringify([out, view.webview.html]);

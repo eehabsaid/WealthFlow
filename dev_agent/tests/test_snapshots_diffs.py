@@ -65,3 +65,34 @@ def test_binary_files_are_flagged_not_dumped(ctx):
     (ctx.project.root / "app/blob.bin").write_bytes(b"\x00\x09")
     out = diffs.file_diff(ctx.ledger, ctx.project, "app/blob.bin")
     assert out["binary"] and out["diff"] == ""
+
+
+def _counts_and_diff(ctx, path):
+    d = diffs.file_diff(ctx.ledger, ctx.project, path)["diff"].splitlines()
+    shown = [l for l in d[2:] if l[:1] in "+-"]
+    return diffs.line_counts(ctx.ledger, ctx.project, path), (sum(l[0] == "+" for l in shown), sum(l[0] == "-" for l in shown)), d
+
+
+def test_trailing_newline_adds_no_phantom_line_and_both_counters_agree(ctx):
+    edit(ctx, {"path": "app/new.py", "content": "X = 1\nY = 2\n"})
+    counts, shown, d = _counts_and_diff(ctx, "app/new.py")
+    assert counts == shown == (2, 0) and "@@ -0,0 +1,2 @@" in d and d[-1] == "+Y = 2"          # was +3 with a trailing "+" line
+    call(ctx, "read_file", {"path": "app/calc.py"})
+    edit(ctx, {"path": "app/calc.py", "replacements": [{"old": "a + b", "new": "a - b"}]})
+    counts, shown, d = _counts_and_diff(ctx, "app/calc.py")
+    assert counts == shown == (1, 1) and not any(l == " " for l in d)                          # no blank context line from a phantom last line
+
+
+def test_lines_that_start_with_plus_or_minus_signs_are_counted(ctx):
+    (ctx.project.root / "app/calc.py").write_text("keep\n-- sql comment\n", encoding="utf-8")
+    call(ctx, "read_file", {"path": "app/calc.py"})
+    edit(ctx, {"path": "app/calc.py", "replacements": [{"old": "-- sql comment", "new": "++x"}]})
+    assert diffs.line_counts(ctx.ledger, ctx.project, "app/calc.py") == (1, 1)
+
+
+def test_change_of_only_the_trailing_newline_is_visible(ctx):
+    (ctx.project.root / "app/calc.py").write_text("one", encoding="utf-8")
+    call(ctx, "read_file", {"path": "app/calc.py"})
+    edit(ctx, {"path": "app/calc.py", "replacements": [{"old": "one", "new": "one\n"}]})
+    out = diffs.file_diff(ctx.ledger, ctx.project, "app/calc.py")
+    assert "trailing newline" in out["diff"] and diffs.line_counts(ctx.ledger, ctx.project, "app/calc.py") == (0, 0)

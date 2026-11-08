@@ -6,8 +6,9 @@ from ..core import context
 from ..core.index import Index
 from ..ledger import plan as planlib
 from ..ledger.ledger import Ledger
+from ..memory.capture import capture
 from ..tools import DenyAll, ToolContext
-from . import packages, report
+from . import packages, recovery, report, runlock
 from .attachments import Attachments, AttachmentError
 from .cancel import CancelToken
 from .fix import verify_and_fix
@@ -17,6 +18,11 @@ from .session import run_phase
 
 class AgentError(RuntimeError):
     pass
+
+
+def _finished(ledger: Ledger) -> Ledger:
+    capture(ledger)   # what happened goes into the repo memory (never raises)
+    return ledger
 
 
 class Agent:
@@ -42,6 +48,13 @@ class Agent:
         """Investigate read-only and propose a plan. `ledger` lets a UI create the task first so it knows the task id at once."""
         ledger = ledger or Ledger.create(self.project, task)
         ledger.listener = self.emit
+        try:
+            with runlock.hold(ledger):
+                return _finished(self._plan(task, ledger))
+        except runlock.TaskBusy as exc:
+            raise AgentError(str(exc)) from exc
+
+    def _plan(self, task: str, ledger: Ledger) -> Ledger:
         self.emit({"type": "phase", "phase": "planning"})
         ctx = self._ctx(ledger, True)
         background = context.render(context.pick(self.project, self.index, task))
@@ -81,7 +94,16 @@ class Agent:
 
     def execute(self, task_id: str) -> Ledger:
         ledger = self._load(task_id)
-        d = ledger.data
+        try:
+            with runlock.hold(ledger):
+                if ledger.data["status"] == "executing":   # we hold the lock, so the run that left it "executing" died: make the ledger match the disk
+                    recovery.recover_task(ledger)
+                return _finished(self._execute(ledger))
+        except runlock.TaskBusy as exc:
+            raise AgentError(str(exc)) from exc
+
+    def _execute(self, ledger: Ledger) -> Ledger:
+        task_id, d = ledger.id, ledger.data
         if not d["approved_at"] or not d["plan"] or d["status"] not in ("approved", "executing", "stopped"):
             raise AgentError(f"task {task_id} is not approved (status: {d['status']})")
         if planlib.digest(d["plan"]) != d["plan_sha"]:
@@ -95,9 +117,10 @@ class Agent:
                 return self._stop(ledger, pkg, self.cancel.reason)
             ctx = self._ctx(ledger, False, scope, pkg["id"])
             self.emit({"type": "package", "id": pkg["id"], "title": pkg["title"], "status": "running"})
+            resumed = pkg["status"] == "interrupted"
             pkg["status"] = "running"
             task = (f"{ledger.brief(pkg['id'])}\n\nDo ONLY the steps of package {pkg['id']}: {', '.join(pkg['steps'])}. Files: {', '.join(pkg['files'])}.\n"
-                    "When finished, reply {\"final\": \"what you changed and what you did not check\"}.")
+                    "When finished, reply {\"final\": \"what you changed and what you did not check\"}." + (f"\n\n{recovery.NOTE}" if resumed else ""))
             res = run_phase(ctx, self.provider, system_prompt(False), task, {"final"}, self.settings["max_steps_per_package"])
             if res.kind == "stopped":
                 return self._stop(ledger, pkg, res.reason)

@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Env = exports.DONE = exports.WRITE = exports.PLAN = exports.PYTHON = exports.AGENT = exports.REPO = void 0;
+exports.Env = exports.DONE = exports.WRITE = exports.PLAN = exports.spawned = exports.PYTHON = exports.AGENT = exports.REPO = void 0;
 exports.reply = reply;
 exports.until = until;
 exports.alive = alive;
@@ -45,7 +45,19 @@ const pythonFinder_1 = require("../pythonFinder");
 const serverProcess_1 = require("../serverProcess");
 exports.REPO = path.resolve(__dirname, "../../../..");
 exports.AGENT = path.join(exports.REPO, "dev_agent");
-exports.PYTHON = process.env.DEV_AGENT_TEST_PYTHON ?? "python3";
+// Windows has no python3: that name is the Microsoft Store shim ("Python was not found"). Override with DEV_AGENT_TEST_PYTHON.
+exports.PYTHON = process.env.DEV_AGENT_TEST_PYTHON ?? (process.platform === "win32" ? "python" : "python3");
+// Records every hidden server the code under test starts (pid and access token). pgrep and /proc/<pid>/environ do not exist on Windows,
+// so the tests read them here instead. Patched on the real module object, which serverProcess.ts looks up at every call.
+exports.spawned = [];
+const childProcess = require("node:child_process");
+const realSpawn = childProcess.spawn;
+childProcess.spawn = function (_command, args, options) {
+    const child = realSpawn.apply(this, arguments);
+    if (Array.isArray(args) && args.includes("serve") && options?.env?.DEV_AGENT_TOKEN && child.pid)
+        exports.spawned.push({ pid: child.pid, token: options.env.DEV_AGENT_TOKEN });
+    return child;
+};
 function reply(value) {
     return JSON.stringify(value);
 }

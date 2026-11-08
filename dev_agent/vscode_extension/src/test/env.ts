@@ -8,7 +8,19 @@ import { ServerProcess } from "../serverProcess";
 
 export const REPO = path.resolve(__dirname, "../../../..");
 export const AGENT = path.join(REPO, "dev_agent");
-export const PYTHON = process.env.DEV_AGENT_TEST_PYTHON ?? "python3";
+// Windows has no python3: that name is the Microsoft Store shim ("Python was not found"). Override with DEV_AGENT_TEST_PYTHON.
+export const PYTHON = process.env.DEV_AGENT_TEST_PYTHON ?? (process.platform === "win32" ? "python" : "python3");
+
+// Records every hidden server the code under test starts (pid and access token). pgrep and /proc/<pid>/environ do not exist on Windows,
+// so the tests read them here instead. Patched on the real module object, which serverProcess.ts looks up at every call.
+export const spawned: { pid: number; token: string }[] = [];
+const childProcess = require("node:child_process") as { spawn: (...a: any[]) => ChildProcess };
+const realSpawn = childProcess.spawn;
+childProcess.spawn = function (this: unknown, _command: string, args?: unknown, options?: { env?: Record<string, string> }) {
+  const child = realSpawn.apply(this, arguments as never) as ChildProcess;
+  if (Array.isArray(args) && args.includes("serve") && options?.env?.DEV_AGENT_TOKEN && child.pid) spawned.push({ pid: child.pid, token: options.env.DEV_AGENT_TOKEN });
+  return child;
+};
 
 export function reply(value: unknown): string {
   return JSON.stringify(value);

@@ -3,10 +3,9 @@ NOT RUN (with the reason) or SKIPPED (not applicable). The overall line says VER
 
 from __future__ import annotations
 
-import fnmatch
-
 from ..guard.commands import classify
 from ..tools import runner
+from . import e2e
 
 CODE_EXT = (".py", ".js", ".css", ".html")
 CHUNK = 40   # keeps Windows command lines short
@@ -61,9 +60,9 @@ def run(ctx, changed: list[str]) -> list[dict]:
                 break
         results.append({"step": name, "status": outcome, "detail": detail})
     results.append(_line_limits(project, changed))
-    e2e = project.config["e2e"]
-    if any(fnmatch.fnmatchcase(f.lower(), p.lower()) for f in changed for p in e2e["paths"]):
-        results.append({"step": "browser E2E", "status": "NOT RUN", "detail": f"UI files changed: you must run it locally ({e2e['command'] or 'scripts/run_full_e2e.py'}); M3 adds the runner"})
+    row = e2e.run(ctx, changed)
+    if row:
+        results.append(row)
     return results
 
 
