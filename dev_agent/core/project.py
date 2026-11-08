@@ -15,6 +15,8 @@ DEFAULTS = {
     "forbidden": [],
     "secret_files": [".env", "*.env", "*.pem", "*id_rsa*", "*.pfx"],
     "test_areas": {},
+    "pytest_areas": {},
+    "test_exempt": [],
     "test_command": ["python", "manage.py", "test", "{modules}"],
     "commands": {"allow": [], "ask": [], "deny": [], "ask_args": []},
     "verify_steps": [],
@@ -85,10 +87,19 @@ class Project:
             raise PathError(f"resolves outside the project: {rel}")
         return rel, target
 
+    def internal_reason(self, rel: str) -> str:
+        """The agent's own data folder (coding_agent/: config and safety rules, skills, memory, task history, settings). Tasks never change it; the
+        agent's own code (memory store, settings, ledger) writes there directly, not through the edit tools."""
+        name = self.agent_dir.relative_to(self.root).as_posix().lower() if self.agent_dir.is_relative_to(self.root) else ""
+        low = rel.lower()
+        if name and (low == name or low.startswith(name + "/")):
+            return f"agent-internal file ({name}/: configuration, safety rules, skills, memory, task history); tasks never change it, the agent updates it through its own commands"
+        return ""
+
     def forbidden_reason(self, rel: str) -> str:
         if rel == ".git" or rel.startswith(".git/"):
             return "git internals are never edited"
-        return matches(rel, self.config["forbidden"]) or ""
+        return self.internal_reason(rel) or matches(rel, self.config["forbidden"]) or ""
 
     def secret_reason(self, rel: str) -> str:
         hit = matches(rel, self.config["secret_files"])
@@ -101,3 +112,12 @@ class Project:
         areas = self.config["test_areas"]
         best = max((p for p in areas if rel.startswith(p)), key=len, default="")
         return areas.get(best, "")
+
+    def pytest_target(self, rel: str) -> str:
+        areas = self.config["pytest_areas"]
+        return areas.get(max((p for p in areas if rel.startswith(p)), key=len, default=""), "")
+
+    def is_test_file(self, rel: str) -> bool:
+        """Test code itself needs no mapping: files in a tests/ folder, test_*.py, or anything matching `test_exempt` in config.json."""
+        name = rel.rsplit("/", 1)[-1]
+        return "/tests/" in "/" + rel or name.startswith("test_") or bool(matches(rel, self.config["test_exempt"]))

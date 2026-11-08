@@ -54,7 +54,7 @@ def test_report_says_verified_only_when_everything_ran_and_passed(repo):
     a.approve(led.id)
     led = a.execute(led.id)
     text = (led.dir / "report.md").read_text()
-    assert "Overall: VERIFIED" in text and "pyflakes: PASSED" in text
+    assert "Overall: NOT VERIFIED (no automated test ran)" in text and "pyflakes: PASSED" in text   # lint alone is never "VERIFIED"
 
 
 def test_failed_check_is_fixed_by_the_model(repo):

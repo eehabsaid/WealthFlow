@@ -54,7 +54,11 @@ The CLI, the Web UI and the VS Code extension all drive the same `Agent`; each w
 - Commands run as argv (no shell). Whitelisted ones run, unknown/destructive/install ones ask, `&& | > ;` and shells (cmd, powershell, bash, wsl) are blocked.
 - Multi-file edits are all-or-nothing on validation, SHA-checked at read time and again under locks right before writing; a write failure rolls back; the result lists each file's exact state.
 - 3 failed fix attempts on the same error -> stop and report. Work is split into packages that fit the context window (150K minus a 28K reserve).
-- The report says VERIFIED only when every applicable check ran and passed; anything not run is listed.
+- The report says VERIFIED only when every applicable check ran and passed AND an automated test (Django, pytest or browser E2E) passed; lint alone is "NOT VERIFIED (no automated test ran)". It shows counts (passed / failed / skipped / not run), a per-test line and an explicit "Browser E2E" line (NOT PERFORMED, NOT RUN with the reason, PASSED or FAILED).
+- `coding_agent/` (config, safety rules, skills, memory, task history) is agent-internal: tasks cannot edit, create, delete or rename it, and plans listing it are rejected. Reading is allowed; memory and settings are written only by the agent's own commands.
+- A work package can only change files in its own step list: a file listed only in another package is refused (shared or unlisted files stay allowed; the single plan approval is unchanged).
+- Every changed .py file needs a test mapping (`test_areas` Django module, `pytest_areas` pytest path, test files and `test_exempt` excepted). Unmapped files are listed by name in a `test mapping` row (NOT RUN), so the result can never be VERIFIED.
+- Memory keeps verified facts only: kinds architecture, decisions, lessons, rules (confirmed business rules). The `remember` tool stages a finding with the files read as evidence; it is saved only when the task completes or is answered. Near-duplicates, guesses ("probably...") and secrets are refused; emails and long numbers are redacted. Existing memory files stay valid.
 
 ## Tests
     python -m pytest dev_agent/tests -q

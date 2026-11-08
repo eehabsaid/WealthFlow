@@ -11,10 +11,20 @@ from ..core.project import PathError
 class PlanScope:
     """What the approved plan allows. Edits/creates: any listed add/edit/rename-target file. Deletes and renames: exactly what is listed."""
 
-    def __init__(self, plan: dict):
+    def __init__(self, plan: dict, packages: list | None = None, package: str = ""):
         self.write = set(plan["files_add"]) | set(plan["files_edit"]) | {r["to"] for r in plan["files_rename"]}
         self.delete = set(plan["files_delete"])
         self.rename = {r["from"]: r["to"] for r in plan["files_rename"]}
+        # Package scope: a file listed only in ANOTHER package's steps belongs to that package. Files in this package's list, files shared by
+        # several packages and files no package lists stay allowed. The overall approval is unchanged; "final" (and no package) is unrestricted.
+        self.elsewhere: dict[str, str] = {}
+        mine = next((set(p["files"]) for p in packages or [] if p["id"] == package), None)
+        for p in (packages or []) if mine is not None else []:
+            if p["id"] != package:
+                self.elsewhere.update({f: p["id"] for f in p["files"] if f not in mine and f not in self.elsewhere})
+
+    def other_package(self, rel: str) -> str:
+        return self.elsewhere.get(rel, "")
 
     def allows(self, op: str, rel: str, dst: str = "") -> bool:
         if op in ("edit", "create"):

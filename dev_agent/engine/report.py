@@ -20,6 +20,7 @@ def build(ledger) -> str:
     lines += ["", "## Verification"]
     if final:
         lines.append(f"Overall: {verify.overall(final['results'])}")
+        lines += [f"Checks: {verify.counts(final['results'])}", f"Automated tests: {verify.tests_line(final['results'])}", verify.e2e_line(final["results"])]
         lines += [f"- {r['step']}: {r['status']}" + (f" - {r['detail'].splitlines()[0][:160]}" if r["detail"] else "") for r in final["results"]]
     elif d["status"] == "answered":
         lines.append("Not applicable: no files were changed.")

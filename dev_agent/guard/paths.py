@@ -1,4 +1,5 @@
-"""File guard: which paths the agent may read or write. Rules come from coding_agent/config.json (forbidden, protected, secret_files)."""
+"""File guard: which paths the agent may read or write. Rules come from coding_agent/config.json (forbidden, protected, secret_files); the agent's own
+coding_agent/ folder is never writable by a task, and a work package may only change its own files."""
 
 from __future__ import annotations
 
@@ -21,6 +22,9 @@ def check_write(project, rel: str, op: str, scope) -> Decision:
         return deny(f"{rel} is forbidden: {reason}")
     if scope is None:
         return deny("no approved plan yet: this phase is read-only")
+    other = getattr(scope, "other_package", lambda _rel: "")(rel)
+    if other:
+        return deny(f"{rel} belongs to work package {other}, not to this package: leave it for {other} (the approved plan is unchanged)")
     if op in ("delete", "rename") and not scope.allows(op, rel):
         return deny(f"{op} of {rel} is not listed in the approved plan (deleting or renaming needs to be in the plan)")
     reasons = []

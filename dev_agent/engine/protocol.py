@@ -18,6 +18,7 @@ Rules:
 - Guards decide what is allowed. Never try to work around a refusal. Protected files need the owner: if you are refused, use note_proposal to describe the fix and continue with the rest.
 - Never hand-write or edit migrations (use `python manage.py makemigrations`). Git is read-only. One command per run_command, no shell operators.
 - Keep tool output small: read line ranges, grep narrowly, do not repeat the same call.
+- When you CONFIRM something lasting by reading code (structure, a business rule, a lesson), keep it with `remember` and the files you read as evidence. Never remember guesses.
 - Follow the project's skills and decisions given below."""
 
 PLAN_FORMAT = """Investigate with the read-only tools, then reply with:

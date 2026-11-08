@@ -50,8 +50,23 @@ def capture(ledger) -> None:
             _add(project, "decisions", f"owner rejected the plan for: {goal[:200]}")
         if d["status"] == "completed" and (line := _structure(ledger)):
             _add(project, "architecture", line)
+        if d["status"] in ("completed", "answered"):
+            for note in d.get("memory_notes", []):   # findings the agent proved with files it read; dedupe and redaction happen in store.add
+                _add(project, note["kind"], f"{note['text']} (evidence: {', '.join(note['evidence'][:3])})")
+        if d["status"] == "completed" and (fixed := _fixed_checks(d)):
+            _add(project, "lessons", f"{goal[:80]} - checks that failed first and passed after fixing: {fixed}")
     except (OSError, ValueError, KeyError):
         return
+
+
+def _fixed_checks(d: dict) -> str:
+    """Checks that FAILED in an earlier verification round and PASSED in the final one (from the ledger, not from the model)."""
+    final = next((v for v in reversed(d["verification"]) if v["label"] == "final"), None)
+    if not final:
+        return ""
+    ok = {r["step"] for r in final["results"] if r["status"] == "PASSED"}
+    failed = {r["step"] for v in d["verification"] if v is not final for r in v["results"] if r["status"] == "FAILED"}
+    return ", ".join(sorted(failed & ok))[:200]
 
 
 def _add(project, kind: str, text: str) -> None:

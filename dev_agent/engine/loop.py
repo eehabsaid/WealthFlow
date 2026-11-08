@@ -115,11 +115,11 @@ class Agent:
                 continue   # resume: finished packages are never repeated
             if self.cancel.is_set():
                 return self._stop(ledger, pkg, self.cancel.reason)
-            ctx = self._ctx(ledger, False, scope, pkg["id"])
+            ctx = self._ctx(ledger, False, planlib.PlanScope(d["plan"], d["packages"], pkg["id"]), pkg["id"])   # this package's own files only
             self.emit({"type": "package", "id": pkg["id"], "title": pkg["title"], "status": "running"})
             resumed = pkg["status"] == "interrupted"
             pkg["status"] = "running"
-            task = (f"{ledger.brief(pkg['id'])}\n\nDo ONLY the steps of package {pkg['id']}: {', '.join(pkg['steps'])}. Files: {', '.join(pkg['files'])}.\n"
+            task = (f"{ledger.brief(pkg['id'])}\n\nDo ONLY the steps of package {pkg['id']}: {', '.join(pkg['steps'])}. Files: {', '.join(pkg['files'])}. Files that belong only to other packages are refused.\n"
                     "When finished, reply {\"final\": \"what you changed and what you did not check\"}." + (f"\n\n{recovery.NOTE}" if resumed else ""))
             res = run_phase(ctx, self.provider, system_prompt(False), task, {"final"}, self.settings["max_steps_per_package"])
             if res.kind == "stopped":

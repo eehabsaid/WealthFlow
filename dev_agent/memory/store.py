@@ -6,11 +6,12 @@ import datetime
 import json
 
 from ..core import fsutil
+from . import quality
 
-KINDS = ("architecture", "decisions", "lessons")
+KINDS = ("architecture", "decisions", "lessons", "rules")   # rules: confirmed business rules (added later; older memory folders simply have no rules.md)
 CAP = 150            # entries per file (keeps every file under 200 lines)
 MAX_ENTRY = 400
-SECRET_HINTS = ("password", "secret", "api_key", "apikey", "token", "bearer ", "passphrase")
+SECRET_HINTS = quality.SECRET_HINTS
 
 
 class MemoryRefused(ValueError):
@@ -29,9 +30,9 @@ def clean(text) -> str:
     out = " ".join(str(text or "").split())[:MAX_ENTRY]
     if not out:
         raise MemoryRefused("empty entry")
-    if any(h in out.lower() for h in SECRET_HINTS):
-        raise MemoryRefused("this looks like it contains a secret; memory never stores secrets")
-    return out
+    if why := quality.refusal(out):
+        raise MemoryRefused(why)
+    return quality.redact(out)
 
 
 def _read(path) -> list[str]:
@@ -52,7 +53,7 @@ def add(project, kind: str, text, today: datetime.date | None = None) -> str:
     body = clean(text)
     with _lock(project, kind):
         rows = entries(project, kind)
-        if body in [r.split(": ", 1)[-1] for r in rows]:
+        if quality.duplicate(body, rows):
             return "already recorded"
         rows.append(f"{(today or datetime.date.today()).isoformat()}: {body}")
         fsutil.atomic_write(folder(project) / f"{kind}.md", ("\n".join(f"- {r}" for r in rows[-CAP:]) + "\n").encode("utf-8"))

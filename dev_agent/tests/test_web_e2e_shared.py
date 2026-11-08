@@ -21,7 +21,7 @@ def test_picker_changes_the_shared_setting_and_disables_images_without_vision(pa
         api.json("PUT", "/api/settings", {"values": {"provider": "anthropic", "model": "claude-sonnet-4"}})
         page.reload()
         page.wait_for_selector("#goal")
-        assert "claude-sonnet-4" in page.inner_text("#model-chip")
+        expect(page.locator("#model-chip")).to_contain_text("claude-sonnet-4")   # waits for the first /api/state; a one-off read raced on slow machines
         expect(page.locator("#attach-image")).to_be_enabled()
     finally:
         api.close()

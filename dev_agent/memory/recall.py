@@ -8,7 +8,7 @@ from . import store
 
 WORD = re.compile(r"[a-z0-9_]{3,}")
 STOP = {"the", "and", "for", "with", "that", "this", "from", "into", "add", "fix", "make", "use", "all", "new", "when", "not", "are", "should"}
-TITLES = {"architecture": "Architecture notes", "decisions": "Decisions", "lessons": "Lessons", "tasks": "Earlier tasks"}
+TITLES = {"architecture": "Architecture notes", "decisions": "Decisions", "lessons": "Lessons", "rules": "Confirmed business rules", "tasks": "Earlier tasks"}
 
 
 def _words(text: str) -> set[str]:
