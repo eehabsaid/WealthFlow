@@ -65,12 +65,21 @@ def run_phase(ctx, provider, system: str, first_user: str, accept: set[str], max
             return PhaseResult("stopped", reason=f"provider error: {exc}")
         if ctx.ledger:
             ctx.ledger.add_usage(reply.usage)
+        finish_reason = (getattr(reply, "finish_reason", "") or "").strip().lower()
+        if finish_reason in {"length", "max_tokens", "max_output_tokens", "max_tokens_reached", "max_tokens_exceeded"}:
+            if ctx.ledger:
+                ctx.ledger.event("truncated_reply", finish_reason=finish_reason, chars=len(reply.text),
+                                 output_tokens=(reply.usage or {}).get("output_tokens", 0),
+                                 text=reply.text[:1500], tail=reply.text[-1500:])
+            return PhaseResult("stopped", reason=f"provider stopped generation at its output limit ({finish_reason}); increase max_output_tokens or reduce the tool-call payload")
         messages.append({"role": "assistant", "content": reply.text})
         action = parse_reply(reply.text)
         if action.kind == "invalid":
             invalid += 1
             if ctx.ledger:
-                ctx.ledger.event("invalid_reply", text=reply.text[:1500], note=str(action.payload)[:200])
+                ctx.ledger.event("invalid_reply", text=reply.text[:1500], tail=reply.text[-1500:],
+                                 chars=len(reply.text), note=str(action.payload)[:200],
+                                 finish_reason=getattr(reply, "finish_reason", "") or "")
             if invalid >= 3:
                 return PhaseResult("stopped", reason=f"the model gave 3 replies in a row that were not valid protocol JSON ({action.payload})")
             messages.append({"role": "user", "content": f"{NUDGE} ({action.payload[:80]})"})

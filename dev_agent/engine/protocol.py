@@ -13,7 +13,7 @@ Reply with EXACTLY ONE JSON object per message and nothing else:
   {"tool": "<name>", "args": {...}}      call a tool
   {"final": "<short summary>"}           when the current job is finished
 Rules:
-- Read a file before you edit it. Make related edits for several files in ONE edit_files call. Keep `old` text short but unique.
+- Read a file before you edit it. Make related edits for several files in ONE edit_files call when the JSON payload fits comfortably within the output limit. Keep `old` text short but unique; never emit a partial or truncated tool call.
 - Never claim anything is verified: the system runs the checks and reports the real results. In your summary say what you did and what you did not check.
 - Guards decide what is allowed. Never try to work around a refusal. Protected files need the owner: if you are refused, use note_proposal to describe the fix and continue with the rest.
 - Never hand-write or edit migrations (use `python manage.py makemigrations`). Git is read-only. One command per run_command, no shell operators.
@@ -42,20 +42,27 @@ THINK = re.compile(r"<think>.*?(?:</think>|\Z)", re.S | re.I)
 ARG_KEYS = ("args", "arguments", "parameters", "input")
 
 
-def _as_dict(value) -> dict | None:
+def _parse_args(value):
+    """Decode JSON-encoded arguments without changing their type.
+
+    The registry is responsible for rejecting non-object argument shapes. Turning
+    them into {} here hides the model's actual mistake and can trigger tools with
+    missing fields (for example, an empty grep pattern or read_file path).
+    """
     if isinstance(value, str):
         try:
-            value = json.loads(value)
+            return json.loads(value)
         except ValueError:
-            return None
-    return value if isinstance(value, dict) else None
+            return value
+    return value
 
 
 def _read(obj: dict) -> Action | None:
     """One JSON object -> an Action. Accepts the documented shapes and the common drift of local models (name/arguments, an unwrapped plan)."""
     if isinstance(obj.get("tool"), str):
-        args = _as_dict(obj.get("args"))
-        return Action("tool", (obj["tool"], {} if obj.get("args") in (None, "") else args if args is not None else obj["args"]))
+        raw = obj.get("args")
+        args = {} if raw in (None, "") else _parse_args(raw)
+        return Action("tool", (obj["tool"], args))
     if isinstance(obj.get("final"), str):
         return Action("final", obj["final"])
     if isinstance(obj.get("plan"), dict):
@@ -63,8 +70,9 @@ def _read(obj: dict) -> Action | None:
     name = obj.get("name") or (obj.get("function") if isinstance(obj.get("function"), str) else None)
     if isinstance(name, str) and name in REGISTRY:
         key = next((k for k in ARG_KEYS if k in obj), None)
-        args = _as_dict(obj[key]) if key else {}
-        return Action("tool", (name, {} if args is None else args))
+        raw = obj[key] if key else None
+        args = {} if raw in (None, "") else _parse_args(raw)
+        return Action("tool", (name, args))
     if isinstance(obj.get("summary"), str) and isinstance(obj.get("steps"), list):
         return Action("plan", obj)
     return None

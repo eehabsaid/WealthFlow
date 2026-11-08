@@ -118,7 +118,7 @@ async function renderExpenses() {
         <div class="kpi-card" style="--kpi-accent:var(--accent-primary);--kpi-bg:var(--accent-blue-dim)">
           <div class="kpi-icon"><i class="bi bi-tag"></i></div>
           <div class="kpi-label" data-i18n="top_category">Top Category</div>
-          <div class="kpi-value" style="font-size:16px">${topCat.icon} ${topCat.name}</div>
+          <div class="kpi-value">${topCat.icon} ${topCat.name}</div>
           <div class="kpi-sub">${fmt(topCat.total)} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span></div>
         </div>
       </div>

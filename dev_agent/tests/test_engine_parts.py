@@ -132,17 +132,18 @@ def server():
 MSGS = [{"role": "user", "content": "a"}, {"role": "user", "content": "b"}, {"role": "assistant", "content": "c"}]
 
 
-@pytest.mark.parametrize("cls,reply,path,text", [
-    (Ollama, {"message": {"content": "hi"}, "prompt_eval_count": 7, "eval_count": 3}, "/api/chat", "hi"),
-    (Anthropic, {"content": [{"type": "text", "text": "hi"}], "usage": {"input_tokens": 7, "output_tokens": 3}}, "/v1/messages", "hi"),
-    (OpenAI, {"choices": [{"message": {"content": "hi"}}], "usage": {"prompt_tokens": 7, "completion_tokens": 3}}, "/chat/completions", "hi"),
-    (Gemini, {"candidates": [{"content": {"parts": [{"text": "hi"}]}}], "usageMetadata": {"promptTokenCount": 7, "candidatesTokenCount": 3}},
-     "/v1beta/models/m:generateContent", "hi"),
+@pytest.mark.parametrize("cls,reply,path,text,finish_reason", [
+    (Ollama, {"message": {"content": "hi"}, "prompt_eval_count": 7, "eval_count": 3, "done_reason": "length"}, "/api/chat", "hi", "length"),
+    (Anthropic, {"content": [{"type": "text", "text": "hi"}], "usage": {"input_tokens": 7, "output_tokens": 3}, "stop_reason": "max_tokens"}, "/v1/messages", "hi", "max_tokens"),
+    (OpenAI, {"choices": [{"message": {"content": "hi"}, "finish_reason": "length"}], "usage": {"prompt_tokens": 7, "completion_tokens": 3}}, "/chat/completions", "hi", "length"),
+    (Gemini, {"candidates": [{"content": {"parts": [{"text": "hi"}]}, "finishReason": "MAX_TOKENS"}], "usageMetadata": {"promptTokenCount": 7, "candidatesTokenCount": 3}},
+     "/v1beta/models/m:generateContent", "hi", "MAX_TOKENS"),
 ])
-def test_each_provider_maps_request_and_reply(server, cls, reply, path, text):
+def test_each_provider_maps_request_and_reply(server, cls, reply, path, text, finish_reason):
     Handler.plan = [(200, reply)]
     out = cls("m", server, "KEY123", 10, 100, 5000).complete("SYS", MSGS)
     assert out.text == text and out.usage == {"input_tokens": 7, "output_tokens": 3}
+    assert out.finish_reason == finish_reason
     got_path, headers, body = Handler.seen[0]
     assert got_path == path and "KEY123" in json.dumps(headers) and "KEY123" not in json.dumps(body)
     assert "SYS" in json.dumps(body) and "a\\n\\nb" in json.dumps(body)   # consecutive user messages were merged

@@ -5,6 +5,11 @@ import json
 import pytest
 
 from ..engine.protocol import parse_reply
+from ..engine.session import run_phase
+from ..providers.base import Reply
+from ..engine.cancel import CancelToken
+from ..tools.registry import call as call_tool
+from ..tools.context import ToolContext
 from ..ledger.ledger import Ledger
 from .fakes import plan
 from .test_agent_flow import agent, read
@@ -34,12 +39,61 @@ def test_name_and_arguments_values_are_passed_through():
     assert parse_reply('{"name": "grep", "parameters": "{\\"pattern\\": \\"x\\"}"}').payload == ("grep", {"pattern": "x"})
 
 
+
+@pytest.mark.parametrize("text,expected", [
+    ('{"tool": "git", "args": "[\\"status\\"]"}', ["status"]),
+    ('{"name": "read_file", "arguments": "[\\"app/calc.py\\"]"}', ["app/calc.py"]),
+    ('{"name": "grep", "arguments": "\\"pattern\\""}', "pattern"),
+])
+def test_json_encoded_non_object_arguments_are_preserved_for_registry_validation(text, expected):
+    action = parse_reply(text)
+    assert action.kind == "tool" and action.payload[1] == expected
+    assert call_tool(None, action.payload[0], action.payload[1]) == {"error": "args must be a JSON object"}
+
+
+def test_empty_path_and_missing_plan_check_files_remain_explicit_errors(repo):
+    ctx = ToolContext(project=repo, settings={}, index=None)
+    empty_path = parse_reply('{"tool": "read_file", "args": {"path": ""}}')
+    assert call_tool(ctx, *empty_path.payload) == {"error": "empty path"}
+    missing_files = parse_reply('{"tool": "plan_check", "args": {}}')
+    assert call_tool(ctx, *missing_files.payload) == {"error": "give `files`"}
+
+
+def test_truncated_provider_reply_stops_without_spending_json_retries():
+    class Limited:
+        calls = 0
+
+        def complete(self, system, messages, cancel=None):
+            self.calls += 1
+            return Reply('{"tool": "edit_files", "args": {"edits": [', {"output_tokens": 4096}, "length")
+
+    from types import SimpleNamespace
+
+    class Events:
+        items = []
+
+        def add_usage(self, usage):
+            pass
+
+        def event(self, kind, **data):
+            self.items.append((kind, data))
+
+    provider, ledger = Limited(), Events()
+    ctx = SimpleNamespace(cancel=CancelToken(), settings={"context_window": 10000, "reserve_tokens": 2000,
+                              "max_tool_result_chars": 8000}, ledger=ledger, attachments=None, emit=lambda event: None)
+    result = run_phase(ctx, provider, "system", "task", {"final"}, 5, attach=False)
+    assert result.kind == "stopped" and "output limit (length)" in result.reason
+    assert provider.calls == 1
+    assert ledger.items[0][0] == "truncated_reply" and ledger.items[0][1]["text"].startswith('{"tool"')
+
+
 def test_invalid_replies_are_kept_in_the_ledger_and_a_report_is_written(repo):
     prose = "Sure! guard/commands.py classifies commands as allow, ask or deny."
     a = agent(repo, [read("app/calc.py"), prose, prose, prose])
     led = a.plan("explain")
     ev = [e for e in led.data["events"] if e["kind"] == "invalid_reply"]
     assert led.data["status"] == "stopped" and len(ev) == 3 and ev[0]["text"] == prose
+    assert ev[0]["tail"] == prose and ev[0]["chars"] == len(prose)
     assert "The reply began: Sure!" in led.data["stop_reason"] or "reply began: Sure!" in led.data["stop_reason"]
     assert (led.dir / "report.md").is_file()                      # the report exists for a stopped plan too
     nudge = a.provider.calls[2][1][-1]["content"]

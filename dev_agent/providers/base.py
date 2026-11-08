@@ -16,6 +16,7 @@ class ProviderError(RuntimeError):
 class Reply:
     text: str
     usage: dict = field(default_factory=lambda: {"input_tokens": 0, "output_tokens": 0})
+    finish_reason: str = ""
 
 
 def redact(text: str, secrets) -> str:

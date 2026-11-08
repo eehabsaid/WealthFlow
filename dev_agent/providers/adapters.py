@@ -46,7 +46,8 @@ class Ollama(_Base):
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
         data = self._post(f"{self.base_url}/api/chat", headers, body)
         try:
-            return Reply(data["message"]["content"], {"input_tokens": data.get("prompt_eval_count", 0), "output_tokens": data.get("eval_count", 0)})
+            return Reply(data["message"]["content"], {"input_tokens": data.get("prompt_eval_count", 0), "output_tokens": data.get("eval_count", 0)},
+                         str(data.get("done_reason") or ""))
         except (KeyError, TypeError) as exc:
             raise ProviderError("unexpected Ollama reply shape") from exc
 
@@ -61,7 +62,8 @@ class Anthropic(_Base):
         try:
             text = "".join(b.get("text", "") for b in data["content"] if b.get("type") == "text")
             usage = data.get("usage", {})
-            return Reply(text, {"input_tokens": usage.get("input_tokens", 0), "output_tokens": usage.get("output_tokens", 0)})
+            return Reply(text, {"input_tokens": usage.get("input_tokens", 0), "output_tokens": usage.get("output_tokens", 0)},
+                         str(data.get("stop_reason") or ""))
         except (KeyError, TypeError, AttributeError) as exc:
             raise ProviderError("unexpected Anthropic reply shape") from exc
 
@@ -76,7 +78,9 @@ class OpenAI(_Base):
         data = self._post(f"{self.base_url}/chat/completions", {"Authorization": f"Bearer {self.api_key}"}, body)
         try:
             usage = data.get("usage", {})
-            return Reply(data["choices"][0]["message"]["content"] or "", {"input_tokens": usage.get("prompt_tokens", 0), "output_tokens": usage.get("completion_tokens", 0)})
+            choice = data["choices"][0]
+            return Reply(choice["message"]["content"] or "", {"input_tokens": usage.get("prompt_tokens", 0), "output_tokens": usage.get("completion_tokens", 0)},
+                         str(choice.get("finish_reason") or ""))
         except (KeyError, IndexError, TypeError) as exc:
             raise ProviderError("unexpected OpenAI reply shape") from exc
 
@@ -92,6 +96,8 @@ class Gemini(_Base):
         try:
             text = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
             usage = data.get("usageMetadata", {})
-            return Reply(text, {"input_tokens": usage.get("promptTokenCount", 0), "output_tokens": usage.get("candidatesTokenCount", 0)})
+            candidate = data["candidates"][0]
+            return Reply(text, {"input_tokens": usage.get("promptTokenCount", 0), "output_tokens": usage.get("candidatesTokenCount", 0)},
+                         str(candidate.get("finishReason") or ""))
         except (KeyError, IndexError, TypeError, AttributeError) as exc:
             raise ProviderError("unexpected Gemini reply shape") from exc
