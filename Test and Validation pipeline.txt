@@ -4,7 +4,7 @@ npm run format
 
 python manage.py check  
 
-python -m pyflakes core tests scripts wealthflow doc_engine dev_agent manage.py
+python -m pyflakes core tests scripts wealthflow doc_engine dev_agent coding_agent manage.py
 
 
 python manage.py test
