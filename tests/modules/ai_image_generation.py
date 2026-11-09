@@ -28,15 +28,15 @@ _FETCH = """async ([url, method, body]) => { const res = await fetch(url, {metho
   let data = null; try { data = await res.json(); } catch (e) {}
   return {status: res.status, data, disposition: res.headers.get("content-disposition"), type: res.headers.get("content-type")}; }"""
 MAKE_ROW = (
-    "import io; from PIL import Image; from django.contrib.auth import get_user_model; from core.models import AIAttachment, AIConversation, AIMessage\n"
-    "from core.models.ai_attachment import GENERATED_PREFIX\n"
+    "import io; from PIL import Image; from django.contrib.auth import get_user_model; from ai.models import AIAttachment, AIConversation, AIMessage\n"
+    "from ai.models.ai_attachment import GENERATED_PREFIX\n"
     "u = get_user_model().objects.get(username='eehab_said'); b = io.BytesIO(); Image.new('RGB', (40, 30), 'teal').save(b, 'PNG')\n"
     "f = 'owner' if 'owner' in [x.name for x in AIConversation._meta.fields] else 'user'; c = AIConversation.objects.create(**{f: u, 'title': 'E2E image'}); AIMessage.objects.create(conversation=c, role='user', content='draw a teal box')\n"
     "m = AIMessage.objects.create(conversation=c, role='assistant', content='Here is your image.')\n"
     "a = AIAttachment.objects.create(user=u, message=m, name='generated-e2e.png', kind='image', mime='image/png', size=len(b.getvalue()), text=GENERATED_PREFIX + 'teal box', data=b.getvalue())\n"
     "print(c.id, a.id)\n"
 )
-CLEANUP = "from core.models import AIConversation, AIAttachment; AIAttachment.objects.filter(name='generated-e2e.png').delete(); AIConversation.objects.filter(title='E2E image').delete()"
+CLEANUP = "from ai.models import AIConversation, AIAttachment; AIAttachment.objects.filter(name='generated-e2e.png').delete(); AIConversation.objects.filter(title='E2E image').delete()"
 
 
 def _step(reporter, screenshot_logger, page, name, ok, detail, shot_name):
@@ -88,9 +88,9 @@ def _settings_steps(context, reporter, screenshot_logger):
     _step(reporter, screenshot_logger, page, "Complete image settings are saved, key masked, survive a reload", ok, f"status={status} key={stored.get('image_gen_api_key')!r}", "image_gen_saved")
 
 
-FAKE_SERVER = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "core", "tests", "ai", "fake_comfy_server.py")
+FAKE_SERVER = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "ai", "tests", "fake_comfy_server.py")
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-STOP_SERVER = "from core.services.ai.image_generation.server import stop_server; stop_server('http://127.0.0.1:%d')"   # only this test's own server
+STOP_SERVER = "from ai.services.image_generation.server import stop_server; stop_server('http://127.0.0.1:%d')"   # only this test's own server
 
 
 def _answers(port):

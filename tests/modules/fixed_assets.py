@@ -18,7 +18,7 @@ def test_fixed_assets_module(context, reporter, screenshot_logger):
     context.goto_route("#fixed-assets")
     reporter.pages_visited.add("Fixed Assets")
 
-    # Sweep tabs (declared, correct ids per doc_engine/inventory.json)
+    # Sweep tabs (declared, correct ids per ai/doc_engine/inventory.json)
     tabs = ["assets", "dashboard", "analytics", "reports"]
     for t in tabs:
         context.page.evaluate(f"if (typeof switchTab === 'function') switchTab('{t}');")

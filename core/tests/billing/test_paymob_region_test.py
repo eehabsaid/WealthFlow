@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from core.models import AppSettings
-from core.services.ai.credential_encryption import encrypt_credential
+from ai.services.credential_encryption import encrypt_credential
 from core.services.billing.paymob_gateway import PaymobGateway, region_key
 
 User = get_user_model()

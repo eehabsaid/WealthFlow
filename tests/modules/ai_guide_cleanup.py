@@ -12,10 +12,10 @@ from tests.modules.e2e_settings import django_exec
 CHAPTERS, TABS = 18, 52
 _CODE = r'''
 import base64, json
-from core.services.ai.exports.document import ExportDocument, parse_markdown
-from core.services.ai.exports.registry import get_format
-from core.services.ai.investigation.compose_polish import drop_doubled_words, strip_emphasis
-from core.services.ai.investigation.compose_translate import rejection
+from ai.services.exports.document import ExportDocument, parse_markdown
+from ai.services.exports.registry import get_format
+from ai.services.investigation.compose_polish import drop_doubled_words, strip_emphasis
+from ai.services.investigation.compose_translate import rejection
 
 PER = [3] * 16 + [2, 2]
 NAMES = {"en": ("Screen", "Tab"), "ar": ("الشاشة", "التبويب")}

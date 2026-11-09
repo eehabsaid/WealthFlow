@@ -3,7 +3,7 @@
 import sys
 
 import agent_cli
-from core.services.ai.coding.verify import render, verify
+from ai.services.coding.verify import render, verify
 
 ROOT = agent_cli.ROOT  # importing agent_cli sets up Django
 

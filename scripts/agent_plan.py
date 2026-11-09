@@ -4,7 +4,7 @@ import json
 import sys
 
 import agent_cli
-from core.services.ai.coding.plan import plan_check
+from ai.services.coding.plan import plan_check
 
 ROOT = agent_cli.ROOT  # importing agent_cli sets up Django
 

@@ -87,12 +87,6 @@ from .exports_fixed_assets import (
     FixedAssetValuationRefreshView, _salary_trigger_day,
 )
 
-from .exports_ai_features import (
-    AIChatView, AIConversationListView, AIConversationDetailView, AIFeedbackListView, AIMessageFeedbackView, AIMessageExportView, AIProgressView,
-    AIPlatformKnowledgeView,
-    AIPlatformKnowledgeDetailView, AIPromptListView, AIPromptDetailView, AIPromptFavoriteView,
-    AIPromptUseView, AIPromptDuplicateView, AIPromptCategoryListView,
-)
 
 from .exports_settings import (
     AccountRetentionView, SettingsView, PlanAdminListView, PlanAdminDetailView, PlanPriceAdminListView, PlanPriceAdminDetailView, PaymobGatewaySettingsView, CustomerActionView, CustomerListView, CustomerInvoicesView, InvoiceActionView, TrialOptionsView, LegalConsentView, LegalTextDetailView, LegalTextListView, EmailTemplateListView, EmailTemplateDetailView, EmailSettingsTestView,

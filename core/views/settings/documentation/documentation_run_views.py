@@ -12,7 +12,7 @@ from core.views.settings.documentation.documentation_constants import (
 )
 from core.views.settings.documentation.documentation_runner import run_documentation_generation_only
 from core.views.settings.documentation.documentation_permutations_runner import run_documentation_permutations
-from doc_engine.device_inventory import load_inventory, validate_inventory
+from ai.doc_engine.device_inventory import load_inventory, validate_inventory
 
 
 class CaptureScreenshotsView(PermissionRequiredMixin, View):

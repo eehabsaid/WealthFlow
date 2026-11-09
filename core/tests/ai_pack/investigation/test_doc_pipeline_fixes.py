@@ -1,0 +1,174 @@
+"""Scripted reproductions of the user-guide failure (classifier NO + only app_data_models), the native tool protocol, empty
+replies, the reasoning setting, translated-guide duplicates, the title and contents lists."""
+
+from __future__ import annotations
+
+from types import SimpleNamespace
+
+
+from django.test import SimpleTestCase, TestCase
+
+from ai.integrations.ai_provider.ollama_payload import apply_runtime_flags, native_messages, resolve_think
+from ai.services.domains import APP
+from ai.services.investigation import loop as inv
+from ai.services.investigation.compose_sections import units
+from ai.services.investigation.doc_path import choose_path, has_app_structure_evidence, is_standalone_html_code
+from ai.services.investigation.nudges import investigate_nudge
+from ai.views.ai_chat.chat_pipeline.investigate import ensure_document
+
+from core.tests.ai_pack.investigation.support import ScriptedProvider, make_user, tool_call
+from core.tests.ai_pack.investigation.test_compose_guide import ASK, GuideProvider, Result
+
+
+def out(results=(), steps=(), content=""):
+    return SimpleNamespace(results=list(results), steps=list(steps), content=content)
+
+
+class StructuralPathTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = make_user("path_admin", sysadmin=True)
+
+    def test_log_reproduction_classifier_no_and_only_a_table_list_runs_the_guide(self):
+        prov, res = GuideProvider(about_app="NO"), Result()
+        prov.user = self.admin
+        res.results = [("app_data_models", {}, '{"models":["Expense","Bank"]}')]
+        with self.assertLogs("core.ai.pipeline", "WARNING") as logs:
+            self.assertTrue(ensure_document(prov, ASK, res, 24000, self.admin, None))
+        plan = units(self.admin)
+        for unit in plan:
+            if unit["heading"]:
+                self.assertIn(f"## {unit['heading']}", res.content)
+        self.assertEqual(len([c for c in prov.calls if "Write ONLY this section" in c["ask"]]), len(plan))   # one section per screen / tab group
+        line = next(m for m in logs.output if "[AI-DOC]" in m)
+        self.assertIn("path=guide reason=no_user_rows_in_evidence classifier=NO evidence_tools=['app_data_models']", line)
+
+    def test_decision_table(self):
+        rows = out([("app_data_query", {}, '{"rows":[1]}')])
+        self.assertEqual(choose_path(rows, False)[0], "single")
+        self.assertEqual(choose_path(out([("app_data_query", {}, "total 100.00")]), False)[0], "single")
+        self.assertEqual(choose_path(out([("app_computed_figures", {}, '{"figures":{"total":5}}')]), False)[0], "single")
+        self.assertEqual(choose_path(out(), False)[0], "guide")
+        self.assertEqual(choose_path(out([("app_data_models", {}, "{}")]), False)[0], "guide")
+        self.assertEqual(choose_path(out([("app_data_query", {}, '{"error":"x"}')]), False)[0], "guide")   # a failed query is not evidence
+        self.assertEqual(choose_path(out([("app_data_query", {}, '{"rows":[]}')]), False)[0], "guide")
+        self.assertEqual(choose_path(out([("app_computed_figures", {}, '{"figures":null}')]), False)[0], "guide")
+        self.assertEqual(choose_path(rows, True)[0], "single")                                        # data evidence beats a false-positive classifier
+        self.assertEqual(choose_path(out(), True, APP)[0], "guide")
+        self.assertEqual(choose_path(out(), False, APP)[0], "single")
+        dataset = out(steps=[{"tool": "generate_file", "status": "success", "arguments": {"dataset": {"model": "Expense"}}}])
+        self.assertEqual(choose_path(dataset, False)[0], "single")
+        self.assertEqual(choose_path(out(), False, own_file=True)[0], "guide")                         # a file written from no evidence is the invented guide
+        app_and_rows = out([("app_routes", {}, '{"screens":[{"route":"dashboard"}]}'),
+                            ("app_data_query", {}, '{"rows":[1]}')])
+        self.assertTrue(has_app_structure_evidence(app_and_rows))
+        self.assertEqual(choose_path(app_and_rows, False)[0], "guide")
+
+    def test_standalone_html_code_is_detected_from_the_generated_file(self):
+        result = out(steps=[{"tool": "generate_file", "status": "success", "arguments": {
+            "content": '<!doctype html><form><input type="password"><button>Log in</button></form>'}}])
+        self.assertTrue(is_standalone_html_code(result, self.admin))
+        guide = out(content="<html><body>Dashboard Expenses Budgets Reports Balance</body></html>")
+        self.assertFalse(is_standalone_html_code(guide, self.admin))
+        self.assertTrue(is_standalone_html_code(out(content="<!doctype html><html><body><h1>Login</h1></body></html>"),
+                                                self.admin))
+
+    def test_real_rows_still_get_a_report_in_one_call(self):
+        prov = ScriptedProvider([{"content": "NO"}, {"content": "Report text. " * 60}])
+        res = Result()
+        res.results = [("app_data_query", {}, '{"rows":[{"amount":5}]}')]
+        self.assertTrue(ensure_document(prov, "write my expenses report as a word document", res, 24000, self.admin, None))
+        self.assertEqual(len(prov.calls), 2)
+
+
+class NativeProtocolTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = make_user("native_user")
+
+    def test_native_messages_for_a_provider_that_accepts_them(self):
+        prov = ScriptedProvider([tool_call("app_data_models"), {"content": "Tables listed."}])
+        prov.native_tool_messages = True
+        inv.investigate(prov, self.user, "what tables exist?")
+        msgs = prov.calls[1]["messages"]
+        call = next(m for m in msgs if m.get("tool_calls"))
+        self.assertEqual((call["role"], call["tool_calls"][0]["function"]["name"], isinstance(call["tool_calls"][0]["function"]["arguments"], dict)),
+                         ("assistant", "app_data_models", True))
+        result = next(m for m in msgs if m["role"] == "tool")
+        self.assertEqual(result["tool_name"], "app_data_models")
+        self.assertFalse(any(str(m["content"]).startswith("TOOL RESULT") for m in msgs))
+
+    def test_text_protocol_stays_for_other_providers(self):
+        prov = ScriptedProvider([tool_call("app_data_models"), {"content": "Tables listed."}])   # native tools, but no native messages
+        inv.investigate(prov, self.user, "what tables exist?")
+        msgs = prov.calls[1]["messages"]
+        self.assertTrue(any(m["role"] == "assistant" and m["content"].startswith("Calling app_data_models") for m in msgs))
+        self.assertTrue(any(m["role"] == "system" and m["content"].startswith("TOOL RESULT (app_data_models") for m in msgs))
+        self.assertFalse(any(m["role"] == "tool" for m in msgs))
+
+    def test_ollama_gets_arguments_as_objects(self):
+        msgs = native_messages([{"role": "assistant", "content": "", "tool_calls": [{"function": {"name": "x", "arguments": '{"a": 1}'}}]}])
+        self.assertEqual(msgs[0]["tool_calls"][0]["function"]["arguments"], {"a": 1})
+
+
+class EmptyReplyTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = make_user("empty_user")
+
+    def run_loop(self, script, **kw):
+        prov = ScriptedProvider(script)
+        return inv.investigate(prov, self.user, "write the user guide", **kw), prov
+
+    def test_empty_after_a_tool_result_is_retried_once_then_nudged_without_a_tool_name(self):
+        res, prov = self.run_loop([tool_call("app_data_models")] + [{"content": ""}] * 3 + [{"content": "The guide covers the screens."}],
+                                  write_tokens=4096)
+        self.assertEqual(res.nudges, 1)
+        self.assertEqual(prov.calls[2]["messages"], prov.calls[1]["messages"])           # the retry sends the same messages
+        nudge = prov.calls[4]["messages"][-1]["content"]
+        self.assertIn("DO have full read access", nudge)
+        self.assertNotIn("app_data_models", nudge)                                        # no hard-coded favourite
+        self.assertIn("app_routes", nudge)
+        self.assertIn("app_knowledge_search", nudge)
+
+    def test_nudge_names_only_offered_tools(self):
+        self.assertNotIn("app_routes", investigate_nudge({"app_data_models", "app_data_query"}, document=True))
+        self.assertEqual(investigate_nudge(set()).count("("), 0)
+        self.assertIn("app_data_query", investigate_nudge({"app_data_models", "app_data_query"}))
+
+
+class ThinkSettingTest(SimpleTestCase):
+    def test_auto_follows_the_caller(self):
+        self.assertTrue(resolve_think("auto", "on"))
+        self.assertFalse(resolve_think("auto", "off"))
+        self.assertFalse(resolve_think("auto", None))
+        self.assertTrue(resolve_think("on", "off"))
+        self.assertFalse(resolve_think("off", "on"))
+
+    def test_payload_flag(self):
+        self.assertIs(apply_runtime_flags({}, "qwen3:8b", "", "auto", "on")["think"], True)
+        self.assertIs(apply_runtime_flags({}, "qwen3:8b", "", "auto", "off")["think"], False)
+        self.assertNotIn("think", apply_runtime_flags({}, "llama3.1:8b", "", "on", "on"))
+
+
+class ThinkReachesTheProviderTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = make_user("think_admin", sysadmin=True)
+
+    def test_guide_calls_run_without_reasoning(self):
+        prov = GuideProvider()
+        prov.user = self.admin
+        seen = []
+        original = prov.generate
+        prov.generate = lambda messages, tools=None, **kw: (seen.append((messages[0]["content"][:30], kw.get("reasoning"))), original(messages, tools, **kw))[1]
+        ensure_document(prov, ASK, Result(), 24000, self.admin, None)
+        self.assertTrue(all(r == "off" for _, r in seen))         # classifier, language, intro and guide sections: reasoning adds only time
+
+    def test_setting_validation_and_default(self):
+        from ai.services.agent.settings import get_agent_settings, validate_agent_settings
+
+        cur = get_agent_settings()
+        self.assertEqual(cur["ai_think"], "auto")
+        self.assertIsNotNone(validate_agent_settings({"ai_think": "on"}, cur)[0])
+        self.assertIsNotNone(validate_agent_settings({"ai_think": "maybe"}, cur)[1])

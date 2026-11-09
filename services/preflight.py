@@ -42,9 +42,9 @@ def base_checks(cfg, traces: int, ollama_model: str) -> list[Check]:
         Check("proven traces", traces >= cfg.min_traces, f"{traces} (need {cfg.min_traces})",
               "Run `python manage.py ai_training` without --limit so more questions are asked."),
         Check("base model files", bool(shards) and os.path.exists(os.path.join(cfg.base_model_dir, "config.json")),
-              f"{len(shards)} weight files in {cfg.base_model_dir}", "Download Qwen/Qwen3.8-27B into that folder, or fix base_model_dir in ai_training/config.json."),
+              f"{len(shards)} weight files in {cfg.base_model_dir}", "Download Qwen/Qwen3.8-27B into that folder, or fix base_model_dir in ai/training/config.json."),
         Check("free disk", free >= cfg.min_free_gb, f"{free:.0f} GB free where {cfg.work_dir} is (need {cfg.min_free_gb})",
-              "Free disk space, or point work_dir in ai_training/config.json to a bigger drive."),
+              "Free disk space, or point work_dir in ai/training/config.json to a bigger drive."),
         Check("Ollama model", _ollama_has(ollama_model), ollama_model, "Start Ollama and set the model name in Settings > AI Advisor."),
     ]
 

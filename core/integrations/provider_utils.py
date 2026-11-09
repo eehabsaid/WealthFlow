@@ -13,7 +13,7 @@ import urllib.error
 import urllib.request
 from typing import Any, Sequence
 
-from core.services.ai.credential_encryption import redact_secrets
+from ai.services.credential_encryption import redact_secrets
 
 logger = logging.getLogger(__name__)
 

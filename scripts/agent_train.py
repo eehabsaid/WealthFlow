@@ -1,6 +1,6 @@
 """Coding-agent training, ONE command (phase 3): python scripts/agent_train.py [--stages dataset,train,evaluate] [--limit N] [--no-verify] [--dry-run] [--fresh]
 dataset = verified examples from this repo's git history; train = coding-only fine-tune (WSL2 + GPU); evaluate = original vs new model on held-out real changes.
-Settings: coding_agent/training.json and ai_training/config.json. It never switches the model in Settings."""
+Settings: coding_agent/training.json and ai/training/config.json. It never switches the model in Settings."""
 
 import argparse
 import json
@@ -9,7 +9,7 @@ import sys
 
 import agent_cli
 from core.models import AppSettings
-from core.services.ai.coding.training import dataset, evaluate, stage
+from ai.services.coding.training import dataset, evaluate, stage
 
 ROOT = agent_cli.ROOT  # importing agent_cli sets up Django
 
@@ -41,7 +41,7 @@ def main(argv=None) -> int:
         if outcome["status"] not in ("trained", "dry_run"):
             return 1
     if "evaluate" in stages:
-        from ai_training.services import ollama_ctl, train_stage
+        from ai.training.services import ollama_ctl, train_stage
 
         url = ollama_ctl.base_url()
 

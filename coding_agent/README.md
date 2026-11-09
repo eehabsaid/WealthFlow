@@ -15,10 +15,10 @@ Phase 3 (coding-only training, separate from business training): `training.json`
 - `--stages train`: needs at least `min_examples` verified examples, fine-tunes in WSL, registers `<current model>-coder`; never switches the app model.
 - `--stages evaluate`: runs the old and the new model on the held-out tasks, applies each patch and runs the real tests; reports correctness, regressions, protected-file touches, speed.
 
-## Standalone agent (`dev_agent/`, M1-M3)
+## Standalone agent (`ai/dev_agent/`, M1-M3)
 An autonomous coding agent that works on this repo from the command line, a local Web UI or a native VS Code extension; independent of Django, the database and WealthFlow's AI settings.
 - It reads this folder: `config.json` (protected/forbidden files, commands, verify steps, test areas), `skills/`, `MEMORY.md`.
-- It writes here: `agent_settings.json` (provider/model, no secrets), `tasks/<id>/ledger.json` and `report.md` (git-ignored), and `memory/` (tracked: tasks, architecture, decisions, lessons, rules; `python -m dev_agent memory show`).
+- It writes here: `agent_settings.json` (provider/model, no secrets), `tasks/<id>/ledger.json` and `report.md` (git-ignored), and `memory/` (tracked: tasks, architecture, decisions, lessons, rules; `python -m ai.dev_agent memory show`).
 - This folder is agent-internal: coding tasks cannot modify it (they may read it). Change `config.json` and `skills/` by hand. `config.json` also holds `test_areas` (Django test module per path), `pytest_areas` (dev_agent) and `test_exempt`; changed .py files without a mapping are reported.
 - Credentials are never here: OS keyring, or an encrypted file outside the repo (`%APPDATA%\dev_agent\secrets.enc` on Windows).
-- Details and commands: `dev_agent/README.md`.
+- Details and commands: `ai/dev_agent/README.md`.

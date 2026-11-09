@@ -4,8 +4,8 @@ Usage: python manage.py generate_ai_knowledge
 """
 
 from django.core.management.base import BaseCommand
-from core.services.ai.app_knowledge.data_flows import write_data_flows
-from core.services.ai.knowledge_generator import KnowledgeGenerator
+from ai.services.app_knowledge.data_flows import write_data_flows
+from ai.services.knowledge_generator import KnowledgeGenerator
 
 
 class Command(BaseCommand):

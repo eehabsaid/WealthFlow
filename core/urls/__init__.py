@@ -7,7 +7,6 @@ Sibling modules:
 - misc_urls.py: reminders, cert-statuses, translations, advanced reports, dashboard, goals, documents
 - fixed_assets_urls.py: fixed assets, renovations, acquisition costs, furniture, valuations, maintenance, insurance
 - financial_advisor_urls.py: forecasts, overview, optimizer, risk analysis, scenarios, goal planning, ai chat
-- ai_platform_urls.py: knowledge base, prompt library
 - billing_urls.py: subscription status, plan list
 - account_urls.py: own-data export, delete my account
 - budget_urls.py: budgets, recurring transactions, alerts
@@ -23,7 +22,6 @@ from .settings_urls import urlpatterns as settings_urlpatterns
 from .misc_urls import urlpatterns as misc_urlpatterns
 from .fixed_assets_urls import urlpatterns as fixed_assets_urlpatterns
 from .financial_advisor_urls import urlpatterns as financial_advisor_urlpatterns
-from .ai_platform_urls import urlpatterns as ai_platform_urlpatterns
 from .billing_urls import urlpatterns as billing_urlpatterns
 from .account_urls import urlpatterns as account_urlpatterns
 from .budget_urls import urlpatterns as budget_urlpatterns
@@ -37,7 +35,6 @@ urlpatterns = (
     + misc_urlpatterns
     + fixed_assets_urlpatterns
     + financial_advisor_urlpatterns
-    + ai_platform_urlpatterns
     + billing_urlpatterns
     + account_urlpatterns
     + budget_urlpatterns

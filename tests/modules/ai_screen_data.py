@@ -1,6 +1,6 @@
 """WealthFlow QA Module - AI Agent reads screen data (the app_screen_data tool).
 
-Real browser, real APIs (no model needed: the Agent loop with a scripted model is covered by core/tests/ai/screen_data/):
+Real browser, real APIs (no model needed: the Agent loop with a scripted model is covered by ai/tests/screen_data/):
   1. The Cash Flow endpoint the tool wraps answers for the logged-in user with a projected balance and its event list, and the
      same endpoint with another scope changes the scope it reports (so a question's "all currencies" is honoured).
   2. The live step list shows the new step with its translated label (not the raw tool name) and the endpoint it reads.

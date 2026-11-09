@@ -26,7 +26,7 @@ def _run(context, reporter, screenshot_logger):
     # 1. API contract (real endpoints, real session)
     # Data-independent: the test account may already hold rated answers, so assert the contract and
     # relate every later check to this starting state (the "empty for a NEW user" case is covered by
-    # core/tests/ai/test_ai_feedback_learning.py with a fresh user).
+    # ai/tests/test_ai_feedback_learning.py with a fresh user).
     listing = page.evaluate(_FETCH, ["/api/financial-advisor/ai/feedback/", "GET", None])
     items = (listing["data"] or {}).get("items")
     shape_ok = isinstance(items, list) and all(

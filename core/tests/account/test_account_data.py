@@ -5,7 +5,9 @@ import json
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import (AIMessage, AIPrompt, BalanceEntry, Bank, Currency, CurrencyExchange, Document, FixedAsset)
+from core.models import BalanceEntry, Bank, Currency, CurrencyExchange, Document, FixedAsset
+from ai.models.ai_message import AIMessage
+from ai.models.ai_prompt import AIPrompt
 from core.services.account import build_user_export, classify, deletion_blocker, purge_user
 from core.services.backup_serializer import get_model_export_order
 from core.tests.account.support import make_user_with_data
@@ -32,7 +34,7 @@ class ExportTests(TestCase):
         user_row = data["tables"]["auth.User"][0]
         self.assertNotIn("password", user_row)
         self.assertNotIn("core.AuthToken", data["tables"])
-        for label in ("core.FixedAsset", "core.Document", "core.CurrencyExchange", "core.AIPrompt", "core.AIMessage", "core.BalanceEntry"):
+        for label in ("core.FixedAsset", "core.Document", "core.CurrencyExchange", "ai.AIPrompt", "ai.AIMessage", "core.BalanceEntry"):
             self.assertEqual(data["row_counts"][label], len([r for r in data["tables"][label]]), label)
             self.assertGreaterEqual(data["row_counts"][label], 1, label)
         self.assertEqual(data["tables"]["core.Document"][0]["file_content"], "YWJj")  # base64 file included
@@ -102,3 +104,14 @@ class DeletionTests(TestCase):
         self.assertEqual(self.client.get("/api/account/export/").status_code, 200)
         res = self.client.post("/api/account/delete/", json.dumps({"confirm": "DELETE", "password": "Pass12345!"}), content_type="application/json")
         self.assertEqual(res.status_code, 200)
+
+
+class LegacyBackupLabelTests(TestCase):
+    """Backups written before the AI models moved to app `ai` still restore."""
+
+    def test_old_core_labels_of_ai_models_resolve_to_the_ai_app(self):
+        from core.services.backup_serializer import resolve_content_type
+
+        self.assertEqual(resolve_content_type("core.aimessage").app_label, "ai")
+        self.assertEqual(resolve_content_type("ai.aimessage").app_label, "ai")
+        self.assertEqual(resolve_content_type("core.expense").app_label, "core")

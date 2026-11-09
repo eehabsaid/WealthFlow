@@ -1,6 +1,6 @@
 """A tiny fake Ollama HTTP server (stdlib only; no Django, no core imports) for tests and scripted browser runs.
 
-It implements what core/integrations/ai_provider/ollama_*.py really calls: GET /api/version, GET /api/tags, POST /api/chat
+It implements what ai/integrations/ai_provider/ollama_*.py really calls: GET /api/version, GET /api/tags, POST /api/chat
 (non-streaming, as the provider sends stream=false), plus /api/show and /api/ps for the runtime-capability probe. Like the real
 Ollama it serves ONE chat request at a time (the others queue on a lock). Replies are scripted: a queue of replies, else a handler.
 

@@ -12,6 +12,7 @@ from __future__ import annotations
 from django.contrib.auth.models import User as UserModel
 
 from core.services.backup_serializer import resolve_content_type
+from core.services.backup_serializer.content_type import current_app_label
 from core.services.restore.helpers import coerce_field
 
 
@@ -80,7 +81,7 @@ def _resolve_natural_hints(row: dict, field_map: dict, kwargs: dict) -> None:
         if perm_hint:
             try:
                 app_label, model, codename = perm_hint.split(".", 2)
-                kwargs[attname] = Permission.objects.get(content_type__app_label=app_label, content_type__model=model, codename=codename).pk
+                kwargs[attname] = Permission.objects.get(content_type__app_label=current_app_label(app_label, model), content_type__model=model, codename=codename).pk
             except (ValueError, Permission.DoesNotExist):
                 kwargs[attname] = None
         elif group_hint:

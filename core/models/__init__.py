@@ -23,14 +23,6 @@ from .documents import Document
 from .photos import AssetPhoto
 from .documentation import DocumentationExecution
 from .scenario import Scenario, ScenarioEvent
-from .ai_conversation import AIConversation
-from .ai_message import AIMessage
-from .ai_feedback import AIAnswerFeedback
-from .ai_knowledge import AIKnowledgeEntry
-from .ai_memory import AIMemoryNote
-from .ai_chat_block import AIChatBlock
-from .ai_attachment import AIAttachment
-from .ai_prompt import AIPromptCategory, AIPrompt
 from .billing import Plan, PlanPrice, Subscription, Invoice, UpgradeRequest
 from .legal import LegalVersion
 from .income_adjustment import MonthlyIncomeAdjustment
@@ -90,7 +82,6 @@ __all__ = [
     "AssetInsurance",
     "GoldDetails",
     "OtherAssetDetails",
-    "AIAnswerFeedback",
     "AssetRenovation",
     "AssetAcquisitionCost",
     "AssetFurniture",
@@ -102,14 +93,6 @@ __all__ = [
     "DocumentationExecution",
     "Scenario",
     "ScenarioEvent",
-    "AIConversation",
-    "AIMessage",
-    "AIKnowledgeEntry",
-    "AIMemoryNote",
-    "AIChatBlock",
-    "AIAttachment",
-    "AIPromptCategory",
-    "AIPrompt",
     "Plan",
     "PlanPrice",
     "Subscription",

@@ -5,8 +5,8 @@ import os
 
 from django.test import SimpleTestCase
 
-from doc_engine.document_generator.labels import FIXED, GUIDE_TYPES, fixed_labels, guide_type_label
-from doc_engine.document_generator.validation import I18N_DIR
+from ai.doc_engine.document_generator.labels import FIXED, GUIDE_TYPES, fixed_labels, guide_type_label
+from ai.doc_engine.document_generator.validation import I18N_DIR
 
 KEYS = [key for key, _ in FIXED.values()] + [key for key, _ in GUIDE_TYPES.values()]
 

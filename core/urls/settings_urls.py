@@ -1,13 +1,10 @@
 from django.urls import path
-from core.views.ai_speech.speech_settings_views import SpeechVoiceSampleView
-from core.views.settings.ai.ai_image_test_view import ImageSettingsTestView
 from .. import views
 from ..views import ExportExcelWorkbookView
 from core.views.settings.billing.gateway_test_views import PaymobGatewayTestView
 from core.views.settings.billing.stripe_settings_views import StripeGatewaySettingsView
 
 urlpatterns = [
-    # Reports
     path("api/reports/generate/", views.GenerateReportView.as_view()),
     path("api/settings/", views.SettingsView.as_view()),
     path("api/settings/email-templates/", views.EmailTemplateListView.as_view()),
@@ -17,15 +14,6 @@ urlpatterns = [
     path("api/settings/account-retention/", views.AccountRetentionView.as_view()),
     path("api/legal/consent/", views.LegalConsentView.as_view()),
     path("api/settings/email-test/", views.EmailSettingsTestView.as_view()),
-    path("api/settings/ai/", views.AISettingsView.as_view()),
-    path("api/settings/ai/me/", views.AIUserSettingsView.as_view()),
-    path("api/settings/ai/user-limits/", views.AIUserLimitsView.as_view()),
-    path("api/settings/ai/providers/", views.AIProviderListView.as_view()),
-    path("api/settings/ai/test-connection/", views.AIConnectionTestView.as_view()),
-    path("api/settings/ai/runtime-capabilities/", views.AIRuntimeCapabilitiesView.as_view()),
-    path("api/settings/ai/speech/test/", views.SpeechSettingsTestView.as_view()),
-    path("api/settings/ai/speech/voice-sample/", SpeechVoiceSampleView.as_view()),
-    path("api/settings/ai/image-generation/test/", ImageSettingsTestView.as_view()),
     path("api/settings/gold-types/", views.GoldTypeSettingsListView.as_view()),
     path("api/settings/gold-types/<int:pk>/", views.GoldTypeSettingsDetailView.as_view()),
     path("api/settings/gold-purities/", views.GoldPuritySettingsListView.as_view()),
@@ -43,13 +31,11 @@ urlpatterns = [
     path("api/settings/billing/invoices/<int:invoice_id>/action/", views.InvoiceActionView.as_view()),
     path("api/settings/billing/gateway/test/", PaymobGatewayTestView.as_view()),
     path("api/settings/billing/stripe/", StripeGatewaySettingsView.as_view()),
-    # Backup & Restore
     path("api/settings/backup/create/", views.BackupCreateView.as_view()),
     path("api/settings/backup/list/", views.BackupListView.as_view()),
     path("api/settings/backup/delete/", views.BackupDeleteView.as_view()),
     path("api/settings/backup/restore/", views.BackupRestoreView.as_view()),
     path("api/settings/vendor-assets/update/", views.VendorAssetsUpdateView.as_view()),
-    # Documentation Engine
     path("api/settings/documentation/capture/", views.CaptureScreenshotsView.as_view()),
     path("api/settings/documentation/generate-docs/", views.GenerateDocumentsView.as_view()),
     path("api/settings/documentation/validate-capture/", views.ValidateCaptureView.as_view()),
@@ -59,6 +45,5 @@ urlpatterns = [
     path("api/settings/documentation/devices/", views.DocumentationDevicesView.as_view()),
     path("api/settings/documentation/history/", views.DocumentationHistoryView.as_view()),
     path("api/settings/documentation/open/", views.OpenFolderView.as_view()),
-    # excel export
     path("api/export/excel/", ExportExcelWorkbookView.as_view(), name="export_excel"),
 ]

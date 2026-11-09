@@ -29,7 +29,7 @@ def run_documentation_generation_only(execution_id, doc_type="all"):
     with open(log_path, "a", encoding="utf-8") as log_file:
         log_file.write("\\n[System] Running Document Generator...\\n")
         log_file.flush()
-        doc_cmd = [python_exe, "-c", f"import sys, os; sys.path.insert(0, os.path.abspath('.')); from doc_engine.document_generator import DocumentationGenerator; DocumentationGenerator().generate_all('{doc_type}')"]
+        doc_cmd = [python_exe, "-c", f"import sys, os; sys.path.insert(0, os.path.abspath('.')); from ai.doc_engine.document_generator import DocumentationGenerator; DocumentationGenerator().generate_all('{doc_type}')"]
         
         has_fatal_error = False
         try:

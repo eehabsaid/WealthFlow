@@ -13,8 +13,8 @@ from tests.modules.e2e_settings import django_exec
 CHAPTERS, TABS = 17, 6
 _BUILD = f"""
 import base64, json
-from core.services.ai.exports.document import ExportDocument, parse_markdown
-from core.services.ai.exports.registry import get_format
+from ai.services.exports.document import ExportDocument, parse_markdown
+from ai.services.exports.registry import get_format
 text = "This page lets you manage the records of the application in a clear way for every user."
 md = "".join(f"## Screen {{i}}\\n\\n{{text}}\\n\\n" + "".join(f"### Tab {{i}}-{{j}}\\n\\n{{text}} {{j}}\\n\\n" for j in range({TABS})) for i in range(1, {CHAPTERS + 1}))
 doc = ExportDocument(title="Guide", generated="2026", lang="en", blocks=parse_markdown(md), source=md)

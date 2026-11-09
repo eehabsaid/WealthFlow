@@ -88,7 +88,7 @@ def run_documentation_permutations(languages, themes, devices, execution_id, mod
                             if mode == "BOTH":
                                 log_file.write("\n[System] Running Document Generator...\n")
                                 log_file.flush()
-                                doc_cmd = [python_exe, "-c", "import sys, os; sys.path.insert(0, os.path.abspath('.')); from doc_engine.document_generator import DocumentationGenerator; DocumentationGenerator().generate_all('all')"]
+                                doc_cmd = [python_exe, "-c", "import sys, os; sys.path.insert(0, os.path.abspath('.')); from ai.doc_engine.document_generator import DocumentationGenerator; DocumentationGenerator().generate_all('all')"]
                                 doc_proc = subprocess.Popen(doc_cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
                                 with open(pid_file, "w", encoding="utf-8") as pf:
                                     pf.write(str(doc_proc.pid))

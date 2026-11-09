@@ -19,7 +19,7 @@ import logging
 
 from core.integrations.provider_utils import make_json_http_request
 from core.models import AppSettings
-from core.services.ai.credential_encryption import decrypt_credential, redact_secrets
+from ai.services.credential_encryption import decrypt_credential, redact_secrets
 
 logger = logging.getLogger(__name__)
 

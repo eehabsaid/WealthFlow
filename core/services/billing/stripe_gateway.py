@@ -22,7 +22,7 @@ import urllib.request
 from decimal import ROUND_HALF_UP, Decimal
 
 from core.models import AppSettings
-from core.services.ai.credential_encryption import decrypt_credential, redact_secrets
+from ai.services.credential_encryption import decrypt_credential, redact_secrets
 from core.services.billing.gateway_base import GatewayError, PaymentGateway
 
 logger = logging.getLogger(__name__)

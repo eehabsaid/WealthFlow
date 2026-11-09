@@ -8,13 +8,13 @@ from core.views.auth_views import PermissionRequiredMixin
 from core.views.settings.documentation.documentation_constants import STATUS_FILE, CANCEL_FILE, read_json_file, write_json_file
 from core.views.settings.documentation.documentation_permutations_runner import run_documentation_permutations
 
-from doc_engine.device_inventory import load_inventory, validate_inventory
+from ai.doc_engine.device_inventory import load_inventory, validate_inventory
 
 
 class ValidateCaptureView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
     def get(self, request):
-        from doc_engine.services.playwright_validator import PlaywrightValidator
+        from ai.doc_engine.services.playwright_validator import PlaywrightValidator
         res = PlaywrightValidator().validate_capture_environment()
         if not res["valid"]:
             return JsonResponse({"valid": False, "errors": res["errors"]})
@@ -23,7 +23,7 @@ class ValidateCaptureView(PermissionRequiredMixin, View):
 class ValidateGenerationView(PermissionRequiredMixin, View):
     required_key = "settings_documentation"
     def get(self, request):
-        from doc_engine.services.playwright_validator import PlaywrightValidator
+        from ai.doc_engine.services.playwright_validator import PlaywrightValidator
         res = PlaywrightValidator().validate_generation_environment()
         if not res["valid"]:
             return JsonResponse({"valid": False, "errors": res["errors"]})

@@ -10,8 +10,10 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from core.constants.ai_user_settings import DEFAULT_LIMIT_KEY, USE_GENERAL_KEY, USER_LIMIT_KEY
-from core.models import AIConversation, AIMessage, AppSettings
-from core.services.ai.usage import effective_limit, limit_status, used_tokens
+from core.models import AppSettings
+from ai.models.ai_conversation import AIConversation
+from ai.models.ai_message import AIMessage
+from ai.services.usage import effective_limit, limit_status, used_tokens
 
 
 class AIUserSettingsBackupTests(TestCase):

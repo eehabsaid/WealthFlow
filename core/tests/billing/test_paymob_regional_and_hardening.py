@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 
 from core.models import AppSettings, Currency, Invoice, Plan, PlanPrice
-from core.services.ai.credential_encryption import encrypt_credential
+from ai.services.credential_encryption import encrypt_credential
 from core.services.billing import CheckoutError, CheckoutService, PaymobGateway
 from core.services.billing.checkout_service import amount_to_cents
 from core.services.billing.paymob_gateway import _HMAC_FIELDS, normalize_base_url, region_key

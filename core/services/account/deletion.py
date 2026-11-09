@@ -115,7 +115,8 @@ def _other_active_admin(user) -> bool:
 def purge_user(user) -> dict:
     """Delete rows FK-cascade would miss (SET_NULL / generic / username-keyed), then the user (cascades the rest).
     Shared by self-service deletion and the admin Users screen, so no path leaves orphaned financial data."""
-    from core.models import AIPrompt, CurrencyExchange, Document
+    from core.models import CurrencyExchange, Document
+    from ai.models.ai_prompt import AIPrompt
 
     username, counts = user.username, {}
     with transaction.atomic():

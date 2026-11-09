@@ -9,8 +9,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from core.models import ExchangeRate
-from core.services.ai.providers.market_provider import MarketDataProvider
-from core.services.ai.query_engine.executors.market import _latest_rows
+from ai.services.providers.market_provider import MarketDataProvider
+from ai.services.query_engine.executors.market import _latest_rows
 from core.services.fixed_assets.usd_rate_service import UsdRateService
 from core.services.shared.latest_rates import latest_exchange_rates
 

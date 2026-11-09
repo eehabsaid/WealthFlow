@@ -6,8 +6,10 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
-from core.models import (AIConversation, AIMessage, AIPrompt, AIPromptCategory, BalanceEntry, Bank, Currency,
-                         CurrencyExchange, Document, FixedAsset)
+from core.models import BalanceEntry, Bank, Currency, CurrencyExchange, Document, FixedAsset
+from ai.models.ai_conversation import AIConversation
+from ai.models.ai_message import AIMessage
+from ai.models.ai_prompt import AIPrompt, AIPromptCategory
 
 User = get_user_model()
 

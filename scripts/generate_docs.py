@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from start_doc_server import start_server
 from stop_doc_server import stop_server
 
-from doc_engine.playwright_engine import get_playwright_backend
+from ai.doc_engine.playwright_engine import get_playwright_backend
 
 def run_capture(language='en', theme='dark', device=None, host='127.0.0.1', port='8001',
                  username=None, password=None):

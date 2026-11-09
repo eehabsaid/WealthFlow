@@ -1,6 +1,6 @@
 """Re-encrypt stored AI/payment credentials from an old key to the current WEALTHFLOW_AI_ENCRYPTION_KEY.
 
-Run once after setting a private key on the server (heavy logic lives in core/services/ai/credential_rekey.py):
+Run once after setting a private key on the server (heavy logic lives in ai/services/credential_rekey.py):
     WEALTHFLOW_AI_ENCRYPTION_KEY=<new> python manage.py rekey_ai_keys            # dry run
     WEALTHFLOW_AI_ENCRYPTION_KEY=<new> python manage.py rekey_ai_keys --apply
 Use --old-key <secret> when the previous key was itself a WEALTHFLOW_AI_ENCRYPTION_KEY value; omit it when the
@@ -8,8 +8,8 @@ credentials were stored under the default (SECRET_KEY-derived) key."""
 
 from django.core.management.base import BaseCommand, CommandError
 
-from core.services.ai.credential_encryption import using_default_key
-from core.services.ai.credential_rekey import rekey_all
+from ai.services.credential_encryption import using_default_key
+from ai.services.credential_rekey import rekey_all
 
 
 class Command(BaseCommand):

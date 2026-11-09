@@ -1,0 +1,107 @@
+"""
+Knowledge Base views (AI Platform): everyone can read and search the entries, only a sysadmin can add, edit or delete them.
+
+Split out of the former monolithic ai_platform_views.py (200-line rule).
+"""
+
+import json
+
+from django.http import JsonResponse
+from django.views import View
+
+from core.validators.json_body import parse_json_body
+from ai.models.ai_knowledge import AIKnowledgeEntry
+from ai.services.knowledge_engine import AIKnowledgeEngine
+from ai.views.ai_platform.auth import _api_auth_required, _sysadmin_required
+
+
+class AIPlatformKnowledgeView(View):
+    def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+
+        category = request.GET.get("category")
+        search = request.GET.get("search", "").strip()
+        entries = AIKnowledgeEngine.get_active_knowledge_entries(category=category)
+        if search:
+            sl = search.lower()
+            entries = [
+                e
+                for e in entries
+                if (e.title and sl in e.title.lower())
+                or (e.content and sl in e.content.lower())
+                or (e.key and sl in e.key.lower())
+            ]
+        return JsonResponse({"entries": [e.to_dict() for e in entries]})
+
+    def post(self, request):
+        auth_error = _sysadmin_required(request)   # entries go into every user's AI prompt: only a sysadmin may write them
+        if auth_error:
+            return auth_error
+
+        try:
+            body = parse_json_body(request)
+        except json.JSONDecodeError:
+            body = {}
+
+        key = str(body.get("key", "")).strip()
+        title = str(body.get("title", "")).strip()
+        content = str(body.get("content", "")).strip()
+        category = str(body.get("category", "business_rule")).strip()
+
+        if not key or not title or not content:
+            return JsonResponse({"error": "Key, title, and content are required"}, status=400)
+
+        entry = AIKnowledgeEngine.record_knowledge_entry(
+            key=key,
+            title=title,
+            content=content,
+            category=category,
+            source="user_manual",
+        )
+        return JsonResponse({"entry": entry.to_dict()}, status=201)
+
+
+class AIPlatformKnowledgeDetailView(View):
+    """
+    Per-entry knowledge operations.
+    URL: PATCH/DELETE /api/ai-platform/knowledge/<int:pk>/
+    """
+
+    def patch(self, request, pk):
+        auth_error = _sysadmin_required(request)
+        if auth_error:
+            return auth_error
+
+        try:
+            entry = AIKnowledgeEntry.objects.get(id=pk)
+        except AIKnowledgeEntry.DoesNotExist:
+            return JsonResponse({"error": "Not found"}, status=404)
+
+        try:
+            body = parse_json_body(request)
+        except json.JSONDecodeError:
+            body = {}
+
+        if "title" in body:
+            entry.title = str(body["title"]).strip()
+        if "content" in body:
+            entry.content = str(body["content"]).strip()
+        if "category" in body:
+            entry.category = str(body["category"]).strip()
+        entry.save()
+        return JsonResponse({"entry": entry.to_dict()})
+
+    def delete(self, request, pk):
+        auth_error = _sysadmin_required(request)
+        if auth_error:
+            return auth_error
+
+        try:
+            entry = AIKnowledgeEntry.objects.get(id=pk)
+        except AIKnowledgeEntry.DoesNotExist:
+            return JsonResponse({"error": "Not found"}, status=404)
+
+        entry.delete()
+        return JsonResponse({"ok": True, "id": pk})

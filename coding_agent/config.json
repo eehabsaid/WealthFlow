@@ -1,6 +1,6 @@
 {
   "max_file_lines": 200,
-  "index_roots": ["core", "wealthflow", "scripts", "static/js"],
+  "index_roots": ["core", "ai", "wealthflow", "scripts", "static/js"],
   "protected": [
     {"pattern": "core/services/financial_advisor/cash_flow_forecast_service/*", "reason": "Cash Flow calculation: the owner never wants it changed without approval"},
     {"pattern": "core/services/shared/currency_conversion_service.py", "reason": "central currency conversion: additive changes only, list callers first"},
@@ -21,9 +21,9 @@
     {"pattern": ".env", "reason": "secrets"}
   ],
   "test_areas": {
-    "core/services/ai": "core.tests.ai",
-    "core/views/ai_chat": "core.tests.ai",
-    "core/views/ai_speech": "core.tests.ai",
+    "ai/services": "ai.tests",
+    "ai/views/ai_chat": "ai.tests",
+    "ai/views/ai_speech": "ai.tests",
     "core/services/balance": "core.tests.balance",
     "core/models/balance": "core.tests.balance",
     "core/services/expenses": "core.tests.expenses",
@@ -45,12 +45,12 @@
     "core/services/reports": "core.tests.reports",
     "core/views/settings": "core.tests.settings",
     "static/i18n": "core.tests.i18n",
-    "ai_training": "ai_training.tests",
-    "core/integrations/ai_provider": "core.tests.ai",
-    "core/integrations/openai_provider": "core.tests.ai",
-    "core/integrations/claude_provider": "core.tests.ai",
-    "core/integrations/gemini_provider": "core.tests.ai",
-    "core/integrations/azure_openai_provider": "core.tests.ai",
+    "ai/training": "ai.training.tests",
+    "ai/integrations/ai_provider": "ai.tests",
+    "ai/integrations/openai_provider": "ai.tests",
+    "ai/integrations/claude_provider": "ai.tests",
+    "ai/integrations/gemini_provider": "ai.tests",
+    "ai/integrations/azure_openai_provider": "ai.tests",
     "core/integrations": "core.tests.rates_and_automation",
     "core/services/exchange_rate_history_service": "core.tests.rates_and_automation",
     "core/services/shared/reminder_automation_service": "core.tests.rates_and_automation",
@@ -61,17 +61,17 @@
     "core/middleware": "core.tests.system",
     "wealthflow": "core.tests.system",
     "core/services/onboarding": "core.tests.auth",
-    "core/constants": "core.tests.ai",
+    "core/constants": "ai.tests",
     "core/models/billing": "core.tests.billing",
     "core/models/certificate": "core.tests.certificates",
-    "core/models/ai_": "core.tests.ai",
+    "ai/models": "ai.tests",
     "core/reports": "core.tests.reports",
     "core/reports/generate_report_generator": "core.tests.certificates",
     "core/reports/fixed_asset": "core.tests.fixed_assets",
     "core/views/balance": "core.tests.balance",
     "core/views/salary": "core.tests.salary",
     "core/views/fixed_assets": "core.tests.fixed_assets",
-    "core/views/ai_platform_views": "core.tests.ai",
+    "ai/views/ai_platform": "ai.tests",
     "core/models/expenses": "core.tests.expenses",
     "core/models/salary": "core.tests.salary",
     "core/models/budget": "core.tests.budgets",
@@ -87,7 +87,7 @@
     "core/models/goals": "core.tests.financial_advisor",
     "core/models/gold": "core.tests.fixed_assets"
   },
-  "pytest_areas": {"dev_agent/": "dev_agent/tests"},
+  "pytest_areas": {"ai/dev_agent/": "ai/dev_agent/tests"},
   "test_exempt": ["scripts/*", "manage.py", "*/migrations/*", "*/__init__.py"],
   "agent_index_roots": [
     "core",
@@ -96,7 +96,7 @@
     "static/js",
     "templates",
     "tests",
-    "dev_agent"
+    "ai"
   ],
   "forbidden": [
     "core/migrations/*",

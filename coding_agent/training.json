@@ -3,7 +3,7 @@
   "max_source_files": 6,
   "max_diff_chars": 12000,
   "max_context_chars": 14000,
-  "test_prefixes": ["core/tests/", "tests/", "ai_training/tests/"],
+  "test_prefixes": ["core/tests/", "tests/", "ai/training/tests/"],
   "source_ext": [".py", ".js", ".css", ".html"],
   "held_out_every": 5,
   "min_examples": 30,

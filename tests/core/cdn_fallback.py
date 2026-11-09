@@ -10,20 +10,20 @@ errors ("bootstrap is not defined", "Chart is not a constructor") and any
 Bootstrap-dependent action (modals, toasts) hangs or fails outright.
 
 This module serves pinned, exact-version local copies of those libraries
-from doc_engine/vendor/assets/ instead, via Playwright request
+from ai/doc_engine/vendor/assets/ instead, via Playwright request
 interception, whenever the real network request would otherwise go to one
 of those three CDN hosts. Anything not recognized still goes to the real
 network - this only changes behavior for the specific libraries known to
 sometimes fail.
 
-Do not duplicate doc_engine/vendor/assets/ elsewhere - this module is the
+Do not duplicate ai/doc_engine/vendor/assets/ elsewhere - this module is the
 single, shared way to reach it.
 """
 
 import os
 
 _VENDOR_DIR = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "doc_engine", "vendor", "assets"
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "ai", "doc_engine", "vendor", "assets"
 )
 
 _CDN_LOCAL_MAP = {

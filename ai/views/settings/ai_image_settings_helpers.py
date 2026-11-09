@@ -1,0 +1,21 @@
+"""Image generation settings payload, validation and persistence for the AI settings page (same flow as the speech settings)."""
+
+from ai.services.image_generation import apply_settings_change, get_image_config, provider_catalog, save_image_settings, validate_image_settings
+from ai.services.image_generation.settings import FIELDS
+
+
+def build_image_settings_payload():
+    cfg = get_image_config()
+    payload = {f"image_gen_{field}": cfg[field] for field in FIELDS}
+    payload.update({"image_gen_configured": cfg["is_configured"], "image_gen_api_key_is_configured": cfg["api_key_is_configured"],
+                    "image_gen_providers": provider_catalog()})
+    return payload
+
+
+def validate_image_settings_data(data):
+    return validate_image_settings(data)
+
+
+def persist_image_settings(data):
+    save_image_settings(data)
+    apply_settings_change()   # enabled: start the provider server in the background; switched off: stop the one WealthFlow started

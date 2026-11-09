@@ -9,6 +9,7 @@ urlpatterns = [
     # Add this line to handle the browser's automatic favicon lookup
     path("favicon.ico", RedirectView.as_view(url="/static/images/favicon.ico")),
     path("", include("core.urls")),
+    path("", include("ai.urls")),
 ]
 
 # This is the correct way to handle static files in development

@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.views import View
 
 from core.models import AppSettings
-from core.services.ai.credential_encryption import encrypt_credential, is_masked, mask_credential
+from ai.services.credential_encryption import encrypt_credential, is_masked, mask_credential
 from core.services.billing.stripe_gateway import DEFAULT_CURRENCIES, StripeGateway
 from core.validators.json_body import parse_json_body
 from core.views.auth_views import AdminRequiredMixin

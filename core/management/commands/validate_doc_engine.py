@@ -1,7 +1,7 @@
 import os
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from doc_engine.device_inventory import validate_inventory
+from ai.doc_engine.device_inventory import validate_inventory
 
 class Command(BaseCommand):
     help = 'Validates the Documentation Engine architecture, including device inventory and required directories.'

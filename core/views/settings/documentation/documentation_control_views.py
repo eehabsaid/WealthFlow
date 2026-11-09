@@ -90,7 +90,7 @@ class OpenFolderView(PermissionRequiredMixin, View):
                 target_path = GENERATED_DIR
                 os.makedirs(target_path, exist_ok=True)
             elif target == "readme":
-                target_path = os.path.join(BASE_DIR, "doc_engine", "README.md")
+                target_path = os.path.join(BASE_DIR, "ai", "doc_engine", "README.md")
 
             if target_path and os.path.exists(target_path):
                 if os.name == 'nt':

@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from core.models import AppSettings, Currency, Invoice, Plan, PlanPrice
-from core.services.ai.credential_encryption import encrypt_credential
+from ai.services.credential_encryption import encrypt_credential
 from core.services.billing.subscription_service import SubscriptionService
 
 User = get_user_model()

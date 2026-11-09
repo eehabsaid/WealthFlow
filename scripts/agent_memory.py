@@ -3,7 +3,7 @@
 import sys
 
 import agent_cli
-from core.services.ai.coding import memory
+from ai.services.coding import memory
 
 ROOT = agent_cli.ROOT  # importing agent_cli sets up Django
 

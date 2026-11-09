@@ -23,7 +23,7 @@ from core.services.billing.paymob_gateway import (
     normalize_base_url,
     region_key,
 )
-from core.services.ai.credential_encryption import (
+from ai.services.credential_encryption import (
     decrypt_credential,
     encrypt_credential,
     is_masked,

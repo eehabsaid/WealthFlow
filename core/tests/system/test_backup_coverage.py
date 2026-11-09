@@ -70,7 +70,9 @@ class BackupCoverageTests(TestCase):
 
     def test_ai_answer_feedback_round_trip(self):
         """Zip 2: thumbs up/down (the AI's learned examples) survive backup -> delete -> restore, with their message."""
-        from core.models import AIAnswerFeedback, AIConversation, AIMessage
+        from ai.models.ai_conversation import AIConversation
+        from ai.models.ai_feedback import AIAnswerFeedback
+        from ai.models.ai_message import AIMessage
 
         user = get_user_model().objects.create_user(username="bk_ai_fb_user", password="Pw123456!")
         conv = AIConversation.objects.create(user=user, title="t")
@@ -97,7 +99,7 @@ class BackupCoverageTests(TestCase):
 
     def test_ai_memory_notes_round_trip(self):
         """AI memory notes survive backup -> delete -> restore, still owned by their user."""
-        from core.models import AIMemoryNote
+        from ai.models.ai_memory import AIMemoryNote
 
         user = get_user_model().objects.create_user(username="bk_ai_mem_user", password="Pw123456!")
         AIMemoryNote.objects.create(user=user, title="Savings goal", body="500000 EGP by June 2027 (2026-10-27)")
