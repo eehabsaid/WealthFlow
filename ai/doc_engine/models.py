@@ -1,5 +1,7 @@
 import os
 
+from ai.doc_engine.config import LATEST_SCREENSHOTS_DIR
+
 class DocNode:
     def __init__(self, node_id, title, purpose, navigation, steps, screenshot_path, is_admin=False):
         self.id = node_id
@@ -78,8 +80,7 @@ class DocumentationModel:
             steps = desc.get("steps", [])
             s_path = s.get('screenshot_path')
             if s_path:
-                base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-                s_path = os.path.join(base_dir, "docs", "screenshots", "latest", os.path.basename(s_path))
+                s_path = os.path.join(LATEST_SCREENSHOTS_DIR, os.path.basename(s_path))
             
             navigation = []
             if route: navigation.append(route_title)

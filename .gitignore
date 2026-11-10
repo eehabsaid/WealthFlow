@@ -33,4 +33,3 @@ media/voice_samples
 coding_agent/.locks/
 coding_agent/tasks/
 # Dependencies installed by npm (never tracked)
-node_modules/

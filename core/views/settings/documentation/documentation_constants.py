@@ -2,14 +2,12 @@ import os
 import json
 from django.conf import settings
 
+from ai.doc_engine.config import CANCEL_FILE, DOCS_DIR, GENERATED_DIR, RUNTIME_DIR, SCREENSHOTS_DIR, STATUS_FILE   # one source of truth: the engine's folders
+
+__all__ = ["BASE_DIR", "CANCEL_FILE", "DOCS_DIR", "GENERATED_DIR", "HISTORY_FILE", "RUNTIME_DIR", "SCREENSHOTS_DIR", "STATUS_FILE", "read_json_file", "write_json_file"]
+
 BASE_DIR = settings.BASE_DIR
-DOCS_DIR = os.path.join(BASE_DIR, "docs")
-GENERATED_DIR = os.path.join(DOCS_DIR, "generated")
-SCREENSHOTS_DIR = os.path.join(DOCS_DIR, "screenshots")
-RUNTIME_DIR = os.path.join(GENERATED_DIR, "runtime")
 HISTORY_FILE = os.path.join(GENERATED_DIR, "history.json")
-STATUS_FILE = os.path.join(RUNTIME_DIR, "status.json")
-CANCEL_FILE = os.path.join(RUNTIME_DIR, ".cancel_capture")
 
 
 def read_json_file(filepath, default_value):

@@ -25,6 +25,7 @@ from ai.services.cache_manager import AICacheManager
 from ai.services.direct_answers import try_direct_answer
 from ai.services.domains import APP, BUSINESS
 from ai.services.exports import ExportNoticeProvider, requested as detect_export_formats, strip_export_terms
+from ai.services.exports.intent_model import resolve_file_intent
 from ai.services.query_engine import verified_for_model
 from ai.services.usage import MeteredProvider, TokenMeter, limit_status
 from ai.views.ai_chat.ai_chat_helpers import _api_auth_required
@@ -105,6 +106,7 @@ class AIChatView(View):
         # Stage 0 — attached files go straight to the model (attachment_stage.py)
         if (with_files := attachment_response(request=request, body=body, cache_mgr=cache_mgr, progress_key=progress_key, conversation=conversation, user_msg=user_msg, user_text=user_text, provider=provider, trace=trace)) is not None:
             return with_files
+        resolve_file_intent(provider, user_text, conversation, user_msg)   # a message the word patterns read as "no file" but that mentions one: the model decides (detect_export_formats() below and everywhere else sees it)
         provider = ActionNoticeProvider(provider)   # tells the model it CAN propose add / edit / delete (confirmation card) and charts
 
         # Stage 1a — Export follow-up ("export it to Excel"): see export_stage.py. Data questions that also ask for a file

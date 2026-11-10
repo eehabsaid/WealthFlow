@@ -2,8 +2,22 @@ import os
 
 # Base paths
 DOC_ENGINE_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(DOC_ENGINE_DIR)
-DOCS_DIR = os.path.join(BASE_DIR, "docs")
+
+
+def _host_dirs():
+    """(project root, docs folder) of the host Django project: the settings decide, so the Settings page, the capture engine and
+    the generated documents all use ONE folder. AI_DOCS_DIR overrides it; outside Django the parent of the ai/ folder is used."""
+    try:
+        from django.conf import settings
+        root = str(getattr(settings, "BASE_DIR", "") or "")
+        docs = str(getattr(settings, "AI_DOCS_DIR", "") or "")
+    except Exception:
+        root = docs = ""
+    root = root or os.path.dirname(os.path.dirname(DOC_ENGINE_DIR))
+    return root, docs or os.path.join(root, "docs")
+
+
+BASE_DIR, DOCS_DIR = _host_dirs()
 GENERATED_DIR = os.path.join(DOCS_DIR, "generated")
 SCREENSHOTS_DIR = os.path.join(DOCS_DIR, "screenshots")
 TEMPLATES_DIR = os.path.join(DOC_ENGINE_DIR, "templates")
