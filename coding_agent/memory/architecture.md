@@ -1,0 +1,1 @@
+- 2026-11-10: task [number]-implement-a-small-ai-applicati: added ai/tests/test_history_window_validation.py

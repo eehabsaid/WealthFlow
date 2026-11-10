@@ -42,10 +42,16 @@ def _infer_question_domain(user_text: str) -> str | None:
 
 def build_context(request, conversation, user_msg, user_text):
     """Fetch prior messages and assemble the provider message sequence."""
+    from ai.constants import AI_HISTORY_WINDOW_MAX
+
     try:
         history_window_size = int(AISetting.get("ai_history_window", "10", user=request.user))
     except (ValueError, TypeError):
         history_window_size = 10
+    if history_window_size <= 0:
+        history_window_size = 10
+    elif history_window_size > AI_HISTORY_WINDOW_MAX:
+        history_window_size = AI_HISTORY_WINDOW_MAX
 
     # Fetch prior non-deleted messages (excluding current message)
     prior_messages = list(

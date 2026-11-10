@@ -10,6 +10,7 @@ core/views/settings/__init__.py accordingly."""
 
 from django.http import JsonResponse
 
+from ai.constants import AI_HISTORY_WINDOW_MAX
 from ai.models import AISetting
 from ai.services.ai_defaults import DEFAULT_OLLAMA_MODEL
 from ai.services.credential_encryption import encrypt_credential, is_masked
@@ -79,10 +80,10 @@ def validate_ai_settings_post_data(data):
 
     try:
         history_window = int(data.get("ai_history_window", 10))
-        if history_window <= 0:
+        if history_window <= 0 or history_window > AI_HISTORY_WINDOW_MAX:
             raise ValueError()
     except (ValueError, TypeError):
-        return None, JsonResponse({"error": "ai_history_window must be a positive integer"}, status=400)
+        return None, JsonResponse({"error": f"ai_history_window must be an integer between 1 and {AI_HISTORY_WINDOW_MAX}"}, status=400)
 
     try:
         context_token_budget = int(data.get("ai_context_token_budget", 2048))

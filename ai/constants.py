@@ -8,6 +8,8 @@ USE_GENERAL_KEY = "ai_use_general_settings"  # per-user row; "false" = user runs
 USER_LIMIT_KEY = "ai_monthly_token_limit"  # per-user row, sysadmin-written; 0/empty = use the default
 DEFAULT_LIMIT_KEY = "ai_default_monthly_token_limit"  # global row, sysadmin-written; 0/empty = unlimited
 
+AI_HISTORY_WINDOW_MAX = 100  # upper bound for ai_history_window (messages loaded per turn)
+
 AI_USER_SETTING_KEYS = frozenset(
     {
         "ai_enabled",
