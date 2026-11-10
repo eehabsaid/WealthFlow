@@ -17,9 +17,9 @@ backups/
 *.wfbackup
 .webui_secret_key
 # Documentation Engine
-doc_engine/.auth/
-docs/screenshots/
-docs/generated/
+ai/doc_engine/.auth/
+ai/docs
+docs/
 test_downloads/
 runtime/
 test_reports/
