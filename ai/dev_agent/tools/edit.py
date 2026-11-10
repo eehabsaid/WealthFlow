@@ -159,7 +159,8 @@ def _report(ctx, preps: list[Prep], extra: list[dict], error: str) -> dict:
 
 
 @tool("edit_files", "args {edits:[{path, replacements:[{old,new}] | content[,overwrite], expect_sha?}]}: edit/create several files in ONE call. "
-      "All-or-nothing: if any file is rejected nothing is written. `old` must match exactly once. Result lists every file's exact state.", mutating=True)
+      "All-or-nothing: if any file is rejected nothing is written. `old` must match exactly once. Result lists every file's exact state. "
+      "Keep large calls small. For a new Markdown/text file, create a first chunk then append by replacing its unique final line with that line plus the next chunk.", mutating=True)
 def edit_files(ctx, args):
     items = args.get("edits")
     if not isinstance(items, list) or not items or len(items) > MAX_FILES:

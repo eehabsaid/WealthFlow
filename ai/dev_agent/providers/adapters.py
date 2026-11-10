@@ -42,7 +42,7 @@ class Ollama(_Base):
     def complete(self, system, messages, cancel=None):
         self.cancel = cancel
         body = {"model": self.model, "stream": False, "messages": [{"role": "system", "content": system}, *(_ollama(m) for m in merge_roles(messages))],
-                "options": {"num_ctx": self.context_window, "num_predict": self.max_output}}
+                "format": "json", "options": {"num_ctx": self.context_window, "num_predict": self.max_output}}
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
         data = self._post(f"{self.base_url}/api/chat", headers, body)
         try:

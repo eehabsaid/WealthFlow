@@ -11,7 +11,7 @@ from ai.dev_agent.engine.attachments import AttachmentError
 from ai.dev_agent.engine.cancel import Cancelled
 from ai.dev_agent.tools import call
 from ai.dev_agent.engine.budget import Budget, ContextOverflow, clip_text
-from ai.dev_agent.engine.protocol import NUDGE, parse_reply
+from ai.dev_agent.engine.protocol import error_details, nudge_for, parse_reply
 
 
 @dataclass
@@ -77,12 +77,14 @@ def run_phase(ctx, provider, system: str, first_user: str, accept: set[str], max
         if action.kind == "invalid":
             invalid += 1
             if ctx.ledger:
+                details = error_details(action)
                 ctx.ledger.event("invalid_reply", text=reply.text[:1500], tail=reply.text[-1500:],
                                  chars=len(reply.text), note=str(action.payload)[:200],
-                                 finish_reason=getattr(reply, "finish_reason", "") or "")
+                                 finish_reason=getattr(reply, "finish_reason", "") or "",
+                                 **details)
             if invalid >= 3:
                 return PhaseResult("stopped", reason=f"the model gave 3 replies in a row that were not valid protocol JSON ({action.payload})")
-            messages.append({"role": "user", "content": f"{NUDGE} ({action.payload[:80]})"})
+            messages.append({"role": "user", "content": nudge_for(action)})
             continue
         invalid = 0
         if action.kind in accept:

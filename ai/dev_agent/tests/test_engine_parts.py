@@ -147,6 +147,8 @@ def test_each_provider_maps_request_and_reply(server, cls, reply, path, text, fi
     got_path, headers, body = Handler.seen[0]
     assert got_path == path and "KEY123" in json.dumps(headers) and "KEY123" not in json.dumps(body)
     assert "SYS" in json.dumps(body) and "a\\n\\nb" in json.dumps(body)   # consecutive user messages were merged
+    if cls is Ollama:
+        assert body["format"] == "json"
 
 
 def test_provider_retries_transient_errors_and_redacts_the_key(server, monkeypatch):
