@@ -10,7 +10,7 @@ Status: complete
 Acceptance: Written summary of the actual task ledger/report structures and the available conversation data, with source locations identified.
 
 ### TWF-02 - Identify qualifying task statuses and event types
-Status: pending
+Status: complete
 Acceptance: Enumerate task statuses and event types; define in writing which combinations qualify as training examples and which are excluded; definition must be unambiguous.
 
 ### TWF-03 - Design formats for investigation/QA and implementation/patch examples
