@@ -6,7 +6,7 @@ All items start as pending and are independently trackable.
 ## Phase 1 - Audit and design
 
 ### TWF-01 - Inspect task ledger/report structures and available conversation data
-Status: pending
+Status: complete
 Acceptance: Written summary of the actual task ledger/report structures and the available conversation data, with source locations identified.
 
 ### TWF-02 - Identify qualifying task statuses and event types
