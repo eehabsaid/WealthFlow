@@ -7,7 +7,7 @@ NOTE: part of the settings/ai/ domain package. If this file grows past
 ~200 lines, split it further within this folder and update
 core/views/settings/__init__.py accordingly."""
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.ai_defaults import DEFAULT_OLLAMA_MODEL
 from ai.services.credential_encryption import decrypt_credential, mask_credential, using_default_key
 from ai.services.tools.permissions import resolve_granted_tier
@@ -19,7 +19,7 @@ from ai.views.settings.ai_speech_settings_helpers import build_speech_settings_p
 
 def build_ai_settings_get_payload(user=None):
     def get(key, default=None):
-        return AppSettings.get(key, default, user=user)
+        return AISetting.get(key, default, user=user)
 
     enabled_str = get("ai_enabled", "false").strip().lower()
     enabled = enabled_str in ("true", "1", "yes")

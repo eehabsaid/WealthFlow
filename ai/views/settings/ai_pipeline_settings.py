@@ -6,7 +6,7 @@ Stored app-wide like the other AI settings; read by chat_pipeline.validate / run
 
 from django.http import JsonResponse
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.agent.settings import get_agent_settings, persist_agent_settings, validate_agent_settings
 from ai.services.domains import KEYS as DOMAIN_KEYS, is_on as domain_is_on
 
@@ -27,16 +27,16 @@ def _clamped(raw, key) -> int:
 
 
 def get_pipeline_settings(user=None) -> dict:
-    mode = str(AppSettings.get("ai_validate_mode", DEFAULT_VALIDATE_MODE, user=user) or "").strip().lower()
-    debug = str(AppSettings.get("ai_pipeline_debug", "false", user=user) or "").strip().lower()
-    direct = str(AppSettings.get("ai_direct_answers", "true", user=user) or "true").strip().lower()
-    inv = str(AppSettings.get("ai_investigator_mode", "auto", user=user) or "auto").strip().lower()
-    code = str(AppSettings.get("ai_code_access", "true", user=None) or "true").strip().lower()   # global: a sysadmin security switch
-    files = str(AppSettings.get("ai_file_generation", "true", user=None) or "true").strip().lower()   # global: sysadmin switch
-    trace = str(AppSettings.get("ai_trace_recording", "false", user=None) or "false").strip().lower()   # global: read by ai_training recorder
+    mode = str(AISetting.get("ai_validate_mode", DEFAULT_VALIDATE_MODE, user=user) or "").strip().lower()
+    debug = str(AISetting.get("ai_pipeline_debug", "false", user=user) or "").strip().lower()
+    direct = str(AISetting.get("ai_direct_answers", "true", user=user) or "true").strip().lower()
+    inv = str(AISetting.get("ai_investigator_mode", "auto", user=user) or "auto").strip().lower()
+    code = str(AISetting.get("ai_code_access", "true", user=None) or "true").strip().lower()   # global: a sysadmin security switch
+    files = str(AISetting.get("ai_file_generation", "true", user=None) or "true").strip().lower()   # global: sysadmin switch
+    trace = str(AISetting.get("ai_trace_recording", "false", user=None) or "false").strip().lower()   # global: read by ai_training recorder
     return {
         "ai_file_generation": files not in _FALSE,   # default ON: the AI can build Excel / Word / PDF / CSV / code files for the user
-        **{key: _clamped(AppSettings.get(key, str(default), user=None), key) for key, (_, _, default) in FILE_LIMITS.items()},
+        **{key: _clamped(AISetting.get(key, str(default), user=None), key) for key, (_, _, default) in FILE_LIMITS.items()},
         "ai_investigator_mode": inv if inv in INVESTIGATOR_MODES else "auto",
         "ai_trace_recording": trace in _TRUE,   # default OFF: Agent answers are saved as training traces only when a sysadmin turns it on
         "ai_code_access": code not in _FALSE,   # default ON; source-code tools are sysadmin-only either way
@@ -97,14 +97,14 @@ def validate_pipeline_settings(data):
 
 def persist_pipeline_settings(validated, user=None) -> None:
     persist_agent_settings(validated["agent"])   # always global (sysadmin)
-    AppSettings.set("ai_validate_mode", validated["validate_mode"], user=user)
-    AppSettings.set("ai_pipeline_debug", "true" if validated["pipeline_debug"] else "false", user=user)
-    AppSettings.set("ai_direct_answers", "true" if validated["direct_answers"] else "false", user=user)
-    AppSettings.set("ai_investigator_mode", validated["investigator_mode"], user=user)
-    AppSettings.set("ai_trace_recording", "true" if validated["trace_recording"] else "false", user=None)   # always global
-    AppSettings.set("ai_code_access", "true" if validated["code_access"] else "false", user=None)   # always global
-    AppSettings.set("ai_file_generation", "true" if validated["file_generation"] else "false", user=None)   # always global
+    AISetting.set("ai_validate_mode", validated["validate_mode"], user=user)
+    AISetting.set("ai_pipeline_debug", "true" if validated["pipeline_debug"] else "false", user=user)
+    AISetting.set("ai_direct_answers", "true" if validated["direct_answers"] else "false", user=user)
+    AISetting.set("ai_investigator_mode", validated["investigator_mode"], user=user)
+    AISetting.set("ai_trace_recording", "true" if validated["trace_recording"] else "false", user=None)   # always global
+    AISetting.set("ai_code_access", "true" if validated["code_access"] else "false", user=None)   # always global
+    AISetting.set("ai_file_generation", "true" if validated["file_generation"] else "false", user=None)   # always global
     for domain, key in DOMAIN_KEYS.items():
-        AppSettings.set(key, "true" if validated["domains"][domain] else "false", user=None)   # always global (sysadmin)
+        AISetting.set(key, "true" if validated["domains"][domain] else "false", user=None)   # always global (sysadmin)
     for key, value in validated["file_limits"].items():
-        AppSettings.set(key, str(value), user=None)
+        AISetting.set(key, str(value), user=None)

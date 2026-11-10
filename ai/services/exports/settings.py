@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from core.models import AppSettings
+from ai.models import AISetting
 
 DEFAULTS = {"ai_file_generation": "true", "ai_file_max_mb": 10, "ai_file_max_rows": 50000}
 LIMITS = {"ai_file_max_mb": (1, 50), "ai_file_max_rows": (100, 200000)}
@@ -24,13 +24,13 @@ class ExportSettings:
 def _number(key: str) -> int:
     low, high = LIMITS[key]
     try:
-        return max(low, min(high, int(float(str(AppSettings.get(key, str(DEFAULTS[key]), user=None))))))
+        return max(low, min(high, int(float(str(AISetting.get(key, str(DEFAULTS[key]), user=None))))))
     except ValueError:
         return DEFAULTS[key]
 
 
 def get_settings() -> ExportSettings:
-    enabled = str(AppSettings.get("ai_file_generation", DEFAULTS["ai_file_generation"], user=None) or "true").strip().lower() not in _OFF
+    enabled = str(AISetting.get("ai_file_generation", DEFAULTS["ai_file_generation"], user=None) or "true").strip().lower() not in _OFF
     return ExportSettings(enabled, _number("ai_file_max_mb") * 1024 * 1024, _number("ai_file_max_rows"))
 
 

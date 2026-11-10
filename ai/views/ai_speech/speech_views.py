@@ -4,7 +4,7 @@ import json
 import logging
 from django.http import JsonResponse, HttpResponse
 from django.views import View
-from core.views.auth_views import PermissionRequiredMixin
+from ai.views.mixins import PermissionRequiredMixin
 from ai.services.speech import (
     get_speech_config, transcribe_audio, synthesize_speech, has_speakable_text,
     tts_available, speech_runtime_enabled,

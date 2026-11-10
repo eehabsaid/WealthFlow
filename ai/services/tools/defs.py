@@ -11,16 +11,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from ai.services.tools.defs_scenario import SCENARIO_TOOL_DEFS
-from ai.services.tools.defs_whatif import WHATIF_TOOL_DEFS
 from ai.services.tools.defs_app import APP_TOOL_DEFS
 from ai.services.exports.tool import NAME as FILE_TOOL_NAME, TOOL_DEF as FILE_TOOL_DEF
 from ai.services.image_generation.tool import NAME as IMAGE_TOOL_NAME, TOOL_DEF as IMAGE_TOOL_DEF
 from ai.services.investigation.defs import INVESTIGATION_TOOL_DEFS
 from ai.services.memory.commands import MEMORY_TOOL_DEFS
-from ai.services.actions.tool import NAME as ACTION_TOOL_NAME, TOOL_DEF as ACTION_TOOL_DEF, CHART_NAME, CHART_TOOL_DEF
 
-AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {**SCENARIO_TOOL_DEFS, **WHATIF_TOOL_DEFS, **APP_TOOL_DEFS, **INVESTIGATION_TOOL_DEFS, FILE_TOOL_NAME: FILE_TOOL_DEF, **MEMORY_TOOL_DEFS, ACTION_TOOL_NAME: ACTION_TOOL_DEF, CHART_NAME: CHART_TOOL_DEF,
+AI_TOOL_REGISTRY: dict[str, dict[str, Any]] = {**APP_TOOL_DEFS, **INVESTIGATION_TOOL_DEFS, FILE_TOOL_NAME: FILE_TOOL_DEF, **MEMORY_TOOL_DEFS,
                                           IMAGE_TOOL_NAME: IMAGE_TOOL_DEF}
 
 

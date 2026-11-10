@@ -3,11 +3,12 @@ Unit tests for AI Prompt Library models, services, serializers, and REST API end
 """
 
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 from ai.models.ai_prompt import AIPromptCategory
 from ai.services import AIPromptService
-from core.tests.billing.test_support import grant_ai_workspace_access
+from ai.tests.support import grant_ai_workspace_access
 
 class AIPromptApiTest(TestCase):
     def setUp(self):

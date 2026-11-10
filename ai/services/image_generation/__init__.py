@@ -1,6 +1,6 @@
 """Configurable AI image generation: a provider-independent `generate_image` tool (text-to-image and image editing).
 
-  settings.py    the five AppSettings fields (enabled, provider, model, endpoint, api_key) and the availability check
+  settings.py    the five AISetting fields (enabled, provider, model, endpoint, api_key) and the availability check
   providers/     the provider interface, registry and the ComfyUI provider (workflow templates are JSON data files)
   service.py     generate_image(): provider call + saving; test_connection() for the settings page
   storage.py     images are stored as AIAttachment rows (owner-scoped) and linked to the answer that made them

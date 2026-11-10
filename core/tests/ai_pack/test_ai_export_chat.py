@@ -2,6 +2,7 @@
 follow-ups, the download endpoint's ownership rules, and the chat's link rendering."""
 
 import shutil
+from ai.models import AISetting
 import subprocess
 from io import BytesIO
 from pathlib import Path
@@ -13,7 +14,6 @@ from docx import Document
 from openpyxl import load_workbook
 
 from ai.integrations.ai_provider import OllamaProvider
-from core.models import AppSettings
 from ai.models.ai_message import AIMessage
 from core.tests.billing.test_support import grant_ai_workspace_access
 import core.tests.ai_pack.qe_fixtures as fx
@@ -158,7 +158,7 @@ class ChatExportTests(TestCase):
 
     def test_model_path_gets_the_same_links_and_a_notice(self):
         """Direct Answers OFF: the model answers; the app still attaches the links and tells the model it will."""
-        AppSettings.set("ai_direct_answers", "false")
+        AISetting.set("ai_direct_answers", "false")
         prov = MagicMock()
         prov.supports_tools = False
         answer = "| Idea | Saved |\n|---|---|\n| Cancel unused subscriptions | 87,643.86 EGP |"

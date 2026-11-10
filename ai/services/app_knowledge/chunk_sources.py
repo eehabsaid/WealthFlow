@@ -12,7 +12,7 @@ from typing import Any
 
 from django.conf import settings
 
-from ai.services.app_knowledge.data_flows import FILE_NAME
+from ai.services.app_knowledge.constants import FILE_NAME
 
 MAX_CHUNK_CHARS = 700
 # the assistant's own plumbing is noise for "how do I use the app" questions
@@ -99,7 +99,8 @@ _AI_SKIP = frozenset({"dev_agent", "training", "doc_engine", "knowledge", "stati
 
 def _code_dirs(base: Path):
     """(folder, files) under core/ and under the ai/ app code (not its separate sub-projects)."""
-    for top in ("core", "ai"):
+    from ai.conf import code_scan_roots
+    for top in code_scan_roots():
         for root, dirs, files in os.walk(base / top):
             if top == "ai" and Path(root) == base / top:
                 dirs[:] = [d for d in dirs if d not in _AI_SKIP]

@@ -63,7 +63,7 @@ def _consume(response, result: dict[str, Any], on_text, model: str) -> bool:
 
 def generate_stream(provider, messages: list[dict[str, Any]], tools=None, on_text: Callable[[str], None] | None = None,
                     **kwargs: Any) -> dict[str, Any]:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
     model = str(kwargs.get("model") or provider.model or "").strip()
     payload: dict[str, Any] = {
@@ -76,7 +76,7 @@ def generate_stream(provider, messages: list[dict[str, Any]], tools=None, on_tex
         payload["options"] = options
     if tools:
         payload["tools"] = tools
-    keep_alive = provider.user_options.get("keep_alive") or AppSettings.get("ai_keep_alive", None)
+    keep_alive = provider.user_options.get("keep_alive") or AISetting.get("ai_keep_alive", None)
     apply_runtime_flags(payload, model, keep_alive, think_setting(), kwargs.get("reasoning"))
     timeout = int(kwargs.get("timeout") or max(provider.timeout, 180))
     result: dict[str, Any] = {

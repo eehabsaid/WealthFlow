@@ -7,7 +7,7 @@ core/views/settings/__init__.py accordingly."""
 from django.http import JsonResponse
 from django.views import View
 
-from core.views.auth_views import AdminRequiredMixin
+from ai.views.mixins import AdminRequiredMixin
 from ai.integrations.ai_provider import AVAILABLE_AI_PROVIDERS
 
 

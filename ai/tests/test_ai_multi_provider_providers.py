@@ -24,7 +24,7 @@ from ai.integrations.ai_provider import (
     get_active_ai_provider,
 )
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.models.ai_message import AIMessage
 from ai.services.credential_encryption import (
     encrypt_credential,
@@ -32,7 +32,7 @@ from ai.services.credential_encryption import (
 
 class AIProviderClassesTests(TestCase):
     def setUp(self):
-        AppSettings.objects.all().delete()
+        AISetting.objects.all().delete()
 
     def test_available_providers_registry(self):
         self.assertCountEqual(
@@ -42,14 +42,14 @@ class AIProviderClassesTests(TestCase):
 
     def test_get_active_ai_provider_factory(self):
         # AI disabled -> None
-        AppSettings.set("ai_enabled", "false")
+        AISetting.set("ai_enabled", "false")
         self.assertIsNone(get_active_ai_provider())
 
         # Enable OpenAI
-        AppSettings.set("ai_enabled", "true")
-        AppSettings.set("ai_provider", "openai")
-        AppSettings.set("ai_openai_api_key", encrypt_credential("sk-test12345"))
-        AppSettings.set("ai_openai_model", "gpt-4o")
+        AISetting.set("ai_enabled", "true")
+        AISetting.set("ai_provider", "openai")
+        AISetting.set("ai_openai_api_key", encrypt_credential("sk-test12345"))
+        AISetting.set("ai_openai_model", "gpt-4o")
 
         provider = get_active_ai_provider()
         self.assertIsInstance(provider, OpenAIProvider)

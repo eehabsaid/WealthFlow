@@ -5,6 +5,7 @@ tool that builds a file from a database query (no 100-row cap, owner isolation),
 entry, give-up phrases that hand over to the investigator, and code files."""
 
 import datetime
+from ai.models import AISetting
 import re
 from decimal import Decimal
 from io import BytesIO
@@ -14,7 +15,7 @@ from django.test import TestCase
 from openpyxl import load_workbook
 
 from ai.integrations.ai_provider import OllamaProvider
-from core.models import AppSettings, AuthAuditLog, Expense
+from core.models import AuthAuditLog, Expense
 from ai.services.exports import requested
 from ai.services.tools import get_registered_tool_schemas
 import core.tests.ai_pack.qe_fixtures as fx
@@ -53,7 +54,7 @@ class FullDataTests(TestCase):
     def test_instant_answers_off_still_answers_an_export_request_without_the_model(self):
         """Export is its own feature: the exact table + file come from the router with 0 LLM calls, whatever the switch says."""
         bulk_expenses(self.user, self.category, 60)
-        AppSettings.set("ai_direct_answers", "false")
+        AISetting.set("ai_direct_answers", "false")
         with patch.object(OllamaProvider, "generate", side_effect=AssertionError("LLM must not be called")):
             data = fx.ask(self, "list my expenses for June 2026 and export it to excel", conversation=False)
         rows = grid(self.client.get(URL.format(id=data["message"]["id"], fmt="xlsx")))
@@ -63,7 +64,7 @@ class FullDataTests(TestCase):
     def test_follow_up_export_of_a_model_answer_is_rebuilt_from_the_database(self):
         """Direct Answers OFF: the model wrote a shortened table; 'export it to excel' still yields every row."""
         bulk_expenses(self.user, self.category, 60)
-        AppSettings.set("ai_direct_answers", "false")
+        AISetting.set("ai_direct_answers", "false")
         prov = MagicMock()
         prov.supports_tools = False
         prov.generate.side_effect = [{"content": "| Date | Description | Amount |\n|---|---|---|\n| 2026-06-01 | bulk 0 | 1.00 EGP |", "tool_calls": None, "error": None}] * 3
@@ -79,7 +80,7 @@ class FullDataTests(TestCase):
 
     def test_row_limit_setting_caps_the_file_and_says_so(self):
         bulk_expenses(self.user, self.category, 450)
-        AppSettings.set("ai_file_max_rows", "100")
+        AISetting.set("ai_file_max_rows", "100")
         msg = self.ask("list my expenses for June 2026 and export to excel")
         rows = grid(self.client.get(URL.format(id=msg["id"], fmt="xlsx")))
         self.assertEqual(len([r for r in rows if r[0] == "Jun 2026"]), 100)
@@ -88,7 +89,7 @@ class FullDataTests(TestCase):
     def test_switch_off_removes_links_downloads_and_tool(self):
         msg = self.ask("list my expenses for 2026 and export to excel")
         self.assertTrue(LINK.search(msg["content"]))
-        AppSettings.set("ai_file_generation", "false")
+        AISetting.set("ai_file_generation", "false")
         self.assertEqual(self.client.get(URL.format(id=msg["id"], fmt="xlsx")).status_code, 404)
         self.assertFalse(LINK.search(self.ask("list my expenses for 2026 and export to excel")["content"]))
         self.assertEqual(requested("export to excel"), [])
@@ -97,7 +98,7 @@ class FullDataTests(TestCase):
     def test_size_limit_answers_413(self):
         bulk_expenses(self.user, self.category, 300)
         msg = self.ask("list my expenses for June 2026 and export to pdf")
-        AppSettings.set("ai_file_max_mb", "1")
+        AISetting.set("ai_file_max_mb", "1")
         with patch("ai.views.ai_chat.ai_export_views.build_file", return_value=(b"x" * (1024 * 1024 + 1), "a.pdf")):
             self.assertEqual(self.client.get(URL.format(id=msg["id"], fmt="pdf")).status_code, 413)
 

@@ -30,13 +30,12 @@ OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file
 
 def pick_user(username: str = ""):
     """The named user, else the first sysadmin of the app, else the first Django superuser."""
-    from core.models import UserProfile
+    from ai.host import user_is_sysadmin
 
     users = get_user_model().objects
     if username:
         return users.get(username=username)
-    profile = UserProfile.objects.filter(is_sysadmin=True).select_related("user").order_by("id").first()
-    user = profile.user if profile else users.filter(is_superuser=True).order_by("id").first()
+    user = next((u for u in users.order_by("id") if user_is_sysadmin(u)), None) or users.filter(is_superuser=True).order_by("id").first()
     if user is None:
         raise LookupError("No sysadmin or superuser found; pass --user <username>")
     return user
@@ -75,9 +74,9 @@ def collect(user, *, limit: int, seed, fresh: bool, attempts: int, log) -> dict:
 
 
 def current_model() -> str:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    return str(AppSettings.get("ai_model", "", user=None) or "").strip()
+    return str(AISetting.get("ai_model", "", user=None) or "").strip()
 
 
 def train_and_register(user, *, dry_run: bool, fresh: bool, min_traces, log) -> dict:

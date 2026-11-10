@@ -5,6 +5,7 @@ ai/views/ai_chat/ai_chat_core_views/__init__.py. Uses a mocked/fake
 provider throughout — never a live model call."""
 
 from unittest.mock import patch
+from ai.models import AISetting
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -46,7 +47,7 @@ class OrchestratorTest(TestCase):
         step2 = '{"goal_met": true, "final_answer": "done"}'
         provider = FakeProvider([step1, step2])
         with patch(
-            "ai.services.orchestration.agents.advisor_agent.get_financial_advisor_payload",
+            "core.ai_pack.agents.advisor_agent.get_financial_advisor_payload",
             return_value={"total": 100},
         ):
             orch = Orchestrator(provider)
@@ -130,14 +131,14 @@ class AIChatViewMultiAgentToggleTest(TestCase):
         self.client.force_login(self.user)
 
     def test_disabled_by_default(self):
-        from core.models import AppSettings
+        pass
 
-        self.assertEqual(AppSettings.get("ai_multi_agent_enabled", "false"), "false")
+        self.assertEqual(AISetting.get("ai_multi_agent_enabled", "false"), "false")
 
     def test_enabled_setting_routes_to_orchestrator(self):
-        from core.models import AppSettings
+        pass
 
-        AppSettings.set("ai_multi_agent_enabled", "true")
+        AISetting.set("ai_multi_agent_enabled", "true")
         fake_provider = FakeProvider(['{"goal_met": true, "final_answer": "orchestrated answer"}'])
 
         with patch(

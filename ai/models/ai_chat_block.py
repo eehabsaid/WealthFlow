@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.db import models
 
 
@@ -15,7 +15,7 @@ class AIChatBlock(models.Model):
     STATUS_FAILED = "failed"
     STATUS_READY = "ready"
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ai_chat_blocks")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ai_chat_blocks")
     message = models.ForeignKey("AIMessage", on_delete=models.CASCADE, null=True, blank=True, related_name="blocks")
     kind = models.CharField(max_length=20)
     status = models.CharField(max_length=20, default="ready")

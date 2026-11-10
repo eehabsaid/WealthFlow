@@ -9,16 +9,17 @@ import os
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.test import tag
 
-from core.authentication.services import AuthWorkflowService
-from core.constants.ai_user_settings import USER_LIMIT_KEY, USE_GENERAL_KEY
-from core.models import AppSettings
+from ai.constants import USER_LIMIT_KEY, USE_GENERAL_KEY
+from ai.models import AISetting
 from ai.tests.live_boot import PageDiagnostics, first_load, scale_timeouts, wait_for_rows
-from core.tests.billing.test_support import grant_ai_workspace_access
+from ai.tests.support import grant_ai_workspace_access, make_sysadmin
 
 User = get_user_model()
 
 
+@tag("requires_host_ui")
 class AILimitsPanelLiveTests(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
@@ -42,12 +43,10 @@ class AILimitsPanelLiveTests(StaticLiveServerTestCase):
 
     def setUp(self):
         self.admin = User.objects.create_user(username="limits_admin", password="pw123456", is_staff=True)
-        profile = AuthWorkflowService.get_profile(self.admin)
-        profile.is_sysadmin = True
-        profile.save(update_fields=["is_sysadmin"])
+        make_sysadmin(self.admin)
         grant_ai_workspace_access(self.admin)   # /api/ai-platform/* is subscription-gated
         self.users = [User.objects.create_user(username=f"lim_user_{i}", password="pw123456", email=f"u{i}@x.io") for i in range(7)]
-        AppSettings.set(USE_GENERAL_KEY, "false", user=self.users[6])      # one user on own settings
+        AISetting.set(USE_GENERAL_KEY, "false", user=self.users[6])      # one user on own settings
         self.client.force_login(self.admin)
         ctx = self._browser.new_context(viewport={"width": 1400, "height": 1000})
         ctx.add_cookies([{"name": settings.SESSION_COOKIE_NAME, "value": self.client.cookies[settings.SESSION_COOKIE_NAME].value,
@@ -120,11 +119,11 @@ class AILimitsPanelLiveTests(StaticLiveServerTestCase):
             p.click("#aiLimitsBulkApply")
         p.wait_for_function("() => document.getElementById('aiLimitsSelectedCount').textContent.startsWith('0')")
         for u in self.users[:6] + [self.admin]:
-            self.assertEqual(AppSettings.objects.get(key=USER_LIMIT_KEY, owner=u).value, "4242", u.username)
-        self.assertFalse(AppSettings.objects.filter(key=USER_LIMIT_KEY, owner=self.users[6]).exists())   # own-settings user untouched
+            self.assertEqual(AISetting.objects.get(key=USER_LIMIT_KEY, owner=u).value, "4242", u.username)
+        self.assertFalse(AISetting.objects.filter(key=USER_LIMIT_KEY, owner=self.users[6]).exists())   # own-settings user untouched
         # single selection + blank value clears the override again
         p.fill("#aiLimitsSearch", "lim_user_2")
         p.click("#aiLimitsToggleAll")
         p.click("#aiLimitsBulkApply")
         p.wait_for_function("() => document.getElementById('aiLimitsSelectedCount').textContent.startsWith('0')")
-        self.assertFalse(AppSettings.objects.filter(key=USER_LIMIT_KEY, owner=self.users[2]).exists())
+        self.assertFalse(AISetting.objects.filter(key=USER_LIMIT_KEY, owner=self.users[2]).exists())

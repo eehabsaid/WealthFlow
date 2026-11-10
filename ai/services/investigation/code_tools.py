@@ -1,6 +1,6 @@
 """Read-only source-code tools for the AI investigator: list, find, grep, find-definition, read.
 
-Sysadmin only (the code is the product, not the customer's data) and switchable with AppSettings `ai_code_access`.
+Sysadmin only (the code is the product, not the customer's data) and switchable with AISetting `ai_code_access`.
 Every handler is `handler(user, params) -> dict`; failures are returned as {"error": ...} with a hint on what to try next,
 so the model can correct itself instead of giving up.
 """
@@ -10,7 +10,7 @@ from __future__ import annotations
 import fnmatch
 import re
 
-from core.models import AppSettings
+from ai.models import AISetting
 
 from ai.services.investigation import paths
 
@@ -23,9 +23,9 @@ NO_ACCESS = ("Source-code access is limited to the system administrator. Use app
 def code_access_allowed(user) -> bool:
     """Source-code tools: only an app sysadmin (profile.is_sysadmin, NOT Django's is_superuser) and only while the
     global ai_code_access switch is on (default on)."""
-    from core.authentication.utils.auth_utils import user_is_sysadmin
+    from ai.host import user_is_sysadmin
 
-    on = str(AppSettings.get("ai_code_access", "true", user=None) or "true").strip().lower() not in ("false", "0", "no", "off")
+    on = str(AISetting.get("ai_code_access", "true", user=None) or "true").strip().lower() not in ("false", "0", "no", "off")
     return bool(on and user_is_sysadmin(user))
 
 

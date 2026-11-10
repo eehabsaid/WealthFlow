@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from core.integrations.provider_utils import make_json_http_request
+from ai.integrations.http import make_json_http_request
 from ai.services.credential_encryption import redact_secrets
 
 

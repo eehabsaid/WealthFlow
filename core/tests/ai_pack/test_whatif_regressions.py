@@ -8,12 +8,13 @@ Regression tests for the four What-if follow-up fixes:
 """
 
 from __future__ import annotations
+from ai.models import AISetting
 
 from decimal import Decimal
 
 from django.test import TestCase
 
-from core.models import AppSettings, Goal, SalaryEntry
+from core.models import Goal, SalaryEntry
 from ai.services.tools import validate_and_execute_tool
 from core.tests.ai_pack.investigation.support import make_user, seed_tenant
 
@@ -24,7 +25,7 @@ def _data(res: dict) -> dict:
 
 class WhatIfRegressionTest(TestCase):
     def setUp(self):
-        AppSettings.set("ai_read_only", "false")
+        AISetting.set("ai_read_only", "false")
         self.user = make_user("whatif_reg")
         tenant = seed_tenant(self.user, "RG", expenses=3)
         self.currency = tenant["currency"]

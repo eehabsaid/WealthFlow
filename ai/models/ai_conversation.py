@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from datetime import date, datetime
 
 
@@ -13,7 +13,7 @@ def _date_to_iso(value):
 
 class AIConversation(models.Model):
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="ai_conversations",
         null=True,

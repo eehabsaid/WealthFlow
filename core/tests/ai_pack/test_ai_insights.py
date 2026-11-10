@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from core.models import Budget, Company, Currency, Expense, SalaryEntry
-from ai.services.insights import compute_insights
+from core.ai_pack.insights import compute_insights
 from core.tests.billing.test_support import grant_ai_workspace_access
 
 User = get_user_model()

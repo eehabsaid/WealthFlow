@@ -8,6 +8,8 @@ import ast
 import importlib
 import inspect
 import re
+
+from ai.conf import host_module_prefixes
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -44,7 +46,7 @@ def _first_paragraph(text: str) -> str:
 
 def _params(view) -> tuple:
     try:
-        parts = [inspect.getsource(c) for c in view.__mro__ if c.__module__.startswith("core.")]
+        parts = [inspect.getsource(c) for c in view.__mro__ if c.__module__.startswith(host_module_prefixes())]
         module = inspect.getmodule(view)
         parts += [inspect.getsource(f) for _, f in inspect.getmembers(module, inspect.isfunction)
                   if f.__module__ == module.__name__ and "request" in inspect.signature(f).parameters]
@@ -78,7 +80,7 @@ def _choices(view, name: str) -> tuple:
     the core modules it uses: the values a model may pass."""
     module = inspect.getmodule(view)
     mods = {module.__name__} | {m.__module__ for _, m in inspect.getmembers(module, lambda o: inspect.isfunction(o) or inspect.isclass(o))
-                                if str(getattr(m, "__module__", "")).startswith("core.")}
+                                if str(getattr(m, "__module__", "")).startswith(host_module_prefixes())}
     seen: list[str] = []
     for mod in sorted(mods):
         for line in _module_text(mod).splitlines():

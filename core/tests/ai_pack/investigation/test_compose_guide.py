@@ -2,12 +2,12 @@
 model's context window, and a section the model cannot write is filled from the app's own screen list."""
 
 from __future__ import annotations
+from ai.models import AISetting
 
 import re
 
 from django.test import TestCase
 
-from core.models import AppSettings
 from ai.services.app_pages import app_pages
 from ai.services.investigation.compose_flatten import STYLE_RULE
 from ai.services.investigation.compose_sections import units
@@ -59,7 +59,7 @@ def tab_names(user):
 
 
 def user_ok(user, page):
-    from core.authentication.utils.auth_utils import user_is_sysadmin
+    from ai.host import user_is_sysadmin
 
     return user_is_sysadmin(user) or not page.get("admin_only")
 
@@ -129,7 +129,7 @@ class GuideTest(TestCase):
         self.assertFalse([c for c in prov.calls if "Write ONLY this section" in c["ask"]])   # no model time left: all from the app itself
 
     def test_the_editable_instructions_are_what_the_model_is_told(self):
-        AppSettings.set("ai_document_instructions", "CUSTOM RULE: write in short bullet points.", user=None)
+        AISetting.set("ai_document_instructions", "CUSTOM RULE: write in short bullet points.", user=None)
         prov = GuideProvider()
         self.run_guide(self.member, prov)
         sections = [c for c in prov.calls if "Write ONLY this section" in c["ask"]]

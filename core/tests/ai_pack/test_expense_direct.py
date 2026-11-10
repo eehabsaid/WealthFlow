@@ -1,4 +1,5 @@
 import json
+from ai.models import AISetting
 from datetime import date
 from unittest.mock import patch
 
@@ -6,8 +7,8 @@ from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 
 from ai.integrations.ai_provider import OllamaProvider
-from core.models import AppSettings, Expense, ExpenseCategory
-from ai.services.expense_direct import match_expense_intent
+from core.models import Expense, ExpenseCategory
+from core.ai_pack.direct.expense_direct import match_expense_intent
 from ai.services.period_parser import find_periods
 from core.tests.billing.test_support import grant_ai_workspace_access
 
@@ -59,8 +60,8 @@ class ExpenseDirectChatTests(TestCase):
                                        amount=amt, amount_base=amt, description=desc)
         Expense.objects.create(owner=self.user, category=Expense.objects.filter(owner=self.user).first().category,
                                date=date(2026, 8, 5), year=2026, month=8, amount="999.00", amount_base="999.00")
-        AppSettings.set("ai_enabled", "true")
-        AppSettings.set("ai_provider", "ollama")
+        AISetting.set("ai_enabled", "true")
+        AISetting.set("ai_provider", "ollama")
         self.client.force_login(self.user)
 
     def _post(self, text):

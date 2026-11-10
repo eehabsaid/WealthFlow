@@ -18,7 +18,7 @@ from django.conf import settings
 GLOBAL_MODELS = frozenset({"ExchangeRate", "ExchangeRateHistory", "GoldPrice", "GoldPriceHistory", "Plan"})
 MODEL_ALIASES = {"certificate": "BankCertificate"}
 DENIED_MODELS = frozenset({
-    "AppSettings", "AuthToken", "AuthAuditLog", "PagePermission", "Role", "RolePermission", "UserRole", "UserProfile",
+    "AISetting", "AppSettings", "AuthToken", "AuthAuditLog", "PagePermission", "Role", "RolePermission", "UserRole", "UserProfile",
     "EmailTemplate", "DocumentationExecution", "Document", "LegalVersion", "PlanPrice",
 })
 DENIED_PREFIXES = ("AI",)          # chat history, prompts, knowledge, model versions, benchmark reports
@@ -70,7 +70,9 @@ def _scope_path(model, core: set) -> str | None:
 @lru_cache(maxsize=1)
 def catalog() -> dict:
     """{ModelName: ModelInfo} for every queryable model."""
-    core = set(apps.get_app_config("core").get_models())
+    from ai.conf import host_apps
+
+    core = {m for label in host_apps() for m in apps.get_app_config(label).get_models()}
     out = {}
     for model in sorted(core, key=lambda m: m.__name__):
         name = model.__name__

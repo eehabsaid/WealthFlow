@@ -1,4 +1,5 @@
 import json
+from ai.models import AISetting
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -22,7 +23,7 @@ class SettingsAccessTests(TestCase):
         AppSettings.set("smtp_host", "smtp.example.com")
         AppSettings.set("smtp_username", "mailer")
         AppSettings.set("smtp_password", "hunter2")
-        AppSettings.set("ai_openai_api_key", "sk-secret")
+        AISetting.set("ai_openai_api_key", "sk-secret")
         AppSettings.set("paymob_api_key", "pm-secret")
         AppSettings.set("paymob_hmac_secret", "hmac-secret")
         AppSettings.set("available_languages", '[{"code": "en"}]')

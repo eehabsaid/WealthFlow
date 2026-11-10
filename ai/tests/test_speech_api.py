@@ -6,7 +6,7 @@ import io
 import wave
 from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.speech import get_speech_config, save_speech_settings
 from ai.services.speech.client import transcribe_audio
 from ai.services.speech.tts import (
@@ -17,7 +17,7 @@ from ai.services.speech.tts import (
 @override_settings(DEBUG=True)
 class SpeechSettingsTests(TestCase):
     def tearDown(self):
-        AppSettings.objects.filter(owner=None, key__startswith="speech_").delete()
+        AISetting.objects.filter(owner=None, key__startswith="speech_").delete()
 
     def test_speech_features_are_disabled_by_default(self):
         self.assertFalse(get_speech_config("stt")["enabled"])
@@ -30,7 +30,7 @@ class SpeechSettingsTests(TestCase):
             "speech_stt_model": "asr-model", "speech_stt_api_key": "secret-token",
             "speech_stt_timeout": 45,
         })
-        stored = AppSettings.get("speech_stt_api_key")
+        stored = AISetting.get("speech_stt_api_key")
         self.assertTrue(stored.startswith("enc:"))
         self.assertNotIn("secret-token", stored)
         config = get_speech_config("stt")
@@ -41,7 +41,7 @@ class SpeechSettingsTests(TestCase):
     def test_enabling_requires_endpoint_and_model(self):
         with self.assertRaisesMessage(ValueError, "Configure the STT endpoint and model"):
             save_speech_settings({"speech_stt_enabled": True})
-        self.assertFalse(AppSettings.objects.filter(key="speech_stt_enabled", owner=None).exists())
+        self.assertFalse(AISetting.objects.filter(key="speech_stt_enabled", owner=None).exists())
 
 
     def test_endpoint_diagnostics_are_sysadmin_only(self):

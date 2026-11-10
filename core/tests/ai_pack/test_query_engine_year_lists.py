@@ -7,7 +7,7 @@ from django.test import SimpleTestCase, TestCase
 from core.models import Company, SalaryEntry
 from ai.services.query_engine.lexicon import norm
 from ai.services.query_engine.timespec import parse_time
-from ai.services.tools.salary_answers import MAX_YEAR_ENTRIES, SALARY_INSTRUCTIONS, add_salary_answers
+from core.ai_pack.tools.salary_answers import MAX_YEAR_ENTRIES, SALARY_INSTRUCTIONS, add_salary_answers
 import core.tests.ai_pack.qe_fixtures as fx
 
 

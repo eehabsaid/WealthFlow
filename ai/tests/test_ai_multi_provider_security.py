@@ -12,14 +12,17 @@ Covers:
 """
 
 import json
+from ai.tests.support import make_sysadmin
 import os
 from unittest.mock import patch
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 from django.test import TestCase
 
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.credential_encryption import (
     decrypt_credential,
     encrypt_credential,
@@ -32,7 +35,7 @@ from ai.services.credential_encryption import (
 
 class AICredentialEncryptionTests(TestCase):
     def setUp(self):
-        AppSettings.objects.all().delete()
+        AISetting.objects.all().delete()
 
     def test_key_derivation_fallback_and_custom_env(self):
         # Default key derived from SECRET_KEY
@@ -72,12 +75,9 @@ class AICredentialEncryptionTests(TestCase):
 
 class AIMultiProviderSettingsApiTests(TestCase):
     def setUp(self):
-        AppSettings.objects.all().delete()
+        AISetting.objects.all().delete()
         self.admin = User.objects.create_superuser(username="admin", password="password")
-        from core.authentication.services import AuthWorkflowService
-        profile = AuthWorkflowService.get_profile(self.admin)
-        profile.is_sysadmin = True
-        profile.save(update_fields=["is_sysadmin"])
+        make_sysadmin(self.admin)
         self.client.force_login(self.admin)
 
     @patch("ai.integrations.openai_provider.make_json_http_request")
@@ -94,7 +94,7 @@ class AIMultiProviderSettingsApiTests(TestCase):
         self.assertEqual(resp.status_code, 200)
 
         # 1. Assert DB stores ciphertext, NOT raw plaintext
-        db_raw_val = AppSettings.get("ai_openai_api_key", "", user=self.admin).strip()
+        db_raw_val = AISetting.get("ai_openai_api_key", "", user=self.admin).strip()
         self.assertTrue(db_raw_val.startswith("enc:"))
         self.assertNotIn(raw_openai_key, db_raw_val)
 
@@ -114,8 +114,8 @@ class AIMultiProviderSettingsApiTests(TestCase):
         mock_http.return_value = ({"data": [{"id": "gpt-4o"}]}, 200, None)
         raw_key = "sk-proj-origsecretkey999"
         enc_val_initial = encrypt_credential(raw_key)
-        AppSettings.set("ai_openai_api_key", enc_val_initial)
-        AppSettings.set("ai_provider", "openai")
+        AISetting.set("ai_openai_api_key", enc_val_initial)
+        AISetting.set("ai_provider", "openai")
 
         # GET API returns masked value '••••y999'
         get_resp = self.client.get("/api/settings/ai/")
@@ -132,8 +132,8 @@ class AIMultiProviderSettingsApiTests(TestCase):
         post_resp = self.client.post("/api/settings/ai/", data=json.dumps(resubmit_payload), content_type="application/json")
         self.assertEqual(post_resp.status_code, 200)
 
-        # CRITICAL ASSERTION: Ciphertext stored in AppSettings must be BYTE-IDENTICAL to before!
-        db_val_after = AppSettings.get("ai_openai_api_key", "", user=self.admin).strip()
+        # CRITICAL ASSERTION: Ciphertext stored in AISetting must be BYTE-IDENTICAL to before!
+        db_val_after = AISetting.get("ai_openai_api_key", "", user=self.admin).strip()
         self.assertEqual(db_val_after, enc_val_initial)
         self.assertEqual(decrypt_credential(db_val_after), raw_key)
 

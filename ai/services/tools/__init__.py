@@ -36,11 +36,6 @@ __all__ = [
     "_handle_query_application_data",
     "_handle_suggest_app_feature",
     "_handle_read_application_codebase",
-    "_handle_create_scenario",
-    "_handle_compare_scenarios",
-    "_handle_summarize_report",
-    "_handle_explain_chart",
-    "_handle_suggest_optimizations",
 ]
 
 # Re-exported for backward-compatible public API.
@@ -62,11 +57,4 @@ from ai.services.tools.data_codebase import (  # noqa: F401
     _handle_query_application_data,
     _handle_suggest_app_feature,
     _handle_read_application_codebase,
-)
-from ai.services.tools.scenario import (  # noqa: F401
-    _handle_create_scenario,
-    _handle_compare_scenarios,
-    _handle_summarize_report,
-    _handle_explain_chart,
-    _handle_suggest_optimizations,
 )

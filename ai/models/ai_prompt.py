@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
 
 class AIPromptCategory(models.Model):
@@ -28,7 +28,7 @@ class AIPrompt(models.Model):
     Centralized reusable prompt entity for WealthFlow AI Workspace.
     """
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

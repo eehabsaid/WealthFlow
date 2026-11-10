@@ -43,10 +43,10 @@ def _extract_json(text: str) -> dict | None:
 
 
 def _budget_chars(user: Any) -> int:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
     try:
-        return max(1000, int(AppSettings.get("ai_context_token_budget", "2048", user=user))) * 4
+        return max(1000, int(AISetting.get("ai_context_token_budget", "2048", user=user))) * 4
     except (TypeError, ValueError):
         return 2048 * 4
 

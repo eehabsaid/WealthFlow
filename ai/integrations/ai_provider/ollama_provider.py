@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Optional
 
-from core.integrations.provider_utils import make_json_http_request
+from ai.integrations.http import make_json_http_request
 from ai.services.ai_defaults import DEFAULT_OLLAMA_MODEL
 from ai.services.credential_encryption import redact_secrets
 
@@ -49,12 +49,12 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
 
     @classmethod
     def from_settings(cls, user=None) -> Optional["OllamaProvider"]:
-        from core.models import AppSettings
+        from ai.models import AISetting
 
-        base_url = AppSettings.get("ai_ollama_url", "http://localhost:11434", user=user).strip()
-        model = AppSettings.get("ai_model", DEFAULT_OLLAMA_MODEL, user=user).strip()
+        base_url = AISetting.get("ai_ollama_url", "http://localhost:11434", user=user).strip()
+        model = AISetting.get("ai_model", DEFAULT_OLLAMA_MODEL, user=user).strip()
         try:
-            timeout = int(AppSettings.get("ai_timeout", "60", user=user))
+            timeout = int(AISetting.get("ai_timeout", "60", user=user))
         except (ValueError, TypeError):
             timeout = 60
 
@@ -62,14 +62,14 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
         # Per-user generation options (the Settings page saves these with owner=user;
         # generate() previously read only the global owner=None row and ignored them).
         inst.user_options = {
-            "context_size": AppSettings.get("ai_context_size", None, user=user),
-            "temperature": AppSettings.get("ai_temperature", None, user=user),
-            "max_tokens": AppSettings.get("ai_max_tokens", None, user=user),
-            "keep_alive": AppSettings.get("ai_keep_alive", None, user=user),
-            "top_k": AppSettings.get("ai_top_k", None, user=user),
-            "top_p": AppSettings.get("ai_top_p", None, user=user),
-            "repeat_penalty": AppSettings.get("ai_repeat_penalty", None, user=user),
-            "seed": AppSettings.get("ai_seed", None, user=user),
+            "context_size": AISetting.get("ai_context_size", None, user=user),
+            "temperature": AISetting.get("ai_temperature", None, user=user),
+            "max_tokens": AISetting.get("ai_max_tokens", None, user=user),
+            "keep_alive": AISetting.get("ai_keep_alive", None, user=user),
+            "top_k": AISetting.get("ai_top_k", None, user=user),
+            "top_p": AISetting.get("ai_top_p", None, user=user),
+            "repeat_penalty": AISetting.get("ai_repeat_penalty", None, user=user),
+            "seed": AISetting.get("ai_seed", None, user=user),
         }
         return inst
 
@@ -115,7 +115,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
         tools: list[dict[str, Any]] | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        from core.models import AppSettings
+        from ai.models import AISetting
 
         chat_url = f"{self.base_url}/api/chat"
         model_name = str(kwargs.get("model") or self.model or "").strip()
@@ -133,7 +133,7 @@ class OllamaProvider(OllamaConnectionMixin, BaseAIProvider):
             payload["options"] = options
         if tools:
             payload["tools"] = tools
-        keep_alive = self.user_options.get("keep_alive") or AppSettings.get("ai_keep_alive", None)
+        keep_alive = self.user_options.get("keep_alive") or AISetting.get("ai_keep_alive", None)
         apply_runtime_flags(payload, model_name, keep_alive, think_setting(), kwargs.get("reasoning"))
 
         data, status, err = make_json_http_request(

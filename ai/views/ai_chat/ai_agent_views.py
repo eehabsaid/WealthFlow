@@ -14,7 +14,7 @@ from ai.services.agent import agent_enabled, control, get_chat_mode, set_chat_mo
 from ai.services.agent.settings import MODES
 from ai.services.domains import enabled_domains
 from ai.services.investigation.code_tools import code_access_allowed
-from core.validators.json_body import parse_json_body
+from ai.utils.json_body import parse_json_body
 from ai.views.ai_chat.ai_chat_helpers import _api_auth_required
 
 

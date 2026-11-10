@@ -8,7 +8,10 @@ from __future__ import annotations
 
 from cryptography.fernet import Fernet
 
-from core.models import AppSettings
+from django.apps import apps
+from django.conf import settings
+
+from ai.models import AISetting
 from ai.services.credential_encryption import ENC_PREFIX, fernet_key_from_secret, get_fernet_key, settings_secret_key
 
 
@@ -27,7 +30,8 @@ def rekey_all(old_secret: str | None = None, apply: bool = False) -> dict:
     if result["same_key"]:
         return result
     new_fernet = Fernet(new_key)
-    for row in AppSettings.objects.filter(value__startswith=ENC_PREFIX):
+    stores = [AISetting] + [apps.get_model(p) for p in getattr(settings, "AI_EXTRA_CREDENTIAL_MODELS", [])]
+    for row in (r for model in stores for r in model.objects.filter(value__startswith=ENC_PREFIX)):
         if _decrypt(new_key, row.value) is not None:
             result["already_current"] += 1
             continue

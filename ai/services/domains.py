@@ -6,7 +6,7 @@ has no choice and the server forces that domain whatever the browser sends."""
 
 from __future__ import annotations
 
-from core.models import AppSettings
+from ai.models import AISetting
 
 BUSINESS = "business_data_analysis"
 APP = "app_features_architecture"
@@ -16,7 +16,7 @@ _OFF = ("false", "0", "no", "off")
 
 
 def is_on(domain: str) -> bool:
-    return str(AppSettings.get(KEYS[domain], "true", user=None) or "true").strip().lower() not in _OFF
+    return str(AISetting.get(KEYS[domain], "true", user=None) or "true").strip().lower() not in _OFF
 
 
 def enabled_domains() -> tuple[str, ...]:

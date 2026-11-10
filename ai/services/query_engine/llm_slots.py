@@ -30,12 +30,12 @@ DEFAULT_PROMPT_TPS, DEFAULT_DECODE_TPS = 2500.0, 62.0
 def estimate_seconds(prompt_tokens: int = PROMPT_TOKENS_EST, out_tokens: int = OUTPUT_TOKENS_EST, user: Any = None) -> float:
     """COMPUTED, not measured: tokens / throughput. Defaults are an estimate for the dev machine (RTX 5090 Laptop 24 GB, a ~27B
     model fully on the GPU: prompt about 2,500 tok/s, decode about 62 tok/s, from the [AI-TIMING] log); the real figures are in the [AI-TIMING] log lines
-    (prompt_tokens / prompt_eval, gen_tokens / gen). Override with AppSettings ai_prompt_tps / ai_decode_tps."""
-    from core.models import AppSettings
+    (prompt_tokens / prompt_eval, gen_tokens / gen). Override with AISetting ai_prompt_tps / ai_decode_tps."""
+    from ai.models import AISetting
 
     def num(key: str, default: float) -> float:
         try:
-            return max(float(AppSettings.get(key, str(default), user=user)), 0.1)
+            return max(float(AISetting.get(key, str(default), user=user)), 0.1)
         except (TypeError, ValueError):
             return default
 
@@ -82,13 +82,13 @@ def request_from_json(obj: Any, lang: str) -> QueryRequest | None:
 
 
 def fill_with_llm(provider: Any, text: str, routing: Routing, info: dict[str, Any], user: Any = None, elapsed_ms: int = 0) -> Routing | None:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    if str(AppSettings.get("ai_query_llm_slots", "true", user=user)).strip().lower() in ("false", "0", "no"):
+    if str(AISetting.get("ai_query_llm_slots", "true", user=user)).strip().lower() in ("false", "0", "no"):
         info["llm_slots"] = "disabled"
         return None
     try:
-        budget = float(AppSettings.get("ai_query_llm_budget_s", "45", user=user))
+        budget = float(AISetting.get("ai_query_llm_budget_s", "45", user=user))
     except (TypeError, ValueError):
         budget = 45.0
     est = estimate_seconds(user=user)

@@ -8,7 +8,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.credential_encryption import decrypt_credential, encrypt_credential, using_default_key
 from ai.services.credential_rekey import rekey_all
 
@@ -19,8 +19,8 @@ class RekeyTests(TestCase):
     def setUp(self):
         with patch.dict(os.environ, {"WEALTHFLOW_AI_ENCRYPTION_KEY": ""}):
             self.old_cipher = encrypt_credential("sk-secret")  # stored under the default key
-        AppSettings.set("ai_openai_api_key", self.old_cipher)
-        AppSettings.set("ai_model", "plain-value")
+        AISetting.set("ai_openai_api_key", self.old_cipher)
+        AISetting.set("ai_model", "plain-value")
 
     def test_default_key_detection(self):
         with patch.dict(os.environ, {"WEALTHFLOW_AI_ENCRYPTION_KEY": ""}):
@@ -32,27 +32,27 @@ class RekeyTests(TestCase):
         with patch.dict(os.environ, {"WEALTHFLOW_AI_ENCRYPTION_KEY": NEW}):
             dry = rekey_all()
             self.assertEqual((dry["rewritten"], dry["applied"]), (1, False))
-            self.assertEqual(AppSettings.get("ai_openai_api_key"), self.old_cipher)
+            self.assertEqual(AISetting.get("ai_openai_api_key"), self.old_cipher)
             done = rekey_all(apply=True)
             self.assertEqual(done["rewritten"], 1)
-            self.assertEqual(decrypt_credential(AppSettings.get("ai_openai_api_key")), "sk-secret")
-            self.assertEqual(AppSettings.get("ai_model"), "plain-value")
+            self.assertEqual(decrypt_credential(AISetting.get("ai_openai_api_key")), "sk-secret")
+            self.assertEqual(AISetting.get("ai_model"), "plain-value")
             again = rekey_all(apply=True)
             self.assertEqual((again["rewritten"], again["already_current"]), (0, 1))
 
     def test_unreadable_rows_are_reported_and_untouched(self):
-        AppSettings.set("ai_claude_api_key", "enc:not-a-real-token")
+        AISetting.set("ai_claude_api_key", "enc:not-a-real-token")
         with patch.dict(os.environ, {"WEALTHFLOW_AI_ENCRYPTION_KEY": NEW}):
             res = rekey_all(apply=True)
         self.assertEqual(res["unreadable"], ["ai_claude_api_key"])
-        self.assertEqual(AppSettings.get("ai_claude_api_key"), "enc:not-a-real-token")
+        self.assertEqual(AISetting.get("ai_claude_api_key"), "enc:not-a-real-token")
 
     def test_explicit_old_key(self):
         with patch.dict(os.environ, {"WEALTHFLOW_AI_ENCRYPTION_KEY": "older_private_key_abcdefghijklmnop"}):
-            AppSettings.set("paymob_api_key", encrypt_credential("pm-key"))
+            AISetting.set("paymob_api_key", encrypt_credential("pm-key"))
         with patch.dict(os.environ, {"WEALTHFLOW_AI_ENCRYPTION_KEY": NEW}):
             res = rekey_all(old_secret="older_private_key_abcdefghijklmnop", apply=True)
-            self.assertEqual(decrypt_credential(AppSettings.get("paymob_api_key")), "pm-key")
+            self.assertEqual(decrypt_credential(AISetting.get("paymob_api_key")), "pm-key")
         self.assertEqual(res["unreadable"], ["ai_openai_api_key"])  # stored under the default key, not this old one
 
     def test_command_refuses_without_private_key_and_runs_with_it(self):

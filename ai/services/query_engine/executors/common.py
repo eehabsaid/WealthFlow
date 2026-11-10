@@ -31,9 +31,9 @@ def money(value: float, code: str) -> str:
 
 
 def home_currency(user: Any) -> str:
-    from core.services.shared.base_currency import get_user_base_code
+    from ai.host import base_currency
 
-    return get_user_base_code(user)
+    return base_currency(user)
 
 
 def cell(text: Any, limit: int = 40) -> str:

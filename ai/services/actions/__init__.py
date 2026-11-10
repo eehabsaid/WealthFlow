@@ -8,20 +8,35 @@ from django.utils import timezone
 
 from ai.models.ai_chat_block import AIChatBlock
 
-from ai.services.actions import codefile, expense, income, reminder
+from ai.packs import registry as packs_registry
+from ai.services.actions import codefile
 from ai.services.actions.cards import make_card
 from ai.services.actions.common import ActionError
 
-HANDLERS = {"expense": expense, "reminder": reminder, "income": income, "code_file": codefile}
-MODEL_RECORDS = ("expense", "reminder", "income")   # what propose_action may touch; code_file only through app_propose_edit
+class _Handlers(dict):
+    """code_file is built in; packs add their own records (expense, reminder, ...)."""
+
+    def __missing__(self, key):
+        return packs_registry().action_handlers[key]
+
+    def __contains__(self, key):
+        return key == "code_file" or key in packs_registry().action_handlers
+
+
+HANDLERS = _Handlers({"code_file": codefile})
+
+
+def model_records():
+    """What propose_action may touch (code_file only through app_propose_edit)."""
+    return tuple(packs_registry().action_records)
 OPS = ("add", "edit", "delete")
 
 
 def propose_action(user, params: dict) -> dict:
     """Tool handler: build a pending card. Never writes business data."""
     record, op = str(params.get("record") or ""), str(params.get("op") or "")
-    if record not in MODEL_RECORDS or op not in OPS:
-        return {"error": f"`record` must be one of {list(MODEL_RECORDS)} and `op` one of {list(OPS)}"}
+    if record not in model_records() or op not in OPS:
+        return {"error": f"`record` must be one of {list(model_records())} and `op` one of {list(OPS)}"}
     target = params.get("target") if isinstance(params.get("target"), dict) else {}
     values = params.get("values") if isinstance(params.get("values"), dict) else {}
     try:
@@ -60,7 +75,7 @@ def decide(user, block_id: int, confirm: bool, edits: dict | None = None) -> tup
         block.save()
     if block.status == AIChatBlock.STATUS_CONFIRMED:
         try:
-            from core.authentication.utils.auth_utils import record_audit
+            from ai.host import record_audit
             record_audit(user, "ai_action_confirmed", actor=user, details=f"{block.payload.get('op')} {block.payload.get('record')} {block.result}"[:250])
         except Exception:
             pass  # the audit trail must never undo a saved change

@@ -11,7 +11,6 @@ from __future__ import annotations
 from typing import Any
 
 from ai.services.app_knowledge.chunks import get_chunks
-from ai.services.app_knowledge.data_slice import build_data_slice
 from ai.services.app_knowledge.examples import find_examples
 from ai.services.app_knowledge.feedback import SOURCE_MARK, ratings_for, record_feedback
 from ai.services.app_knowledge.prompt import build_messages, fallback_text, select_chunks
@@ -20,6 +19,13 @@ from ai.services.app_knowledge.scoring import rank
 
 __all__ = ["SOURCE_MARK", "build_data_slice", "build_messages", "fallback_text", "find_examples", "is_workflow_question",
            "ratings_for", "record_feedback", "retrieve_knowledge"]
+
+
+def build_data_slice(user, *args, **kwargs):
+    """Live-data lines for workflow answers; supplied by the host pack (none without one)."""
+    from ai.packs import ext
+    hook = ext("data_slice")
+    return hook(user, *args, **kwargs) if hook else ""
 
 
 def retrieve_knowledge(query: str, max_chunks: int = 4, max_chars: int = 2400) -> list[tuple[float, dict[str, Any]]]:

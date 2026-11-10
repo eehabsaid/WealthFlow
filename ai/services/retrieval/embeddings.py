@@ -16,8 +16,8 @@ import math
 import time
 from collections import OrderedDict
 
-from core.integrations.provider_utils import make_json_http_request
-from core.models import AppSettings
+from ai.integrations.http import make_json_http_request
+from ai.models import AISetting
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +58,8 @@ def _embed(text: str) -> list[float] | None:
     if time.monotonic() < _failed_until:
         stats["skipped_cooldown"] += 1
         return None
-    url = AppSettings.get("ai_ollama_url", "http://localhost:11434").rstrip("/")
-    model = AppSettings.get("ai_embed_model", DEFAULT_EMBED_MODEL)
+    url = AISetting.get("ai_ollama_url", "http://localhost:11434").rstrip("/")
+    model = AISetting.get("ai_embed_model", DEFAULT_EMBED_MODEL)
     t0 = time.monotonic()
     data, status_code, error = make_json_http_request(
         f"{url}/api/embeddings",

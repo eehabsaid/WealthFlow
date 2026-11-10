@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.attachments import link_to_message, model_input
 
 from ai.views.ai_chat.ai_chat_core_views import image_edit_turn
@@ -28,7 +28,7 @@ def attachment_response(*, request: Any, body: dict, cache_mgr: Any, progress_ke
     if not attachments:
         return None
     try:
-        context = int(AppSettings.get("ai_context_size", "4096", user=request.user))
+        context = int(AISetting.get("ai_context_size", "4096", user=request.user))
     except (TypeError, ValueError):
         context = 4096
     budget = int(context * CHARS_PER_TOKEN * CONTEXT_SHARE)

@@ -1,0 +1,9 @@
+{
+  "max_file_lines": 200,
+  "index_roots": null,
+  "protected": [
+    {"pattern": ".env", "reason": "secrets"},
+    {"pattern": "*/migrations/*", "reason": "database migrations; never edit one that was already applied"}
+  ],
+  "test_areas": {}
+}

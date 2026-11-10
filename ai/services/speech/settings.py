@@ -1,8 +1,8 @@
-"""Global STT/TTS configuration stored in AppSettings; no speech model is required by default."""
+"""Global STT/TTS configuration stored in AISetting; no speech model is required by default."""
 
 from django.conf import settings
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.credential_encryption import encrypt_credential, decrypt_credential, is_masked, mask_credential
 
 KINDS = ("stt", "tts", "tts_ar")  # tts_ar = optional Arabic voice profile used for Arabic text
@@ -15,7 +15,7 @@ def speech_runtime_enabled():
 
 
 def _get(key, default=""):
-    return AppSettings.get(f"speech_{key}", default, user=None)
+    return AISetting.get(f"speech_{key}", default, user=None)
 
 
 def _truth(value):
@@ -82,4 +82,4 @@ def save_speech_settings(data):
             raise ValueError(f"{kind.upper()} endpoint must start with http:// or https://")
         pending.update(values)
     for key, value in pending.items():
-        AppSettings.set(key, value, user=None)
+        AISetting.set(key, value, user=None)

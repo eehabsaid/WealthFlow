@@ -15,7 +15,7 @@ from ai.services.speech.voice_stream import (
     stop_voice_stream,
 )
 from ai.views.ai_chat.ai_chat_core_views import AIChatView
-from core.views.auth_views import PermissionRequiredMixin
+from ai.views.mixins import PermissionRequiredMixin
 
 
 class VoiceChatView(AIChatView):

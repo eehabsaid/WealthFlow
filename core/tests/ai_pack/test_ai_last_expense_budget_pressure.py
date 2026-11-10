@@ -21,6 +21,7 @@ actually forces budget pressure — a small fixture doesn't trigger it.
 """
 
 from __future__ import annotations
+from ai.models import AISetting
 
 from datetime import date
 from decimal import Decimal
@@ -28,9 +29,9 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import AppSettings, Currency, Expense, ExpenseCategory
+from core.models import Currency, Expense, ExpenseCategory
 from ai.services.context_builder_service.service import ContextBuilderService
-from ai.services.providers.expenses_provider import (
+from core.ai_pack.providers.expenses_provider import (
     MAX_MONTHLY_SUMMARY_MONTHS_FOR_AI,
     MAX_RECENT_EXPENSES_FOR_AI,
     ExpensesDataProvider,
@@ -86,7 +87,7 @@ class LastExpenseBudgetPressureTest(TestCase):
             notes=self.last_expense_notes,
         )
 
-        AppSettings.set("ai_context_token_budget", "2048")
+        AISetting.set("ai_context_token_budget", "2048")
 
     def test_monthly_summary_is_capped_and_still_correct_at_index_0(self):
         data = ExpensesDataProvider().get_data(self.user)

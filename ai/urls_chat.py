@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from core.services.billing import feature_required
+from ai.host import feature_required
 from ai.views.ai_chat.ai_agent_views import AIChatModeView, AIStopView
 from ai.views.ai_chat.ai_attachment_views import AIAttachmentDetailView, AIAttachmentUploadView
 from ai.views.ai_chat.ai_blocks_views import AIBlockCancelView, AIBlockConfirmView
@@ -11,7 +11,6 @@ from ai.views.ai_chat.ai_chat_manage_views import AIConversationSearchView, AIMe
 from ai.views.ai_chat.ai_conversation_views import AIConversationDetailView, AIConversationListView, AIProgressView
 from ai.views.ai_chat.ai_export_views import AIMessageExportView
 from ai.views.ai_chat.ai_feedback_views import AIFeedbackListView, AIMessageFeedbackView
-from ai.views.ai_chat.ai_insights_views import AIInsightsView
 from ai.views.ai_chat.ai_memory_views import AIMemoryDetailView, AIMemoryListView
 from ai.views.ai_speech.speech_views import SpeechCapabilitiesView, SpeechSynthesizeView, SpeechTranscribeView
 from ai.views.ai_speech.voice_stream_views import VoiceChatView, VoiceSentencePollView
@@ -36,7 +35,6 @@ urlpatterns = [
             "api/financial-advisor/ai/conversations/",
             feature_required("allows_ai_workspace")(AIConversationListView.as_view()),
         ),
-    path("api/financial-advisor/ai/insights/", feature_required("allows_ai_workspace")(AIInsightsView.as_view())),
     path("api/financial-advisor/ai/attachments/", feature_required("allows_ai_workspace")(AIAttachmentUploadView.as_view())),
     path("api/financial-advisor/ai/attachments/<int:pk>/", feature_required("allows_ai_workspace")(AIAttachmentDetailView.as_view())),
     path("api/financial-advisor/ai/blocks/<int:pk>/confirm/", feature_required("allows_ai_workspace")(AIBlockConfirmView.as_view())),

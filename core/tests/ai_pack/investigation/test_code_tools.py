@@ -1,13 +1,13 @@
 """Path safety, secret redaction and the sysadmin-only source-code tools."""
 
 from __future__ import annotations
+from ai.models import AISetting
 
 import os
 import tempfile
 
 from django.test import SimpleTestCase, TestCase
 
-from core.models import AppSettings
 from ai.services.investigation import code_tools as ct
 from ai.services.investigation import paths
 
@@ -81,9 +81,9 @@ class CodeToolsTest(TestCase):
         self.assertFalse(ct.code_access_allowed(None))
 
     def test_switch_off_denies_even_the_sysadmin(self):
-        AppSettings.set("ai_code_access", "false")
+        AISetting.set("ai_code_access", "false")
         self.assertIn("error", ct.read_file(self.admin, {"path": "manage.py"}))
-        AppSettings.set("ai_code_access", "true")
+        AISetting.set("ai_code_access", "true")
         self.assertNotIn("error", ct.read_file(self.admin, {"path": "manage.py"}))
 
     def test_find_definition_and_grep_and_find_files(self):

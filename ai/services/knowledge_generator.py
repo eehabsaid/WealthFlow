@@ -17,6 +17,8 @@ from typing import Any, Dict, List
 from django.apps import apps
 from django.conf import settings
 
+from ai.conf import host_apps
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +44,7 @@ class KnowledgeGenerator:
 
         for model in sorted(all_models, key=lambda m: (m._meta.app_label, m.__name__)):
             # Include core, ai and auth models
-            if model._meta.app_label not in {"core", "ai", "auth", "authtoken"}:
+            if model._meta.app_label not in {*host_apps(), "ai", "auth", "authtoken"}:
                 continue
 
             fields_info = []

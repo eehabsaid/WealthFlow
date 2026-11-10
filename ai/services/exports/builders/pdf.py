@@ -14,7 +14,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from core.reports.pdf_font_utils import get_arabic_pdf_font, process_pdf_text
+from ai.services.exports.pdf_fonts import get_arabic_pdf_font, process_pdf_text
 
 from ai.services.exports.document import ExportDocument, is_bold_cell, plain, runs
 from ai.services.exports.registry import ExportFormat, register

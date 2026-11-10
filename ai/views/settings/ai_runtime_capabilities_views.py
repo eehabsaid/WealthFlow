@@ -15,29 +15,29 @@ POST to the existing AISettingsView — this view never persists anything.
 from django.http import JsonResponse
 from django.views import View
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.ai_defaults import DEFAULT_OLLAMA_MODEL
 from ai.services.runtime_capabilities import inspect_and_recommend
-from core.views.auth_views import AdminRequiredMixin
+from ai.views.mixins import AdminRequiredMixin
 
 
 class AIRuntimeCapabilitiesView(AdminRequiredMixin, View):
     def get(self, request):
-        base_url = AppSettings.get("ai_ollama_url", "http://localhost:11434").strip()
-        model = AppSettings.get("ai_model", DEFAULT_OLLAMA_MODEL).strip()
+        base_url = AISetting.get("ai_ollama_url", "http://localhost:11434").strip()
+        model = AISetting.get("ai_model", DEFAULT_OLLAMA_MODEL).strip()
 
         try:
             current = {
-                "ai_context_size": int(AppSettings.get("ai_context_size", "4096")),
-                "ai_max_tokens": int(AppSettings.get("ai_max_tokens", "1024")),
-                "ai_timeout": int(AppSettings.get("ai_timeout", "60")),
+                "ai_context_size": int(AISetting.get("ai_context_size", "4096")),
+                "ai_max_tokens": int(AISetting.get("ai_max_tokens", "1024")),
+                "ai_timeout": int(AISetting.get("ai_timeout", "60")),
             }
         except (ValueError, TypeError):
             current = {"ai_context_size": 4096, "ai_max_tokens": 1024, "ai_timeout": 60}
-        current["ai_keep_alive"] = AppSettings.get("ai_keep_alive", "5m").strip()
+        current["ai_keep_alive"] = AISetting.get("ai_keep_alive", "5m").strip()
 
         try:
-            timeout = int(AppSettings.get("ai_timeout", "60"))
+            timeout = int(AISetting.get("ai_timeout", "60"))
         except (ValueError, TypeError):
             timeout = 60
 

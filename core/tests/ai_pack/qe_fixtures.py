@@ -1,13 +1,14 @@
 """Shared fixtures for the query-engine chat tests: two tenants, market data, and data for every capability."""
 
 import json
+from ai.models import AISetting
 from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 
-from core.models import (AppSettings, Bank, BalanceEntry, BankCertificate, Company, Currency, ExchangeRate, Expense,
-                         ExpenseCategory, FixedAsset, GoldPrice, SalaryEntry)
+from core.models import (Bank, BalanceEntry, BankCertificate, Company, Currency, ExchangeRate, Expense, ExpenseCategory,
+                         FixedAsset, GoldPrice, SalaryEntry)
 from core.tests.billing.test_support import grant_ai_workspace_access
 
 User = get_user_model()
@@ -38,8 +39,8 @@ def build(test):
                                        issue_date=date.today() - timedelta(days=30), expiry_date=date.today() + timedelta(days=700))])
         FixedAsset.objects.create(owner=owner, name=f"{marker}Villa", asset_type="Real Estate", purchase_date=date(2024, 1, 1),
                                   purchase_price=Decimal("5000000" if not marker else "9999999"), current_market_value=Decimal("5000000" if not marker else "9999999"))
-    AppSettings.set("ai_enabled", "true")
-    AppSettings.set("ai_provider", "ollama")
+    AISetting.set("ai_enabled", "true")
+    AISetting.set("ai_provider", "ollama")
     test.client.force_login(test.user)
 
 

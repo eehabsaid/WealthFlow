@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from ai.integrations.ai_provider.ollama_payload import THINK_MODES, think_setting
-from core.models import AppSettings
+from ai.models import AISetting
 
 from ai.services.agent.instructions import MAX_LENGTH
 
@@ -22,7 +22,7 @@ _FALSE = ("false", "0", "no", "off")
 
 
 def _global(key: str, default: str) -> str:
-    return str(AppSettings.get(key, default, user=None) or default)
+    return str(AISetting.get(key, default, user=None) or default)
 
 
 def agent_enabled() -> bool:
@@ -30,11 +30,11 @@ def agent_enabled() -> bool:
 
 
 def stored_instructions() -> str:
-    return str(AppSettings.get("ai_agent_instructions", "", user=None) or "").strip()
+    return str(AISetting.get("ai_agent_instructions", "", user=None) or "").strip()
 
 
 def stored_document_instructions() -> str:
-    return str(AppSettings.get("ai_document_instructions", "", user=None) or "").strip()
+    return str(AISetting.get("ai_document_instructions", "", user=None) or "").strip()
 
 
 def document_budget_s() -> int:
@@ -45,7 +45,7 @@ def document_max_tokens(provider=None) -> int:
     """Output tokens for one document-writing call: the setting, but never more than the context window leaves after the prompt
     (output beyond that is silently cut by the model server)."""
     want = limits()["ai_document_max_tokens"]
-    ctx = (getattr(provider, "user_options", None) or {}).get("context_size") or AppSettings.get("ai_context_size", "4096", user=None)
+    ctx = (getattr(provider, "user_options", None) or {}).get("context_size") or AISetting.get("ai_context_size", "4096", user=None)
     try:
         window = int(float(str(ctx)))
     except (ValueError, TypeError):
@@ -99,22 +99,22 @@ def validate_agent_settings(data: dict, current: dict) -> tuple[dict | None, str
 
 
 def persist_agent_settings(validated: dict) -> None:
-    AppSettings.set("ai_agent_enabled", "true" if validated["enabled"] else "false", user=None)
-    AppSettings.set("ai_agent_instructions", validated["instructions"], user=None)
-    AppSettings.set("ai_document_instructions", validated["document_instructions"], user=None)
-    AppSettings.set("ai_think", validated["think"], user=None)
+    AISetting.set("ai_agent_enabled", "true" if validated["enabled"] else "false", user=None)
+    AISetting.set("ai_agent_instructions", validated["instructions"], user=None)
+    AISetting.set("ai_document_instructions", validated["document_instructions"], user=None)
+    AISetting.set("ai_think", validated["think"], user=None)
     for key, value in validated["limits"].items():
-        AppSettings.set(key, str(value), user=None)
+        AISetting.set(key, str(value), user=None)
 
 
 def get_chat_mode(user) -> str:
-    mode = str(AppSettings.get("ai_chat_mode", "ask", user=user) or "ask").strip().lower()
+    mode = str(AISetting.get("ai_chat_mode", "ask", user=user) or "ask").strip().lower()
     return mode if mode in MODES else "ask"
 
 
 def set_chat_mode(user, mode: str) -> str:
     mode = mode if mode in MODES else "ask"
-    AppSettings.set("ai_chat_mode", mode, user=user)
+    AISetting.set("ai_chat_mode", mode, user=user)
     return mode
 
 

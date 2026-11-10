@@ -9,7 +9,7 @@ import time
 
 from django.test import override_settings
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.models.ai_attachment import AIAttachment
 from ai.services.image_generation import generate_image, image_generation_available, test_connection
 from ai.services.image_generation.server import manager, state, stop_server
@@ -94,7 +94,7 @@ class ManagedServerFlowTests(ImageBase):
         res = self.post(image_gen_start_command="/no/such/program --port {port}")
         self.assertEqual(res.status_code, 400)
         self.assertIn("not found", res.json()["error"])
-        self.assertFalse(AppSettings.objects.filter(key="image_gen_start_command", owner=None).exclude(value="").exists())
+        self.assertFalse(AISetting.objects.filter(key="image_gen_start_command", owner=None).exclude(value="").exists())
 
     def test_without_a_start_command_nothing_is_started_and_an_external_server_is_used(self):
         from ai.services.image_generation import save_image_settings

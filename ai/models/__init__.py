@@ -6,7 +6,8 @@ from .ai_feedback import AIAnswerFeedback
 from .ai_knowledge import AIKnowledgeEntry
 from .ai_memory import AIMemoryNote
 from .ai_message import AIMessage
+from .ai_setting import AISetting
 from .ai_prompt import AIPrompt, AIPromptCategory
 
 __all__ = ["AIAnswerFeedback", "AIAttachment", "AIChatBlock", "AIConversation", "AIKnowledgeEntry",
-           "AIMemoryNote", "AIMessage", "AIPrompt", "AIPromptCategory"]
+           "AIMemoryNote", "AIMessage", "AIPrompt", "AIPromptCategory", "AISetting"]

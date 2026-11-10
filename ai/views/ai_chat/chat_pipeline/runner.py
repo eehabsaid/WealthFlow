@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from core.models import AppSettings
+from ai.models import AISetting
 
 from ai.services.domain_scope import apply_scope
 
@@ -57,7 +57,7 @@ def run_default_pipeline(*, trace: PipelineTrace, understanding: Understanding, 
             trace, provider, retrieval.messages, retrieval, tool, understanding, user_text,
             request.user, conversation.id,
         )
-        debug = str(AppSettings.get("ai_pipeline_debug", "false", user=request.user)).strip().lower() in ("true", "1", "yes")
+        debug = str(AISetting.get("ai_pipeline_debug", "false", user=request.user)).strip().lower() in ("true", "1", "yes")
         extra = {"pipeline": trace.to_dict()} if debug else None
         evidence = "\n".join(str(m.get("content", "")) for m in retrieval.messages)   # the context and every tool result the model saw
         content = guard_text(getattr(understanding, "enforced", ""), validation.content, user_text, evidence)

@@ -7,11 +7,12 @@ and single-tool call chat controller integration.
 """
 
 from __future__ import annotations
+from ai.models import AISetting
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import AppSettings, Scenario, ScenarioEvent
+from core.models import Scenario, ScenarioEvent
 from ai.services.tools import (
     get_registered_tool_schemas,
     validate_and_execute_tool,
@@ -21,7 +22,7 @@ User = get_user_model()
 
 class AIToolsValidationTest(TestCase):
     def setUp(self):
-        AppSettings.set("ai_read_only", "false")
+        AISetting.set("ai_read_only", "false")
         self.user = User.objects.create_user(username="action_user", password="password123")
         self.inactive_user = User.objects.create_user(
             username="inactive_user", password="password123", is_active=False

@@ -22,7 +22,7 @@ from ai.services.investigation.defs import investigation_tool_schemas
 from ai.services.investigation.nudges import investigate_nudge
 from ai.services.investigation.refusal import is_announcement, is_refusal
 
-logger = logging.getLogger("core.ai.pipeline")
+logger = logging.getLogger("ai.pipeline")
 NUDGES, CALL_TIMEOUT_S = 2, 240
 
 

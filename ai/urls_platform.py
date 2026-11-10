@@ -1,7 +1,7 @@
 from django.urls import path
 from ai.views.ai_platform.knowledge_views import AIPlatformKnowledgeDetailView, AIPlatformKnowledgeView
 from ai.views.ai_prompt_views import AIPromptCategoryListView, AIPromptDetailView, AIPromptDuplicateView, AIPromptFavoriteView, AIPromptListView, AIPromptUseView
-from core.services.billing import feature_required
+from ai.host import feature_required
 
 _ai = feature_required("allows_ai_workspace")
 

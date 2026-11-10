@@ -8,13 +8,14 @@ live in test_whatif_isolation.py; intent tests in test_whatif_intent.py.
 """
 
 from __future__ import annotations
+from ai.models import AISetting
 
 import datetime
 from decimal import Decimal
 
 from django.test import TestCase
 
-from core.models import AppSettings, Goal, SalaryEntry
+from core.models import Goal, SalaryEntry
 from ai.services.tools import get_registered_tool_schemas, validate_and_execute_tool
 from core.services.financial_advisor.what_if_simulator_service import WhatIfSimulatorService
 from core.tests.ai_pack.investigation.support import make_user, seed_tenant
@@ -27,7 +28,7 @@ def _data(res: dict) -> dict:
 
 class WhatIfScenarioToolTest(TestCase):
     def setUp(self):
-        AppSettings.set("ai_read_only", "false")
+        AISetting.set("ai_read_only", "false")
         self.user = make_user("whatif_tool")
         tenant = seed_tenant(self.user, "WI", expenses=3)
         self.currency = tenant["currency"]

@@ -5,6 +5,7 @@ tool that builds a file from a database query (no 100-row cap, owner isolation),
 entry, give-up phrases that hand over to the investigator, and code files."""
 
 import datetime
+from ai.models import AISetting
 import re
 from decimal import Decimal
 from io import BytesIO
@@ -13,7 +14,7 @@ from unittest.mock import MagicMock, patch
 from django.test import SimpleTestCase, TestCase
 from openpyxl import load_workbook
 
-from core.models import AppSettings, Expense
+from core.models import Expense
 from ai.services.exports import all_formats, detect
 from ai.services.investigation.refusal import is_refusal
 import core.tests.ai_pack.qe_fixtures as fx
@@ -43,10 +44,10 @@ class RoutingAndPhraseTests(TestCase):
         self.assertIsNone(should_go_direct(user, "export every loan to excel", computed=True))   # the router already has the exact rows
         self.assertIsNone(should_go_direct(user, "write a function and save it as a .py file"))   # code: the model's own answer is the file
         self.assertIsNone(should_go_direct(user, "how do I export my data"))
-        AppSettings.set("ai_file_generation", "false")
+        AISetting.set("ai_file_generation", "false")
         self.assertIsNone(should_go_direct(user, "export every loan to excel"))
-        AppSettings.set("ai_file_generation", "true")
-        AppSettings.set("ai_investigator_mode", "off")
+        AISetting.set("ai_file_generation", "true")
+        AISetting.set("ai_investigator_mode", "off")
         self.assertIsNone(should_go_direct(user, "export every loan to excel"))
 
 
@@ -75,7 +76,7 @@ class CodeFileDownloadTests(TestCase):
         fx.build(self)
 
     def test_python_file_is_the_code_block_of_the_answer(self):
-        AppSettings.set("ai_direct_answers", "false")
+        AISetting.set("ai_direct_answers", "false")
         prov = MagicMock()
         prov.supports_tools = False
         answer = "Here is the script:\n\n```python\ndef total(xs):\n    return sum(xs)\n```\n\nIt sums a list."
@@ -130,7 +131,7 @@ class FileSettingsApiTests(TestCase):
         self.assertEqual(self.post(ai_file_generation=False, ai_file_max_mb=3, ai_file_max_rows=500).status_code, 200)
         got = self.client.get(self.URL).json()
         self.assertEqual((got["ai_file_generation"], got["ai_file_max_mb"], got["ai_file_max_rows"]), (False, 3, 500))
-        self.assertEqual(AppSettings.get("ai_file_generation"), "false")
+        self.assertEqual(AISetting.get("ai_file_generation"), "false")
         self.post(ai_file_max_mb=9999, ai_file_max_rows=1)
         got = self.client.get(self.URL).json()
         self.assertEqual((got["ai_file_max_mb"], got["ai_file_max_rows"]), (50, 100))          # clamped to the allowed range
@@ -139,8 +140,8 @@ class FileSettingsApiTests(TestCase):
         self.assertEqual(self.client.get(self.URL).json()["ai_file_max_mb"], 50)
 
     def test_a_users_own_row_cannot_switch_files_back_on(self):
-        AppSettings.set("ai_file_generation", "false")
-        AppSettings.set("ai_file_generation", "true", user=self.admin)
+        AISetting.set("ai_file_generation", "false")
+        AISetting.set("ai_file_generation", "true", user=self.admin)
         from ai.services.exports.settings import exports_enabled
 
         self.assertFalse(exports_enabled())
@@ -150,5 +151,5 @@ class FileSettingsApiTests(TestCase):
         self.client.force_login(user)
         self.assertIn(self.post(ai_file_generation=False).status_code, (401, 402, 403))
         self.assertTrue(self.client.get(self.URL).status_code in (200, 401, 402, 403))
-        self.assertNotEqual(AppSettings.get("ai_file_generation", "true"), "false")
+        self.assertNotEqual(AISetting.get("ai_file_generation", "true"), "false")
 

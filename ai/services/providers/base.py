@@ -59,13 +59,13 @@ class BaseContextProvider(ABC):
 
     def get_user_primary_currency(self, user: Any) -> str:
         """Resolves active user's default (primary) currency code."""
-        from core.services.shared.base_currency import get_user_base_code
-        return get_user_base_code(user)
+        from ai.host import base_currency
+        return base_currency(user)
 
     def convert_to_home_currency(self, amount: float, from_code: str, home_code: str = "") -> float:
         """
         Deterministically converts an amount from `from_code` to `home_code`.
-        Delegates to CurrencyConversionService (the app-wide source of truth, which uses
+        Delegates to the host's AI_EXCHANGE_RATE hook (WealthFlow: CurrencyConversionService, the app-wide source of truth, which uses
         buy_rate only against the dynamic pivot — see its docstring) so AI answers match
         the Balance page and every other view instead of computing their own mid-rate
         conversion. NOTE: a3c4c62b silently reintroduced a mid_rate-first private
@@ -78,16 +78,14 @@ class BaseContextProvider(ABC):
             return 0.0
         val = float(amount)
         f_code = str(from_code or home_code).strip().upper()
-        from core.services.shared.base_currency import platform_default_code
-        h_code = str(home_code or platform_default_code()).strip().upper()
+        from ai.host import default_currency, exchange_rate
+        h_code = str(home_code or default_currency()).strip().upper()
 
         if f_code == h_code:
             return val
 
         try:
-            from core.services.shared.currency_conversion_service import CurrencyConversionService
-
-            rate = CurrencyConversionService.calculate_exchange_rate(f_code, h_code)
+            rate = exchange_rate(f_code, h_code)
             if rate and rate > 0:
                 return round(val * float(rate), 2)
         except Exception as exc:

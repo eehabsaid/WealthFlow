@@ -15,9 +15,9 @@ DETACHED = 0x00000008 | 0x00000200 | 0x08000000   # DETACHED_PROCESS | CREATE_NE
 
 
 def base_url() -> str:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    return str(AppSettings.get("ai_ollama_url", DEFAULT_URL, user=None) or DEFAULT_URL).strip().rstrip("/")
+    return str(AISetting.get("ai_ollama_url", DEFAULT_URL, user=None) or DEFAULT_URL).strip().rstrip("/")
 
 
 def normal(name: str) -> str:

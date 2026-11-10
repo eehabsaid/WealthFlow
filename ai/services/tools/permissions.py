@@ -23,7 +23,7 @@ could ever represent, since "execute" didn't exist as a concept before).
 
 from __future__ import annotations
 
-from core.models import AppSettings
+from ai.models import AISetting
 
 TIER_READ = "read"
 TIER_EXECUTE = "execute"
@@ -61,10 +61,10 @@ def resolve_granted_tier(user=None) -> str:
     """The tier currently granted to the AI by settings. Reads
     ai_permission_tier if explicitly set; otherwise derives it from the
     legacy ai_read_only boolean (see module docstring)."""
-    explicit = AppSettings.get("ai_permission_tier", "", user=user).strip().lower()
+    explicit = AISetting.get("ai_permission_tier", "", user=user).strip().lower()
     if explicit in VALID_TIERS:
         return explicit
-    read_only_str = AppSettings.get("ai_read_only", "true", user=user).strip().lower()
+    read_only_str = AISetting.get("ai_read_only", "true", user=user).strip().lower()
     read_only = read_only_str in ("true", "1", "yes")
     return TIER_READ if read_only else TIER_MODIFY
 

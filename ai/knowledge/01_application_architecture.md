@@ -8,7 +8,7 @@ WealthFlow is a Django-based single-tenant personal finance platform for trackin
 - **Service-Oriented**: Business logic under `core/services/`. Financial advisor services under `core/services/financial_advisor/`. AI services under `ai/services/`.
 - **Read-Only AI Pipeline**: AI operates strictly read-only via `context_builder.py`, `orchestrator.py`, `context_builder_service.py`. Never modifies data.
 - **Data Provider Registry**: All AI data sourced via providers registered in `ai/services/providers/` — one provider per domain (balance, salary, certificates, gold, expenses, fixed assets).
-- **Provider-Independent AI**: Works with Ollama (local), OpenAI, Claude, Gemini, Azure OpenAI. Active provider set in `AppSettings`.
+- **Provider-Independent AI**: Works with Ollama (local), OpenAI, Claude, Gemini, Azure OpenAI. Active provider set in `AISetting` (the AI app's own settings table).
 - **Local AI**: Primary models are `wealthflow-v*` custom Ollama models (based on qwen3:14b and qwen2.5:3b).
 
 ## 3. Key Service Layers

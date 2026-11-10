@@ -9,7 +9,7 @@ from typing import Any
 from django.conf import settings
 
 from ai.services.app_knowledge.chunk_sources import code_chunks, flow_chunks, page_chunks
-from ai.services.app_knowledge.data_flows import FILE_NAME
+from ai.services.app_knowledge.constants import FILE_NAME
 
 _LOCK = threading.Lock()
 _STORE: dict[str, Any] = {"sig": None, "chunks": []}

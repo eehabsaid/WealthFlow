@@ -23,16 +23,17 @@ SETTING = "ai_direct_answers"
 
 
 def is_enabled(user: Any) -> bool:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    return str(AppSettings.get(SETTING, "true", user=user)).strip().lower() not in ("false", "0", "no", "off")
+    return str(AISetting.get(SETTING, "true", user=user)).strip().lower() not in ("false", "0", "no", "off")
 
 
 def _category_lookup(user: Any):
     def lookup():
-        from core.models import ExpenseCategory
+        from ai.packs import ext
 
-        return list(ExpenseCategory.objects.filter(owner=user).values_list("name", flat=True))
+        names = ext("category_names")   # the host pack may list the user's categories for slot filling
+        return list(names(user)) if names else []
 
     return lookup
 

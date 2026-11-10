@@ -14,10 +14,10 @@ import time
 from typing import Any
 
 from ai.services.tools.defs import AI_TOOL_REGISTRY
+from ai.packs import registry as packs_registry
 from ai.services.tools.rejections import make_rejection
 from ai.services.tools.schema_validation import coerce_and_validate
 from ai.services.tools.permissions import resolve_granted_tier, tool_allowed_at_tier, tool_tier
-from ai.services.tools.validation_rules import _validate_tool_specific_params
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,11 @@ def validate_and_execute_tool(
     if type_error:
         return make_rejection(clean_name, timestamp, clean_params, type_error)
 
-    tool_specific_rejection = _validate_tool_specific_params(clean_name, clean_params, timestamp)
+    tool_specific_rejection = None
+    for validator in packs_registry().param_validators:
+        tool_specific_rejection = validator(clean_name, clean_params, timestamp)
+        if tool_specific_rejection:
+            break
     if tool_specific_rejection is not None:
         return tool_specific_rejection
 
@@ -80,15 +84,11 @@ def validate_and_execute_tool(
     if not getattr(user, "is_active", True):
         return make_rejection(clean_name, timestamp, clean_params, "User account is inactive")
 
-    # Rule 5: Business Rules Validation (e.g. event schema inside create_scenario)
-    if clean_name == "create_scenario":
-        for idx, ev in enumerate(clean_params.get("events") or []):
-            if not isinstance(ev, dict):
-                return make_rejection(clean_name, timestamp, clean_params, f"Event at index {idx} must be an object")
-            if not str(ev.get("event_type", "")).strip() or not ev.get("event_date"):
-                return make_rejection(
-                    clean_name, timestamp, clean_params, f"Event at index {idx} missing event_type or event_date"
-                )
+    # Rule 5: business rules supplied by packs (e.g. an event schema inside create_scenario)
+    for validator in packs_registry().business_validators:
+        rejection = validator(clean_name, clean_params, timestamp)
+        if rejection:
+            return rejection
 
     # Global permission-tier enforcement (evaluated after parameters & auth checks).
     # See permissions.py: read/execute/modify, each including the tiers below it.

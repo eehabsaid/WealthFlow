@@ -1,12 +1,12 @@
 """Backlog item 3: schema coercion, shared rejections, tool-result token budget."""
 
 import json
+from ai.models import AISetting
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 
-from core.models import AppSettings
 from ai.services.tools import validate_and_execute_tool
 from ai.services.tools.rejections import make_rejection
 from ai.services.tools.result_budget import compact_tool_result, tool_result_max_chars
@@ -81,15 +81,15 @@ class ResultBudgetTest(SimpleTestCase):
 
 class BudgetSettingTest(TestCase):
     def test_follows_context_budget_with_floor(self):
-        AppSettings.set("ai_context_token_budget", "4096")
+        AISetting.set("ai_context_token_budget", "4096")
         self.assertEqual(tool_result_max_chars(), 4096 * 4)
-        AppSettings.set("ai_context_token_budget", "100")
+        AISetting.set("ai_context_token_budget", "100")
         self.assertEqual(tool_result_max_chars(), 4000)
 
 
 class ExecutionCoercionTest(TestCase):
     def setUp(self):
-        AppSettings.set("ai_read_only", "false")
+        AISetting.set("ai_read_only", "false")
         self.user = get_user_model().objects.create_user(username="item3_u", password="x")
         grant_ai_workspace_access(self.user)
 

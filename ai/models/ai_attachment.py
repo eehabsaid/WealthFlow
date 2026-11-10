@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.db import models
 
 
@@ -9,7 +9,7 @@ class AIAttachment(models.Model):
     """A file the user attached to a chat message. Text is extracted by code when it is uploaded (table, PDF, Word, text);
     pictures are kept as bytes and sent to the model as images. Per user, never shared."""
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ai_attachments")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ai_attachments")
     message = models.ForeignKey("AIMessage", on_delete=models.CASCADE, null=True, blank=True, related_name="attachments")
     name = models.CharField(max_length=200)
     kind = models.CharField(max_length=10)            # table | text | image

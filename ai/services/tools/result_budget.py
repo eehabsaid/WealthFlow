@@ -19,10 +19,10 @@ _MAX_STR = 400
 
 
 def tool_result_max_chars(user: Any = None) -> int:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
     try:
-        tokens = int(AppSettings.get("ai_context_token_budget", "2048", user=user))
+        tokens = int(AISetting.get("ai_context_token_budget", "2048", user=user))
     except (TypeError, ValueError):
         tokens = 2048
     return max(_MIN_CHARS, tokens * 4)

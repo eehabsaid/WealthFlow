@@ -9,8 +9,8 @@ from django.views import View
 from ai.services.credential_encryption import is_masked
 from ai.services.image_generation import test_connection
 from ai.services.image_generation.providers import ImageProviderError
-from core.validators.json_body import parse_json_body
-from core.views.auth_views import SysadminRequiredMixin
+from ai.utils.json_body import parse_json_body
+from ai.views.mixins import SysadminRequiredMixin
 
 logger = logging.getLogger(__name__)
 

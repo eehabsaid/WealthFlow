@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.db import models
 
 
@@ -6,7 +6,7 @@ class AIMemoryNote(models.Model):
     """One free-text reminder the AI wrote for itself from past chats (goals, results with numbers and dates,
     decisions, preferences). Per user, never shared. Notes are reminders, not facts: live data overrides them."""
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ai_memory_notes")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ai_memory_notes")
     title = models.CharField(max_length=120)
     body = models.TextField()
     always = models.BooleanField(default=False)   # a standing instruction/preference: shown in full in every chat, not just indexed

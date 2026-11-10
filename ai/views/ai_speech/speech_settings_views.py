@@ -4,8 +4,8 @@ import json
 import logging
 from django.http import JsonResponse
 from django.views import View
-from core.views.auth_views import SysadminRequiredMixin
-from core.validators.json_body import parse_json_body
+from ai.views.mixins import SysadminRequiredMixin
+from ai.utils.json_body import parse_json_body
 from ai.services.speech import test_speech_endpoint
 from ai.services.speech.settings import KINDS, speech_runtime_enabled
 from ai.services.speech.voice_sample import VoiceSampleError, delete_voice_sample, save_voice_sample, voice_sample_info

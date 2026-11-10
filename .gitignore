@@ -32,3 +32,5 @@ media/voice_samples
 # dev_agent: lock files never go in git
 coding_agent/.locks/
 coding_agent/tasks/
+# Dependencies installed by npm (never tracked)
+node_modules/

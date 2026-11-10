@@ -30,6 +30,7 @@ Two root causes, both fixed here:
 """
 
 from __future__ import annotations
+from ai.models import AISetting
 
 from datetime import date
 from decimal import Decimal
@@ -37,10 +38,10 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import AppSettings, Currency, Expense, ExpenseCategory
+from core.models import Currency, Expense, ExpenseCategory
 from ai.services.context_builder_service.formatting import split_payload_blocks
 from ai.services.context_builder_service.service import ContextBuilderService
-from ai.services.providers.expenses_provider import (
+from core.ai_pack.providers.expenses_provider import (
     MAX_MONTHLY_CATEGORY_BREAKDOWN_MONTHS_FOR_AI,
     ExpensesDataProvider,
 )
@@ -90,7 +91,7 @@ class MonthlyCategoryBreakdownTest(TestCase):
                 if (yy, mm) == (2026, 9):
                     self.september_expected_by_category[cat.name] = float(amt)
 
-        AppSettings.set("ai_context_token_budget", "2048")
+        AISetting.set("ai_context_token_budget", "2048")
 
     def test_monthly_category_breakdown_matches_manual_sums(self):
         data = ExpensesDataProvider().get_data(self.user)

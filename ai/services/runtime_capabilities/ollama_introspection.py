@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.integrations.provider_utils import make_json_http_request
+from ai.integrations.http import make_json_http_request
 
 
 def get_model_info(base_url: str, model: str, timeout: int = 15) -> dict[str, Any] | None:

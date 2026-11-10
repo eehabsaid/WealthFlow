@@ -3,12 +3,12 @@ Unit test suite for new AI read-only tools, question domain selection, and read-
 """
 
 from __future__ import annotations
+from ai.models import AISetting
 
 from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import AppSettings
 from ai.services.tools import (
     get_registered_tool_schemas,
     validate_and_execute_tool,
@@ -169,7 +169,7 @@ class NewAIToolsReadOnlyTest(TestCase):
 
     def test_read_only_global_setting_enforcement(self):
         # Enable read_only setting
-        AppSettings.set("ai_read_only", "true")
+        AISetting.set("ai_read_only", "true")
 
         # Write tool (create_scenario) MUST be rejected when global read_only is True
         audit, res = validate_and_execute_tool("create_scenario", {"name": "Test Read Only Scenario"}, self.user)
@@ -191,7 +191,7 @@ class NewAIToolsReadOnlyTest(TestCase):
         self.assertEqual(audit_sug["status"], "success")
 
         # When global read_only is disabled, create_scenario should succeed
-        AppSettings.set("ai_read_only", "false")
+        AISetting.set("ai_read_only", "false")
         audit_create, res_create = validate_and_execute_tool("create_scenario", {"name": "Allowed Scenario"}, self.user)
         self.assertTrue(res_create["ok"])
         self.assertEqual(audit_create["status"], "success")

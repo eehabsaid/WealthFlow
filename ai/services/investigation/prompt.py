@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime
 from collections import Counter
 
+from ai.conf import host_apps
 from ai.services.domain_scope import scope_note
 from ai.services.domains import BUSINESS
 
@@ -41,7 +42,7 @@ def _map() -> str:
     for rel_path, _ in paths.iter_files():
         parts = rel_path.split("/")
         top[parts[0] if len(parts) > 1 else "(root files)"] += 1
-        if parts[0] == "core" and len(parts) > 2:
+        if parts[0] in host_apps() and len(parts) > 2:
             sub["/".join(parts[:2])] += 1
     sub_line = ", ".join(f"{k.split('/')[1]}({v})" for k, v in sorted(sub.items()))
     top_line = ", ".join(f"{k}({v})" for k, v in sorted(top.items()))

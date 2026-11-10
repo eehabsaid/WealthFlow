@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from core.models import BalanceEntry, Currency, GoldPrice, GoldPuritySetting
-from ai.services.providers.balance_provider import BalanceDataProvider
+from core.ai_pack.providers.balance_provider import BalanceDataProvider
 
 User = get_user_model()
 

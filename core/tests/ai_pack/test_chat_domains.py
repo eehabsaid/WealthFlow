@@ -2,12 +2,12 @@
 Agent mode, and the answers a question outside the domain gets (short, no technical detail, no mention of another domain)."""
 
 from __future__ import annotations
+from ai.models import AISetting
 
 import datetime
 
 from django.test import TestCase
 
-from core.models import AppSettings
 from ai.services import domain_scope as scope
 from ai.services.domains import APP, BUSINESS, DATA_TOOLS, enabled_domains, resolve_domain
 from ai.services.investigation.defs import investigation_tool_schemas
@@ -26,8 +26,8 @@ def names(schemas):
 
 
 def set_domains(business: bool, app: bool) -> None:
-    AppSettings.set("ai_domain_business", "true" if business else "false", user=None)
-    AppSettings.set("ai_domain_app", "true" if app else "false", user=None)
+    AISetting.set("ai_domain_business", "true" if business else "false", user=None)
+    AISetting.set("ai_domain_app", "true" if app else "false", user=None)
 
 
 class DomainSettingsTest(TestCase):

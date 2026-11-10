@@ -2,13 +2,13 @@
 Stop, member vs sysadmin tools, the global off switch."""
 
 from __future__ import annotations
+from ai.models import AISetting
 
 import json
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
-from core.models import AppSettings
 from ai.models.ai_conversation import AIConversation
 from ai.services.agent import control, set_chat_mode
 from core.tests.ai_pack.investigation.support import make_user, seed_tenant, tool_call
@@ -28,8 +28,8 @@ class AgentChatBase(TestCase):
         seed_tenant(self.user, "Q", expenses=2, amount="50.00")
         grant_ai_workspace_access(self.user)
         self.client.force_login(self.user)
-        AppSettings.set("ai_enabled", "true")
-        AppSettings.set("ai_direct_answers", "true")      # instant answers ON: Agent mode must still skip them
+        AISetting.set("ai_enabled", "true")
+        AISetting.set("ai_direct_answers", "true")      # instant answers ON: Agent mode must still skip them
         set_chat_mode(self.user, "agent")
 
     def ask(self, script, text=QUESTION, side_effect=None, **body):
@@ -47,7 +47,7 @@ class AgentChatBase(TestCase):
 
         prov.generate.side_effect = gen
         with patch(f"{VIEW}.get_active_ai_provider", return_value=prov), patch(GP, return_value=CTX), \
-                self.assertLogs("core.ai.pipeline", level="WARNING") as logs:
+                self.assertLogs("ai.pipeline", level="WARNING") as logs:
             res = self.client.post("/api/financial-advisor/ai/chat/", json.dumps({"message": text, **body}), content_type="application/json")
         return res.json(), prov, "\n".join(logs.output)
 
@@ -88,18 +88,18 @@ class AgentModeChatTest(AgentChatBase):
         self.assertNotIn("agent:", json.dumps(data["sources"]))
 
     def test_the_global_switch_off_sends_everyone_down_the_normal_path(self):
-        AppSettings.set("ai_agent_enabled", "false")
+        AISetting.set("ai_agent_enabled", "false")
         data, prov, _ = self.ask(["unused"])
         self.assertEqual(prov.generate.call_count, 0)
         self.assertIn("100.00", data["message"]["content"])
 
     def test_the_editable_instructions_are_what_the_model_is_told(self):
-        AppSettings.set("ai_agent_instructions", "COMPANY RULE: cite the table name.")
+        AISetting.set("ai_agent_instructions", "COMPANY RULE: cite the table name.")
         _, prov, _ = self.ask([tool_call("app_data_models"), "ok"])
         self.assertIn("COMPANY RULE: cite the table name.", prov.generate.call_args_list[0].args[0][0]["content"])
 
     def test_limits_from_settings_are_applied(self):
-        AppSettings.set("ai_agent_max_steps", "2")
+        AISetting.set("ai_agent_max_steps", "2")
         _, prov, log = self.ask([tool_call("app_data_models", model="Expense"), tool_call("app_data_models", model="Bank"),
                                  tool_call("app_data_models", model="Company"), "Final from evidence."])
         self.assertIn("reason", log)
@@ -127,7 +127,7 @@ class AgentModeChatTest(AgentChatBase):
         prov = MagicMock()
         prov.supports_tools, prov.model = False, "plain"
         prov.generate.return_value = {"content": "Probably about 100.", "tool_calls": [], "error": None}
-        with patch(f"{VIEW}.get_active_ai_provider", return_value=prov), patch(GP, return_value=CTX), self.assertLogs("core.ai.pipeline", level="WARNING"):
+        with patch(f"{VIEW}.get_active_ai_provider", return_value=prov), patch(GP, return_value=CTX), self.assertLogs("ai.pipeline", level="WARNING"):
             data = self.client.post("/api/financial-advisor/ai/chat/", json.dumps({"message": "how are my finances going overall?"}),
                                     content_type="application/json").json()
         self.assertIn("did not use any tools", data["message"]["content"])
@@ -165,7 +165,7 @@ class AgentModeSysadminTest(AgentChatBase):
         self.assertIn("agent:code:ai/services/investigation/code_tools.py:25-40", data["sources"])
 
     def test_the_code_switch_off_hides_code_tools_from_the_sysadmin_too(self):
-        AppSettings.set("ai_code_access", "false")
+        AISetting.set("ai_code_access", "false")
         _, prov, _ = self.ask([tool_call("app_data_models"), "ok"])
         offered = {t["function"]["name"] for t in prov.generate.call_args_list[0].kwargs["tools"]}
         self.assertNotIn("app_read_file", offered)

@@ -26,7 +26,7 @@ Net Worth = Liquid Cash (all currencies → home) + Certificates Principal (→ 
 - All provider payloads cap list items to the 20 most recent rows to control token usage.
 - Aggregates (totals, averages, counts) are computed over the FULL queryset before capping — never over the sliced list.
 
-## 6. AppSettings Keys (Runtime Config)
+## 6. AI Settings Keys (Runtime Config; `AISetting`, table `ai_aisetting`; `home_currency` stays in `AppSettings`)
 - `ai_system_prompt` — base system prompt text
 - `ai_context_token_budget` — token budget for context assembly (default: 2048)
 - `home_currency` — fallback home currency if user profile not set

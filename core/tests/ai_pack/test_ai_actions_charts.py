@@ -11,7 +11,7 @@ from ai.models.ai_chat_block import AIChatBlock
 from ai.models.ai_conversation import AIConversation
 from ai.models.ai_message import AIMessage
 from ai.services.actions import attach_blocks, decide, propose_action
-from ai.services.actions.charts import show_chart
+from core.ai_pack.actions.charts import show_chart
 from ai.services.tools import validate_and_execute_tool
 from core.tests.billing.test_support import grant_ai_workspace_access
 

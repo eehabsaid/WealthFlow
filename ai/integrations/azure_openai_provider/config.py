@@ -22,15 +22,15 @@ if TYPE_CHECKING:
 class AzureOpenAIConfigMixin:
     @classmethod
     def from_settings(cls, user=None) -> Optional["AzureOpenAIProvider"]:
-        from core.models import AppSettings
+        from ai.models import AISetting
 
-        raw_key = AppSettings.get("ai_azure_api_key", "", user=user).strip()
+        raw_key = AISetting.get("ai_azure_api_key", "", user=user).strip()
         api_key = decrypt_credential(raw_key)
-        endpoint = AppSettings.get("ai_azure_endpoint", "", user=user).strip()
-        deployment = AppSettings.get("ai_azure_deployment", "", user=user).strip()
-        api_version = AppSettings.get("ai_azure_api_version", "2024-06-01", user=user).strip()
+        endpoint = AISetting.get("ai_azure_endpoint", "", user=user).strip()
+        deployment = AISetting.get("ai_azure_deployment", "", user=user).strip()
+        api_version = AISetting.get("ai_azure_api_version", "2024-06-01", user=user).strip()
         try:
-            timeout = int(AppSettings.get("ai_timeout", "60", user=user))
+            timeout = int(AISetting.get("ai_timeout", "60", user=user))
         except (ValueError, TypeError):
             timeout = 60
 

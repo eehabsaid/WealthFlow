@@ -41,10 +41,10 @@ SOURCE_BOOST = {"flow": 1.3, "page": 1.1, "code": 1.0}
 
 def semantic_enabled() -> bool:
     """Off by default: the embedding call can stall for seconds and loads a second model next to the chat model,
-    which hurts on small machines. Lexical ranking already finds the right chunks. AppSettings ai_knowledge_semantic."""
-    from core.models import AppSettings
+    which hurts on small machines. Lexical ranking already finds the right chunks. AISetting ai_knowledge_semantic."""
+    from ai.models import AISetting
 
-    return str(AppSettings.get("ai_knowledge_semantic", "false")).strip().lower() in ("true", "1", "yes", "on")
+    return str(AISetting.get("ai_knowledge_semantic", "false")).strip().lower() in ("true", "1", "yes", "on")
 
 
 def expand_query(query: str) -> set[str]:

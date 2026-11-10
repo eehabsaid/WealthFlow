@@ -10,10 +10,10 @@ import uuid
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.test import tag
 
-from core.authentication.services import AuthWorkflowService
 from ai.tests.live_boot import PageDiagnostics, first_load, scale_timeouts
-from core.tests.billing.test_support import grant_ai_workspace_access
+from ai.tests.support import grant_ai_workspace_access, make_sysadmin
 
 User = get_user_model()
 
@@ -32,6 +32,7 @@ GROUPS = ["provider", "safety", "domains", "routing", "agent", "docs", "files", 
 SHOTS = os.environ.get("AI_LAYOUT_SHOTS", "")
 
 
+@tag("requires_host_ui")
 class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
@@ -55,9 +56,7 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
 
     def open(self, width, height, theme="dark", rtl=False, route="settings-aiadvisor", ready="#aiSaveBtn"):
         admin = User.objects.create_user(username=f"lay_admin_{uuid.uuid4().hex[:10]}", password="pw123456", is_staff=True)
-        profile = AuthWorkflowService.get_profile(admin)
-        profile.is_sysadmin = True
-        profile.save(update_fields=["is_sysadmin"])
+        make_sysadmin(admin)
         grant_ai_workspace_access(admin)
         self.client.force_login(admin)
         ctx = self._browser.new_context(viewport={"width": width, "height": height})
@@ -113,11 +112,11 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
                 p.screenshot(path=f"{SHOTS}/mobile_{theme}_{'rtl' if rtl else 'ltr'}.png", full_page=True)
 
     def test_the_workspace_dropdown_follows_the_chat_domains_the_sysadmin_allows(self):
-        from core.models import AppSettings
+        from ai.models import AISetting
 
         for business, app, visible in ((True, True, True), (True, False, False), (False, True, False)):
-            AppSettings.set("ai_domain_business", "true" if business else "false", user=None)
-            AppSettings.set("ai_domain_app", "true" if app else "false", user=None)
+            AISetting.set("ai_domain_business", "true" if business else "false", user=None)
+            AISetting.set("ai_domain_app", "true" if app else "false", user=None)
             p = self.open(1300, 900, route="ai", ready="#ai-ws-domain-select")
             p.wait_for_function("() => Array.isArray(_aiState.domains)", timeout=30000)
             self.assertEqual(p.evaluate("() => document.getElementById('ai-ws-domain-select').hidden"), not visible, (business, app))

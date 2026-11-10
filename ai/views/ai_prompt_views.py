@@ -2,7 +2,7 @@ import json
 from django.http import JsonResponse
 from django.views import View
 
-from core.validators.json_body import parse_json_body
+from ai.utils.json_body import parse_json_body
 from ai.services import AIPromptService
 
 

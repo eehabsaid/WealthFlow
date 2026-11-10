@@ -47,7 +47,7 @@ class AIMessageExportView(View):
 
 def _audit(user, details: str) -> None:
     try:
-        from core.authentication.utils.auth_utils import record_audit
+        from ai.host import record_audit
 
         record_audit(user, "ai_file_downloaded", actor=user, details=details[:500])
     except Exception:   # an audit hiccup must never block the user's own file

@@ -13,10 +13,10 @@ from core.models import (
     Currency, ExchangeRate, Bank, BalanceEntry, BankCertificate,
     FixedAsset, GoldDetails, GoldPrice, Expense, ExpenseCategory, Company, SalaryEntry
 )
-from ai.services.providers.balance_provider import BalanceDataProvider
-from ai.services.providers.certificates_provider import BankCertificatesDataProvider
-from ai.services.providers.assets_provider import FixedAssetsDataProvider
-from ai.services.providers.salary_provider import SalaryDataProvider
+from core.ai_pack.providers.balance_provider import BalanceDataProvider
+from core.ai_pack.providers.certificates_provider import BankCertificatesDataProvider
+from core.ai_pack.providers.assets_provider import FixedAssetsDataProvider
+from core.ai_pack.providers.salary_provider import SalaryDataProvider
 from ai.services.context_builder_service import ContextBuilderService
 
 

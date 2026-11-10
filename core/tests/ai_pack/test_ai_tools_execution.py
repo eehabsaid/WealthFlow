@@ -7,13 +7,14 @@ and single-tool call chat controller integration.
 """
 
 from __future__ import annotations
+from ai.models import AISetting
 
 import json
 from unittest.mock import MagicMock, patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import AppSettings, Scenario
+from core.models import Scenario
 from ai.models.ai_message import AIMessage
 from ai.integrations.ai_provider import OllamaProvider
 from ai.services.tools import (
@@ -26,7 +27,7 @@ User = get_user_model()
 
 class AIToolsExecutionTest(TestCase):
     def setUp(self):
-        AppSettings.set("ai_read_only", "false")
+        AISetting.set("ai_read_only", "false")
         self.user = User.objects.create_user(username="action_user", password="password123")
         self.inactive_user = User.objects.create_user(
             username="inactive_user", password="password123", is_active=False
@@ -119,7 +120,7 @@ class AIToolsExecutionTest(TestCase):
     @patch.object(OllamaProvider, "generate")
     def test_ai_chat_view_tool_call_flow_and_audit_log(self, mock_generate):
         self.client.force_login(self.user)
-        AppSettings.set("ai_enabled", "true")
+        AISetting.set("ai_enabled", "true")
 
         # Mock first call returns a tool call for summarize_report
         # Mock second call returns the narrated response

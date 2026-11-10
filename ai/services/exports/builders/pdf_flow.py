@@ -7,7 +7,7 @@ from reportlab.lib.units import mm
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.platypus import Flowable, Paragraph
 
-from core.reports.pdf_rtl import rtl_markup, visual
+from ai.services.exports.pdf_rtl import rtl_markup, visual
 
 
 class RtlParagraph(Paragraph):

@@ -9,9 +9,8 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.test import TestCase, override_settings
-from core.authentication.services import AuthWorkflowService
 from ai.integrations.ai_provider.ollama_stream import generate_stream
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.speech import save_speech_settings
 from ai.services.speech.voice_stream import (
     begin_voice_stream,
@@ -22,7 +21,7 @@ from ai.services.speech.voice_stream import (
 )
 from ai.services.usage.metering import MeteredProvider, TokenMeter
 from ai.views.ai_chat.chat_pipeline.reason import _VoiceSentenceEmitter
-from core.tests.billing.test_support import grant_ai_workspace_access
+from ai.tests.support import grant_ai_workspace_access, make_sysadmin
 
 
 class VoiceSentenceQueueTests(TestCase):
@@ -104,7 +103,7 @@ class OllamaStreamingTests(TestCase):
         )
         seen = []
         with patch("ai.integrations.ai_provider.ollama_stream.urllib.request.urlopen", return_value=response) as opened, \
-             patch("core.models.AppSettings.get", return_value="auto"):
+             patch("ai.models.AISetting.get", return_value="auto"):
             result = generate_stream(provider, [{"role": "user", "content": "balance"}], on_text=seen.append)
         self.assertEqual(result["content"], "Your balance is 100 EGP.")
         self.assertEqual(result["completion_tokens"], 8)
@@ -118,14 +117,12 @@ class OllamaStreamingTests(TestCase):
 class VoiceStreamViewTests(TestCase):
     def setUp(self):
         user = get_user_model().objects.create_user(username="voice-stream-user", password="test-pass")
-        profile = AuthWorkflowService.get_profile(user)
-        profile.is_sysadmin = True
-        profile.save(update_fields=["is_sysadmin"])
+        make_sysadmin(user)
         grant_ai_workspace_access(user)
         self.client.force_login(user)
 
     def tearDown(self):
-        AppSettings.objects.filter(owner=None, key__startswith="speech_").delete()
+        AISetting.objects.filter(owner=None, key__startswith="speech_").delete()
 
     @override_settings(DEBUG=False)
     def test_sentence_polling_is_disabled_outside_local_development(self):

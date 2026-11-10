@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.views import View
 
 from ai.services.app_knowledge import record_feedback
-from core.validators.json_body import parse_json_body
+from ai.utils.json_body import parse_json_body
 from ai.views.ai_chat.ai_chat_helpers import _api_auth_required
 
 

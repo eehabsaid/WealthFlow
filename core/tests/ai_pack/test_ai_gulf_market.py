@@ -10,9 +10,9 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from core.models import ExchangeRate, FixedAsset, GoldDetails, GoldPrice
-from ai.services.providers.assets_provider import FixedAssetsDataProvider
-from ai.services.providers.market_provider import MarketDataProvider
-from ai.services.query_engine.executors.market import run_gold
+from core.ai_pack.providers.assets_provider import FixedAssetsDataProvider
+from core.ai_pack.providers.market_provider import MarketDataProvider
+from core.ai_pack.executors.market import run_gold
 from ai.services.query_engine.spec import QueryRequest
 from core.services.shared.base_currency import set_user_base_currency
 from core.services.shared.market_profile import ensure_base_catalog, prune_egp_for_gulf_user

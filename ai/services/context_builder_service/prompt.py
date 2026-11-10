@@ -6,18 +6,18 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.models import AppSettings
+from ai.models import AISetting
 
 
 def build_system_prompt(user: Any = None, query: str = "", knowledge_token_limit: int = 1500, memory_token_limit: int = 300) -> str:
-    base_prompt = AppSettings.get(
+    base_prompt = AISetting.get(
         "ai_system_prompt",
         "You are the WealthFlow AI Financial Advisor. Answer financial questions strictly using provided data.",
     ).strip()
 
-    from core.services.shared.base_currency import get_user_base_code
+    from ai.host import base_currency
 
-    home_currency = get_user_base_code(user)
+    home_currency = base_currency(user)
 
     response_style = (
         "\n\nCONVERSATIONAL RESPONSE STYLE:\n"

@@ -1,13 +1,13 @@
 import json
 from django.http import JsonResponse
-from core.models import AppSettings
+from ai.models import AISetting
 
 # Maximum number of tool-call/response iterations per user message.
 # Tunable: increase cautiously on GPU hardware, decrease if CPU latency is unacceptable.
 MAX_TOOL_ITERATIONS = 8
 
 # Total wall-clock budget (seconds) for the full investigation loop.
-# Readable from AppSettings as "ai_total_loop_timeout"; defaults to 300s (5 minutes).
+# Readable from AISetting as "ai_total_loop_timeout"; defaults to 300s (5 minutes).
 # This caps the worst-case (MAX_TOOL_ITERATIONS × per-call timeout) accumulation.
 LOOP_TOTAL_TIMEOUT_SECONDS = 300
 
@@ -45,9 +45,9 @@ def _tool_progress_label(fn_name: str, fn_args: dict) -> str:
     return template
 
 def _get_loop_timeout() -> int:
-    """Read the total loop wall-clock budget from AppSettings with safe fallback."""
+    """Read the total loop wall-clock budget from AISetting with safe fallback."""
     try:
-        return max(30, int(AppSettings.get("ai_total_loop_timeout", str(LOOP_TOTAL_TIMEOUT_SECONDS))))
+        return max(30, int(AISetting.get("ai_total_loop_timeout", str(LOOP_TOTAL_TIMEOUT_SECONDS))))
     except (ValueError, TypeError):
         return LOOP_TOTAL_TIMEOUT_SECONDS
 

@@ -6,7 +6,7 @@ Split out of the former monolithic ai_platform_views.py (200-line rule).
 
 from django.http import JsonResponse
 
-from core.authentication.utils.auth_utils import user_is_sysadmin
+from ai.host import user_is_sysadmin
 
 
 def _api_auth_required(request):

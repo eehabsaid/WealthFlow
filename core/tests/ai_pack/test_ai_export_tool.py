@@ -5,6 +5,7 @@ tool that builds a file from a database query (no 100-row cap, owner isolation),
 entry, give-up phrases that hand over to the investigator, and code files."""
 
 import datetime
+from ai.models import AISetting
 import re
 from decimal import Decimal
 from io import BytesIO
@@ -12,7 +13,7 @@ from io import BytesIO
 from django.test import TestCase
 from openpyxl import load_workbook
 
-from core.models import AppSettings, Expense
+from core.models import Expense
 from ai.models.ai_message import AIMessage
 from ai.services.exports import formats_from_tool_calls
 from ai.services.exports.tool import generate_file
@@ -63,7 +64,7 @@ class GenerateFileToolTests(TestCase):
         self.assertIn("Fields:", self.run_tool(format="xlsx", dataset={"model": "Expense", "fields": ["nope"]})[1]["data"]["error"])
 
     def test_tool_is_off_with_the_switch(self):
-        AppSettings.set("ai_file_generation", "false")
+        AISetting.set("ai_file_generation", "false")
         self.assertIn("switched off", generate_file(self.user, {"format": "xlsx", "content": "x"})["error"])
 
     def test_formats_chosen_by_the_model_when_the_user_named_none(self):

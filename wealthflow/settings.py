@@ -136,3 +136,20 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Playwright Documentation Backend ('python' or 'javascript')
 PLAYWRIGHT_BACKEND = os.environ.get("PLAYWRIGHT_BACKEND", "python").lower()
+
+# --- AI app (ai/) wiring: the WealthFlow pack and the host hooks (see ai/INSTALL.md) ---
+AI_PACKS = ["core.ai_pack"]
+AI_SYSADMIN_CHECK = "core.ai_pack.host.sysadmin_check"
+AI_PERMISSION_CHECK = "core.ai_pack.host.permission_check"
+AI_AUDIT_HOOK = "core.ai_pack.host.audit_hook"
+AI_FEATURE_GATE = "core.ai_pack.host.feature_gate"
+AI_BASE_CURRENCY = "core.ai_pack.host.base_currency"
+AI_DEFAULT_CURRENCY = "core.ai_pack.host.default_currency"
+AI_EXCHANGE_RATE = "core.ai_pack.host.exchange_rate"
+AI_LEGACY_SETTINGS_MODEL = "core.AppSettings"          # ai_* / speech_* / image_gen_* rows are copied once into AISetting
+AI_EXTRA_CREDENTIAL_MODELS = ["core.AppSettings"]      # also re-keyed by `manage.py rekey_ai_keys` (Paymob secrets)
+AI_LEGACY_APP_LABEL = "core"                           # ContentType rows of the AI models used to live here
+AI_LEGACY_CREATOR_NODES = [("core", "0040_ai_blocks_attachments")]
+AI_CODE_ROOTS = ["core", "ai", "wealthflow", "scripts", "static/js"]
+AI_TEST_SUPPORT = "core.ai_pack.test_support"            # helpers for the portable ai/tests
+AI_HOST_APPS = ["core"]                                  # models/code of these apps are described to the AI

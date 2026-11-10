@@ -18,7 +18,7 @@ KNOWLEDGE_CHARS = 3500
 
 def units(user) -> list[dict]:
     """[{"title", "evidence" (JSON of the screen/tabs), "fallback" (Markdown)}] for the screens this user may open."""
-    from core.authentication.utils.auth_utils import user_is_sysadmin
+    from ai.host import user_is_sysadmin
     from ai.services.app_pages import app_pages
 
     admin = user_is_sysadmin(user)

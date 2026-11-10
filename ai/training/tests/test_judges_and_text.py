@@ -50,7 +50,7 @@ class MethodChecksTest(SimpleTestCase):
         self.assertIn("leaked_tool_call_or_reasoning", self.check(answer="3 </think> records"))
         self.assertIn("leaked_tool_call_or_reasoning", self.check(answer='{"name": "app_data_query", "arguments": {"model": "Expense"}}'))
         self.assertIn("used_non_data_tool", self.check(steps=[STEP, {"tool": "app_read_file", "arguments": {}, "result": "{}"}]))
-        self.assertIn("unscoped_model", self.check(steps=[{**STEP, "arguments": {"model": "AppSettings"}}]))
+        self.assertIn("unscoped_model", self.check(steps=[{**STEP, "arguments": {"model": "AISetting"}}]))
         self.assertIn("tool_error_in_run", self.check(steps=[STEP, {**STEP, "result": '{"error":"bad field"}'}]))
         self.assertIn("answer_in_other_language", self.check(answer="لديك 3 سجلات"))
 

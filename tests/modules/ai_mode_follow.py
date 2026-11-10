@@ -1,6 +1,6 @@
 """Browser contract for "Ask hands a guide request to Agent mode": when the chat response says chat_mode "agent", the Ask/Agent bar
 switches to Agent by itself. The chat call is answered by the browser (page.route), so no model is needed; the server side (the
-YES/NO question, the saved mode, the file) is covered by ai/tests/test_ask_moves_guide_to_agent.py. (No core.* imports.)"""
+YES/NO question, the saved mode, the file) is covered by core/tests/ai_pack/from_ai/test_ask_moves_guide_to_agent.py. (No core.* imports.)"""
 
 import json
 

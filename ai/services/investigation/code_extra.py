@@ -13,10 +13,15 @@ from ai.services.investigation import paths
 
 _DEF_LINE = re.compile(r"^\s*(?:async\s+def|def|class|function)\s")
 _GIT_TIMEOUT_S = 10
-_LAYERS = (   # (result key, folder, file globs)
-    ("frontend", "static/js", ["*.js"]), ("templates", "templates", ["*.html"]), ("urls", "core/urls", ["*.py"]),
-    ("views", "core/views", ["*.py"]), ("services", "core/services", ["*.py"]), ("models", "core/models", ["*.py"]),
-    ("ai_views", "ai/views", ["*.py"]), ("ai_services", "ai/services", ["*.py"]), ("ai_models", "ai/models", ["*.py"]))
+def _layers():
+    """(result key, folder, file globs): the host apps' layers (settings.AI_HOST_APPS) plus the ai app's own."""
+    from ai.conf import host_apps
+
+    out = [("frontend", "static/js", ["*.js"]), ("templates", "templates", ["*.html"])]
+    for app in host_apps():
+        for layer, glob in (("urls", "*.py"), ("views", "*.py"), ("services", "*.py"), ("models", "*.py")):
+            out.append((layer, f"{app}/{layer}", [glob]))
+    return out + [("ai_views", "ai/views", ["*.py"]), ("ai_services", "ai/services", ["*.py"]), ("ai_models", "ai/models", ["*.py"])]
 
 
 def callers(user, params):
@@ -83,7 +88,7 @@ def trace_feature(user, params):
     words = {term, term.replace(" ", "_"), term.replace(" ", "")}
     rx = re.compile("|".join(re.escape(w) for w in sorted(words)), re.IGNORECASE)
     out: dict = {"feature": term}
-    for key, folder, globs in _LAYERS:
+    for key, folder, globs in _layers():
         try:
             root = paths.resolve(folder)
         except paths.PathError:

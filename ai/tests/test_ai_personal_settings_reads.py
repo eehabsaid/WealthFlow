@@ -4,10 +4,10 @@ history window, tool-result cap and Ollama sampling options (not just the genera
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.constants.ai_user_settings import USE_GENERAL_KEY
+from ai.constants import USE_GENERAL_KEY
 from ai.integrations.ai_provider.ollama_options import build_options
 from ai.integrations.ai_provider.ollama_provider import OllamaProvider
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.context_builder_service import ContextBuilderService
 from ai.services.tools.result_budget import tool_result_max_chars
 
@@ -17,10 +17,10 @@ User = get_user_model()
 class PersonalAISettingsReadTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="member", password="pw12345!")
-        AppSettings.set("ai_context_token_budget", "2048")
-        AppSettings.set("ai_top_k", "40")
-        AppSettings.set("ai_top_p", "0.9")
-        AppSettings.set("ai_repeat_penalty", "1.1")
+        AISetting.set("ai_context_token_budget", "2048")
+        AISetting.set("ai_top_k", "40")
+        AISetting.set("ai_top_p", "0.9")
+        AISetting.set("ai_repeat_penalty", "1.1")
         for key, value in (
             ("ai_context_token_budget", "6000"),
             ("ai_top_k", "20"),
@@ -28,7 +28,7 @@ class PersonalAISettingsReadTests(TestCase):
             ("ai_repeat_penalty", "1.3"),
             (USE_GENERAL_KEY, "false"),
         ):
-            AppSettings.set(key, value, user=self.user)
+            AISetting.set(key, value, user=self.user)
 
     def test_token_budget_follows_personal_value(self):
         self.assertEqual(ContextBuilderService().get_token_budget(self.user), 6000)
@@ -46,7 +46,7 @@ class PersonalAISettingsReadTests(TestCase):
         self.assertEqual(options["repeat_penalty"], 1.3)
 
     def test_ollama_sampling_options_use_general_when_switch_on(self):
-        AppSettings.set(USE_GENERAL_KEY, "true", user=self.user)
+        AISetting.set(USE_GENERAL_KEY, "true", user=self.user)
         provider = OllamaProvider.from_settings(user=self.user)
         options = build_options({}, provider.user_options)
         self.assertEqual((options["top_k"], options["top_p"], options["repeat_penalty"]), (40, 0.9, 1.1))

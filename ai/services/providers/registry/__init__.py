@@ -39,29 +39,34 @@ def autodiscover_providers() -> dict[str, BaseContextProvider]:
     _DATA_PROVIDER_REGISTRY.clear()
 
     import ai.services.providers as providers_pkg
-    package_path = providers_pkg.__path__
+    from ai.packs import registry as packs_registry
 
-    for _, module_name, _ in pkgutil.iter_modules(package_path):
-        if module_name in ("base", "registry"):
-            continue
-        try:
-            full_module_name = f"ai.services.providers.{module_name}"
-            module = importlib.import_module(full_module_name)
+    packages = [("ai.services.providers", providers_pkg.__path__)]
+    for dotted in packs_registry().provider_packages:   # host packs add provider packages
+        packages.append((dotted, importlib.import_module(dotted).__path__))
 
-            for _, cls in inspect.getmembers(module, inspect.isclass):
-                if issubclass(cls, BaseContextProvider) and cls is not BaseContextProvider:
-                    inst = cls()
-                    if inst.key in _DATA_PROVIDER_REGISTRY:
-                        logger.warning("Duplicate provider key '%s' discovered in %s", inst.key, full_module_name)
-                    else:
-                        _DATA_PROVIDER_REGISTRY[inst.key] = inst
-        except Exception as exc:
-            logger.error("Failed to autodiscover AI provider module '%s': %s", module_name, exc)
+    for package_name, package_path in packages:
+        for _, module_name, _ in pkgutil.iter_modules(package_path):
+            if package_name == "ai.services.providers" and module_name in ("base", "registry"):
+                continue
+            try:
+                full_module_name = f"{package_name}.{module_name}"
+                module = importlib.import_module(full_module_name)
+
+                for _, cls in inspect.getmembers(module, inspect.isclass):
+                    if issubclass(cls, BaseContextProvider) and cls is not BaseContextProvider:
+                        inst = cls()
+                        if inst.key in _DATA_PROVIDER_REGISTRY:
+                            logger.warning("Duplicate provider key '%s' discovered in %s", inst.key, full_module_name)
+                        else:
+                            _DATA_PROVIDER_REGISTRY[inst.key] = inst
+            except Exception as exc:
+                logger.error("Failed to autodiscover AI provider module '%s': %s", module_name, exc)
 
     return _DATA_PROVIDER_REGISTRY
 
 
-# Initialize registry on load
+# Initialize registry on load (AIConfig.ready() runs it again after the packs are registered)
 autodiscover_providers()
 
 DATA_PROVIDER_REGISTRY = _DATA_PROVIDER_REGISTRY

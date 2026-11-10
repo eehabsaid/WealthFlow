@@ -4,11 +4,11 @@ from unittest.mock import MagicMock, patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.constants.ai_user_settings import DEFAULT_LIMIT_KEY, USE_GENERAL_KEY, USER_LIMIT_KEY
-from core.models import AppSettings
+from ai.constants import DEFAULT_LIMIT_KEY, USE_GENERAL_KEY
+from ai.models import AISetting
 from ai.models.ai_conversation import AIConversation
 from ai.models.ai_message import AIMessage
-from core.tests.billing.test_support import grant_ai_workspace_access
+from ai.tests.support import grant_ai_workspace_access, make_sysadmin
 from ai.services.usage import MeteredProvider, TokenMeter, effective_limit, limit_status, used_tokens
 
 User = get_user_model()
@@ -24,33 +24,30 @@ class AIUserSettingsTests(TestCase):
         self.user = User.objects.create_user(username="member", password="pw12345!")
         self.other = User.objects.create_user(username="other", password="pw12345!")
         self.admin = User.objects.create_user(username="boss", password="pw12345!", is_staff=True)
-        from core.authentication.services import AuthWorkflowService
-        profile = AuthWorkflowService.get_profile(self.admin)
-        profile.is_sysadmin = True
-        profile.save(update_fields=["is_sysadmin"])
-        AppSettings.set("ai_enabled", "true")
-        AppSettings.set("ai_model", "general-model")
+        make_sysadmin(self.admin)
+        AISetting.set("ai_enabled", "true")
+        AISetting.set("ai_model", "general-model")
 
     def _own(self, **kw):
         for k, v in kw.items():
-            AppSettings.set(k, v, user=self.user)
+            AISetting.set(k, v, user=self.user)
 
     # --- general-settings switch -------------------------------------------------
     def test_default_is_general_and_ignores_own_rows(self):
         self._own(ai_model="own-model")
-        self.assertEqual(AppSettings.get("ai_model", user=self.user), "general-model")
+        self.assertEqual(AISetting.get("ai_model", user=self.user), "general-model")
 
     def test_own_settings_apply_when_switch_off(self):
         self._own(ai_model="own-model", **{USE_GENERAL_KEY: "false"})
-        self.assertEqual(AppSettings.get("ai_model", user=self.user), "own-model")
-        self.assertEqual(AppSettings.get("ai_model", user=self.other), "general-model")
+        self.assertEqual(AISetting.get("ai_model", user=self.user), "own-model")
+        self.assertEqual(AISetting.get("ai_model", user=self.other), "general-model")
 
     def test_me_post_never_writes_sysadmin_only_fields(self):
         self.client.force_login(self.user)
         res = _post(self.client, "/api/settings/ai/me/", {"use_general": False, "ai_provider": "ollama", "ai_permission_tier": "modify", "ai_read_only": False, "ai_multi_agent_enabled": True, "ai_ollama_url": "http://evil:1"})
         self.assertEqual(res.status_code, 200)
         for key in ("ai_permission_tier", "ai_read_only", "ai_multi_agent_enabled", "ai_ollama_url"):
-            self.assertFalse(AppSettings.objects.filter(owner=self.user, key=key).exists(), key)
+            self.assertFalse(AISetting.objects.filter(owner=self.user, key=key).exists(), key)
 
     # --- per-user API -------------------------------------------------------------
     def test_me_requires_login(self):
@@ -69,11 +66,11 @@ class AIUserSettingsTests(TestCase):
         with patch("ai.views.settings.ai_user_settings_views.run_ai_settings_connection_test", return_value=(True, None)):
             res = _post(self.client, "/api/settings/ai/me/", {"use_general": False, "ai_enabled": True, "ai_provider": "ollama", "ai_model": "mine", "ai_temperature": 0.3})
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(AppSettings.get("ai_model", user=self.user), "mine")
-        self.assertEqual(AppSettings.get("ai_model", user=self.other), "general-model")
+        self.assertEqual(AISetting.get("ai_model", user=self.user), "mine")
+        self.assertEqual(AISetting.get("ai_model", user=self.other), "general-model")
         _post(self.client, "/api/settings/ai/me/", {"use_general": True})
-        self.assertEqual(AppSettings.get("ai_model", user=self.user), "general-model")
-        self.assertTrue(AppSettings.objects.filter(owner=self.user, key="ai_model", value="mine").exists())  # kept for switching back
+        self.assertEqual(AISetting.get("ai_model", user=self.user), "general-model")
+        self.assertTrue(AISetting.objects.filter(owner=self.user, key="ai_model", value="mine").exists())  # kept for switching back
 
     def test_me_post_rejects_azure_and_bad_values(self):
         self.client.force_login(self.user)
@@ -84,17 +81,17 @@ class AIUserSettingsTests(TestCase):
         self.client.force_login(self.user)
         with patch("ai.views.settings.ai_user_settings_views.run_ai_settings_connection_test", return_value=(True, None)):
             _post(self.client, "/api/settings/ai/me/", {"use_general": False, "ai_provider": "openai", "ai_openai_api_key": "sk-secret-123456"})
-        stored = AppSettings.objects.get(owner=self.user, key="ai_openai_api_key").value
+        stored = AISetting.objects.get(owner=self.user, key="ai_openai_api_key").value
         self.assertNotIn("sk-secret", stored)
         shown = self.client.get("/api/settings/ai/me/").json()["fields"]["ai_openai_api_key"]
         self.assertNotIn("sk-secret", shown)
 
     def test_shared_api_key_never_shown_to_a_member(self):
         from ai.services.credential_encryption import encrypt_credential
-        AppSettings.set("ai_openai_api_key", encrypt_credential("sk-shared-ADMINKEY9876"))
+        AISetting.set("ai_openai_api_key", encrypt_credential("sk-shared-ADMINKEY9876"))
         self.client.force_login(self.user)
         for use_general in (True, False):
-            AppSettings.set(USE_GENERAL_KEY, "true" if use_general else "false", user=self.user)
+            AISetting.set(USE_GENERAL_KEY, "true" if use_general else "false", user=self.user)
             self.assertNotIn("9876", json.dumps(self.client.get("/api/settings/ai/me/").json()))
 
     # --- sysadmin limit ------------------------------------------------------------
@@ -134,13 +131,6 @@ class AIUserSettingsTests(TestCase):
         self.client.force_login(self.user)
         self.assertEqual(_post(self.client, "/api/settings/ai/user-limits/", {"user_ids": [self.user.id], "limit": 0}).status_code, 403)
 
-    def test_user_cannot_write_limit_via_generic_settings_api(self):
-        self.client.force_login(self.user)
-        for body in ({USER_LIMIT_KEY: "0"}, {DEFAULT_LIMIT_KEY: "0"}, {USE_GENERAL_KEY: "false"}, {"ai_model": "sneaky"}):
-            res = _post(self.client, "/api/settings/", body)
-            self.assertEqual(res.status_code, 403, body)
-        self.assertFalse(AppSettings.objects.filter(key__in=[USER_LIMIT_KEY, DEFAULT_LIMIT_KEY, USE_GENERAL_KEY, "ai_model"]).exclude(owner=None, key="ai_model").exists())
-
     # --- usage + enforcement ---------------------------------------------------------
     def _spend(self, tokens, user=None):
         conv = AIConversation.objects.create(user=user or self.user)
@@ -152,19 +142,19 @@ class AIUserSettingsTests(TestCase):
         self.assertEqual(used_tokens(self.user), 100)
 
     def test_limit_applies_only_on_general(self):
-        AppSettings.set(DEFAULT_LIMIT_KEY, "100")
+        AISetting.set(DEFAULT_LIMIT_KEY, "100")
         self._spend(150)
         self.assertTrue(limit_status(self.user)["exceeded"])
-        AppSettings.set(USE_GENERAL_KEY, "false", user=self.user)
+        AISetting.set(USE_GENERAL_KEY, "false", user=self.user)
         st = limit_status(self.user)
         self.assertFalse(st["exceeded"])
         self.assertFalse(st["limited"])
 
     def test_chat_blocked_when_exceeded_and_unblocked_on_own_settings(self):
-        AppSettings.set(DEFAULT_LIMIT_KEY, "100")
+        AISetting.set(DEFAULT_LIMIT_KEY, "100")
         self._spend(150)
         grant_ai_workspace_access(self.user)
-        AppSettings.set("ai_direct_answers", "false")
+        AISetting.set("ai_direct_answers", "false")
         self.client.force_login(self.user)
         provider = MagicMock()
         provider.supports_tools = True
@@ -173,7 +163,7 @@ class AIUserSettingsTests(TestCase):
             res = _post(self.client, CHAT, {"message": "hello"})
         self.assertEqual(res.json().get("error_key"), "ai_error_token_limit")
         provider.generate.assert_not_called()
-        AppSettings.set(USE_GENERAL_KEY, "false", user=self.user)
+        AISetting.set(USE_GENERAL_KEY, "false", user=self.user)
         with patch("ai.views.ai_chat.ai_chat_core_views.get_active_ai_provider", return_value=provider):
             res = _post(self.client, CHAT, {"message": "hello"})
         self.assertNotEqual(res.json().get("error_key"), "ai_error_token_limit")

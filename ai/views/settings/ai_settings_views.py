@@ -8,8 +8,8 @@ import json
 from django.http import JsonResponse
 from django.views import View
 
-from core.validators.json_body import parse_json_body
-from core.views.auth_views import AdminRequiredMixin
+from ai.utils.json_body import parse_json_body
+from ai.views.mixins import AdminRequiredMixin
 from ai.views.settings.ai_pipeline_settings import (
     persist_pipeline_settings,
     validate_pipeline_settings,

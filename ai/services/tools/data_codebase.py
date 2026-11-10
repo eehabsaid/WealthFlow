@@ -13,7 +13,7 @@ import time
 from typing import Any
 
 from ai.services.tools.schema_validation import as_bool
-from ai.services.tools.salary_answers import SALARY_INSTRUCTIONS, add_salary_answers
+from ai.packs import registry as packs_registry
 
 
 def _handle_read_live_app_structure(user: Any, params: dict[str, Any]) -> dict[str, Any]:
@@ -87,9 +87,8 @@ def _handle_query_application_data(user: Any, params: dict[str, Any]) -> dict[st
             "from this response, say plainly that no expense data was found rather than using another "
             "domain's data as a stand-in."
         )
-        if isinstance(res.get("salary"), dict):
-            add_salary_answers(res, user, search_query)
-            res["instructions"] += SALARY_INSTRUCTIONS
+        for enrich in packs_registry().data_enrichers:   # e.g. a pack adds ready answers to its own data blocks
+            enrich(res, user, search_query)
     return res
 
 

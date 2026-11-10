@@ -8,7 +8,7 @@ import re
 
 from django.http import JsonResponse
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.models.ai_message import AIMessage
 from ai.services.context_builder_service import ContextBuilderService
 from ai.services.tools import get_registered_tool_schemas
@@ -43,7 +43,7 @@ def _infer_question_domain(user_text: str) -> str | None:
 def build_context(request, conversation, user_msg, user_text):
     """Fetch prior messages and assemble the provider message sequence."""
     try:
-        history_window_size = int(AppSettings.get("ai_history_window", "10", user=request.user))
+        history_window_size = int(AISetting.get("ai_history_window", "10", user=request.user))
     except (ValueError, TypeError):
         history_window_size = 10
 

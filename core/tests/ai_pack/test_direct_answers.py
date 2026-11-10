@@ -1,11 +1,12 @@
 import json
+from ai.models import AISetting
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 
 from ai.integrations.ai_provider import OllamaProvider
-from core.models import AppSettings, Company, SalaryEntry
+from core.models import Company, SalaryEntry
 from ai.services.direct_answers import _match_salary
 from core.tests.billing.test_support import grant_ai_workspace_access
 
@@ -50,8 +51,8 @@ class DirectAnswerChatTests(TestCase):
         for owner, paid in ((self.user, "87643.86"), (self.other, "111.00")):
             co = Company.objects.create(owner=owner, name="Acme", display_name="Acme")
             SalaryEntry.objects.create(company=co, year=2026, month="January", paid=paid, expected=paid)
-        AppSettings.set("ai_enabled", "true")
-        AppSettings.set("ai_provider", "ollama")
+        AISetting.set("ai_enabled", "true")
+        AISetting.set("ai_provider", "ollama")
         self.client.force_login(self.user)
 
     def _post(self, text):
@@ -83,6 +84,6 @@ class DirectAnswerChatTests(TestCase):
     @patch.object(OllamaProvider, "generate")
     def test_kill_switch(self, gen):
         gen.return_value = {"content": "LLM answer", "error": None}
-        AppSettings.set("ai_direct_answers", "false", user=self.user)
+        AISetting.set("ai_direct_answers", "false", user=self.user)
         data = self._post("What was my paid salary for January 2026?").json()
         self.assertEqual(data["message"]["content"], "LLM answer")

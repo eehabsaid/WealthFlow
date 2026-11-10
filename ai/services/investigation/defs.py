@@ -33,7 +33,7 @@ CODE_TOOLS = ("app_list_dir", "app_find_files", "app_grep", "app_find_definition
 
 INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
     _tool("app_list_dir", "List a folder of the WealthFlow source tree (path relative to the project root, '' = root).",
-          ct.list_dir, {"path": _p(_S, "e.g. 'core/services/billing'")}),
+          ct.list_dir, {"path": _p(_S, "e.g. 'myapp/services/billing'")}),
     _tool("app_find_files", "Find source files by name: wildcard ('*balance*.py') or plain substring ('expense_service').",
           ct.find_files, {"pattern": _p(_S, "file name pattern"), "path": _p(_S, "optional folder to limit the search")},
           ["pattern"]),
@@ -109,11 +109,11 @@ def investigation_tool_schemas(user, domain: str = "") -> list[dict[str, Any]]:
         return (code_ok or name not in CODE_TOOLS) and not (domain == APP and name in DATA_TOOLS)
 
     schemas = [d["schema"] for n, d in INVESTIGATION_TOOL_DEFS.items() if allowed(n)]
-    from ai.services.actions.tool import CHART_TOOL_DEF, TOOL_DEF as action_tool
+    from ai.packs import registry
     from ai.services.memory.commands import MEMORY_TOOL_DEFS
 
     # propose_action (confirmation card), show_chart and (when enabled) generate_image are offered in every domain, like the memory tools
     from ai.services.image_generation import TOOL_DEF as image_tool, image_generation_available
 
     return schemas + ([file_tool["schema"]] if exports_enabled() else []) + [d["schema"] for d in MEMORY_TOOL_DEFS.values()] \
-        + [action_tool["schema"], CHART_TOOL_DEF["schema"]] + ([image_tool["schema"]] if image_generation_available() else [])
+        + [d["schema"] for d in registry().tool_defs.values() if d.get("offer_all_domains")] + ([image_tool["schema"]] if image_generation_available() else [])

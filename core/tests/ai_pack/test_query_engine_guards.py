@@ -12,7 +12,7 @@ from django.test import SimpleTestCase, TestCase
 from ai.integrations.ai_provider import OllamaProvider
 from core.models import Expense, ExpenseCategory
 from ai.services.query_engine import route
-from ai.services.query_engine.executors.emergency import target_months
+from core.ai_pack.executors.emergency import target_months
 
 import core.tests.ai_pack.qe_fixtures as fx
 

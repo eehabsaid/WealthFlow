@@ -1,0 +1,12 @@
+# Minimum versions the ai/ app needs. Ranges only: install what your project already has; nothing here pins or upgrades a host package.
+# Required
+Django>=4.2
+requests>=2.28
+cryptography>=41
+# Optional (features degrade gracefully when missing)
+openpyxl>=3.1        # Excel exports
+reportlab>=4.0       # PDF exports
+python-docx>=1.0     # Word exports
+pypdf>=4.0           # reading PDFs
+Pillow>=10.0         # images
+playwright>=1.40     # browser tools and documentation screenshots (run `playwright install chromium`)

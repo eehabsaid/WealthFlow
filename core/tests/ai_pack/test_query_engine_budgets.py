@@ -8,9 +8,9 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from core.models import Budget, Currency, Expense, ExchangeRate, ExpenseCategory, RecurringTransaction
-from ai.services.providers.budgets_provider import BudgetsDataProvider
+from core.ai_pack.providers.budgets_provider import BudgetsDataProvider
 from ai.services.query_engine import get_capability, route
-from ai.services.query_engine.executors.budgets import run_budgets, run_recurring
+from core.ai_pack.executors.budgets import run_budgets, run_recurring
 from ai.services.query_engine.spec import QueryRequest
 from core.services.shared.base_currency import set_user_base_currency
 from core.services.shared.market_profile import ensure_base_catalog, prune_egp_for_gulf_user

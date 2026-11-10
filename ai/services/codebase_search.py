@@ -15,7 +15,8 @@ from typing import Any
 _WORD = re.compile(r"[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+")
 # Words that say "this is a code question" or appear in nearly every path/entry.
 GENERIC = frozenset({
-    "core", "service", "services", "view", "views", "model", "models", "class", "classes",
+    "core", "service", "services",  # ai-independence: ok (a plain stop word)
+    "view", "views", "model", "models", "class", "classes",
     "file", "files", "code", "codebase", "app", "application", "function", "functions",
     "handle", "handles", "handled", "does", "where", "which", "what", "how", "the", "and",
     "for", "our", "with", "implemented", "implement", "logic", "module", "modules",

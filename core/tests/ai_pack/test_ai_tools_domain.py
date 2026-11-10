@@ -3,13 +3,13 @@ Unit test suite for new AI read-only tools, question domain selection, and read-
 """
 
 from __future__ import annotations
+from ai.models import AISetting
 
 import json
 from unittest.mock import patch, MagicMock
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import AppSettings
 from ai.services.tools import (
     validate_and_execute_tool,
 )
@@ -24,7 +24,7 @@ class NewAIToolsDomainTest(TestCase):
 
     def test_ai_chat_view_question_domain_filtering(self):
         self.client.force_login(self.user)
-        AppSettings.set("ai_enabled", "true")
+        AISetting.set("ai_enabled", "true")
 
         with patch("ai.views.ai_chat.ai_chat_core_views.get_active_ai_provider") as mock_get_provider:
             mock_provider = MagicMock()
@@ -75,7 +75,7 @@ class NewAIToolsDomainTest(TestCase):
             content_type="application/json",
         )
         self.assertEqual(res_post.status_code, 200)
-        self.assertEqual(AppSettings.get("ai_read_only", user=self.user), "false")
+        self.assertEqual(AISetting.get("ai_read_only", user=self.user), "false")
 
     def test_read_application_codebase_execution(self):
         audit, res = validate_and_execute_tool(

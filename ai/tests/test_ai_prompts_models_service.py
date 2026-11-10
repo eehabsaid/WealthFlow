@@ -3,8 +3,9 @@ Unit tests for AI Prompt Library models, services, serializers, and REST API end
 """
 
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 from ai.models.ai_prompt import AIPrompt, AIPromptCategory
 from ai.services import AIPromptService, serialize_prompt, serialize_prompt_category
 

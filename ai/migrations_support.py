@@ -2,16 +2,24 @@
 from django.db import migrations
 from django.db.migrations.loader import MigrationLoader
 
-OLD_LABEL, NEW_LABEL = "core", "ai"
+from django.conf import settings
+
+NEW_LABEL = "ai"
 MODELS = ["aiknowledgeentry", "aipromptcategory", "aiconversation", "aimemorynote", "aimessage",
           "aichatblock", "aiattachment", "aiprompt", "aianswerfeedback"]
-# The host app whose history already creates these tables (WealthFlow's core app).
-CORE_CREATOR = ("core", "0040_ai_blocks_attachments")
+
+
+def _legacy():
+    """Optional host hooks: AI_LEGACY_APP_LABEL (old ContentType label), AI_LEGACY_CREATOR_NODES (migration nodes
+    of the host that already create the AI tables). Both are unset in a fresh host project."""
+    return getattr(settings, "AI_LEGACY_APP_LABEL", None), [tuple(n) for n in getattr(settings, "AI_LEGACY_CREATOR_NODES", [])]
 
 
 def _core_history_creates_tables(connection):
     """True when another migration chain will create (or has created) the tables."""
-    return CORE_CREATOR in MigrationLoader(connection, ignore_no_migrations=True).graph.nodes
+    nodes = _legacy()[1]
+    graph = MigrationLoader(connection, ignore_no_migrations=True).graph.nodes
+    return any(n in graph for n in nodes)
 
 
 class CreateModelIfMissing(migrations.CreateModel):
@@ -60,8 +68,12 @@ def _relabel(apps, schema_editor, src, dst):
 
 
 def relabel_forward(apps, schema_editor):
-    _relabel(apps, schema_editor, OLD_LABEL, NEW_LABEL)
+    old = _legacy()[0]
+    if old:
+        _relabel(apps, schema_editor, old, NEW_LABEL)
 
 
 def relabel_backward(apps, schema_editor):
-    _relabel(apps, schema_editor, NEW_LABEL, OLD_LABEL)
+    old = _legacy()[0]
+    if old:
+        _relabel(apps, schema_editor, NEW_LABEL, old)

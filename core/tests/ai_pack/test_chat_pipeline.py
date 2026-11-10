@@ -1,6 +1,7 @@
 """Staged chat pipeline: Understand / Validate logic, tracing, and view integration."""
 
 from __future__ import annotations
+from ai.models import AISetting
 
 import json
 from unittest.mock import MagicMock, patch
@@ -8,7 +9,6 @@ from unittest.mock import MagicMock, patch
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 
-from core.models import AppSettings
 from core.tests.billing.test_support import grant_ai_workspace_access
 from ai.views.ai_chat.chat_pipeline import STAGES, PipelineTrace, understand
 from ai.views.ai_chat.chat_pipeline.grounding import ground_answer
@@ -67,7 +67,7 @@ class UnderstandTest(SimpleTestCase):
 class TraceTest(SimpleTestCase):
     def test_logs_each_stage_and_summary(self):
         t = PipelineTrace(1, 2)
-        with self.assertLogs("core.ai.pipeline", level="WARNING") as cm:
+        with self.assertLogs("ai.pipeline", level="WARNING") as cm:
             with t.stage("understand") as rec:
                 rec.detail["x"] = 1
             t.skip_remaining("test")
@@ -82,8 +82,8 @@ class PipelineViewTest(TestCase):
         self.user = User.objects.create_user(username="pipe_user", password="Password123!")
         grant_ai_workspace_access(self.user)
         self.client.force_login(self.user)
-        AppSettings.set("ai_enabled", "true")
-        AppSettings.set("ai_direct_answers", "false")
+        AISetting.set("ai_enabled", "true")
+        AISetting.set("ai_direct_answers", "false")
 
     def ask(self, text, answers, **body):
         prov = MagicMock()
@@ -91,7 +91,7 @@ class PipelineViewTest(TestCase):
         prov.generate.side_effect = [{"content": a, "tool_calls": None, "error": None} for a in answers]
         ctx = ([{"role": "system", "content": "SYS\n" + CTX}, {"role": "user", "content": text}], ["balance"])
         with patch(f"{VIEW}.get_active_ai_provider", return_value=prov), patch(GP, return_value=ctx), \
-                self.assertLogs("core.ai.pipeline", level="WARNING") as logs:
+                self.assertLogs("ai.pipeline", level="WARNING") as logs:
             res = self.client.post("/api/financial-advisor/ai/chat/", json.dumps({"message": text, **body}),
                                    content_type="application/json")
         return res, prov, "\n".join(logs.output)
@@ -110,26 +110,26 @@ class PipelineViewTest(TestCase):
         self.assertIn("couldn't match these figures", res.json()["message"]["content"])
 
     def test_regenerate_mode_makes_one_extra_call(self):
-        AppSettings.set("ai_validate_mode", "regenerate")
+        AISetting.set("ai_validate_mode", "regenerate")
         res, prov, _ = self.ask("what is my balance?", ["You have 99,999 EGP.", "You have 12,345.67 EGP."])
         self.assertEqual(prov.generate.call_count, 2)
         self.assertIsNone(prov.generate.call_args[1]["tools"])
         self.assertEqual(res.json()["message"]["content"], "You have 12,345.67 EGP.")
 
     def test_regenerate_still_bad_is_flagged_and_capped_at_one(self):
-        AppSettings.set("ai_validate_mode", "regenerate")
+        AISetting.set("ai_validate_mode", "regenerate")
         res, prov, _ = self.ask("what is my balance?", ["99,999 EGP", "88,888 EGP"])
         self.assertEqual(prov.generate.call_count, 2)
         self.assertIn("couldn't match", res.json()["message"]["content"])
 
     def test_off_mode_and_no_figures_skip(self):
-        AppSettings.set("ai_validate_mode", "off")
+        AISetting.set("ai_validate_mode", "off")
         res, _, log = self.ask("what is my balance?", ["You have 99,999 EGP."])
         self.assertNotIn("couldn't match", res.json()["message"]["content"])
         self.assertIn("mode_off", log)
 
     def test_debug_flag_returns_trace(self):
-        AppSettings.set("ai_pipeline_debug", "true")
+        AISetting.set("ai_pipeline_debug", "true")
         res, _, _ = self.ask("what is my balance?", ["You have 12,345.67 EGP."])
         self.assertEqual(len(res.json()["pipeline"]["stages"]), len(STAGES) - 1)  # respond still in progress
 
@@ -138,7 +138,7 @@ class PipelineViewTest(TestCase):
         direct = {"content": "Paid: 100", "tool_calls": [], "sources": ["salary"]}
         with patch(f"{VIEW}.get_active_ai_provider", return_value=prov), \
                 patch(f"{VIEW}.try_direct_answer", return_value=direct), \
-                self.assertLogs("core.ai.pipeline", level="WARNING") as logs:
+                self.assertLogs("ai.pipeline", level="WARNING") as logs:
             res = self.client.post("/api/financial-advisor/ai/chat/", json.dumps({"message": "salary sep 2026"}),
                                    content_type="application/json")
         self.assertEqual(res.json()["message"]["content"], "Paid: 100")

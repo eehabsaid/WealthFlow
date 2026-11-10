@@ -1,13 +1,13 @@
 """AIChatView + investigator: escalation when a normal path gives up, modes, code-question routing, settings, trace."""
 
 from __future__ import annotations
+from ai.models import AISetting
 
 import json
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
-from core.models import AppSettings
 from core.tests.billing.test_support import grant_ai_workspace_access
 from ai.views.ai_chat.chat_pipeline import STAGES
 
@@ -27,8 +27,8 @@ class InvestigatorChatBase(TestCase):
         seed_tenant(self.user, "Q", expenses=2, amount="50.00")
         grant_ai_workspace_access(self.user)
         self.client.force_login(self.user)
-        AppSettings.set("ai_enabled", "true")
-        AppSettings.set("ai_direct_answers", "false")
+        AISetting.set("ai_enabled", "true")
+        AISetting.set("ai_direct_answers", "false")
 
     def ask(self, text, script, **body):
         prov = MagicMock()
@@ -39,7 +39,7 @@ class InvestigatorChatBase(TestCase):
         prov.generate.side_effect = items
         ctx = ([{"role": "system", "content": "SYS\n" + CTX}, {"role": "user", "content": text}], ["balance"])
         with patch(f"{VIEW}.get_active_ai_provider", return_value=prov), patch(GP, return_value=ctx), \
-                self.assertLogs("core.ai.pipeline", level="WARNING") as logs:
+                self.assertLogs("ai.pipeline", level="WARNING") as logs:
             res = self.client.post("/api/financial-advisor/ai/chat/", json.dumps({"message": text, **body}),
                                    content_type="application/json")
         return res, prov, "\n".join(logs.output)
@@ -82,19 +82,19 @@ class EscalationTest(InvestigatorChatBase):
         self.assertIn("investigation_docs", res.json()["sources"])
 
     def test_mode_off_keeps_the_original_behaviour(self):
-        AppSettings.set("ai_investigator_mode", "off")
+        AISetting.set("ai_investigator_mode", "off")
         res, prov, _ = self.ask("what is my balance?", [REFUSAL])
         self.assertEqual(prov.generate.call_count, 1)
         self.assertIn("I don't have access", res.json()["message"]["content"])
 
     def test_mode_always_skips_the_normal_path(self):
-        AppSettings.set("ai_investigator_mode", "always")
+        AISetting.set("ai_investigator_mode", "always")
         res, prov, _ = self.ask("what is my balance?", [tool_call("app_data_models"), "Expense has 2 rows."])
         self.assertEqual(prov.generate.call_count, 2)
         self.assertEqual(res.json()["message"]["content"], "Expense has 2 rows.")
 
     def test_trace_lists_every_stage_and_marks_the_investigation(self):
-        AppSettings.set("ai_pipeline_debug", "true")
+        AISetting.set("ai_pipeline_debug", "true")
         res, _, _ = self.ask("what is my balance?", [REFUSAL, tool_call("app_data_models"), "Expense has 2 rows."])
         stages = {s["stage"]: s for s in res.json()["pipeline"]["stages"]}
         self.assertEqual(set(stages), set(STAGES) - {"respond"})
@@ -122,7 +122,7 @@ class SysadminCodeQuestionTest(InvestigatorChatBase):
         self.assertEqual(prov.generate.call_count, 3)          # the imagined answer was rejected, then evidence, then answer
 
     def test_code_switch_off_sends_the_question_down_the_normal_path(self):
-        AppSettings.set("ai_code_access", "false")
+        AISetting.set("ai_code_access", "false")
         res, prov, _ = self.ask("which file defines ExpenseService?", ["Probably the expenses service."])
         self.assertEqual(prov.generate.call_count, 1)
 
@@ -143,7 +143,7 @@ class InvestigatorSettingsTest(TestCase):
         self.assertEqual(self.post(ai_investigator_mode="always", ai_code_access=False).status_code, 200)
         got = self.client.get(self.URL).json()
         self.assertEqual((got["ai_investigator_mode"], got["ai_code_access"]), ("always", False))
-        self.assertEqual(AppSettings.get("ai_code_access"), "false")
+        self.assertEqual(AISetting.get("ai_code_access"), "false")
         self.assertEqual(self.post(ai_investigator_mode="sometimes").status_code, 400)
         self.assertEqual(self.client.get(self.URL).json()["ai_investigator_mode"], "always")   # rejected value not stored
         self.post(ai_validate_mode="flag")                                                     # omitted keys keep stored values
@@ -152,8 +152,8 @@ class InvestigatorSettingsTest(TestCase):
         self.assertTrue(self.client.get(self.URL).json()["ai_code_access"])
 
     def test_a_users_own_settings_row_cannot_enable_code_access(self):
-        AppSettings.set("ai_code_access", "false")
-        AppSettings.set("ai_code_access", "true", user=self.admin)       # per-user row must not override the global switch
+        AISetting.set("ai_code_access", "false")
+        AISetting.set("ai_code_access", "true", user=self.admin)       # per-user row must not override the global switch
         from ai.services.investigation.code_tools import code_access_allowed
 
         self.assertFalse(code_access_allowed(self.admin))

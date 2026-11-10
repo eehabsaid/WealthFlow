@@ -3,7 +3,7 @@
 Since the query-engine migration this module is a thin entry point: every direct answer (salary for
 a month / latest, expense total / daily / category / multi-month table, and the new balance, certificates,
 fixed assets, gold price by karat and exchange-rate answers, en + ar) is a capability entry in
-ai/services/query_engine/ (see engine.answer). Kill-switch: AppSettings ai_direct_answers=false.
+ai/services/query_engine/ (see engine.answer). Kill-switch: AISetting ai_direct_answers=false.
 
 `_match_salary` is kept importable (its regression tests still guard the wording rules the engine's
 router replaced); expense_direct.match_expense_intent / expense_table_direct.match_expense_table_intent

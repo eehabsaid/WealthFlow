@@ -18,7 +18,7 @@ import json
 from django.http import JsonResponse
 from django.views import View
 
-from core.validators.json_body import parse_json_body
+from ai.utils.json_body import parse_json_body
 from ai.integrations.ai_provider import get_active_ai_provider
 from ai.services.actions.notice import ActionNoticeProvider
 from ai.services.cache_manager import AICacheManager

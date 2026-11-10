@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any, Iterator
 
-logger = logging.getLogger("core.ai.pipeline")
+logger = logging.getLogger("ai.pipeline")
 
 STAGES = ("understand", "route", "knowledge", "retrieve", "prefetch", "reason", "investigate", "tool", "validate", "respond")
 _MAX_DETAIL_CHARS = 700

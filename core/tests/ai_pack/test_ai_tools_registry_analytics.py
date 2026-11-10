@@ -87,7 +87,7 @@ class NewAIToolsRegistryAnalyticsTest(TestCase):
 
     def test_salary_data_provider_complete_analytics_and_currency(self):
         from core.models import Company, SalaryEntry
-        from ai.services.providers.salary_provider import SalaryDataProvider
+        from core.ai_pack.providers.salary_provider import SalaryDataProvider
 
         company = Company.objects.create(owner=self.user, name="Test Giza Systems", is_active=True)
         SalaryEntry.objects.create(company=company, year=2026, month="January", paid=87643.86, expected=87643.86, bonus=0)

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services import app_knowledge as ak
 from ai.services.app_knowledge import budget as bud
 from ai.views.ai_chat.ai_chat_helpers import _aiT_fallback_no_answer
@@ -26,12 +26,12 @@ FALLBACK_SOURCE = "knowledge_fallback"
 
 
 def _flag(user, key: str, default: str = "true") -> bool:
-    return str(AppSettings.get(key, default, user=user)).strip().lower() not in ("false", "0", "no", "off")
+    return str(AISetting.get(key, default, user=user)).strip().lower() not in ("false", "0", "no", "off")
 
 
 def _int(user, key: str, default: int) -> int:
     try:
-        return max(1, int(AppSettings.get(key, str(default), user=user)))
+        return max(1, int(AISetting.get(key, str(default), user=user)))
     except (TypeError, ValueError):
         return default
 
@@ -76,7 +76,7 @@ def run_workflow_pipeline(*, trace: PipelineTrace, provider, request, conversati
         trace.skip("tool", "provider_error" if error else "workflow_path_no_tools")
         trace.skip("validate", "provider_error" if error else "workflow_path_no_figures")
 
-        debug = str(AppSettings.get("ai_pipeline_debug", "false", user=user)).strip().lower() in ("true", "1", "yes")
+        debug = str(AISetting.get("ai_pipeline_debug", "false", user=user)).strip().lower() in ("true", "1", "yes")
         extra = {"pipeline": trace.to_dict()} if debug else None
         if content and not error:
             bud.clear_slow(model)

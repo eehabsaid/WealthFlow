@@ -74,7 +74,8 @@ class CodebaseIndexer:
     def _source_files(cls):
         """(folder, file name) for every file under core/ and under the ai/ app code."""
         base = settings.BASE_DIR
-        for top in ("core", "ai"):
+        from ai.conf import code_scan_roots
+        for top in code_scan_roots():
             start = os.path.join(base, top)
             for root, dirs, files in os.walk(start):
                 if top == "ai" and root == start:

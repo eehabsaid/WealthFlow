@@ -73,10 +73,10 @@ def build_memory_block(user: Any, query: str = "", token_limit: int = 300) -> st
 
 def ui_token_limit(user: Any) -> int:
     """A fifth of the user's UI-set context token budget (the code defaults only apply when nothing is set)."""
-    from core.models import AppSettings
+    from ai.models import AISetting
 
     try:
-        return max(150, int(AppSettings.get("ai_context_token_budget", "2048", user=user)) // 5)
+        return max(150, int(AISetting.get("ai_context_token_budget", "2048", user=user)) // 5)
     except (TypeError, ValueError):
         return 409
 

@@ -34,19 +34,19 @@ def get_ai_provider(provider_key: str, **kwargs: Any) -> Optional[BaseAIProvider
 
 def get_active_ai_provider(user=None) -> Optional[BaseAIProvider]:
     """
-    Read AI settings from AppSettings and instantiate the active provider via from_settings().
+    Read AI settings from AISetting and instantiate the active provider via from_settings().
     Per-user BYOK: if `user` has their own ai_enabled/ai_provider/credentials, those are
     used; otherwise falls back to the platform-global config.
     Returns None if AI is disabled or provider key is unconfigured/unknown.
     Zero provider-specific branches exist in this factory.
     """
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    enabled_str = AppSettings.get("ai_enabled", "false", user=user).strip().lower()
+    enabled_str = AISetting.get("ai_enabled", "false", user=user).strip().lower()
     if enabled_str not in ("true", "1", "yes"):
         return None
 
-    provider_key = AppSettings.get("ai_provider", "ollama", user=user).strip().lower()
+    provider_key = AISetting.get("ai_provider", "ollama", user=user).strip().lower()
     cls = AVAILABLE_AI_PROVIDERS.get(provider_key)
     if not cls:
         return None

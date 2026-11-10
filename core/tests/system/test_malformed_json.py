@@ -6,7 +6,7 @@ from django.test import RequestFactory, TestCase
 from django.urls import URLPattern, URLResolver, get_resolver
 
 from core.middleware import JsonBodyErrorMiddleware
-from core.validators.json_body import BadJsonError, parse_json_body
+from ai.utils.json_body import BadJsonError, parse_json_body
 
 User = get_user_model()
 

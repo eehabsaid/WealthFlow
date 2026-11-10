@@ -9,7 +9,7 @@ from django.test import SimpleTestCase, TestCase
 
 from ai.services import app_knowledge as ak
 from ai.services.app_knowledge.chunks import get_chunks
-from ai.services.app_knowledge.data_flows import build_data_flows_markdown, data_flows_path
+from core.ai_pack.knowledge.data_flows import build_data_flows_markdown, data_flows_path
 
 LAPTOP = "if i bought a laptop where should i record its price? in assets, or in expenses?"
 

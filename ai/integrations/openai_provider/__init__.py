@@ -22,7 +22,7 @@ import time
 from typing import Any
 
 from ai.integrations.ai_provider import BaseAIProvider
-from core.integrations.provider_utils import make_json_http_request
+from ai.integrations.http import make_json_http_request
 from ai.integrations.openai_provider.config import OpenAIConfigMixin
 from ai.services.credential_encryption import redact_secrets
 

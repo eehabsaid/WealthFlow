@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from core.models import BalanceEntry, Currency, ExchangeRate
-from ai.services.providers.balance_provider import BalanceDataProvider
+from core.ai_pack.providers.balance_provider import BalanceDataProvider
 from core.services.shared.currency_conversion_service import CurrencyConversionService
 
 User = get_user_model()

@@ -10,8 +10,7 @@ from django.test import TestCase
 from django.utils import timezone
 from PIL import Image
 
-from core.authentication.services import AuthWorkflowService
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.models.ai_attachment import AIAttachment
 from ai.models.ai_conversation import AIConversation
 from ai.models.ai_message import AIMessage
@@ -21,7 +20,7 @@ from ai.services.image_generation import (
 from ai.services.image_generation.providers import ImageProviderError, ImageResult, register
 from ai.services.image_generation.providers.base import ImageProvider
 from ai.services.tools import get_registered_tool_schemas, validate_and_execute_tool
-from core.tests.billing.test_support import grant_ai_workspace_access
+from ai.tests.support import grant_ai_workspace_access, make_sysadmin
 
 User = get_user_model()
 CFG = {"image_gen_enabled": True, "image_gen_provider": "comfyui", "image_gen_model": "flux-2-klein-4b.safetensors",
@@ -41,9 +40,7 @@ def names():
 def make_user(name, sysadmin=False):
     user = User.objects.create_user(username=name, password="pw12345!")
     if sysadmin:
-        profile = AuthWorkflowService.get_profile(user)
-        profile.is_sysadmin = True
-        profile.save(update_fields=["is_sysadmin"])
+        make_sysadmin(user)
     grant_ai_workspace_access(user)
     return user
 
@@ -75,7 +72,7 @@ class ImageBase(TestCase):
         self.other = make_user("img-other")
 
     def tearDown(self):
-        AppSettings.objects.filter(owner=None, key__startswith="image_gen_").delete()
+        AISetting.objects.filter(owner=None, key__startswith="image_gen_").delete()
 
     def enable_fake(self):
         save_image_settings({"image_gen_enabled": True, "image_gen_provider": "fake", "image_gen_model": "m"})
@@ -88,7 +85,7 @@ class SettingsTests(ImageBase):
 
     def test_save_masks_key_and_keeps_it_on_masked_resave(self):
         save_image_settings({**CFG, "image_gen_api_key": "secret-123"})
-        self.assertTrue(AppSettings.get("image_gen_api_key", user=None).startswith("enc:"))
+        self.assertTrue(AISetting.get("image_gen_api_key", user=None).startswith("enc:"))
         masked = get_image_config()["api_key"]
         self.assertNotIn("secret", masked)
         save_image_settings({"image_gen_api_key": masked})
@@ -110,7 +107,7 @@ class SettingsTests(ImageBase):
 
     def test_no_settings_key_outside_the_known_fields(self):
         save_image_settings(CFG)
-        keys = set(AppSettings.objects.filter(key__startswith="image_gen_").values_list("key", flat=True))
+        keys = set(AISetting.objects.filter(key__startswith="image_gen_").values_list("key", flat=True))
         self.assertTrue(keys <= {f"image_gen_{f}" for f in ("enabled", "provider", "model", "endpoint", "api_key", "start_command")})
         self.assertEqual(len(keys), 5)   # nothing else is created; the optional start command only when one is given
 

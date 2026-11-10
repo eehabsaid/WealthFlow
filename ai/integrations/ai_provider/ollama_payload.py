@@ -37,9 +37,9 @@ def resolve_think(setting: Any, reasoning: str | None = None) -> bool:
 
 
 def think_setting() -> str:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    mode = str(AppSettings.get("ai_think", "auto", user=None) or "auto").strip().lower()
+    mode = str(AISetting.get("ai_think", "auto", user=None) or "auto").strip().lower()
     return mode if mode in THINK_MODES else "auto"
 
 

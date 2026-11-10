@@ -5,7 +5,7 @@ Cost model (built for ~1-2 tok/s local decoding — see the delivery report):
      questions, empty or fallback answers, no evidence, no checkable figures). ~0 ms.
   2. Otherwise a deterministic, LLM-free grounding pass (grounding.py). ~ms.
   3. Only if figures are NOT grounded does anything expensive happen, and only when
-     AppSettings `ai_validate_mode` = "regenerate": ONE extra LLM call, skipped if the
+     AISetting `ai_validate_mode` = "regenerate": ONE extra LLM call, skipped if the
      wall-clock budget can't afford it. Default mode "flag" never makes an LLM call.
 
 ai_validate_mode: "off" | "flag" (default) | "regenerate"
@@ -16,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.cache_manager import AICacheManager
 from ai.views.ai_chat.ai_chat_helpers import MAX_TOOL_ITERATIONS, _aiT_fallback_no_answer, _get_loop_timeout
 
@@ -50,7 +50,7 @@ class Validation:
 
 
 def get_mode(user: Any) -> str:
-    mode = str(AppSettings.get("ai_validate_mode", "flag", user=user) or "flag").strip().lower()
+    mode = str(AISetting.get("ai_validate_mode", "flag", user=user) or "flag").strip().lower()
     return mode if mode in MODES else "flag"
 
 

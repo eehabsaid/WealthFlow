@@ -4,7 +4,7 @@ import time
 from django.http import JsonResponse
 from django.views import View
 
-from core.validators.json_body import parse_json_body
+from ai.utils.json_body import parse_json_body
 from ai.models.ai_conversation import AIConversation
 from ai.services.app_knowledge import ratings_for
 from ai.services.cache_manager import AICacheManager

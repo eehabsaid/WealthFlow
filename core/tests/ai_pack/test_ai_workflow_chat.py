@@ -2,13 +2,13 @@
 LLM call), and every step leaves [AI-PIPELINE] lines."""
 
 from __future__ import annotations
+from ai.models import AISetting
 
 from unittest.mock import MagicMock, patch
 
 from django.core.cache import cache
 from django.test import TestCase
 
-from core.models import AppSettings
 import core.tests.ai_pack.qe_fixtures as fx
 from ai.views.ai_chat.chat_pipeline import STAGES
 
@@ -36,7 +36,7 @@ class WorkflowChatTests(TestCase):
         fx.build(self)
 
     def chat(self, text, prov):
-        with patch(PROVIDER, return_value=prov), self.assertLogs("core.ai.pipeline", level="WARNING") as logs:
+        with patch(PROVIDER, return_value=prov), self.assertLogs("ai.pipeline", level="WARNING") as logs:
             data = fx.ask(self, text)
         return data, "\n".join(logs.output)
 
@@ -126,7 +126,7 @@ class WorkflowChatTests(TestCase):
         self.assertTrue(data["ok"])
 
     def test_embeddings_can_be_enabled(self):
-        AppSettings.set("ai_knowledge_semantic", "true")
+        AISetting.set("ai_knowledge_semantic", "true")
         with patch("ai.services.retrieval.embeddings.semantic_scores", return_value={}) as sem:
             self.chat(LAPTOP, stub_provider())
         self.assertTrue(sem.called)
@@ -136,7 +136,7 @@ class WorkflowChatTests(TestCase):
         self.assertTrue(data["message"]["content"].strip())
 
     def test_kill_switch_restores_the_data_pipeline(self):
-        AppSettings.set("ai_workflow_reasoning", "false", user=self.user)
+        AISetting.set("ai_workflow_reasoning", "false", user=self.user)
         prov = stub_provider()
         self.chat(LAPTOP, prov)
         system = prov.calls[0]["messages"][0]["content"]

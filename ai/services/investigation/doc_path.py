@@ -16,7 +16,7 @@ import re
 
 from ai.services.domains import APP
 
-logger = logging.getLogger("core.ai.pipeline")
+logger = logging.getLogger("ai.pipeline")
 ROW_TOOLS = ("app_data_query", "app_computed_figures", "app_screen_data")   # tools whose result is the user's own rows / ready-made figures
 APP_GUIDE_TOOLS = ("app_routes",)
 _HTML_FORM = re.compile(r"<form\b[\s\S]*?</form>", re.IGNORECASE)

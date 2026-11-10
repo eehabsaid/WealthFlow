@@ -1,9 +1,9 @@
 """Per-user AI Advisor settings: payload builder and persistence. Only AI_USER_SETTING_KEYS are ever read
 or written here; sysadmin-only fields (tier, read-only, multi-agent, URLs, pipeline switches) never appear."""
 
-from core.constants.ai_user_settings import AI_USER_SETTING_KEYS, USE_GENERAL_KEY
+from ai.constants import AI_USER_SETTING_KEYS, USE_GENERAL_KEY
 from ai.integrations.ai_provider import AVAILABLE_AI_PROVIDERS
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.ai_defaults import DEFAULT_OLLAMA_MODEL
 from ai.services.credential_encryption import decrypt_credential, encrypt_credential, is_masked, mask_credential
 from ai.services.usage import limit_status, uses_general_settings
@@ -20,10 +20,10 @@ _DEFAULTS = {
 
 def _own_or_general(user, key, default=""):
     """The user's own row if any, else the general row (shown as the starting point in the form)."""
-    own = AppSettings.objects.filter(key=key, owner=user).values_list("value", flat=True).first()
+    own = AISetting.objects.filter(key=key, owner=user).values_list("value", flat=True).first()
     if own is not None:
         return own
-    return AppSettings.get(key, _DEFAULTS.get(key, default))
+    return AISetting.get(key, _DEFAULTS.get(key, default))
 
 
 def build_payload(user):
@@ -36,12 +36,12 @@ def build_payload(user):
         "usage": limit_status(user),
         "fields": fields,
         "providers_schema": schemas,
-        "effective": {k: AppSettings.get(k, _DEFAULTS.get(k, ""), user=user) for k in ("ai_enabled", "ai_provider", "ai_model")},
+        "effective": {k: AISetting.get(k, _DEFAULTS.get(k, ""), user=user) for k in ("ai_enabled", "ai_provider", "ai_model")},
     }
 
 
 def _own_row(user, key):
-    return AppSettings.objects.filter(key=key, owner=user).values_list("value", flat=True).first() or ""
+    return AISetting.objects.filter(key=key, owner=user).values_list("value", flat=True).first() or ""
 
 
 def persist_user_ai_settings(user, data, validated):
@@ -61,16 +61,16 @@ def persist_user_ai_settings(user, data, validated):
             values[key] = str(data[key] or "").strip()
     for key, val in values.items():
         assert key in AI_USER_SETTING_KEYS
-        AppSettings.set(key, val, user=user)
+        AISetting.set(key, val, user=user)
     for key in SECRET_KEYS:
         if key not in data:
             continue
         raw = str(data[key] or "").strip()
         if not raw:
-            AppSettings.set(key, "", user=user)
+            AISetting.set(key, "", user=user)
         elif not is_masked(raw):
-            AppSettings.set(key, encrypt_credential(raw), user=user)
+            AISetting.set(key, encrypt_credential(raw), user=user)
 
 
 def set_use_general(user, use_general):
-    AppSettings.set(USE_GENERAL_KEY, "true" if use_general else "false", user=user)
+    AISetting.set(USE_GENERAL_KEY, "true" if use_general else "false", user=user)

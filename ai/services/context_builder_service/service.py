@@ -11,9 +11,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Sequence
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.models.ai_message import AIMessage
-from core.services.financial_advisor.registry import get_financial_advisor_payload
+from ai.packs import advisor_payload as get_financial_advisor_payload, advisor_services as get_available_advisor_services
 
 from ai.services.context_builder_service.advisor_semantic import semantic_advisor_matches
 from ai.services.context_builder_service.business_data import fetch_grounding_business_data
@@ -66,7 +66,7 @@ class ContextBuilderService:
     """
 
     def get_token_budget(self, user: Any = None) -> int:
-        budget_str = AppSettings.get("ai_context_token_budget", "2048", user=user)
+        budget_str = AISetting.get("ai_context_token_budget", "2048", user=user)
         try:
             val = int(budget_str)
             return max(1000, val)
@@ -91,7 +91,6 @@ class ContextBuilderService:
         q = (query or "").lower().strip()
         selected: list[str] = []
 
-        from core.services.financial_advisor.registry import get_available_advisor_services
         available_services = get_available_advisor_services()
 
         for service_key in match_advisor_services_by_name(q, available_services):
@@ -177,7 +176,6 @@ class ContextBuilderService:
         # Nothing matched lexically or via business data: try semantic advisor matching
         # (one cached query embedding; [] on any failure) before the broad default set.
         if not service_keys and not sources:
-            from core.services.financial_advisor.registry import get_available_advisor_services
             service_keys = semantic_advisor_matches(user_query, get_available_advisor_services())
             if not service_keys:
                 service_keys = list(DEFAULT_CORE_SERVICES)

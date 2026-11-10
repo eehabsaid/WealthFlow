@@ -89,6 +89,7 @@ def get_model_export_order():
     from ai.models.ai_memory import AIMemoryNote
     from ai.models.ai_message import AIMessage
     from ai.models.ai_prompt import AIPrompt, AIPromptCategory
+    from ai.models.ai_setting import AISetting
 
     return [
         # ContentType + Permission are restored by NATURAL KEY (app_label/model, codename), never by pk:
@@ -108,6 +109,7 @@ def get_model_export_order():
         ("07", GoldTypeSetting,              "name"),
         ("08", GoldPuritySetting,            "key"),
         ("09", AppSettings,                  "key"),
+        ("09b", AISetting,                   None),   # the AI app's own settings (global + per-user rows)
         ("10", EmailTemplate,                "key"),
         ("10b", LegalVersion,                "label"),
         ("11", UserProfile,                  "user_id"),

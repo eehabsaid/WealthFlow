@@ -2,7 +2,7 @@
 Single source of truth for the fallback Ollama model name.
 
 Every place in the codebase that needs a default for the 'ai_model'
-AppSettings key must import DEFAULT_OLLAMA_MODEL from here rather than
+AISetting key must import DEFAULT_OLLAMA_MODEL from here rather than
 hardcoding its own string literal. Before this module existed, three
 different files independently hardcoded three different, disagreeing
 values ("llama3:latest", "llama3.2:latest", "qwen2.5:3b") — none of

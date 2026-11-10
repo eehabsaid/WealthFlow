@@ -7,14 +7,14 @@ import logging
 from ai.training.services import context
 from ai.training.services.textutil import script_of
 
-logger = logging.getLogger("core.ai.pipeline")
+logger = logging.getLogger("ai.pipeline")
 
 
 def enabled() -> bool:
     """Recording is on inside the runner (context) or when the sysadmin setting `ai_trace_recording` is true (real chats)."""
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    return context.current() is not None or str(AppSettings.get("ai_trace_recording", "false", user=None) or "").lower() in ("true", "1", "yes")
+    return context.current() is not None or str(AISetting.get("ai_trace_recording", "false", user=None) or "").lower() in ("true", "1", "yes")
 
 
 def record(user, user_text: str, hint: str, result, *, provider=None, domain: str = ""):

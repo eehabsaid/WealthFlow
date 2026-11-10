@@ -7,12 +7,12 @@ test_ai_provider_buy_rate.py.
 """
 
 from unittest.mock import patch
+from ai.tests.support import make_sysadmin
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.authentication.services import AuthWorkflowService
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.runtime_capabilities.presets import recommend_config
 from ai.services.runtime_capabilities.service import inspect_and_recommend
 
@@ -137,11 +137,9 @@ class AIRuntimeCapabilitiesViewTest(TestCase):
     def setUp(self):
         self.member = User.objects.create_user(username="member_rc", password="pw12345")
         self.admin = User.objects.create_user(username="admin_rc", password="pw12345")
-        profile = AuthWorkflowService.get_profile(self.admin)
-        profile.is_sysadmin = True
-        profile.save()
-        AppSettings.set("ai_ollama_url", "http://localhost:11434")
-        AppSettings.set("ai_model", "llama3.1:8b")
+        make_sysadmin(self.admin)
+        AISetting.set("ai_ollama_url", "http://localhost:11434")
+        AISetting.set("ai_model", "llama3.1:8b")
 
     def test_requires_admin(self):
         self.client.force_login(self.member)

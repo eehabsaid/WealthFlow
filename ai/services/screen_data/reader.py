@@ -15,7 +15,7 @@ from django.urls import Resolver404, resolve
 
 from ai.services.screen_data import catalog, policy, shrink
 
-logger = logging.getLogger("core.ai.pipeline")
+logger = logging.getLogger("ai.pipeline")
 RESULT_CHARS = 6500
 
 

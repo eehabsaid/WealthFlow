@@ -1,5 +1,5 @@
 """The sysadmin's reference voice for voice cloning. One recording, stored on the server (media/voice_samples/), its path kept in
-AppSettings. The local Chatterbox server reads the file by path, so it must run on the same computer as WealthFlow."""
+AISetting. The local Chatterbox server reads the file by path, so it must run on the same computer as WealthFlow."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import uuid
 
 from django.conf import settings
 
-from core.models import AppSettings
+from ai.models import AISetting
 
 KEY = "speech_tts_voice_sample"
 NAME_KEY = "speech_tts_voice_sample_name"   # the file name as the sysadmin uploaded it, shown in Settings
@@ -27,7 +27,7 @@ def _folder() -> str:
 
 def voice_sample_path() -> str:
     """The saved sample's path, or '' when none is set or the file is gone."""
-    path = str(AppSettings.get(KEY, "", user=None) or "")
+    path = str(AISetting.get(KEY, "", user=None) or "")
     return path if path and os.path.isfile(path) else ""
 
 
@@ -36,7 +36,7 @@ def voice_sample_info() -> dict:
     path = voice_sample_path()
     if not path:
         return {"has_sample": False, "name": "", "size_kb": 0}
-    return {"has_sample": True, "name": str(AppSettings.get(NAME_KEY, "", user=None) or os.path.basename(path)),
+    return {"has_sample": True, "name": str(AISetting.get(NAME_KEY, "", user=None) or os.path.basename(path)),
             "size_kb": max(1, os.path.getsize(path) // 1024)}
 
 
@@ -53,14 +53,14 @@ def save_voice_sample(name: str, raw: bytes) -> str:
     path = os.path.join(_folder(), f"{uuid.uuid4().hex}{ext}")
     with open(path, "wb") as handle:
         handle.write(raw)
-    AppSettings.set(KEY, path, user=None)
-    AppSettings.set(NAME_KEY, os.path.basename(name or "")[:120], user=None)
+    AISetting.set(KEY, path, user=None)
+    AISetting.set(NAME_KEY, os.path.basename(name or "")[:120], user=None)
     return path
 
 
 def delete_voice_sample() -> None:
-    path = str(AppSettings.get(KEY, "", user=None) or "")
+    path = str(AISetting.get(KEY, "", user=None) or "")
     if path and os.path.isfile(path) and os.path.dirname(os.path.abspath(path)) == os.path.abspath(_folder()):
         os.remove(path)
-    AppSettings.set(KEY, "", user=None)
-    AppSettings.set(NAME_KEY, "", user=None)
+    AISetting.set(KEY, "", user=None)
+    AISetting.set(NAME_KEY, "", user=None)

@@ -1,4 +1,4 @@
-"""Image generation configuration: AppSettings, app-wide, Settings > AI Advisor (sysadmin).
+"""Image generation configuration: AISetting, app-wide, Settings > AI Advisor (sysadmin).
 
 The same five fields apply wherever WealthFlow runs: enabled, provider, model, endpoint (API URL), api_key. Nothing is derived
 from the environment; the provider, model, URL and credentials the sysadmin saved decide how the app connects.
@@ -6,7 +6,7 @@ from the environment; the provider, model, URL and credentials the sysadmin save
 
 from __future__ import annotations
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.credential_encryption import decrypt_credential, encrypt_credential, is_masked, mask_credential
 
 from ai.services.image_generation.providers.registry import get_provider_class
@@ -16,7 +16,7 @@ _TRUE = {"true", "1", "yes", "on"}
 
 
 def _get(field: str, default: str = "") -> str:
-    return str(AppSettings.get(f"image_gen_{field}", default, user=None) or default)
+    return str(AISetting.get(f"image_gen_{field}", default, user=None) or default)
 
 
 def _truth(value) -> bool:
@@ -94,4 +94,4 @@ def save_image_settings(data: dict) -> None:
                 if is_masked(value):
                     continue
                 value = encrypt_credential(value) if value else ""
-        AppSettings.set(key, value, user=None)
+        AISetting.set(key, value, user=None)

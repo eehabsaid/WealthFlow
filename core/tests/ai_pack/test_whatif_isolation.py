@@ -1,13 +1,14 @@
 """Tenant-isolation and missing-data tests for the what_if_scenario tool."""
 
 from __future__ import annotations
+from ai.models import AISetting
 
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import AppSettings, Expense, Goal, SalaryEntry
+from core.models import Expense, Goal, SalaryEntry
 from ai.services.tools import validate_and_execute_tool
 from core.tests.ai_pack.investigation.support import make_user, seed_tenant
 
@@ -20,7 +21,7 @@ def _data(res: dict) -> dict:
 
 class WhatIfIsolationTest(TestCase):
     def setUp(self):
-        AppSettings.set("ai_read_only", "false")
+        AISetting.set("ai_read_only", "false")
         self.user = make_user("whatif_iso")
         tenant = seed_tenant(self.user, "IS", expenses=3)
         self.currency = tenant["currency"]

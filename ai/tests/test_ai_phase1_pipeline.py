@@ -10,10 +10,10 @@ from unittest.mock import MagicMock, patch
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.providers.registry.scoring_semantic import apply_semantic_bonus
 from ai.services.retrieval import embeddings
-from core.tests.billing.test_support import grant_ai_workspace_access
+from ai.tests.support import grant_ai_workspace_access, make_sysadmin
 from ai.views.ai_chat.chat_pipeline.reason import answer_from_context
 from ai.views.ai_chat.chat_pipeline.retrieve import Retrieval
 from ai.views.ai_chat.chat_pipeline.validate import get_mode
@@ -27,10 +27,7 @@ CTX = "=== FINANCIAL CONTEXT DATA ===\nBalance: 12,345.67 EGP"
 class PipelineSettingsApiTest(TestCase):
     def setUp(self):
         self.admin = User.objects.create_user(username="adm", password="pw12345!", is_staff=True)
-        from core.authentication.services import AuthWorkflowService
-        profile = AuthWorkflowService.get_profile(self.admin)
-        profile.is_sysadmin = True
-        profile.save(update_fields=["is_sysadmin"])
+        make_sysadmin(self.admin)
         self.client.force_login(self.admin)
 
     def post(self, **body):
@@ -114,8 +111,8 @@ class ContextPathViewTest(TestCase):
         self.user = User.objects.create_user(username="ctx_user", password="Password123!")
         grant_ai_workspace_access(self.user)
         self.client.force_login(self.user)
-        AppSettings.set("ai_enabled", "true")
-        AppSettings.set("ai_direct_answers", "false")
+        AISetting.set("ai_enabled", "true")
+        AISetting.set("ai_direct_answers", "false")
 
     def ask(self, text, answers, sources):
         prov = MagicMock()
@@ -123,7 +120,7 @@ class ContextPathViewTest(TestCase):
         prov.generate.side_effect = [{"content": a, "tool_calls": None, "error": None} for a in answers]
         ctx = ([{"role": "system", "content": "SYS\n" + CTX}, {"role": "user", "content": text}], sources)
         with patch(f"{VIEW}.get_active_ai_provider", return_value=prov), patch(GP, return_value=ctx), \
-                self.assertLogs("core.ai.pipeline", level="WARNING") as logs:
+                self.assertLogs("ai.pipeline", level="WARNING") as logs:
             res = self.client.post("/api/financial-advisor/ai/chat/", json.dumps({"message": text}),
                                    content_type="application/json")
         return res, prov, "\n".join(logs.output)

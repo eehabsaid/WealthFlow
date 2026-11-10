@@ -24,6 +24,6 @@ responsibility changes.
 from __future__ import annotations
 
 from ai.integrations.claude_provider.provider import ClaudeProvider
-from core.integrations.provider_utils import make_json_http_request
+from ai.integrations.http import make_json_http_request
 
 __all__ = ["ClaudeProvider", "make_json_http_request"]

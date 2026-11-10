@@ -85,7 +85,7 @@ def _about_the_app(provider, user_text: str, out, deadline: float) -> bool:
     return bool(answer)
 
 
-logger = logging.getLogger("core.ai.pipeline")
+logger = logging.getLogger("ai.pipeline")
 
 
 def _qa(markdown: str, language: str = "") -> str:

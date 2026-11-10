@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import re
 
-logger = logging.getLogger("core.ai.pipeline")
+logger = logging.getLogger("ai.pipeline")
 
 YES, NO = "YES", "NO"
 ABOUT_APP_PROMPT = (

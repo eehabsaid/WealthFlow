@@ -34,10 +34,10 @@ class EvalError(Exception):
 
 
 def set_model(name: str, user=None) -> None:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    AppSettings.set("ai_model", name, user=None)
-    if user is not None and AppSettings.get("ai_model", "", user=user) != name:
+    AISetting.set("ai_model", name, user=None)
+    if user is not None and AISetting.get("ai_model", "", user=user) != name:
         raise EvalError(f"The user has their own AI model setting, so '{name}' would not be used. Set 'use general AI settings' for this user and run again.")
 
 
@@ -117,9 +117,9 @@ def run(
     model_roles: list[tuple[str, str]] | None = None,
     benchmark_dir: str | None = None,
 ) -> dict:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    if str(AppSettings.get("ai_provider", "ollama", user=None) or "ollama").lower() != "ollama":
+    if str(AISetting.get("ai_provider", "ollama", user=None) or "ollama").lower() != "ollama":
         return {"status": "not_ollama", "report": "The test needs Ollama as the AI provider (Settings > AI Advisor)."}
     os.makedirs(out_dir, exist_ok=True)
     recover(out_dir, log)
@@ -181,9 +181,9 @@ def dry(
 
 
 def current_model() -> str:
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    return str(AppSettings.get("ai_model", "", user=None) or "").strip()
+    return str(AISetting.get("ai_model", "", user=None) or "").strip()
 
 
 def stage(user, *, dry_run: bool, out_dir: str, log: Callable[[str], None]) -> dict:

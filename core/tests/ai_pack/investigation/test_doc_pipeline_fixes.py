@@ -33,7 +33,7 @@ class StructuralPathTest(TestCase):
         prov, res = GuideProvider(about_app="NO"), Result()
         prov.user = self.admin
         res.results = [("app_data_models", {}, '{"models":["Expense","Bank"]}')]
-        with self.assertLogs("core.ai.pipeline", "WARNING") as logs:
+        with self.assertLogs("ai.pipeline", "WARNING") as logs:
             self.assertTrue(ensure_document(prov, ASK, res, 24000, self.admin, None))
         plan = units(self.admin)
         for unit in plan:

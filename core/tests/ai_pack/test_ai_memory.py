@@ -2,12 +2,12 @@
 the background writer, and the view/edit/delete API."""
 
 import json
+from ai.models import AISetting
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import AppSettings
 from ai.models.ai_conversation import AIConversation
 from ai.models.ai_memory import AIMemoryNote
 from ai.models.ai_message import AIMessage
@@ -99,7 +99,7 @@ class WriterTests(MemoryTestBase):
         provider = _provider('{"notes": []}')
         update_memory(self.user, self.conv, provider)
         small = len(provider.generate.call_args[0][0][1]["content"])
-        AppSettings.set("ai_context_token_budget", "16000")
+        AISetting.set("ai_context_token_budget", "16000")
         provider2 = _provider('{"notes": []}')
         update_memory(self.user, self.conv, provider2)
         self.assertGreater(len(provider2.generate.call_args[0][0][1]["content"]), small)
@@ -190,7 +190,7 @@ class SchedulerTests(MemoryTestBase):
 
     def test_chat_reply_schedules_a_memory_pass(self):
         grant_ai_workspace_access(self.user)
-        AppSettings.set("ai_direct_answers", "false")
+        AISetting.set("ai_direct_answers", "false")
         self.client.force_login(self.user)
         chat_provider = MagicMock()
         chat_provider.supports_tools = True
@@ -292,7 +292,7 @@ class MemoryCommandTests(MemoryTestBase):
         self.assertEqual(AIMemoryNote.objects.count(), 0)
 
     def test_memory_tools_work_in_read_only_mode(self):
-        AppSettings.set("ai_read_only", "true")
+        AISetting.set("ai_read_only", "true")
         audit, res = self._call("save_memory", {"title": "Goal", "body": "text"})
         self.assertEqual(audit["status"], "success")
         self.assertTrue(res["data"]["ok"])
@@ -320,7 +320,7 @@ class MemoryCommandTests(MemoryTestBase):
 
     def test_chip_window_starts_at_the_users_message_so_a_note_saved_during_the_reply_counts(self):
         grant_ai_workspace_access(self.user)
-        AppSettings.set("ai_direct_answers", "false")
+        AISetting.set("ai_direct_answers", "false")
         self.client.force_login(self.user)
         chat_provider = MagicMock()
         chat_provider.supports_tools = True

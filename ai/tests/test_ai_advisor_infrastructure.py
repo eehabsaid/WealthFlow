@@ -2,7 +2,7 @@ import json
 from unittest.mock import MagicMock, patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from core.models import AppSettings
+from ai.models import AISetting
 
 User = get_user_model()
 
@@ -26,12 +26,12 @@ class AIAdvisorInfrastructureTest(TestCase):
         self.assertEqual(provider.timeout, 10)
 
         # Disabled by default
-        AppSettings.set("ai_enabled", "false")
+        AISetting.set("ai_enabled", "false")
         self.assertIsNone(get_active_ai_provider())
 
         # Enabled
-        AppSettings.set("ai_enabled", "true")
-        AppSettings.set("ai_provider", "ollama")
+        AISetting.set("ai_enabled", "true")
+        AISetting.set("ai_provider", "ollama")
         active = get_active_ai_provider()
         self.assertIsNotNone(active)
         self.assertEqual(active.PROVIDER_NAME, "ollama")

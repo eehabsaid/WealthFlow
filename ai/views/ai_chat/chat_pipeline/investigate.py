@@ -6,7 +6,7 @@ Used in three situations, all traced as the `investigate` stage:
   * escalation (mode "auto", default)  the normal path gave up ("I don't have ...", empty, provider error) ->
                                        the investigator takes over so the user never gets a "no tools / no data" reply
 
-Settings (AppSettings): ai_investigator_mode auto|always|off, ai_investigator_max_steps (10), ai_investigator_budget_s (240),
+Settings (AISetting): ai_investigator_mode auto|always|off, ai_investigator_max_steps (10), ai_investigator_budget_s (240),
 ai_code_access (sysadmin source-code tools, default on).
 """
 
@@ -15,7 +15,7 @@ from __future__ import annotations
 import re
 from typing import Any, Callable
 
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.domain_scope import is_no_info
 from ai.services.domains import BUSINESS
 from ai.services.investigation import loop as inv_loop
@@ -43,7 +43,7 @@ _CODE_HINT = re.compile(
 
 
 def _setting(user, key: str, default: str) -> str:
-    return str(AppSettings.get(key, default, user=user) or default).strip().lower()
+    return str(AISetting.get(key, default, user=user) or default).strip().lower()
 
 
 def investigator_mode(user) -> str:

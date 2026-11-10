@@ -14,7 +14,7 @@ from ai.services.exports.builders import pdf as pdf_builder
 from ai.services.exports.builders.common import numbered_guide_blocks
 from ai.services.investigation.compose_flatten import STYLE_RULE, dialog_names, flatten_untabbed
 from ai.services.investigation.compose_sections import units
-from ai.tests.test_guide_files_and_refusals import guide_markdown, make_doc
+from core.tests.ai_pack.from_ai.test_guide_files_and_refusals import guide_markdown, make_doc
 
 TEXT = "This page lets you manage the records of the application in a clear way for every user."
 

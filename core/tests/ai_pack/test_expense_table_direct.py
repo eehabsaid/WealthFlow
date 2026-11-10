@@ -1,6 +1,7 @@
 """Multi-month detailed expense table answered by code (no LLM): month total rows + grand total."""
 
 import json
+from ai.models import AISetting
 from datetime import date
 from unittest.mock import patch
 
@@ -8,8 +9,8 @@ from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 
 from ai.integrations.ai_provider import OllamaProvider
-from core.models import AppSettings, Expense, ExpenseCategory
-from ai.services.expense_table_direct import match_expense_table_intent
+from core.models import Expense, ExpenseCategory
+from core.ai_pack.direct.expense_table_direct import match_expense_table_intent
 from core.tests.billing.test_support import grant_ai_workspace_access
 
 User = get_user_model()
@@ -41,8 +42,8 @@ class TableChatTests(TestCase):
             for m, d, amt, desc in ((6, 1, "100.00", "Rice"), (6, 2, "50.50", "Milk"), (8, 5, "20.00", "Tea"), (9, 1, "1000.00", "Rent")):
                 Expense.objects.create(owner=owner, category=c, date=date(2026, m, d), year=2026, month=m,
                                        amount=amt, amount_base=amt, description=desc)
-        AppSettings.set("ai_enabled", "true")
-        AppSettings.set("ai_provider", "ollama")
+        AISetting.set("ai_enabled", "true")
+        AISetting.set("ai_provider", "ollama")
         self.client.force_login(self.user)
 
     @patch.object(OllamaProvider, "generate", side_effect=AssertionError("LLM must not be called"))

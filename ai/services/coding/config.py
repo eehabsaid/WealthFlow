@@ -7,14 +7,18 @@ import json
 
 from ai.services.coding import AGENT_DIR
 
-_DEFAULT = {"protected": [], "test_areas": {}, "max_file_lines": 200, "index_roots": ["core", "ai", "wealthflow", "scripts", "static/js"]}
+_DEFAULT = {"protected": [], "test_areas": {}, "max_file_lines": 200, "index_roots": None}   # None -> settings.AI_CODE_ROOTS
 
 
 def load() -> dict:
     try:
-        return {**_DEFAULT, **json.loads((AGENT_DIR / "config.json").read_text(encoding="utf-8"))}
+        cfg = {**_DEFAULT, **json.loads((AGENT_DIR / "config.json").read_text(encoding="utf-8"))}
     except (OSError, ValueError):
-        return dict(_DEFAULT)
+        cfg = dict(_DEFAULT)
+    if not cfg.get("index_roots"):
+        from ai.conf import code_index_roots
+        cfg["index_roots"] = code_index_roots()
+    return cfg
 
 
 def protected_reason(path: str) -> str:

@@ -2,6 +2,7 @@
 scoped to the asking user, correct, fast at realistic volume, and traced."""
 
 import time
+from ai.models import AISetting
 from datetime import date
 from decimal import Decimal
 from unittest.mock import patch
@@ -11,7 +12,7 @@ from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
 
 from ai.integrations.ai_provider import OllamaProvider
-from core.models import AppSettings, Expense, ExpenseCategory
+from core.models import Expense, ExpenseCategory
 
 from core.tests.billing.test_support import grant_ai_workspace_access
 
@@ -81,14 +82,14 @@ class NoLlmAnswerTests(TestCase):
         self.assertEqual(out[0]["d"], "2026-01-02")
 
     def test_kill_switch_sends_question_to_llm(self):
-        AppSettings.set("ai_direct_answers", "false", user=self.user)
+        AISetting.set("ai_direct_answers", "false", user=self.user)
         with patch.object(OllamaProvider, "generate", return_value={"content": "LLM answer", "error": None}) as gen:
             data = fx.ask(self, "what is the gold price today for 24k?")
         self.assertEqual(data["message"]["content"], "LLM answer")
         self.assertTrue(gen.called)
 
     def test_route_is_traced_with_capability_slots_and_llm_calls(self):
-        with NO_LLM, self.assertLogs("core.ai.pipeline", level="WARNING") as logs:
+        with NO_LLM, self.assertLogs("ai.pipeline", level="WARNING") as logs:
             fx.ask(self, "gold 21k buy price")
         line = next(m for m in logs.output if "stage=route" in m)
         for needle in ("gold_price", "confidence", '"karat": "21"', "llm_calls=0", '"path": "engine"'):
@@ -129,9 +130,9 @@ class AnalyticAndLlmSlotTests(TestCase):
         self.assertIsNone(request_from_json([], "en"))
 
     def test_slot_call_skipped_when_over_wall_clock_budget(self):
-        AppSettings.set("ai_query_llm_budget_s", "5")
-        AppSettings.set("ai_prompt_tps", "36.9")   # a slow machine: the estimate (~32 s) is over the 5 s budget
-        AppSettings.set("ai_decode_tps", "1.67")
+        AISetting.set("ai_query_llm_budget_s", "5")
+        AISetting.set("ai_prompt_tps", "36.9")   # a slow machine: the estimate (~32 s) is over the 5 s budget
+        AISetting.set("ai_decode_tps", "1.67")
         with patch.object(OllamaProvider, "generate", return_value={"content": "LLM answer", "error": None}) as gen:
             fx.ask(self, "gold today")
         self.assertEqual(gen.call_count, 1)  # the normal pipeline's call only, not a slot call on top
@@ -223,7 +224,7 @@ class GoldHoldingsFollowUpTests(TestCase):
         self.assertNotIn("Includes", text)   # nothing is mirrored into Balance in this state
 
     def test_follow_up_is_traced_and_standalone_question_works(self):
-        with NO_LLM, self.assertLogs("core.ai.pipeline", level="WARNING") as logs:
+        with NO_LLM, self.assertLogs("ai.pipeline", level="WARNING") as logs:
             fx.ask(self, "gold price today")
             fx.ask(self, "and how much i hold?")
         self.assertTrue(any("follow_up_of:gold_price" in m for m in logs.output))

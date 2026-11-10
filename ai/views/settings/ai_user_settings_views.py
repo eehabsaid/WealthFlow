@@ -5,7 +5,7 @@ import json
 from django.http import JsonResponse
 from django.views import View
 
-from core.validators.json_body import parse_json_body
+from ai.utils.json_body import parse_json_body
 from ai.views.settings.ai_settings_save_helpers import run_ai_settings_connection_test, validate_ai_settings_post_data
 from ai.views.settings.ai_user_settings_helpers import (
     USER_PROVIDERS, build_payload, persist_user_ai_settings, set_use_general,

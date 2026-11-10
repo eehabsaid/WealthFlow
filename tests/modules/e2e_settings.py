@@ -1,7 +1,7 @@
-"""E2E precondition pinning: AppSettings rows are set / cleared in the DISPOSABLE database only.
+"""E2E precondition pinning: AISetting rows (table ai_aisetting) are set / cleared in the DISPOSABLE database only.
 
 The runner copies the developer's real db.sqlite3, so a step must never rely on a setting it did not set itself
-(a local `ai_direct_answers=false` once made three AI steps fail). Refuses to touch db.sqlite3. AppSettings has no
+(a local `ai_direct_answers=false` once made three AI steps fail). Refuses to touch db.sqlite3. AISetting has no
 cache, so the running test server sees every change immediately.
 
     with pinned({"ai_direct_answers": "true"}):      # set, run, restore the original rows
@@ -41,19 +41,19 @@ def _connect() -> sqlite3.Connection:
 def snapshot(keys) -> list[tuple]:
     marks = ",".join("?" * len(keys))
     with _connect() as db:
-        return db.execute(f"SELECT key, value, owner_id FROM core_appsettings WHERE key IN ({marks})", list(keys)).fetchall()
+        return db.execute(f"SELECT key, value, owner_id FROM ai_aisetting WHERE key IN ({marks})", list(keys)).fetchall()
 
 
 def clear(keys) -> None:
     marks = ",".join("?" * len(keys))
     with _connect() as db:
-        db.execute(f"DELETE FROM core_appsettings WHERE key IN ({marks})", list(keys))
+        db.execute(f"DELETE FROM ai_aisetting WHERE key IN ({marks})", list(keys))
 
 
 def restore(keys, rows) -> None:
     clear(keys)
     with _connect() as db:
-        db.executemany("INSERT INTO core_appsettings (key, value, description, owner_id) VALUES (?, ?, '', ?)", rows)
+        db.executemany("INSERT INTO ai_aisetting (key, value, description, owner_id) VALUES (?, ?, '', ?)", rows)
 
 
 @contextmanager
@@ -73,7 +73,7 @@ def pinned(values: dict):
     keys, saved = list(values), snapshot(list(values))
     clear(keys)
     with _connect() as db:
-        db.executemany("INSERT INTO core_appsettings (key, value, description, owner_id) VALUES (?, ?, '', NULL)", list(values.items()))
+        db.executemany("INSERT INTO ai_aisetting (key, value, description, owner_id) VALUES (?, ?, '', NULL)", list(values.items()))
     try:
         yield
     finally:

@@ -1,6 +1,7 @@
 """Voice cloning: the reference voice is uploaded in Settings and used by Chatterbox voice profiles that have no voice of their own."""
 
 import os
+from ai.tests.support import make_sysadmin
 import shutil
 import tempfile
 
@@ -8,8 +9,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 
-from core.authentication.services import AuthWorkflowService
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.speech.tts import _with_uploaded_voice
 from ai.services.speech.voice_sample import VoiceSampleError, delete_voice_sample, save_voice_sample, voice_sample_path
 
@@ -22,7 +22,7 @@ class VoiceCloneTests(TestCase):
     def tearDown(self):
         from django.conf import settings
         shutil.rmtree(os.path.join(settings.MEDIA_ROOT, "voice_samples"), ignore_errors=True)
-        AppSettings.objects.filter(owner=None, key__startswith="speech_").delete()
+        AISetting.objects.filter(owner=None, key__startswith="speech_").delete()
 
     def test_save_replaces_the_old_file_and_delete_removes_it(self):
         first = save_voice_sample("me.wav", WAV)
@@ -68,9 +68,7 @@ class VoiceCloneTests(TestCase):
         self.assertEqual(self.client.post(URL, {"file": SimpleUploadedFile("me.wav", WAV)}).status_code, 403)
         self.assertEqual(self.client.delete(URL).status_code, 403)
         admin = User.objects.create_user(username="admin", password="pw12345!")
-        profile = AuthWorkflowService.get_profile(admin)
-        profile.is_sysadmin = True
-        profile.save()
+        make_sysadmin(admin)
         self.client.force_login(admin)
         self.assertEqual(self.client.post(URL, {"file": SimpleUploadedFile("me.wav", WAV)}).status_code, 201)
         self.assertTrue(self.client.get(URL).json()["has_sample"])

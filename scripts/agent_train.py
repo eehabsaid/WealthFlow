@@ -8,7 +8,7 @@ import os
 import sys
 
 import agent_cli
-from core.models import AppSettings
+from ai.models import AISetting
 from ai.services.coding.training import dataset, evaluate, stage
 
 ROOT = agent_cli.ROOT  # importing agent_cli sets up Django
@@ -25,7 +25,7 @@ def main(argv=None) -> int:
     stages = {s.strip() for s in args.stages.split(",") if s.strip()}
     cfg = stage.train_config()
     out_dir = os.path.join(cfg.work_dir, "coding")
-    current = str(AppSettings.get("ai_model", "", user=None) or "")
+    current = str(AISetting.get("ai_model", "", user=None) or "")
     original, new_model = stage.names(current, cfg)
     log = lambda line: print(line, flush=True)  # noqa: E731
     files = {"train_file": os.path.join(out_dir, "coding_train.jsonl"), "held_out_file": os.path.join(out_dir, "coding_heldout.json")}

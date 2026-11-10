@@ -13,7 +13,7 @@ from ai.models.ai_conversation import AIConversation
 from ai.models.ai_message import AIMessage
 from ai.services.attachments import link_to_message, model_input
 from ai.services.attachments.extract import AttachmentError, extract
-from core.tests.billing.test_support import grant_ai_workspace_access
+from ai.tests.support import grant_ai_workspace_access
 
 User = get_user_model()
 API = "/api/financial-advisor/ai/"

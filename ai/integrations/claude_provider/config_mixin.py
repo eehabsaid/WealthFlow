@@ -12,14 +12,14 @@ from ai.services.credential_encryption import decrypt_credential
 class ClaudeConfigMixin:
     @classmethod
     def from_settings(cls, user=None) -> Optional["ClaudeConfigMixin"]:
-        from core.models import AppSettings
+        from ai.models import AISetting
 
-        raw_key = AppSettings.get("ai_claude_api_key", "", user=user).strip()
+        raw_key = AISetting.get("ai_claude_api_key", "", user=user).strip()
         api_key = decrypt_credential(raw_key)
-        model = AppSettings.get("ai_claude_model", "", user=user).strip()
-        base_url = AppSettings.get("ai_claude_base_url", "https://api.anthropic.com/v1", user=user).strip()
+        model = AISetting.get("ai_claude_model", "", user=user).strip()
+        base_url = AISetting.get("ai_claude_base_url", "https://api.anthropic.com/v1", user=user).strip()
         try:
-            timeout = int(AppSettings.get("ai_timeout", "60", user=user))
+            timeout = int(AISetting.get("ai_timeout", "60", user=user))
         except (ValueError, TypeError):
             timeout = 60
 

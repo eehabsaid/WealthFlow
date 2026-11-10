@@ -23,7 +23,7 @@ import urllib.parse
 from typing import Any
 
 from ai.integrations.ai_provider import BaseAIProvider
-from core.integrations.provider_utils import make_json_http_request
+from ai.integrations.http import make_json_http_request
 from ai.integrations.azure_openai_provider.config import AzureOpenAIConfigMixin
 from ai.services.credential_encryption import redact_secrets
 

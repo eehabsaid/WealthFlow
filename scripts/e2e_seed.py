@@ -86,9 +86,9 @@ def _reset_lapsed_user(user):
 def _reset_ai_choices():
     """A copy of the developer's db.sqlite3 carries his own per-user Ask/Agent choice; Agent mode skips the instant-answer engine,
     so every AI E2E step would silently test the model path instead. The disposable DB always starts on Ask."""
-    from core.models import AppSettings
+    from ai.models import AISetting
 
-    AppSettings.objects.filter(key="ai_chat_mode").delete()
+    AISetting.objects.filter(key="ai_chat_mode").delete()
 
 
 def _apply_db_argument(argv: list[str]) -> None:

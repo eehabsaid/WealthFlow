@@ -19,7 +19,7 @@ MAX_HITS = 25
 
 
 def routes(user, params):
-    from core.authentication.utils.auth_utils import user_is_sysadmin
+    from ai.host import user_is_sysadmin
 
     admin = user_is_sysadmin(user)
     query = str(params.get("query") or "").strip().lower()

@@ -1,6 +1,6 @@
 # dev_agent - standalone autonomous coding agent (M1 core, M2 interfaces, M3 E2E + memory + recovery)
 
-Python 3.12+. No Django. WealthFlow-specific rules live in `coding_agent/config.json`, not in code.
+Python 3.12+. No Django. Project-specific rules live in `coding_agent/config.json`, not in code. In another Django project `python manage.py ai_setup` creates `coding_agent/` from `ai/coding_agent_template/` (see `ai/INSTALL.md`).
 
 ## Setup (once)
     pip install -r ai/dev_agent/requirements.txt        # keyring only; cryptography is already in WealthFlow's requirements
