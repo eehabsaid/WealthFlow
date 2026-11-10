@@ -1,1 +1,3 @@
 {"id": "20261109-120447-hi", "date": "2026-11-09", "goal": "hi", "status": "answered", "files": [], "reason": "", "checks": {}}
+{"id": "20261110-121338-inspect-how-the-dashboard-kpi-", "date": "2026-11-10", "goal": "Inspect how the dashboard KPI cards are rendered. Do not modify anything. Explain the relevant files and relationships.", "status": "answered", "files": [], "reason": "", "checks": {}}
+{"id": "20261110-121925-investigate-the-complete-ai-ch", "date": "2026-11-10", "goal": "Investigate the complete AI chat request lifecycle in WealthFlow after the AI-folder refactor. Trace the workflow from: 1. The frontend chat submission. 2. The ", "status": "answered", "files": [], "reason": "", "checks": {}}
