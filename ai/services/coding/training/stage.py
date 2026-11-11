@@ -7,8 +7,11 @@ from typing import Callable
 from ai.services.coding.training import settings
 
 
-def train_config():
+def train_config(cfg_path: str | None = None):
     from ai.training.services import config
+
+    if cfg_path is not None:
+        return config.load(path=cfg_path)
 
     options = settings()
     overrides = {"model_suffix": options["model_suffix"], "min_traces": options["min_examples"]}
@@ -34,15 +37,28 @@ def count_lines(path: str) -> int:
         return 0
 
 
-def run(train_file: str, current_model: str, *, dry_run: bool = False, fresh: bool = False,
-        log: Callable[[str], None] = print) -> dict:
+def run(
+    train_file: str,
+    current_model: str,
+    *,
+    dry_run: bool = False,
+    fresh: bool = False,
+    log: Callable[[str], None] = print,
+    cfg_path: str | None = None,
+    example_label: str = "verified coding examples",
+    too_few_hint: str = (
+        "This repo's history gives too few verified changes to teach a model. "
+        "Keep adding small, tested commits and run the dataset stage again."
+    ),
+) -> dict:
     from ai.training.services import ollama_stage, preflight, train_stage
 
-    cfg, count = train_config(), count_lines(train_file)
+    cfg, count = train_config(cfg_path), count_lines(train_file)
     original, new_model = names(current_model, cfg)
+    if cfg_path is not None and cfg.new_model:
+        new_model = cfg.new_model
     coding_check = preflight.Check(
-        "verified coding examples", count >= cfg.min_traces, f"{count} (need {cfg.min_traces})",
-        "This repo's history gives too few verified changes to teach a model. Keep adding small, tested commits and run the dataset stage again.",
+        example_label, count >= cfg.min_traces, f"{count} (need {cfg.min_traces})", too_few_hint,
     )
     for line in preflight.describe([coding_check]):
         log(line)

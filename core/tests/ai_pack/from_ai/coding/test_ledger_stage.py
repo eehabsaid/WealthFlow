@@ -11,6 +11,12 @@ from ai.services.coding.training import ledger_stage
 
 
 class NamesTests(SimpleTestCase):
+    def test_ledger_config_is_loaded_from_its_dedicated_file(self):
+        cfg = ledger_stage.train_config()
+        self.assertEqual(cfg.best_model, "qwen3.8:27b-recovery")
+        self.assertEqual(cfg.new_model, "qwen3.8:27b-coding_agent")
+        self.assertEqual(cfg.min_traces, 40)
+
     def test_the_configured_best_and_new_model_names_are_used_as_is(self):
         cfg = ledger_stage.train_config()
         best, new = ledger_stage.names("whatever-is-in-settings-right-now")
@@ -30,6 +36,21 @@ class NamesTests(SimpleTestCase):
 
 
 class RunGateTests(SimpleTestCase):
+    def test_ledger_run_passes_its_config_to_the_shared_training_stage(self):
+        from ai.training.services import preflight, train_stage
+        from ai.services.coding.training import stage
+
+        cfg = ledger_stage.train_config()
+        with patch.object(stage, "count_lines", return_value=cfg.min_traces), \
+                patch.object(preflight, "describe", return_value=[]), \
+                patch.object(preflight, "failed", return_value=False), \
+                patch.object(train_stage, "run_prepared", return_value={"status": "dry_run"}) as prepared:
+            outcome = ledger_stage.run("ledger.jsonl", "qwen3.8:27b-recovery", dry_run=True, log=lambda _: None)
+
+        self.assertEqual(outcome, {"status": "dry_run", "model": cfg.new_model})
+        self.assertEqual(prepared.call_args.args[:3], (cfg, "ledger.jsonl", cfg.min_traces))
+        self.assertTrue(prepared.call_args.kwargs["dry_run"])
+
     def test_too_few_approved_examples_blocks_training_before_anything_starts(self):
         path = os.path.join(tempfile.mkdtemp(), "t.jsonl")
         with open(path, "w", encoding="utf-8") as fh:

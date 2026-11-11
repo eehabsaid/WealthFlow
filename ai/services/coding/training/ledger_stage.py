@@ -22,7 +22,9 @@ def train_config():
 
 def names(current_model: str) -> tuple[str, str]:
     """(best model to compare against - your recovery model unless the config says otherwise, new coding_agent model)."""
-    return stage.names(current_model, train_config())
+    cfg = train_config()
+    original, new_model = stage.names(current_model, cfg)
+    return cfg.best_model or original, cfg.new_model or new_model
 
 
 def run(train_file: str, current_model: str, *, dry_run: bool = False, fresh: bool = False, log: Callable[[str], None] = print) -> dict:
