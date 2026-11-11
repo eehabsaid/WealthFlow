@@ -3,14 +3,25 @@
   "max_source_files": 6,
   "max_diff_chars": 12000,
   "max_context_chars": 14000,
-  "test_prefixes": ["core/tests/", "tests/", "ai/tests/", "ai/*/tests/"],
-  "source_ext": [".py", ".js", ".css", ".html"],
+  "test_prefixes": [
+    "core/tests/",
+    "tests/",
+    "ai/training/tests/"
+  ],
+  "source_ext": [
+    ".py",
+    ".js",
+    ".css",
+    ".html"
+  ],
   "held_out_every": 5,
   "min_examples": 30,
   "verify_timeout_s": 900,
   "eval_timeout_s": 900,
   "eval_regression": true,
-  "model_suffix": "-coder",
+  "model_suffix": "-coding_agent",
   "eval_min_gain_points": 5,
-  "eval_max_slower_percent": 20
+  "eval_max_slower_percent": 20,
+  "initial_adapter_dir": "D:\\AI-Models\\training\\recovery\\run-recovery-agent2\\out\\adapter",
+  "initial_adapter_model": "qwen3.8:27b-recovery"
 }

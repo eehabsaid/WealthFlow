@@ -87,11 +87,13 @@ class EvaluateTests(Repo):
 
 
 class TrainGateTests(SimpleTestCase):
-    def test_new_model_name_is_the_original_plus_the_coding_suffix_and_never_an_old_name(self):
+    def test_new_model_name_uses_the_coding_suffix_and_recovery_adapter_is_configured(self):
         cfg = stage.train_config()
-        original, new = stage.names("qwen3.8:27b-150k-agent", cfg)
-        self.assertTrue(new.endswith(settings()["model_suffix"]))
-        self.assertNotEqual(new, "qwen3.8:27b-150k-agent")
+        original, new = stage.names("qwen3.8:27b-recovery", cfg)
+        self.assertTrue(new.endswith("-coding_agent"))
+        self.assertEqual(cfg.initial_adapter_dir, settings()["initial_adapter_dir"])
+        self.assertEqual(cfg.initial_adapter_model, "qwen3.8:27b-recovery")
+        self.assertNotEqual(new, "qwen3.8:27b-recovery")
         self.assertEqual(stage.names(original, cfg)[0], original)
 
     def test_too_few_verified_examples_blocks_training_before_anything_starts(self):
@@ -104,6 +106,31 @@ class TrainGateTests(SimpleTestCase):
         self.assertEqual(out["status"], "blocked")
         stream.assert_not_called()
         self.assertTrue(any("verified coding examples" in line and "FIX" in line for line in logged))
+
+    def test_coding_training_delegates_adapter_validation_and_wsl_config_to_shared_stage(self):
+        from dataclasses import replace
+
+        from ai.training.services import preflight
+
+        cfg = replace(
+            stage.train_config(),
+            initial_adapter_dir=r"D:\AI-Models\training\recovery\run-recovery-agent2\out\adapter",
+            initial_adapter_model="qwen3.8:27b-recovery",
+        )
+        with patch.object(stage, "train_config", return_value=cfg), \
+                patch.object(stage, "count_lines", return_value=cfg.min_traces), \
+                patch.object(preflight, "describe", return_value=[]), \
+                patch.object(preflight, "failed", return_value=False), \
+                patch("ai.training.services.train_stage.run_prepared", return_value={"status": "dry_run"}) as prepared:
+            outcome = stage.run("coding.jsonl", "qwen3.8:27b-recovery", dry_run=True, log=lambda _: None)
+
+        self.assertEqual(outcome["status"], "dry_run")
+        self.assertEqual(prepared.call_args.args[:3], (cfg, "coding.jsonl", cfg.min_traces))
+        self.assertEqual(prepared.call_args.kwargs["dry_run"], True)
+        self.assertEqual(
+            cfg.initial_adapter_dir,
+            r"D:\AI-Models\training\recovery\run-recovery-agent2\out\adapter",
+        )
 
     def test_line_counter_ignores_blank_lines_and_missing_files(self):
         self.assertEqual(stage.count_lines("/no/such/file"), 0)
