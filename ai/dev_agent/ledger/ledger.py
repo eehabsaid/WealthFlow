@@ -123,6 +123,22 @@ class Ledger:
         self.data["verification"].append({"t": _now(), "label": label, "results": results})
         self.save()
 
+    def freeze_result_diffs(self) -> None:
+        """Freeze each written file's final diff (the before-snapshot against whatever is on disk right now) under `result_diffs`, the moment
+        this task finishes. Without this, a later task touching the same file would make the diff attributed to THIS task wrong or
+        unrecoverable (the training-example extractor reads this, not live disk state, so history stays trustworthy)."""
+        from ai.dev_agent.core.project import PathError
+        from ai.dev_agent.service import diffs
+
+        frozen = {}
+        for rel in self.changed_files():
+            try:
+                frozen[rel] = diffs.file_diff(self, self.project, rel)["diff"]
+            except (diffs.NotInTask, PathError, OSError, ValueError):
+                continue
+        self.data["result_diffs"] = frozen
+        self.save()
+
     def changed_files(self, package: str | None = None) -> list[str]:
         """Files currently in the written state (optionally only those last written by one package); these are what the checks run on."""
         return sorted(p for p, f in self.data["files"].items() if f["state"] in ("written", "rollback_failed") and (package is None or f["package"] == package))

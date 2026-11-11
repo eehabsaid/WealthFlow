@@ -11,18 +11,30 @@ from typing import Callable
 from ai.services.coding.training import settings
 
 
-def train_config():
+def train_config(cfg_settings: dict | None = None, cfg_path: str | None = None):
+    """`cfg_path`, when given, loads a complete, standalone TrainConfig file (same shape as ai/training/profiles/recovery.json) with no
+    overrides - used by the ledger-based coding_agent model, which needs its own original/best/new model names and its own adapter to
+    continue from, not just a different suffix. Otherwise `cfg_settings` (default: the coding-dataset settings, coding_agent/training.json)
+    overrides just model_suffix/min_traces on top of the default ai/training/config.json, as before."""
     from ai.training.services import config
 
-    return config.load(model_suffix=settings()["model_suffix"], min_traces=settings()["min_examples"])
+    if cfg_path:
+        return config.load(path=cfg_path)
+    s = cfg_settings if cfg_settings is not None else settings()
+    # original_model/best_model/new_model default to "" here even though the shared base config.json (ai/training/config.json) sets them for
+    # the UNRELATED business-agent2 training: without this, this stage would silently inherit that other family's model names.
+    return config.load(model_suffix=s["model_suffix"], min_traces=s["min_examples"],
+                        original_model=s.get("original_model", ""), best_model=s.get("best_model", ""), new_model=s.get("new_model", ""))
 
 
 def names(current_model: str, cfg) -> tuple[str, str]:
-    """(original model, new coding model): the new name = the original + the coding suffix, so no earlier model is ever overwritten."""
+    """(original model, new model): new = cfg.new_model if the config set one, else original + the suffix; original = cfg.original_model if
+    set, else current_model with any trained suffix stripped. The explicit-override path lets a profile (like the ledger-based coding_agent
+    model) register under a name of its own choosing while still branching from, and registering beside, whichever model it continues from."""
     from ai.training.services import ollama_stage
 
     original = ollama_stage.base_name(current_model, cfg)
-    return original, ollama_stage.new_name(original, cfg.model_suffix)
+    return original, (cfg.new_model or ollama_stage.new_name(original, cfg.model_suffix))
 
 
 def count_lines(path: str) -> int:
@@ -33,15 +45,16 @@ def count_lines(path: str) -> int:
         return 0
 
 
-def run(train_file: str, current_model: str, *, dry_run: bool = False, fresh: bool = False, log: Callable[[str], None] = print) -> dict:
+def run(train_file: str, current_model: str, *, dry_run: bool = False, fresh: bool = False, log: Callable[[str], None] = print,
+        cfg_settings: dict | None = None, cfg_path: str | None = None, example_label: str = "verified coding examples",
+        too_few_hint: str = "This repo's history gives too few verified changes to teach a model. Keep adding small, tested commits and run the dataset stage again.") -> dict:
     from ai.training.services import ollama_stage, preflight, train_stage, wsl
     from ai.training.services.config import REPO_ROOT
 
-    cfg, count = train_config(), count_lines(train_file)
+    cfg, count = train_config(cfg_settings, cfg_path), count_lines(train_file)
     original, new_model = names(current_model, cfg)
     Check = preflight.Check
-    checks = [Check("verified coding examples", count >= cfg.min_traces, f"{count} (need {cfg.min_traces})",
-                    "This repo's history gives too few verified changes to teach a model. Keep adding small, tested commits and run the dataset stage again.")]
+    checks = [Check(example_label, count >= cfg.min_traces, f"{count} (need {cfg.min_traces})", too_few_hint)]
     checks += preflight.base_checks(cfg, count, original)[1:] + preflight.wsl_checks(cfg)
     for line in preflight.describe(checks):
         log(line)
@@ -64,7 +77,7 @@ def run(train_file: str, current_model: str, *, dry_run: bool = False, fresh: bo
         train_stage.free_gpu(original, log)
         repo = wsl.quote(wsl.to_wsl_path(REPO_ROOT))
         log(f"Preparing the training tools inside WSL (first time only) ... {train_stage.ESTIMATE}")
-        if wsl.stream(cfg, f"tr -d '\\r' < {repo}/ai_training/trainer/setup_env.sh | bash", log) != 0:
+        if wsl.stream(cfg, f"tr -d '\\r' < {repo}/ai/training/trainer/setup_env.sh | bash", log) != 0:
             return {"status": "setup_failed", "model": ""}
         cmd = f"cd {repo} && $HOME/ai_training_venv/bin/python -m ai.training.trainer.train --config {wsl.quote(wsl.to_wsl_path(config_path))}"
         log(f"Training on {count} verified coding examples ...")

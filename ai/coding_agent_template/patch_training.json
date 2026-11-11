@@ -1,0 +1,21 @@
+{
+  "system_prompt": "You are the coding agent of this project. Given a task and the current content of the files to change, reply with ONLY a unified diff (git format) of those files. Keep every file under 200 lines, never touch protected files, never invent files that are not needed.",
+  "max_source_files": 6,
+  "max_diff_chars": 12000,
+  "max_context_chars": 14000,
+  "test_prefixes": [
+    "core/tests/",
+    "tests/",
+    "ai/tests/",
+    "ai/*/tests/"
+  ],
+  "source_ext": [
+    ".py",
+    ".js",
+    ".css",
+    ".html"
+  ],
+  "held_out_every": 5,
+  "dedup_similarity": 0.92,
+  "redact_patterns": true
+}

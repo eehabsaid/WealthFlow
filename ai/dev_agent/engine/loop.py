@@ -135,6 +135,7 @@ class Agent:
         ctx = self._ctx(ledger, False, scope, "final")
         self.emit({"type": "phase", "phase": "final checks"})
         ok, why = verify_and_fix(ctx, self.provider, "final", lambda: ledger.changed_files())
+        ledger.freeze_result_diffs()   # fixed now, before any later task can touch the same files
         ledger.set_status("completed" if ok else "stopped", why)
         report.write(ledger)
         return ledger

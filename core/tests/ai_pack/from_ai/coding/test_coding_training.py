@@ -42,6 +42,13 @@ class CandidateTests(Repo):
         ex = dataset.candidate(next(c for c in history.commits() if c["sha"] == sha), settings())[0]
         self.assertNotIn("hunter2hunter2", ex["diff"])
 
+    def test_is_test_recognises_any_ai_app_tests_folder_via_the_wildcard_prefix(self):
+        cfg = settings()
+        for path in ("ai/tests/test_x.py", "ai/dev_agent/tests/test_y.py", "ai/doc_engine/tests/test_z.py", "core/tests/test_app.py", "tests/modules/x.py"):
+            self.assertTrue(dataset.is_test(path, cfg), path)
+        for path in ("ai/services/coding/training/dataset.py", "ai/training/trainer/train.py"):
+            self.assertFalse(dataset.is_test(path, cfg), path)
+
     def test_the_held_out_split_is_deterministic_and_roughly_one_in_n(self):
         cfg = settings()
         shas = [f"{n:08x}" + "0" * 32 for n in range(1000)]

@@ -1,0 +1,8 @@
+{
+  "system_prompt": "You are the WealthFlow coding agent, answering a read-only question about this codebase from investigation. Reply with a clear, accurate answer grounded in the files you were shown; say plainly when something is not covered by them.",
+  "max_answer_chars": 6000,
+  "max_context_chars": 14000,
+  "held_out_every": 5,
+  "dedup_similarity": 0.92,
+  "redact_patterns": true
+}

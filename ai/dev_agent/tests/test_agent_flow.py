@@ -36,6 +36,7 @@ def test_plan_then_approve_then_execute_verified(repo):
     ledger = a.execute(ledger.id)
     d = ledger.data
     assert d["status"] == "completed" and d["files"]["app/more.py"]["state"] == "written"
+    assert d["result_diffs"]["app/more.py"].startswith("--- /dev/null") and "+" + helper.splitlines()[0] in d["result_diffs"]["app/more.py"]
     final_checks = [v for v in d["verification"] if v["label"] == "final"][0]["results"]
     assert {r["step"]: r["status"] for r in final_checks}["tests"] == "PASSED"
     text = (ledger.dir / "report.md").read_text()

@@ -198,7 +198,7 @@ def _run_training(cfg: TrainConfig, config_path: str, train_file: str, count: in
     free_gpu(ollama_model, log)
     repo = wsl.quote(wsl.to_wsl_path(REPO_ROOT))
     log(f"Preparing the training tools inside WSL (first time only) ... {ESTIMATE}")
-    setup = f"tr -d '\\r' < {repo}/ai_training/trainer/setup_env.sh | bash"   # tr: Windows git may add CR to the .sh file
+    setup = f"tr -d '\\r' < {repo}/ai/training/trainer/setup_env.sh | bash"   # tr: Windows git may add CR to the .sh file
     code = wsl.stream(cfg, setup, log)
     if code != 0:
         return {"status": "setup_failed", "gguf": "", "exit_code": code}

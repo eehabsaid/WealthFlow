@@ -117,3 +117,77 @@ Invoke-RestMethod -Uri "http://localhost:11434/api/chat" -Method Post -ContentTy
 
 Hook into the app: one call in `ai/views/ai_chat/chat_pipeline/agent_pipeline.py`. Real chats are recorded only if the
 sysadmin setting `ai_trace_recording` is true.
+
+## Coding model, from the standalone agent's own history (ledger-based coding_agent)
+
+A second, separate coding fine-tune from the standalone dev agent's own completed work (`coding_agent/tasks/*/ledger.json`), not from git
+history (that is the git-history coding fine-tune further up this file, under "Point 10" / `coding_agent/training.json`). Only a task the
+agent itself marked finished AND verified becomes a candidate - a failed, stopped, rejected or unverified task never does:
+
+- **qa** - an investigation/read-only question (`status: "answered"`): the goal and the agent's own final answer become a QUESTION/ANSWER example.
+- **patch** - an implementation task (`status: "completed"`, final verification `VERIFIED`): the goal, the changed files' content *before* the
+  task, and the task's own frozen diff (`ledger.freeze_result_diffs()`, called right when a task completes) become a TASK+FILES/diff example.
+  A task completed before this feature existed has no frozen diff and is skipped (`no_source_diff`) - there is nothing reliable to rebuild it
+  from after the fact, by design.
+
+Both example types are redacted (secrets/tokens always; emails, phone numbers and currency-looking amounts too, unless `redact_patterns` is
+turned off in that type's config), deduplicated (exact and near-duplicate, via `dedup_similarity`), size- and structure-checked, then written
+to a **review file you approve by hand** - nothing reaches training on its own:
+
+```
+python manage.py ai_training                                    # recovery, agent2, etc. (unchanged)
+python scripts/ledger_train.py --stages extract                 # scan coding_agent/tasks, (re)write the two review files
+```
+
+This writes `coding_agent/qa_review.jsonl` and `coding_agent/patch_review.jsonl`, one JSON row per candidate task, `"decision": "pending"`.
+Open either file, change `"decision"` to `"approved"` or `"rejected"` for each row you've looked at (the full example - prompt and answer/diff
+- is right there in the row, under `"example"`), save, and re-run `--stages extract` any time to pick up new tasks without losing your
+decisions. A row whose task no longer qualifies (e.g. you deleted it) is dropped automatically and reported.
+
+```
+python scripts/ledger_train.py --stages build                   # merge the APPROVED rows of both files into one deterministic split
+python scripts/ledger_train.py --stages train                   # train (or --dry-run to only check readiness)
+python scripts/ledger_train.py --stages evaluate                # compare the new model with recovery on the held-out approved examples
+python scripts/ledger_train.py                                  # all four stages, in order
+```
+
+`build` writes `work/coding_agent/coding_agent_train.jsonl` (training) and `coding_agent_heldout.json` (held out, deterministic by task id -
+a task is always on the same side, so held-out never leaks into training) plus a `coding_agent_dataset_report.txt` with counts by kind. It
+refuses (status stays at `"build"`, train/evaluate are skipped) if nothing has been approved in either file yet.
+
+**Base model and naming** (`coding_agent/coding_agent_training.json`, a complete, standalone settings file - same shape as
+`profiles/recovery.json`, not an overlay on `config.json`): this model continues training from **your recovery model's own saved adapter**,
+not from scratch and not from the plain `-agent2` model, via `initial_adapter_dir`/`initial_adapter_model`. `original_model` and `best_model`
+are both set to `qwen3.8:27b-recovery` (what it continues from, and what `evaluate` compares the new model against), while `new_model` is set
+explicitly to `qwen3.8:27b-coding_agent` - a clean name with **no "recovery" in it** - so the model you end up with is `<base>-coding_agent`
+regardless of which model happens to be selected in Settings when you run it. **Confirm `initial_adapter_dir` against your own machine before
+training** (it should be recovery's own `run_dir_override` + `\out\adapter` - check `profiles/recovery.json`'s own `initial_adapter_dir` for
+the pattern); a wrong or missing path blocks training rather than silently falling back to the untouched base. `min_traces`, LoRA
+hyperparameters, `eval_min_gain_points` and `eval_max_slower_percent` are also in this file, not the shared `config.json`. The model in
+Settings is never switched, by `build`, `train` or `evaluate`.
+
+**Evaluation** scores the two example kinds differently, in one combined run and report (`coding_agent_eval_report.txt` /
+`coding_agent_eval_results.json` under `work/coding_agent/`):
+- *patch* examples are scored by code, the same way as the git-history coding fine-tune (`scoring.py`): the model's patch is applied to a
+  clean worktree and the real Django tests mapped to the changed files (`test_areas` in `coding_agent/config.json`) decide. Unlike the
+  git-history dataset, a ledger task is not tied to one commit, so the clean worktree is **git HEAD**, not a parent commit - local,
+  uncommitted dev-agent changes are not reproduced in evaluation. Commit a task's changes (after you've reviewed them) before relying on its
+  patch example in an evaluation run.
+- *qa* examples have no code-checkable ground truth. They get a disclosed text-similarity proxy against the agent's own recorded answer
+  (never a correctness judgment) and the new model's full transcripts are written into the report for you to read and judge yourself.
+- The **combined verdict is decided by the patch results alone** (gain in tests passing, no new protected-file touch, not meaningfully
+  slower) - qa never wins or loses a verdict on its own; if there are no held-out patch examples yet, the run says so plainly instead of
+  claiming a win.
+
+**Extraction config vs. training config**: `coding_agent/qa_training.json` and `patch_training.json` only control extraction (system prompt,
+size limits, `held_out_every`, dedup, redaction, and - for patch - which paths count as tests, via `test_prefixes`, the same wildcard-prefix
+format as the git-history dataset's own `test_prefixes`). The actual model (base, LoRA settings, naming, adapter to continue from, eval
+thresholds) lives only in `coding_agent_training.json`.
+
+**Failure modes**: `extract` never fails outright - a task that cannot be read, or does not qualify, is just counted and skipped, with the
+reason in the log (`not_answered`, `not_completed`, `not_verified`, `no_source_diff`, `protected_file`, `too_many_files`, `context_too_long`,
+`answer_too_long`/`diff_size`, `empty_goal`/`empty_goal_or_answer`, `duplicate_exact`, `duplicate_near`). `build`/`build_combined` refuse with
+nothing approved rather than training on an empty set. `train` runs the same WSL preflight checks as the other local models (free disk, WSL
+reachable, enough approved examples) and blocks before touching anything if they fail; a missing or mismatched `initial_adapter_dir` blocks
+training the same way an Agent2-recovery mismatch does for the recovery profile. `evaluate` with an empty held-out file (nothing approved and
+held out yet) reports `"no_tasks"` and says to run `build` first, rather than silently comparing nothing.

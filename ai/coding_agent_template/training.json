@@ -5,7 +5,9 @@
   "max_context_chars": 140000,
   "test_prefixes": [
     "tests/",
-    "test/"
+    "test/",
+    "ai/tests/",
+    "ai/*/tests/"
   ],
   "source_ext": [
     ".py",

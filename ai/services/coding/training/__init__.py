@@ -9,5 +9,7 @@ import json
 from ai.services.coding import AGENT_DIR
 
 
-def settings() -> dict:
-    return json.loads((AGENT_DIR / "training.json").read_text(encoding="utf-8"))
+def settings(name: str = "training.json") -> dict:
+    """`name` picks which settings file under coding_agent/ to load: the git-history coding dataset uses "training.json" (the default, unchanged);
+    the ledger-based example types each get their own file ("qa_training.json", "patch_training.json")."""
+    return json.loads((AGENT_DIR / name).read_text(encoding="utf-8"))

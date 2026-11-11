@@ -90,6 +90,17 @@ def test_lines_that_start_with_plus_or_minus_signs_are_counted(ctx):
     assert diffs.line_counts(ctx.ledger, ctx.project, "app/calc.py") == (1, 1)
 
 
+def test_frozen_result_diffs_survive_a_later_edit_on_disk(ctx):
+    call(ctx, "read_file", {"path": "app/calc.py"})
+    edit(ctx, {"path": "app/calc.py", "replacements": [{"old": "a + b", "new": "a - b"}]})
+    ctx.ledger.freeze_result_diffs()
+    frozen = ctx.ledger.data["result_diffs"]["app/calc.py"]
+    assert "-    return a + b" in frozen and "+    return a - b" in frozen
+    (ctx.project.root / "app/calc.py").write_text("def add(a, b):\n    return a * b * b\n", encoding="utf-8")   # a later, unrelated task touches it
+    assert ctx.ledger.data["result_diffs"]["app/calc.py"] == frozen   # the frozen copy is unaffected by what happens on disk afterwards
+    assert "+    return a * b * b" in diffs.file_diff(ctx.ledger, ctx.project, "app/calc.py")["diff"]   # live diff reflects the new change though
+
+
 def test_change_of_only_the_trailing_newline_is_visible(ctx):
     (ctx.project.root / "app/calc.py").write_text("one", encoding="utf-8")
     call(ctx, "read_file", {"path": "app/calc.py"})

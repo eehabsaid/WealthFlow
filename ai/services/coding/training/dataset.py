@@ -4,6 +4,7 @@ Nothing is kept on a guess: a change whose tests could not be run is dropped and
 
 from __future__ import annotations
 
+import fnmatch
 import json
 import os
 import subprocess
@@ -18,7 +19,9 @@ from ai.services.coding.training import history, settings
 
 
 def is_test(path: str, cfg: dict) -> bool:
-    return path.endswith(".py") and any(path.startswith(p) for p in cfg["test_prefixes"])
+    """Each of `cfg["test_prefixes"]` is a directory prefix (an fnmatch pattern, so "ai/*/tests/" covers every "ai/<app>/tests/" folder without
+    naming each one); any .py file under one of them counts as a test. A pattern with no wildcard behaves exactly like a plain prefix."""
+    return path.endswith(".py") and any(fnmatch.fnmatch(path, p.rstrip("/") + "/*") for p in cfg["test_prefixes"])
 
 
 def django_label(path: str) -> str:
