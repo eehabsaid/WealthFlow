@@ -42,3 +42,31 @@ def test_search_refreshes_stale_indexes(repo):
     results = idx.search("total_budget", 5)
     assert results and results[0]["path"] == "app/finance.py"
     assert idx.status()["status"] == "current"
+
+
+def test_index_rebuilds_after_state_reset(repo):
+    idx = Index(repo)
+    idx.ensure_current()
+    idx._state = {"version": 1, "files": {}, "manifest": {}, "last_successful_update": None, "errors": []}
+
+    res = idx.ensure_current()
+    assert res["status"] == "updated"
+    status = idx.status()
+    assert status["status"] == "current"
+    assert status["indexed_files"] >= 5
+
+
+def test_index_tracks_external_delete_and_post_edit_refresh(repo):
+    idx = Index(repo)
+    idx.ensure_current()
+    (repo.root / "app/calc.py").write_text("def add(a, b):\n    return a + b + 1\n", encoding="utf-8")
+    assert "app/calc.py" in idx.detect_changes()["modified"]
+
+    to_delete = repo.root / "app/old.py"
+    if to_delete.exists():
+        to_delete.unlink()
+        assert "app/old.py" in idx.detect_changes()["removed"]
+
+    res = idx.refresh()
+    assert res["status"] == "updated"
+    assert idx.status()["status"] == "current"

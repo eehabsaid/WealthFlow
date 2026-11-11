@@ -1,9 +1,11 @@
 """End-to-end agent runs on a temp repo with a scripted fake model: plan -> approve -> execute -> verify/fix -> report, plus every stop rule."""
 
 import json
+from unittest.mock import patch
 
 import pytest
 
+from ai.dev_agent.core.index import Index
 from ai.dev_agent.engine.loop import Agent, AgentError
 from ai.dev_agent.settings.store import Settings
 from ai.dev_agent.tests.conftest import head
@@ -147,6 +149,34 @@ def test_git_writes_cannot_happen_through_the_agent(git_repo):
     assert subprocess.run(["git", "branch"], cwd=git_repo.root, capture_output=True, text=True).stdout.split() == ["*", subprocess.run(
         ["git", "branch", "--show-current"], cwd=git_repo.root, capture_output=True, text=True).stdout.strip()]
     assert subprocess.run(["git", "stash", "list"], cwd=git_repo.root, capture_output=True, text=True).stdout == ""
+
+
+def test_agent_plan_uses_live_index_context(repo):
+    a = agent(repo, [final("done")])
+    with patch("ai.dev_agent.core.context.pick", wraps=__import__("ai.dev_agent.core.context", fromlist=["pick"]).pick) as pick_mock, \
+            patch.object(Index, "search", wraps=a.index.search) as search_mock:
+        led = a.plan("find the expense mirror engine in the repo")
+    assert led.data["status"] == "answered"
+    assert pick_mock.called
+    assert search_mock.called
+
+
+def test_agent_execution_uses_live_search_and_file_reads(repo):
+    target = repo.root / "app/finance.py"
+    target.write_text("def total_budget():\n    return 9000\n", encoding="utf-8")
+    a = agent(repo, [
+        plan(files_add=["app/finance.py"], files_edit=["app/finance.py"], steps=[{"title": "inspect and update finance", "files": ["app/finance.py"]}]),
+        tool("search_index", query="total_budget"),
+        read("app/finance.py"),
+        edit({"path": "app/finance.py", "replacements": [{"old": "return 9000", "new": "return 9100"}]}),
+        final("updated the budget logic"),
+    ], Approver(True))
+
+    led = a.plan("update the annual budget logic")
+    a.approve(led.id)
+    led = a.execute(led.id)
+    assert led.data["status"] == "completed"
+    assert "return 9100" in target.read_text(encoding="utf-8")
 
 
 def test_planning_phase_is_read_only(repo):
