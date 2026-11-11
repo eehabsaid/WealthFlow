@@ -6,7 +6,8 @@
   "test_prefixes": [
     "core/tests/",
     "tests/",
-    "ai/training/tests/"
+    "ai/tests/",
+    "ai/*/tests/"
   ],
   "source_ext": [
     ".py",

@@ -21,7 +21,8 @@ from ai.services.coding.training import history, settings
 def is_test(path: str, cfg: dict) -> bool:
     """Each of `cfg["test_prefixes"]` is a directory prefix (an fnmatch pattern, so "ai/*/tests/" covers every "ai/<app>/tests/" folder without
     naming each one); any .py file under one of them counts as a test. A pattern with no wildcard behaves exactly like a plain prefix."""
-    return path.endswith(".py") and any(fnmatch.fnmatch(path, p.rstrip("/") + "/*") for p in cfg["test_prefixes"])
+    norm = path.replace("\\", "/")
+    return norm.endswith(".py") and any(fnmatch.fnmatch(norm, p.rstrip("/") + "/*") for p in cfg["test_prefixes"])
 
 
 def django_label(path: str) -> str:

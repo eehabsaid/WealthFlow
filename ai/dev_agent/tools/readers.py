@@ -19,6 +19,7 @@ def search_index(ctx, args):
     query = str(args.get("query") or "").strip()
     if not query:
         raise ToolError("give a `query`")
+    ctx.index.ensure_current()
     return {"results": ctx.index.search(query, 15)}
 
 

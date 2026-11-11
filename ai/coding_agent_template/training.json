@@ -4,8 +4,8 @@
   "max_diff_chars": 120000,
   "max_context_chars": 140000,
   "test_prefixes": [
+    "core/tests/",
     "tests/",
-    "test/",
     "ai/tests/",
     "ai/*/tests/"
   ],
