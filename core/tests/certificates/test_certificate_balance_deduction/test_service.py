@@ -56,12 +56,12 @@ class CertificateBalanceDeductionServiceTest(TestCase):
         self.cash_base.refresh_from_db()
         self.assertEqual(self.cash_base.amount, Decimal("100000.00"))
 
-    def test_status_only_change_does_not_move_balance(self):
+    def test_non_closed_status_change_does_not_move_balance(self):
         cert = self._make_certificate(self.enbd, self.egp, Decimal("20000.00"))
         self.cash_base.refresh_from_db()
         self.assertEqual(self.cash_base.amount, Decimal("80000.00"))
 
-        cert.status = "Closed"
+        cert.status = "Renewed"
         cert.save()
 
         self.cash_base.refresh_from_db()

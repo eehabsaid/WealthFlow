@@ -94,7 +94,9 @@ class CertificateInterestSynchronizationTest(TestCase):
         self.assertEqual(result.processed_certificates, 0)
         self.assertEqual(result.posted_periods, 0)
         self.cash_balance.refresh_from_db()
-        self.assertEqual(float(self.cash_balance.amount), 990000.0)
+        # Only the ACTIVE (expired) certificate's 5000 principal is held; the
+        # Closed one has been returned to cash and holds nothing.
+        self.assertEqual(float(self.cash_balance.amount), 995000.0)
         self.assertFalse(BankCertificateInterestHistory.objects.filter(certificate__in=[inactive, expired]).exists())
 
     def test_balance_view_triggers_interest_sync(self):

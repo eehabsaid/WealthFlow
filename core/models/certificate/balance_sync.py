@@ -17,7 +17,7 @@ def _is_certificate_active(certificate):
 @receiver(pre_save, sender=BankCertificate, dispatch_uid="cbs_pre_save")
 def handle_certificate_balance_pre_save(sender, instance, **kwargs):
     """Deducts the certificate principal from its matching cash balance
-    entry. See core/services/certificate/certificate_balance_deduction_service.py
+    entry. See core/services/certificate/certificate_balance_deduction_service/
     for full behaviour notes. Does not affect the aggregate sync below."""
     from core.services.certificate.certificate_balance_deduction_service import (
         handle_certificate_pre_save,
