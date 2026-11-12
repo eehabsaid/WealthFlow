@@ -11,6 +11,7 @@ from core.constants import GOLD_UNIT_TO_GRAMS
 
 
 def _to_decimal(value, default="0"):
+    """Convert value to a Decimal, falling back to default on failure."""
     try:
         return Decimal(str(value))
     except (InvalidOperation, TypeError, ValueError):
@@ -18,15 +19,18 @@ def _to_decimal(value, default="0"):
 
 
 def _gold_unit_factor(unit_value):
+    """Return the grams-per-unit factor for a gold unit name."""
     normalized = str(unit_value or "gram").strip().lower()
     return GOLD_UNIT_TO_GRAMS.get(normalized, Decimal("1"))
 
 
 def _gold_weight_in_grams(weight_value, unit_value):
+    """Return a gold weight converted to grams."""
     return _to_decimal(weight_value) * _gold_unit_factor(unit_value)
 
 
 def _normalize_gold_purity(purity_value):
+    """Normalize a purity value to one of 24k/22k/21k/18k (default 24k)."""
     text = str(purity_value or "").strip().lower()
     if "24" in text or "999" in text:
         return "24k"
@@ -40,6 +44,7 @@ def _normalize_gold_purity(purity_value):
 
 
 def _gold_sell_price_per_gram(latest_gold_price, purity_key):
+    """Return the per-gram sell price for a purity key from a GoldPrice."""
     price_map = {
         "24k": _to_decimal(latest_gold_price.carat_24k),
         "22k": _to_decimal(latest_gold_price.carat_22k),
@@ -50,6 +55,7 @@ def _gold_sell_price_per_gram(latest_gold_price, purity_key):
 
 
 def _gold_cashback_per_gram(purity_value, owner=None):
+    """Return the active cashback per gram for a purity, or 0."""
     key = _normalize_gold_purity(purity_value)
     setting = GoldPuritySetting.objects.filter(key=key, is_active=True, owner=owner).first()
     if not setting:
@@ -58,4 +64,5 @@ def _gold_cashback_per_gram(purity_value, owner=None):
 
 
 def _latest_gold_price():
+    """Return the most recently fetched GoldPrice, or None."""
     return GoldPrice.objects.order_by("-fetched_at", "-id").first()

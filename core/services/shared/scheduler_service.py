@@ -29,12 +29,15 @@ def _run_reminders_for_all_owners(today=None):
 
 @dataclass
 class ScheduledJobResult:
+    """Outcome of running a single scheduled job."""
+
     job_id: str
     success: bool
     result: dict | None = None
     error: str | None = None
 
     def to_dict(self):
+        """Return the job result as a plain dictionary."""
         return {
             "job_id": self.job_id,
             "success": self.success,
@@ -47,10 +50,14 @@ class SchedulerJobSpec(TypedDict):
     runner: Callable[[Optional[date]], dict]
 
 class SchedulerService:
+    """Registry and runner for the system's scheduled jobs."""
+
     def __init__(self):
+        """Build the registry of available scheduled jobs."""
         self._registry: dict[str, SchedulerJobSpec] = self._build_registry()
 
     def _build_registry(self) -> dict[str, SchedulerJobSpec]:
+        """Return the mapping of job id to its label and runner."""
         return {
             "reminders": {
                 "label": "Automatic reminders",
@@ -83,18 +90,21 @@ class SchedulerService:
         }
 
     def list_jobs(self) -> list[dict[str, str]]:
+        """Return the id and label of every registered job."""
         return [
             {"job_id": job_id, "label": spec["label"]}
             for job_id, spec in self._registry.items()
         ]
 
     def run_job(self, job_id: str, today: Optional[date] = None) -> dict[str, object]:
+        """Run a single job by id and return its result dict."""
         spec = self._registry.get(job_id)
         if not spec:
             raise KeyError(job_id)
         return spec["runner"](today)
 
     def run_all(self, today: Optional[date] = None) -> list[dict[str, object]]:
+        """Run every registered job, collecting a result entry per job."""
         results: list[dict[str, object]] = []
         for job_id in self._registry:
             try:

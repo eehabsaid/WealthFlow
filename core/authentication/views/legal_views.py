@@ -8,6 +8,7 @@ text keeps its data-i18n keys so the shared auth language switcher can swap it;
 edited text has none (legal_lang.js reloads the page on a language change).
 """
 
+from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_GET
 
@@ -21,13 +22,13 @@ PRIVACY_SECTIONS = DOCS["privacy"]["sections"]
 TERMS_SECTIONS = DOCS["terms"]["sections"]
 
 
-def _i18n_attr(key: str):
+def _i18n_attr(key: str) -> str:
     """`data-i18n="key"` for built-in text; nothing for edited text (it has no i18n key). The key is
     one of our own legal_* constants, never user input, so marking it safe is fine."""
     return mark_safe(f'data-i18n="{key}"') if key else ""
 
 
-def _legal_page(request, template, doc):
+def _legal_page(request, template, doc) -> HttpResponse:
     lang = _request_lang(request)
     spec = DOCS[doc]
     page = get_document(lang, doc)
@@ -57,10 +58,10 @@ def _legal_page(request, template, doc):
 
 
 @require_GET
-def privacy_view(request):
+def privacy_view(request) -> HttpResponse:
     return _legal_page(request, "legal/privacy.html", "privacy")
 
 
 @require_GET
-def terms_view(request):
+def terms_view(request) -> HttpResponse:
     return _legal_page(request, "legal/terms.html", "terms")

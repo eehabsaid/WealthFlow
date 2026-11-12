@@ -35,6 +35,7 @@ def default_document(lang: str, doc: str) -> dict:
 
 
 def _latest():
+    """The newest LegalVersion row, or None."""
     from core.models import LegalVersion
 
     return LegalVersion.objects.order_by("-created_at", "-id").first()
@@ -54,18 +55,22 @@ def clear_cache() -> None:
 
 
 def current_label() -> str:
+    """The current legal label (version string)."""
     return _current_snapshot()[0]
 
 
 def current_requires_reconsent() -> bool:
+    """Whether the current version requires re-consent."""
     return _current_snapshot()[1]
 
 
 def current_version_id():
+    """The current LegalVersion pk, or None."""
     return _current_snapshot()[2]
 
 
 def _clean_sections(raw) -> list:
+    """Keep only dict items with a non-empty title or body, as plain strings."""
     out = []
     for item in raw or []:
         if isinstance(item, dict) and (str(item.get("title", "")).strip() or str(item.get("body", "")).strip()):

@@ -40,7 +40,7 @@ class PagePermission(models.Model):
         unique_together = ["user", "page"]
         ordering = ["user__username", "page"]
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -49,7 +49,7 @@ class PagePermission(models.Model):
             "granted": self.granted,
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         verb = "granted" if self.granted else "revoked"
         return f"{self.user.username} → {self.page} ({verb})"
 
@@ -67,7 +67,7 @@ class Role(models.Model):
     class Meta:
         ordering = ["name"]
 
-    def to_dict(self, include_keys=True):
+    def to_dict(self, include_keys=True) -> dict:
         data = {
             "id": self.id,
             "name": self.name,
@@ -77,7 +77,7 @@ class Role(models.Model):
             data["keys"] = list(self.permissions.values_list("key", flat=True))
         return data
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -89,7 +89,7 @@ class RolePermission(models.Model):
         unique_together = ["role", "key"]
         ordering = ["role__name", "key"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.role.name} → {self.key}"
 
 
@@ -106,7 +106,7 @@ class UserRole(models.Model):
         unique_together = ["user", "role"]
         ordering = ["user__username", "role__name"]
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -114,5 +114,5 @@ class UserRole(models.Model):
             "role_name": self.role.name,
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.username} → {self.role.name}"

@@ -23,7 +23,7 @@ class GoldTypeSetting(models.Model):
         ordering = ["order", "name"]
         unique_together = ["owner", "name"]
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "id": self.id,
             "name": self.name,
@@ -55,7 +55,7 @@ class GoldPuritySetting(models.Model):
         ordering = ["order", "key"]
         unique_together = ["owner", "key"]
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "id": self.id,
             "key": self.key,
@@ -90,7 +90,7 @@ class GoldPrice(models.Model):
     class Meta:
         ordering = ["-fetched_at", "-id"]
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         from core.services.shared.base_currency import GOLD_PRICE_CURRENCY
 
         return {
@@ -114,7 +114,7 @@ class GoldPrice(models.Model):
             ),
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Gold {self.fetched_at}  21K={self.carat_21k} EGP/g"
 
 
@@ -130,5 +130,5 @@ class GoldPriceHistory(models.Model):
     class Meta:
         ordering = ["-timestamp"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.timestamp:%Y-%m-%d %H:%M}"

@@ -3,3 +3,5 @@
 - 2026-11-10: Your investigation is accepted, but the proposed JSON repair is NOT approved yet - checks that failed first and passed after fixing: pyflakes
 - 2026-11-10: The same failure persists after the protocol changes: "Model reply was not valid - stopped: P1: the model gave 3 replies in a row that were not valid protocol JSON (no usable JSON object; the reply began: {"tool": "edit_files", "args": {"edits": [{"path": "ai/dev_agent/tests/test_protocol_drift.py", "replacements": [{"old":)
 - 2026-11-12: Add a docstring to core/services/backup_serializer/export_order.py explaining wh - checks that failed first and passed after fixing: line limit (200)
+- 2026-11-12: In this Django version, django.core.files.uploadedfile has no BaseUploadFile; import UploadedFile (or InMemoryUploadedFile/TemporaryUploadedFile) for type hints on uploaded files. (evidence: core/services/import_data/parsers.py)
+- 2026-11-12: Add type hints to the functions in core/services/import_data/parsers.py. - checks that failed first and passed after fixing: django tests

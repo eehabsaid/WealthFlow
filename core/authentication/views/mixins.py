@@ -1,5 +1,8 @@
+from typing import Optional
+
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.http import JsonResponse
+from django.contrib.auth.models import User
+from django.http import HttpResponse, JsonResponse
 
 from core.authentication.utils.auth_utils import user_is_sysadmin, effective_permission_keys
 
@@ -9,10 +12,10 @@ class SysadminRequiredMixin(UserPassesTestMixin):
     override. Used for Roles management, User Management, and Billing
     Plans/Payment Gateway — see core/constants/roles.py."""
 
-    def test_func(self):
+    def test_func(self) -> bool:
         return self.request.user.is_authenticated and user_is_sysadmin(self.request.user)
 
-    def handle_no_permission(self):
+    def handle_no_permission(self) -> Optional[HttpResponse]:
         if not self.request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         return JsonResponse({"error": "Admin access required"}, status=403)
@@ -33,15 +36,15 @@ class PermissionRequiredMixin(UserPassesTestMixin):
 
     required_key = None
 
-    def test_func(self):
-        user = self.request.user
+    def test_func(self) -> bool:
+        user: User = self.request.user
         if not user.is_authenticated:
             return False
         if user_is_sysadmin(user):
             return True
         return self.required_key in effective_permission_keys(user)
 
-    def handle_no_permission(self):
+    def handle_no_permission(self) -> Optional[HttpResponse]:
         if not self.request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         return JsonResponse({"error": "Admin access required"}, status=403)

@@ -29,7 +29,7 @@ AXES_MODELS = {"AccessAttempt", "AccessAttemptExpiration", "AccessFailureLog", "
 SPECIAL_MODELS = {"User", "Document", "CurrencyExchange"} | AXES_MODELS
 
 
-def _owner_path(model, depth=0, seen=()):
+def _owner_path(model: type[models.Model], depth: int = 0, seen: tuple[type[models.Model], ...] = ()) -> str | None:
     if depth > 3 or model in seen:
         return None
     for name in OWNER_FIELD_NAMES:
@@ -47,7 +47,7 @@ def _owner_path(model, depth=0, seen=()):
     return None
 
 
-def classify(model) -> str:
+def classify(model: type[models.Model]) -> str:
     name = model.__name__
     if name in GLOBAL_MODELS or name in EXCLUDED_SECRET_MODELS:
         return "global"
@@ -56,7 +56,7 @@ def classify(model) -> str:
     return "owned" if _owner_path(model) else "unclassified"
 
 
-def _document_q(user):
+def _document_q(user: User) -> Q:
     from django.contrib.contenttypes.models import ContentType
 
     from core.models import FixedAsset
@@ -66,7 +66,7 @@ def _document_q(user):
     return Q(content_type=ct, object_id__in=ids) | Q(uploaded_by=user)
 
 
-def owned_queryset(model, user):
+def owned_queryset(model: type[models.Model], user: User) -> models.QuerySet:
     """Rows of `model` that belong to `user` (empty queryset for global tables)."""
     kind, name = classify(model), model.__name__
     if kind == "owned":
@@ -82,7 +82,7 @@ def owned_queryset(model, user):
     return model.objects.none()
 
 
-def _axes_queryset(model, user):
+def _axes_queryset(model: type[models.Model], user: User) -> models.QuerySet:
     if name_has_field(model, "username"):
         return model.objects.filter(username=user.username)
     if name_has_field(model, "access_attempt"):  # AccessAttemptExpiration -> AccessAttempt
@@ -90,5 +90,5 @@ def _axes_queryset(model, user):
     return model.objects.none()
 
 
-def name_has_field(model, field):
+def name_has_field(model: type[models.Model], field: str) -> bool:
     return any(f.name == field for f in model._meta.get_fields())

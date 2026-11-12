@@ -5,6 +5,9 @@ means what.
 """
 import csv
 import io
+from typing import Tuple
+
+from django.core.files.uploadedfile import UploadedFile
 
 MAX_IMPORT_ROWS = 5000
 
@@ -17,7 +20,7 @@ class EmptyFileError(ValueError):
     pass
 
 
-def parse_uploaded_file(uploaded_file):
+def parse_uploaded_file(uploaded_file: UploadedFile) -> Tuple[list[str], list[dict]]:
     """Return (headers: list[str], rows: list[dict]) from a Django
     UploadedFile. Supports .csv and .xlsx/.xls (via openpyxl)."""
     name = (uploaded_file.name or "").lower()
@@ -28,7 +31,7 @@ def parse_uploaded_file(uploaded_file):
     raise UnsupportedFileTypeError("unsupported_file_type")
 
 
-def _parse_csv(uploaded_file):
+def _parse_csv(uploaded_file: UploadedFile) -> Tuple[list[str], list[dict]]:
     raw = uploaded_file.read()
     try:
         text = raw.decode("utf-8-sig")
@@ -46,7 +49,7 @@ def _parse_csv(uploaded_file):
     return headers, rows
 
 
-def _parse_excel(uploaded_file):
+def _parse_excel(uploaded_file: UploadedFile) -> Tuple[list[str], list[dict]]:
     from openpyxl import load_workbook
 
     wb = load_workbook(filename=io.BytesIO(uploaded_file.read()), read_only=True, data_only=True)

@@ -1,10 +1,12 @@
 from django.contrib.auth import logout
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 
 from core.authentication.views.helpers import _render_auth_status
 
 
-def check_email_view(request):
+def check_email_view(request: HttpRequest) -> HttpResponse:
+    """Render the check-email confirmation page shown after signup."""
     return _render_auth_status(
         request,
         title_key="auth_check_email_title",
@@ -15,7 +17,8 @@ def check_email_view(request):
     )
 
 
-def account_disabled_view(request):
+def account_disabled_view(request: HttpRequest) -> HttpResponse:
+    """Render the account-disabled status page with a login call to action."""
     return _render_auth_status(
         request,
         title_key="auth_account_disabled_title",
@@ -26,6 +29,7 @@ def account_disabled_view(request):
     )
 
 
-def logout_view(request):
+def logout_view(request: HttpRequest) -> HttpResponse:
+    """Log the user out and redirect to the login page."""
     logout(request)
     return redirect("/accounts/login/")
