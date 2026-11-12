@@ -1,3 +1,5 @@
 - 2026-11-10: task [number]-implement-a-small-ai-applicati: added ai/tests/test_history_window_validation.py
 - 2026-11-10: task [number]-your-investigation-is-accepted: added ai/dev_agent/tests/test_tools_edit.py
 - 2026-11-10: task [number]-create-a-root-level-backlog-md: added BACKLOG.md
+- 2026-11-12: AssetSale relates to FixedAsset via OneToOneField (related_name='sale'), while all other fixed_assets_history models (AssetAcquisitionCost, AssetFurniture, AssetPurchasePayment, AssetRenovation, AssetValuationHistory) use ForeignKey. This means an asset can have at most one sale record but multiple records of every other type. (evidence: core/models/fixed_assets_history/sale.py, core/models/fixed_
+- 2026-11-12: task [number]-add-a-test-for-goal-to-dict-wh: added core/tests/goals/test_goal_to_dict.py

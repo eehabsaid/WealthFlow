@@ -1,6 +1,6 @@
 {
   "provider": "ollama",
-  "model": "qwen3.8:27b-agent2",
+  "model": "qwen3.8:27b-recovery",
   "providers": {
     "ollama": {
       "base_url": "http://127.0.0.1:11434"

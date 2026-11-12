@@ -20292,7 +20292,7 @@
       "imports": [
         "django.db.models"
       ],
-      "lines": 43,
+      "lines": 45,
       "models": {
         "Plan": [
           "code",
@@ -20307,7 +20307,7 @@
       },
       "path": "core/models/billing/plan.py",
       "routes": [],
-      "sha256": "cb742c82204f5b37a75d5d4c45c894ba1c94e0ddad0cccbe92ef22276808becd"
+      "sha256": "c31f8ded7852b8d189157ecf0cc057dd3f469ed1f0a834f07dc6f03b337a1c23"
     },
     "core/models/billing/plan_price.py": {
       "classes": [
@@ -20566,7 +20566,7 @@
         "core.models.currency.Currency",
         "core.models.certificate.bank_certificate.BankCertificate"
       ],
-      "lines": 38,
+      "lines": 40,
       "models": {
         "BankCertificateInterestHistory": [
           "certificate",
@@ -20580,7 +20580,7 @@
       },
       "path": "core/models/certificate/interest_history.py",
       "routes": [],
-      "sha256": "318ef98b83ed65d7b66955b80d39df16f2b8b622375d774543dd8a68a8358ab0"
+      "sha256": "0ddafdaf3cbf2078d6928e8ea3334d838f1f8967acd6d2c81b999548d67c5f94"
     },
     "core/models/company.py": {
       "classes": [
@@ -23161,11 +23161,11 @@
         "ai.models.ai_prompt.AIPromptCategory",
         "ai.models.ai_setting.AISetting"
       ],
-      "lines": 188,
+      "lines": 197,
       "models": {},
       "path": "core/services/backup_serializer/export_order.py",
       "routes": [],
-      "sha256": "87215108b70fe02e007f60efaadc68ba8b70e1abed1ba6a867f4d941f0776473"
+      "sha256": "c04ed82333c6c9e1a38ec781603091f2b5ebfe05a00487e098d90c0698a09d95"
     },
     "core/services/backup_serializer/instance_serialization.py": {
       "classes": [],
@@ -25025,11 +25025,11 @@
         "core.services.salary.salary_service.get_current_monthly_salary",
         "core.services.shared.base_currency.get_user_base_code"
       ],
-      "lines": 61,
+      "lines": 63,
       "models": {},
       "path": "core/services/financial_advisor/portfolio_optimizer_service/expense_income.py",
       "routes": [],
-      "sha256": "3a6c843ebd17a3f9e3e79941cc4f47dc91347b67f87660968c033acbdc2d589a"
+      "sha256": "b307493896d030b582bd405c3bafcf2fc521c04880c05e4782cfae750d9b6607"
     },
     "core/services/financial_advisor/portfolio_optimizer_service/exposure.py": {
       "classes": [
@@ -26440,13 +26440,17 @@
         "parse_amount_value"
       ],
       "imports": [
-        "datetime.datetime"
+        "datetime.date",
+        "datetime.datetime",
+        "typing.Dict",
+        "typing.List",
+        "typing.Optional"
       ],
-      "lines": 62,
+      "lines": 63,
       "models": {},
       "path": "core/services/import_data/column_mapper.py",
       "routes": [],
-      "sha256": "16aff8c4d00b458b54bcb69d43656089afa4615818b41e435e4dc562b971529b"
+      "sha256": "21236b87516ffcb309925ea4e51aa6efadcc0a73553b9e1a80d7af7eddd4990e"
     },
     "core/services/import_data/duplicate_detector.py": {
       "classes": [],
@@ -26633,6 +26637,8 @@
       "imports": [
         "decimal.Decimal",
         "decimal.InvalidOperation",
+        "typing.Optional",
+        "django.contrib.auth.models.User",
         "django.db.transaction",
         "core.authentication.services.AuthWorkflowService",
         "core.models.BalanceEntry",
@@ -26648,11 +26654,11 @@
         "core.services.shared.market_profile.ensure_base_catalog",
         "core.services.shared.market_profile.prune_egp_for_gulf_user"
       ],
-      "lines": 98,
+      "lines": 100,
       "models": {},
       "path": "core/services/onboarding/wizard_service.py",
       "routes": [],
-      "sha256": "04b35bab05e32ed3f2b094c8ffe4a01c0cf8beb54aa2b53a7d86385ddf44e59d"
+      "sha256": "958153e10e8c88347273b4a4c5346ba070ac4e5eaa43cf9c7bdab409273bf738"
     },
     "core/services/reports/__init__.py": {
       "classes": [],
@@ -31157,13 +31163,15 @@
         "core.models.Currency",
         "core.models.Expense",
         "core.models.ExpenseCategory",
-        "core.services.onboarding.DEFAULT_EXPENSE_CATEGORIES"
+        "core.models.authentication.UserProfile",
+        "core.services.onboarding.DEFAULT_EXPENSE_CATEGORIES",
+        "core.services.onboarding.wizard_service.OnboardingService"
       ],
-      "lines": 76,
+      "lines": 85,
       "models": {},
       "path": "core/tests/auth/test_onboarding_wizard.py",
       "routes": [],
-      "sha256": "7d9d3f53d3bb79604746c2b05d6590a98c897d92c4b45362f613dba7eb83acc9"
+      "sha256": "a44c588f826c25a8c93ae04a342d907d4c6a80a08e019919a22e0b10f3ec8d42"
     },
     "core/tests/auth/test_role_based_access.py": {
       "classes": [
@@ -32640,11 +32648,11 @@
         "core.models.BalanceEntry",
         "core.services.reports.report_service.ReportService"
       ],
-      "lines": 156,
+      "lines": 158,
       "models": {},
       "path": "core/tests/expenses/test_monthly_income.py",
       "routes": [],
-      "sha256": "ad917b07c3362af748f352d9b74b53d465b2cc4dbfbee016bb6e0bd79a2b413e"
+      "sha256": "3b2dd6e57db7b0d91df5d526641931fd9f9eaca819102b503a8ce3f3534bacf5"
     },
     "core/tests/financial_advisor/__init__.py": {
       "classes": [],
@@ -33151,6 +33159,24 @@
       "routes": [],
       "sha256": "7c086c80b8039e077fcab2cc647c7c5bd874f28e2a7a4a872e8703e7be504105"
     },
+    "core/tests/goals/test_goal_to_dict.py": {
+      "classes": [
+        "GoalToDictTest"
+      ],
+      "functions": [],
+      "imports": [
+        "__future__.annotations",
+        "decimal.Decimal",
+        "django.contrib.auth.get_user_model",
+        "django.test.TestCase",
+        "core.models.Goal"
+      ],
+      "lines": 36,
+      "models": {},
+      "path": "core/tests/goals/test_goal_to_dict.py",
+      "routes": [],
+      "sha256": "46a656c4b0267a5025889c8dd68d4c0f14535a122f50b0caeacabf5a1ad645b7"
+    },
     "core/tests/i18n/__init__.py": {
       "classes": [],
       "functions": [],
@@ -33463,13 +33489,15 @@
         "core.models.ExchangeRateHistory",
         "core.services.exchange_rate_history_service.ExchangeRateHistoryService",
         "datetime.date",
-        "django.utils.timezone"
+        "django.utils.timezone",
+        "core.services.exchange_rate_history_service.ExchangeRateHistoryService",
+        "datetime.date"
       ],
-      "lines": 109,
+      "lines": 116,
       "models": {},
       "path": "core/tests/rates_and_automation/test_exchange_rate_queries.py",
       "routes": [],
-      "sha256": "d0c9bfd838a082b95c6f34043dd462c1610c40ccb2c0a387209e240d5448f460"
+      "sha256": "2eadc8edb0b0ec05cce1394b20e154ec49444b6289b91af2a4af2d3f59176e8a"
     },
     "core/tests/rates_and_automation/test_exchange_rate_sync.py": {
       "classes": [
@@ -36457,11 +36485,11 @@
         "core.validators._api_auth_required",
         "core.validators.json_body.parse_json_body"
       ],
-      "lines": 54,
+      "lines": 56,
       "models": {},
       "path": "core/views/income_adjustment_views.py",
       "routes": [],
-      "sha256": "3daccfa409d57e78849c8ad620257ff8c47aa43576b8ed6bf1891b96b7b4cc30"
+      "sha256": "fc289bf6793a346c1caec245ee5e473a5a52e6729b393e0d60b9e6d2ec30f047"
     },
     "core/views/onboarding_views.py": {
       "classes": [
@@ -45469,7 +45497,7 @@
       "sha256": "d01b679a4cd01c21f5400ed9d42854a18a877a2a363a8a033fece81c3c68be59"
     }
   },
-  "last_successful_update": "2026-11-12T06:55:46.842688+00:00",
+  "last_successful_update": "2026-11-12T09:12:06.960121+00:00",
   "manifest": {
     "ai/__init__.py": {
       "mtime_ns": 1794215764515059100,
@@ -50407,9 +50435,9 @@
       "size": 2711
     },
     "core/models/billing/plan.py": {
-      "mtime_ns": 1789480724000000000,
-      "sha256": "cb742c82204f5b37a75d5d4c45c894ba1c94e0ddad0cccbe92ef22276808becd",
-      "size": 1692
+      "mtime_ns": 1794474428536057100,
+      "sha256": "c31f8ded7852b8d189157ecf0cc057dd3f469ed1f0a834f07dc6f03b337a1c23",
+      "size": 1836
     },
     "core/models/billing/plan_price.py": {
       "mtime_ns": 1789378204000000000,
@@ -50452,9 +50480,9 @@
       "size": 1255
     },
     "core/models/certificate/interest_history.py": {
-      "mtime_ns": 1788622802000000000,
-      "sha256": "318ef98b83ed65d7b66955b80d39df16f2b8b622375d774543dd8a68a8358ab0",
-      "size": 1534
+      "mtime_ns": 1794473843643723900,
+      "sha256": "0ddafdaf3cbf2078d6928e8ea3334d838f1f8967acd6d2c81b999548d67c5f94",
+      "size": 1631
     },
     "core/models/company.py": {
       "mtime_ns": 1789027868000000000,
@@ -50927,9 +50955,9 @@
       "size": 1197
     },
     "core/services/backup_serializer/export_order.py": {
-      "mtime_ns": 1794293668535760600,
-      "sha256": "87215108b70fe02e007f60efaadc68ba8b70e1abed1ba6a867f4d941f0776473",
-      "size": 7785
+      "mtime_ns": 1794474263675293900,
+      "sha256": "c04ed82333c6c9e1a38ec781603091f2b5ebfe05a00487e098d90c0698a09d95",
+      "size": 8324
     },
     "core/services/backup_serializer/instance_serialization.py": {
       "mtime_ns": 1791020125396501300,
@@ -51367,9 +51395,9 @@
       "size": 4885
     },
     "core/services/financial_advisor/portfolio_optimizer_service/expense_income.py": {
-      "mtime_ns": 1790530262000000000,
-      "sha256": "3a6c843ebd17a3f9e3e79941cc4f47dc91347b67f87660968c033acbdc2d589a",
-      "size": 2454
+      "mtime_ns": 1794473675734896100,
+      "sha256": "b307493896d030b582bd405c3bafcf2fc521c04880c05e4782cfae750d9b6607",
+      "size": 2501
     },
     "core/services/financial_advisor/portfolio_optimizer_service/exposure.py": {
       "mtime_ns": 1790530262000000000,
@@ -51727,9 +51755,9 @@
       "size": 552
     },
     "core/services/import_data/column_mapper.py": {
-      "mtime_ns": 1790920867737925100,
-      "sha256": "16aff8c4d00b458b54bcb69d43656089afa4615818b41e435e4dc562b971529b",
-      "size": 2053
+      "mtime_ns": 1794474010632668400,
+      "sha256": "21236b87516ffcb309925ea4e51aa6efadcc0a73553b9e1a80d7af7eddd4990e",
+      "size": 2175
     },
     "core/services/import_data/duplicate_detector.py": {
       "mtime_ns": 1790920867403844200,
@@ -51777,9 +51805,9 @@
       "size": 1303
     },
     "core/services/onboarding/wizard_service.py": {
-      "mtime_ns": 1791034562749016600,
-      "sha256": "04b35bab05e32ed3f2b094c8ffe4a01c0cf8beb54aa2b53a7d86385ddf44e59d",
-      "size": 4202
+      "mtime_ns": 1794473561981437700,
+      "sha256": "958153e10e8c88347273b4a4c5346ba070ac4e5eaa43cf9c7bdab409273bf738",
+      "size": 4414
     },
     "core/services/reports/__init__.py": {
       "mtime_ns": 1783774990000000000,
@@ -52657,9 +52685,9 @@
       "size": 3071
     },
     "core/tests/auth/test_onboarding_wizard.py": {
-      "mtime_ns": 1789920466000000000,
-      "sha256": "7d9d3f53d3bb79604746c2b05d6590a98c897d92c4b45362f613dba7eb83acc9",
-      "size": 4073
+      "mtime_ns": 1794474365556418500,
+      "sha256": "a44c588f826c25a8c93ae04a342d907d4c6a80a08e019919a22e0b10f3ec8d42",
+      "size": 4546
     },
     "core/tests/auth/test_role_based_access.py": {
       "mtime_ns": 1790075230000000000,
@@ -52992,9 +53020,9 @@
       "size": 2605
     },
     "core/tests/expenses/test_monthly_income.py": {
-      "mtime_ns": 1794051360505434100,
-      "sha256": "ad917b07c3362af748f352d9b74b53d465b2cc4dbfbee016bb6e0bd79a2b413e",
-      "size": 7755
+      "mtime_ns": 1794473970915566900,
+      "sha256": "3b2dd6e57db7b0d91df5d526641931fd9f9eaca819102b503a8ce3f3534bacf5",
+      "size": 7865
     },
     "core/tests/financial_advisor/__init__.py": {
       "mtime_ns": 1787751478000000000,
@@ -53116,6 +53144,11 @@
       "sha256": "7c086c80b8039e077fcab2cc647c7c5bd874f28e2a7a4a872e8703e7be504105",
       "size": 4971
     },
+    "core/tests/goals/test_goal_to_dict.py": {
+      "mtime_ns": 1794473922720613800,
+      "sha256": "46a656c4b0267a5025889c8dd68d4c0f14535a122f50b0caeacabf5a1ad645b7",
+      "size": 1131
+    },
     "core/tests/i18n/__init__.py": {
       "mtime_ns": 1790571822000000000,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -53192,9 +53225,9 @@
       "size": 5096
     },
     "core/tests/rates_and_automation/test_exchange_rate_queries.py": {
-      "mtime_ns": 1787752006000000000,
-      "sha256": "96ff6e7f4c65ac86d997edf8a86b1c76238b3739848de8a69b070e2f52bd78ca",
-      "size": 4311
+      "mtime_ns": 1794473785800557200,
+      "sha256": "c33b27dbbfd028ea4e75db6587e75e19629d7be872d4322cebfe082ebc0c1475",
+      "size": 4648
     },
     "core/tests/rates_and_automation/test_exchange_rate_sync.py": {
       "mtime_ns": 1791575588121185500,
@@ -53717,9 +53750,9 @@
       "size": 3035
     },
     "core/views/income_adjustment_views.py": {
-      "mtime_ns": 1794051360525426000,
-      "sha256": "3daccfa409d57e78849c8ad620257ff8c47aa43576b8ed6bf1891b96b7b4cc30",
-      "size": 2260
+      "mtime_ns": 1794473970892011000,
+      "sha256": "fc289bf6793a346c1caec245ee5e473a5a52e6729b393e0d60b9e6d2ec30f047",
+      "size": 2355
     },
     "core/views/onboarding_views.py": {
       "mtime_ns": 1790054458000000000,
