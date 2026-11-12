@@ -7,6 +7,7 @@ It does not train models or modify the repo; it only validates path references i
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 
@@ -28,10 +29,27 @@ def iter_rows(path: Path):
     return rows
 
 
+_BASENAME_INDEX: dict[str, bool] | None = None
+
+
+def _basename_exists(name: str) -> bool:
+    """Lazily built index of every basename under the repo, so a reference written as just "api.js" or a path missing its leading package
+    (e.g. "dev_agent/guard/commands.py" for "ai/dev_agent/guard/commands.py") isn't flagged as missing when the file is genuinely there -
+    these are how the agent's own free-text answers refer to files, not fabricated evidence."""
+    global _BASENAME_INDEX
+    if _BASENAME_INDEX is None:
+        _BASENAME_INDEX = {}
+        skip = {".git", "node_modules", "__pycache__", ".venv"}
+        for folder, dirs, names in os.walk(ROOT):
+            dirs[:] = [d for d in dirs if d not in skip]
+            for name in names:
+                _BASENAME_INDEX[name] = True
+    return _BASENAME_INDEX.get(name.replace("\\", "/").rsplit("/", 1)[-1], False)
+
+
 def verify_file(path_text: str) -> bool:
     norm = path_text.replace("\\", "/")
-    candidate = ROOT / norm
-    return candidate.exists()
+    return (ROOT / norm).exists() or _basename_exists(norm)
 
 
 def main() -> int:

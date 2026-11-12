@@ -2,6 +2,7 @@
 rows ever reach build()'s train/held-out split."""
 
 import json
+import shutil
 import tempfile
 
 from ai.services.coding.training import ledger_review as lr
@@ -122,3 +123,31 @@ class ReviewWorkflowTests(LedgerRepo):
         # nothing else qualifies now (task list unchanged) - refresh again should be a stable no-op
         result = lr.refresh("qa")
         self.assertEqual(result["dropped"], [])
+
+    def test_an_already_decided_row_survives_when_its_task_folder_is_not_visible_here(self):
+        # coding_agent/tasks is gitignored: a different machine, a partial clone, or local cleanup can make a real,
+        # already-reviewed task briefly disappear. That must never be read as "rejected after all" and erase the decision.
+        t1 = self.qa_task("q1", "a1")
+        t2 = self.qa_task("q2", "a2")
+        lr.refresh("qa")
+        rows = lr.load_rows("qa")
+        rows[t1.id]["decision"], rows[t2.id]["decision"] = "approved", "rejected"
+        lr.write_rows("qa", rows)
+        shutil.rmtree(t1.dir)
+        shutil.rmtree(t2.dir)
+        result = lr.refresh("qa")
+        self.assertEqual(result["dropped"], [])
+        self.assertEqual(sorted(result["kept_not_visible"]), sorted([t1.id, t2.id]))
+        rows = lr.load_rows("qa")
+        self.assertEqual(rows[t1.id]["decision"], "approved")
+        self.assertEqual(rows[t2.id]["decision"], "rejected")
+        self.assertEqual([e["task_id"] for e in lr.approved_examples("qa")], [t1.id])
+
+    def test_a_still_pending_row_is_dropped_once_its_task_folder_is_gone(self):
+        t1 = self.qa_task("q1", "a1")
+        lr.refresh("qa")
+        self.assertEqual(lr.load_rows("qa")[t1.id]["decision"], "pending")
+        shutil.rmtree(t1.dir)
+        result = lr.refresh("qa")
+        self.assertEqual(result["dropped"], [t1.id])
+        self.assertEqual(lr.load_rows("qa"), {})

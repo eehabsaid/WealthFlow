@@ -47,7 +47,10 @@ def write_rows(kind: str, rows: dict[str, dict]) -> str:
 
 def refresh(kind: str, project_=None, log=print) -> dict:
     """Re-extracts candidates and rewrites the review file: a task seen before keeps its decision and notes; a newly-qualifying task is added as
-    "pending"; a task that no longer qualifies (e.g. the owner rejected the agent's plan after review, or it was re-run) is dropped."""
+    "pending". A task that no longer qualifies and was still "pending" is dropped (nothing was decided, nothing lost). A task that no longer
+    qualifies but was already "approved" or "rejected" is KEPT AS-IS instead: coding_agent/tasks is gitignored, so a different machine, a
+    partial clone, or local task-folder cleanup can all make a real, already-reviewed task briefly invisible here - that must never be read as
+    "the owner changed their mind" and silently erase their decision."""
     result = le.extract(kind, project_)
     existing = load_rows(kind)
     rows = {}
@@ -55,12 +58,17 @@ def refresh(kind: str, project_=None, log=print) -> dict:
         old = existing.get(example["task_id"])
         decision, notes = (old["decision"], old.get("notes", "")) if old else ("pending", "")
         rows[example["task_id"]] = _row(example, decision, notes)
-    dropped_ids = set(existing) - set(rows)
+    missing_ids = set(existing) - set(rows)
+    kept_ids = {tid for tid in missing_ids if existing[tid]["decision"] != "pending"}
+    for task_id in kept_ids:
+        rows[task_id] = existing[task_id]
+    dropped_ids = missing_ids - kept_ids
     path = write_rows(kind, rows)
     counts = Counter(r["decision"] for r in rows.values())
     log(f"{kind}: {len(rows)} candidate(s) in {path} ({counts['pending']} pending, {counts['approved']} approved, {counts['rejected']} rejected" +
-        (f", {len(dropped_ids)} no longer qualify and were dropped" if dropped_ids else "") + ")")
-    return {"path": path, "stats": result["stats"], "decisions": dict(counts), "dropped": sorted(dropped_ids)}
+        (f", {len(dropped_ids)} still-pending no longer qualify and were dropped" if dropped_ids else "") +
+        (f", {len(kept_ids)} already-decided task(s) not visible here were kept as-is" if kept_ids else "") + ")")
+    return {"path": path, "stats": result["stats"], "decisions": dict(counts), "dropped": sorted(dropped_ids), "kept_not_visible": sorted(kept_ids)}
 
 
 def approved_examples(kind: str) -> list[dict]:
