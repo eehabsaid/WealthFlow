@@ -7139,31 +7139,13 @@
     },
     "ai/services/coding/training/evaluate.py": {
       "classes": [],
-      "functions": [
-        "chat",
-        "_prompt",
-        "run_model",
-        "summarize",
-        "verdict",
-        "report_text",
-        "run"
-      ],
-      "imports": [
-        "__future__.annotations",
-        "json",
-        "os",
-        "statistics",
-        "time",
-        "urllib.request",
-        "typing.Callable",
-        "ai.services.coding.training.scoring",
-        "ai.services.coding.training.settings"
-      ],
+      "functions": [],
+      "imports": [],
       "lines": 95,
       "models": {},
       "path": "ai/services/coding/training/evaluate.py",
       "routes": [],
-      "sha256": "539e76ed3f1c94f6d9d8437bc592d1507be7e8841e3d12a41e520a46e6f7345f"
+      "sha256": "bc72f38a7b272f23cc6463bf95472e3dab3e961341ece0ee556f41f460a72afd"
     },
     "ai/services/coding/training/history.py": {
       "classes": [],
@@ -45586,7 +45568,7 @@
       "sha256": "d01b679a4cd01c21f5400ed9d42854a18a877a2a363a8a033fece81c3c68be59"
     }
   },
-  "last_successful_update": "2026-11-13T06:50:38.939850+00:00",
+  "last_successful_update": "2026-11-13T10:28:05.913789+00:00",
   "manifest": {
     "ai/__init__.py": {
       "mtime_ns": 1794215764515059100,
@@ -47374,9 +47356,9 @@
       "size": 5841
     },
     "ai/services/coding/training/evaluate.py": {
-      "mtime_ns": 1794215766017425100,
-      "sha256": "539e76ed3f1c94f6d9d8437bc592d1507be7e8841e3d12a41e520a46e6f7345f",
-      "size": 5630
+      "mtime_ns": 1794560568633918300,
+      "sha256": "bc72f38a7b272f23cc6463bf95472e3dab3e961341ece0ee556f41f460a72afd",
+      "size": 5670
     },
     "ai/services/coding/training/history.py": {
       "mtime_ns": 1794215766020992900,

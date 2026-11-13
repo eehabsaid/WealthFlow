@@ -1,4 +1,4 @@
-"""Point 11: the original model and the coding fine-tune answer the SAME held-out real changes; every answer is scored by code (scoring.py).
+﻿"""Point 11: the original model and the coding fine-tune answer the SAME held-out real changes; every answer is scored by code (scoring.py).
 Ollama is restarted before each model (a clean GPU, as in the business model test). Nothing is switched: the report only says whether the new model
 beat the old one by the margin in coding_agent/training.json. The thresholds are settings, not code."""
 
@@ -16,7 +16,7 @@ from ai.services.coding.training import scoring, settings
 
 def chat(url: str, model: str, messages: list[dict], timeout: int) -> tuple[str, float]:
     """(answer text, seconds) from a local Ollama; temperature 0 so the same question gets the same answer."""
-    body = json.dumps({"model": model, "messages": messages, "stream": False, "options": {"temperature": 0}}).encode()
+    body = json.dumps({"model": model, "messages": messages, "stream": False, "think": False, "options": {"temperature": 0, "num_predict": 1500}}).encode()
     started = time.monotonic()
     req = urllib.request.Request(url + "/api/chat", data=body, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as res:
