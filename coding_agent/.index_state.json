@@ -4562,11 +4562,11 @@
       ],
       "functions": [],
       "imports": [],
-      "lines": 37,
+      "lines": 48,
       "models": {},
       "path": "ai/doc_engine/guides.py",
       "routes": [],
-      "sha256": "44705614482b47e45b19a774cb16c260e65048900991adc8e58549579adfd585"
+      "sha256": "0e5cf22e134197273eee8d80488dc7e37ce33749633860d2b03785589f96c5a9"
     },
     "ai/doc_engine/models.py": {
       "classes": [
@@ -6495,11 +6495,11 @@
         "ai.services.agent.instructions.DEFAULT_DOCUMENT_INSTRUCTIONS",
         "ai.services.agent.instructions.DEFAULT_INSTRUCTIONS"
       ],
-      "lines": 125,
+      "lines": 134,
       "models": {},
       "path": "ai/services/agent/settings.py",
       "routes": [],
-      "sha256": "0f02bc767bfe22cf1b3d41d31e72ee4f38bfe4d56d25bce7ebc93713a6247d20"
+      "sha256": "3002060d7809da094da79c9a86ce5573af851349135979ce1037618e945a3a68"
     },
     "ai/services/agent/sources.py": {
       "classes": [],
@@ -6823,11 +6823,11 @@
         "pdfplumber",
         "docx.Document"
       ],
-      "lines": 125,
+      "lines": 133,
       "models": {},
       "path": "ai/services/attachments/extract.py",
       "routes": [],
-      "sha256": "1066e5eaa35f52e2a8c27a3afd09db76020c034aed61d4d2992a5c5867603ced"
+      "sha256": "296854fef0f4f22abc2a036ae5913c1dedf01ba86c50bb395fc61f4ccaa1419f"
     },
     "ai/services/cache_manager.py": {
       "classes": [
@@ -9991,13 +9991,14 @@
       ],
       "imports": [
         "datetime.date",
-        "datetime.datetime"
+        "datetime.datetime",
+        "typing.Optional"
       ],
-      "lines": 52,
+      "lines": 54,
       "models": {},
       "path": "ai/services/prompt_serializer.py",
       "routes": [],
-      "sha256": "9474628fc0aae4e9f8e110dd00572e3bad38a3d182b3004746dc5e1a04e053d2"
+      "sha256": "d537874038e398adb1e82414d10852245cd7ce6ef5d4dd5e29f114aaada76210"
     },
     "ai/services/prompt_service/__init__.py": {
       "classes": [],
@@ -10017,17 +10018,19 @@
       ],
       "functions": [],
       "imports": [
+        "typing.Optional",
+        "typing.Tuple",
         "django.utils.timezone",
         "ai.models.ai_prompt.AIPrompt",
         "ai.services.prompt_serializer.serialize_prompt",
         "ai.services.prompt_service.AIPromptService",
         "ai.services.prompt_service.AIPromptService"
       ],
-      "lines": 130,
+      "lines": 132,
       "models": {},
       "path": "ai/services/prompt_service/mutation_mixin.py",
       "routes": [],
-      "sha256": "2b05477f8a92ba529ef6f3a723a5f9577dbf1f1ccd1adbca082c9b29614bfd4b"
+      "sha256": "be6bfe7831ab8285ac685183de8b9e402288578c75e27e4af77a78bcb3e9e777"
     },
     "ai/services/prompt_service/query_mixin.py": {
       "classes": [
@@ -10967,15 +10970,17 @@
         "speech_chunks"
       ],
       "imports": [
+        "__future__.annotations",
         "re",
+        "ai.services.exports.document.Block",
         "ai.services.exports.document.parse_markdown",
         "ai.services.exports.document.plain"
       ],
-      "lines": 82,
+      "lines": 84,
       "models": {},
       "path": "ai/services/speech/text_prep.py",
       "routes": [],
-      "sha256": "6d03f3b5ff66762cfd9fa1413909987107242c5eb38df7a75ddbf5f21c37f9bb"
+      "sha256": "ca3bc4268534149df4738a118785a07bb8509409d77aab18534e103975cb6977"
     },
     "ai/services/speech/tts.py": {
       "classes": [],
@@ -10995,17 +11000,18 @@
         "io",
         "json",
         "wave",
+        "typing.Any",
         "ai.services.speech.client",
         "ai.services.speech.settings.get_speech_config",
         "ai.services.speech.settings.speech_runtime_enabled",
         "ai.services.speech.text_prep.speech_chunks",
         "ai.services.speech.voice_sample.voice_sample_path"
       ],
-      "lines": 116,
+      "lines": 119,
       "models": {},
       "path": "ai/services/speech/tts.py",
       "routes": [],
-      "sha256": "0c364d67416a6be541dae024bad0f1eebf3e621091a8a954afc8ed30e873f598"
+      "sha256": "c0d11c57a5d23866aa4953aafcb9afda9cc57776b7b4363effba47dc010ee18e"
     },
     "ai/services/speech/voice_sample.py": {
       "classes": [
@@ -15309,6 +15315,7 @@
       ],
       "functions": [],
       "imports": [
+        "django.http.HttpRequest",
         "django.http.JsonResponse",
         "django.utils.dateparse.parse_datetime",
         "django.views.View",
@@ -15322,7 +15329,7 @@
       "models": {},
       "path": "ai/views/ai_chat/ai_memory_views.py",
       "routes": [],
-      "sha256": "b1b396ba8333fc80975c6762f777d6d2a4aa82b0f977764a874f4c5c16c79ecd"
+      "sha256": "b1edd437c69b3c8c18ab3f902cc70ff890dacd6b5193ceef70fd5fe7e27f19b2"
     },
     "ai/views/ai_chat/chat_pipeline/__init__.py": {
       "classes": [],
@@ -16997,11 +17004,11 @@
         "core.services.shared.base_currency.platform_default_code",
         "core.services.shared.currency_conversion_service.CurrencyConversionService"
       ],
-      "lines": 37,
+      "lines": 44,
       "models": {},
       "path": "core/ai_pack/host.py",
       "routes": [],
-      "sha256": "ec9d3a225daa5342ee961487ed867df2d844d5e5806c541fe5cea43f24bfd89c"
+      "sha256": "89a5ac655e3d2afb3a39bd475f6eb509e996bf7271c1262cbb552e1e163960f3"
     },
     "core/ai_pack/insights/__init__.py": {
       "classes": [],
@@ -18435,16 +18442,19 @@
       ],
       "functions": [],
       "imports": [
+        "typing.Optional",
         "django.contrib.auth.mixins.UserPassesTestMixin",
+        "django.contrib.auth.models.User",
+        "django.http.HttpResponse",
         "django.http.JsonResponse",
         "core.authentication.utils.auth_utils.user_is_sysadmin",
         "core.authentication.utils.auth_utils.effective_permission_keys"
       ],
-      "lines": 48,
+      "lines": 51,
       "models": {},
       "path": "core/authentication/views/mixins.py",
       "routes": [],
-      "sha256": "cb03dbd8c210957f0aa13e56141593816680f31c29fcc15d1978baf50ea3ad31"
+      "sha256": "19858b96e3ce43711717c9f2e2228dbfe178c4dfe91d286664f57fd134b9ae3e"
     },
     "core/authentication/views/page_status_views.py": {
       "classes": [],
@@ -20493,7 +20503,7 @@
       "models": {},
       "path": "core/models/certificate/balance_sync.py",
       "routes": [],
-      "sha256": "5726905daabc7f152995aae086ab6b14cfb4af3896b2a19ae40aa586e936afef"
+      "sha256": "9a2132ead80f192ff8ef6cb70da084bfd756b2acb40773264d2e6a0dae712b3a"
     },
     "core/models/certificate/bank_certificate.py": {
       "classes": [
@@ -22874,7 +22884,7 @@
       "models": {},
       "path": "core/reports/report_utils.py",
       "routes": [],
-      "sha256": "f92444491fc6efcf13bcba95bb9d82c2fd798171bd7072028e0ca280d6594e65"
+      "sha256": "17b5b920ebee48508ecc26159228176d67428ff59ff342f7b7156e4faf9a24a2"
     },
     "core/reports/salary_report_view.py": {
       "classes": [
@@ -24183,49 +24193,104 @@
       "functions": [],
       "imports": [
         "__future__.annotations",
+        "logging",
         "dataclasses.dataclass",
         "dataclasses.field",
         "datetime.date",
         "typing.Any",
         "typing.Optional",
+        "django.core.exceptions.ValidationError",
         "django.db.transaction",
         "django.utils.timezone",
         "core.models.BankCertificate",
         "core.models.CertificateStatus"
       ],
-      "lines": 67,
+      "lines": 81,
       "models": {},
       "path": "core/services/certificate/certificate_automation_service.py",
       "routes": [],
-      "sha256": "226d2078ab258d01081c8c3793d66f42be2861322933b197764d4dbd4e4f0085"
+      "sha256": "b571d212aedd9a4a872b2e920fc843ca06ad381ff39f2a1f816f8021c1f7eaec"
     },
-    "core/services/certificate/certificate_balance_deduction_service.py": {
+    "core/services/certificate/certificate_balance_deduction_service/__init__.py": {
+      "classes": [],
+      "functions": [],
+      "imports": [
+        "errors.CertificateBalanceMappingError",
+        "errors.CertificateInsufficientBalanceError",
+        "handlers.handle_certificate_post_save",
+        "handlers.handle_certificate_pre_delete",
+        "handlers.handle_certificate_pre_save",
+        "matching.apply_delta",
+        "matching.find_cash_balance_entry",
+        "matching.held_amount",
+        "matching.is_principal_released",
+        "matching.validate_balance_entry_exists",
+        "matching.validate_sufficient_balance"
+      ],
+      "lines": 71,
+      "models": {},
+      "path": "core/services/certificate/certificate_balance_deduction_service/__init__.py",
+      "routes": [],
+      "sha256": "2fc017834790ed491bdcbd9e18ad148010ad8685212ec1dd0f3a7ba30674ac56"
+    },
+    "core/services/certificate/certificate_balance_deduction_service/errors.py": {
       "classes": [
         "CertificateBalanceMappingError",
         "CertificateInsufficientBalanceError"
       ],
+      "functions": [],
+      "imports": [
+        "django.core.exceptions.ValidationError"
+      ],
+      "lines": 18,
+      "models": {},
+      "path": "core/services/certificate/certificate_balance_deduction_service/errors.py",
+      "routes": [],
+      "sha256": "0fcf69ab3c6a85b46495653d473af63bb390c658d4ab47cf9d9ddee96f2e0a19"
+    },
+    "core/services/certificate/certificate_balance_deduction_service/handlers.py": {
+      "classes": [],
       "functions": [
-        "_cash_balance_queryset",
-        "find_cash_balance_entry",
-        "validate_balance_entry_exists",
-        "validate_sufficient_balance",
-        "_apply_delta",
         "handle_certificate_pre_save",
         "handle_certificate_post_save",
         "handle_certificate_pre_delete"
       ],
       "imports": [
+        "django.db.transaction",
+        "matching.apply_delta",
+        "matching.held_amount",
+        "matching.validate_balance_entry_exists",
+        "matching.validate_sufficient_balance"
+      ],
+      "lines": 65,
+      "models": {},
+      "path": "core/services/certificate/certificate_balance_deduction_service/handlers.py",
+      "routes": [],
+      "sha256": "4e88bfe5ca54cb83c9a458cdc25e8a52c4b984ef906e3740940df794c7e60bca"
+    },
+    "core/services/certificate/certificate_balance_deduction_service/matching.py": {
+      "classes": [],
+      "functions": [
+        "is_principal_released",
+        "held_amount",
+        "_cash_balance_queryset",
+        "find_cash_balance_entry",
+        "validate_balance_entry_exists",
+        "validate_sufficient_balance",
+        "apply_delta"
+      ],
+      "imports": [
         "decimal.Decimal",
         "logging",
-        "django.db.transaction",
-        "django.core.exceptions.ValidationError",
+        "errors.CertificateBalanceMappingError",
+        "errors.CertificateInsufficientBalanceError",
         "core.models.BalanceEntry"
       ],
-      "lines": 194,
+      "lines": 109,
       "models": {},
-      "path": "core/services/certificate/certificate_balance_deduction_service.py",
+      "path": "core/services/certificate/certificate_balance_deduction_service/matching.py",
       "routes": [],
-      "sha256": "ccc4a10913b8cfcef2508400511cd849c456e272c6448af54fdedd62e302107e"
+      "sha256": "8f748d714a9947f0424427e8f56c8180b6dea678ff0c54c4b49dc01b7a770ca9"
     },
     "core/services/certificate/certificate_interest_service/__init__.py": {
       "classes": [
@@ -32216,6 +32281,50 @@
       "routes": [],
       "sha256": "7b37cae23137eb24ba77372bbb28ddf90c1fbdad4673fff44266f1e7ce085284"
     },
+    "core/tests/certificates/test_certificate_balance_deduction/test_maturity_trigger.py": {
+      "classes": [
+        "CertificateMaturityTriggerTest"
+      ],
+      "functions": [],
+      "imports": [
+        "datetime.date",
+        "decimal.Decimal",
+        "unittest.mock.patch",
+        "django.contrib.auth.get_user_model",
+        "django.test.TestCase",
+        "core.models.Bank",
+        "core.models.BalanceEntry",
+        "core.models.BankCertificate",
+        "core.models.Currency"
+      ],
+      "lines": 76,
+      "models": {},
+      "path": "core/tests/certificates/test_certificate_balance_deduction/test_maturity_trigger.py",
+      "routes": [],
+      "sha256": "c6f7b7a19eeed11af3d842ba2aa367b63d74a3b773463080b5bc051461273e56"
+    },
+    "core/tests/certificates/test_certificate_balance_deduction/test_principal_release.py": {
+      "classes": [
+        "CertificatePrincipalReleaseTest"
+      ],
+      "functions": [],
+      "imports": [
+        "datetime.date",
+        "decimal.Decimal",
+        "django.test.TestCase",
+        "core.models.Bank",
+        "core.models.BalanceEntry",
+        "core.models.BankCertificate",
+        "core.models.Currency",
+        "core.services.certificate.certificate_automation_service.CertificateAutomationService",
+        "core.services.certificate.certificate_balance_deduction_service.CertificateInsufficientBalanceError"
+      ],
+      "lines": 109,
+      "models": {},
+      "path": "core/tests/certificates/test_certificate_balance_deduction/test_principal_release.py",
+      "routes": [],
+      "sha256": "3a68a68501a7ac6287481870fac8a42d32ddbf419068974a271dc0ffe3b85f4d"
+    },
     "core/tests/certificates/test_certificate_balance_deduction/test_service.py": {
       "classes": [
         "CertificateBalanceDeductionServiceTest"
@@ -32235,7 +32344,7 @@
       "models": {},
       "path": "core/tests/certificates/test_certificate_balance_deduction/test_service.py",
       "routes": [],
-      "sha256": "9fc6eb95ed334b1506deaf134ef7b5ef9dd5f755b55b9e4ff550679f45b0138b"
+      "sha256": "c00447b214acb860f6dd1c5dddc3b9d4197b85ec75e01bec8d986a7b80ce4f20"
     },
     "core/tests/certificates/test_certificate_interest.py": {
       "classes": [
@@ -32257,11 +32366,11 @@
         "django.db.utils.OperationalError",
         "unittest.mock.patch"
       ],
-      "lines": 189,
+      "lines": 191,
       "models": {},
       "path": "core/tests/certificates/test_certificate_interest.py",
       "routes": [],
-      "sha256": "0abcefd2417750a1d8fec865f67f096adfe7e33981dbceb824b841e6c439c010"
+      "sha256": "16d38960881e5f6186fdef6b645ce6757628638aa3d77ab53d028d861aa76559"
     },
     "core/tests/certificates/test_certificate_reports.py": {
       "classes": [
@@ -32282,7 +32391,7 @@
       "models": {},
       "path": "core/tests/certificates/test_certificate_reports.py",
       "routes": [],
-      "sha256": "94087af9060b2859901f20a64dd7a0d1da09b1f7eb5d6ecc76d03394145ec557"
+      "sha256": "b160cc8157b0f591f22199393a63e97926cb3914f595ea9b2feecc85d13a366a"
     },
     "core/tests/currency/__init__.py": {
       "classes": [],
@@ -35514,6 +35623,7 @@
       ],
       "functions": [
         "_is_testing",
+        "_close_matured_certificates",
         "_run_certificate_interest_sync",
         "_certificate_balance_error_response"
       ],
@@ -35536,15 +35646,16 @@
         "time",
         "django.conf.settings",
         "django.db.utils.OperationalError",
+        "core.services.certificate.certificate_automation_service.CertificateAutomationService",
         "core.services.certificate.certificate_interest_service.CertificateInterestService",
         "core.models.Bank",
         "core.models.Bank"
       ],
-      "lines": 178,
+      "lines": 190,
       "models": {},
       "path": "core/views/certificate_views.py",
       "routes": [],
-      "sha256": "cff37483259174294d6b573b8a70977606d574da0190a65a1f8de6dac52fa8ef"
+      "sha256": "7a3456676101c089e69d6b1038c1a2c22383eda69a18e79e771b943a9691aa79"
     },
     "core/views/dashboard_views.py": {
       "classes": [
@@ -36936,7 +37047,7 @@
       "models": {},
       "path": "core/views/settings/cert_status_views.py",
       "routes": [],
-      "sha256": "e928459d10c15f7434934672ddeff5480ffe47516214e10b4c3959cde526d305"
+      "sha256": "1517d961ccebc092c4a8690dfe3c6a563d8ac4cbce1b2c87b2fab679a5007135"
     },
     "core/views/settings/company_views.py": {
       "classes": [
@@ -37394,7 +37505,7 @@
       "models": {},
       "path": "core/views/settings/gold/gold_type_settings_views.py",
       "routes": [],
-      "sha256": "01629dc94906a91de315442848080dce77904e8ae1d72aa8acb6bf2a1435d41d"
+      "sha256": "f98a52f48e8060bba67f3a5f3728b889dc196e48e6f3ca7b28a7ddbda42a7f03"
     },
     "core/views/settings/legal_text_views.py": {
       "classes": [
@@ -37529,7 +37640,7 @@
       "models": {},
       "path": "core/views/settings/reminder_views.py",
       "routes": [],
-      "sha256": "d4c78f9369c362abe07466a15fa547459a8f2389ad58f5be484409e05be2117a"
+      "sha256": "fbb9f548599f735b0cf29a12e7130e3334109849f0a865fecf10a4956441ce33"
     },
     "core/views/settings/roles/__init__.py": {
       "classes": [],
@@ -45481,7 +45592,7 @@
       "sha256": "d01b679a4cd01c21f5400ed9d42854a18a877a2a363a8a033fece81c3c68be59"
     }
   },
-  "last_successful_update": "2026-11-12T13:09:31.874761+00:00",
+  "last_successful_update": "2026-11-13T05:42:07.158034+00:00",
   "manifest": {
     "ai/__init__.py": {
       "mtime_ns": 1794215764515059100,
@@ -46614,9 +46725,9 @@
       "size": 3106
     },
     "ai/doc_engine/guides.py": {
-      "mtime_ns": 1794215765221459900,
-      "sha256": "44705614482b47e45b19a774cb16c260e65048900991adc8e58549579adfd585",
-      "size": 863
+      "mtime_ns": 1794544769023343900,
+      "sha256": "0e5cf22e134197273eee8d80488dc7e37ce33749633860d2b03785589f96c5a9",
+      "size": 1437
     },
     "ai/doc_engine/models.py": {
       "mtime_ns": 1794320476024696200,
@@ -47114,9 +47225,9 @@
       "size": 1562
     },
     "ai/services/agent/settings.py": {
-      "mtime_ns": 1794293667758187700,
-      "sha256": "0f02bc767bfe22cf1b3d41d31e72ee4f38bfe4d56d25bce7ebc93713a6247d20",
-      "size": 5468
+      "mtime_ns": 1794546162327361100,
+      "sha256": "3002060d7809da094da79c9a86ce5573af851349135979ce1037618e945a3a68",
+      "size": 6097
     },
     "ai/services/agent/sources.py": {
       "mtime_ns": 1794215765912269100,
@@ -47194,9 +47305,9 @@
       "size": 2060
     },
     "ai/services/attachments/extract.py": {
-      "mtime_ns": 1794215765968403700,
-      "sha256": "1066e5eaa35f52e2a8c27a3afd09db76020c034aed61d4d2992a5c5867603ced",
-      "size": 4504
+      "mtime_ns": 1794547339300121500,
+      "sha256": "296854fef0f4f22abc2a036ae5913c1dedf01ba86c50bb395fc61f4ccaa1419f",
+      "size": 5163
     },
     "ai/services/cache_manager.py": {
       "mtime_ns": 1794215765770300200,
@@ -47864,9 +47975,9 @@
       "size": 1814
     },
     "ai/services/prompt_serializer.py": {
-      "mtime_ns": 1794215765830689200,
-      "sha256": "9474628fc0aae4e9f8e110dd00572e3bad38a3d182b3004746dc5e1a04e053d2",
-      "size": 1665
+      "mtime_ns": 1794545467558110800,
+      "sha256": "d537874038e398adb1e82414d10852245cd7ce6ef5d4dd5e29f114aaada76210",
+      "size": 1712
     },
     "ai/services/prompt_service/__init__.py": {
       "mtime_ns": 1794215766453976100,
@@ -47874,9 +47985,9 @@
       "size": 1546
     },
     "ai/services/prompt_service/mutation_mixin.py": {
-      "mtime_ns": 1794215766458702400,
-      "sha256": "2b05477f8a92ba529ef6f3a723a5f9577dbf1f1ccd1adbca082c9b29614bfd4b",
-      "size": 4453
+      "mtime_ns": 1794545467543821000,
+      "sha256": "be6bfe7831ab8285ac685183de8b9e402288578c75e27e4af77a78bcb3e9e777",
+      "size": 4751
     },
     "ai/services/prompt_service/query_mixin.py": {
       "mtime_ns": 1794215766463860900,
@@ -48109,14 +48220,14 @@
       "size": 3618
     },
     "ai/services/speech/text_prep.py": {
-      "mtime_ns": 1794215766759118000,
-      "sha256": "6d03f3b5ff66762cfd9fa1413909987107242c5eb38df7a75ddbf5f21c37f9bb",
-      "size": 2844
+      "mtime_ns": 1794546651478751400,
+      "sha256": "ca3bc4268534149df4738a118785a07bb8509409d77aab18534e103975cb6977",
+      "size": 3007
     },
     "ai/services/speech/tts.py": {
-      "mtime_ns": 1794215766763330700,
-      "sha256": "0c364d67416a6be541dae024bad0f1eebf3e621091a8a954afc8ed30e873f598",
-      "size": 4505
+      "mtime_ns": 1794544807084836700,
+      "sha256": "c0d11c57a5d23866aa4953aafcb9afda9cc57776b7b4363effba47dc010ee18e",
+      "size": 4854
     },
     "ai/services/speech/voice_sample.py": {
       "mtime_ns": 1794293667947156100,
@@ -49234,9 +49345,9 @@
       "size": 1772
     },
     "ai/views/ai_chat/ai_memory_views.py": {
-      "mtime_ns": 1794293668133455900,
-      "sha256": "b1b396ba8333fc80975c6762f777d6d2a4aa82b0f977764a874f4c5c16c79ecd",
-      "size": 2589
+      "mtime_ns": 1794548067643438100,
+      "sha256": "b1edd437c69b3c8c18ab3f902cc70ff890dacd6b5193ceef70fd5fe7e27f19b2",
+      "size": 2702
     },
     "ai/views/ai_chat/chat_pipeline/__init__.py": {
       "mtime_ns": 1794215767929559600,
@@ -49594,9 +49705,9 @@
       "size": 7383
     },
     "core/ai_pack/host.py": {
-      "mtime_ns": 1794293668254706200,
-      "sha256": "ec9d3a225daa5342ee961487ed867df2d844d5e5806c541fe5cea43f24bfd89c",
-      "size": 1187
+      "mtime_ns": 1794545257925966900,
+      "sha256": "89a5ac655e3d2afb3a39bd475f6eb509e996bf7271c1262cbb552e1e163960f3",
+      "size": 1633
     },
     "core/ai_pack/insights/__init__.py": {
       "mtime_ns": 1794293668359770400,
@@ -49954,9 +50065,9 @@
       "size": 2511
     },
     "core/authentication/views/mixins.py": {
-      "mtime_ns": 1789635756000000000,
-      "sha256": "cb03dbd8c210957f0aa13e56141593816680f31c29fcc15d1978baf50ea3ad31",
-      "size": 1886
+      "mtime_ns": 1794488999551430500,
+      "sha256": "19858b96e3ce43711717c9f2e2228dbfe178c4dfe91d286664f57fd134b9ae3e",
+      "size": 2047
     },
     "core/authentication/views/page_status_views.py": {
       "mtime_ns": 1794488702610240500,
@@ -50449,9 +50560,9 @@
       "size": 2777
     },
     "core/models/certificate/balance_sync.py": {
-      "mtime_ns": 1789121634000000000,
-      "sha256": "5726905daabc7f152995aae086ab6b14cfb4af3896b2a19ae40aa586e936afef",
-      "size": 4745
+      "mtime_ns": 1794494535459275900,
+      "sha256": "9a2132ead80f192ff8ef6cb70da084bfd756b2acb40773264d2e6a0dae712b3a",
+      "size": 4743
     },
     "core/models/certificate/bank_certificate.py": {
       "mtime_ns": 1789027868000000000,
@@ -50894,9 +51005,9 @@
       "size": 4141
     },
     "core/reports/report_utils.py": {
-      "mtime_ns": 1790437944000000000,
-      "sha256": "f92444491fc6efcf13bcba95bb9d82c2fd798171bd7072028e0ca280d6594e65",
-      "size": 1767
+      "mtime_ns": 1794546590815768500,
+      "sha256": "17b5b920ebee48508ecc26159228176d67428ff59ff342f7b7156e4faf9a24a2",
+      "size": 1866
     },
     "core/reports/salary_report_view.py": {
       "mtime_ns": 1789970924000000000,
@@ -51184,14 +51295,29 @@
       "size": 232
     },
     "core/services/certificate/certificate_automation_service.py": {
-      "mtime_ns": 1789793246000000000,
-      "sha256": "226d2078ab258d01081c8c3793d66f42be2861322933b197764d4dbd4e4f0085",
-      "size": 2454
+      "mtime_ns": 1794541060510226700,
+      "sha256": "b571d212aedd9a4a872b2e920fc843ca06ad381ff39f2a1f816f8021c1f7eaec",
+      "size": 3064
     },
-    "core/services/certificate/certificate_balance_deduction_service.py": {
-      "mtime_ns": 1789027864000000000,
-      "sha256": "ccc4a10913b8cfcef2508400511cd849c456e272c6448af54fdedd62e302107e",
-      "size": 8770
+    "core/services/certificate/certificate_balance_deduction_service/__init__.py": {
+      "mtime_ns": 1794494531442758800,
+      "sha256": "2fc017834790ed491bdcbd9e18ad148010ad8685212ec1dd0f3a7ba30674ac56",
+      "size": 3031
+    },
+    "core/services/certificate/certificate_balance_deduction_service/errors.py": {
+      "mtime_ns": 1794494531435688600,
+      "sha256": "0fcf69ab3c6a85b46495653d473af63bb390c658d4ab47cf9d9ddee96f2e0a19",
+      "size": 786
+    },
+    "core/services/certificate/certificate_balance_deduction_service/handlers.py": {
+      "mtime_ns": 1794494671627751600,
+      "sha256": "4e88bfe5ca54cb83c9a458cdc25e8a52c4b984ef906e3740940df794c7e60bca",
+      "size": 2416
+    },
+    "core/services/certificate/certificate_balance_deduction_service/matching.py": {
+      "mtime_ns": 1794494531446083400,
+      "sha256": "8f748d714a9947f0424427e8f56c8180b6dea678ff0c54c4b49dc01b7a770ca9",
+      "size": 4327
     },
     "core/services/certificate/certificate_interest_service/__init__.py": {
       "mtime_ns": 1789718988000000000,
@@ -52913,19 +53039,29 @@
       "sha256": "7b37cae23137eb24ba77372bbb28ddf90c1fbdad4673fff44266f1e7ce085284",
       "size": 3457
     },
+    "core/tests/certificates/test_certificate_balance_deduction/test_maturity_trigger.py": {
+      "mtime_ns": 1794541059179453300,
+      "sha256": "c6f7b7a19eeed11af3d842ba2aa367b63d74a3b773463080b5bc051461273e56",
+      "size": 3198
+    },
+    "core/tests/certificates/test_certificate_balance_deduction/test_principal_release.py": {
+      "mtime_ns": 1794494533782358900,
+      "sha256": "3a68a68501a7ac6287481870fac8a42d32ddbf419068974a271dc0ffe3b85f4d",
+      "size": 3769
+    },
     "core/tests/certificates/test_certificate_balance_deduction/test_service.py": {
-      "mtime_ns": 1790530264000000000,
-      "sha256": "9fc6eb95ed334b1506deaf134ef7b5ef9dd5f755b55b9e4ff550679f45b0138b",
-      "size": 6840
+      "mtime_ns": 1794494535468787100,
+      "sha256": "c00447b214acb860f6dd1c5dddc3b9d4197b85ec75e01bec8d986a7b80ce4f20",
+      "size": 6847
     },
     "core/tests/certificates/test_certificate_interest.py": {
-      "mtime_ns": 1789027868000000000,
-      "sha256": "0abcefd2417750a1d8fec865f67f096adfe7e33981dbceb824b841e6c439c010",
-      "size": 7645
+      "mtime_ns": 1794494535464506700,
+      "sha256": "16d38960881e5f6186fdef6b645ce6757628638aa3d77ab53d028d861aa76559",
+      "size": 7789
     },
     "core/tests/certificates/test_certificate_reports.py": {
-      "mtime_ns": 1791438508260951100,
-      "sha256": "94087af9060b2859901f20a64dd7a0d1da09b1f7eb5d6ecc76d03394145ec557",
+      "mtime_ns": 1794541060520320400,
+      "sha256": "b160cc8157b0f591f22199393a63e97926cb3914f595ea9b2feecc85d13a366a",
       "size": 4935
     },
     "core/tests/currency/__init__.py": {
@@ -53564,9 +53700,9 @@
       "size": 5635
     },
     "core/views/certificate_views.py": {
-      "mtime_ns": 1789970922000000000,
-      "sha256": "cff37483259174294d6b573b8a70977606d574da0190a65a1f8de6dac52fa8ef",
-      "size": 6437
+      "mtime_ns": 1794541060515552400,
+      "sha256": "7a3456676101c089e69d6b1038c1a2c22383eda69a18e79e771b943a9691aa79",
+      "size": 7056
     },
     "core/views/dashboard_views.py": {
       "mtime_ns": 1790530264000000000,
@@ -53829,9 +53965,9 @@
       "size": 2256
     },
     "core/views/settings/cert_status_views.py": {
-      "mtime_ns": 1789970924000000000,
-      "sha256": "e928459d10c15f7434934672ddeff5480ffe47516214e10b4c3959cde526d305",
-      "size": 2740
+      "mtime_ns": 1794547761856513200,
+      "sha256": "1517d961ccebc092c4a8690dfe3c6a563d8ac4cbce1b2c87b2fab679a5007135",
+      "size": 2804
     },
     "core/views/settings/company_views.py": {
       "mtime_ns": 1789970924000000000,
@@ -53919,9 +54055,9 @@
       "size": 1599
     },
     "core/views/settings/gold/gold_type_settings_views.py": {
-      "mtime_ns": 1789970924000000000,
-      "sha256": "01629dc94906a91de315442848080dce77904e8ae1d72aa8acb6bf2a1435d41d",
-      "size": 2158
+      "mtime_ns": 1794547906059174900,
+      "sha256": "f98a52f48e8060bba67f3a5f3728b889dc196e48e6f3ca7b28a7ddbda42a7f03",
+      "size": 2222
     },
     "core/views/settings/legal_text_views.py": {
       "mtime_ns": 1791277386307997300,
@@ -53949,9 +54085,9 @@
       "size": 3309
     },
     "core/views/settings/reminder_views.py": {
-      "mtime_ns": 1789970924000000000,
-      "sha256": "d4c78f9369c362abe07466a15fa547459a8f2389ad58f5be484409e05be2117a",
-      "size": 4633
+      "mtime_ns": 1794545289387222900,
+      "sha256": "fbb9f548599f735b0cf29a12e7130e3334109849f0a865fecf10a4956441ce33",
+      "size": 4745
     },
     "core/views/settings/roles/__init__.py": {
       "mtime_ns": 1789635756000000000,

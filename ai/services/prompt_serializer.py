@@ -1,5 +1,7 @@
 from datetime import date, datetime
 
+from typing import Optional
+
 
 def _date_to_iso(value):
     if isinstance(value, (date, datetime)):
@@ -26,7 +28,7 @@ def serialize_prompt_category(category):
     }
 
 
-def serialize_prompt(prompt):
+def serialize_prompt(prompt) -> Optional[dict]:
     if not prompt:
         return None
     cat_dict = serialize_prompt_category(prompt.category) if prompt.category else None
