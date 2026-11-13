@@ -7,3 +7,4 @@
 - 2026-11-12: Add type hints to the functions in core/services/import_data/parsers.py. - checks that failed first and passed after fixing: django tests
 - 2026-11-13: create a user guide for the entire app in Arabic and export it in well html form - stopped: P1: stopped by user
 - 2026-11-13: continue creating the user guide please don't depend on the inventory only, chec - stopped: P2: stopped by user
+- 2026-11-13: generate full user guide for the entire app in ar as well-formatted html, you sh - checks that failed first and passed after fixing: line limit (200)
