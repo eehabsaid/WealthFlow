@@ -16,7 +16,7 @@
     }
   },
   "context_window": 150000,
-  "reserve_tokens": 280000,
+  "reserve_tokens": 140000,
   "max_output_tokens": 81920,
   "timeout_s": 3600,
   "command_timeout_s": 1800,
