@@ -4562,11 +4562,11 @@
       ],
       "functions": [],
       "imports": [],
-      "lines": 48,
+      "lines": 37,
       "models": {},
       "path": "ai/doc_engine/guides.py",
       "routes": [],
-      "sha256": "0e5cf22e134197273eee8d80488dc7e37ce33749633860d2b03785589f96c5a9"
+      "sha256": "44705614482b47e45b19a774cb16c260e65048900991adc8e58549579adfd585"
     },
     "ai/doc_engine/models.py": {
       "classes": [
@@ -6495,11 +6495,11 @@
         "ai.services.agent.instructions.DEFAULT_DOCUMENT_INSTRUCTIONS",
         "ai.services.agent.instructions.DEFAULT_INSTRUCTIONS"
       ],
-      "lines": 134,
+      "lines": 125,
       "models": {},
       "path": "ai/services/agent/settings.py",
       "routes": [],
-      "sha256": "3002060d7809da094da79c9a86ce5573af851349135979ce1037618e945a3a68"
+      "sha256": "0f02bc767bfe22cf1b3d41d31e72ee4f38bfe4d56d25bce7ebc93713a6247d20"
     },
     "ai/services/agent/sources.py": {
       "classes": [],
@@ -6823,11 +6823,11 @@
         "pdfplumber",
         "docx.Document"
       ],
-      "lines": 133,
+      "lines": 125,
       "models": {},
       "path": "ai/services/attachments/extract.py",
       "routes": [],
-      "sha256": "296854fef0f4f22abc2a036ae5913c1dedf01ba86c50bb395fc61f4ccaa1419f"
+      "sha256": "1066e5eaa35f52e2a8c27a3afd09db76020c034aed61d4d2992a5c5867603ced"
     },
     "ai/services/cache_manager.py": {
       "classes": [
@@ -10018,19 +10018,17 @@
       ],
       "functions": [],
       "imports": [
-        "typing.Optional",
-        "typing.Tuple",
         "django.utils.timezone",
         "ai.models.ai_prompt.AIPrompt",
         "ai.services.prompt_serializer.serialize_prompt",
         "ai.services.prompt_service.AIPromptService",
         "ai.services.prompt_service.AIPromptService"
       ],
-      "lines": 132,
+      "lines": 130,
       "models": {},
       "path": "ai/services/prompt_service/mutation_mixin.py",
       "routes": [],
-      "sha256": "be6bfe7831ab8285ac685183de8b9e402288578c75e27e4af77a78bcb3e9e777"
+      "sha256": "2b05477f8a92ba529ef6f3a723a5f9577dbf1f1ccd1adbca082c9b29614bfd4b"
     },
     "ai/services/prompt_service/query_mixin.py": {
       "classes": [
@@ -10970,17 +10968,15 @@
         "speech_chunks"
       ],
       "imports": [
-        "__future__.annotations",
         "re",
-        "ai.services.exports.document.Block",
         "ai.services.exports.document.parse_markdown",
         "ai.services.exports.document.plain"
       ],
-      "lines": 84,
+      "lines": 82,
       "models": {},
       "path": "ai/services/speech/text_prep.py",
       "routes": [],
-      "sha256": "ca3bc4268534149df4738a118785a07bb8509409d77aab18534e103975cb6977"
+      "sha256": "6d03f3b5ff66762cfd9fa1413909987107242c5eb38df7a75ddbf5f21c37f9bb"
     },
     "ai/services/speech/tts.py": {
       "classes": [],
@@ -11000,18 +10996,17 @@
         "io",
         "json",
         "wave",
-        "typing.Any",
         "ai.services.speech.client",
         "ai.services.speech.settings.get_speech_config",
         "ai.services.speech.settings.speech_runtime_enabled",
         "ai.services.speech.text_prep.speech_chunks",
         "ai.services.speech.voice_sample.voice_sample_path"
       ],
-      "lines": 119,
+      "lines": 116,
       "models": {},
       "path": "ai/services/speech/tts.py",
       "routes": [],
-      "sha256": "c0d11c57a5d23866aa4953aafcb9afda9cc57776b7b4363effba47dc010ee18e"
+      "sha256": "0c364d67416a6be541dae024bad0f1eebf3e621091a8a954afc8ed30e873f598"
     },
     "ai/services/speech/voice_sample.py": {
       "classes": [
@@ -15315,7 +15310,6 @@
       ],
       "functions": [],
       "imports": [
-        "django.http.HttpRequest",
         "django.http.JsonResponse",
         "django.utils.dateparse.parse_datetime",
         "django.views.View",
@@ -15329,7 +15323,7 @@
       "models": {},
       "path": "ai/views/ai_chat/ai_memory_views.py",
       "routes": [],
-      "sha256": "b1edd437c69b3c8c18ab3f902cc70ff890dacd6b5193ceef70fd5fe7e27f19b2"
+      "sha256": "b1b396ba8333fc80975c6762f777d6d2a4aa82b0f977764a874f4c5c16c79ecd"
     },
     "ai/views/ai_chat/chat_pipeline/__init__.py": {
       "classes": [],
@@ -17004,11 +16998,11 @@
         "core.services.shared.base_currency.platform_default_code",
         "core.services.shared.currency_conversion_service.CurrencyConversionService"
       ],
-      "lines": 44,
+      "lines": 37,
       "models": {},
       "path": "core/ai_pack/host.py",
       "routes": [],
-      "sha256": "89a5ac655e3d2afb3a39bd475f6eb509e996bf7271c1262cbb552e1e163960f3"
+      "sha256": "ec9d3a225daa5342ee961487ed867df2d844d5e5806c541fe5cea43f24bfd89c"
     },
     "core/ai_pack/insights/__init__.py": {
       "classes": [],
@@ -22884,7 +22878,7 @@
       "models": {},
       "path": "core/reports/report_utils.py",
       "routes": [],
-      "sha256": "17b5b920ebee48508ecc26159228176d67428ff59ff342f7b7156e4faf9a24a2"
+      "sha256": "f92444491fc6efcf13bcba95bb9d82c2fd798171bd7072028e0ca280d6594e65"
     },
     "core/reports/salary_report_view.py": {
       "classes": [
@@ -37047,7 +37041,7 @@
       "models": {},
       "path": "core/views/settings/cert_status_views.py",
       "routes": [],
-      "sha256": "1517d961ccebc092c4a8690dfe3c6a563d8ac4cbce1b2c87b2fab679a5007135"
+      "sha256": "e928459d10c15f7434934672ddeff5480ffe47516214e10b4c3959cde526d305"
     },
     "core/views/settings/company_views.py": {
       "classes": [
@@ -37505,7 +37499,7 @@
       "models": {},
       "path": "core/views/settings/gold/gold_type_settings_views.py",
       "routes": [],
-      "sha256": "f98a52f48e8060bba67f3a5f3728b889dc196e48e6f3ca7b28a7ddbda42a7f03"
+      "sha256": "01629dc94906a91de315442848080dce77904e8ae1d72aa8acb6bf2a1435d41d"
     },
     "core/views/settings/legal_text_views.py": {
       "classes": [
@@ -37640,7 +37634,7 @@
       "models": {},
       "path": "core/views/settings/reminder_views.py",
       "routes": [],
-      "sha256": "fbb9f548599f735b0cf29a12e7130e3334109849f0a865fecf10a4956441ce33"
+      "sha256": "d4c78f9369c362abe07466a15fa547459a8f2389ad58f5be484409e05be2117a"
     },
     "core/views/settings/roles/__init__.py": {
       "classes": [],
@@ -45592,7 +45586,7 @@
       "sha256": "d01b679a4cd01c21f5400ed9d42854a18a877a2a363a8a033fece81c3c68be59"
     }
   },
-  "last_successful_update": "2026-11-13T05:42:07.158034+00:00",
+  "last_successful_update": "2026-11-13T06:50:38.939850+00:00",
   "manifest": {
     "ai/__init__.py": {
       "mtime_ns": 1794215764515059100,
@@ -46725,9 +46719,9 @@
       "size": 3106
     },
     "ai/doc_engine/guides.py": {
-      "mtime_ns": 1794544769023343900,
-      "sha256": "0e5cf22e134197273eee8d80488dc7e37ce33749633860d2b03785589f96c5a9",
-      "size": 1437
+      "mtime_ns": 1794549047042715700,
+      "sha256": "1393381da47d1d1206804f91fe28f91a3a8b2fd14096b47a90902af176ee6f0a",
+      "size": 899
     },
     "ai/doc_engine/models.py": {
       "mtime_ns": 1794320476024696200,
@@ -47225,9 +47219,9 @@
       "size": 1562
     },
     "ai/services/agent/settings.py": {
-      "mtime_ns": 1794546162327361100,
-      "sha256": "3002060d7809da094da79c9a86ce5573af851349135979ce1037618e945a3a68",
-      "size": 6097
+      "mtime_ns": 1794549066405662400,
+      "sha256": "13031f439dfd4867368671c95cad1d978a33f5aba1567a69449f4ba59730b186",
+      "size": 5592
     },
     "ai/services/agent/sources.py": {
       "mtime_ns": 1794215765912269100,
@@ -47305,9 +47299,9 @@
       "size": 2060
     },
     "ai/services/attachments/extract.py": {
-      "mtime_ns": 1794547339300121500,
-      "sha256": "296854fef0f4f22abc2a036ae5913c1dedf01ba86c50bb395fc61f4ccaa1419f",
-      "size": 5163
+      "mtime_ns": 1794549070348442800,
+      "sha256": "8f9c6500eb3c0ecbc55b801b85f00a1ae04d2c5c367e6415ff8c6fcb49e29cc6",
+      "size": 4628
     },
     "ai/services/cache_manager.py": {
       "mtime_ns": 1794215765770300200,
@@ -47875,9 +47869,9 @@
       "size": 7963
     },
     "ai/services/investigation/scope.py": {
-      "mtime_ns": 1794293667868338800,
-      "sha256": "63c9c2bbd991ab62aaab49b1f2774cb91b49f564a8a6baa26beff70909a52701",
-      "size": 4739
+      "mtime_ns": 1794549073982036400,
+      "sha256": "48acb1bef0e1d9ff1af5a2e918624c43795794cfdc8ace622e980f778bddae0e",
+      "size": 4860
     },
     "ai/services/knowledge_engine/__init__.py": {
       "mtime_ns": 1794215766381825100,
@@ -47985,9 +47979,9 @@
       "size": 1546
     },
     "ai/services/prompt_service/mutation_mixin.py": {
-      "mtime_ns": 1794545467543821000,
-      "sha256": "be6bfe7831ab8285ac685183de8b9e402288578c75e27e4af77a78bcb3e9e777",
-      "size": 4751
+      "mtime_ns": 1794549078196435900,
+      "sha256": "550d7ce030d03358cefc5610c00d85d3821691fd8c3f50c4bf8a49e9f83398a4",
+      "size": 4582
     },
     "ai/services/prompt_service/query_mixin.py": {
       "mtime_ns": 1794215766463860900,
@@ -48220,14 +48214,14 @@
       "size": 3618
     },
     "ai/services/speech/text_prep.py": {
-      "mtime_ns": 1794546651478751400,
-      "sha256": "ca3bc4268534149df4738a118785a07bb8509409d77aab18534e103975cb6977",
-      "size": 3007
+      "mtime_ns": 1794549083873169400,
+      "sha256": "4d744a90e79534677139e4ebc089d14cc9db632b084a6fa1cb78c05b59bf4925",
+      "size": 2925
     },
     "ai/services/speech/tts.py": {
-      "mtime_ns": 1794544807084836700,
-      "sha256": "c0d11c57a5d23866aa4953aafcb9afda9cc57776b7b4363effba47dc010ee18e",
-      "size": 4854
+      "mtime_ns": 1794549088004605300,
+      "sha256": "6ed0e79854f4e11216143c923f03d9c5ad66f060f65c4637cfc6c0955d5746b7",
+      "size": 4620
     },
     "ai/services/speech/voice_sample.py": {
       "mtime_ns": 1794293667947156100,
@@ -49345,9 +49339,9 @@
       "size": 1772
     },
     "ai/views/ai_chat/ai_memory_views.py": {
-      "mtime_ns": 1794548067643438100,
-      "sha256": "b1edd437c69b3c8c18ab3f902cc70ff890dacd6b5193ceef70fd5fe7e27f19b2",
-      "size": 2702
+      "mtime_ns": 1794549092152320200,
+      "sha256": "602434159d37d6e569a24b056b46bc42f6fdff71bf66b5322ae1882fcf52364f",
+      "size": 2652
     },
     "ai/views/ai_chat/chat_pipeline/__init__.py": {
       "mtime_ns": 1794215767929559600,
@@ -49705,9 +49699,9 @@
       "size": 7383
     },
     "core/ai_pack/host.py": {
-      "mtime_ns": 1794545257925966900,
-      "sha256": "89a5ac655e3d2afb3a39bd475f6eb509e996bf7271c1262cbb552e1e163960f3",
-      "size": 1633
+      "mtime_ns": 1794549129375652200,
+      "sha256": "763b3bf599220d56dead2edc4782383cfb7a60ae9dea44a546a2be563cd2a991",
+      "size": 1223
     },
     "core/ai_pack/insights/__init__.py": {
       "mtime_ns": 1794293668359770400,
@@ -51005,9 +50999,9 @@
       "size": 4141
     },
     "core/reports/report_utils.py": {
-      "mtime_ns": 1794546590815768500,
-      "sha256": "17b5b920ebee48508ecc26159228176d67428ff59ff342f7b7156e4faf9a24a2",
-      "size": 1866
+      "mtime_ns": 1794549139259764900,
+      "sha256": "064e7fddd296bbbe2ce660063fbf7ec0fe9753b62d743429360a48f56adbc8fd",
+      "size": 1824
     },
     "core/reports/salary_report_view.py": {
       "mtime_ns": 1789970924000000000,
@@ -53965,9 +53959,9 @@
       "size": 2256
     },
     "core/views/settings/cert_status_views.py": {
-      "mtime_ns": 1794547761856513200,
-      "sha256": "1517d961ccebc092c4a8690dfe3c6a563d8ac4cbce1b2c87b2fab679a5007135",
-      "size": 2804
+      "mtime_ns": 1794549145913339000,
+      "sha256": "282d8fcf70dcaf7bfb4edb0a5a12e43b0fe4b9a5dab49df67e837643377847c2",
+      "size": 2799
     },
     "core/views/settings/company_views.py": {
       "mtime_ns": 1789970924000000000,
@@ -54055,9 +54049,9 @@
       "size": 1599
     },
     "core/views/settings/gold/gold_type_settings_views.py": {
-      "mtime_ns": 1794547906059174900,
-      "sha256": "f98a52f48e8060bba67f3a5f3728b889dc196e48e6f3ca7b28a7ddbda42a7f03",
-      "size": 2222
+      "mtime_ns": 1794549152120539100,
+      "sha256": "b2a7cdba4208eb400c0e4f0a3e648c89355bb960dd0bb24e6feaa9f936fa71be",
+      "size": 2207
     },
     "core/views/settings/legal_text_views.py": {
       "mtime_ns": 1791277386307997300,
@@ -54085,9 +54079,9 @@
       "size": 3309
     },
     "core/views/settings/reminder_views.py": {
-      "mtime_ns": 1794545289387222900,
-      "sha256": "fbb9f548599f735b0cf29a12e7130e3334109849f0a865fecf10a4956441ce33",
-      "size": 4745
+      "mtime_ns": 1794549149015898000,
+      "sha256": "ec102fede92f8cc3464527ec0dc55e41f657258520ec25790f0d65d165bac466",
+      "size": 4746
     },
     "core/views/settings/roles/__init__.py": {
       "mtime_ns": 1789635756000000000,
