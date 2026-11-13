@@ -34,6 +34,17 @@ logger = logging.getLogger(__name__)
 def _is_testing():
     return getattr(settings, "TESTING", False) or ("test" in sys.argv)
 
+def _close_matured_certificates():
+    """Close matured Active certificates (returns their principal to cash).
+    Best-effort: never blocks or fails the page that triggered the sync."""
+    try:
+        from core.services.certificate.certificate_automation_service import CertificateAutomationService
+        CertificateAutomationService().close_matured_certificates()
+    except OperationalError as e:
+        logger.warning(f"Certificate maturity close skipped due to DB lock: {e}")
+    except Exception as e:
+        logger.exception(f"Certificate maturity close error: {e}")
+
 def _run_certificate_interest_sync(force=False):
     global _last_sync_time
     now = time.time()
@@ -51,6 +62,7 @@ def _run_certificate_interest_sync(force=False):
 
         from core.services.certificate.certificate_interest_service import CertificateInterestService
         result = CertificateInterestService().synchronize()
+        _close_matured_certificates()
         _last_sync_time = time.time()
         return result
     except OperationalError as e:

@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, Optional
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
 from core.models import BankCertificate, CertificateStatus
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class CertificateAutomationResult:
@@ -41,7 +45,17 @@ class CertificateAutomationService:
                 if not self._is_active(certificate):
                     continue
                 certificate.status = self._closed_status_name(certificate.owner_id)
-                certificate.save(update_fields=["status", "updated_at"])
+                try:
+                    # Savepoint: one certificate that cannot be closed (e.g. its
+                    # cash balance entry was removed) must not block the others.
+                    with transaction.atomic():
+                        certificate.save(update_fields=["status", "updated_at"])
+                except ValidationError as exc:
+                    logger.warning(
+                        "Auto-close skipped for certificate %s: %s",
+                        certificate.pk, "; ".join(exc.messages),
+                    )
+                    continue
                 result.closed_certificates += 1
                 certificate_pk: Any = getattr(certificate, "pk", None)
                 if certificate_pk is not None:
