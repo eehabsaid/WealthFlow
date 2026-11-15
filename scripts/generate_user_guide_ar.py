@@ -2,13 +2,21 @@
 """
 WealthFlow User Guide Generator — Arabic (RTL)
 ================================================
-Builds a self-contained, offline, responsive Arabic user guide:
-  - docs/user_guide_ar.html  (RTL, dark-mode aware, print-friendly)
+Builds a self-contained, offline, responsive Arabic user guide from a single
+shared content model (SECTIONS). Supported output formats:
+
+  - HTML  → docs/user_guide_ar.html   (RTL, dark-mode aware, print-friendly)
+  - PDF   → docs/user_guide_ar.pdf    (rendered from the HTML via Playwright)
+  - DOCX  → docs/user_guide_ar.docx   (Word document via python-docx, RTL)
 
 Usage:
-    python scripts/generate_user_guide_ar.py
+    python scripts/generate_user_guide_ar.py                     # all formats
+    python scripts/generate_user_guide_ar.py --formats html      # HTML only
+    python scripts/generate_user_guide_ar.py --formats pdf docx  # PDF + DOCX
+    python scripts/generate_user_guide_ar.py --out docs/custom   # custom dir
 """
 
+import argparse
 import html
 import os
 import re
@@ -209,7 +217,7 @@ SECTIONS = [
             "انقر «إضافة أصل» واملأ الحقول الخاصة بالنوع (العنوان / رقم الهيكل / الوزن / الوصف).",
             "ارفع صورًا لتوثيق حالة الأصل.",
             "سجّل تكلفة الاقتناء مع فئات التكاليف الاختيارية (رسوم محامي، تسجيل، توثيق، إلخ).",
-            "أضف مدخلات تقييم دورية لتتبع appreciation أو depreciation.",
+            "أضف مدخلات تقييم دورية لتتبع التغير في القيمة عبر الزمن.",
             "للعقارات: أضف سجلات التجديدات، جرد الأثاث، وثائق التأمين، وإيصالات الإيجار.",
             "للمركبات: أضف سجلات الصيانة وتفاصيل التأمين.",
             "للذهب: يحدّث النظام القيمة السوقية تلقائيًا باستخدام أسعار صفحة سعر الذهب.",
@@ -1012,7 +1020,118 @@ h3.section-heading{{font-size:1.1rem}}
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(html_doc)
-    print(f"  ✓ HTML (AR) → {out_path}")
+    print(f"  ✓ HTML → {out_path}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PDF RENDERER (Playwright, from the generated HTML)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def render_pdf(html_path: str, out_path: str) -> None:
+    from playwright.sync_api import sync_playwright
+
+    abs_html = os.path.abspath(html_path)
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto(f"file:///{abs_html.replace(os.sep, '/')}", wait_until="networkidle")
+        page.pdf(
+            path=out_path,
+            format="A4",
+            print_background=True,
+            margin={"top": "12mm", "bottom": "12mm", "left": "12mm", "right": "12mm"},
+        )
+        browser.close()
+    print(f"  ✓ PDF  → {out_path}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DOCX RENDERER (python-docx, Arabic RTL)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def render_docx(sections: list, out_path: str) -> None:
+    from docx import Document
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+    from docx.shared import Inches, RGBColor
+
+    doc = Document()
+
+    # ── Header: title right-aligned ─────────────────────────────────────────
+    section = doc.sections[0]
+    header_p = section.header.paragraphs[0]
+    header_p.text = "دليل مستخدم ويث فلو"
+    header_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+
+    # ── Footer: page number field, centred ──────────────────────────────────
+    footer_p = section.footer.paragraphs[0]
+    footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = footer_p.add_run("صفحة ")
+
+    def _add_page_number(r):
+        fldChar1 = OxmlElement("w:fldChar")
+        fldChar1.set(qn("w:fldCharType"), "begin")
+        instrText = OxmlElement("w:instrText")
+        instrText.set(qn("xml:space"), "preserve")
+        instrText.text = "PAGE"
+        fldChar2 = OxmlElement("w:fldChar")
+        fldChar2.set(qn("w:fldCharType"), "separate")
+        fldChar3 = OxmlElement("w:fldChar")
+        fldChar3.set(qn("w:fldCharType"), "end")
+        r._r.append(fldChar1)
+        r._r.append(instrText)
+        r._r.append(fldChar2)
+        r._r.append(fldChar3)
+
+    _add_page_number(run)
+
+    # ── Title heading ────────────────────────────────────────────────────────
+    doc.add_heading("دليل مستخدم ويث فلو", level=0)
+    p = doc.add_paragraph()
+    p.add_run(f"أُنشئ في: {date.today().isoformat()}")
+    doc.add_page_break()
+
+    # ── Contents page (generated from the same SECTIONS list) ───────────────
+    doc.add_heading("المحتويات", level=1)
+    for s in sections:
+        p_toc = doc.add_paragraph(f"{s['number']}  {s['title']}")
+        p_toc.paragraph_format.left_indent = Inches(0.3 * (s["level"] - 1))
+        if s["sysadmin_only"]:
+            run_badge = p_toc.add_run("  ⚠️ حصري لمدير النظام")
+            run_badge.font.color.rgb = RGBColor(0x99, 0x66, 0x00)
+            run_badge.bold = True
+    doc.add_page_break()
+
+    # ── Body ─────────────────────────────────────────────────────────────────
+    for s in sections:
+        h_level = min(s["level"], 3)
+        doc.add_heading(f"{s['number']} {s['title']}", level=h_level)
+
+        if s["sysadmin_only"]:
+            p_warn = doc.add_paragraph()
+            run_warn = p_warn.add_run("⚠️ حصري لمدير النظام — هذا القسم مخصص لإداريي النظام فقط.")
+            run_warn.bold = True
+            run_warn.font.color.rgb = RGBColor(0x99, 0x66, 0x00)
+
+        if s["purpose"]:
+            p = doc.add_paragraph()
+            p.add_run("الغرض: ").bold = True
+            p.add_run(s["purpose"])
+
+        if s["steps"]:
+            doc.add_paragraph("الخطوات:", style="Heading 3")
+            for idx, step in enumerate(s["steps"], 1):
+                doc.add_paragraph(f"{idx}. {step}", style="List Paragraph")
+
+        if s["notes"]:
+            doc.add_paragraph("ملاحظات:", style="Heading 3")
+            for note in s["notes"]:
+                doc.add_paragraph(note, style="List Bullet")
+
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    doc.save(out_path)
+    print(f"  ✓ DOCX → {out_path}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1020,15 +1139,42 @@ h3.section-heading{{font-size:1.1rem}}
 # ─────────────────────────────────────────────────────────────────────────────
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="WealthFlow User Guide Generator (Arabic) — builds HTML, PDF, and/or DOCX."
+    )
+    parser.add_argument(
+        "--formats",
+        nargs="+",
+        choices=["html", "pdf", "docx"],
+        default=["html", "pdf", "docx"],
+        help="Output formats to build (default: all three).",
+    )
+    parser.add_argument(
+        "--out",
+        default=None,
+        help="Output directory (default: docs/).",
+    )
+    args = parser.parse_args()
+
     base = os.path.join(os.path.dirname(__file__), "..")
-    html_path = os.path.normpath(os.path.join(base, "docs", "user_guide_ar.html"))
+    out_dir = os.path.normpath(args.out or os.path.join(base, "docs"))
+    html_path = os.path.join(out_dir, "user_guide_ar.html")
+    pdf_path = os.path.join(out_dir, "user_guide_ar.pdf")
+    docx_path = os.path.join(out_dir, "user_guide_ar.docx")
 
     print("WealthFlow User Guide Generator (Arabic)")
     print(f"Sections: {len(SECTIONS)}")
     print(f"  Sysadmin-only: {sum(1 for s in SECTIONS if s['sysadmin_only'])}")
+    print(f"  Formats: {', '.join(args.formats)}")
     print()
 
-    render_html(SECTIONS, html_path)
+    # PDF depends on the HTML file, so always render HTML first when PDF is requested.
+    if "html" in args.formats or "pdf" in args.formats:
+        render_html(SECTIONS, html_path)
+    if "pdf" in args.formats:
+        render_pdf(html_path, pdf_path)
+    if "docx" in args.formats:
+        render_docx(SECTIONS, docx_path)
 
     print()
     print("Done.")
