@@ -6,11 +6,7 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404
-from core.models import (
-    BalanceEntry,
-    GoldPuritySetting,
-
-)
+from core.models import BalanceEntry
 
 from core.services.balance.net_worth_service import NetWorthService
 from core.validators import _api_auth_required
@@ -38,23 +34,6 @@ class BalanceListView(View):
         if "18" in text or "750" in text:
             return "18k"
         return "24k"
-
-    def _cashback_per_gram_for_purity(self, purity_value):
-        key = self._normalize_purity_key(purity_value)
-        setting = GoldPuritySetting.objects.filter(key=key, is_active=True, owner=self.request.user).first()
-        return float(setting.cashback_per_gram) if setting else 0.0
-
-    def _sell_per_gram_for_purity(self, latest_gold, purity_value):
-        if not latest_gold:
-            return 0.0
-        key = self._normalize_purity_key(purity_value)
-        if key == "22k":
-            return float(latest_gold.carat_22k or 0)
-        if key == "21k":
-            return float(latest_gold.carat_21k or 0)
-        if key == "18k":
-            return float(latest_gold.carat_18k or 0)
-        return float(latest_gold.carat_24k or 0)
 
     def get(self, request):
         auth_error = _api_auth_required(request)

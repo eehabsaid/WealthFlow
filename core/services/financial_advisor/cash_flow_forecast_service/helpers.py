@@ -14,15 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal, InvalidOperation
 from typing import Dict
-
-
-def to_decimal(value, default: str = "0") -> Decimal:
-    try:
-        return Decimal(str(value))
-    except (InvalidOperation, TypeError, ValueError):
-        return Decimal(default)
 
 
 def to_float(value) -> float:

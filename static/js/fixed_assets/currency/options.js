@@ -38,15 +38,6 @@ function getMonetaryCurrencies() {
   return fixedAssetSyncCurrencies.filter((currency) => isMonetaryCurrency(currency));
 }
 
-function renderCurrencyOptions(selectedCurrencyId = "") {
-  return fixedAssetSyncCurrencies
-    .map((currency) => {
-      const selected = String(selectedCurrencyId) === String(currency.id) ? "selected" : "";
-      return `<option value="${currency.id}" ${selected}>${currency.code}</option>`;
-    })
-    .join("");
-}
-
 function renderMonetaryCurrencyOptions(selectedCurrencyId = "") {
   return getMonetaryCurrencies()
     .map((currency) => {

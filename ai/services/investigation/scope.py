@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 from django.apps import apps
-from django.conf import settings
 
 GLOBAL_MODELS = frozenset({"ExchangeRate", "ExchangeRateHistory", "GoldPrice", "GoldPriceHistory", "Plan"})
 MODEL_ALIASES = {"certificate": "BankCertificate"}
@@ -115,7 +114,3 @@ def field_ok(field) -> bool:
 
 def visible_fields(model) -> list:
     return [f for f in model._meta.concrete_fields if field_ok(f) and f.name != "owner"]
-
-
-def user_model_label() -> str:
-    return settings.AUTH_USER_MODEL

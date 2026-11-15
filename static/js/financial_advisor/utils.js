@@ -39,12 +39,6 @@ const FINANCIAL_ADVISOR_TABS = [
 ];
 
 const FINANCIAL_ADVISOR_ACTIVE_TAB_KEY = "wf_financial_advisor_active_tab";
-const FINANCIAL_ADVISOR_PRIMARY_TAB_IDS = [
-  "overview",
-  "cash-flow-forecast",
-  "wealth-growth-forecast",
-  "portfolio-optimizer",
-];
 
 let _cashFlowForecastLoaded = false;
 let _cashFlowForecastData = null;
@@ -56,7 +50,6 @@ let _portfolioOptimizerData = null;
 let _goalPlanningLoaded = false;
 let _goalPlanningData = null;
 let _goalPlanningMeta = null;
-let _financialAdvisorMenuEventsAbortController = null;
 
 function _cashFlowPaneId() {
   return "fa-pane-cash-flow-forecast";

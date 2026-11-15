@@ -114,9 +114,6 @@ class AuthToken(models.Model):
     def is_expired(self):
         return bool(self.expires_at and timezone.now() >= self.expires_at)
 
-    def is_usable(self):
-        return self.used_at is None and not self.is_expired()
-
     def __str__(self):
         return f"AuthToken({self.user.username}, {self.purpose})"
 

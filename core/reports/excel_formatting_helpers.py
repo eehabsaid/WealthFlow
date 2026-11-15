@@ -66,13 +66,6 @@ FMT_PCT = "0.00%"
 FMT_DATE = "dd-mmm-yyyy"
 FMT_INT = "0"
 
-def apply_sheet_direction(ws, lang="en"):
-    """Enforces Right-to-Left view layout in openpyxl for Arabic worksheets."""
-    if lang == "ar":
-        try:
-            ws.sheet_view.rightToLeft = True
-        except Exception:
-            pass
 
 GREY = "FF7F7F7F"
 RED = "FFFF0000"

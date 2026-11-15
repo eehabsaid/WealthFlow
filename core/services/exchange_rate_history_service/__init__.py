@@ -18,8 +18,7 @@ Design guarantees:
 Sibling modules:
 - archive_mixin.py  — ArchiveMixin: archive_current_rates, _archive_current_rates_inner
 - import_mixin.py   — ImportMixin: import_historical_rates, _flush_batch
-- query_mixin.py     — QueryMixin: get_rate_on_date, get_rate_range,
-                         _get_latest_mid_rates_from_history
+- query_mixin.py     — QueryMixin: get_rate_on_date, get_rate_range
 
 This file re-exports ExchangeRateHistoryService, the public entry point.
 """

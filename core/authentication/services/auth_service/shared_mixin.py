@@ -7,7 +7,6 @@ from core.authentication.tokens import (
     create_token,
     resolve_token,
     mark_token_used,
-    hash_token,
 )
 from core.authentication.emails import send_template_email, send_smtp_test_email, replace_placeholders
 from core.authentication.utils import record_audit
@@ -27,10 +26,6 @@ class AuthSharedMixin:
     @staticmethod
     def replace_placeholders(text: str, context: dict) -> str:
         return replace_placeholders(text, context)
-
-    @classmethod
-    def _hash_token(cls, raw_token: str) -> str:
-        return hash_token(raw_token)
 
     @classmethod
     def create_token(cls, user, purpose: str) -> str:

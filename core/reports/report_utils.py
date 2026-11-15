@@ -1,7 +1,6 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false, reportRedeclaration=false, reportAssignmentType=false
 import json as _json
 import os
-import datetime
 from django.conf import settings
 
 MONTH_ORDER = [
@@ -45,13 +44,3 @@ def get_text(key, lang, t, default=""):
 
         text = str(text).replace("{base}", get_report_base_code())
     return text
-
-def parse_iso_date(value):
-    if not value or str(value).strip() in ("", "None"):
-        return None
-    if isinstance(value, datetime.date):
-        return value
-    try:
-        return datetime.date.fromisoformat(str(value).strip())
-    except (ValueError, TypeError):
-        return None

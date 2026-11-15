@@ -20,7 +20,6 @@ let fixedAssetsState = {
   assets: [],
   isLoading: false,
   portfolioSnapshot: null,
-  portfolioSnapshotLoading: false,
 };
 
 let latestGoldPriceCache = null;

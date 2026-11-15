@@ -76,12 +76,3 @@ class EmailTemplateService:
         template.body_translations = bodies
         template.save(update_fields=["subject_translations", "body_translations", "updated_at"])
         return template
-
-    @classmethod
-    def render_preview(cls, subject: str, body: str, context: dict) -> dict:
-        """Render a preview of the subject and body by replacing placeholders using the context."""
-        from core.services.shared.auth_workflow_service import AuthWorkflowService
-        return {
-            "subject": AuthWorkflowService.replace_placeholders(subject, context),
-            "body": AuthWorkflowService.replace_placeholders(body, context),
-        }

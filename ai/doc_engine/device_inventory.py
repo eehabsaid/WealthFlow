@@ -2,8 +2,6 @@ import json
 import os
 from django.conf import settings
 
-import hashlib
-
 DEVICE_INVENTORY_FILE = os.path.join(settings.BASE_DIR, "ai", "doc_engine", "device_inventory.json")
 
 _inventory_cache = None
@@ -22,14 +20,6 @@ def load_inventory(force_reload=False):
     except Exception:
         return {}
 
-def get_inventory_hash():
-    if not os.path.exists(DEVICE_INVENTORY_FILE):
-        return ""
-    try:
-        with open(DEVICE_INVENTORY_FILE, "rb") as f:
-            return hashlib.sha256(f.read()).hexdigest()
-    except Exception:
-        return ""
 
 def validate_inventory():
     inventory = load_inventory(force_reload=True)
@@ -101,10 +91,3 @@ def get_categories():
 def get_devices(category):
     categories = get_categories()
     return categories.get(category, [])
-
-def get_default_device(category):
-    devices = get_devices(category)
-    for device in devices:
-        if device.get("default"):
-            return device
-    return None

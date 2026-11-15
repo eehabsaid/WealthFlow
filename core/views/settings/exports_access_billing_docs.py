@@ -42,7 +42,6 @@ from core.views.settings.documentation.documentation_core_views import (
     DocumentationDevicesView,
     DocumentationStatusView,
     DocumentationHistoryView,
-    GenerateDocumentationView,
 )
 from core.views.settings.documentation.documentation_action_views import (
     CaptureScreenshotsView,
@@ -77,7 +76,6 @@ __all__ = [
     "DocumentationDevicesView",
     "DocumentationStatusView",
     "DocumentationHistoryView",
-    "GenerateDocumentationView",
     "CaptureScreenshotsView",
     "GenerateDocumentsView",
     "CancelDocumentationView",

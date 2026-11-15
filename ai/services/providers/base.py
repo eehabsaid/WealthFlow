@@ -26,16 +26,6 @@ class BaseContextProvider(ABC):
         pass
 
     @property
-    def supported_domains(self) -> list[str]:
-        """List of supported question domains (default: ['business_data_analysis'])."""
-        return ["business_data_analysis"]
-
-    @property
-    def cache_ttl(self) -> float:
-        """Default cache TTL in seconds (default: 600s)."""
-        return 600.0
-
-    @property
     def is_read_only(self) -> bool:
         """Strict read-only flag. Always returns True."""
         return True

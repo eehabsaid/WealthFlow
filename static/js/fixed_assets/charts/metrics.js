@@ -12,20 +12,6 @@ function renderFixedAssetsKpi(iconClass, labelKey, value) {
   `;
 }
 
-function renderFixedAssetsPlaceholder(titleKey, descKey) {
-  const container = document.getElementById("fixedAssetsContainer");
-  if (!container) return;
-
-  container.innerHTML = `
-    <div class="text-center p-5 rounded-3" style="background: var(--bg-secondary); border: 1px dashed var(--border-color); margin-top: 2rem;">
-        <div class="display-5 mb-3">🧭</div>
-        <h4 class="mt-2 fixed-assets-empty-title" data-i18n="${titleKey}"></h4>
-        <p class="small mb-0" style="color:var(--text-secondary);" data-i18n="${descKey}"></p>
-    </div>
-  `;
-  applyTranslations();
-}
-
 function getFixedAssetsDashboardMetrics(assets) {
   const totalAssets = assets.length;
   const totalPurchaseValue = assets.reduce(

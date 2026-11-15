@@ -24,20 +24,6 @@ def safe_filename(name: str, fallback_id: Optional[str] = None) -> str:
 
 
 @dataclass
-class CaptureContext:
-    page_id: Optional[str] = None
-    page_title: Optional[str] = None
-    route: Optional[str] = None
-    tab_id: Optional[str] = None
-    tab_order: int = 0
-    nested_tab_id: Optional[str] = None
-    nested_tab_order: int = 0
-    modal_id: Optional[str] = None
-    modal_order: int = 0
-    is_admin: bool = False
-
-
-@dataclass
 class PageItem:
     route: str
     title: str
@@ -63,33 +49,6 @@ class NavigationPlanner:
             return f"{self.base_url}{route}"
         return f"{self.base_url}/#{route}"
 
-    def get_route_prefix(self, item: PageItem) -> str:
-        """Generates filename prefix for a page item."""
-        if item.custom_prefix:
-            return item.custom_prefix
-        r = item.route
-        if r.startswith('/'):
-            r = r.replace('/', '')
-        return sanitize_filename(r) or sanitize_filename(item.title)
-
     def is_chart_route(self, route: str) -> bool:
         """Determines if a route contains heavy charts requiring render waits."""
         return route in self.CHART_ROUTES
-
-    def get_navigation_tree(self, inventory: List[Dict[str, Any]]) -> List[PageItem]:
-        """
-        Public API exposing the normalized navigation tree for Playwright execution.
-        Isolates inventory loading so future automatic discovery can replace manual inventory.
-        """
-        tree = []
-        for raw in inventory:
-            tree.append(PageItem(
-                route=raw.get("route", ""),
-                title=raw.get("title", ""),
-                is_admin=raw.get("is_admin", False) is True,
-                custom_prefix=raw.get("customPrefix"),
-                tabs=raw.get("tabs", []),
-                nested_navigation=raw.get("nested_navigation", [])
-            ))
-        return tree
-

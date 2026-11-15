@@ -63,45 +63,6 @@ class QueryMixin:
             snapshot_date__lte=end,
         ).order_by("snapshot_date")
 
-    def _get_latest_mid_rates_from_history(
-        self, currency_codes: list[str]
-    ) -> dict[str, Decimal]:
-        """
-        Return a dict mapping currency_code → latest mid_rate from history.
-
-        Uses a single annotated queryset — no N+1.
-        """
-        from django.db.models import Max
-
-        from core.models import ExchangeRateHistory
-
-        # Find the most-recent snapshot_date per currency in one query.
-        latest_dates = (
-            ExchangeRateHistory.objects.filter(
-                currency_code__in=currency_codes
-            )
-            .values("currency_code")
-            .annotate(latest_date=Max("snapshot_date"))
-        )
-        date_map = {
-            row["currency_code"]: row["latest_date"] for row in latest_dates
-        }
-
-        if not date_map:
-            return {}
-
-        # Fetch the actual rows for those dates — still a single query.
-        from django.db.models import Q
-
-        q = Q()
-        for code, snap_date in date_map.items():
-            q |= Q(currency_code=code, snapshot_date=snap_date)
-
-        rows = ExchangeRateHistory.objects.filter(q).only(
-            "currency_code", "mid_rate"
-        )
-        return {row.currency_code: Decimal(str(row.mid_rate)) for row in rows}
-
     def get_rate_series_in_base(
         self,
         currency_code: str,

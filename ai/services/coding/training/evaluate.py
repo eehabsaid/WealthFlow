@@ -1,4 +1,4 @@
-﻿"""Point 11: the original model and the coding fine-tune answer the SAME held-out real changes; every answer is scored by code (scoring.py).
+"""Point 11: the original model and the coding fine-tune answer the SAME held-out real changes; every answer is scored by code (scoring.py).
 Ollama is restarted before each model (a clean GPU, as in the business model test). Nothing is switched: the report only says whether the new model
 beat the old one by the margin in coding_agent/training.json. The thresholds are settings, not code."""
 

@@ -58,14 +58,6 @@ def score_diversification(percentages: Dict[str, float]) -> float:
     normalized = (max_hhi - hhi) / (max_hhi - min_hhi)
     return max(0.0, min(100.0, normalized * 100.0))
 
-def health_label_key(score: float) -> str:
-    if score >= 90:
-        return "portfolio_optimizer_health_excellent"
-    if score >= 75:
-        return "portfolio_optimizer_health_good"
-    if score >= 60:
-        return "portfolio_optimizer_health_average"
-    return "portfolio_optimizer_health_attention"
 
 def highest_appreciating_asset(top_assets: List[dict]) -> dict:
     if not top_assets:
@@ -117,22 +109,3 @@ def diversification_rating(
     if score >= 4:
         return "portfolio_optimizer_diversification_moderate"
     return "portfolio_optimizer_diversification_weak"
-
-def health_explanation_key(
-    *,
-    score: float,
-    emergency_months: float,
-    largest_concentration_pct: float,
-    asset_classes_owned: int,
-    gold_pct: float,
-    recommended_gold_min: float = 10.0,
-) -> str:
-    if score >= 85 and emergency_months >= 6 and largest_concentration_pct <= 50 and asset_classes_owned >= 2:
-        return "portfolio_optimizer_health_explain_strong"
-    if emergency_months < 6:
-        return "portfolio_optimizer_health_explain_liquidity_gap"
-    if gold_pct < recommended_gold_min:
-        return "portfolio_optimizer_health_explain_gold_low"
-    if largest_concentration_pct > 50:
-        return "portfolio_optimizer_health_explain_concentration"
-    return "portfolio_optimizer_health_explain_balanced"

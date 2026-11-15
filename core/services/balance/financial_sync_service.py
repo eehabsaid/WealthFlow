@@ -161,9 +161,3 @@ class FinancialSyncService:
 
         entry.amount = _to_decimal(entry.amount) - amount
         entry.save(update_fields=["amount"])
-
-    def refresh_portfolio(self):
-        return self._net_worth_service.balance_payload()
-
-    def refresh_forecast(self):
-        return self._net_worth_service.certificate_forecast_payload()

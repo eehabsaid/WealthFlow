@@ -48,7 +48,7 @@ def _styles(rtl: bool):
 
 
 def _para(text: str, style, rtl: bool, bold_all: bool = False, heading_level: int = 0) -> Paragraph:
-    """A paragraph. Right-to-left text is wrapped on its logical words and reordered per line (core/reports/pdf_rtl.py): reordering
+    """A paragraph. Right-to-left text is wrapped on its logical words and reordered per line (ai/services/exports/pdf_rtl.py): reordering
     a whole paragraph before ReportLab wraps it shows the lines in reverse order."""
     parts_runs = runs(text) or [(plain(text), False)]
     if rtl:

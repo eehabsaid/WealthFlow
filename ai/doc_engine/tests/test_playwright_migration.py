@@ -5,7 +5,7 @@ import unittest
 import struct
 from ai.doc_engine.services.inventory_provider import InventoryProvider
 from ai.doc_engine.services.navigation_planner import NavigationPlanner, sanitize_filename, safe_filename
-from ai.doc_engine.services.manifest_service import ManifestService
+from ai.doc_engine.services.documentation_metadata_service import ManifestService
 from ai.doc_engine.config import LATEST_SCREENSHOTS_DIR, RUNTIME_DIR, MANIFEST_FILE, STATUS_FILE
 
 
