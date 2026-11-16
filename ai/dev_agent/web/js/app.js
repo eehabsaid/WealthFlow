@@ -169,7 +169,7 @@ export function init(transport, root) {
 
   if (transport.onCommand)
     transport.onCommand((name) => name === "contextSettings" && openContext());
-  root.append(head, banner, main, composer.root, drawer, dialog);
+  root.append(head, composer.meter, banner, main, composer.root, drawer, dialog);
   store.on(schedule);
   store.start();
   paint();

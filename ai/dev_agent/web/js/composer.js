@@ -160,19 +160,18 @@ export function createComposer(store, transport, picker, report, onContextSettin
       submit();
     }
   });
-  const root = el(
+const root = el(
+  "div",
+  { class: "composer" },
+  picker.root,
+  el(
     "div",
-    { class: "composer" },
-    picker.root,
-    el(
-      "div",
-      { class: "composer-box" },
-      chipBox,
-      text,
-      el("div", { class: "bar" }, file, image, chip, el("span", { class: "spacer" }), send, stop)
-    ),
-    meter.root,
-    hint
-  );
-  return { root, update, focus: () => text.focus() };
+    { class: "composer-box" },
+    chipBox,
+    text,
+    el("div", { class: "bar" }, file, image, chip, el("span", { class: "spacer" }), send, stop)
+  ),
+  hint
+);
+return { root, meter: meter.root, update, focus: () => text.focus() };
 }
