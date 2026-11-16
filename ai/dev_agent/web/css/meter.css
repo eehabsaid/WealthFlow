@@ -1,0 +1,101 @@
+.meter {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 2px 0;
+  font-size: 0.92em;
+}
+
+.meter-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.meter-percent {
+  font-weight: 600;
+}
+
+.meter.lvl-ok .meter-percent {
+  color: var(--good);
+}
+
+.meter.lvl-warn .meter-percent {
+  color: var(--warn);
+}
+
+.meter.lvl-critical .meter-percent {
+  color: var(--bad);
+}
+
+.meter-bar {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--panel-2);
+}
+
+.meter-fill {
+  width: 0;
+  height: 100%;
+  background: var(--good);
+  transition: width 0.25s ease;
+}
+
+.meter.lvl-warn .meter-fill {
+  background: var(--warn);
+}
+
+.meter.lvl-critical .meter-fill {
+  background: var(--bad);
+}
+
+.meter-trim {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--muted);
+  opacity: 0.7;
+}
+
+.ctx-settings fieldset {
+  margin: 0 0 8px;
+  padding: 6px 10px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.ctx-field {
+  margin-bottom: 8px;
+}
+
+.ctx-field .help {
+  font-size: 0.9em;
+}
+
+.ctx-settings .changes {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+
+button.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.ctx-settings .warnings {
+  margin: 4px 0 8px;
+  padding-left: 18px;
+  color: var(--warn);
+}
+
+.ctx-settings .warnings:empty {
+  display: none;
+}

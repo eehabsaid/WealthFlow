@@ -25,7 +25,7 @@ class LedgerRepo(SimpleTestCase):
         agent_dir = self.root / "coding_agent"
         agent_dir.mkdir()
         (agent_dir / "config.json").write_text(json.dumps(CONFIG), encoding="utf-8")
-        for name in ("qa_training.json", "patch_training.json"):
+        for name in ("qa_training.json", "patch_training.json", "traj_training.json", "agent_loop_training.json"):
             shutil.copy(REAL_AGENT_DIR / name, agent_dir / name)
         for target in (coding_config, coding_training, ledger_review):
             patcher = patch.object(target, "AGENT_DIR", agent_dir)

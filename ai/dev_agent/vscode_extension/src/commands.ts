@@ -37,5 +37,6 @@ export function registerCommands(d: Deps): void {
   });
   add("restartServer", () => manager.restart());
   add("showLog", () => log.show());
+  add("contextSettings", () => d.chat.command("contextSettings"));
   registerSettingsCommands(add, client);
 }

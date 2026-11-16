@@ -5,6 +5,7 @@ import { ApiError } from "./errors.js";
 export function createVsCodeTransport(vscode, host = window) {
   const waiting = new Map();
   const listeners = new Set();
+  const commands = new Set();
   let n = 0;
 
   host.addEventListener("message", ({ data }) => {
@@ -16,6 +17,8 @@ export function createVsCodeTransport(vscode, host = window) {
       else reject(new ApiError(data.error.status, data.error.code, data.error.message));
     } else if (data.type === "event") {
       listeners.forEach((fn) => fn(data));
+    } else if (data.type === "command") {
+      commands.forEach((fn) => fn(data.name)); // a command-palette action aimed at this page
     }
   });
 
@@ -47,6 +50,10 @@ export function createVsCodeTransport(vscode, host = window) {
     openDiff: (taskId, path) => call("openDiff", { taskId, path }),
     openReport: (taskId) => call("openReport", { taskId }),
     setApiKey: (provider) => call("setApiKey", { provider }),
+    onCommand(fn) {
+      commands.add(fn);
+      vscode.postMessage({ type: "ready" }); // the host sends the commands it queued while this page was loading
+    },
     menu: () => call("menu"),
     restart: () => call("restart"),
   };

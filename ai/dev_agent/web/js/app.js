@@ -1,4 +1,5 @@
 import { createComposer } from "./composer.js";
+import { openContextSettings } from "./context-settings.js";
 import { clear, el } from "./dom.js";
 import { renderHistory } from "./history.js";
 import { icon } from "./icons.js";
@@ -88,7 +89,8 @@ export function init(transport, root) {
       ? openSettings(dialog, transport, report, provider)
       : guard(() => transport.setApiKey(provider))();
   const picker = createPicker(store, transport, report, keys);
-  const composer = createComposer(store, transport, picker, report);
+  const openContext = guard(() => openContextSettings(dialog, transport, report));
+  const composer = createComposer(store, transport, picker, report, openContext);
 
   function toggleHistory(show = drawer.hidden) {
     drawer.hidden = !show;
@@ -165,6 +167,8 @@ export function init(transport, root) {
     requestAnimationFrame(() => ((queued = false), paint()));
   }
 
+  if (transport.onCommand)
+    transport.onCommand((name) => name === "contextSettings" && openContext());
   root.append(head, banner, main, composer.root, drawer, dialog);
   store.on(schedule);
   store.start();

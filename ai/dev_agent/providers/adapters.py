@@ -39,6 +39,9 @@ class _Base(Provider):
 class Ollama(_Base):
     name = "ollama"
 
+    def request_meta(self) -> dict:
+        return {**super().request_meta(), "api": "/api/chat", "stream": False, "format": "json", "options": {"num_ctx": self.context_window, "num_predict": self.max_output}}
+
     def complete(self, system, messages, cancel=None):
         self.cancel = cancel
         body = {"model": self.model, "stream": False, "messages": [{"role": "system", "content": system}, *(_ollama(m) for m in merge_roles(messages))],
@@ -47,7 +50,8 @@ class Ollama(_Base):
         data = self._post(f"{self.base_url}/api/chat", headers, body)
         try:
             return Reply(data["message"]["content"], {"input_tokens": data.get("prompt_eval_count", 0), "output_tokens": data.get("eval_count", 0)},
-                         str(data.get("done_reason") or ""))
+                         str(data.get("done_reason") or ""),
+                         {"message": {k: v for k, v in data["message"].items() if k != "content"}, "model": data.get("model"), **{k: data[k] for k in ("total_duration", "prompt_eval_duration", "eval_duration") if k in data}})
         except (KeyError, TypeError) as exc:
             raise ProviderError("unexpected Ollama reply shape") from exc
 

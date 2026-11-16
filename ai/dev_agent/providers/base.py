@@ -17,6 +17,7 @@ class Reply:
     text: str
     usage: dict = field(default_factory=lambda: {"input_tokens": 0, "output_tokens": 0})
     finish_reason: str = ""
+    raw: dict = field(default_factory=dict)   # the provider's own message object (e.g. Ollama's `message`), for the training trace
 
 
 def redact(text: str, secrets) -> str:
@@ -48,6 +49,10 @@ class Provider(ABC):
     def __init__(self, model: str, base_url: str, api_key: str = "", timeout: int = 3600, max_output: int = 4096, context_window: int = 150000):
         self.model, self.base_url, self.api_key = model, base_url.rstrip("/"), api_key
         self.timeout, self.max_output, self.context_window = timeout, max_output, context_window
+
+    def request_meta(self) -> dict:
+        """How this provider is called, for the training trace (never includes credentials)."""
+        return {"provider": self.name, "model": self.model, "context_window": self.context_window, "max_output": self.max_output}
 
     def has_vision(self) -> bool:
         return self.vision if self.vision is not None else vision.supports_images(self.name, self.model, self.base_url)

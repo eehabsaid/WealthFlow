@@ -5,6 +5,7 @@ from __future__ import annotations
 import fnmatch
 import os
 import re
+from pathlib import Path
 
 from ai.dev_agent.core import fsutil
 from ai.dev_agent.core.project import ALWAYS_EXCLUDE
@@ -31,9 +32,10 @@ def grep(ctx, args):
         raise ToolError(f"bad regex: {exc}") from exc
     glob, limit = str(args.get("glob") or "*"), min(int(args.get("max_results") or 50), 200)
     skip = ALWAYS_EXCLUDE | set(ctx.project.config["index_exclude"])
+    history = ctx.project.agent_dir / "tasks"   # past runs (full traces, ledgers, copies of edited files) are never an answer about the code
     hits = []
     for folder, dirs, names in os.walk(ctx.project.root):
-        dirs[:] = [d for d in dirs if d not in skip]
+        dirs[:] = [d for d in dirs if d not in skip and Path(folder, d) != history]
         for name in names:
             full = os.path.join(folder, name)
             rel = os.path.relpath(full, ctx.project.root).replace("\\", "/")

@@ -5,7 +5,7 @@ export interface HtmlOptions {
   uri: (relative: string) => string;
 }
 
-const STYLES = ["theme", "controls", "chat", "cards", "files", "composer", "overlays"];
+const STYLES = ["theme", "controls", "chat", "cards", "files", "composer", "meter", "overlays"];
 
 export function webviewHtml(o: HtmlOptions): string {
   const csp = `default-src 'none'; style-src ${o.cspSource}; script-src ${o.cspSource}; img-src ${o.cspSource} data:; font-src ${o.cspSource};`;

@@ -1,0 +1,1002 @@
+[
+ {
+  "id": "T001",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "Explain what the function `rekey_all` in `ai/services/credential_rekey.py` does and when it is called. Answer only; do not plan or change anything.",
+  "file": "ai/services/credential_rekey.py",
+  "symbol": "rekey_all",
+  "line": 25,
+  "why": "21 lines"
+ },
+ {
+  "id": "T002",
+  "kind": "qa",
+  "template": "params",
+  "goal": "Describe the inputs and the return value of `build_monthly_summary` in `core/ai_pack/providers/expenses_provider/aggregation.py`, and any case where it returns early or raises. Answer only; do not plan or change anything.",
+  "file": "core/ai_pack/providers/expenses_provider/aggregation.py",
+  "symbol": "build_monthly_summary",
+  "line": 25,
+  "why": "2 parameters"
+ },
+ {
+  "id": "T003",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "In `core/services/backup_serializer/signal_management.py`, add type annotations to `reconnect_signals` (every parameter and the return type). Keep the behavior exactly the same and change nothing else.",
+  "file": "core/services/backup_serializer/signal_management.py",
+  "symbol": "reconnect_signals",
+  "line": 57,
+  "why": "no type hint for return"
+ },
+ {
+  "id": "T004",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Where is `feature_required` (defined in `ai/host.py`) used in this project? List the files and say what each one does with it. Answer only; do not plan or change anything.",
+  "file": "ai/host.py",
+  "symbol": "feature_required",
+  "line": 53,
+  "why": "used in 6 other files"
+ },
+ {
+  "id": "T005",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "`load_manifest` in `ai/services/system_knowledge_engine/manifest.py` has no docstring: write a clear two or three line one from reading its code. Change nothing else.",
+  "file": "ai/services/system_knowledge_engine/manifest.py",
+  "symbol": "load_manifest",
+  "line": 49,
+  "why": "no docstring, 21 lines"
+ },
+ {
+  "id": "T006",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Where is `auto_post_on_login` (defined in `core/services/budgets/auto_post.py`) used in this project? List the files and say what each one does with it. Answer only; do not plan or change anything.",
+  "file": "core/services/budgets/auto_post.py",
+  "symbol": "auto_post_on_login",
+  "line": 19,
+  "why": "used in 2 other files"
+ },
+ {
+  "id": "T007",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Which parts of the code call or import `build_data_slice` from `core/ai_pack/knowledge/data_slice.py`? Say briefly what each caller needs it for. Answer only; do not plan or change anything.",
+  "file": "core/ai_pack/knowledge/data_slice.py",
+  "symbol": "build_data_slice",
+  "line": 14,
+  "why": "used in 3 other files"
+ },
+ {
+  "id": "T008",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "In `ai/services/screen_data/reader.py`, add type annotations to `read` (every parameter and the return type). Keep the behavior exactly the same and change nothing else.",
+  "file": "ai/services/screen_data/reader.py",
+  "symbol": "read",
+  "line": 41,
+  "why": "no type hint for user, query"
+ },
+ {
+  "id": "T009",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "Explain what the function `all_refusals` in `ai/services/scope_text.py` does and when it is called. Answer only; do not plan or change anything.",
+  "file": "ai/services/scope_text.py",
+  "symbol": "all_refusals",
+  "line": 55,
+  "why": "8 lines"
+ },
+ {
+  "id": "T010",
+  "kind": "patch",
+  "template": "module_doc",
+  "goal": "Add a one-line module docstring at the top of `core/reports/excel_workbook_generator.py` that says what the module is for (read the file first). Change nothing else.",
+  "file": "core/reports/excel_workbook_generator.py",
+  "symbol": "",
+  "line": 1,
+  "why": "no module docstring"
+ },
+ {
+  "id": "T011",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Which parts of the code call or import `account_delete` from `core/views/account_views.py`? Say briefly what each caller needs it for. Answer only; do not plan or change anything.",
+  "file": "core/views/account_views.py",
+  "symbol": "account_delete",
+  "line": 33,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T012",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Where is `save_upload` (defined in `ai/services/attachments/__init__.py`) used in this project? List the files and say what each one does with it. Answer only; do not plan or change anything.",
+  "file": "ai/services/attachments/__init__.py",
+  "symbol": "save_upload",
+  "line": 13,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T013",
+  "kind": "patch",
+  "template": "class_doc",
+  "goal": "Add a short docstring to the class `FixedAssetSerializationMixin` in `core/models/fixed_assets/serialization_mixin.py` saying what it is for. Change nothing else.",
+  "file": "core/models/fixed_assets/serialization_mixin.py",
+  "symbol": "FixedAssetSerializationMixin",
+  "line": 8,
+  "why": "no docstring, 1 methods"
+ },
+ {
+  "id": "T014",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "Explain what the function `build_sale_sheet` in `core/reports/fixed_asset_excel_report_generator/sale_sheet.py` does and when it is called. Answer only; do not plan or change anything.",
+  "file": "core/reports/fixed_asset_excel_report_generator/sale_sheet.py",
+  "symbol": "build_sale_sheet",
+  "line": 5,
+  "why": "32 lines"
+ },
+ {
+  "id": "T015",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "In `ai/services/agent/redirect.py`, add type annotations to `moves_to_agent` (every parameter and the return type). Keep the behavior exactly the same and change nothing else.",
+  "file": "ai/services/agent/redirect.py",
+  "symbol": "moves_to_agent",
+  "line": 25,
+  "why": "no type hint for user, provider"
+ },
+ {
+  "id": "T016",
+  "kind": "qa",
+  "template": "imports",
+  "goal": "Which other modules of this project does `core/ai_pack/executors/certificates.py` import from, and what does it use each one for? Answer only; do not plan or change anything.",
+  "file": "core/ai_pack/executors/certificates.py",
+  "symbol": "",
+  "line": 1,
+  "why": "imports from 3 project modules"
+ },
+ {
+  "id": "T017",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Which parts of the code call or import `has_arabic_text` from `ai/services/exports/pdf_fonts.py`? Say briefly what each caller needs it for. Answer only; do not plan or change anything.",
+  "file": "ai/services/exports/pdf_fonts.py",
+  "symbol": "has_arabic_text",
+  "line": 104,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T018",
+  "kind": "patch",
+  "template": "module_doc",
+  "goal": "Add a one-line module docstring at the top of `ai/models/ai_attachment.py` that says what the module is for (read the file first). Change nothing else.",
+  "file": "ai/models/ai_attachment.py",
+  "symbol": "",
+  "line": 1,
+  "why": "no module docstring"
+ },
+ {
+  "id": "T019",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "What does `ask` in `ai/training/services/runner.py` do? Explain it from the code. Answer only; do not plan or change anything.",
+  "file": "ai/training/services/runner.py",
+  "symbol": "ask",
+  "line": 25,
+  "why": "14 lines"
+ },
+ {
+  "id": "T020",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "Add type hints to the parameters and the return value of `make_card` in `ai/services/actions/cards.py`. Do not change what it does and do not touch any other function.",
+  "file": "ai/services/actions/cards.py",
+  "symbol": "make_card",
+  "line": 16,
+  "why": "no type hint for user"
+ },
+ {
+  "id": "T021",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Where is `propose_card` (defined in `ai/services/actions/codefile.py`) used in this project? List the files and say what each one does with it. Answer only; do not plan or change anything.",
+  "file": "ai/services/actions/codefile.py",
+  "symbol": "propose_card",
+  "line": 17,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T022",
+  "kind": "qa",
+  "template": "module",
+  "goal": "What is `ai/doc_engine/models.py` for? List its main functions or classes with one line each. Answer only; do not plan or change anything.",
+  "file": "ai/doc_engine/models.py",
+  "symbol": "",
+  "line": 1,
+  "why": "0 public functions, 2 classes"
+ },
+ {
+  "id": "T023",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "`save_translations` in `core/views/settings/translation_views.py` has no docstring: write a clear two or three line one from reading its code. Change nothing else.",
+  "file": "core/views/settings/translation_views.py",
+  "symbol": "save_translations",
+  "line": 116,
+  "why": "no docstring, 9 lines"
+ },
+ {
+  "id": "T024",
+  "kind": "qa",
+  "template": "module",
+  "goal": "Summarize the module `core/admin.py`: its purpose and its public functions. Answer only; do not plan or change anything.",
+  "file": "core/admin.py",
+  "symbol": "",
+  "line": 1,
+  "why": "0 public functions, 4 classes"
+ },
+ {
+  "id": "T025",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "Add a short docstring to `delete_voice_sample` in `ai/services/speech/voice_sample.py` saying what it does, what it takes and what it returns. Change nothing else.",
+  "file": "ai/services/speech/voice_sample.py",
+  "symbol": "delete_voice_sample",
+  "line": 61,
+  "why": "no docstring, 5 lines"
+ },
+ {
+  "id": "T026",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Where is `fetch_grounding_business_data` (defined in `ai/services/context_builder_service/business_data.py`) used in this project? List the files and say what each one does with it. Answer only; do not plan or change anything.",
+  "file": "ai/services/context_builder_service/business_data.py",
+  "symbol": "fetch_grounding_business_data",
+  "line": 33,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T027",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "Explain what the function `manifest_view` in `core/views/pwa_views.py` does and when it is called. Answer only; do not plan or change anything.",
+  "file": "core/views/pwa_views.py",
+  "symbol": "manifest_view",
+  "line": 31,
+  "why": "21 lines"
+ },
+ {
+  "id": "T028",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "`coding_context` in `ai/services/coding/tools.py` has no docstring: write a clear two or three line one from reading its code. Change nothing else.",
+  "file": "ai/services/coding/tools.py",
+  "symbol": "coding_context",
+  "line": 15,
+  "why": "no docstring, 11 lines"
+ },
+ {
+  "id": "T029",
+  "kind": "qa",
+  "template": "js_what_does",
+  "goal": "What does the JavaScript function `deleteMyAccount` in `static/js/billing/account_data.js` do? Explain it from the code. Answer only; do not plan or change anything.",
+  "file": "static/js/billing/account_data.js",
+  "symbol": "deleteMyAccount",
+  "line": 68,
+  "why": "48 lines"
+ },
+ {
+  "id": "T030",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "In `ai/training/services/fam_util.py`, add type annotations to `unique_names` (every parameter and the return type). Keep the behavior exactly the same and change nothing else.",
+  "file": "ai/training/services/fam_util.py",
+  "symbol": "unique_names",
+  "line": 55,
+  "why": "no type hint for queryset"
+ },
+ {
+  "id": "T031",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "Explain what the function `export_excel` in `core/reports/report_generators.py` does and when it is called. Answer only; do not plan or change anything.",
+  "file": "core/reports/report_generators.py",
+  "symbol": "export_excel",
+  "line": 98,
+  "why": "12 lines"
+ },
+ {
+  "id": "T032",
+  "kind": "qa",
+  "template": "params",
+  "goal": "What parameters does `make_json_http_request` in `ai/integrations/http.py` take, what does it return, and what happens on bad input? Answer only; do not plan or change anything.",
+  "file": "ai/integrations/http.py",
+  "symbol": "make_json_http_request",
+  "line": 21,
+  "why": "6 parameters"
+ },
+ {
+  "id": "T033",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "`effective_instructions` in `ai/services/agent/instructions.py` has no docstring: write a clear two or three line one from reading its code. Change nothing else.",
+  "file": "ai/services/agent/instructions.py",
+  "symbol": "effective_instructions",
+  "line": 30,
+  "why": "no docstring, 3 lines"
+ },
+ {
+  "id": "T034",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "Explain what the function `add_salary_answers` in `core/ai_pack/tools/salary_answers.py` does and when it is called. Answer only; do not plan or change anything.",
+  "file": "core/ai_pack/tools/salary_answers.py",
+  "symbol": "add_salary_answers",
+  "line": 80,
+  "why": "19 lines"
+ },
+ {
+  "id": "T035",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "In `ai/training/trainer/train.py`, add type annotations to `run` (every parameter and the return type). Keep the behavior exactly the same and change nothing else.",
+  "file": "ai/training/trainer/train.py",
+  "symbol": "run",
+  "line": 112,
+  "why": "no type hint for deps, log"
+ },
+ {
+  "id": "T036",
+  "kind": "qa",
+  "template": "params",
+  "goal": "Describe the inputs and the return value of `answer_expenses` in `core/ai_pack/direct/expense_direct.py`, and any case where it returns early or raises. Answer only; do not plan or change anything.",
+  "file": "core/ai_pack/direct/expense_direct.py",
+  "symbol": "answer_expenses",
+  "line": 54,
+  "why": "3 parameters"
+ },
+ {
+  "id": "T037",
+  "kind": "qa",
+  "template": "class",
+  "goal": "How does the class `BadJsonError` in `ai/utils/json_body.py` work? List its methods and say what each one is for. Answer only; do not plan or change anything.",
+  "file": "ai/utils/json_body.py",
+  "symbol": "BadJsonError",
+  "line": 13,
+  "why": "2 methods"
+ },
+ {
+  "id": "T038",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "In `core/services/backup_serializer/instance_serialization.py`, add type annotations to `serialize_instance` (every parameter and the return type). Keep the behavior exactly the same and change nothing else.",
+  "file": "core/services/backup_serializer/instance_serialization.py",
+  "symbol": "serialize_instance",
+  "line": 26,
+  "why": "no type hint for instance"
+ },
+ {
+  "id": "T039",
+  "kind": "qa",
+  "template": "imports",
+  "goal": "Which other modules of this project does `core/reports/balance_report_view.py` import from, and what does it use each one for? Answer only; do not plan or change anything.",
+  "file": "core/reports/balance_report_view.py",
+  "symbol": "",
+  "line": 1,
+  "why": "imports from 6 project modules"
+ },
+ {
+  "id": "T040",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "Add type hints to the parameters and the return value of `handler` in `ai/services/screen_data/tool.py`. Do not change what it does and do not touch any other function.",
+  "file": "ai/services/screen_data/tool.py",
+  "symbol": "handler",
+  "line": 16,
+  "why": "no type hint for user, params, return"
+ },
+ {
+  "id": "T041",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "Explain what the function `parse_message` in `ai/integrations/ai_provider/ollama_response.py` does and when it is called. Answer only; do not plan or change anything.",
+  "file": "ai/integrations/ai_provider/ollama_response.py",
+  "symbol": "parse_message",
+  "line": 29,
+  "why": "19 lines"
+ },
+ {
+  "id": "T042",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Where is `save_all` (defined in `ai/training/trainer/export_gguf.py`) used in this project? List the files and say what each one does with it. Answer only; do not plan or change anything.",
+  "file": "ai/training/trainer/export_gguf.py",
+  "symbol": "save_all",
+  "line": 53,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T043",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "`select_relevant_sections` in `ai/services/system_knowledge_engine/selection.py` has no docstring: write a clear two or three line one from reading its code. Change nothing else.",
+  "file": "ai/services/system_knowledge_engine/selection.py",
+  "symbol": "select_relevant_sections",
+  "line": 19,
+  "why": "no docstring, 42 lines"
+ },
+ {
+  "id": "T044",
+  "kind": "qa",
+  "template": "module",
+  "goal": "What is `ai/views/ai_speech/speech_views.py` for? List its main functions or classes with one line each. Answer only; do not plan or change anything.",
+  "file": "ai/views/ai_speech/speech_views.py",
+  "symbol": "",
+  "line": 1,
+  "why": "0 public functions, 4 classes"
+ },
+ {
+  "id": "T045",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "Add type hints to the parameters and the return value of `append_cover_and_summary` in `core/reports/generate_report_generator/section_summary.py`. Do not change what it does and do not touch any other function.",
+  "file": "core/reports/generate_report_generator/section_summary.py",
+  "symbol": "append_cover_and_summary",
+  "line": 12,
+  "why": "no type hint for ctx, pdf_t, return"
+ },
+ {
+  "id": "T046",
+  "kind": "qa",
+  "template": "js_callers",
+  "goal": "Where is the JavaScript function `buildRealEstateModalHtml` (defined in `static/js/fixed_assets/asset_detail_view/modal_shell.js`) used? List the files, scripts and templates, and say what each one does with it. Answer only; do not plan or change anything.",
+  "file": "static/js/fixed_assets/asset_detail_view/modal_shell.js",
+  "symbol": "buildRealEstateModalHtml",
+  "line": 12,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T047",
+  "kind": "qa",
+  "template": "module",
+  "goal": "Summarize the module `ai/views/mixins.py`: its purpose and its public functions. Answer only; do not plan or change anything.",
+  "file": "ai/views/mixins.py",
+  "symbol": "",
+  "line": 1,
+  "why": "0 public functions, 4 classes"
+ },
+ {
+  "id": "T048",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "Add a short docstring to `build_facts` in `ai/services/query_engine/facts.py` saying what it does, what it takes and what it returns. Change nothing else.",
+  "file": "ai/services/query_engine/facts.py",
+  "symbol": "build_facts",
+  "line": 31,
+  "why": "no docstring, 18 lines"
+ },
+ {
+  "id": "T049",
+  "kind": "qa",
+  "template": "imports",
+  "goal": "Which other modules of this project does `core/models/fixed_assets_realestate/rent_receipt.py` import from, and what does it use each one for? Answer only; do not plan or change anything.",
+  "file": "core/models/fixed_assets_realestate/rent_receipt.py",
+  "symbol": "",
+  "line": 1,
+  "why": "imports from 3 project modules"
+ },
+ {
+  "id": "T050",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "`stop_voice_stream` in `ai/services/speech/voice_stream.py` has no docstring: write a clear two or three line one from reading its code. Change nothing else.",
+  "file": "ai/services/speech/voice_stream.py",
+  "symbol": "stop_voice_stream",
+  "line": 37,
+  "why": "no docstring, 7 lines"
+ },
+ {
+  "id": "T051",
+  "kind": "qa",
+  "template": "params",
+  "goal": "What parameters does `build_instance_kwargs` in `core/services/restore/instance_builder.py` take, what does it return, and what happens on bad input? Answer only; do not plan or change anything.",
+  "file": "core/services/restore/instance_builder.py",
+  "symbol": "build_instance_kwargs",
+  "line": 19,
+  "why": "4 parameters"
+ },
+ {
+  "id": "T052",
+  "kind": "qa",
+  "template": "js_callers",
+  "goal": "Where is the JavaScript function `renderAllCompanies` (defined in `static/js/companies/render.js`) used? List the files, scripts and templates, and say what each one does with it. Answer only; do not plan or change anything.",
+  "file": "static/js/companies/render.js",
+  "symbol": "renderAllCompanies",
+  "line": 5,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T053",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "Add type hints to the parameters and the return value of `trim_history` in `ai/services/investigation/loop_helpers.py`. Do not change what it does and do not touch any other function.",
+  "file": "ai/services/investigation/loop_helpers.py",
+  "symbol": "trim_history",
+  "line": 22,
+  "why": "no type hint for history"
+ },
+ {
+  "id": "T054",
+  "kind": "qa",
+  "template": "class",
+  "goal": "How does the class `GoldTableParser` in `core/integrations/gold_price_api.py` work? List its methods and say what each one is for. Answer only; do not plan or change anything.",
+  "file": "core/integrations/gold_price_api.py",
+  "symbol": "GoldTableParser",
+  "line": 14,
+  "why": "4 methods"
+ },
+ {
+  "id": "T055",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "Add type hints to the parameters and the return value of `append_footer_section` in `core/reports/generate_report_generator/section_footer.py`. Do not change what it does and do not touch any other function.",
+  "file": "core/reports/generate_report_generator/section_footer.py",
+  "symbol": "append_footer_section",
+  "line": 28,
+  "why": "no type hint for ctx, return"
+ },
+ {
+  "id": "T056",
+  "kind": "qa",
+  "template": "module",
+  "goal": "Summarize the module `ai/doc_engine/providers.py`: its purpose and its public functions. Answer only; do not plan or change anything.",
+  "file": "ai/doc_engine/providers.py",
+  "symbol": "",
+  "line": 1,
+  "why": "0 public functions, 2 classes"
+ },
+ {
+  "id": "T057",
+  "kind": "qa",
+  "template": "params",
+  "goal": "Describe the inputs and the return value of `apply_semantic_bonus` in `ai/services/providers/registry/scoring_semantic.py`, and any case where it returns early or raises. Answer only; do not plan or change anything.",
+  "file": "ai/services/providers/registry/scoring_semantic.py",
+  "symbol": "apply_semantic_bonus",
+  "line": 40,
+  "why": "4 parameters"
+ },
+ {
+  "id": "T058",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "`build_codebase_block` in `ai/services/context_builder_service/codebase_context.py` has no docstring: write a clear two or three line one from reading its code. Change nothing else.",
+  "file": "ai/services/context_builder_service/codebase_context.py",
+  "symbol": "build_codebase_block",
+  "line": 32,
+  "why": "no docstring, 15 lines"
+ },
+ {
+  "id": "T059",
+  "kind": "qa",
+  "template": "js_what_does",
+  "goal": "What does the JavaScript function `applyTranslations` in `static/js/i18n/apply_translations.js` do? Explain it from the code. Answer only; do not plan or change anything.",
+  "file": "static/js/i18n/apply_translations.js",
+  "symbol": "applyTranslations",
+  "line": 5,
+  "why": "149 lines"
+ },
+ {
+  "id": "T060",
+  "kind": "patch",
+  "template": "module_doc",
+  "goal": "Add a one-line module docstring at the top of `ai/models/ai_chat_block.py` that says what the module is for (read the file first). Change nothing else.",
+  "file": "ai/models/ai_chat_block.py",
+  "symbol": "",
+  "line": 1,
+  "why": "no module docstring"
+ },
+ {
+  "id": "T061",
+  "kind": "qa",
+  "template": "js_callers",
+  "goal": "Where is the JavaScript function `_ruleSummary` (defined in `static/js/reminders/rules.js`) used? List the files, scripts and templates, and say what each one does with it. Answer only; do not plan or change anything.",
+  "file": "static/js/reminders/rules.js",
+  "symbol": "_ruleSummary",
+  "line": 3,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T062",
+  "kind": "qa",
+  "template": "class",
+  "goal": "How does the class `BaseHistoricalRateProvider` in `core/integrations/historical_exchange_rate_provider/records.py` work? List its methods and say what each one is for. Answer only; do not plan or change anything.",
+  "file": "core/integrations/historical_exchange_rate_provider/records.py",
+  "symbol": "BaseHistoricalRateProvider",
+  "line": 78,
+  "why": "2 methods"
+ },
+ {
+  "id": "T063",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "Add a short docstring to `find_examples` in `ai/services/app_knowledge/examples.py` saying what it does, what it takes and what it returns. Change nothing else.",
+  "file": "ai/services/app_knowledge/examples.py",
+  "symbol": "find_examples",
+  "line": 12,
+  "why": "no docstring, 20 lines"
+ },
+ {
+  "id": "T064",
+  "kind": "qa",
+  "template": "js_what_does",
+  "goal": "What does the JavaScript function `exportExpenses` in `static/js/expenses/reports.js` do? Explain it from the code. Answer only; do not plan or change anything.",
+  "file": "static/js/expenses/reports.js",
+  "symbol": "exportExpenses",
+  "line": 3,
+  "why": "56 lines"
+ },
+ {
+  "id": "T065",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "Add type hints to the parameters and the return value of `render_file` in `ai/training/trainer/render.py`. Do not change what it does and do not touch any other function.",
+  "file": "ai/training/trainer/render.py",
+  "symbol": "render_file",
+  "line": 43,
+  "why": "no type hint for tok"
+ },
+ {
+  "id": "T066",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Where is `rank` (defined in `ai/services/app_knowledge/scoring.py`) used in this project? List the files and say what each one does with it. Answer only; do not plan or change anything.",
+  "file": "ai/services/app_knowledge/scoring.py",
+  "symbol": "rank",
+  "line": 87,
+  "why": "used in 4 other files"
+ },
+ {
+  "id": "T067",
+  "kind": "qa",
+  "template": "js_what_does",
+  "goal": "What does the JavaScript function `renderDashboardSettings` in `static/js/settings/dashboard.js` do? Explain it from the code. Answer only; do not plan or change anything.",
+  "file": "static/js/settings/dashboard.js",
+  "symbol": "renderDashboardSettings",
+  "line": 5,
+  "why": "33 lines"
+ },
+ {
+  "id": "T068",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "In `ai/services/coding/training/stage.py`, add type annotations to `names` (every parameter and the return type). Keep the behavior exactly the same and change nothing else.",
+  "file": "ai/services/coding/training/stage.py",
+  "symbol": "names",
+  "line": 24,
+  "why": "no type hint for cfg"
+ },
+ {
+  "id": "T069",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "What does `copy_legacy_settings` in `ai/legacy.py` do? Explain it from the code. Answer only; do not plan or change anything.",
+  "file": "ai/legacy.py",
+  "symbol": "copy_legacy_settings",
+  "line": 14,
+  "why": "26 lines"
+ },
+ {
+  "id": "T070",
+  "kind": "patch",
+  "template": "module_doc",
+  "goal": "Add a one-line module docstring at the top of `ai/models/ai_knowledge.py` that says what the module is for (read the file first). Change nothing else.",
+  "file": "ai/models/ai_knowledge.py",
+  "symbol": "",
+  "line": 1,
+  "why": "no module docstring"
+ },
+ {
+  "id": "T071",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "Explain what the function `resolve_domain` in `ai/services/domains.py` does and when it is called. Answer only; do not plan or change anything.",
+  "file": "ai/services/domains.py",
+  "symbol": "resolve_domain",
+  "line": 31,
+  "why": "6 lines"
+ },
+ {
+  "id": "T072",
+  "kind": "qa",
+  "template": "params",
+  "goal": "What parameters does `compact_tool_result` in `ai/services/tools/result_budget.py` take, what does it return, and what happens on bad input? Answer only; do not plan or change anything.",
+  "file": "ai/services/tools/result_budget.py",
+  "symbol": "compact_tool_result",
+  "line": 64,
+  "why": "3 parameters"
+ },
+ {
+  "id": "T073",
+  "kind": "patch",
+  "template": "class_doc",
+  "goal": "Add a short docstring to the class `AIMessage` in `ai/models/ai_message.py` saying what it is for. Change nothing else.",
+  "file": "ai/models/ai_message.py",
+  "symbol": "AIMessage",
+  "line": 15,
+  "why": "no docstring, 2 methods"
+ },
+ {
+  "id": "T074",
+  "kind": "qa",
+  "template": "module",
+  "goal": "What is `ai/views/ai_prompt_views.py` for? List its main functions or classes with one line each. Answer only; do not plan or change anything.",
+  "file": "ai/views/ai_prompt_views.py",
+  "symbol": "",
+  "line": 1,
+  "why": "0 public functions, 6 classes"
+ },
+ {
+  "id": "T075",
+  "kind": "patch",
+  "template": "module_doc",
+  "goal": "Add a one-line module docstring at the top of `core/views/fixed_assets/fixed_asset_acquisition_views.py` that says what the module is for (read the file first). Change nothing else.",
+  "file": "core/views/fixed_assets/fixed_asset_acquisition_views.py",
+  "symbol": "",
+  "line": 1,
+  "why": "no module docstring"
+ },
+ {
+  "id": "T076",
+  "kind": "qa",
+  "template": "module",
+  "goal": "What is `core/views/dashboard_views.py` for? List its main functions or classes with one line each. Answer only; do not plan or change anything.",
+  "file": "core/views/dashboard_views.py",
+  "symbol": "",
+  "line": 1,
+  "why": "1 public functions, 1 classes"
+ },
+ {
+  "id": "T077",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "Explain what the function `transcribe_audio` in `ai/services/speech/client.py` does and when it is called. Answer only; do not plan or change anything.",
+  "file": "ai/services/speech/client.py",
+  "symbol": "transcribe_audio",
+  "line": 44,
+  "why": "25 lines"
+ },
+ {
+  "id": "T078",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "`build_summary_sheet` in `core/reports/fixed_asset_excel_report_generator/summary_sheet.py` has no docstring: write a clear two or three line one from reading its code. Change nothing else.",
+  "file": "core/reports/fixed_asset_excel_report_generator/summary_sheet.py",
+  "symbol": "build_summary_sheet",
+  "line": 5,
+  "why": "no docstring, 71 lines"
+ },
+ {
+  "id": "T079",
+  "kind": "qa",
+  "template": "module",
+  "goal": "What is `core/views/report_views.py` for? List its main functions or classes with one line each. Answer only; do not plan or change anything.",
+  "file": "core/views/report_views.py",
+  "symbol": "",
+  "line": 1,
+  "why": "1 public functions, 7 classes"
+ },
+ {
+  "id": "T080",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "Add type hints to the parameters and the return value of `fixed_asset_pdf_table` in `core/reports/fixed_asset_report_helpers/pdf_story.py`. Do not change what it does and do not touch any other function.",
+  "file": "core/reports/fixed_asset_report_helpers/pdf_story.py",
+  "symbol": "fixed_asset_pdf_table",
+  "line": 20,
+  "why": "no type hint for rows, col_widths, font_name, return"
+ },
+ {
+  "id": "T081",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "What does `semantic_scores` in `ai/services/retrieval/embeddings.py` do? Explain it from the code. Answer only; do not plan or change anything.",
+  "file": "ai/services/retrieval/embeddings.py",
+  "symbol": "semantic_scores",
+  "line": 112,
+  "why": "17 lines"
+ },
+ {
+  "id": "T082",
+  "kind": "qa",
+  "template": "module",
+  "goal": "Summarize the module `ai/migrations_support.py`: its purpose and its public functions. Answer only; do not plan or change anything.",
+  "file": "ai/migrations_support.py",
+  "symbol": "",
+  "line": 1,
+  "why": "2 public functions, 1 classes"
+ },
+ {
+  "id": "T083",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "`money` in `ai/services/actions/common.py` has no docstring: write a clear two or three line one from reading its code. Change nothing else.",
+  "file": "ai/services/actions/common.py",
+  "symbol": "money",
+  "line": 15,
+  "why": "no docstring, 7 lines"
+ },
+ {
+  "id": "T084",
+  "kind": "qa",
+  "template": "class",
+  "goal": "How does the class `AzureOpenAIProvider` in `ai/integrations/azure_openai_provider/__init__.py` work? List its methods and say what each one is for. Answer only; do not plan or change anything.",
+  "file": "ai/integrations/azure_openai_provider/__init__.py",
+  "symbol": "AzureOpenAIProvider",
+  "line": 33,
+  "why": "5 methods"
+ },
+ {
+  "id": "T085",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "Add a short docstring to `working_dir` in `ai/services/image_generation/server/process.py` saying what it does, what it takes and what it returns. Change nothing else.",
+  "file": "ai/services/image_generation/server/process.py",
+  "symbol": "working_dir",
+  "line": 55,
+  "why": "no docstring, 3 lines"
+ },
+ {
+  "id": "T086",
+  "kind": "qa",
+  "template": "imports",
+  "goal": "Which other modules of this project does `core/views/balance/currency_exchange_crud_views.py` import from, and what does it use each one for? Answer only; do not plan or change anything.",
+  "file": "core/views/balance/currency_exchange_crud_views.py",
+  "symbol": "",
+  "line": 1,
+  "why": "imports from 5 project modules"
+ },
+ {
+  "id": "T087",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "What does `format_date` in `core/utils/date_formatter.py` do? Explain it from the code. Answer only; do not plan or change anything.",
+  "file": "core/utils/date_formatter.py",
+  "symbol": "format_date",
+  "line": 37,
+  "why": "80 lines"
+ },
+ {
+  "id": "T088",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "In `core/reports/generate_report_generator/styles.py`, add type annotations to `build_styles` (every parameter and the return type). Keep the behavior exactly the same and change nothing else.",
+  "file": "core/reports/generate_report_generator/styles.py",
+  "symbol": "build_styles",
+  "line": 23,
+  "why": "no type hint for pdf_font, lang, palette, return"
+ },
+ {
+  "id": "T089",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Which parts of the code call or import `resolve_period` from `core/reports/generate_report_generator/data_phase.py`? Say briefly what each caller needs it for. Answer only; do not plan or change anything.",
+  "file": "core/reports/generate_report_generator/data_phase.py",
+  "symbol": "resolve_period",
+  "line": 15,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T090",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "`build_context_string` in `ai/services/system_knowledge_engine/context.py` has no docstring: write a clear two or three line one from reading its code. Change nothing else.",
+  "file": "ai/services/system_knowledge_engine/context.py",
+  "symbol": "build_context_string",
+  "line": 28,
+  "why": "no docstring, 43 lines"
+ },
+ {
+  "id": "T091",
+  "kind": "qa",
+  "template": "params",
+  "goal": "Describe the inputs and the return value of `train` in `core/ai_pack/training_families/banking.py`, and any case where it returns early or raises. Answer only; do not plan or change anything.",
+  "file": "core/ai_pack/training_families/banking.py",
+  "symbol": "train",
+  "line": 19,
+  "why": "3 parameters"
+ },
+ {
+  "id": "T092",
+  "kind": "qa",
+  "template": "what_does",
+  "goal": "What does `build` in `ai/services/coding/edit.py` do? Explain it from the code. Answer only; do not plan or change anything.",
+  "file": "ai/services/coding/edit.py",
+  "symbol": "build",
+  "line": 88,
+  "why": "28 lines"
+ },
+ {
+  "id": "T093",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "In `core/reports/excel_formatting_helpers.py`, add type annotations to `fmt_for_code` (every parameter and the return type). Keep the behavior exactly the same and change nothing else.",
+  "file": "core/reports/excel_formatting_helpers.py",
+  "symbol": "fmt_for_code",
+  "line": 30,
+  "why": "no type hint for code"
+ },
+ {
+  "id": "T094",
+  "kind": "qa",
+  "template": "callers",
+  "goal": "Which parts of the code call or import `dialog_names` from `ai/services/investigation/compose_flatten.py`? Say briefly what each caller needs it for. Answer only; do not plan or change anything.",
+  "file": "ai/services/investigation/compose_flatten.py",
+  "symbol": "dialog_names",
+  "line": 25,
+  "why": "used in 1 other files"
+ },
+ {
+  "id": "T095",
+  "kind": "patch",
+  "template": "module_doc",
+  "goal": "Add a one-line module docstring at the top of `ai/training/models/agent_trace.py` that says what the module is for (read the file first). Change nothing else.",
+  "file": "ai/training/models/agent_trace.py",
+  "symbol": "",
+  "line": 1,
+  "why": "no module docstring"
+ },
+ {
+  "id": "T096",
+  "kind": "qa",
+  "template": "js_what_does",
+  "goal": "What does the JavaScript function `showCenterAlert` in `static/js/app/center_alert.js` do? Explain it from the code. Answer only; do not plan or change anything.",
+  "file": "static/js/app/center_alert.js",
+  "symbol": "showCenterAlert",
+  "line": 11,
+  "why": "33 lines"
+ },
+ {
+  "id": "T097",
+  "kind": "qa",
+  "template": "params",
+  "goal": "What parameters does `handle_certificate_pre_save` in `core/services/certificate/certificate_balance_deduction_service/handlers.py` take, what does it return, and what happens on bad input? Answer only; do not plan or change anything.",
+  "file": "core/services/certificate/certificate_balance_deduction_service/handlers.py",
+  "symbol": "handle_certificate_pre_save",
+  "line": 17,
+  "why": "2 parameters"
+ },
+ {
+  "id": "T098",
+  "kind": "patch",
+  "template": "docstring",
+  "goal": "Add a short docstring to `semantic_advisor_matches` in `ai/services/context_builder_service/advisor_semantic.py` saying what it does, what it takes and what it returns. Change nothing else.",
+  "file": "ai/services/context_builder_service/advisor_semantic.py",
+  "symbol": "semantic_advisor_matches",
+  "line": 36,
+  "why": "no docstring, 18 lines"
+ },
+ {
+  "id": "T099",
+  "kind": "qa",
+  "template": "module",
+  "goal": "Summarize the module `core/views/import_views.py`: its purpose and its public functions. Answer only; do not plan or change anything.",
+  "file": "core/views/import_views.py",
+  "symbol": "",
+  "line": 1,
+  "why": "0 public functions, 2 classes"
+ },
+ {
+  "id": "T100",
+  "kind": "patch",
+  "template": "hints",
+  "goal": "Add type hints to the parameters and the return value of `build_user_export` in `core/services/account/export.py`. Do not change what it does and do not touch any other function.",
+  "file": "core/services/account/export.py",
+  "symbol": "build_user_export",
+  "line": 18,
+  "why": "no type hint for user"
+ }
+]

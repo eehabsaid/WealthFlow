@@ -1,0 +1,9 @@
+{
+  "max_seq_tokens": 8192,
+  "chars_per_token": 3.2,
+  "min_tool_calls": 1,
+  "max_tool_errors": 2,
+  "require_repo_match": true,
+  "held_out_every": 5,
+  "redact_patterns": true
+}

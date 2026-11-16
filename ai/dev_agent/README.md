@@ -47,13 +47,30 @@ The CLI, the Web UI and the VS Code extension all drive the same `Agent`; each w
   `stopped` ("interrupted ... Resume continues it"), marks the interrupted package, and makes the ledger match the files on disk. Resume repeats no finished package.
   Lock files and the event log also survive a crash (stale locks of dead processes are broken; a torn last log line no longer corrupts the next event).
 
+## Context & limits, context meter, full trace
+- **Context & limits** (Web UI and VS Code chat: the button next to the meter; in VS Code also "Context & limits…" in the key menu): every real context value in one place - context window, reserve, max output per reply, max tool result,
+  max steps per phase, max fix rounds, model request timeout, command timeout - all stored in `coding_agent/agent_settings.json`. Each value is checked and kept inside its range;
+  the two rules the engine needs are enforced (reserve <= window - 4,096; max output <= window); softer problems (a window that is mostly reserve, a reply cap above the reserve) are
+  shown as warnings and never changed silently. The file is written atomically, the answer lists exactly what changed (old -> new, and when a value was clamped), values you did not touch
+  are never rewritten, and they survive a restart. A new value applies to the next task (a running task keeps its own). API: `GET/PUT /api/settings/context`.
+- **Context meter** (under the chat box, one per session): after every model step the engine writes a `context` event and the meter shows used / window and what is left before the agent
+  trims old steps. Used = what the provider reported for the last call; if it reports nothing, or Ollama's prompt cache makes the number far too low, the agent's own estimate is shown and the
+  tooltip says which one it is. Orange at 80% and red at 95% of the usable part (window - reserve); the agent starts trimming old steps at 100%.
+- **Full trace in `tasks/<id>/events.jsonl`** (`type: "trace"` events, written for every new task): per phase the exact system prompt and first message, how the provider was called, every model reply
+  exactly as received (with token usage), every tool call with its FULL result and the exact text sent back to the model, nudges, trimming (`compact`) and how the phase ended. Everything passes
+  the redactor (`core/redact.py`) first: secrets always; emails, phone numbers and currency amounts; plain numbers, dates, ids, versions, paths and git hashes are kept (a bug that masked
+  plain amounts and long numbers is fixed). `service/trajectory.py` rebuilds the conversations from these events; the trajectory extractor (`ai/training/README.md`) is its first user.
+- **Auto-approve for batches**: `python -m ai.dev_agent run --yes "<task>"` (and `execute --yes <id>`) approves the plan without asking, so a list of tasks runs with nobody typing y. It approves the
+  PLAN only: a protected file or a command that needs approval still needs your answer in a terminal, and when there is none (a batch, stdin closed) it is refused - a task never waits for you.
+- `grep` no longer searches `coding_agent/tasks` (the agent's own logs and earlier answers), so a question cannot find its own history.
+
 ## Rules enforced in code (each has tests)
 - Nothing is written before the plan is approved; only files listed in the plan may change; delete/rename only if listed.
 - Protected files (config.json) ask you first; forbidden files (migrations, db.sqlite3, .env, secrets, .git) are never edited or read.
 - Git is strictly read-only: status, diff, log, show, blame, ls-files, rev-parse ... Everything else, and any option that can write, is blocked and cannot be approved.
 - Commands run as argv (no shell). Whitelisted ones run, unknown/destructive/install ones ask, `&& | > ;` and shells (cmd, powershell, bash, wsl) are blocked.
 - Multi-file edits are all-or-nothing on validation, SHA-checked at read time and again under locks right before writing; a write failure rolls back; the result lists each file's exact state.
-- 3 failed fix attempts on the same error -> stop and report. Work is split into packages that fit the context window (150K minus a 28K reserve).
+- 3 failed fix attempts on the same error -> stop and report. Work is split into packages that fit the context window (window minus reserve, both in Context & limits).
 - The report says VERIFIED only when every applicable check ran and passed AND an automated test (Django, pytest or browser E2E) passed; lint alone is "NOT VERIFIED (no automated test ran)". It shows counts (passed / failed / skipped / not run), a per-test line and an explicit "Browser E2E" line (NOT PERFORMED, NOT RUN with the reason, PASSED or FAILED).
 - `coding_agent/` (config, safety rules, skills, memory, task history) is agent-internal: tasks cannot edit, create, delete or rename it, and plans listing it are rejected. Reading is allowed; memory and settings are written only by the agent's own commands.
 - A work package can only change files in its own step list: a file listed only in another package is refused (shared or unlisted files stay allowed; the single plan approval is unchanged).

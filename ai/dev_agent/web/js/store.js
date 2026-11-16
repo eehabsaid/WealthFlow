@@ -28,6 +28,7 @@ export function createStore(api) {
     task: null,
     files: [],
     events: [],
+    context: null, // newest `context` event of the open task (the meter reads it)
     override: null, // {provider, model} for the next task only
     error: null,
   };
@@ -77,6 +78,7 @@ export function createStore(api) {
   function onEvent(id, event) {
     if (id !== s.taskId) return;
     s.events.push(event);
+    if (event.type === "context") s.context = event;
     if (s.events.length > MAX_EVENTS) s.events.splice(0, s.events.length - MAX_EVENTS);
     emit();
     if (LIVE.has(event.type)) {
@@ -88,7 +90,7 @@ export function createStore(api) {
   function open(id) {
     if (stopStream) stopStream();
     stopStream = null;
-    Object.assign(s, { taskId: id, task: null, files: [], events: [] });
+    Object.assign(s, { taskId: id, task: null, files: [], events: [], context: null });
     filesKey = "";
     if (id) stopStream = api.subscribe(id, (event) => onEvent(id, event));
     if (api.state) api.state.set({ taskId: id });

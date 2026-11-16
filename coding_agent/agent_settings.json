@@ -16,10 +16,10 @@
     }
   },
   "context_window": 150000,
-  "reserve_tokens": 140000,
+  "reserve_tokens": 28000,
   "max_output_tokens": 81920,
-  "timeout_s": 3600,
-  "command_timeout_s": 1800,
+  "timeout_s": 36000,
+  "command_timeout_s": 18000,
   "max_steps_per_package": 200,
   "max_fix_rounds": 12,
   "max_tool_result_chars": 8000

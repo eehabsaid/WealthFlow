@@ -12,10 +12,10 @@ from __future__ import annotations
 
 import hashlib
 import os
-import re
 from collections import Counter
 from difflib import SequenceMatcher
 
+from ai.dev_agent.core import redact
 from ai.dev_agent.core.project import Project
 from ai.dev_agent.engine import verify
 from ai.dev_agent.ledger.ledger import Ledger
@@ -25,13 +25,9 @@ from ai.services.coding.training import settings
 from ai.services.coding.training.dataset import is_test
 from ai.services.investigation import paths
 
-KINDS = ("qa", "patch")
+KINDS = ("qa", "patch", "traj")   # traj = multi-turn trajectories of the real loop (ledger_traj.py); config in traj_training.json
 
-# Beyond paths.redact's secret/token masking: emails, phone numbers and currency-looking amounts, so a stray personal/financial detail an
-# investigation answer happened to quote never reaches a training file. Over-redaction here is the safe failure mode.
-_EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")
-_PHONE = re.compile(r"(?<!\w)(?:\+?\d[\d\-\s()]{7,}\d)(?!\w)")
-_MONEY = re.compile(r"(?<![\w.])(?:[$£€]\s?\d[\d,]*(?:\.\d+)?|\d[\d,]*(?:\.\d+)?\s?(?:USD|EGP|EUR|GBP|SAR|AED))(?![\w.])", re.I)
+# PII masking (emails, phone-shaped numbers, amounts with a currency) lives in ai/dev_agent/core/redact.py: plain numbers, dates and ids are never masked.
 
 
 def project() -> Project:
@@ -44,22 +40,12 @@ def config(kind: str) -> dict:
 
 
 def redact_pii(text: str, cfg: dict) -> tuple[str, int]:
-    """(text with secrets/tokens/PII masked, how many PII spots were masked). Secrets/tokens are always masked; emails/phones/amounts only
+    """(text with secrets/tokens/PII masked, how many PII spots were masked; secrets are masked but not counted, as before). Secrets/tokens are always masked; emails/phones/amounts only
     when `redact_patterns` is on in the type's config, so a project can turn that extra pass off if its own data makes it too aggressive."""
-    text = paths.redact(text)
+    text, _ = redact.mask_secrets(text)
     if not cfg.get("redact_patterns", True):
         return text, 0
-    hits = 0
-
-    def _mask(pattern):
-        nonlocal hits, text
-        text, n = pattern.subn("***REDACTED***", text)
-        hits += n
-
-    _mask(_EMAIL)
-    _mask(_PHONE)
-    _mask(_MONEY)
-    return text, hits
+    return redact.mask_pii(text)
 
 
 def _fingerprint(text: str) -> str:

@@ -1,10 +1,12 @@
 import { bytes, el } from "./dom.js";
 import { icon } from "./icons.js";
+import { createMeter } from "./meter.js";
 
 const FILE_CAP = 40000; // characters per text file the engine sends in full (engine.attachments.FILE_CAP)
 
 // The chat box: attach file / image, the model name (click to choose), Send, and Stop (active only while a task runs).
-export function createComposer(store, transport, picker, report) {
+export function createComposer(store, transport, picker, report, onContextSettings) {
+  const meter = createMeter(onContextSettings);
   let chips = [];
   let problems = [];
   const text = el("textarea", {
@@ -99,6 +101,7 @@ export function createComposer(store, transport, picker, report) {
 
   function update() {
     const { server, override } = s();
+    meter.show(s().context);
     const now = override || server;
     chipLabel.textContent = `${now.provider || "provider"} · ${now.model || "choose a model"}${override ? " (next task)" : ""}`;
     send.disabled = !ready(text.value.trim());
@@ -168,6 +171,7 @@ export function createComposer(store, transport, picker, report) {
       text,
       el("div", { class: "bar" }, file, image, chip, el("span", { class: "spacer" }), send, stop)
     ),
+    meter.root,
     hint
   );
   return { root, update, focus: () => text.focus() };

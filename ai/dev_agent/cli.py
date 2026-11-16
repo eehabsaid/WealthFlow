@@ -1,4 +1,5 @@
-"""Command-line entry point (testing only in M1): python -m ai.dev_agent plan|run|execute|status|settings|set-key|keys ..."""
+"""Command-line entry point (testing only in M1): python -m ai.dev_agent plan|run|execute|status|settings|set-key|keys ...
+`run --yes` / `execute --yes` approve the plan without asking."""
 
 from __future__ import annotations
 
@@ -49,7 +50,7 @@ def find_root(start: Path) -> Path:
 def _agent(project, with_keys: bool = True) -> Agent:
     settings = Settings(project).load()
     secrets = SecretStore(forbid_under=project.root)
-    return Agent(project, build_provider(settings, secrets), settings, ConsoleApprover(), _emit)
+    return Agent(project, build_provider(settings, secrets), settings, ConsoleApprover(), _emit, events=True)   # events.jsonl for every CLI task too (training export)
 
 
 def _show_plan(ledger: Ledger) -> None:
@@ -84,9 +85,15 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="dev_agent", description="Standalone autonomous coding agent (M1: command line for testing).")
     parser.add_argument("--root", default=None, help="project folder (default: the folder holding coding_agent/config.json above the current one)")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    for name in ("plan", "run"):
-        sub.add_parser(name).add_argument("task")
-    sub.add_parser("execute").add_argument("task_id")
+    sub.add_parser("plan").add_argument("task")
+    yes_help = ("approve the plan without asking (for batches of tasks); nothing else is auto-approved: a protected file or a command that needs approval "
+                "still needs your answer in a terminal and is refused when there is none")
+    run = sub.add_parser("run")
+    run.add_argument("task")
+    run.add_argument("-y", "--yes", action="store_true", help=yes_help)
+    execute = sub.add_parser("execute")
+    execute.add_argument("task_id")
+    execute.add_argument("-y", "--yes", action="store_true", help=yes_help)
     sub.add_parser("status").add_argument("task_id", nargs="?")
     st = sub.add_parser("settings")
     st.add_argument("action", choices=["show", "set"])
@@ -139,7 +146,8 @@ def main(argv=None) -> int:
             if ledger.data["status"] == "awaiting_approval":
                 if args.cmd == "plan":
                     print(f"\nApprove and run with: python -m ai.dev_agent execute {ledger.id}")
-                elif input("\nApprove this plan and execute? [y/N] ").strip().lower() in ("y", "yes"):
+                elif args.yes or input("\nApprove this plan and execute? [y/N] ").strip().lower() in ("y", "yes"):
+                    print("Plan approved automatically (--yes)." if args.yes else "Plan approved.")
                     agent.approve(ledger.id)
                     print(report.write(agent.execute(ledger.id)))
         elif args.cmd == "execute":
@@ -148,7 +156,7 @@ def main(argv=None) -> int:
             ledger = Ledger.load(project, args.task_id)
             if ledger.data["status"] == "awaiting_approval":
                 _show_plan(ledger)
-                if input("\nApprove this plan and execute? [y/N] ").strip().lower() not in ("y", "yes"):
+                if not args.yes and input("\nApprove this plan and execute? [y/N] ").strip().lower() not in ("y", "yes"):
                     return 1
                 agent.approve(args.task_id)
             print(report.write(agent.execute(args.task_id)))

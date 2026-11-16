@@ -22,3 +22,5 @@ An autonomous coding agent that works on this repo from the command line, a loca
 - This folder is agent-internal: coding tasks cannot modify it (they may read it). Change `config.json` and `skills/` by hand. `config.json` also holds `test_areas` (Django test module per path), `pytest_areas` (dev_agent) and `test_exempt`; changed .py files without a mapping are reported.
 - Credentials are never here: OS keyring, or an encrypted file outside the repo (`%APPDATA%\dev_agent\secrets.enc` on Windows).
 - Details and commands: `ai/dev_agent/README.md`.
+- Training of the local coding models: `qa_training.json` / `patch_training.json` (single-turn extraction), `coding_agent_training.json` (that model), `traj_training.json` (multi-turn extraction from real runs),
+  `agent_loop_training.json` (the agent-loop model and its real-loop evaluation; `min_traces` 40 is the approval gate for both). Review files: `qa_review.jsonl`, `patch_review.jsonl`, `traj_review.jsonl` (generated, you edit `decision`). See `ai/training/README.md`.

@@ -10,6 +10,7 @@ from collections import Counter
 
 from ai.services.coding import AGENT_DIR
 from ai.services.coding.training import ledger_examples as le
+from ai.services.coding.training import ledger_traj
 
 DECISIONS = ("pending", "approved", "rejected")
 
@@ -18,12 +19,18 @@ def review_path(kind: str) -> str:
     return str(AGENT_DIR / f"{kind}_review.jsonl")
 
 
+def _key(example: dict) -> str:
+    """One review row per example: a QA or patch example is its task id; a trajectory example is one phase of a task ("<task id>#<phase>")."""
+    return example.get("key") or example["task_id"]
+
+
 def _row(example: dict, decision: str, notes: str) -> dict:
-    return {"task_id": example["task_id"], "kind": example["kind"], "decision": decision, "notes": notes, "redactions": example["redactions"], "example": example}
+    return {"key": _key(example), "task_id": example["task_id"], "kind": example["kind"], "decision": decision, "notes": notes, "redactions": example["redactions"],
+            "example": example}
 
 
 def load_rows(kind: str) -> dict[str, dict]:
-    """{task_id: row} of whatever is currently in the review file, or {} if it does not exist yet."""
+    """{key: row} of whatever is currently in the review file, or {} if it does not exist yet (the key is the task id for qa/patch rows)."""
     path = review_path(kind)
     if not os.path.isfile(path):
         return {}
@@ -32,7 +39,7 @@ def load_rows(kind: str) -> dict[str, dict]:
         for line in fh:
             if line.strip():
                 row = json.loads(line)
-                rows[row["task_id"]] = row
+                rows[row.get("key") or row["task_id"]] = row
     return rows
 
 
@@ -51,13 +58,13 @@ def refresh(kind: str, project_=None, log=print) -> dict:
     qualifies but was already "approved" or "rejected" is KEPT AS-IS instead: coding_agent/tasks is gitignored, so a different machine, a
     partial clone, or local task-folder cleanup can all make a real, already-reviewed task briefly invisible here - that must never be read as
     "the owner changed their mind" and silently erase their decision."""
-    result = le.extract(kind, project_)
+    result = ledger_traj.extract(project_) if kind == "traj" else le.extract(kind, project_)
     existing = load_rows(kind)
     rows = {}
     for example in result["candidates"]:
-        old = existing.get(example["task_id"])
+        old = existing.get(_key(example))
         decision, notes = (old["decision"], old.get("notes", "")) if old else ("pending", "")
-        rows[example["task_id"]] = _row(example, decision, notes)
+        rows[_key(example)] = _row(example, decision, notes)
     missing_ids = set(existing) - set(rows)
     kept_ids = {tid for tid in missing_ids if existing[tid]["decision"] != "pending"}
     for task_id in kept_ids:
@@ -83,7 +90,7 @@ def write_dataset(label: str, examples: list[dict], out_dir: str) -> dict:
     """Deterministic held-out split (no leakage: the same task id is always on the same side, each example held out on its own kind's cadence)
     and the two dataset files + a stats report. `label` only names the output files - `examples` may mix "qa" and "patch" kinds."""
     train, held_out = [], []
-    for ex in sorted(examples, key=lambda e: e["task_id"]):
+    for ex in sorted(examples, key=_key):
         (held_out if le.held_out(ex["task_id"], le.config(ex["kind"])) else train).append(ex)
     os.makedirs(out_dir, exist_ok=True)
     train_file = os.path.join(out_dir, f"{label}_train.jsonl")
@@ -95,7 +102,7 @@ def write_dataset(label: str, examples: list[dict], out_dir: str) -> dict:
         json.dump(held_out, fh, ensure_ascii=False, indent=1)
     by_kind = Counter(ex["kind"] for ex in examples)
     stats = Counter({"approved": len(examples), "train": len(train), "held_out": len(held_out),
-                      "avg_assistant_chars": (sum(len(e["messages"][2]["content"]) for e in examples) // len(examples)) if examples else 0})
+                      "avg_assistant_chars": (sum(len(e["messages"][-1]["content"]) for e in examples) // len(examples)) if examples else 0})
     stats.update({f"approved_{k}": n for k, n in by_kind.items()})
     report = os.path.join(out_dir, f"{label}_dataset_report.txt")
     with open(report, "w", encoding="utf-8") as fh:
@@ -125,4 +132,17 @@ def build_combined(out_dir: str, log=print) -> dict:
     result = write_dataset("coding_agent", examples, out_dir)
     log(f"coding_agent: wrote {result['train']} training and {result['held_out']} held-out approved examples "
         f"({sum(1 for e in examples if e['kind'] == 'qa')} qa + {sum(1 for e in examples if e['kind'] == 'patch')} patch) to {out_dir}")
+    return result
+
+
+def build_traj(out_dir: str, log=print) -> dict:
+    """The agent-loop dataset: every approved multi-turn trajectory (coding_agent/traj_review.jsonl), split by TASK id so that no phase of a held-out task
+    is ever trained on. Single-turn QA/patch examples are deliberately not mixed in: they are what taught the model to answer in one turn."""
+    examples = approved_examples("traj")
+    if not examples:
+        log("coding_agent loop: no approved trajectories yet - review coding_agent/traj_review.jsonl and set decision to \"approved\" for the ones to train on.")
+        return {"train_file": "", "held_out_file": "", "report": "", "train": 0, "held_out": 0}
+    result = write_dataset("coding_agent_loop", examples, out_dir)
+    tasks = len({e["task_id"] for e in examples})
+    log(f"coding_agent loop: wrote {result['train']} training and {result['held_out']} held-out approved trajectories ({tasks} tasks) to {out_dir}")
     return result

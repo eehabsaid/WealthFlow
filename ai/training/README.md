@@ -191,3 +191,44 @@ nothing approved rather than training on an empty set. `train` runs the same WSL
 reachable, enough approved examples) and blocks before touching anything if they fail; a missing or mismatched `initial_adapter_dir` blocks
 training the same way an Agent2-recovery mismatch does for the recovery profile. `evaluate` with an empty held-out file (nothing approved and
 held out yet) reports `"no_tasks"` and says to run `build` first, rather than silently comparing nothing.
+
+## Agent-loop coding model (multi-turn, from real dev-agent runs)
+
+**Why**: the single-turn `-coding_agent` model above answered held-out questions but failed inside the real agent (it replied "Let me read the file first." and stopped), because it was
+trained on one question -> one answer. This second model is trained on whole real conversations: system prompt, task, the model's own tool calls, the real tool results, the final answer or plan -
+in the exact format the agent sends to Ollama. Nothing is invented: every example is rebuilt from what a real task logged in `events.jsonl`, and only examples you approve are trained on.
+`--mode loop` selects it; without `--mode` everything above works exactly as before. Config: `coding_agent/traj_training.json` (extraction) and `coding_agent/agent_loop_training.json`
+(model `<base>-coding_agent_loop`, continues from recovery's adapter, `min_traces` 40, evaluation limits). The model in Settings is never switched.
+
+**Step 1 - run about 100 real tasks** (new tasks log the full trace; old task folders have no tool results and are skipped as `task_without_trace`):
+
+    .\scripts\traj_run.ps1 --dry-run        # what would run (60 questions + 40 small patches, mixed 3 + 2; nothing is run)
+    .\scripts\traj_run.ps1 --count 5        # first test
+    .\scripts\traj_run.ps1                  # everything not done yet; Ctrl+C is safe, run again to continue
+
+`scripts/traj_tasks.json` is made by `python scripts/traj_make_tasks.py` from the code itself (symbols, line numbers and gaps are read with `ast`): files no earlier task used, patches only in files whose
+checks can reach VERIFIED (a mapped test area) and never in money, salary, billing or login code (questions may read anything). If your earlier tasks used some of its files, the list is made again
+for your files before the first task runs. Each task runs through the real `python -m ai.dev_agent run "<task>"` (plan approved automatically) in its own throw-away copy of the repo
+(`<work_dir>/traj_batch`, model = `best_model` of `agent_loop_training.json`, i.e. recovery), so your files never change; the finished task folder is copied into `coding_agent/tasks`.
+Progress is saved after every task (`traj_done.json`). The same without PowerShell: `python scripts/traj_run.py [--count N --only T012 --redo --timeout S]`.
+
+**Step 2 - extract and review**: `python scripts/ledger_train.py --mode loop --stages extract` writes `coding_agent/traj_review.jsonl`, one row per phase (`<task_id>#<phase>`, `"decision": "pending"`),
+with the whole conversation in the row. Change `decision` to `approved` or `rejected`; re-running extract keeps your decisions. A phase is dropped (reason counted in the log) when: the task has no trace
+(`task_without_trace`), did not finish well, the phase was not clean (invalid-reply nudge, trimming, stop), has no tool call, too many tool errors, is a duplicate, is longer than the trainer's 8192 tokens
+(`too_long_for_trainer`), its plan was rejected or no longer fits (`plan_rejected`, `plan_stale`), its first check failed, it touched a protected file, or **the repo changed since**: every file the task read
+must still be exactly what the task saw (or what the task itself wrote) - `repo_changed`. Read-only tool calls are replayed against the repo and must give the same result (`no_replay`).
+
+**Step 3 - build, train** (free the GPU first: `ollama ps`, then `ollama stop <model>` for each loaded model):
+
+    python scripts/ledger_train.py --mode loop --stages build,train --fresh
+
+`build` writes `work/coding_agent_loop/coding_agent_loop_train.jsonl` and `coding_agent_loop_heldout.json` (held out every 5th TASK, not phase, so a task is always on one side). `train` refuses below
+`min_traces` approved examples. Known difference between training text and live text: in a multi-turn example only the last assistant turn is rendered with the template's empty think block; the
+agent calls Ollama with `think: false`, which puts one before every new reply. The real-loop evaluation below, not the training loss, decides whether the model is good.
+
+**Step 4 - evaluate on the REAL agent loop**: `python scripts/ledger_train.py --mode loop --stages evaluate [--max-eval-tasks N]`. For each held-out task and each of the two models (recovery, new) a fresh copy of
+your working tree is made, the model is pinned in the copy, and the real `python -m ai.dev_agent --root <copy> run "<goal>"` is run (plan approved automatically); the task is scored from what the agent
+logged: *qa* = answered after at least one tool call and every cited file exists; *patch* = completed and the agent's own final checks said VERIFIED; touching a protected file always fails. Text similarity is shown for
+reading only. Verdict **NEW MODEL WINS** only with at least `eval_min_tasks` tasks, `eval_min_gain_points` more tasks done and strictly more done, no worse in questions or patches, no protected file touched, and not
+slower than `eval_max_slower_percent` (median seconds); otherwise "NO WIN" or "NOT ENOUGH TASKS" with the reasons. Report and transcripts: `loop_eval_report.txt`, `loop_eval_results.json`, `loop_eval/<model>/<task>/`.
+Switching the model in Settings stays your decision.

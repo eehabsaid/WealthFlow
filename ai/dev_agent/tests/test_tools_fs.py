@@ -46,6 +46,17 @@ def test_rename_not_in_plan_is_refused(ctx):
     assert (ctx.project.root / "app/calc.py").exists()
 
 
+def test_grep_never_searches_the_logs_of_past_tasks(ctx):
+    log = ctx.project.agent_dir / "tasks" / "20260101-000000-old" / "events.jsonl"
+    log.parent.mkdir(parents=True)
+    log.write_text('{"reply": "def add(a, b): return a + b"}\n', encoding="utf-8")
+    (ctx.project.root / "app/tasks").mkdir()
+    (ctx.project.root / "app/tasks/jobs.py").write_text("def add_job():\n    pass\n", encoding="utf-8")
+    found = call(ctx, "grep", {"pattern": "def add"})["matches"]
+    assert any(m.startswith("app/calc.py:1") for m in found) and any(m.startswith("app/tasks/jobs.py:1") for m in found), "a project folder that happens to be called tasks is searched"
+    assert not any("coding_agent/tasks" in m for m in found)
+
+
 def test_grep_skips_secrets_and_excluded_folders(ctx):
     (ctx.project.root / "node_modules").mkdir()
     (ctx.project.root / "node_modules/x.js").write_text("KEY=secret\n")

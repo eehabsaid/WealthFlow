@@ -26,9 +26,11 @@ def _finished(ledger: Ledger) -> Ledger:
 
 
 class Agent:
-    def __init__(self, project, provider, settings: dict, approver=None, emit=None, cancel=None):
+    def __init__(self, project, provider, settings: dict, approver=None, emit=None, cancel=None, events: bool = False):
+        """`events=True` (the command line) also writes every event, trace events included, to tasks/<id>/events.jsonl; the server does that itself."""
         self.project, self.provider, self.settings = project, provider, settings
         self.approver, self.emit = approver or DenyAll(), emit or (lambda event: None)
+        self._emit_base, self._events, self._logs = self.emit, events, {}
         self.cancel = cancel or CancelToken()
         self.index = Index(project)
 
@@ -39,14 +41,24 @@ class Agent:
             raise AgentError(str(exc)) from exc
         return ToolContext(self.project, self.settings, self.index, ledger, self.approver, scope, readonly, package, {}, ledger.approved_keys(), self.emit, self.cancel, attachments)
 
+    def _tee(self, ledger: Ledger) -> None:
+        if not self._events:
+            return
+        from ai.dev_agent.service.events import EventLog
+
+        log = self._logs.setdefault(ledger.id, EventLog(ledger.dir / "events.jsonl"))
+        self.emit = lambda event: (log.append(event), self._emit_base(event))[1]
+
     def _load(self, task_id: str) -> Ledger:
         ledger = Ledger.load(self.project, task_id)
+        self._tee(ledger)
         ledger.listener = self.emit   # ledger events (status changes, invalid replies) reach the live feed too
         return ledger
 
     def plan(self, task: str, ledger: Ledger | None = None) -> Ledger:
         """Investigate read-only and propose a plan. `ledger` lets a UI create the task first so it knows the task id at once."""
         ledger = ledger or Ledger.create(self.project, task)
+        self._tee(ledger)
         ledger.listener = self.emit
         try:
             with runlock.hold(ledger):
@@ -62,7 +74,7 @@ class Agent:
         for attempt in range(3):
             fix = "\n\nYour previous plan was rejected:\n- " + "\n- ".join(problems) if problems else ""
             first = f"TASK: {task}\n\n{background}\n\n{PLAN_FORMAT}{fix}"
-            res = run_phase(ctx, self.provider, system_prompt(True), first, {"plan", "final"}, self.settings["max_steps_per_package"])
+            res = run_phase(ctx, self.provider, system_prompt(True), first, {"plan", "final"}, self.settings["max_steps_per_package"], label="plan")
             if res.kind == "stopped":
                 ledger.set_status("stopped", res.reason)
                 report.write(ledger)
@@ -121,7 +133,7 @@ class Agent:
             pkg["status"] = "running"
             task = (f"{ledger.brief(pkg['id'])}\n\nDo ONLY the steps of package {pkg['id']}: {', '.join(pkg['steps'])}. Files: {', '.join(pkg['files'])}. Files that belong only to other packages are refused.\n"
                     "When finished, reply {\"final\": \"what you changed and what you did not check\"}." + (f"\n\n{recovery.NOTE}" if resumed else ""))
-            res = run_phase(ctx, self.provider, system_prompt(False), task, {"final"}, self.settings["max_steps_per_package"])
+            res = run_phase(ctx, self.provider, system_prompt(False), task, {"final"}, self.settings["max_steps_per_package"], label=f"package {pkg['id']}")
             if res.kind == "stopped":
                 return self._stop(ledger, pkg, res.reason)
             pkg["summary"] = str(res.payload)[:400]

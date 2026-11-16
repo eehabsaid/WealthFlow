@@ -2,6 +2,8 @@ import { ApiError, type AgentClient, type Subscription } from "./client";
 import { readAttachment, type Chip, type Item, type Kind } from "./attach";
 
 export const PROVIDERS = ["ollama", "anthropic", "openai", "gemini"];
+// The context values the "Context & limits" page may write (coding_agent/agent_settings.json); the server validates and clamps them again.
+export const CONTEXT_KEYS = ["context_window", "reserve_tokens", "max_output_tokens", "max_tool_result_chars", "max_steps_per_package", "max_fix_rounds", "timeout_s", "command_timeout_s"];
 
 // What the bridge needs from VS Code itself (dialogs, editors). Kept as an interface so the bridge is tested in plain Node.
 export interface Host {
@@ -29,10 +31,12 @@ const ALLOWED: [string, RegExp][] = [
   ["GET", /^\/api\/models\?provider=[a-z]+$/],
   ["GET", /^\/api\/keys$/],
   ["GET", /^\/api\/settings$/],
+  ["GET", /^\/api\/settings\/context$/],
   ["POST", new RegExp(`^/api/tasks/${ID}/(approve|reject|resume)$`)],
   ["POST", /^\/api\/stop$/],
   ["POST", new RegExp(`^/api/approvals/${ID}$`)],
   ["PUT", /^\/api\/settings$/],
+  ["PUT", /^\/api\/settings\/context$/],
 ];
 
 function allowed(method: unknown, path: unknown, body: unknown): boolean {
@@ -40,7 +44,9 @@ function allowed(method: unknown, path: unknown, body: unknown): boolean {
   if (!ALLOWED.some(([m, re]) => m === method && re.test(path))) return false;
   if (method === "PUT") {
     const values = (body as { values?: Record<string, unknown> } | undefined)?.values;
-    return !!values && Object.keys(values).every((k) => k === "provider" || k === "model") && Object.values(values).every((v) => typeof v === "string");
+    if (!values || typeof values !== "object") return false;
+    if (path === "/api/settings/context") return Object.keys(values).length > 0 && Object.entries(values).every(([k, v]) => CONTEXT_KEYS.includes(k) && typeof v === "number" && Number.isFinite(v));
+    return Object.keys(values).every((k) => k === "provider" || k === "model") && Object.values(values).every((v) => typeof v === "string");
   }
   return true;
 }

@@ -13,3 +13,7 @@ Settings: `devAgent.pythonPath`, `devAgent.projectRoot`, `devAgent.agentPath` (a
 (same as the CLI and Web UI); "only for the next task" overrides it for one task.
 Install: `npm install && npm run package`, then "Extensions: Install from VSIX...". Development: `npm test` (needs `python3` with the project requirements;
 the Chromium test needs Playwright and is skipped without it).
+
+Context: the chat shows a context meter under the composer (how full the model's context is after each step: used / window, orange at 80%, red at 95% of the usable part) and
+"Context & limits" (the button next to the meter, or "Context & limits…" in the key menu) edits every context value (window, reserve, max output, tool-result size, steps, fix rounds, timeouts) with checks and a list of what changed. Same page as the
+Web UI; values are stored in `coding_agent/agent_settings.json` and apply to the next task.

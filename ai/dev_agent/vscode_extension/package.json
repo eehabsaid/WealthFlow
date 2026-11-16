@@ -24,7 +24,7 @@
   "devDependencies": {
     "@types/node": "^20.19.43",
     "@types/vscode": "^1.85.0",
-    "@vscode/vsce": "^4.1.0",
+    "@vscode/vsce": "^3.9.1",
     "typescript": "^7.0.2"
   },
   "contributes": {
@@ -71,6 +71,12 @@
         "category": "dev_agent"
       },
       {
+        "command": "devAgent.contextSettings",
+        "title": "Context & limits",
+        "category": "dev_agent",
+        "icon": "$(settings-gear)"
+      },
+      {
         "command": "devAgent.setApiKey",
         "title": "Set API key",
         "category": "dev_agent"
@@ -107,6 +113,11 @@
           "command": "devAgent.stop",
           "when": "view == devAgent.chat",
           "group": "navigation@1"
+        },
+        {
+          "command": "devAgent.contextSettings",
+          "when": "view == devAgent.chat",
+          "group": "navigation@2"
         },
         {
           "command": "devAgent.restartServer",
