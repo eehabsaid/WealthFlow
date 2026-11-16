@@ -17,6 +17,7 @@ from ai.dev_agent.memory import store as memstore
 from ai.dev_agent.providers.base import ProviderError
 from ai.dev_agent.providers.registry import KEY_OPTIONAL, PROVIDERS, build_provider
 from ai.dev_agent.settings.secrets import SecretsError, SecretStore
+from ai.dev_agent.settings import context_values
 from ai.dev_agent.settings.store import Settings, SettingsError
 
 
@@ -120,6 +121,7 @@ def main(argv=None) -> int:
             store = Settings(project)
             data = store.set(args.key, args.value) if args.action == "set" and args.key and args.value is not None else store.load()
             print(f"provider: {data['provider']}  model: {data['model'] or '(not chosen)'}  context: {data['context_window']}  reserve: {data['reserve_tokens']}")
+            print("\n".join(context_values.report(data)))
         elif args.cmd == "set-key":
             secrets = SecretStore(forbid_under=project.root)
             print(f"{args.provider} key saved in the {secrets.set(args.provider, getpass.getpass(f'{args.provider} API key (hidden): '))}")

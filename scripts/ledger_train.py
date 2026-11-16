@@ -8,7 +8,7 @@ without you having approved examples first (build refuses with nothing approved)
 --mode loop trains the AGENT-LOOP model instead (the default mode is unchanged): extract = scan coding_agent/tasks for tasks with a full trace (events.jsonl)
 and write coding_agent/traj_review.jsonl, one row per clean phase (multi-turn: system, user, assistant tool calls, tool results, final answer) for you to
 approve/reject; build = the approved rows as one train/held-out split, held out by TASK; train = coding_agent/agent_loop_training.json, registers
-"<base>-coding_agent_loop"; evaluate = runs the REAL dev agent (python -m ai.dev_agent run) on the held-out tasks with the recovery model and with the new
+"<base>-coding_agent"; evaluate = runs the REAL dev agent (python -m ai.dev_agent run) on the held-out tasks with the recovery model and with the new
 model, in throw-away copies of the repo, and compares what each really got done (--max-eval-tasks N limits it). Nothing is ever switched in Settings."""
 
 import argparse

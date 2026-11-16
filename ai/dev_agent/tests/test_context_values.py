@@ -78,6 +78,17 @@ def test_warnings_for_a_reply_cap_bigger_than_the_reserve(repo):
     assert any("can overflow" in w for w in out["warnings"]) and not any("Only" in w for w in out["warnings"])
 
 
+def test_the_warning_names_the_reserve_that_fixes_it_and_the_fixed_values_warn_about_nothing():
+    saved_state = {"context_window": 150_000, "reserve_tokens": 140_000, "max_output_tokens": 81_920}
+    assert cv.suggested_reserve(150_000, 81_920) == 90_000, "a full 81,920-token reply plus 8,000 for the final checks: 60,000 tokens stay usable"
+    assert "Suggested reserve: 90,000" in cv.warnings(saved_state)[0]
+    assert cv.warnings({**saved_state, "reserve_tokens": 90_000}) == []
+    small_reply = {"context_window": 150_000, "reserve_tokens": 28_000, "max_output_tokens": 81_920}
+    assert "can overflow" in cv.warnings(small_reply)[0] and "Suggested reserve: 90,000" in cv.warnings(small_reply)[0]
+    assert cv.suggested_reserve(150_000, 8_192) == 23_000 and cv.suggested_reserve(150_000, 150_000) == 112_000, "never more than three quarters of the window"
+    assert cv.warnings({"context_window": 150_000, "reserve_tokens": 28_000, "max_output_tokens": 8_192}) == []
+
+
 def test_no_change_means_no_write(repo):
     cv.apply(repo, {"timeout_s": 1200})
     path = repo.agent_dir / "agent_settings.json"

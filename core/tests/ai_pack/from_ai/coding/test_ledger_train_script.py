@@ -79,7 +79,7 @@ class ScriptModeTests(SimpleTestCase):
         names = self.run_main("--mode", "loop", "--stages", "build,evaluate", "--max-eval-tasks", "2")
         self.assertEqual(names, ["ledger_review.build_traj", "loop_eval.run"])
         args, kwargs = self.call("loop_eval.run")[1:]
-        self.assertEqual(args[0], ("qwen3.8:27b-recovery", "qwen3.8:27b-coding_agent_loop"))
+        self.assertEqual(args[0], ("qwen3.8:27b-recovery", "qwen3.8:27b-coding_agent"))
         self.assertEqual([(t["task_id"], t["kind"]) for t in args[1]], [("a-qa", "qa"), ("b-patch", "patch")])
         self.assertEqual(kwargs["restart"], "restart")
 

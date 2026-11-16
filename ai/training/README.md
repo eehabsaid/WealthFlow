@@ -198,7 +198,7 @@ held out yet) reports `"no_tasks"` and says to run `build` first, rather than si
 trained on one question -> one answer. This second model is trained on whole real conversations: system prompt, task, the model's own tool calls, the real tool results, the final answer or plan -
 in the exact format the agent sends to Ollama. Nothing is invented: every example is rebuilt from what a real task logged in `events.jsonl`, and only examples you approve are trained on.
 `--mode loop` selects it; without `--mode` everything above works exactly as before. Config: `coding_agent/traj_training.json` (extraction) and `coding_agent/agent_loop_training.json`
-(model `<base>-coding_agent_loop`, continues from recovery's adapter, `min_traces` 40, evaluation limits). The model in Settings is never switched.
+(model `<base>-coding_agent`, continues from recovery's adapter, `min_traces` 40, evaluation limits). The model in Settings is never switched.
 
 **Step 1 - run about 100 real tasks** (new tasks log the full trace; old task folders have no tool results and are skipped as `task_without_trace`):
 

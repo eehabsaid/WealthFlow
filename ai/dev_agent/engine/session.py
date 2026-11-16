@@ -12,7 +12,7 @@ from ai.dev_agent.engine.cancel import Cancelled
 from ai.dev_agent.tools import call
 from ai.dev_agent.engine import meter
 from ai.dev_agent.engine.budget import Budget, ContextOverflow, clip_text, tokens
-from ai.dev_agent.engine.trace import Trace
+from ai.dev_agent.engine.trace import Trace, succeeded
 from ai.dev_agent.engine.protocol import error_details, nudge_for, parse_reply
 
 
@@ -29,8 +29,8 @@ def _brief(args) -> str:
 
 
 def _summary(name: str, result: dict) -> str:
-    """One short line for the live feed (never file contents)."""
-    if "error" in result:
+    """One short line for the live feed (never file contents). An empty `error` (edit_files has the key even when all went well) is not an error."""
+    if result.get("error"):
         return str(result["error"])[:240]
     if name == "edit_files":
         return ", ".join(f"{f['path']}: {f['state']}" for f in result.get("files", []))[:240]
@@ -132,7 +132,7 @@ def _converse(ctx, provider, system: str, first: dict, accept: set[str], max_ste
             trace.message(step, "repeat_warning", warn)
             continue
         result = call(ctx, name, args)
-        ctx.emit({"type": "tool", "name": name, "ok": "error" not in result, "args": _brief(args), "summary": _summary(name, result)})
+        ctx.emit({"type": "tool", "name": name, "ok": succeeded(result), "args": _brief(args), "summary": _summary(name, result)})
         content = f"TOOL RESULT {name}:\n" + clip_text(json.dumps(result, ensure_ascii=False, default=str), s["max_tool_result_chars"])
         messages.append({"role": "user", "content": content})
         trace.tool(step, name, args, result, content)

@@ -30,8 +30,9 @@ def _result(value) -> tuple[object, int]:
     return (clean if len(raw) <= CAP else {"truncated": True, "text": raw[:CAP]}), hits
 
 
-def _ok(result: dict) -> bool:
-    """A tool succeeded when it says so (`ok`), else when it carries no error. (edit_files always has an `error` key, empty when all went well.)"""
+def succeeded(result: dict) -> bool:
+    """A tool succeeded when it says so (`ok`), else when it carries no error. (edit_files always has an `error` key, empty when all went well: the mere presence of
+    the key never means failure.) The one rule for the live feed (engine/session.py) and the training trace."""
     return bool(result["ok"]) if "ok" in result else not result.get("error")
 
 
@@ -59,7 +60,7 @@ class Trace:
         full, h1 = _result(result)
         sent, h2, cut = _text(message)
         clean_args, h3 = _result(args)
-        self._emit("tool_result", step, tool=name, args=clean_args, ok=_ok(result), result=full, message=sent, redactions=h1 + h2 + h3, truncated=cut)
+        self._emit("tool_result", step, tool=name, args=clean_args, ok=succeeded(result), result=full, message=sent, redactions=h1 + h2 + h3, truncated=cut)
 
     def message(self, step: int, why: str, content: str) -> None:
         text, hits, _ = _text(content)

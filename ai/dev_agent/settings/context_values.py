@@ -13,6 +13,8 @@ reply cap bigger than the reserve (a maximum-size reply may not fit). Values alr
 
 from __future__ import annotations
 
+import math
+
 from ai.dev_agent.settings.store import DEFAULTS, Settings, SettingsError
 
 MIN_USABLE = 4096   # window - reserve: what the agent may fill before it starts trimming old steps
@@ -50,16 +52,35 @@ def _number(key: str, raw) -> int:
     return int(round(number))
 
 
+def suggested_reserve(window: int, out: int) -> int:
+    """The reserve that suits these two values: room for one full-size reply plus 8,000 for the final checks (at least 15% of the window), but never so much that
+    less than a quarter of the window stays usable. Rounded up to 1,000."""
+    wanted = math.ceil(max(out + 8_000, window * 0.15) / 1000) * 1000
+    return max(SPEC["reserve_tokens"][3], min(wanted, int(window * (1 - LOW_SHARE)) // 1000 * 1000, window - MIN_USABLE))
+
+
 def warnings(data: dict) -> list[str]:
     """Findings about the saved values (not errors): what the engine will do with them."""
     window, reserve, out = data["context_window"], data["reserve_tokens"], data["max_output_tokens"]
-    usable, found = window - reserve, []
+    usable, found, better = window - reserve, [], suggested_reserve(window, out)
+    advice = f" Suggested reserve: {better:,} (room for a reply of {out:,} tokens plus 8,000)." if better < reserve else ""
     if usable < window * LOW_SHARE:
-        found.append(f"Only {usable:,} of {window:,} tokens can be used before the agent trims old steps: {reserve:,} are reserved. "
-                     f"Long tasks will lose earlier steps (reserve is meant to be about 15-20% of the window).")
+        found.append(f"Only {usable:,} of {window:,} tokens can be used before the agent trims old steps: {reserve:,} are reserved. Long tasks will lose earlier steps.{advice}")
     if out > reserve:
-        found.append(f"A reply may be up to {out:,} tokens but only {reserve:,} are reserved for it, so a maximum-size reply can overflow the window.")
+        found.append(f"A reply may be up to {out:,} tokens but only {reserve:,} are reserved for it, so a maximum-size reply can overflow the window."
+                     + (f" Suggested reserve: {better:,}." if better > reserve else ""))
     return found
+
+
+def report(data: dict) -> list[str]:
+    """Plain lines for the command line: how much context one task really has, every warning, and the command that fixes the reserve."""
+    window, reserve, out = data["context_window"], data["reserve_tokens"], data["max_output_tokens"]
+    found, better = warnings(data), suggested_reserve(window, out)
+    lines = [f"usable per task: {window - reserve:,} of {window:,} tokens (the agent trims old steps beyond that; longest reply {out:,})"]
+    lines += [f"WARNING: {text}" for text in found]
+    if found and better != reserve:
+        lines.append(f"To fix: python -m ai.dev_agent settings set reserve_tokens {better}")
+    return lines
 
 
 def describe(data: dict) -> list[dict]:

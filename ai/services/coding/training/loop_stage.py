@@ -1,6 +1,6 @@
 """Training wiring for the agent-loop model: ONE model trained on the approved multi-turn trajectories of real dev-agent tasks (coding_agent/traj_review.jsonl),
 with the same WSL trainer/export/Ollama-registration machinery as every other local model (stage.py). It continues from your recovery model's own adapter, NOT from
-the single-turn coding_agent model (which answered in one turn and so failed inside the agent), and registers the result under its own name, "<base>-coding_agent_loop".
+the single-turn coding_agent model (which answered in one turn and so failed inside the agent), and registers the result as "<base>-coding_agent" (the name in agent_loop_training.json).
 Its config is coding_agent/agent_loop_training.json: min_traces (the approval gate) is the same 40 as for the other coding model. Never switches the model in Settings."""
 
 from __future__ import annotations
