@@ -77,3 +77,28 @@ def test_unusual_wording_is_caught_by_what_the_model_claims_and_by_more_verbs(re
     odd = "Have a look at app/calc.py for me."   # unclear wording: a plain answer is fine, but "I added ..." is never accepted
     assert agent(repo, [final("it holds add().")]).plan(odd).data["status"] == "answered"
     assert agent(repo, [CLAIM, CLAIM, CLAIM]).plan(odd).data["status"] == "stopped"
+
+
+QA_FAILED = "What parameters does `build_instance_kwargs` in `core/services/restore/instance_builder.py` take, what does it return, and what happens on bad input? Answer only; do not plan or change anything."
+PROMISE = final("I'll read the file to answer.")   # what the trained model answered in the 16 Nov evaluation, with 0 tool calls
+
+
+def test_a_promise_to_read_is_not_an_answer_the_model_is_sent_back_to_read(repo):
+    a = agent(repo, [PROMISE, tool("read_file", path="app/calc.py"), final("add(a, b) returns a + b (app/calc.py); it never raises for bad input.")])
+    ledger = a.plan(QA_FAILED)
+    assert ledger.data["status"] == "answered" and ledger.data["answer"].startswith("add(a, b) returns") and not ledger.data["plan"]
+    assert "only a promise to read" in a.provider.calls[1][1][0]["content"]
+
+
+def test_a_model_that_only_keeps_promising_fails_after_three_attempts(repo):
+    ledger = agent(repo, [PROMISE, PROMISE, PROMISE]).plan(QA_FAILED)
+    assert ledger.data["status"] == "stopped" and ledger.data["stop_reason"].startswith("FAILED:") and "promise to read" in ledger.data["stop_reason"]
+
+
+def test_real_answers_are_never_taken_for_promises():
+    from ai.dev_agent.engine.intent import is_stub
+
+    assert is_stub("I'll read the file to answer.") and is_stub("Let me look at the code first.") and is_stub("Okay, I will check app/calc.py.")
+    for real in ("add(a, b) returns a + b.", "Let me explain: add returns a + b, see app/calc.py.", "I read app/calc.py: add returns a + b.",
+                 "The function checks the input and returns a + b.", "I'll summarise:\n- add returns a + b"):
+        assert not is_stub(real), real

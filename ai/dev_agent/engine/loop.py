@@ -12,7 +12,7 @@ from ai.dev_agent.engine import packages, recovery, report, runlock
 from ai.dev_agent.engine.attachments import Attachments, AttachmentError
 from ai.dev_agent.engine.cancel import CancelToken
 from ai.dev_agent.engine.fix import verify_and_fix
-from ai.dev_agent.engine.intent import NO_PLAN, refuse, wrote_files
+from ai.dev_agent.engine.intent import FAILED, refuse, wrote_files
 from ai.dev_agent.engine.protocol import PLAN_FORMAT, system_prompt
 from ai.dev_agent.engine.session import run_phase
 
@@ -80,9 +80,10 @@ class Agent:
                 ledger.set_status("stopped", res.reason)
                 report.write(ledger)
                 return ledger
-            if res.kind == "final" and refuse(self.project, task, str(res.payload)):   # a change request is never finished by words: ask again, and fail after 3 attempts
-                ledger.event("claimed_done_without_plan", text=str(res.payload)[:500])
-                problems = [NO_PLAN]
+            why = refuse(self.project, task, str(res.payload)) if res.kind == "final" else ""
+            if why:   # a change request is never finished by words, nor a question by a promise to read: ask again, and fail after 3 attempts
+                ledger.event("refused_final_answer", text=str(res.payload)[:500])
+                problems = [why]
                 continue
             if res.kind == "final":   # a question, or "no change needed" with checked evidence
                 ledger.data["answer"] = str(res.payload)
@@ -93,7 +94,7 @@ class Agent:
             if not problems:
                 break
         else:
-            ledger.set_status("stopped", ("FAILED: the model claimed the task was done without a plan or an edit (nothing was changed)" if problems == [NO_PLAN]
+            ledger.set_status("stopped", (FAILED[problems[0]] if problems and problems[0] in FAILED
                                           else "no valid plan after 3 attempts: " + "; ".join(problems[:4])))
             report.write(ledger)
             return ledger

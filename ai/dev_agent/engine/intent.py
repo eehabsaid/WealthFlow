@@ -22,6 +22,15 @@ CLAIM = re.compile(r"^\W*(?:added|updated|changed|fixed|created|implemented|modi
 ESCAPE = re.compile(r"^\W*NO CHANGE NEEDED\b.*?\bEVIDENCE:\s*(?P<path>[^\s:]+(?:\\[^\s:]+)*)\s*:\s*(?P<text>.{8,})$", re.I | re.S)
 
 
+STUB = re.compile(r"^\W*(?:ok(?:ay)?[,.]?\s+)?(?:i(?:'ll| will|'m going to| am going to)|let me|let's|first,? i|now i|going to)\b[^.?!:]{0,60}\b(?:read|look|check|open|inspect|investigate|search|examine)\b", re.I)
+
+
+def is_stub(answer: str) -> bool:
+    """A promise instead of an answer ("I'll read the file to answer."): the trained model sometimes ends a question this way without having read anything."""
+    text = (answer or "").strip()
+    return len(text) <= 240 and "\n" not in text and bool(STUB.match(text))
+
+
 def needs_changes(task: str) -> bool:
     text = (task or "").strip()
     if READ_ONLY.search(text) or QUESTION.match(text):
@@ -47,9 +56,12 @@ def evidence_ok(project, answer: str) -> bool:
         return False
 
 
-def refuse(project, task: str, answer: str) -> bool:
-    """True when a `final` answer in the planning phase must not count: a change task (or a claim of having changed something) with no plan and no real evidence."""
-    return (needs_changes(task) or claims_change(answer)) and not evidence_ok(project, answer)
+def refuse(project, task: str, answer: str) -> str:
+    """The reason (the text sent back to the model) when a `final` answer in the planning phase must not count, else "". A promise to read is never an answer;
+    a change task (or a claim of having changed something) with no plan and no real evidence is not finished."""
+    if is_stub(answer):
+        return NO_READ
+    return NO_PLAN if (needs_changes(task) or claims_change(answer)) and not evidence_ok(project, answer) else ""
 
 
 def wrote_files(ledger) -> bool:
@@ -60,3 +72,9 @@ def wrote_files(ledger) -> bool:
 NO_PLAN = ("You answered with {\"final\"} but the TASK asks you to change files, and no change was made. A change task is never finished by words: reply with a {\"plan\": ...} "
            "naming the file to edit. Do not say it is done. Only if the file already satisfies the task, reply {\"final\": \"NO CHANGE NEEDED: <why> | EVIDENCE: <path>: <exact text "
            "copied from that file>\"}; the text is checked against the file.")
+
+NO_READ = ("Your {\"final\"} was only a promise to read, not an answer. Use read_file, grep or search_index now to look at the code, then reply with {\"final\": \"the real answer\"} "
+           "that cites the files you read.")
+
+FAILED = {NO_PLAN: "FAILED: the model claimed the task was done without a plan or an edit (nothing was changed)",
+          NO_READ: "FAILED: the model answered with a promise to read instead of reading the code and answering"}
