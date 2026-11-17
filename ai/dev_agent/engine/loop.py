@@ -12,7 +12,7 @@ from ai.dev_agent.engine import packages, recovery, report, runlock
 from ai.dev_agent.engine.attachments import Attachments, AttachmentError
 from ai.dev_agent.engine.cancel import CancelToken
 from ai.dev_agent.engine.fix import verify_and_fix
-from ai.dev_agent.engine.intent import NO_PLAN, needs_changes, wrote_files
+from ai.dev_agent.engine.intent import NO_PLAN, refuse, wrote_files
 from ai.dev_agent.engine.protocol import PLAN_FORMAT, system_prompt
 from ai.dev_agent.engine.session import run_phase
 
@@ -80,11 +80,11 @@ class Agent:
                 ledger.set_status("stopped", res.reason)
                 report.write(ledger)
                 return ledger
-            if res.kind == "final" and needs_changes(task):   # a change request is never finished by words: ask again, and fail after 3 attempts
+            if res.kind == "final" and refuse(self.project, task, str(res.payload)):   # a change request is never finished by words: ask again, and fail after 3 attempts
                 ledger.event("claimed_done_without_plan", text=str(res.payload)[:500])
                 problems = [NO_PLAN]
                 continue
-            if res.kind == "final":   # a question
+            if res.kind == "final":   # a question, or "no change needed" with checked evidence
                 ledger.data["answer"] = str(res.payload)
                 ledger.set_status("answered")
                 report.write(ledger)

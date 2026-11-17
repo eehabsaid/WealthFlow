@@ -88,4 +88,4 @@ The real `scripts/run_full_e2e.py` is never started by the tests (they use a sta
 ## A change request is never finished by words
 `engine/intent.py` reads the task text: an imperative edit goal ("Add a one-line module docstring at the top of ...") needs a plan. If the model answers `final` instead,
 it is asked again (up to 3 times) and then the task stops as `FAILED: the model claimed the task was done without a plan or an edit`. An approved plan whose run changed no
-file also ends `FAILED`, never `completed`. A question, or a task that says "Answer only; do not plan ...", is still answered directly without a plan.
+file also ends `FAILED`, never `completed`. A change task that is really already done may answer `NO CHANGE NEEDED: <why> | EVIDENCE: <path>: <exact text>`; it is accepted only when that text is in that file (checked, not believed). The same refusal applies to any answer that says "I added/updated/fixed ..." in the read-only planning phase, whatever the task wording. A question, or a task that says "Answer only; do not plan ...", is still answered directly without a plan.

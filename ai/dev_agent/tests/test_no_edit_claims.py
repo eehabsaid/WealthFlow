@@ -56,3 +56,24 @@ def test_the_wording_of_the_batch_goals_is_told_apart():
     assert needs_changes(DOCSTRING) and not needs_changes(QA)
     assert needs_changes("`x` has no docstring: write a clear one for it.") and needs_changes("Add type hints to the functions in `app/calc.py`.")
     assert not needs_changes("Explain how the index is built.") and not needs_changes("Which files import calc?")
+
+
+def test_no_change_needed_is_accepted_only_when_the_quoted_text_is_really_in_the_file(repo):
+    real = final("NO CHANGE NEEDED: calc already works | EVIDENCE: app/calc.py: def add(a, b):")
+    ledger = agent(repo, [real]).plan(DOCSTRING)
+    assert ledger.data["status"] == "answered" and not ledger.data["plan"]
+    fake = final('NO CHANGE NEEDED: it has one | EVIDENCE: app/calc.py: """Calculator helpers."""')
+    assert agent(repo, [fake, fake, fake]).plan(DOCSTRING).data["status"] == "stopped"
+    outside = final("NO CHANGE NEEDED: x | EVIDENCE: ../secret.txt: whatever text here")
+    assert agent(repo, [outside, outside, outside]).plan(DOCSTRING).data["status"] == "stopped"
+
+
+def test_unusual_wording_is_caught_by_what_the_model_claims_and_by_more_verbs(repo):
+    for goal in ("app/calc.py needs a module docstring.", "Read app/calc.py and then introduce a docstring.", "`add` should have type hints.", "Tidy up app/util.py."):
+        assert needs_changes(goal), goal
+    vague = "Look at app/calc.py and improve its first line."   # not a question, and no marker
+    ledger = agent(repo, [CLAIM, CLAIM, CLAIM]).plan(vague)
+    assert ledger.data["status"] == "stopped" and ledger.data["stop_reason"].startswith("FAILED:")
+    odd = "Have a look at app/calc.py for me."   # unclear wording: a plain answer is fine, but "I added ..." is never accepted
+    assert agent(repo, [final("it holds add().")]).plan(odd).data["status"] == "answered"
+    assert agent(repo, [CLAIM, CLAIM, CLAIM]).plan(odd).data["status"] == "stopped"
