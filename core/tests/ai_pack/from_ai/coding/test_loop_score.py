@@ -58,9 +58,11 @@ class ScoreRunTests(TrajRepo):
         self.assertTrue(row["why"].startswith("stopped: "))
 
     def test_a_patch_task_answered_in_words_instead_of_a_plan_is_not_done(self):
-        self.ask(PATCH["goal"], [READ, final("you could add a sub function")])
+        claim = final("you could add a sub function")   # the agent asks 3 times for a plan, then fails the task (ai/dev_agent/engine/intent.py)
+        self.ask(PATCH["goal"], [READ, claim, claim, claim])
         row = self.score(PATCH)
-        self.assertEqual((row["success"], row["why"]), (False, "answered in words instead of making a plan"))
+        self.assertEqual((row["success"], row["status"]), (False, "stopped"))
+        self.assertTrue(row["why"].startswith("stopped: FAILED: the model claimed the task was done without a plan"), row["why"])
 
     def test_a_patch_that_touched_a_protected_file_is_never_done(self):
         money = tool("read_file", path="app/money.py")

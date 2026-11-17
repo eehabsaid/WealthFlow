@@ -12,6 +12,7 @@ from ai.dev_agent.engine import packages, recovery, report, runlock
 from ai.dev_agent.engine.attachments import Attachments, AttachmentError
 from ai.dev_agent.engine.cancel import CancelToken
 from ai.dev_agent.engine.fix import verify_and_fix
+from ai.dev_agent.engine.intent import NO_PLAN, needs_changes, wrote_files
 from ai.dev_agent.engine.protocol import PLAN_FORMAT, system_prompt
 from ai.dev_agent.engine.session import run_phase
 
@@ -79,7 +80,11 @@ class Agent:
                 ledger.set_status("stopped", res.reason)
                 report.write(ledger)
                 return ledger
-            if res.kind == "final":   # a question, or a task that needs no file changes
+            if res.kind == "final" and needs_changes(task):   # a change request is never finished by words: ask again, and fail after 3 attempts
+                ledger.event("claimed_done_without_plan", text=str(res.payload)[:500])
+                problems = [NO_PLAN]
+                continue
+            if res.kind == "final":   # a question
                 ledger.data["answer"] = str(res.payload)
                 ledger.set_status("answered")
                 report.write(ledger)
@@ -88,7 +93,8 @@ class Agent:
             if not problems:
                 break
         else:
-            ledger.set_status("stopped", "no valid plan after 3 attempts: " + "; ".join(problems[:4]))
+            ledger.set_status("stopped", ("FAILED: the model claimed the task was done without a plan or an edit (nothing was changed)" if problems == [NO_PLAN]
+                                          else "no valid plan after 3 attempts: " + "; ".join(problems[:4])))
             report.write(ledger)
             return ledger
         pkgs = packages.split(self.project, plan, self.settings["context_window"], self.settings["reserve_tokens"])
@@ -148,6 +154,8 @@ class Agent:
         self.emit({"type": "phase", "phase": "final checks"})
         ok, why = verify_and_fix(ctx, self.provider, "final", lambda: ledger.changed_files())
         ledger.freeze_result_diffs()   # fixed now, before any later task can touch the same files
+        if ok and not wrote_files(ledger):   # approved and "verified", yet no file was changed: that is not DONE
+            ok, why = False, "FAILED: the plan was approved but no file was changed"
         ledger.set_status("completed" if ok else "stopped", why)
         report.write(ledger)
         return ledger

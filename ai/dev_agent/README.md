@@ -84,3 +84,8 @@ Scripted fake models only: no real Ollama/cloud model, real keyring, Windows or 
 Windows-only test to run on your PC: `python -m pytest ai/dev_agent/tests/test_cancel.py -k windows -v` (Stop kills cmd/python grandchildren).
 Browser tests (`test_web_e2e.py`) need Playwright + Chromium and skip themselves otherwise.
 The real `scripts/run_full_e2e.py` is never started by the tests (they use a stand-in script); run it yourself once on your PC.
+
+## A change request is never finished by words
+`engine/intent.py` reads the task text: an imperative edit goal ("Add a one-line module docstring at the top of ...") needs a plan. If the model answers `final` instead,
+it is asked again (up to 3 times) and then the task stops as `FAILED: the model claimed the task was done without a plan or an edit`. An approved plan whose run changed no
+file also ends `FAILED`, never `completed`. A question, or a task that says "Answer only; do not plan ...", is still answered directly without a plan.

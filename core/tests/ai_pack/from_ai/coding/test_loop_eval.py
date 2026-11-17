@@ -93,7 +93,7 @@ class TwoModelsTests(TrajRepo):
         return outcome, Path(out)
 
     def test_the_new_model_that_really_does_the_tasks_beats_the_one_that_does_not(self):
-        scripts = {"weak": {QA_GOAL: ["Let me read the file first.", "ok", "ok"], PATCH_GOAL: [READ, final("you could add a sub function")]},
+        scripts = {"weak": {QA_GOAL: ["Let me read the file first.", "ok", "ok"], PATCH_GOAL: [READ] + [final("you could add a sub function")] * 3},
                    "good": {QA_GOAL: [READ, final("add returns a + b (app/calc.py)")], PATCH_GOAL: [READ, PLAN, READ, ADD_SUB, final("added sub()")]}}
         calls = []
         outcome, out = self.run_both(scripts, calls)
@@ -103,7 +103,7 @@ class TwoModelsTests(TrajRepo):
         self.assertEqual([r["success"] for r in good], [True, True])
         why = {r["kind"]: r["why"] for r in weak}
         self.assertTrue(why["qa"].startswith("stopped: "), why)
-        self.assertEqual(why["patch"], "answered in words instead of making a plan")
+        self.assertTrue(why["patch"].startswith("stopped: FAILED: the model claimed the task was done without a plan"), why)
         self.assertIn("NEW MODEL WINS", (out / "loop_eval_report.txt").read_text(encoding="utf-8"))
         self.assertEqual(json.loads((out / "loop_eval_results.json").read_text(encoding="utf-8"))["verdict"], "NEW MODEL WINS on real agent-loop tasks")
         for model in scripts:
