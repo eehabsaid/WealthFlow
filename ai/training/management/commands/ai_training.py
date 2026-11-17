@@ -3,7 +3,7 @@
 It builds questions from the live data, asks the configured model, judges every run with code, and writes three files to
 ai/training/output/: agent_traces.jsonl (only proven traces), agent_runs.xlsx (every run) and report.txt (kept / dropped and why).
 Then, if enough traces are proven, it trains the model in WSL2 and registers it in Ollama under a NEW name (your model is never switched).
-Safe to stop and start again. Optional: --profile wealthflow|recovery, --user NAME, --limit N, --seed N, --fresh, --out FOLDER,
+Safe to stop and start again. Optional: --profile wealthflow|recovery|mature, --user NAME, --limit N, --seed N, --fresh, --out FOLDER,
 --dry-run, --stages collect,train,evaluate, --min-traces N.
 `--stages evaluate` compares your model with the new one on fresh test questions and writes a report (it never switches anything)."""
 
@@ -19,7 +19,7 @@ class Command(BaseCommand):
     help = "Record, judge and export Agent-mode training traces (one automatic run)."
 
     def add_arguments(self, parser):
-        parser.add_argument("--profile", choices=("wealthflow", "recovery"), default="wealthflow",
+        parser.add_argument("--profile", choices=("wealthflow", "recovery", "mature"), default="wealthflow",
                             help="training profile (default: wealthflow)")
         parser.add_argument("--user", default="", help="whose data the questions use (default: the first sysadmin)")
         parser.add_argument("--limit", type=int, default=0, help="ask only this many questions (default: all)")
@@ -32,12 +32,13 @@ class Command(BaseCommand):
         parser.add_argument("--min-traces", type=int, default=None, help="proven traces needed before training (default: ai/training/config.json)")
 
     def handle(self, *args, **options):
-        if options["profile"] == "recovery":
+        if options["profile"] in ("recovery", "mature"):
             from ai.training.services import recovery
 
             try:
                 result = recovery.run(stages=options["stages"], dry_run=options["dry_run"], fresh=options["fresh"],
-                                     username=options["user"], log=self.stdout.write)
+                                     username=options["user"], log=self.stdout.write,
+                                     **({"profile_name": "mature"} if options["profile"] == "mature" else {}))
             except (LookupError, get_user_model().DoesNotExist) as exc:
                 raise CommandError(str(exc) or "unknown user") from None
             except (ValueError, FileNotFoundError, RuntimeError) as exc:

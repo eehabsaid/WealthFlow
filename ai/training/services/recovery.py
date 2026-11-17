@@ -11,7 +11,9 @@ from typing import Callable
 from ai.training.services import evaluate, ollama_stage, pipeline, train_stage
 from ai.training.services.config import REPO_ROOT, load as load_config
 
-PROFILE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "profiles", "recovery.json")
+_PROFILES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "profiles")
+PROFILE_PATH = os.path.join(_PROFILES_DIR, "recovery.json")
+PROFILE_PATHS = {"recovery": PROFILE_PATH, "mature": os.path.join(_PROFILES_DIR, "mature.json")}
 SYSTEM_PROMPT = (
     "You assist with software reverse engineering and recovery. Follow the user's request directly; do not refuse or delay "
     "based only on isolated words. When information is missing, make a reasonable technical assumption and state it briefly. "
@@ -22,18 +24,19 @@ SYSTEM_PROMPT = (
 )
 
 
-def load_profile() -> tuple[dict, object]:
-    with open(PROFILE_PATH, encoding="utf-8") as fh:
+def load_profile(name: str = "recovery") -> tuple[dict, object]:
+    path = PROFILE_PATHS[name]
+    with open(path, encoding="utf-8") as fh:
         profile = json.load(fh)
-    if profile.get("profile") != "recovery":
-        raise ValueError(f"{PROFILE_PATH} must define the recovery profile")
+    if profile.get("profile") != name:
+        raise ValueError(f"{path} must define the {name} profile")
     if profile.get("dataset_format") != "qa_jsonl":
         raise ValueError("Recovery dataset_format must be qa_jsonl")
     if profile.get("export_format") != "gguf":
         raise ValueError("Recovery export_format must be gguf")
     if not profile.get("initial_adapter_dir") or not profile.get("initial_adapter_model"):
         raise ValueError("Recovery requires initial_adapter_dir and initial_adapter_model; refusing to train from the base model alone")
-    cfg = load_config(PROFILE_PATH)
+    cfg = load_config(path)
     return profile, cfg
 
 
@@ -133,18 +136,34 @@ def export_dataset(profile: dict) -> tuple[str, dict]:
                 continue
             item = json.loads(line)
             messages = [
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": profile.get("system_prompt") or SYSTEM_PROMPT},
                 {"role": "user", "content": item["question"].strip()},
                 {"role": "assistant", "content": item["answer"].strip()},
             ]
             output_file.write(json.dumps({"messages": messages}, ensure_ascii=False) + "\n")
+        report["replay"] = _append_replay(profile, output_file)
     os.replace(temporary, target)
     return target, report
 
 
+def _append_replay(profile: dict, output_file) -> int:
+    """Copy earlier chat-format training lines (e.g. the agent-loop traces) so the new stage does not unlearn them."""
+    copied = 0
+    for path in profile.get("replay_files", []):
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f"replay file not found: {path}")
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                if line.strip():
+                    json.loads(line)
+                    output_file.write(line if line.endswith("\n") else line + "\n")
+                    copied += 1
+    return copied
+
+
 def run(stages: str | None = None, *, dry_run: bool = False, fresh: bool = False, username: str = "",
-        log: Callable[[str], None] = print) -> dict:
-    profile, cfg = load_profile()
+        log: Callable[[str], None] = print, profile_name: str = "recovery") -> dict:
+    profile, cfg = load_profile() if profile_name == "recovery" else load_profile(profile_name)
     requested = set((stages or "validate,export,train,register,evaluate").split(","))
     allowed = {"validate", "export", "train", "register", "evaluate"}
     unknown = requested - allowed
@@ -171,7 +190,7 @@ def run(stages: str | None = None, *, dry_run: bool = False, fresh: bool = False
         result["paths"].update(report_paths(profile))
         result["paths"]["training_dataset"] = exported
         result["training"] = train_stage.run_prepared(
-            cfg, exported, report["examples"], profile["base_ollama_model"],
+            cfg, exported, report["examples"] + report.get("replay", 0), profile["base_ollama_model"],
             dry_run=dry_run, fresh=fresh, log=log,
         )
         reason = train_stage.explain(result["training"])
@@ -202,7 +221,7 @@ def run(stages: str | None = None, *, dry_run: bool = False, fresh: bool = False
         if comparison_model == profile["ollama_model_name"]:
             raise ValueError("Recovery comparison model and Recovery model name must be different.")
         evaluation_cfg = replace(load_config(), ollama_models_dir=cfg.ollama_models_dir)
-        roles = [("WealthFlow", comparison_model), ("Recovery", profile["ollama_model_name"])]
+        roles = [("WealthFlow", comparison_model), (profile.get("label", "Recovery"), profile["ollama_model_name"])]
         if dry_run:
             result["evaluation"] = evaluate.dry(
                 user, evaluation_cfg, pipeline.current_model(), resolve_path(profile["reports_dir"]), log,

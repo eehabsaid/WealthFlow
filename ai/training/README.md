@@ -232,3 +232,17 @@ logged: *qa* = answered after at least one tool call and every cited file exists
 reading only. Verdict **NEW MODEL WINS** only with at least `eval_min_tasks` tasks, `eval_min_gain_points` more tasks done and strictly more done, no worse in questions or patches, no protected file touched, and not
 slower than `eval_max_slower_percent` (median seconds); otherwise "NO WIN" or "NOT ENOUGH TASKS" with the reasons. Report and transcripts: `loop_eval_report.txt`, `loop_eval_results.json`, `loop_eval/<model>/<task>/`.
 Switching the model in Settings stays your decision.
+
+## Mature profile (`qwen3.8:27b-wealthflow`)
+
+Continues from the `qwen3.8:27b-coding_agent` adapter (`work\\run-coding_agent\\out\\adapter`). Dataset `datasets/mature/questions.jsonl`
+(WealthFlow app rules, coding, reverse engineering: binary analysis, decompiled code, protocols/formats, mobile/web, malware analysis) plus
+a replay of the previous run's `train.jsonl` (agent-loop traces) so the tool-calling format is not forgotten. Settings: `profiles/mature.json`.
+
+```powershell
+python scripts/make_adapter_result.py D:\AI-Models\training\work\run-coding_agent   # only if out\result.json is missing
+python manage.py ai_training --profile mature --stages validate
+python manage.py ai_training --profile mature --stages train
+python manage.py ai_training --profile mature --stages register
+python manage.py ai_training --profile mature --stages evaluate   # compares with qwen3.8:27b-coding_agent
+```

@@ -154,3 +154,31 @@ class RecoveryDatasetTest(SimpleTestCase):
             ("Recovery", profile["ollama_model_name"]),
         ])
         self.assertTrue(result["evaluation"]["ready"])
+
+
+class MatureProfileTest(SimpleTestCase):
+    def test_mature_profile_continues_from_coding_agent_and_names_the_new_model(self):
+        profile, cfg = recovery.load_profile("mature")
+        self.assertEqual(profile["initial_adapter_model"], "qwen3.8:27b-coding_agent")
+        self.assertTrue(profile["initial_adapter_dir"].endswith(r"run-coding_agent\out\adapter"))
+        self.assertEqual(cfg.new_model, "qwen3.8:27b-wealthflow")
+        self.assertNotEqual(cfg.new_model, profile["compare_model_name"])
+        self.assertNotEqual(cfg.run_dir_override, recovery.load_profile()[1].run_dir_override)
+
+    def test_mature_dataset_validates_and_export_uses_its_system_prompt_and_replay(self):
+        profile, _ = recovery.load_profile("mature")
+        report = recovery.validate_dataset(profile, write_report=False)
+        self.assertTrue(report["valid"], report["errors"])
+        self.assertEqual(set(report["topics"]), set(profile["required_topics"]))
+        with tempfile.TemporaryDirectory() as tmp:
+            replay = os.path.join(tmp, "replay.jsonl")
+            with open(replay, "w", encoding="utf-8") as fh:
+                fh.write(json.dumps({"messages": [{"role": "user", "content": "a"}, {"role": "assistant", "content": "b"}]}) + "\n")
+            exported = {**profile, "exported_dataset_path": os.path.join(tmp, "train.jsonl"), "replay_files": [replay],
+                        "reports_dir": tmp}
+            target, result = recovery.export_dataset(exported)
+            with open(target, encoding="utf-8") as fh:
+                rows = [json.loads(line) for line in fh]
+        self.assertEqual(result["replay"], 1)
+        self.assertEqual(len(rows), report["examples"] + 1)
+        self.assertEqual(rows[0]["messages"][0]["content"], profile["system_prompt"])
