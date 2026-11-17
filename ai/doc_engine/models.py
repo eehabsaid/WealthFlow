@@ -152,3 +152,6 @@ class DocumentationModel:
                 t_node.children.extend(t_data['modals'])
                 r_node.children.append(t_node)
             self.nodes.append(r_node)
+
+        from ai.doc_engine.extra_sections import extra_nodes   # chapters that are not web pages (the coding agent)
+        self.nodes.extend(extra_nodes(self.content))

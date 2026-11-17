@@ -1194,5 +1194,41 @@
       "Change the Subject and the Email Body in the Email Template Editor.",
       "Click Save."
     ]
+  },
+  "dev-agent": {
+    "purpose": "The standalone coding agent: a local AI model that reads this project, proposes a plan, waits for your approval, edits the files, runs the checks and reports. It runs from the command line, the web workspace or the VS Code extension, never changes a file before you approve the plan, and refuses protected files (money, salary, billing, sign-in code) unless you allow them. It is separate from the WealthFlow screens and uses no cloud service.",
+    "steps": [
+      "Open a terminal in the project folder and activate the virtual environment.",
+      "Ask a question or give a task: python -m ai.dev_agent run \"your task\" (a question is answered directly; a task that changes files produces a plan).",
+      "Read the plan, then approve it (the command asks you; --yes approves automatically for batch work).",
+      "The agent edits the approved files, runs the checks and writes a report; python -m ai.dev_agent status shows the task.",
+      "A change task is never finished by words alone: if the model only says it is done without a plan and a real edit, the task is marked FAILED."
+    ]
+  },
+  "dev-agent::settings": {
+    "purpose": "How much text the model can hold per task. The context window is the model's total memory; the reserve is kept free for its answer, so the usable room is the window minus the reserve.",
+    "steps": [
+      "Run python -m ai.dev_agent settings to see the window, the reserve and the usable tokens per task.",
+      "If it prints a WARNING, run the one-line fix it shows, for example python -m ai.dev_agent settings set reserve_tokens 90000.",
+      "Only the reserve changes; the model and all other settings stay as they were."
+    ]
+  },
+  "dev-agent::run": {
+    "purpose": "Running tasks and reading the result. Every task keeps a ledger with the plan, the files changed, the checks and the final status.",
+    "steps": [
+      "Plan only: python -m ai.dev_agent plan \"task\"; approve and run later with python -m ai.dev_agent execute TASK_ID.",
+      "Status values: answered (a question), awaiting_approval, completed, stopped (with the reason; FAILED means nothing was changed) and rejected.",
+      "If a change task is really already done, the agent may answer NO CHANGE NEEDED with a quoted line from the file; it is accepted only when that line exists.",
+      "python -m ai.dev_agent memory shows what the agent learned about this project."
+    ]
+  },
+  "dev-agent::training": {
+    "purpose": "Training the local coding model on real tasks from this project, so it plans, edits and answers the way you approved. The trained model is named coding_agent and is compared with the previous model before you use it.",
+    "steps": [
+      "Run the real-task batch: python scripts/traj_run.py (stop with Ctrl+C and run again to continue).",
+      "Review the finished tasks and keep only the good ones in coding_agent/traj_review.jsonl.",
+      "Extract, build and train: python scripts/ledger_train.py --mode loop --stages extract, then build, then train (at least 40 approved traces are needed).",
+      "Evaluate on tasks the model never saw: python scripts/ledger_train.py --mode loop --stages evaluate, and read the report before switching the model in Settings."
+    ]
   }
 }

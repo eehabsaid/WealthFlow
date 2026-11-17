@@ -35,6 +35,18 @@ def test_backup_and_docs(context, reporter, screenshot_logger):
     except Exception as ex:
         reporter.add_step("Documentation Engine Trigger", "Settings", "FAIL", f"Exception: {ex}")
 
+    try:   # the coding agent is not a web page, so it has no screenshot: its chapter comes from the content file (ai/doc_engine/extra_sections.py)
+        import json
+        from ai.doc_engine.config import CONTENT_FILE
+        from ai.doc_engine.extra_sections import extra_nodes
+
+        with open(CONTENT_FILE, encoding="utf-8") as handle:
+            nodes = extra_nodes(json.load(handle))
+        ok = len(nodes) == 1 and len(nodes[0].children) == 3
+        reporter.add_step("Documentation Content: Coding Agent chapter", "Settings", "PASS" if ok else "FAIL", "Admin/technical guides carry the Coding Agent chapter with 3 parts." if ok else "Coding Agent chapter missing in the documentation content.")
+    except Exception as ex:
+        reporter.add_step("Documentation Content: Coding Agent chapter", "Settings", "FAIL", f"Exception: {ex}")
+
     # handleGenerateClick() can open the shared #globalModal ("Generation Validation Failed") and leave it up;
     # close it here so it does not block the next phase.
     close_global_modal(context.page)

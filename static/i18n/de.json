@@ -2921,5 +2921,9 @@
     "ai_agent_tool_generate_image": "Ihr Bild wird erstellt",
     "ai_tool_activity_generate_image": "Ihr Bild wird erstellt...",
     "image_gen_start_command_label": "Server-Startbefehl (optional)",
-    "image_gen_start_command_help": "Wenn gesetzt, startet WealthFlow den Server im Hintergrund, sobald die Bildgenerierung aktiviert ist, wartet bis er antwortet, startet nie eine zweite Kopie und beendet ihn, wenn Sie die Bildgenerierung ausschalten oder WealthFlow beendet wird. Leer lassen, wenn Sie den Server selbst starten."
+    "image_gen_start_command_help": "Wenn gesetzt, startet WealthFlow den Server im Hintergrund, sobald die Bildgenerierung aktiviert ist, wartet bis er antwortet, startet nie eine zweite Kopie und beendet ihn, wenn Sie die Bildgenerierung ausschalten oder WealthFlow beendet wird. Leer lassen, wenn Sie den Server selbst starten.",
+    "docgen_sec_dev_agent": "Coding-Agent",
+    "docgen_sec_dev_agent_settings": "Agent-Einstellungen",
+    "docgen_sec_dev_agent_run": "Aufgaben ausführen",
+    "docgen_sec_dev_agent_training": "Agent trainieren"
 }

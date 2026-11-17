@@ -58,3 +58,7 @@ The engine uses `docs/generated/capture_status.json` to stream live progress, wh
 - **Node module errors**: Ensure you ran `npm install` and that `node_modules` exists in the WealthFlow root.
 - **Missing binaries**: If you see Playwright errors about missing browsers, run `npx playwright install chromium`.
 - **Cancellation**: If you need to stop the script mid-execution programmatically, create an empty file at `docs/generated/cancel.flag`.
+
+## Chapters that are not web pages
+`extra_sections.py` adds guide chapters for things the screenshot capture cannot see (the coding agent: `dev-agent`, `dev-agent::settings|run|training` in
+`content/page_descriptions.json`; titles are the `docgen_sec_dev_agent*` locale keys). They are admin/technical chapters and are skipped when the content key is missing.

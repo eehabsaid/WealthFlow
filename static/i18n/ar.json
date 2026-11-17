@@ -2921,5 +2921,9 @@
     "ai_agent_tool_generate_image": "جارٍ توليد الصورة",
     "ai_tool_activity_generate_image": "جارٍ توليد الصورة...",
     "image_gen_start_command_label": "أمر تشغيل الخادم (اختياري)",
-    "image_gen_start_command_help": "عند ضبطه يشغّل WealthFlow الخادم في الخلفية كلما كان توليد الصور مفعّلاً، وينتظر حتى يستجيب، ولا يشغّل نسخة ثانية، ويوقفه عند تعطيل توليد الصور أو إغلاق WealthFlow. اتركه فارغاً إذا كنت تشغّل الخادم بنفسك."
+    "image_gen_start_command_help": "عند ضبطه يشغّل WealthFlow الخادم في الخلفية كلما كان توليد الصور مفعّلاً، وينتظر حتى يستجيب، ولا يشغّل نسخة ثانية، ويوقفه عند تعطيل توليد الصور أو إغلاق WealthFlow. اتركه فارغاً إذا كنت تشغّل الخادم بنفسك.",
+    "docgen_sec_dev_agent": "وكيل البرمجة",
+    "docgen_sec_dev_agent_settings": "إعدادات الوكيل",
+    "docgen_sec_dev_agent_run": "تشغيل المهام",
+    "docgen_sec_dev_agent_training": "تدريب الوكيل"
 }
