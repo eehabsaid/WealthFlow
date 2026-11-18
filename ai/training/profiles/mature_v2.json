@@ -14,7 +14,7 @@
     "base_model_dir": "D:\\AI-Models\\training\\Qwen3.8-27B",
     "initial_adapter_dir": "D:\\AI-Models\\training\\work\\run-wealthflow\\out\\adapter",
     "initial_adapter_model": "qwen3.8:27b-wealthflow",
-    "base_ollama_model": "qwen3.8:27b-wealthflow",
+    "base_ollama_model": "qwen3.8:27b-coding_agent",
     "compare_model_name": "qwen3.8:27b-coding_agent",
     "ollama_model_name": "qwen3.8:27b-wealthflow",
     "ollama_models_dir": "D:\\ollama\\models",
