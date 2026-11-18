@@ -29,8 +29,11 @@ def _free_gb(path: str) -> float:
 
 
 def _ollama_has(model: str) -> bool:
+    """Only the exit code matters, so no output pipes are opened: with pipes, a stuck `ollama show` (or an Ollama server it started that
+    inherits them) keeps Python waiting past the timeout on Windows, and the whole training command hangs here."""
     try:
-        return subprocess.run(["ollama", "show", model], capture_output=True, timeout=60, stdin=subprocess.DEVNULL).returncode == 0
+        return subprocess.run(["ollama", "show", model], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                              stderr=subprocess.DEVNULL, timeout=30).returncode == 0
     except (OSError, subprocess.SubprocessError):
         return False
 
