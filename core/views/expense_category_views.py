@@ -1,9 +1,10 @@
 # pyright: reportMissingTypeStubs=false, reportPrivateUsage=false, reportUnknownParameterType=false, reportUnknownArgumentType=false, reportUnknownLambdaType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportMissingParameterType=false, reportIncompatibleMethodOverride=false, reportOptionalMemberAccess=false
 
+from django.db.models import Exists, OuterRef, Q
 from django.http import JsonResponse
 from django.views import View
 from core.validators.json_body import parse_json_body
-from core.models import ExpenseCategory, ExpenseSubcategory
+from core.models import Expense, ExpenseCategory, ExpenseSubcategory
 from core.validators import _api_auth_required, _owned_queryset, _owned_object_or_404, _child_owned_object_or_404
 
 
@@ -12,13 +13,29 @@ class ExpenseCategoryListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        cats = _owned_queryset(ExpenseCategory, request).prefetch_related("subcategories")
+        base = _owned_queryset(ExpenseCategory, request)
+        total = base.count()
+
+        search = request.GET.get("search", "").strip()
+        if search:
+            base = base.filter(
+                Q(name__icontains=search) | Q(subcategories__name__icontains=search)
+            ).distinct()
+
+        usage = request.GET.get("usage", "").strip()
+        in_use = Exists(Expense.objects.filter(category=OuterRef("pk")))
+        if usage == "used":
+            base = base.filter(in_use)
+        elif usage == "unused":
+            base = base.filter(~in_use)
+
+        cats = base.prefetch_related("subcategories")
         data = []
         for c in cats:
             d = c.to_dict()
             d["subcategories"] = [s.to_dict() for s in c.subcategories.all()]
             data.append(d)
-        return JsonResponse({"categories": data})
+        return JsonResponse({"categories": data, "count": len(data), "total": total})
 
     def post(self, request):
         auth_error = _api_auth_required(request)
