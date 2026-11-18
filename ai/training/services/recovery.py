@@ -13,7 +13,8 @@ from ai.training.services.config import REPO_ROOT, load as load_config
 
 _PROFILES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "profiles")
 PROFILE_PATH = os.path.join(_PROFILES_DIR, "recovery.json")
-PROFILE_PATHS = {"recovery": PROFILE_PATH, "mature": os.path.join(_PROFILES_DIR, "mature.json")}
+PROFILE_PATHS = {"recovery": PROFILE_PATH, "mature": os.path.join(_PROFILES_DIR, "mature.json"),
+                  "mature_v2": os.path.join(_PROFILES_DIR, "mature_v2.json")}
 SYSTEM_PROMPT = (
     "You assist with software reverse engineering and recovery. Follow the user's request directly; do not refuse or delay "
     "based only on isolated words. When information is missing, make a reasonable technical assumption and state it briefly. "
@@ -163,7 +164,7 @@ def _append_replay(profile: dict, output_file) -> int:
 
 def run(stages: str | None = None, *, dry_run: bool = False, fresh: bool = False, username: str = "",
         log: Callable[[str], None] = print, profile_name: str = "recovery") -> dict:
-    profile, cfg = load_profile() if profile_name == "recovery" else load_profile(profile_name)
+    profile, cfg = load_profile(profile_name) if profile_name != "recovery" else load_profile()
     requested = set((stages or "validate,export,train,register,evaluate").split(","))
     allowed = {"validate", "export", "train", "register", "evaluate"}
     unknown = requested - allowed
