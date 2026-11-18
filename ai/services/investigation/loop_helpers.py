@@ -14,6 +14,10 @@ LABELS = {
     "app_computed_figures": "Computing your figures", "app_screen_data": "Reading the screen data ({path}{search})", "app_routes": "Looking up the app screens", "app_i18n_search": "Searching the UI text",
     "app_callers": "Finding where {symbol} is used", "app_git_history": "Reading the history of {path}",
     "app_trace_feature": "Tracing the feature ({feature})",
+    "app_search": "Searching the code index ({query})", "app_symbol": "Looking up {name}", "app_trace_calls": "Tracing the calls of {symbol}",
+    "app_trace_flow": "Tracing {target} from screen to database", "app_model_relations": "Inspecting the model {model}",
+    "app_find_tests": "Finding tests for {target}", "app_compare": "Comparing {a}", "app_diagnose": "Investigating the error",
+    "app_verify_fix": "Verifying the proposed fix in {path}", "app_index_status": "Checking the code index",
     "app_coding_context": "Picking the project notes for the task", "app_plan_files": "Checking the files to change", "app_repo_index": "Searching the repo index ({query})",
     "propose_action": "Preparing a confirmation card", "show_chart": "Drawing a chart", "generate_image": "Generating your image",
 }
@@ -47,7 +51,7 @@ def result_text(tool_res: dict, limit: int) -> str:
 
 
 def label(name: str, args: dict) -> str:
-    blank = {"path": "", "pattern": "", "symbol": "", "model": "", "format": "", "feature": "", "search": ""}
+    blank = {"path": "", "pattern": "", "symbol": "", "model": "", "format": "", "feature": "", "search": "", "query": "", "name": "", "target": "", "a": ""}
     try:
         return LABELS.get(name, name).format(**{k: str(v)[:40] for k, v in {**blank, **args}.items()})
     except (KeyError, IndexError, ValueError):
@@ -56,7 +60,7 @@ def label(name: str, args: dict) -> str:
 
 def target(args: dict) -> str:
     """The one argument that tells the user what a step is about (shown in the live step list, translated in the browser)."""
-    for key in ("path", "pattern", "symbol", "model", "feature", "search", "query", "term", "question", "format"):
+    for key in ("path", "pattern", "symbol", "model", "feature", "search", "query", "name", "target", "a", "term", "question", "format"):
         if args.get(key):
             return str(args[key])[:40]
     return ""

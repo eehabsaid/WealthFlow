@@ -1,5 +1,6 @@
 from django.urls import path
 from ai.views.ai_platform.knowledge_views import AIPlatformKnowledgeDetailView, AIPlatformKnowledgeView
+from ai.views.ai_platform.knowledge_index_views import AIKnowledgeIndexView
 from ai.views.ai_prompt_views import AIPromptCategoryListView, AIPromptDetailView, AIPromptDuplicateView, AIPromptFavoriteView, AIPromptListView, AIPromptUseView
 from ai.host import feature_required
 
@@ -13,6 +14,10 @@ urlpatterns = [
     path(
         "api/ai-platform/knowledge/<int:pk>/",
         _ai(AIPlatformKnowledgeDetailView.as_view()),
+    ),
+    path(
+        "api/ai-platform/knowledge-index/",
+        _ai(AIKnowledgeIndexView.as_view()),
     ),
     # ── AI Prompt Library ────────────────────────────────────────────────────
     path(

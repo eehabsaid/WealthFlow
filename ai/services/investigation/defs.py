@@ -23,12 +23,14 @@ from ai.services.investigation.defs_helpers import (
     tool as _tool,
 )
 from ai.services.investigation.knowledge_tool import knowledge_search
+from ai.services.knowledge_index import tool_defs as kindex
 from ai.services.coding import tools as coding
 
 __all__ = ["CODE_TOOLS", "DOMAIN", "INVESTIGATION_TOOL_DEFS", "investigation_tool_schemas"]
 CODE_TOOLS = ("app_list_dir", "app_find_files", "app_grep", "app_find_definition", "app_read_file",
               "app_callers", "app_git_history", "app_trace_feature",
-              "app_coding_context", "app_plan_files", "app_repo_index", "app_propose_edit", "app_run_checks", "app_git_diff")   # sysadmin only (see code_tools.code_access_allowed)
+              "app_coding_context", "app_plan_files", "app_repo_index", "app_propose_edit", "app_run_checks", "app_git_diff",
+              *kindex.NAMES)   # sysadmin only (see code_tools.code_access_allowed)
 
 
 INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
@@ -70,6 +72,7 @@ INVESTIGATION_TOOL_DEFS: dict[str, dict[str, Any]] = {t["name"]: t for t in (
 )}
 
 INVESTIGATION_TOOL_DEFS.update(AGENT_TOOL_DEFS)
+INVESTIGATION_TOOL_DEFS.update(kindex.KNOWLEDGE_TOOL_DEFS)
 INVESTIGATION_TOOL_DEFS.update({t["name"]: t for t in (
     _tool("app_coding_context", "For a coding task: the project skills, past decisions and files that matter, cut to a size. Call it first.",
           coding.coding_context, {"task": _p(_S, "the task in a sentence"), "max_chars": _p(_I, "size limit, default 6000")}, ["task"]),

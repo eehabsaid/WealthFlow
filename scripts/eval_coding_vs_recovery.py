@@ -3,7 +3,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wealthflow.settings")
 import django; django.setup()
 
-from dataclasses import replace
 from ai.training.services import evaluate, pipeline
 from ai.training.services.config import load
 

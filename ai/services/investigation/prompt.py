@@ -10,6 +10,7 @@ from ai.services.domain_scope import scope_note
 from ai.services.domains import BUSINESS
 
 from ai.services.investigation import code_tools, paths
+from ai.services.investigation.code_protocol import CODE_PROTOCOL
 
 RULES = """You are WealthFlow's built-in expert. You can READ everything in this app like a developer who cloned it: the user's own business data, the app's documentation{code_clause}.
 Today is {today}. The current user is "{username}".
@@ -81,7 +82,7 @@ def build_agent_prompt(user, schemas: list | None = None, native_tools: bool = T
     code_ok = code_tools.code_access_allowed(user) and domain != BUSINESS
     head = AGENT_HEADER.format(today=datetime.date.today().isoformat(), username=getattr(user, "username", "user"),
                                code_clause=CODE_CLAUSE if code_ok else "")
-    return head + (instructions or effective_instructions()) + _scope(domain) + _tail(user, schemas, native_tools, code_ok)
+    return head + (instructions or effective_instructions()) + (CODE_PROTOCOL if code_ok else "") + _scope(domain) + _tail(user, schemas, native_tools, code_ok)
 
 
 def build_system_prompt(user, schemas: list | None = None, native_tools: bool = True, domain: str = "") -> str:
@@ -90,4 +91,4 @@ def build_system_prompt(user, schemas: list | None = None, native_tools: bool = 
         today=datetime.date.today().isoformat(), username=getattr(user, "username", "user"),
         code_clause=CODE_CLAUSE if code_ok else "", code_rule=CODE_RULE if code_ok else "",
         evidence="path:line for code, figures with period and currency for data")
-    return text + _scope(domain) + _tail(user, schemas, native_tools, code_ok)
+    return text + (CODE_PROTOCOL if code_ok else "") + _scope(domain) + _tail(user, schemas, native_tools, code_ok)

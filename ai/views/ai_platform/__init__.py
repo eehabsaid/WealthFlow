@@ -14,8 +14,10 @@ from ai.views.ai_platform.knowledge_views import (
     AIPlatformKnowledgeView,
     AIPlatformKnowledgeDetailView,
 )
+from ai.views.ai_platform.knowledge_index_views import AIKnowledgeIndexView
 
 __all__ = [
     "AIPlatformKnowledgeView",
     "AIPlatformKnowledgeDetailView",
+    "AIKnowledgeIndexView",
 ]

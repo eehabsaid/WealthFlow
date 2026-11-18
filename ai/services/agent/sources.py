@@ -24,8 +24,9 @@ def _ref(tool: str, args: dict) -> str:
         start = int(args.get("start_line") or 1)
         end = int(args.get("end_line") or start + 119)
         return f"agent:code:{_arg(args, 'path')}:{start}-{end}"
-    if tool in ("app_grep", "app_find_files", "app_find_definition", "app_callers", "app_list_dir"):
-        return f"agent:code:{tool.removeprefix('app_')}:{_arg(args, 'pattern', 'symbol', 'path') or '/'}"
+    if tool in ("app_grep", "app_find_files", "app_find_definition", "app_callers", "app_list_dir", "app_search", "app_symbol", "app_trace_calls",
+                "app_trace_flow", "app_model_relations", "app_find_tests", "app_compare", "app_diagnose", "app_verify_fix", "app_index_status"):
+        return f"agent:code:{tool.removeprefix('app_')}:{_arg(args, 'pattern', 'symbol', 'query', 'name', 'target', 'model', 'a', 'path') or '/'}"
     if tool == "app_git_history":
         return f"agent:git:{_arg(args, 'path')}"
     if tool in ("app_data_query", "app_data_models"):
@@ -46,7 +47,7 @@ def build_sources(steps: list) -> list[str]:
     ok = [s for s in steps if s.get("status") == "success"]
     tools = {s.get("tool", "") for s in ok}
     keys = []
-    if tools & (set(CODE_TOOLS) | {"app_callers", "app_git_history", "app_trace_feature"}):
+    if tools & (set(CODE_TOOLS) | {"app_callers", "app_git_history", "app_trace_feature"}):   # CODE_TOOLS includes the knowledge-index tools
         keys.append("investigation_code")
     if tools & {"app_data_models", "app_data_query", "app_computed_figures", "app_screen_data"}:
         keys.append("investigation_data")

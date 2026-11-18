@@ -23,3 +23,9 @@ class AIConfig(AppConfig):
             CapabilityRegistry.autodiscover()
         except Exception:
             pass
+        try:
+            from ai.services.knowledge_index.autostart import start_background_refresh
+
+            start_background_refresh()   # keeps the code index current after a server start; never runs in tests / migrate / shell
+        except Exception:
+            pass

@@ -21,6 +21,7 @@ Tests:
 17. Agent reads screen data: the Cash Flow endpoint the tool wraps and the translated live step (tests/modules/ai_screen_data.py).
 18. Guide PDF contents on one page (English and Arabic) and translation clean-up (tests/modules/ai_guide_cleanup.py).
 19. Workspace tools: chat rename/search, file attachments, insights, action cards, charts, voice sample (tests/modules/ai_workspace_tools.py).
+20. Code knowledge index: sysadmin status/refresh endpoint, incremental refresh, tool step labels in 4 languages (tests/modules/ai_code_index.py).
 """
 
 from tests.modules.ai_budgets import test_ai_budgets
@@ -40,6 +41,7 @@ from tests.modules.ai_scope_refusal import test_ai_scope_refusal
 from tests.modules.ai_mode_follow import test_ai_mode_follow
 from tests.modules.ai_screen_data import test_ai_screen_data
 from tests.modules.ai_workspace_tools import test_ai_workspace_tools
+from tests.modules.ai_code_index import test_ai_code_index
 
 
 def test_ai_module(context, reporter, screenshot_logger):
@@ -71,3 +73,4 @@ def test_ai_module(context, reporter, screenshot_logger):
     test_ai_screen_data(context, reporter, screenshot_logger)
     test_ai_guide_cleanup(context, reporter, screenshot_logger)
     test_ai_workspace_tools(context, reporter, screenshot_logger)
+    test_ai_code_index(context, reporter, screenshot_logger)
