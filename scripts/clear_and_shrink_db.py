@@ -16,6 +16,7 @@ with connection.cursor() as cursor:
     cursor.execute('DELETE FROM "ai_training_agenttrace"')
     cursor.execute('DELETE FROM "axes_accesslog"')
     cursor.execute('DELETE FROM "core_aiattachment"')
+    cursor.execute('DELETE FROM "django_session"')
 print("All AI training traces deleted.")
 
 # Compact SQLite database
