@@ -4,7 +4,7 @@ import io
 from unittest import mock
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from ai.services.exports.builders.docx import _build as build_docx
 from ai.services.exports.builders.guide_html import build_guide_html
@@ -79,6 +79,12 @@ class ExportTests(TestCase):
 
 
 class SwitchTests(TestCase):
+    def test_test_runs_never_start_a_browser_by_default(self):
+        user = User.objects.create_user("u0", password="x")
+        with mock.patch("ai.services.guide_shots.apply.capture") as cap:
+            self.assertEqual(add_screenshots(GUIDE, user), GUIDE)
+        cap.assert_not_called()
+
     def test_defaults_on_and_settings_roundtrip(self):
         from ai.views.settings.ai_pipeline_settings import get_pipeline_settings, persist_pipeline_settings, validate_pipeline_settings
 
@@ -90,6 +96,7 @@ class SwitchTests(TestCase):
         self.assertTrue(enabled())
         self.assertIs(get_pipeline_settings()["ai_guide_blur"], False)
 
+    @override_settings(AI_GUIDE_SCREENSHOTS_IN_TESTS=True)
     def test_off_means_text_unchanged_and_no_browser(self):
         AISetting.set("ai_guide_screenshots", "false", user=None)
         user = User.objects.create_user("u2", password="x")
@@ -97,6 +104,7 @@ class SwitchTests(TestCase):
             self.assertEqual(add_screenshots(GUIDE, user), GUIDE)
         cap.assert_not_called()
 
+    @override_settings(AI_GUIDE_SCREENSHOTS_IN_TESTS=True)
     def test_failed_capture_leaves_guide_untouched_and_files_saved_when_ok(self):
         user = User.objects.create_user("u3", password="x")
         with mock.patch("ai.services.guide_shots.apply.capture", return_value={}):

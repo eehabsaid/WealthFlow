@@ -5,6 +5,9 @@ from __future__ import annotations
 import logging
 import re
 
+from django.conf import settings
+from django.core import mail
+
 from ai.services.guide_shots import store
 from ai.services.guide_shots.capture import capture
 from ai.services.guide_shots.markers import insert
@@ -22,8 +25,13 @@ def is_guide(markdown: str) -> bool:
     return len(re.findall(r"(?m)^##\s", markdown or "")) >= MIN_CHAPTERS and "```" not in (markdown or "")
 
 
+def _skip_in_tests() -> bool:
+    """Django's test runner (it installs mail.outbox) never starts a browser unless a test opts in with AI_GUIDE_SCREENSHOTS_IN_TESTS."""
+    return hasattr(mail, "outbox") and not getattr(settings, "AI_GUIDE_SCREENSHOTS_IN_TESTS", False)
+
+
 def add_screenshots(markdown: str, user, origin: str = "") -> str:
-    if not markdown or user is None or not enabled() or not is_guide(markdown):
+    if not markdown or user is None or _skip_in_tests() or not enabled() or not is_guide(markdown):
         return markdown
     blurred = blur()
     plan = targets(user, blurred)
