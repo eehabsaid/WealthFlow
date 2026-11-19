@@ -27,6 +27,7 @@ const ICONS = {
   sliders: [
     ["path", { d: "M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6" }],
   ],
+  copy: [["rect", { x: 9, y: 9, width: 11, height: 11, rx: 2 }], ["path", { d: "M5 15V6a2 2 0 0 1 2-2h9" }]],
   shield: [["path", { d: "M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" }], ["path", { d: "m9 12 2 2 4-4" }]],
   check: [["path", { d: "m20 6-11 11-5-5" }]],
   x: [["path", { d: "M18 6 6 18M6 6l12 12" }]],

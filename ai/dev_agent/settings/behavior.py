@@ -21,7 +21,7 @@ SPEC = {
     "deep_search": ("Deep search", "speed",
                     "Longer file reads (1,200 lines per call), more search and grep results, 3x bigger tool results and more room to repeat a lookup: finds the right files faster."),
     "quick_mode": ("Quick mode for small tasks", "speed",
-                   "The plan is kept short (one or two steps) and runs right after planning (like turning the plan approval off), and the work is verified once instead of twice."),
+                   "The plan is kept short (one or two steps) and the work is verified once instead of twice. It does not change the plan approval: switch that off separately if you want no OK step."),
     "light_verification": ("Lighter verification", "speed",
                            "Skips the line-limit and test-mapping checks that stop small tasks. Syntax checks, lint and tests that are mapped still run; the report says what was skipped."),
 }

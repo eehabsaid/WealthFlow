@@ -127,8 +127,17 @@ def test_with_plan_approval_on_the_task_waits(repo):
     assert idle(svc) and svc.ledger(task_id).data["status"] == "awaiting_approval"
 
 
-def test_quick_mode_runs_without_asking_and_verifies_once(repo):
+def test_quick_mode_with_approval_on_still_waits_for_you(repo):
     behavior.apply(repo, {"quick_mode": True})
+    model = Scripted([NEW])
+    svc = service(repo, model)
+    task_id = svc.start_task("add more")
+    assert idle(svc) and svc.ledger(task_id).data["status"] == "awaiting_approval"
+    assert "QUICK MODE" in model.calls[0][1][0]["content"] and not (repo.root / "app/more.py").exists()
+
+
+def test_quick_mode_with_approval_off_runs_and_verifies_once(repo):
+    behavior.apply(repo, {"quick_mode": True, "require_plan_approval": False})
     model = Scripted([NEW, edit({"path": "app/more.py", "content": "X = 1\n"}), final("done")])
     svc = service(repo, model)
     task_id = svc.start_task("add more")

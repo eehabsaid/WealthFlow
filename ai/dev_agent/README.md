@@ -47,6 +47,8 @@ The CLI, the Web UI and the VS Code extension all drive the same `Agent`; each w
   `stopped` ("interrupted ... Resume continues it"), marks the interrupted package, and makes the ledger match the files on disk. Resume repeats no finished package.
   Lock files and the event log also survive a crash (stale locks of dead processes are broken; a torn last log line no longer corrupts the next event).
 
+- **Copy**: every message you sent and the Answer / Task completed / Task stopped cards have a copy icon (Web UI and VS Code); it turns into a check mark when the text is on the clipboard.
+
 ## Chats: follow-ups continue the same conversation
 - A chat is a thread of tasks. A message sent while a task is open in the panel is a **follow-up**: it joins that chat (`chat_id` in the ledger, `chat` in `POST /api/tasks`)
   and the planner starts with what the earlier tasks of the chat asked and did (goal, outcome, answer or plan, files touched; newest kept, at most ~6,000 characters).
@@ -61,7 +63,7 @@ On/off switches saved in `coding_agent/agent_settings.json` (applied to the next
 - `ask_other_commands`: off = a harmless command that is only missing from the allow list runs. Destructive commands, installs, network, paths outside the project, `ask_args` and the project's own ask list still ask; git writes, wrappers (`bash -c`) and the deny list stay blocked.
 - `ask_protected_files`: off = files listed as `protected` in `config.json` (balances, salary, cash flow, billing, authentication) are changed without asking. Keep it on if you want the old guarantee.
 - `deep_search`: `read_file` returns up to 1,200 lines per call (400), `search_index` 40 results (15), `grep` up to 600 matches (200), tool results are 3x longer, a repeated lookup is stopped after 6 repeats (4).
-- `quick_mode`: the planner is told to keep the plan to one or two steps, the plan is approved automatically, and the work is verified once (no second "final checks" pass when there is one package).
+- `quick_mode`: the planner is told to keep the plan to one or two steps and the work is verified once (it never approves a plan for you: that is only `require_plan_approval`) (no second "final checks" pass when there is one package).
 - `light_verification`: the line-limit and test-mapping checks are reported as SKIPPED (not failed). Syntax checks, lint and mapped tests still run; the report shows what was skipped.
 Never switchable: secret files, forbidden files (`.git`, migrations, `coding_agent/`), git writes, hand-written migrations.
 

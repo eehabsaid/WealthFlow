@@ -5,3 +5,4 @@
 - 2026-11-12: task [number]-add-a-test-for-goal-to-dict-wh: added core/tests/goals/test_goal_to_dict.py
 - 2026-11-13: resolve_model in ai/services/investigation/scope.py normalizes the input name (strips spaces/underscores/hyphens, lowercases) and returns the first catalog() entry whose model name, verbose_name, verbose_name_plural, or name+'s' matches, or a MODEL_ALIASES hit; returns None otherwise. catalog() is lru_cached. (evidence: ai/services/investigation/scope.py)
 - 2026-11-13: task [number]-generate-full-user-guide-for-t: added docs/user-guide-ar.html, scripts/check_html.py
+- 2026-11-19: task [number]-work-on-the-existing-wealthflo: added core/services/expenses/expense_filters.py, core/tests/expenses/test_expense_search_filters.py, static/js/expenses/filter_bar.js

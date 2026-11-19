@@ -108,8 +108,8 @@ class Agent:
 
     @property
     def auto_approve(self) -> bool:
-        """Settings > Behavior: plan approval switched off, or quick mode (which includes it)."""
-        return not self.settings.get("require_plan_approval", True) or bool(self.settings.get("quick_mode"))
+        """Settings > Behavior: only the plan-approval switch decides (quick mode never approves for you)."""
+        return not self.settings.get("require_plan_approval", True)
 
     def run_if_auto(self, task_id: str) -> Ledger | None:
         """After planning: when the owner switched the plan approval off, approve and execute at once (recorded in the ledger). None = nothing done."""

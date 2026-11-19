@@ -1,10 +1,12 @@
 import { card } from "./card.js";
+import { copyButton } from "./copy.js";
 import { clock, el } from "./dom.js";
 
 // How the task ended. The honest wording comes from the engine: VERIFIED only when every applicable check ran and passed.
 export function finalCard(ui, task, lastVerify, actions) {
   const clk = clock(task.updated);
   const stamp = el("span", { class: "stamp", text: clk });
+  const tools = (text) => el("span", { class: "head-tools" }, stamp, copyButton(() => text, "Copy"));
   const report = el("button", {
     type: "button",
     class: "link",
@@ -24,7 +26,7 @@ export function finalCard(ui, task, lastVerify, actions) {
       iconName: "check",
       iconCls: "good",
       title: "Answer",
-      right: stamp,
+      right: tools(task.answer || ""),
       body: el("pre", { class: "wrap", text: task.answer || "" }),
       open: true,
     });
@@ -36,7 +38,7 @@ export function finalCard(ui, task, lastVerify, actions) {
       iconCls: "good",
       title: "Task completed",
       sub: checks,
-      right: stamp,
+      right: tools(summary || "Done."),
       body: [el("pre", { class: "wrap", text: summary || "Done." }), report],
       open: true,
     });
@@ -48,7 +50,7 @@ export function finalCard(ui, task, lastVerify, actions) {
       iconCls: "muted",
       title: "Plan rejected",
       sub: "nothing was changed",
-      right: stamp,
+      right: tools(task.stop_reason || ""),
       body: el("p", { text: task.stop_reason }),
       open: false,
     });
@@ -60,7 +62,7 @@ export function finalCard(ui, task, lastVerify, actions) {
       iconCls: "bad",
       title: "Task stopped",
       sub: task.stop_reason,
-      right: stamp,
+      right: tools(task.stop_reason || "Stopped."),
       body: [el("pre", { class: "wrap", text: task.stop_reason || "Stopped." }), report],
       open: true,
     });

@@ -141,7 +141,7 @@ async function renderExpenses() {
         <option value="" data-i18n="all_months">All Months</option>
         ${MONTHS_NAMES.map((m, i) => `<option value="${i + 1}" ${i + 1 === today.getMonth() + 1 ? "selected" : ""} data-i18n="${MONTH_I18N_KEYS[i]}">${m}</option>`).join("")}
       </select>
-      <select id="fCategory" class="form-select form-select-sm" onchange="applyExpenseFilters()" style="width:auto">
+      <select id="fCategory" class="form-select form-select-sm" onchange="updateExpenseSubcategoryOptions(this.value);applyExpenseFilters()" style="width:auto">
         <option value="" data-i18n="all_categories">All Categories</option>
         ${categories.map((c) => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("")}
       </select>
@@ -156,9 +156,13 @@ async function renderExpenses() {
       </button>
     </div>
 
+    <!-- Advanced filters -->
+    <div class="expense-filter-bar mb-3" id="expenseFilterBar"></div>
+
     <!-- Table -->
     <div class="table-container" id="expenseTableWrap">
       ${renderExpenseTableHTML(entries)}
     </div>`;
+  if (typeof renderExpenseFilterBar === "function") renderExpenseFilterBar();
   applyTranslations();
 }

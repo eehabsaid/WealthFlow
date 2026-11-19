@@ -14,32 +14,10 @@ class ExpenseListView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
+        from core.services.expenses.expense_filters import apply_expense_filters
+
         qs = Expense.objects.select_related("category", "subcategory", "currency", "bank").filter(owner=request.user)
-
-        year = request.GET.get("year")
-        month = request.GET.get("month")
-        cat_id = request.GET.get("category")
-        search = request.GET.get("search", "").strip()
-
-        start_date = request.GET.get("start")
-        end_date = request.GET.get("end")
-
-        if start_date and end_date:
-            qs = qs.filter(date__gte=start_date, date__lte=end_date)
-        else:
-            if year:
-                qs = qs.filter(year=int(year))
-
-            if month:
-                qs = qs.filter(month=int(month))
-
-        if cat_id:
-            qs = qs.filter(category_id=int(cat_id))
-
-        if search:
-            qs = qs.filter(description__icontains=search) | qs.filter(
-                notes__icontains=search
-            )
+        qs = apply_expense_filters(qs, request.GET)
 
         entries = [e.to_dict() for e in qs]
 

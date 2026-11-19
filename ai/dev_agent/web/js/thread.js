@@ -1,3 +1,4 @@
+import { copyButton } from "./copy.js";
 import { clear, el } from "./dom.js";
 import { filesCard } from "./files-card.js";
 import { finalCard } from "./final-card.js";
@@ -47,6 +48,7 @@ function userMessage(task) {
   return msg(
     "user",
     el("div", { class: "bubble", text: task.goal }),
+    el("div", { class: "msg-tools" }, copyButton(() => task.goal, "Copy this message")),
     chips.length ? el("div", { class: "chips" }, chips) : null
   );
 }
@@ -59,7 +61,7 @@ function earlierTasks(s, task, actions) {
     .slice(0, 5)
     .reverse()
     .flatMap((t) => [
-      msg("user", el("div", { class: "bubble", text: t.goal })),
+      msg("user", el("div", { class: "bubble", text: t.goal }), el("div", { class: "msg-tools" }, copyButton(() => t.goal, "Copy this message"))),
       msg(
         "bot",
         el(

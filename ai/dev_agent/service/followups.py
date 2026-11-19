@@ -43,7 +43,7 @@ class FollowUps:
 
     @staticmethod
     def _plan_job(ledger):
-        """Plan, then (only when Settings > Behavior switched the plan approval off, or quick mode is on) approve and execute in the same run."""
+        """Plan, then (only when Settings > Behavior switched the plan approval off) approve and execute in the same run."""
         def job(agent):
             agent.plan(ledger.data["goal"], ledger)
             agent.run_if_auto(ledger.id)

@@ -74,6 +74,9 @@ test("the chat page keeps the open chat for a follow-up and has a Behavior page 
     await page.waitForSelector(".task-row", { timeout: 30000 });
     assert.equal(await page.locator(".task-row").count(), 1);
     assert.match(await page.innerText(".thread"), /add more[\s\S]*now also this/, "the first message stays above the follow-up in the same thread");
+    await page.click(".msg.user .copy-btn >> nth=-1"); // the copy icon under a message
+    await page.waitForSelector(".msg.user .copy-btn.done", { timeout: 5000 });
+    assert.equal(await page.getAttribute(".msg.user .copy-btn.done", "title"), "Copied");
     await chat.toPage({ type: "command", name: "behaviorSettings" }); // what the VS Code command does
     await page.waitForSelector("#bh-deep_search");
     assert.equal(await page.isChecked("#bh-require_plan_approval"), true);
