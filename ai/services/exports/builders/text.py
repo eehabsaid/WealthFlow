@@ -18,7 +18,7 @@ def _build_csv(doc: ExportDocument, lang: str) -> bytes:
     writer = csv.writer(out, lineterminator="\r\n")
     for _, text in intro_lines(doc):
         writer.writerow([text])
-    for block in doc.blocks:
+    for block in (b for b in doc.blocks if b.kind != "image"):
         if block.kind == "table":
             table = typed_table(block)
             writer.writerow([])
@@ -33,7 +33,7 @@ def _build_csv(doc: ExportDocument, lang: str) -> bytes:
 
 def _build_txt(doc: ExportDocument, lang: str) -> bytes:
     lines = [text for _, text in intro_lines(doc)]
-    for block in doc.blocks:
+    for block in (b for b in doc.blocks if b.kind != "image"):
         if block.kind == "table":
             lines.append("")
             if block.header:

@@ -10,6 +10,7 @@ from ai.views.ai_chat.ai_chat_core_views import AIChatView
 from ai.views.ai_chat.ai_chat_manage_views import AIConversationSearchView, AIMessageRewindView
 from ai.views.ai_chat.ai_conversation_views import AIConversationDetailView, AIConversationListView, AIProgressView
 from ai.views.ai_chat.ai_export_views import AIMessageExportView
+from ai.views.ai_chat.ai_guide_shot_view import AIGuideShotView
 from ai.views.ai_chat.ai_feedback_views import AIFeedbackListView, AIMessageFeedbackView
 from ai.views.ai_chat.ai_memory_views import AIMemoryDetailView, AIMemoryListView
 from ai.views.ai_speech.speech_views import SpeechCapabilitiesView, SpeechSynthesizeView, SpeechTranscribeView
@@ -54,6 +55,11 @@ urlpatterns = [
     path(
             "api/financial-advisor/ai/feedback/",
             feature_required("allows_ai_workspace")(AIFeedbackListView.as_view()),
+        ),
+    path(
+            "api/financial-advisor/ai/guide-shots/<str:key>/",
+            feature_required("allows_ai_workspace")(AIGuideShotView.as_view()),
+            name="ai-guide-shot",
         ),
     path(
             "api/financial-advisor/ai/messages/<int:pk>/export/<str:fmt>/",

@@ -94,6 +94,16 @@ def _table(block, styles, rtl: bool, total: float) -> Table:
     return table
 
 
+def _picture(block, total: float):
+    """The screenshot scaled to the page width (never taller than the page body)."""
+    from reportlab.lib.utils import ImageReader
+    from reportlab.platypus import Image
+
+    width, height = ImageReader(BytesIO(block.data)).getSize()
+    scale = min(total / width, 520 / height)
+    return Image(BytesIO(block.data), width=width * scale, height=height * scale)
+
+
 def _story(doc: ExportDocument, styles, rtl: bool, page, guide: bool, from_body: bool) -> list:
     """The flowables of the intro (title block + text before the first chapter) or of the body (everything after)."""
     blocks, story, started = (numbered_guide_blocks(doc) if guide else doc.blocks), [], False
@@ -107,6 +117,8 @@ def _story(doc: ExportDocument, styles, rtl: bool, page, guide: bool, from_body:
         if block.kind == "table":
             if block.rows or block.header:
                 story += [_table(block, styles, rtl, page[0] - 2 * _MARGIN), Spacer(1, 6)]
+        elif block.kind == "image":
+            story += [_picture(block, page[0] - 2 * _MARGIN), Spacer(1, 8)]
         elif block.kind == "heading":
             chapters += 1 if guide and block.level == 2 else 0
             if guide and block.level == 2 and chapters > 1:

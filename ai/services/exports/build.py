@@ -19,6 +19,21 @@ from ai.services.exports.full_data import from_question, from_tool_calls
 from ai.services.exports.registry import ExportFormat
 
 
+def with_images(blocks: list, user) -> list:
+    """Guide screenshots filled in from the document owner's own folder; an image that is not there (or not theirs) is dropped."""
+    from dataclasses import replace
+
+    from ai.services.guide_shots import store
+
+    out = []
+    for b in blocks:
+        if b.kind != "image":
+            out.append(b)
+        elif (data := store.read(user.pk, b.key)):
+            out.append(replace(b, data=data))
+    return out
+
+
 def _today(lang: str) -> str:
     """'13 October 2026' / '13 أكتوبر 2026': month names read correctly in right-to-left text, ISO dates get reordered."""
     today = timezone.localdate()
@@ -53,7 +68,7 @@ def document_for(message: Any) -> ExportDocument:
     lang = language(question) if question else "en"
     if lang == "en":
         lang = document_language(content)   # an English request for a document written in Arabic: the file follows its own text (right-to-left)
-    blocks = parse_markdown(content)
+    blocks = with_images(parse_markdown(content), user)
     title, shown_question = t(lang, "export_title"), f"{t(lang, 'export_question')}: {question}" if question else ""
     if blocks and blocks[0].kind == "heading" and blocks[0].level == 1:
         # a self-titled document (a user guide, a report): its own title replaces the generic "WealthFlow AI / Question:" block

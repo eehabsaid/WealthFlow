@@ -6,6 +6,7 @@ sections. A document counts as a guide when it has several "## " chapters and no
 
 from __future__ import annotations
 
+import base64
 import re
 from html import escape
 
@@ -48,6 +49,12 @@ def _table(block) -> str:
     return f'<div class="table-wrap"><table>{head}<tbody>{rows}</tbody></table></div>'
 
 
+def _figure(block) -> str:
+    data = base64.b64encode(block.data).decode("ascii")
+    return (f'<figure class="shot"><img loading="lazy" alt="{escape(block.text)}" src="data:image/jpeg;base64,{data}">'
+            f"<figcaption>{escape(block.text)}</figcaption></figure>")
+
+
 def _body(blocks: list, chapter: int, subs: list, seen: set[str]) -> str:
     """The HTML of one chapter's blocks; sub-section links are collected in `subs` as (id, text)."""
     out, run, kind, sub = [], [], "", 0
@@ -75,6 +82,8 @@ def _body(blocks: list, chapter: int, subs: list, seen: set[str]) -> str:
             out.append(f'<h{level} id="{sid}" class="sub-heading{" l4" if level == 4 else ""}">{escape(b.text)}</h{level}>')
         elif b.kind == "table":
             out.append(_table(b))
+        elif b.kind == "image":
+            out.append(_figure(b))
         else:
             paragraph = _paragraph(b.text, seen)
             if paragraph:

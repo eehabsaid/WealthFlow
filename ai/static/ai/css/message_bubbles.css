@@ -162,3 +162,5 @@
 }
 
 /* Code blocks */
+
+.ai-ws-shot{display:block;max-width:100%;height:auto;margin:.5rem 0;border:1px solid rgba(128,128,128,.35);border-radius:6px}

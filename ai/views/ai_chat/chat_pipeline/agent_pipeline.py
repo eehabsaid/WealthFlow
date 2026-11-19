@@ -63,7 +63,8 @@ def run_agent_pipeline(*, trace: PipelineTrace, provider, request, conversation,
                 max_reads=lim["ai_agent_max_reads"], cancel_check=lambda: control.is_stopped(user, cid),
                 write_tokens=document_write_tokens(provider, user_text), domain=domain)
             composed = ensure_document(TracedProvider(provider, trace), user_text, result, ctx_chars, user, cid, domain,
-                                      cancel_check=lambda: control.is_stopped(user, cid))
+                                      cancel_check=lambda: control.is_stopped(user, cid),
+                                      origin=request.build_absolute_uri("/"))
             guard_result(domain, result, user_text, hint)
             recorder.record(user, user_text, hint[:HINT_MAX_CHARS], result, provider=provider, domain=domain)
             rec.detail.update({"why": "agent_mode", "composed_document": composed, "steps": len(result.steps), "tools": [s.get("tool") for s in result.steps],

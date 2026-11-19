@@ -16,6 +16,7 @@ _BULLET = re.compile(r"^\s*[-*•]\s+(.*)$")
 _ORDERED = re.compile(r"^\s*(\d+)[.)]\s+(.*)$")
 _QUOTE = re.compile(r"^\s*>\s?(?:\[!\w+\]\s*)?(.*)$")
 _RULE = re.compile(r"^\s*(?:-{3,}|\*{3,}|_{3,})\s*$")
+_IMAGE = re.compile(r"^!\[(.*?)\]\(/api/financial-advisor/ai/guide-shots/([0-9a-f]{12})/\)\s*$")
 _SEPARATOR_CELL = re.compile(r"^:?-{3,}:?$")
 _BOLD = re.compile(r"\*\*(.+?)\*\*")
 _INLINE = re.compile(r"`([^`]*)`|__(.+?)__")
@@ -23,11 +24,13 @@ _INLINE = re.compile(r"`([^`]*)`|__(.+?)__")
 
 @dataclass
 class Block:
-    kind: str                                   # heading | text | bullet | table
+    kind: str                                   # heading | text | bullet | table | image
     text: str = ""
     level: int = 1
     header: list[str] = field(default_factory=list)
     rows: list[list[str]] = field(default_factory=list)
+    key: str = ""                               # image: the guide screenshot key; text = its caption
+    data: bytes = b""                           # image: JPEG bytes (filled by build.py from the owner's folder)
 
 
 @dataclass
@@ -126,6 +129,8 @@ def parse_markdown(content: str) -> list[Block]:
             continue
         if in_code:
             blocks.append(Block("text", text=line))
+        elif m := _IMAGE.match(line.strip()):
+            blocks.append(Block("image", text=plain(m.group(1)), key=m.group(2)))
         elif m := _HEADING.match(line):
             blocks.append(Block("heading", text=plain(m.group(2)), level=len(m.group(1))))
         elif m := _BULLET.match(line):

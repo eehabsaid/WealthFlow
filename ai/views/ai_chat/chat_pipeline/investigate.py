@@ -13,6 +13,7 @@ ai_code_access (sysadmin source-code tools, default on).
 from __future__ import annotations
 
 import re
+import time
 from typing import Any, Callable
 
 from ai.models import AISetting
@@ -72,7 +73,7 @@ def wants_data_file(text: str) -> bool:
     return any(f.key in _DOCUMENT_FORMATS for f in requested(text))
 
 
-def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None, conversation_id=None, domain: str = "", cancel_check=None) -> bool:
+def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None, conversation_id=None, domain: str = "", cancel_check=None, origin: str = "") -> bool:
     """Replace a stub answer ("Let me write it...") by the complete document. True when the content was replaced."""
     from ai.services.investigation.compose import compose_document, drop_model_drafts, needs_document
 
@@ -93,7 +94,10 @@ def ensure_document(provider, user_text: str, result, ctx_chars: int, user=None,
         result.reason, result.content = "cancelled", ""
         return False
     if doc:
-        result.content = doc
+        from ai.services.guide_shots import add_screenshots
+
+        progress(0, 1, "screenshots", time.monotonic())
+        result.content = add_screenshots(doc, user, origin)   # live screenshots of the app under each screen / tab (switch in Settings)
         drop_model_drafts(result.steps)
     return bool(doc)
 

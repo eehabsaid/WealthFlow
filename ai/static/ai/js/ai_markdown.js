@@ -48,6 +48,11 @@ function _renderMarkdown(text) {
   // 4. Inline code
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
 
+  // 4a. Guide screenshots (owner-scoped app URL only): the text and URL were already HTML-escaped in step 2.
+  html = html.replace(/!\[([^\]\n]*)\]\((\/api\/financial-advisor\/ai\/guide-shots\/[0-9a-f]{12}\/)\)/g, function (match, alt, url) {
+    return `<img class="ai-ws-shot" loading="lazy" src="${url}" alt="${alt}">`;
+  });
+
   // 4b. Download links built by the app (e.g. the answer as Excel / Word / PDF): same-site /api/ paths only,
   // never external URLs. The text and URL were already HTML-escaped in step 2. Links to a saved answer's file
   // (/api/financial-advisor/ai/messages/<id>/export/<format>/) render as a download card with a format badge.

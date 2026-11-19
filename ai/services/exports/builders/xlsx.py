@@ -60,7 +60,7 @@ def _build(doc: ExportDocument, lang: str) -> bytes:
             row += 1
     row += 1 if row > 1 else 0
     widths: dict[int, int] = {}
-    for block in doc.blocks:
+    for block in (b for b in doc.blocks if b.kind != "image"):
         if block.kind == "table":
             row = _write_table(ws, row, block, widths) + 1
         elif block.kind == "heading":

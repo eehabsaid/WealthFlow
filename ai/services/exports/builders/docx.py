@@ -7,6 +7,8 @@ from io import BytesIO
 
 from docx import Document
 from docx.enum.section import WD_ORIENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Inches
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
@@ -89,6 +91,10 @@ def _build(doc: ExportDocument, lang: str) -> bytes:
             contents_done = True
         if block.kind == "table":
             _add_table(document, block, rtl)
+            continue
+        if block.kind == "image":
+            document.add_picture(BytesIO(block.data), width=Inches(6.0 if not is_wide(doc) else 8.5))
+            document.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
             continue
         if block.kind == "heading":
             level = word_heading_level(block.level) if guide else min(max(block.level, 1), _MAX_HEADING_LEVEL)

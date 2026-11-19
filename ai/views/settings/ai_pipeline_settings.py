@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from ai.models import AISetting
 from ai.services.agent.settings import get_agent_settings, persist_agent_settings, validate_agent_settings
 from ai.services.domains import KEYS as DOMAIN_KEYS, is_on as domain_is_on
+from ai.services.guide_shots.settings import KEYS as GUIDE_SHOT_KEYS, flag
 
 VALIDATE_MODES = ("off", "flag", "regenerate")
 DEFAULT_VALIDATE_MODE = "flag"
@@ -26,6 +27,10 @@ def _clamped(raw, key) -> int:
         return default
 
 
+def _flag_value(value) -> bool:
+    return value.strip().lower() not in _FALSE if isinstance(value, str) else bool(value)
+
+
 def get_pipeline_settings(user=None) -> dict:
     mode = str(AISetting.get("ai_validate_mode", DEFAULT_VALIDATE_MODE, user=user) or "").strip().lower()
     debug = str(AISetting.get("ai_pipeline_debug", "false", user=user) or "").strip().lower()
@@ -35,6 +40,7 @@ def get_pipeline_settings(user=None) -> dict:
     files = str(AISetting.get("ai_file_generation", "true", user=None) or "true").strip().lower()   # global: sysadmin switch
     trace = str(AISetting.get("ai_trace_recording", "false", user=None) or "false").strip().lower()   # global: read by ai_training recorder
     return {
+        **{key: flag(key) for key in GUIDE_SHOT_KEYS},   # guide screenshots: on/off + blur (global, sysadmin)
         "ai_file_generation": files not in _FALSE,   # default ON: the AI can build Excel / Word / PDF / CSV / code files for the user
         **{key: _clamped(AISetting.get(key, str(default), user=None), key) for key, (_, _, default) in FILE_LIMITS.items()},
         "ai_investigator_mode": inv if inv in INVESTIGATOR_MODES else "auto",
@@ -74,6 +80,7 @@ def validate_pipeline_settings(data):
     trace = data.get("ai_trace_recording", current["ai_trace_recording"])
     if isinstance(trace, str):
         trace = trace.strip().lower() in _TRUE
+    shots = {key: _flag_value(data.get(key, current[key])) for key in GUIDE_SHOT_KEYS}
     limits = {}
     for key in FILE_LIMITS:
         raw = data.get(key, current[key])
@@ -91,7 +98,7 @@ def validate_pipeline_settings(data):
     agent, agent_error = validate_agent_settings(data, current)
     if agent_error:
         return None, JsonResponse({"error": agent_error}, status=400)
-    return {"agent": agent, "file_generation": bool(files), "file_limits": limits, "validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct), "trace_recording": bool(trace),
+    return {"agent": agent, "file_generation": bool(files), "file_limits": limits, "validate_mode": mode, "pipeline_debug": bool(debug), "direct_answers": bool(direct), "trace_recording": bool(trace), "guide_shots": shots,
             "investigator_mode": inv, "code_access": bool(code), "domains": domains}, None
 
 
@@ -101,6 +108,8 @@ def persist_pipeline_settings(validated, user=None) -> None:
     AISetting.set("ai_pipeline_debug", "true" if validated["pipeline_debug"] else "false", user=user)
     AISetting.set("ai_direct_answers", "true" if validated["direct_answers"] else "false", user=user)
     AISetting.set("ai_investigator_mode", validated["investigator_mode"], user=user)
+    for key, value in validated["guide_shots"].items():
+        AISetting.set(key, "true" if value else "false", user=None)   # always global
     AISetting.set("ai_trace_recording", "true" if validated["trace_recording"] else "false", user=None)   # always global
     AISetting.set("ai_code_access", "true" if validated["code_access"] else "false", user=None)   # always global
     AISetting.set("ai_file_generation", "true" if validated["file_generation"] else "false", user=None)   # always global

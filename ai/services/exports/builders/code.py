@@ -41,7 +41,7 @@ def _builder(ext: str):
         elif ext == "sql" and doc.tables() and "INSERT" not in doc.source.upper() and not has_code:
             text = _sql(doc)
         elif ext == "md":
-            text = (doc.source if "|" in doc.source or "#" in doc.source else "\n".join(plain(b.text) for b in doc.blocks)).strip() + "\n"
+            text = (doc.source if "|" in doc.source or "#" in doc.source else "\n".join(plain(b.text) for b in doc.blocks if b.kind != "image")).strip() + "\n"
         else:
             text = code_from_markdown(doc.source, ext)
         return text.encode("utf-8")

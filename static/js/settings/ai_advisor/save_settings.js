@@ -34,6 +34,8 @@ window.AIA.saveAISettingsFromGui = async function () {
     ai_investigator_mode: document.getElementById("aiInvestigatorModeSelect")?.value || "auto",
     ai_code_access: document.getElementById("aiCodeAccessToggle")?.checked !== false,
     ai_think: document.getElementById("aiThinkSelect")?.value || "auto",
+    ai_guide_screenshots: document.getElementById("aiGuideScreenshotsToggle")?.checked !== false,
+    ai_guide_blur: document.getElementById("aiGuideBlurToggle")?.checked !== false,
     ai_trace_recording: document.getElementById("aiTraceRecordingToggle")?.checked === true,
     ai_agent_enabled: document.getElementById("aiAgentEnabledToggle")?.checked !== false,
     ai_agent_instructions: window.AIA.agentInstructionsForSave(),

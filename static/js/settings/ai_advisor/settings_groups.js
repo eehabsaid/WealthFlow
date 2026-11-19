@@ -92,6 +92,22 @@ window.AIA.buildRoutingHtml = function (s) {
       options: aiaModeOptions(window.AIA.THINK_MODES, think, "ai_think"),
     }) +
     ui.toggleRow({
+      id: "aiGuideScreenshotsToggle",
+      checked: s.ai_guide_screenshots !== false,
+      labelKey: "ai_guide_screenshots_label",
+      label: "Screenshots in user guides",
+      helpKey: "ai_guide_screenshots_help",
+      help: "When the AI writes a user guide, it adds a live screenshot of each screen and tab (HTML, Word, PDF). Needs Chromium on the server; without it the guide is written without images.",
+    }) +
+    ui.toggleRow({
+      id: "aiGuideBlurToggle",
+      checked: s.ai_guide_blur !== false,
+      labelKey: "ai_guide_blur_label",
+      label: "Blur private data in guide screenshots",
+      helpKey: "ai_guide_blur_help",
+      help: "Blurs numbers, e-mail addresses, field values and charts in the guide screenshots so the guide is safe to share. Turn off to show the real screen.",
+    }) +
+    ui.toggleRow({
       id: "aiTraceRecordingToggle",
       checked: s.ai_trace_recording === true,
       labelKey: "ai_trace_recording_label",

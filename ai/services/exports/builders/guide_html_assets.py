@@ -53,6 +53,7 @@ th{background:var(--accent-light)}
 .toc-rail.open,[dir=rtl] .toc-rail.open{transform:translateX(0)}
 main{padding:4rem 1rem 2rem}}
 @media print{.toc-rail,.toc-toggle,.skip-link{display:none!important}main{max-width:100%;padding:0}.guide-section{break-inside:avoid-page}body{background:#fff;color:#000;font-size:12pt}}
+.shot{margin:1rem 0}.shot img{max-width:100%;height:auto;border:1px solid rgba(128,128,128,.35);border-radius:6px}.shot figcaption{font-size:.85em;opacity:.7;margin-top:.25rem}
 """
 
 JS = """

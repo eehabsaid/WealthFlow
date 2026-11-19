@@ -81,10 +81,30 @@ def _trace(context, reporter, screenshot_logger):
     _step(reporter, screenshot_logger, page, "Training recording: turned off again", off is False, f"stored={off!r}", "ai_trace_off")
 
 
+def _guide_shots(context, reporter, screenshot_logger):
+    page = context.page
+    _open(page, context)
+    api = lambda key: page.evaluate(_FETCH, [SETTINGS_URL])["data"].get(key)
+    default = (page.is_checked("#aiGuideScreenshotsToggle"), page.is_checked("#aiGuideBlurToggle"), api("ai_guide_screenshots"), api("ai_guide_blur"))
+    _step(reporter, screenshot_logger, page, "Guide screenshots: on and blurred by default", default == (True, True, True, True), f"{default!r}", "ai_shots_default")
+    page.uncheck("#aiGuideBlurToggle")
+    _save(page)
+    stored = api("ai_guide_blur")
+    page.reload()
+    _open(page, context)
+    after = page.is_checked("#aiGuideBlurToggle")
+    _step(reporter, screenshot_logger, page, "Guide screenshots: blur off is saved and survives a reload", stored is False and after is False,
+          f"stored={stored!r}, control after reload={after!r}", "ai_shots_blur_off")
+    page.check("#aiGuideBlurToggle")
+    _save(page)
+    _step(reporter, screenshot_logger, page, "Guide screenshots: blur on again", api("ai_guide_blur") is True, f"stored={api('ai_guide_blur')!r}", "ai_shots_blur_on")
+
+
 def test_ai_think_setting(context, reporter, screenshot_logger):
     try:
-        with pinned({**AI_ENGINE_PINS}), fresh_state(["ai_think", "ai_trace_recording"]):
+        with pinned({**AI_ENGINE_PINS}), fresh_state(["ai_think", "ai_trace_recording", "ai_guide_screenshots", "ai_guide_blur"]):
             _run(context, reporter, screenshot_logger)
+            _guide_shots(context, reporter, screenshot_logger)
     except Exception as ex:
         shot = screenshot_logger.capture(context.page, "settings", "ai_think_error", "none", "fail", "fail")
         reporter.add_step("AI Reasoning setting", "WealthFlow AI", "FAIL", f"Exception: {ex}", screenshot_path=shot)
