@@ -29,5 +29,5 @@
   "ask_protected_files": true,
   "deep_search": true,
   "quick_mode": true,
-  "light_verification": false
+  "light_verification": true
 }
