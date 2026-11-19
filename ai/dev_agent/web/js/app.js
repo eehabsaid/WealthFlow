@@ -69,7 +69,6 @@ export function init(transport, root) {
     resume: guard(() => store.resume(id())),
     answer: (aid, approve) => guard(() => store.answer(aid, approve))(),
     report: guard(showReport),
-    open: (taskId) => guard(() => open(taskId))(),
   };
 
   async function showReport() {
@@ -102,7 +101,10 @@ export function init(transport, root) {
 
   async function open(taskId) {
     toggleHistory(false);
-    await store.open(taskId);
+    // any task of a chat opens the whole chat: its newest task, with the earlier ones above it
+    const row = store.s.tasks.find((t) => t.id === taskId);
+    const newest = row && store.s.tasks.find((t) => (t.chat || t.id) === (row.chat || row.id));
+    await store.open(newest ? newest.id : taskId);
   }
 
   const head = el(

@@ -53,36 +53,16 @@ function userMessage(task) {
   );
 }
 
-// The tasks that came before the open one in the same chat (oldest first), as a short row each; click one to open it in full.
-function earlierTasks(s, task, actions) {
-  const chat = task.chat_id || task.id;
-  return s.tasks
-    .filter((t) => (t.chat || t.id) === chat && t.id < task.id)
-    .slice(0, 5)
-    .reverse()
-    .flatMap((t) => [
-      msg("user", el("div", { class: "bubble", text: t.goal }), el("div", { class: "msg-tools" }, copyButton(() => t.goal, "Copy this message"))),
-      msg(
-        "bot",
-        el(
-          "button",
-          { type: "button", class: "task-row", onclick: () => actions.open(t.id) },
-          el("span", { class: `pill s-${t.status}`, text: t.status }),
-          el("span", { class: "goal", text: t.stop_reason || "Open this task" })
-        )
-      ),
-    ]);
+// Open/closed state of a card is kept per task: the same card key in two tasks of one chat must not share it.
+function scoped(ui, id) {
+  const k = (key) => `${id}:${key}`;
+  return { ...ui, open: { has: (key) => ui.open.has(k(key)), get: (key) => ui.open.get(k(key)), set: (key, value) => ui.open.set(k(key), value) } };
 }
 
-// The whole conversation for the open task, rebuilt from the store on every change. Open/closed state of cards lives in `ui.open`.
-export function renderThread(root, store, ui, transport, actions, onError) {
-  const { s } = store;
-  clear(root);
-  if (!s.taskId) return root.append(empty());
-  const task = s.task;
-  if (!task) return root.append(el("p", { class: "muted", text: "Loading…" }));
-  const here = s.server.busy && s.server.current && s.server.current.id === task.id;
-  const groups = buildGroups(s.events, here);
+// One task of the chat: your message, then everything the agent did and answered (investigation, plan, steps, checks, files, final card).
+function taskNodes(env, task, events, files, here, ui, pending) {
+  const { s, transport, actions, onError } = env;
+  const groups = buildGroups(events, here);
   const out = [];
   const worth = (g) => g.kind !== "work" || g.rows.length > 0 || g.status === "running"; // no empty "0 steps" cards
   const investigation = groups.find((g) => g.key === "plan" && worth(g));
@@ -90,45 +70,33 @@ export function renderThread(root, store, ui, transport, actions, onError) {
   if (task.plan) out.push(planCard(ui, task, actions));
   for (const g of groups) {
     if (g.key === "plan" || !worth(g)) continue;
-    out.push(
-      g.kind === "work"
-        ? workCard(ui, g)
-        : g.kind === "verify"
-          ? verifyCard(ui, g)
-          : errorCard(ui, g)
-    );
+    out.push(g.kind === "work" ? workCard(ui, g) : g.kind === "verify" ? verifyCard(ui, g) : errorCard(ui, g));
   }
-  if (s.files.length) out.push(filesCard(ui, task, s.files, transport, onError));
+  if (files.length) out.push(filesCard(ui, task, files, transport, onError));
   const lastVerify = [...groups].reverse().find((g) => g.kind === "verify");
   const end = finalCard(ui, task, lastVerify, actions);
   if (end) out.push(end);
-  const pending = here ? s.server.approvals : [];
   for (const a of pending) out.push(approvalCard(ui, a, actions));
-  if (here && !pending.length)
-    out.push(
-      el(
-        "div",
-        { class: "thinking" },
-        icon("spinner"),
-        el("span", { text: s.server.current.phase || "working" })
-      )
-    );
+  if (here && !pending.length) out.push(el("div", { class: "thinking" }, icon("spinner"), el("span", { text: s.server.current.phase || "working" })));
   else if (!here && ["planning", "executing", "approved"].includes(task.status))
-    out.push(
-      el("p", {
-        class: "note",
-        text: `This task is not running right now (status: ${task.status}).${task.approved_at ? " Use Resume on the plan." : ""}`,
-      })
-    );
+    out.push(el("p", { class: "note", text: `This task is not running right now (status: ${task.status}).${task.approved_at ? " Use Resume on the plan." : ""}` }));
   const note = task.model_override
-    ? el("div", {
-        class: "note",
-        text: `Model for this task: ${task.model_override.provider || ""} ${task.model_override.model || ""}`.trim(),
-      })
+    ? el("div", { class: "note", text: `Model for this task: ${task.model_override.provider || ""} ${task.model_override.model || ""}`.trim() })
     : null;
-  const waiting =
-    task.status === "queued"
-      ? el("p", { class: "note", text: "Queued: this follow-up starts when the running task finishes." })
-      : null;
-  root.append(...earlierTasks(s, task, actions), userMessage(task), msg("bot", note, waiting, out));
+  const waiting = task.status === "queued" ? el("p", { class: "note", text: "Queued: this follow-up starts when the running task finishes." }) : null;
+  return [userMessage(task), msg("bot", note, waiting, out)];
+}
+
+// The whole chat as one continuous conversation: every task in order, each as your message followed by the agent's work and answer.
+// Rebuilt from the store on every change. Open/closed state of cards lives in `ui.open`.
+export function renderThread(root, store, ui, transport, actions, onError) {
+  const { s } = store;
+  clear(root);
+  if (!s.taskId) return root.append(empty());
+  const task = s.task;
+  if (!task) return root.append(el("p", { class: "muted", text: "Loading…" }));
+  const env = { s, transport, actions, onError };
+  const here = s.server.busy && s.server.current && s.server.current.id === task.id;
+  const before = s.earlier.flatMap((e) => taskNodes(env, e.task, e.events, e.files, false, scoped(ui, e.task.id), []));
+  root.append(...before, ...taskNodes(env, task, s.events, s.files, here, ui, here ? s.server.approvals : []));
 }

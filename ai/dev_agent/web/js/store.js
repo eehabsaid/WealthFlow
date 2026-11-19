@@ -11,6 +11,8 @@ const LIVE = new Set([
   "approval_result",
 ]);
 const MAX_EVENTS = 2000;
+const MAX_EARLIER = 8; // earlier tasks of the chat shown above the open one
+const FINISHED = new Set(["completed", "answered", "stopped", "rejected"]);
 
 export function createStore(api) {
   const s = {
@@ -28,6 +30,7 @@ export function createStore(api) {
     task: null,
     files: [],
     events: [],
+    earlier: [], // [{task, events, files}] the earlier tasks of the open chat, oldest first: the chat is one continuous conversation
     context: null, // newest `context` event of the open task (the meter reads it)
     override: null, // {provider, model} for the next task only
     error: null,
@@ -37,6 +40,7 @@ export function createStore(api) {
   let timer = null;
   let soon = null;
   let filesKey = "";
+  const cache = new Map(); // finished earlier tasks never change: loaded once
   const emit = () => listeners.forEach((fn) => fn());
 
   const stateQuery = () =>
@@ -59,6 +63,37 @@ export function createStore(api) {
     }
   }
 
+  // The tasks that came before the open one in the same chat, loaded in full (task, every event, files) so the page can show the whole conversation.
+  async function loadEarlier() {
+    const task = s.task;
+    if (!task) return;
+    const chat = task.chat_id || task.id;
+    const ids = s.tasks
+      .filter((t) => (t.chat || t.id) === chat && t.id < task.id)
+      .map((t) => t.id)
+      .sort()
+      .slice(-MAX_EARLIER);
+    const out = [];
+    for (const id of ids) {
+      let item = cache.get(id);
+      if (!item || !FINISHED.has(item.task.status)) {
+        const loaded = await api.request("GET", `/api/tasks/${id}`);
+        const events = [];
+        for (let after = 0; ; ) {
+          const page = await api.request("GET", `/api/tasks/${id}/events?after=${after}`);
+          if (!page.events.length) break;
+          events.push(...page.events);
+          after = page.next;
+        }
+        const files = Object.keys(loaded.files || {}).length ? (await api.request("GET", `/api/tasks/${id}/files`)).files : [];
+        item = { task: loaded, events: events.slice(-MAX_EVENTS), files };
+        cache.set(id, item);
+      }
+      out.push(item);
+    }
+    if (task === s.task) s.earlier = out;
+  }
+
   async function refresh() {
     try {
       const [server, list] = await Promise.all([
@@ -67,7 +102,10 @@ export function createStore(api) {
       ]);
       s.server = server;
       s.tasks = list.tasks;
-      if (s.taskId) await loadTask();
+      if (s.taskId) {
+        await loadTask();
+        await loadEarlier();
+      }
       s.error = null;
     } catch (error) {
       s.error = error;
@@ -90,7 +128,7 @@ export function createStore(api) {
   function open(id) {
     if (stopStream) stopStream();
     stopStream = null;
-    Object.assign(s, { taskId: id, task: null, files: [], events: [], context: null });
+    Object.assign(s, { taskId: id, task: null, files: [], events: [], earlier: [], context: null });
     filesKey = "";
     if (id) stopStream = api.subscribe(id, (event) => onEvent(id, event));
     if (api.state) api.state.set({ taskId: id });

@@ -71,9 +71,11 @@ test("the chat page keeps the open chat for a follow-up and has a Behavior page 
     await page.waitForSelector("[data-act=approve]", { timeout: 30000 });
     await page.fill("#goal", "now also this");
     await page.click("#send-btn");
-    await page.waitForSelector(".task-row", { timeout: 30000 });
-    assert.equal(await page.locator(".task-row").count(), 1);
-    assert.match(await page.innerText(".thread"), /add more[\s\S]*now also this/, "the first message stays above the follow-up in the same thread");
+    await until(async () => (await page.locator(".thread .msg.user").count()) === 2, 30000, "the follow-up is shown under the first message");
+    const thread = await page.innerText(".thread");
+    assert.match(thread, /add more[\s\S]*now also this/, "the first message stays above the follow-up in the same thread");
+    assert.equal(await page.locator(".thread [data-act=approve]").count(), 2, "the first task's plan is shown in full, not as a one-line row");
+    assert.doesNotMatch(thread, /Open this task/);
     await page.click(".msg.user .copy-btn >> nth=-1"); // the copy icon under a message
     await page.waitForSelector(".msg.user .copy-btn.done", { timeout: 5000 });
     assert.equal(await page.getAttribute(".msg.user .copy-btn.done", "title"), "Copied");

@@ -31,6 +31,7 @@ const ALLOWED: [string, RegExp][] = [
   ["GET", /^\/api\/tasks$/],
   ["GET", new RegExp(`^/api/tasks/${ID}$`)],
   ["GET", new RegExp(`^/api/tasks/${ID}/files$`)],
+  ["GET", new RegExp(`^/api/tasks/${ID}/events\\?after=\\d+$`)],   // the earlier tasks of a chat are shown in full, so their events are read once
   ["GET", /^\/api\/models\?provider=[a-z]+$/],
   ["GET", /^\/api\/keys$/],
   ["GET", /^\/api\/settings$/],
