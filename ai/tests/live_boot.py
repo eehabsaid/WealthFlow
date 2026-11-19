@@ -47,7 +47,7 @@ def first_load(page, url):
                 raise
         else:
             skip.click()
-            page.wait_for_selector("#globalModal.show", state="detached", timeout=DIALOG_TIMEOUT_MS)
+            page.wait_for_selector("#globalModal.show", state="hidden", timeout=DIALOG_TIMEOUT_MS)
     page.wait_for_function(NO_DIALOG_JS, timeout=DIALOG_TIMEOUT_MS)
     return status
 
