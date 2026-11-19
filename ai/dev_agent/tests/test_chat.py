@@ -7,7 +7,7 @@ import pytest
 from ai.dev_agent.engine import chat, recovery
 from ai.dev_agent.ledger.ledger import Ledger
 from ai.dev_agent.service.tasks import Busy, ServiceError
-from ai.dev_agent.tests.fakes import Blocking, Scripted, edit, final, plan
+from ai.dev_agent.tests.fakes import Scripted, edit, final, plan
 from ai.dev_agent.tests.test_service import idle, service, wait_for
 
 
