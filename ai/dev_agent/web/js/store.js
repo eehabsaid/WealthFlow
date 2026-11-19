@@ -129,7 +129,7 @@ export function createStore(api) {
     },
     async submit(goal) {
       const { provider, model } = s.override || {};
-      const { id } = await api.submit({ goal, provider, model });
+      const { id } = await api.submit({ goal, provider, model, chat: s.taskId }); // a message in an open chat continues it (queued while a task runs); "New chat" clears taskId
       s.override = null;
       await open(id);
     },

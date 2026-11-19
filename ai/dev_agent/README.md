@@ -47,6 +47,24 @@ The CLI, the Web UI and the VS Code extension all drive the same `Agent`; each w
   `stopped` ("interrupted ... Resume continues it"), marks the interrupted package, and makes the ledger match the files on disk. Resume repeats no finished package.
   Lock files and the event log also survive a crash (stale locks of dead processes are broken; a torn last log line no longer corrupts the next event).
 
+## Chats: follow-ups continue the same conversation
+- A chat is a thread of tasks. A message sent while a task is open in the panel is a **follow-up**: it joins that chat (`chat_id` in the ledger, `chat` in `POST /api/tasks`)
+  and the planner starts with what the earlier tasks of the chat asked and did (goal, outcome, answer or plan, files touched; newest kept, at most ~6,000 characters).
+- A follow-up sent **while a task is running** is queued (status `queued`) and starts, in the order sent, when that run ends. A **Stop** also removes the queued follow-ups
+  (reason in their status). A queued follow-up found after a restart is stopped ("send it again"): the queue lives in memory.
+- A new chat while a task is running is still refused (one run at a time). "New chat" in the panel is the only thing that starts a separate chat.
+
+## Behavior: approvals and speed (Web UI and VS Code: shield button next to the meter; VS Code also "Behavior…" in the key menu)
+On/off switches saved in `coding_agent/agent_settings.json` (applied to the next task). The first four are approvals: **on = ask you** (the strict behaviour of earlier versions, the default), off = go ahead.
+- `require_plan_approval`: off = the task runs right after planning (the plan is still shown, saved and recorded as "approved automatically"). CLI: same as `--yes`.
+- `ask_outside_plan`: off = files the plan does not list may be edited or created. Deleting or renaming a file that is not in the plan then **asks** (it is denied when the switch is on).
+- `ask_other_commands`: off = a harmless command that is only missing from the allow list runs. Destructive commands, installs, network, paths outside the project, `ask_args` and the project's own ask list still ask; git writes, wrappers (`bash -c`) and the deny list stay blocked.
+- `ask_protected_files`: off = files listed as `protected` in `config.json` (balances, salary, cash flow, billing, authentication) are changed without asking. Keep it on if you want the old guarantee.
+- `deep_search`: `read_file` returns up to 1,200 lines per call (400), `search_index` 40 results (15), `grep` up to 600 matches (200), tool results are 3x longer, a repeated lookup is stopped after 6 repeats (4).
+- `quick_mode`: the planner is told to keep the plan to one or two steps, the plan is approved automatically, and the work is verified once (no second "final checks" pass when there is one package).
+- `light_verification`: the line-limit and test-mapping checks are reported as SKIPPED (not failed). Syntax checks, lint and mapped tests still run; the report shows what was skipped.
+Never switchable: secret files, forbidden files (`.git`, migrations, `coding_agent/`), git writes, hand-written migrations.
+
 ## Context & limits, context meter, full trace
 - **Context & limits** (Web UI and VS Code chat: the button next to the meter; in VS Code also "Context & limits…" in the key menu): every real context value in one place - context window, reserve, max output per reply, max tool result,
   max steps per phase, max fix rounds, model request timeout, command timeout - all stored in `coding_agent/agent_settings.json`. Each value is checked and kept inside its range;

@@ -55,7 +55,7 @@ def rename_file(ctx, args):
         ok, why = ctx.allow_write(rel, op)
         if not ok:
             raise ToolError(why)
-    if not ctx.scope.allows("rename", src_rel, dst_rel):
+    if not ctx.scope.allows("rename", src_rel, dst_rel) and ctx.settings.get("ask_outside_plan", True):   # switched off: allow_write above already asked you
         raise ToolError(f"{src_rel} -> {dst_rel} is not listed in the approved plan")
     with fsutil.lock_many(ctx.project.lock_dir, [src_rel, dst_rel]):
         digest = fsutil.sha(fsutil.read_bytes(src))

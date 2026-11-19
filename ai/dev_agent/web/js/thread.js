@@ -51,6 +51,27 @@ function userMessage(task) {
   );
 }
 
+// The tasks that came before the open one in the same chat (oldest first), as a short row each; click one to open it in full.
+function earlierTasks(s, task, actions) {
+  const chat = task.chat_id || task.id;
+  return s.tasks
+    .filter((t) => (t.chat || t.id) === chat && t.id < task.id)
+    .slice(0, 5)
+    .reverse()
+    .flatMap((t) => [
+      msg("user", el("div", { class: "bubble", text: t.goal })),
+      msg(
+        "bot",
+        el(
+          "button",
+          { type: "button", class: "task-row", onclick: () => actions.open(t.id) },
+          el("span", { class: `pill s-${t.status}`, text: t.status }),
+          el("span", { class: "goal", text: t.stop_reason || "Open this task" })
+        )
+      ),
+    ]);
+}
+
 // The whole conversation for the open task, rebuilt from the store on every change. Open/closed state of cards lives in `ui.open`.
 export function renderThread(root, store, ui, transport, actions, onError) {
   const { s } = store;
@@ -103,5 +124,9 @@ export function renderThread(root, store, ui, transport, actions, onError) {
         text: `Model for this task: ${task.model_override.provider || ""} ${task.model_override.model || ""}`.trim(),
       })
     : null;
-  root.append(userMessage(task), msg("bot", note, out));
+  const waiting =
+    task.status === "queued"
+      ? el("p", { class: "note", text: "Queued: this follow-up starts when the running task finishes." })
+      : null;
+  root.append(...earlierTasks(s, task, actions), userMessage(task), msg("bot", note, waiting, out));
 }

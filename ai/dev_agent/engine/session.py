@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from ai.dev_agent.providers.base import ProviderError
 from ai.dev_agent.engine.attachments import AttachmentError
 from ai.dev_agent.engine.cancel import Cancelled
-from ai.dev_agent.tools import call
+from ai.dev_agent.tools import call, limits
 from ai.dev_agent.engine import meter
 from ai.dev_agent.engine.budget import Budget, ContextOverflow, clip_text, tokens
 from ai.dev_agent.engine.trace import Trace, succeeded
@@ -124,16 +124,17 @@ def _converse(ctx, provider, system: str, first: dict, accept: set[str], max_ste
         key = name + json.dumps(args, sort_keys=True, default=str)
         repeats = repeats + 1 if key == last_key else 1
         last_key = key
-        if repeats >= 4:
-            return PhaseResult("stopped", reason=f"the model repeated the same call to {name} 4 times in a row")
-        if repeats == 3:
-            warn = f"TOOL RESULT {name}:\nYou already made this exact call twice. Change approach or finish."
+        stop_at = limits.of(s)["repeat_stop"]
+        if repeats >= stop_at:
+            return PhaseResult("stopped", reason=f"the model repeated the same call to {name} {stop_at} times in a row")
+        if repeats == stop_at - 1:
+            warn = f"TOOL RESULT {name}:\nYou already made this exact call {repeats - 1} times. Change approach or finish."
             messages.append({"role": "user", "content": warn})
             trace.message(step, "repeat_warning", warn)
             continue
         result = call(ctx, name, args)
         ctx.emit({"type": "tool", "name": name, "ok": succeeded(result), "args": _brief(args), "summary": _summary(name, result)})
-        content = f"TOOL RESULT {name}:\n" + clip_text(json.dumps(result, ensure_ascii=False, default=str), s["max_tool_result_chars"])
+        content = f"TOOL RESULT {name}:\n" + clip_text(json.dumps(result, ensure_ascii=False, default=str), s["max_tool_result_chars"] * limits.of(s)["result_factor"])
         messages.append({"role": "user", "content": content})
         trace.tool(step, name, args, result, content)
     return PhaseResult("stopped", reason=f"step limit ({max_steps}) reached")

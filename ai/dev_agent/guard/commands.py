@@ -131,4 +131,4 @@ def classify(argv: list[str], root: Path | None = None, commands: dict | None = 
         return ask(f"'{name}' can destroy or move files, change the system or use the network")
     if name in INSTALLERS or (name == "python" and argv[1:3] in (["-m", "pip"], ["-m", "ensurepip"])):
         return ask("this installs or changes packages")
-    return ask("not on the command whitelist")
+    return ask("not on the command whitelist", "unlisted")

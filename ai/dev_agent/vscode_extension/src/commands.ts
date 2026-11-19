@@ -38,5 +38,6 @@ export function registerCommands(d: Deps): void {
   add("restartServer", () => manager.restart());
   add("showLog", () => log.show());
   add("contextSettings", () => d.chat.command("contextSettings"));
+  add("behaviorSettings", () => d.chat.command("behaviorSettings"));
   registerSettingsCommands(add, client);
 }

@@ -5,6 +5,9 @@ export const PROVIDERS = ["ollama", "anthropic", "openai", "gemini"];
 // The context values the "Context & limits" page may write (coding_agent/agent_settings.json); the server validates and clamps them again.
 export const CONTEXT_KEYS = ["context_window", "reserve_tokens", "max_output_tokens", "max_tool_result_chars", "max_steps_per_package", "max_fix_rounds", "timeout_s", "command_timeout_s"];
 
+// The on/off switches the "Behavior" page may write (settings/behavior.py); the server validates them again.
+export const BEHAVIOR_KEYS = ["require_plan_approval", "ask_outside_plan", "ask_other_commands", "ask_protected_files", "deep_search", "quick_mode", "light_verification"];
+
 // What the bridge needs from VS Code itself (dialogs, editors). Kept as an interface so the bridge is tested in plain Node.
 export interface Host {
   client(): AgentClient | undefined;
@@ -32,11 +35,13 @@ const ALLOWED: [string, RegExp][] = [
   ["GET", /^\/api\/keys$/],
   ["GET", /^\/api\/settings$/],
   ["GET", /^\/api\/settings\/context$/],
+  ["GET", /^\/api\/settings\/behavior$/],
   ["POST", new RegExp(`^/api/tasks/${ID}/(approve|reject|resume)$`)],
   ["POST", /^\/api\/stop$/],
   ["POST", new RegExp(`^/api/approvals/${ID}$`)],
   ["PUT", /^\/api\/settings$/],
   ["PUT", /^\/api\/settings\/context$/],
+  ["PUT", /^\/api\/settings\/behavior$/],
 ];
 
 function allowed(method: unknown, path: unknown, body: unknown): boolean {
@@ -45,6 +50,7 @@ function allowed(method: unknown, path: unknown, body: unknown): boolean {
   if (method === "PUT") {
     const values = (body as { values?: Record<string, unknown> } | undefined)?.values;
     if (!values || typeof values !== "object") return false;
+    if (path === "/api/settings/behavior") return Object.keys(values).length > 0 && Object.entries(values).every(([k, v]) => BEHAVIOR_KEYS.includes(k) && typeof v === "boolean");
     if (path === "/api/settings/context") return Object.keys(values).length > 0 && Object.entries(values).every(([k, v]) => CONTEXT_KEYS.includes(k) && typeof v === "number" && Number.isFinite(v));
     return Object.keys(values).every((k) => k === "provider" || k === "model") && Object.values(values).every((v) => typeof v === "string");
   }
@@ -112,7 +118,8 @@ export class Bridge {
       case "submit": {
         if (typeof a.goal !== "string") throw new Error("the task text is missing");
         const override = typeof a.provider === "string" && typeof a.model === "string" && a.provider && a.model ? { provider: a.provider, model: a.model } : {};
-        const id = await this.client().startTask(a.goal, [...this.pending.values()], override);
+        const chat = typeof a.chat === "string" && new RegExp(`^${ID}$`).test(a.chat) ? a.chat : "";   // the task this message continues: same chat, queued while one runs
+        const id = await this.client().startTask(a.goal, [...this.pending.values()], override, chat);
         this.pending.clear();
         return { id };
       }

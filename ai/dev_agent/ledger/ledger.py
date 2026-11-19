@@ -7,6 +7,7 @@ import datetime
 import hashlib
 import json
 import re
+import time
 
 from ai.dev_agent.core import fsutil
 
@@ -25,16 +26,17 @@ class Ledger:
         self.file = self.dir / "ledger.json"
 
     @classmethod
-    def create(cls, project, goal: str) -> "Ledger":
+    def create(cls, project, goal: str, chat: str = "", context: str = "", status: str = "planning") -> "Ledger":
+        """`chat` = id of the chat (thread of tasks) this task continues; empty = it starts a new chat. `context` = what earlier tasks of the chat did."""
         slug = re.sub(r"[^a-z0-9]+", "-", goal.lower()).strip("-")[:30] or "task"
         base = f"{datetime.datetime.now():%Y%m%d-%H%M%S}-{slug}"
         task_id, n = base, 1
         while (project.agent_dir / "tasks" / task_id).exists():
             n += 1
             task_id = f"{base}-{n}"
-        data = {"id": task_id, "goal": goal, "created": _now(), "updated": _now(), "status": "planning", "stop_reason": "", "plan": None, "plan_sha": "",
+        data = {"id": task_id, "goal": goal, "created": _now(), "updated": _now(), "status": status, "stop_reason": "", "plan": None, "plan_sha": "",
                 "approved_at": "", "packages": [], "files": {}, "approvals": [], "verification": [], "proposals": [], "agent_summaries": [],
-                "usage": {"input_tokens": 0, "output_tokens": 0}, "events": []}
+                "usage": {"input_tokens": 0, "output_tokens": 0}, "events": [], "chat_id": chat or task_id, "chat_context": context, "order": time.time_ns()}
         ledger = cls(project, task_id, data)
         ledger.save()
         return ledger

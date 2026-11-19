@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import threading
 
-from ai.dev_agent.engine import attachments as attachmentlib
+from ai.dev_agent.engine import chat as chatlib
 from ai.dev_agent.engine import recovery
 from ai.dev_agent.engine.cancel import CancelToken
 from ai.dev_agent.engine.loop import Agent, AgentError
@@ -16,13 +16,14 @@ from ai.dev_agent.tools import proctree
 from ai.dev_agent.service.approvals import QueueApprover
 from ai.dev_agent.service.errors import Busy, ServiceError
 from ai.dev_agent.service.events import EventLog
+from ai.dev_agent.service.followups import FollowUps
 from ai.dev_agent.service.runstate import TASK_ID, Run
 
 
-class TaskService:
+class TaskService(FollowUps):
     def __init__(self, project, provider_factory, settings_loader):
         self.project, self.provider_factory, self.settings_loader = project, provider_factory, settings_loader
-        self._lock, self._run, self._logs = threading.RLock(), None, {}
+        self._lock, self._run, self._logs, self._queue = threading.RLock(), None, {}, []   # _queue: ids of follow-ups waiting for the running task
         for task_id, reason in recovery.recover(project):   # tasks a crash left "running" become stopped, resumable tasks
             self.log(task_id).append({"type": "status", "status": "stopped", "reason": reason})
 
@@ -38,7 +39,7 @@ class TaskService:
         with self._lock:
             run = self._run
             return {"busy": run is not None, "current": {"id": run.task_id, "phase": run.phase} if run else None,
-                    "approvals": run.approver.pending() if run else []}
+                    "approvals": run.approver.pending() if run else [], "queued": list(self._queue)}
 
     @staticmethod
     def check_id(task_id: str) -> str:
@@ -60,31 +61,10 @@ class TaskService:
                 d = Ledger.load(self.project, task_id).data
             except FileNotFoundError:
                 continue
-            rows.append({"id": task_id, "goal": d["goal"][:200], "status": d["status"], "updated": d["updated"], "stop_reason": d["stop_reason"][:200]})
+            rows.append({"id": task_id, "goal": d["goal"][:200], "status": d["status"], "updated": d["updated"], "chat": chatlib.chat_of(d), "stop_reason": d["stop_reason"][:200]})
         return rows
 
     # ---- actions ----
-    def start_task(self, goal: str, attachments=None, override=None) -> str:
-        """`override` ({provider, model}) applies to this task only (also when it is approved or resumed later); the shared settings are not touched."""
-        goal = (goal or "").strip()
-        if not goal or len(goal) > 8000:
-            raise ServiceError("give a task of 1-8000 characters")
-        override = self._override(override)
-        settings, provider = self._provider(override)
-        records = attachmentlib.prepare(self.project, attachments, settings, provider.has_vision())   # refuses with a clear message, never drops
-        with self._lock:
-            self._check_free()
-            ledger = Ledger.create(self.project, goal)
-            if override:
-                ledger.data["model_override"] = override
-            if records:
-                meta = attachmentlib.save(ledger, records)
-                self.log(ledger.id).append({"type": "attachments", "items": [{k: m[k] for k in ("name", "kind", "chars", "omitted")} for m in meta]})
-            ledger.save()
-            run = self._new_run(ledger.id)
-            self._launch(run, lambda agent: agent.plan(goal, ledger), settings, provider)
-        return ledger.id
-
     def approve_plan(self, task_id: str) -> None:
         settings, provider = self._provider(self.ledger(task_id).data.get("model_override"))
         with self._lock:
@@ -115,6 +95,8 @@ class TaskService:
     def stop(self) -> bool:
         with self._lock:
             run = self._run
+            if run:
+                self._clear_queue("removed from the queue: the running task was stopped")
         if run:
             run.cancel.set("stopped by user")
         return bool(run)
@@ -190,6 +172,7 @@ class TaskService:
                 log.append({"type": "done", "status": status})
                 with self._lock:
                     self._run = None
+                    self._start_queued()
 
         run.thread = threading.Thread(target=work, name=f"task-{run.task_id}", daemon=True)
         self._run = run

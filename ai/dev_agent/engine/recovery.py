@@ -11,6 +11,7 @@ from ai.dev_agent.ledger.ledger import Ledger
 from ai.dev_agent.engine import runlock
 
 LIVE = ("planning", "approved", "executing")
+QUEUED = "queued"   # a follow-up waiting for the running task; the queue lives in memory, so after a restart it can only be stopped
 NOTE = ("NOTE: this package was interrupted earlier (crash or kill). Files it already wrote are listed above as touched. Read them first, "
         "continue from there and do not redo finished work.")
 
@@ -52,6 +53,10 @@ def reconcile(ledger) -> list[str]:
 def recover_task(ledger) -> str:
     """'' when nothing was needed, otherwise the reason text the task now carries."""
     d = ledger.data
+    if d["status"] == QUEUED:
+        reason = "the editor or agent was closed while this follow-up was waiting in the queue; send it again"
+        ledger.set_status("stopped", reason)
+        return reason
     if d["status"] not in LIVE or runlock.holder(ledger) not in (None, os.getpid()):
         return ""   # not running at all, or another live process is working on it
     notes = reconcile(ledger)

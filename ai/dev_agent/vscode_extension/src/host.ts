@@ -31,9 +31,9 @@ export function createHost(manager: ServerManager): Host {
       await askApiKey(manager.client, provider);
     },
     async menu() {
-      const items = ["Set API key…", "Remove API key…", "Restart server", "Show log", "Context & limits…"];
+      const items = ["Set API key…", "Remove API key…", "Restart server", "Show log", "Context & limits…", "Behavior…"];
       const choice = await vscode.window.showQuickPick(items, { placeHolder: "dev_agent" });
-      const command = { [items[0]]: "setApiKey", [items[1]]: "deleteApiKey", [items[2]]: "restartServer", [items[3]]: "showLog", [items[4]]: "contextSettings" }[choice ?? ""];
+      const command = { [items[0]]: "setApiKey", [items[1]]: "deleteApiKey", [items[2]]: "restartServer", [items[3]]: "showLog", [items[4]]: "contextSettings", [items[5]]: "behaviorSettings" }[choice ?? ""];
       if (command) await vscode.commands.executeCommand(`devAgent.${command}`);
     },
     restart: () => manager.restart(),

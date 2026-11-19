@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ai.dev_agent.guard import ALLOW
 from ai.dev_agent.guard.commands import CommandError, classify, split_command
 from ai.dev_agent.tools import runner
 from ai.dev_agent.tools.registry import ToolError, tool
@@ -13,6 +14,8 @@ def execute(ctx, argv: list[str], reason: str = "") -> dict:
     shown = " ".join(argv)
     if decision.action == "deny":
         raise ToolError(f"blocked: {decision.reason}")
+    if decision.action == "ask" and decision.kind == "unlisted" and not ctx.settings.get("ask_other_commands", True):
+        decision = ALLOW   # the owner switched this approval off: a harmless command that is only missing from the allow list runs; everything else still asks
     if decision.action == "ask":
         why = f"{reason or 'no reason given'} | {decision.reason}"
         if not ctx.ask("command", f"cmd:{shown}", f"run `{shown}` ({why})"):

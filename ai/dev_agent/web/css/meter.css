@@ -72,6 +72,11 @@
   margin-bottom: 8px;
 }
 
+.ctx-field.switch label {
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .ctx-field .help {
   font-size: 0.9em;
 }

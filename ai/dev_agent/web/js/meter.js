@@ -45,7 +45,7 @@ export function meterModel(event) {
   };
 }
 
-export function createMeter(onSettings) {
+export function createMeter(onSettings, onBehavior) {
   const used = el("span", { class: "meter-used" });
   const percent = el("span", { class: "meter-percent" });
   const left = el("span", { class: "meter-left" });
@@ -56,6 +56,18 @@ export function createMeter(onSettings) {
     { class: "meter-bar", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100 },
     fill,
     trim
+  );
+  const behavior = el(
+    "button",
+    {
+      type: "button",
+      class: "icon",
+      id: "behavior-settings-btn",
+      title: "Behavior: approvals and speed",
+      "aria-label": "Behavior: approvals and speed",
+      onclick: onBehavior,
+    },
+    icon("shield")
   );
   const gear = el(
     "button",
@@ -72,7 +84,7 @@ export function createMeter(onSettings) {
   const root = el(
     "div",
     { class: "meter lvl-none", id: "context-meter", role: "group", "aria-label": "Context window" },
-    el("div", { class: "meter-text" }, used, percent, left, el("span", { class: "spacer" }), gear),
+    el("div", { class: "meter-text" }, used, percent, left, el("span", { class: "spacer" }), behavior, gear),
     bar
   );
 

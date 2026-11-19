@@ -10,9 +10,10 @@ from pathlib import Path
 from ai.dev_agent.core import fsutil
 from ai.dev_agent.core.project import ALWAYS_EXCLUDE
 from ai.dev_agent.guard import paths
+from ai.dev_agent.tools import limits
 from ai.dev_agent.tools.registry import ToolError, tool
 
-MAX_READ_LINES = 400
+MAX_READ_LINES = limits.NORMAL["read_lines"]
 
 
 @tool("search_index", "args {query}: files, classes and functions in the repo index that match words of the query")
@@ -21,7 +22,7 @@ def search_index(ctx, args):
     if not query:
         raise ToolError("give a `query`")
     ctx.index.ensure_current()
-    return {"results": ctx.index.search(query, 15)}
+    return {"results": ctx.index.search(query, limits.of(ctx.settings)["index_results"])}
 
 
 @tool("grep", "args {pattern, glob?, max_results?}: regex search over text files; returns path:line: text")
@@ -30,7 +31,8 @@ def grep(ctx, args):
         rx = re.compile(str(args.get("pattern") or ""))
     except re.error as exc:
         raise ToolError(f"bad regex: {exc}") from exc
-    glob, limit = str(args.get("glob") or "*"), min(int(args.get("max_results") or 50), 200)
+    lim = limits.of(ctx.settings)
+    glob, limit = str(args.get("glob") or "*"), min(int(args.get("max_results") or lim["grep_default"]), lim["grep_cap"])
     skip = ALWAYS_EXCLUDE | set(ctx.project.config["index_exclude"])
     history = ctx.project.agent_dir / "tasks"   # past runs (full traces, ledgers, copies of edited files) are never an answer about the code
     hits = []
@@ -55,7 +57,7 @@ def grep(ctx, args):
     return {"matches": hits, "truncated": False}
 
 
-@tool("read_file", f"args {{path, start?, end?}}: numbered lines (max {MAX_READ_LINES} per call) plus the file's sha")
+@tool("read_file", f"args {{path, start?, end?}}: numbered lines (max {MAX_READ_LINES} per call, {limits.DEEP['read_lines']} with deep search) plus the file's sha")
 def read_file(ctx, args):
     rel, full = ctx.project.resolve(args.get("path"))
     decision = paths.check_read(ctx.project, rel)
@@ -67,7 +69,8 @@ def read_file(ctx, args):
     text, _ = fsutil.decode(data)
     lines = text.split("\n")
     start = max(1, int(args.get("start") or 1))
-    end = min(len(lines), int(args.get("end") or start + MAX_READ_LINES - 1), start + MAX_READ_LINES - 1)
+    cap = limits.of(ctx.settings)["read_lines"]
+    end = min(len(lines), int(args.get("end") or start + cap - 1), start + cap - 1)
     digest = fsutil.sha(data)
     ctx.seen[rel] = digest
     body = "\n".join(f"{n}\t{lines[n - 1]}" for n in range(start, end + 1))

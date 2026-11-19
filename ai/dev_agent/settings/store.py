@@ -25,10 +25,21 @@ DEFAULTS = {
     "max_steps_per_package": 200,
     "max_fix_rounds": 12,
     "max_tool_result_chars": 8000,
+    # Behavior switches (Settings > Behavior in the UI, see settings/behavior.py). The defaults keep the strict behaviour of earlier versions.
+    "require_plan_approval": True,
+    "ask_outside_plan": True,
+    "ask_other_commands": True,
+    "ask_protected_files": True,
+    "deep_search": False,
+    "quick_mode": False,
+    "light_verification": False,
 }
 SECRET_KEY = re.compile(r"(api[_-]?key|secret|password|passphrase|bearer|(^|[_-])(access[_-]?|auth[_-]?)?token$)", re.I)   # not "max_tokens"
 SECRET_VALUE = re.compile(r"^(sk-[A-Za-z0-9_-]{16,}|AIza[0-9A-Za-z_-]{20,}|[A-Za-z0-9_-]{40,})$")
 INTS = ("context_window", "reserve_tokens", "max_output_tokens", "timeout_s", "command_timeout_s", "max_steps_per_package", "max_fix_rounds", "max_tool_result_chars")
+
+
+FLAGS = ("require_plan_approval", "ask_outside_plan", "ask_other_commands", "ask_protected_files", "deep_search", "quick_mode", "light_verification")
 
 
 class SettingsError(ValueError):
@@ -57,6 +68,9 @@ def validate(data: dict) -> None:
     for key in INTS:
         if not isinstance(data.get(key), int) or isinstance(data.get(key), bool) or data[key] <= 0:
             raise SettingsError(f"{key} must be a positive integer")
+    for key in FLAGS:
+        if not isinstance(data.get(key), bool):
+            raise SettingsError(f"{key} must be true or false")
     if data["reserve_tokens"] >= data["context_window"]:
         raise SettingsError("reserve_tokens must be smaller than context_window")
     if data["provider"] not in data["providers"]:
@@ -98,7 +112,7 @@ class Settings:
                 raise SettingsError(f"unknown setting '{dotted}'")
             old = node[keys[-1]]
             try:
-                node[keys[-1]] = int(raw) if isinstance(old, int) and not isinstance(old, bool) else str(raw)
+                node[keys[-1]] = (str(raw).strip().lower() in ("1", "true", "yes", "on")) if isinstance(old, bool) else int(raw) if isinstance(old, int) else str(raw)
             except (TypeError, ValueError) as exc:
                 raise SettingsError(f"'{dotted}' must be a number") from exc
         self.save(data)

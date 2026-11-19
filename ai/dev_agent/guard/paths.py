@@ -15,8 +15,10 @@ def check_read(project, rel: str) -> Decision:
     return ALLOW
 
 
-def check_write(project, rel: str, op: str, scope) -> Decision:
-    """op: edit | create | delete | rename. `scope` is the approved plan's PlanScope, or None while only planning (nothing may be written)."""
+def check_write(project, rel: str, op: str, scope, settings: dict | None = None) -> Decision:
+    """op: edit | create | delete | rename. `scope` is the approved plan's PlanScope, or None while only planning (nothing may be written).
+    `settings` = the agent settings: ask_outside_plan / ask_protected_files false turn those two approvals off (forbidden and secret files never)."""
+    settings = settings or {}
     reason = project.forbidden_reason(rel) or project.secret_reason(rel)
     if reason:
         return deny(f"{rel} is forbidden: {reason}")
@@ -26,11 +28,13 @@ def check_write(project, rel: str, op: str, scope) -> Decision:
     if other:
         return deny(f"{rel} belongs to work package {other}, not to this package: leave it for {other} (the approved plan is unchanged)")
     if op in ("delete", "rename") and not scope.allows(op, rel):
+        if not settings.get("ask_outside_plan", True):
+            return ask(f"{op} of {rel} is not listed in the approved plan; deleting or renaming always needs the plan or your OK")
         return deny(f"{op} of {rel} is not listed in the approved plan (deleting or renaming needs to be in the plan)")
     reasons = []
     protected = project.protected_reason(rel)
-    if protected:
+    if protected and settings.get("ask_protected_files", True):
         reasons.append(f"PROTECTED ({protected})")
-    if op in ("edit", "create") and not scope.allows(op, rel):
+    if op in ("edit", "create") and not scope.allows(op, rel) and settings.get("ask_outside_plan", True):
         reasons.append("not in the approved plan (scope change)")
     return ask(f"{op} {rel}: " + "; ".join(reasons)) if reasons else ALLOW

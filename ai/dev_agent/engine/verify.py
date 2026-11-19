@@ -52,7 +52,9 @@ def run(ctx, changed: list[str]) -> list[dict]:
             results.append({"step": name, "status": "SKIPPED", "detail": "changed files are covered by a pytest area instead"})
             continue
         if "{modules}" in step["argv"] and not modules:
-            results.append({"step": name, "status": "NOT RUN", "detail": "no test module is mapped to the changed files (test_areas in config.json)"})
+            light = ctx.settings.get("light_verification")
+            results.append({"step": name, "status": "SKIPPED" if light else "NOT RUN",
+                            "detail": "no test module is mapped to the changed files (test_areas in config.json)" + (" - skipped by light verification" if light else "")})
             continue
         outcome, detail = "PASSED", ""
         for argv in _expand(step["argv"], files, modules, pytests):
@@ -68,9 +70,13 @@ def run(ctx, changed: list[str]) -> list[dict]:
                 outcome, detail = "FAILED", ("TIMED OUT\n" if res["timed_out"] else "") + res["output"]
                 break
         results.append({"step": name, "status": outcome, "detail": detail})
-    if mapping := coverage.row(project, changed):
-        results.append(mapping)
-    results.append(_line_limits(project, changed))
+    if ctx.settings.get("light_verification"):   # Settings > Behavior: these two checks are skipped, and the report says so
+        results.append({"step": "test mapping", "status": "SKIPPED", "detail": "light verification is on: test mapping was not checked"})
+        results.append({"step": f"line limit ({project.config['max_file_lines']})", "status": "SKIPPED", "detail": "light verification is on: file sizes were not checked"})
+    else:
+        if mapping := coverage.row(project, changed):
+            results.append(mapping)
+        results.append(_line_limits(project, changed))
     row = e2e.run(ctx, changed)
     if row:
         results.append(row)

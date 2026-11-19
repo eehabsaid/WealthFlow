@@ -113,6 +113,7 @@ button.link {
   border-color: var(--bad);
 }
 
+.pill.s-queued,
 .pill.s-awaiting_approval,
 .pill.s-executing,
 .pill.s-planning {

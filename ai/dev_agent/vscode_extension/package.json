@@ -77,6 +77,12 @@
         "icon": "$(settings-gear)"
       },
       {
+        "command": "devAgent.behaviorSettings",
+        "title": "Behavior (approvals and speed)",
+        "category": "dev_agent",
+        "icon": "$(shield)"
+      },
+      {
         "command": "devAgent.setApiKey",
         "title": "Set API key",
         "category": "dev_agent"
@@ -118,6 +124,11 @@
           "command": "devAgent.contextSettings",
           "when": "view == devAgent.chat",
           "group": "navigation@2"
+        },
+        {
+          "command": "devAgent.behaviorSettings",
+          "when": "view == devAgent.chat",
+          "group": "navigation@3"
         },
         {
           "command": "devAgent.restartServer",

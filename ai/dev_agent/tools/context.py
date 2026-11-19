@@ -43,7 +43,7 @@ class ToolContext:
         return ok
 
     def allow_write(self, rel: str, op: str) -> tuple[bool, str]:
-        decision = paths.check_write(self.project, rel, op, self.scope)
+        decision = paths.check_write(self.project, rel, op, self.scope, self.settings)
         if decision.action == "allow":
             return True, ""
         if decision.action == "deny":

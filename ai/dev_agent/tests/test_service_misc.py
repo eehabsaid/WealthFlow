@@ -26,7 +26,7 @@ def test_event_log_wait_wakes_up_and_clips_long_fields(repo):
 
 def test_list_tasks_newest_first_and_state_when_idle(repo):
     svc = service(repo, Scripted([plan()]))
-    assert svc.state() == {"busy": False, "current": None, "approvals": []}
+    assert svc.state() == {"busy": False, "current": None, "approvals": [], "queued": []}
     a = Ledger.create(repo, "first").id
     b = svc.start_task("second")
     assert idle(svc) and [r["id"] for r in svc.list_tasks()][0] == b and a in [r["id"] for r in svc.list_tasks()]

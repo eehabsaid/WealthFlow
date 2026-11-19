@@ -13,7 +13,7 @@ from ai.dev_agent.engine.attachments import Attachments, AttachmentError
 from ai.dev_agent.engine.cancel import CancelToken
 from ai.dev_agent.engine.fix import verify_and_fix
 from ai.dev_agent.engine.intent import FAILED, refuse, wrote_files
-from ai.dev_agent.engine.protocol import PLAN_FORMAT, system_prompt
+from ai.dev_agent.engine.protocol import QUICK,  PLAN_FORMAT, system_prompt
 from ai.dev_agent.engine.session import run_phase
 
 
@@ -74,7 +74,10 @@ class Agent:
         problems: list[str] = []
         for attempt in range(3):
             fix = "\n\nYour previous plan was rejected:\n- " + "\n- ".join(problems) if problems else ""
-            first = f"TASK: {task}\n\n{background}\n\n{PLAN_FORMAT}{fix}"
+            earlier = ledger.data.get("chat_context") or ""
+            earlier = f"EARLIER IN THIS CHAT (the owner continues the same conversation; build on it, do not redo it):\n{earlier}\n\n" if earlier else ""
+            quick = QUICK if self.settings.get("quick_mode") else ""
+            first = f"{earlier}TASK: {task}\n\n{background}\n\n{PLAN_FORMAT}{quick}{fix}"
             res = run_phase(ctx, self.provider, system_prompt(True), first, {"plan", "final"}, self.settings["max_steps_per_package"], label="plan")
             if res.kind == "stopped":
                 ledger.set_status("stopped", res.reason)
@@ -102,6 +105,21 @@ class Agent:
         ledger.data.update(plan=plan, plan_sha=planlib.digest(plan), packages=pkgs)
         ledger.set_status("awaiting_approval")
         return ledger
+
+    @property
+    def auto_approve(self) -> bool:
+        """Settings > Behavior: plan approval switched off, or quick mode (which includes it)."""
+        return not self.settings.get("require_plan_approval", True) or bool(self.settings.get("quick_mode"))
+
+    def run_if_auto(self, task_id: str) -> Ledger | None:
+        """After planning: when the owner switched the plan approval off, approve and execute at once (recorded in the ledger). None = nothing done."""
+        ledger = self._load(task_id)
+        if not self.auto_approve or ledger.data["status"] != "awaiting_approval" or not ledger.data["plan"]:
+            return None
+        ledger.record_approval("plan", "plan", True, "approved automatically: the plan approval is switched off in Settings > Behavior")
+        self.emit({"type": "phase", "phase": "plan approved automatically (Settings > Behavior)"})
+        self.approve(task_id)
+        return self.execute(task_id)
 
     def approve(self, task_id: str) -> Ledger:
         ledger = self._load(task_id)
@@ -152,8 +170,11 @@ class Agent:
             ledger.save()
             self.emit({"type": "package", "id": pkg["id"], "title": pkg["title"], "status": "done"})
         ctx = self._ctx(ledger, False, scope, "final")
-        self.emit({"type": "phase", "phase": "final checks"})
-        ok, why = verify_and_fix(ctx, self.provider, "final", lambda: ledger.changed_files())
+        if self.settings.get("quick_mode") and len(d["packages"]) == 1:
+            ok, why = True, ""   # quick mode: the one package was already verified on exactly these files; no second pass
+        else:
+            self.emit({"type": "phase", "phase": "final checks"})
+            ok, why = verify_and_fix(ctx, self.provider, "final", lambda: ledger.changed_files())
         ledger.freeze_result_diffs()   # fixed now, before any later task can touch the same files
         if ok and not wrote_files(ledger):   # approved and "verified", yet no file was changed: that is not DONE
             ok, why = False, "FAILED: the plan was approved but no file was changed"

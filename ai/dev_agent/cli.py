@@ -148,8 +148,8 @@ def main(argv=None) -> int:
             if ledger.data["status"] == "awaiting_approval":
                 if args.cmd == "plan":
                     print(f"\nApprove and run with: python -m ai.dev_agent execute {ledger.id}")
-                elif args.yes or input("\nApprove this plan and execute? [y/N] ").strip().lower() in ("y", "yes"):
-                    print("Plan approved automatically (--yes)." if args.yes else "Plan approved.")
+                elif args.yes or agent.auto_approve or input("\nApprove this plan and execute? [y/N] ").strip().lower() in ("y", "yes"):
+                    print("Plan approved automatically (--yes)." if args.yes else "Plan approved automatically (Settings > Behavior)." if agent.auto_approve else "Plan approved.")
                     agent.approve(ledger.id)
                     print(report.write(agent.execute(ledger.id)))
         elif args.cmd == "execute":
@@ -158,7 +158,7 @@ def main(argv=None) -> int:
             ledger = Ledger.load(project, args.task_id)
             if ledger.data["status"] == "awaiting_approval":
                 _show_plan(ledger)
-                if not args.yes and input("\nApprove this plan and execute? [y/N] ").strip().lower() not in ("y", "yes"):
+                if not args.yes and not agent.auto_approve and input("\nApprove this plan and execute? [y/N] ").strip().lower() not in ("y", "yes"):
                     return 1
                 agent.approve(args.task_id)
             print(report.write(agent.execute(args.task_id)))

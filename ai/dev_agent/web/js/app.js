@@ -1,4 +1,5 @@
 import { createComposer } from "./composer.js";
+import { openBehaviorSettings } from "./behavior-settings.js";
 import { openContextSettings } from "./context-settings.js";
 import { clear, el } from "./dom.js";
 import { renderHistory } from "./history.js";
@@ -68,6 +69,7 @@ export function init(transport, root) {
     resume: guard(() => store.resume(id())),
     answer: (aid, approve) => guard(() => store.answer(aid, approve))(),
     report: guard(showReport),
+    open: (taskId) => guard(() => open(taskId))(),
   };
 
   async function showReport() {
@@ -90,7 +92,8 @@ export function init(transport, root) {
       : guard(() => transport.setApiKey(provider))();
   const picker = createPicker(store, transport, report, keys);
   const openContext = guard(() => openContextSettings(dialog, transport, report));
-  const composer = createComposer(store, transport, picker, report, openContext);
+  const openBehavior = guard(() => openBehaviorSettings(dialog, transport, report));
+  const composer = createComposer(store, transport, picker, report, openContext, openBehavior);
 
   function toggleHistory(show = drawer.hidden) {
     drawer.hidden = !show;
@@ -168,7 +171,7 @@ export function init(transport, root) {
   }
 
   if (transport.onCommand)
-    transport.onCommand((name) => name === "contextSettings" && openContext());
+    transport.onCommand((name) => (name === "contextSettings" && openContext()) || (name === "behaviorSettings" && openBehavior()));
   root.append(head, composer.meter, banner, main, composer.root, drawer, dialog);
   store.on(schedule);
   store.start();

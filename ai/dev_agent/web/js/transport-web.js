@@ -150,8 +150,8 @@ export function createWebTransport() {
       return { chips, rejected };
     },
     detach: (id) => pending.delete(id),
-    async submit({ goal, provider, model }) {
-      const body = { goal, attachments: [...pending.values()] };
+    async submit({ goal, provider, model, chat }) {
+      const body = { goal, attachments: [...pending.values()], chat: chat || "" };
       if (provider && model) Object.assign(body, { provider, model });
       const result = await request("POST", "/api/tasks", body);
       pending.clear();

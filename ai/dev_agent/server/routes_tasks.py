@@ -25,10 +25,10 @@ def list_tasks(r: Req):
 
 
 def create_task(r: Req):
-    """Optional: `attachments` (files/images, see engine.attachments) and `provider`/`model` for this task only."""
+    """Optional: `attachments` (files/images, see engine.attachments) and `provider`/`model` for this task only; `chat` = id of a task of the chat this message continues (queued when a task is running)."""
     body = r.body or {}
     override = {k: body[k] for k in ("provider", "model") if k in body}
-    return Resp({"id": r.service.start_task(r.field("goal"), body.get("attachments"), override)}, 202)
+    return Resp({"id": r.service.start_task(r.field("goal"), body.get("attachments"), override, str(body.get("chat") or ""))}, 202)
 
 
 def get_task(r: Req):

@@ -19,12 +19,12 @@ from ai.dev_agent.service.keys import Keys
 from ai.dev_agent.service.tasks import ServiceError, TaskService
 from ai.dev_agent.settings.secrets import SecretsError
 from ai.dev_agent.settings.store import Settings, SettingsError
-from ai.dev_agent.server import auth, routes_context, routes_misc, routes_tasks, static
+from ai.dev_agent.server import auth, routes_behavior, routes_context, routes_misc, routes_tasks, static
 from ai.dev_agent.server.http import HttpError, Req, Resp, Stream
 
 MAX_BODY = 1_000_000
 MAX_TASK_BODY = 22_000_000   # POST /api/tasks may carry attachments (up to 5 images of 3 MB as base64, plus text files)
-ROUTES = routes_tasks.ROUTES + routes_context.ROUTES + routes_misc.ROUTES
+ROUTES = routes_tasks.ROUTES + routes_context.ROUTES + routes_behavior.ROUTES + routes_misc.ROUTES
 SERVICE_STATUS = {"not_found": 404, "conflict": 409, "busy": 409, "bad_request": 400}
 
 

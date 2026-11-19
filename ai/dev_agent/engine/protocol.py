@@ -29,6 +29,9 @@ PLAN_FORMAT = """Investigate with the read-only tools, then reply with:
 List EVERY file you will add, edit, delete or rename: nothing outside the plan may be changed later. Deleting or renaming only works if listed.
 If the task is only a question or needs no file changes, answer it with {"final": "your answer"} instead of a plan."""
 
+QUICK = ("\nQUICK MODE: this is a small task. Look only at what you need (a search or two, read the one file), then reply with a plan of ONE or TWO steps. "
+         "Include every file you may need to touch; do not add steps for tests or documentation unless the task asks for them.")
+
 
 @dataclass
 class Action:

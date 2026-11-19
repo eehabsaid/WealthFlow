@@ -46,7 +46,7 @@ export function createVsCodeTransport(vscode, host = window) {
     state: { get: () => vscode.getState() || {}, set: (value) => vscode.setState(value) },
     attach: (kind) => call("attach", { kind }),
     detach: (id) => call("detach", { id }),
-    submit: ({ goal, provider, model }) => call("submit", { goal, provider, model }),
+    submit: ({ goal, provider, model, chat }) => call("submit", { goal, provider, model, chat }),
     openDiff: (taskId, path) => call("openDiff", { taskId, path }),
     openReport: (taskId) => call("openReport", { taskId }),
     setApiKey: (provider) => call("setApiKey", { provider }),

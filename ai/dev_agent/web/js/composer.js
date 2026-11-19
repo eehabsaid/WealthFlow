@@ -5,8 +5,8 @@ import { createMeter } from "./meter.js";
 const FILE_CAP = 40000; // characters per text file the engine sends in full (engine.attachments.FILE_CAP)
 
 // The chat box: attach file / image, the model name (click to choose), Send, and Stop (active only while a task runs).
-export function createComposer(store, transport, picker, report, onContextSettings) {
-  const meter = createMeter(onContextSettings);
+export function createComposer(store, transport, picker, report, onContextSettings, onBehaviorSettings) {
+  const meter = createMeter(onContextSettings, onBehaviorSettings);
   let chips = [];
   let problems = [];
   const text = el("textarea", {
@@ -92,7 +92,8 @@ export function createComposer(store, transport, picker, report, onContextSettin
   const s = () => store.s;
   const imagesBlocked = () => chips.some((c) => c.kind === "image") && !s().server.vision;
   const offline = () => Boolean(s().error && s().error.code === "offline");
-  const ready = (goal) => Boolean(goal) && !s().server.busy && !offline() && !imagesBlocked();
+  // while a task runs, a message in an OPEN chat is allowed: it is queued and starts when the running task ends (a new chat must wait)
+  const ready = (goal) => Boolean(goal) && (!s().server.busy || Boolean(s().taskId)) && !offline() && !imagesBlocked();
 
   function grow() {
     text.style.height = "auto";
@@ -105,7 +106,7 @@ export function createComposer(store, transport, picker, report, onContextSettin
     const now = override || server;
     chipLabel.textContent = `${now.provider || "provider"} · ${now.model || "choose a model"}${override ? " (next task)" : ""}`;
     send.disabled = !ready(text.value.trim());
-    send.title = server.busy ? "A task is running" : "Send";
+    send.title = server.busy ? (s().taskId ? "Send as a follow-up: it starts when the running task finishes" : "A task is running: finish it or open a chat to queue a follow-up") : "Send";
     stop.disabled = !server.busy;
     image.disabled = !server.vision;
     image.title = server.vision
