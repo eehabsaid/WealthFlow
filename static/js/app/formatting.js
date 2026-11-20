@@ -22,6 +22,16 @@ function fmtpresent(n) {
   });
 }
 
+// Money amounts: always exactly 2 decimals so every KPI/card/table reads the
+// same. Rates, percentages and ratios keep using fmt / fmtpresent / fmtRate.
+function fmtMoney(n) {
+  if (n === null || n === undefined) return "-";
+  return Number(n).toLocaleString(getNumberLocale(), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 // Rewritten into a super compact format to keep your file line-count ultra-low:
 
 function fmtInt(n) {

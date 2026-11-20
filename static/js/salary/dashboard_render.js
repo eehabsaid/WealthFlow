@@ -17,7 +17,7 @@ async function renderDashboard() {
       (c) => `
         <tr>
             <td>
-                <span style="background:${c.color_hex};display:inline-block;
+                <span style="background:${readableChartColor(c.color_hex)};display:inline-block;
                              width:8px;height:8px;border-radius:50%;margin-right:6px"></span>
                 ${c.display_name}
                 ${c.group_name ? `<span class="group-badge">${c.group_name}</span>` : ""}
@@ -49,13 +49,11 @@ async function renderDashboard() {
                 ${kpiCard("kpi_work_months", fmtInt(g.total_months), "bi-calendar3", "var(--accent-yellow)")}
             </div>
 
-            <div style="background:var(--bg-secondary);border:1px solid var(--border-color);
-                        border-radius:12px;padding:20px;margin-bottom:24px">
+            <div class="surface-panel">
                 <canvas id="salaryChart" height="80"></canvas>
             </div>
 
-            <div style="background:var(--bg-secondary);border:1px solid var(--border-color);
-                        border-radius:12px;overflow:visible">
+            <div class="surface-panel surface-panel--flush">
                 <div class="table-container">
                 <table class="data-table">
                     <thead><tr>
@@ -121,6 +119,7 @@ function drawDashboardChart(companies) {
 
   const groups = Object.values(groupMap);
   const isMobile = window.innerWidth < 768;
+  const theme = chartTheme();
 
   new Chart(ctx, {
     type: "bar",
@@ -130,8 +129,8 @@ function drawDashboardChart(companies) {
         {
           label: t("salary_paid", "Total Paid"),
           data: groups.map((g) => g.total_paid),
-          backgroundColor: groups.map((g) => g.color + "bb"),
-          borderColor: groups.map((g) => g.color),
+          backgroundColor: groups.map((g) => readableChartColor(g.color) + "bb"),
+          borderColor: groups.map((g) => readableChartColor(g.color)),
           borderWidth: 1,
           borderRadius: 6,
         },
@@ -142,11 +141,11 @@ function drawDashboardChart(companies) {
       maintainAspectRatio: !isMobile,
       indexAxis: isMobile ? "y" : "x",
       plugins: {
-        legend: { labels: { color: "#7b93c9" } },
+        legend: { labels: { color: theme.text } },
       },
       scales: {
-        x: { ticks: { color: "#7b93c9" }, grid: { color: "#1e3a6e44" } },
-        y: { ticks: { color: "#7b93c9" }, grid: { color: "#1e3a6e44" } },
+        x: { ticks: { color: theme.text }, grid: { color: theme.grid } },
+        y: { ticks: { color: theme.text }, grid: { color: theme.grid } },
       },
     },
   });

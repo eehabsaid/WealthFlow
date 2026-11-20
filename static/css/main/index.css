@@ -36,5 +36,8 @@
 @import url("../date_picker/index.css?v=1784442773");
 @import url("../components/center_alert.css?v=1784442773");
 
+/* Design system layer */
+@import url("../design/index.css?v=1784452208");
+
 /* Responsive / Overrides */
 @import url("../responsive/index.css?v=1784442773?v=1784442773");

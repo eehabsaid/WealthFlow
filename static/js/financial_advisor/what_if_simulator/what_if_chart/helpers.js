@@ -38,8 +38,8 @@ function _hideSliderTooltip() {
 
 function _money(value) {
   const num = Number(value) || 0;
-  if (typeof fmtpresent === "function") {
-    return fmtpresent(num);
+  if (typeof fmtMoney === "function") {
+    return fmtMoney(num);
   }
   return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -49,8 +49,8 @@ function _fmtDelta(val, isPct = false, digits = 1) {
   const num = Number(val) || 0;
   const sign = num > 0 ? "+" : "";
   if (isPct) return `${sign}${num.toFixed(digits)}%`;
-  if (typeof fmtpresent === "function") {
-    return `${sign}${fmtpresent(num)}`;
+  if (typeof fmtMoney === "function") {
+    return `${sign}${fmtMoney(num)}`;
   }
   return `${sign}${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }

@@ -61,13 +61,13 @@ function renderBalanceOverview(data) {
 
         <div class="kpi-card mb-4" style="text-align:center">
             <div class="kpi-label" data-i18n="grand_total">${grandTotalLabel}</div>
-            <div class="kpi-value num-fmtpresent" style="color:var(--accent-green);font-size:32px" data-value="${grandTotal}">
-                ${fmtpresent(grandTotal)} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
+            <div class="kpi-value num-fmtmoney" style="color:var(--accent-green);font-size:32px" data-value="${grandTotal}">
+                ${fmtMoney(grandTotal)} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span>
             </div>
-            <div style="margin-top:8px;color:var(--text-secondary);font-size:13px" data-i18n="balance_formula_desc">
+            <div class="balance-formula" data-i18n="balance_formula_desc">
                 ${formulaDesc}
             </div>
-            <div style="margin-top:8px;color:var(--text-secondary);font-size:13px">
+            <div class="balance-formula">
                 ${terms
                   .map(
                     (x) =>
@@ -76,7 +76,7 @@ function renderBalanceOverview(data) {
                   .join(" + ")} +
                 <span class="num-fmt" data-value="${goldValue}">${fmt(goldValue)}</span>
             </div>
-            <div style="margin-top:8px;color:var(--text-secondary);font-size:13px">
+            <div class="balance-formula">
                 ${terms
                   .map(
                     (x) =>
@@ -94,55 +94,55 @@ function renderBalanceOverview(data) {
                 <div class="fi-metric-tile fi-priority">
                     <div class="fi-metric-icon">💎</div>
                     <div class="fi-metric-title" data-i18n="net_worth">Net Worth</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)}</div>
+                    <div class="fi-metric-main num-fmtmoney" data-value="${netWorth}">${fmtMoney(netWorth)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile fi-priority">
                     <div class="fi-metric-icon">💰</div>
                     <div class="fi-metric-title" data-i18n="liquid_cash">Liquid Cash</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.cash_balance || 0}">${fmtpresent(forecastData.cash_balance || 0)}</div>
+                    <div class="fi-metric-main num-fmtmoney" data-value="${forecastData.cash_balance || 0}">${fmtMoney(forecastData.cash_balance || 0)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile">
                     <div class="fi-metric-icon">🏦</div>
                     <div class="fi-metric-title" data-i18n="certificate_investments">Certificate Investments</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.certificate_balance || 0}">${fmtpresent(forecastData.certificate_balance || 0)}</div>
+                    <div class="fi-metric-main num-fmtmoney" data-value="${forecastData.certificate_balance || 0}">${fmtMoney(forecastData.certificate_balance || 0)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile">
                     <div class="fi-metric-icon">💵</div>
                     <div class="fi-metric-title" data-i18n="liquid_base_cash">Liquid Cash</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${cashBase}">${fmtpresent(cashBase)}</div>
+                    <div class="fi-metric-main num-fmtmoney" data-value="${cashBase}">${fmtMoney(cashBase)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile">
                     <div class="fi-metric-icon">🌍</div>
                     <div class="fi-metric-title" data-i18n="foreign_currency_value">Foreign Currency Value</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${foreignValue}">${fmtpresent(foreignValue)}</div>
+                    <div class="fi-metric-main num-fmtmoney" data-value="${foreignValue}">${fmtMoney(foreignValue)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile">
                     <div class="fi-metric-icon">🥇</div>
                     <div class="fi-metric-title" data-i18n="gold_value">Gold Value</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${goldValue}">${fmtpresent(goldValue)}</div>
+                    <div class="fi-metric-main num-fmtmoney" data-value="${goldValue}">${fmtMoney(goldValue)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile fi-priority">
                     <div class="fi-metric-icon">👤</div>
                     <div class="fi-metric-title" data-i18n="monthly_salary">Monthly Salary</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.monthly_salary || 0}">${fmtpresent(forecastData.monthly_salary || 0)}</div>
+                    <div class="fi-metric-main num-fmtmoney" data-value="${forecastData.monthly_salary || 0}">${fmtMoney(forecastData.monthly_salary || 0)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile">
                     <div class="fi-metric-icon">🏛️</div>
                     <div class="fi-metric-title" data-i18n="certificate_income">Certificate Income</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.monthly_certificate_income || 0}">${fmtpresent(forecastData.monthly_certificate_income || 0)}</div>
+                    <div class="fi-metric-main num-fmtmoney" data-value="${forecastData.monthly_certificate_income || 0}">${fmtMoney(forecastData.monthly_certificate_income || 0)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile">
                     <div class="fi-metric-icon">🏠</div>
                     <div class="fi-metric-title" data-i18n="monthly_rental_income">Rental Income</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.monthly_rental_income || 0}">${fmtpresent(forecastData.monthly_rental_income || 0)}</div>
+                    <div class="fi-metric-main num-fmtmoney" data-value="${forecastData.monthly_rental_income || 0}">${fmtMoney(forecastData.monthly_rental_income || 0)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile">
@@ -154,7 +154,7 @@ function renderBalanceOverview(data) {
                 <div class="fi-metric-tile fi-priority fi-expense-tile">
                     <div class="fi-metric-icon">🧾</div>
                     <div class="fi-metric-title" data-i18n="monthly_expenses">Monthly Expenses</div>
-                    <div class="fi-metric-main num-fmtpresent" data-value="${forecastData.avg_monthly_expenses || 0}">${fmtpresent(forecastData.avg_monthly_expenses || 0)}</div>
+                    <div class="fi-metric-main num-fmtmoney" data-value="${forecastData.avg_monthly_expenses || 0}">${fmtMoney(forecastData.avg_monthly_expenses || 0)}</div>
                     <div class="fi-metric-sub" data-i18n="base_currency_code">${baseCurrencyCode()}</div>
                 </div>
                 <div class="fi-metric-tile">

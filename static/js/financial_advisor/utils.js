@@ -56,7 +56,7 @@ function _cashFlowPaneId() {
 }
 
 function _money(value) {
-  return fmtpresent(value || 0);
+  return fmtMoney(value || 0);
 }
 
 function _eventTranslationKey(eventType) {

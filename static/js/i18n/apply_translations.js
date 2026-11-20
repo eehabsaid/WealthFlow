@@ -140,6 +140,10 @@ function applyTranslations(container = document) {
     const v = el.getAttribute("data-value");
     if (v !== null) el.innerText = fmtpresent(v);
   });
+  root.querySelectorAll(".num-fmtmoney").forEach((el) => {
+    const v = el.getAttribute("data-value");
+    if (v !== null) el.innerText = fmtMoney(v);
+  });
   root.querySelectorAll(".num-fmtint").forEach((el) => {
     const v = el.getAttribute("data-value");
     if (v !== null) el.innerText = fmtInt(v);

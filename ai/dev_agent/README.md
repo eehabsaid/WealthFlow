@@ -5,7 +5,7 @@ Python 3.12+. No Django. Project-specific rules live in `coding_agent/config.jso
 ## Setup (once)
     pip install -r ai/dev_agent/requirements.txt        # keyring only; cryptography is already in WealthFlow's requirements
     python -m ai.dev_agent settings set provider ollama        # ollama | anthropic | openai | gemini
-    python -m ai.dev_agent settings set model qwen3.8:27b-wealthflow 
+    python -m ai.dev_agent settings set model qwen3.8:27b-wealthflow
     python -m ai.dev_agent set-key anthropic                   # cloud providers only; hidden prompt; Ollama needs no key
 Credentials: OS keyring first (Windows Credential Manager). If no usable keyring, an encrypted file at `%APPDATA%\dev_agent\secrets.enc`
 (never inside the repo). Its key comes from a passphrase (scrypt, 12+ characters, fresh salt per save) and is never stored. Set

@@ -1,13 +1,13 @@
 [data-theme="light"] .portfolio-table tbody tr:nth-child(even) {
-  background: #f8fafc;
+  background: var(--bg-primary);
 }
 
 [data-theme="light"] .portfolio-gain-up {
-  color: #059669 !important;
+  color: var(--accent-emerald) !important;
 }
 
 [data-theme="light"] .portfolio-gain-down {
-  color: #e11d48 !important;
+  color: var(--accent-rose) !important;
 }
 
 [data-theme="light"] .portfolio-warning {
@@ -23,7 +23,7 @@
 }
 
 [data-theme="light"] .portfolio-empty-state {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .portfolio-badge-high {
@@ -45,9 +45,9 @@
 }
 
 [data-theme="light"] .portfolio-badge-info {
-  color: #475569;
-  border-color: #cbd5e1;
-  background: #f8fafc;
+  color: var(--text-secondary);
+  border-color: var(--border-strong);
+  background: var(--bg-primary);
 }
 
 [data-theme="light"] .goal-kpi-card,
@@ -55,13 +55,13 @@
 [data-theme="light"] .goal-milestone-item,
 [data-theme="light"] .goal-toolbar .form-control,
 [data-theme="light"] .goal-toolbar .form-select {
-  background: #fff;
-  border-color: #e2e8f0;
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
 }
 
 [data-theme="light"] .goal-planning-hero {
-  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
-  border-color: #e2e8f0;
+  background: linear-gradient(180deg, var(--bg-primary), var(--bg-tertiary));
+  border-color: var(--border-color);
 }
 
 [data-theme="light"] .goal-planning-header h4,
@@ -70,7 +70,7 @@
 [data-theme="light"] .goal-progress-label,
 [data-theme="light"] .goal-kpi-card strong,
 [data-theme="light"] .goal-milestone-title {
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .goal-planning-header p,
@@ -80,17 +80,17 @@
 [data-theme="light"] .goal-milestone-meta,
 [data-theme="light"] .goal-milestone-side small,
 [data-theme="light"] .goal-toolbar .form-control::placeholder {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .goal-kpi-card .goal-kpi-icon {
   border-color: #c7d2fe;
   background: #eef2ff;
-  color: #4f46e5;
+  color: var(--accent-primary);
 }
 
 [data-theme="light"] .goal-card-meta-strong strong {
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .goal-progress-track {
@@ -98,29 +98,29 @@
 }
 
 [data-theme="light"] .goal-editor-modal .goal-editor-surface {
-  background: #fff !important;
+  background: var(--bg-secondary) !important;
   box-shadow: 0 20px 60px rgb(15 23 42 / 15%);
 }
 
 [data-theme="light"] .goal-editor-modal .goal-editor-header,
 [data-theme="light"] .goal-editor-modal .goal-editor-footer {
-  background: #f8fafc;
+  background: var(--bg-primary);
 }
 
 [data-theme="light"] .goal-editor-modal .form-control,
 [data-theme="light"] .goal-editor-modal .form-select,
 [data-theme="light"] .goal-editor-modal textarea {
-  background: #fff !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
 }
 
 [data-theme="light"] .goal-editor-modal .modal-title,
 [data-theme="light"] .goal-editor-modal .form-label {
-  color: #0f172a !important;
+  color: var(--text-primary) !important;
 }
 
 [data-theme="light"] .goal-editor-modal .form-control::placeholder,
 [data-theme="light"] .goal-editor-modal textarea::placeholder {
-  color: #64748b !important;
+  color: var(--text-muted) !important;
 }

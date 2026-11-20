@@ -1,0 +1,74 @@
+/* Shared component polish. Layout stays as-is; this refines focus, surfaces and motion. */
+
+/* Keyboard focus: one visible ring for every interactive control */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Surface panel: replaces ad-hoc inline-styled boxes (charts, tables) */
+.surface-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 12px);
+  padding: 20px;
+  margin-bottom: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.surface-panel--flush {
+  padding: 0;
+  overflow: visible;
+}
+
+/* Page-level action buttons sit clear of the content below them */
+#main-content > .btn-primary-custom,
+#main-content > .btn-secondary-custom,
+.page-actions {
+  margin-bottom: var(--space-4);
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Equal-height KPI rows */
+.row > [class*="col"] > .kpi-card {
+  height: 100%;
+}
+
+/* Tables: logical alignment so RTL reads correctly */
+.data-table th {
+  text-align: start;
+}
+
+.data-table th.text-end,
+.data-table td.text-end {
+  text-align: end;
+}
+
+.data-table tbody tr:focus-within td {
+  background: var(--bg-card-hover);
+}
+
+/* Slim, themed scrollbars on scroll containers */
+.table-container,
+.modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* Quiet motion for people who ask for it */
+@media (prefers-reduced-motion: reduce) {
+  .kpi-card:hover,
+  .asset-summary-card:hover {
+    transform: none;
+  }
+
+  .modal.fade .modal-dialog {
+    transition: none;
+    transform: none;
+  }
+}

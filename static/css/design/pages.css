@@ -1,0 +1,38 @@
+/* Page polish: Dashboard, Balance, Financial Advisor. */
+
+/* ── Dashboard ────────────────────────────────────────────────────────────── */
+.surface-panel canvas {
+  max-width: 100%;
+}
+
+.surface-panel .data-table .group-badge {
+  font-size: var(--text-xs);
+}
+
+/* ── Balance ──────────────────────────────────────────────────────────────── */
+.balance-formula {
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.balance-formula[data-i18n="balance_formula_desc"] {
+  color: var(--text-secondary);
+}
+
+#bal-pane-overview .fi-metric-tile {
+  min-width: 0;
+}
+
+/* ── Financial Advisor ────────────────────────────────────────────────────── */
+.overview-kpi-value {
+  overflow-wrap: anywhere;
+}
+
+.overview-kpi-value .amt-negative,
+.overview-kpi-value .amt-positive {
+  font-weight: 600;
+}

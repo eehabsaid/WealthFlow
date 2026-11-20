@@ -32,6 +32,7 @@ USAGE
     python scripts/run_full_e2e.py --mode=module --module=owner_setup   # AI default-key warning + Paymob regional test button
     python scripts/run_full_e2e.py --mode=module --module=recurring_auto_post   # Budgets auto-post switch
     python scripts/run_full_e2e.py --mode=module --module=account_deletion   # grace-period delete / restore flow
+    python scripts/run_full_e2e.py --mode=module --module=design_system   # tokens, 2-decimal money, chart contrast, mobile overflow
     python scripts/run_full_e2e.py --mode=module --module=settings   # also covers the Legal Text editor tab
     python scripts/run_full_e2e.py --headed --slowmo=250
 

@@ -1,0 +1,11 @@
+/*
+ * Design system layer — loaded after features, before responsive.
+ *   tokens.css      semantic tokens (money, status, chart palette, scale) + Bootstrap bridge
+ *   numbers.css     tabular numerals and money colouring
+ *   components.css  focus ring, surface panels, tables, scrollbars, reduced motion
+ *   pages.css       Dashboard, Balance and Financial Advisor polish
+ */
+@import url("tokens.css?v=1784452208");
+@import url("numbers.css?v=1784452208");
+@import url("components.css?v=1784452208");
+@import url("pages.css?v=1784452208");

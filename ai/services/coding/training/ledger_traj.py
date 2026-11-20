@@ -48,7 +48,8 @@ def _skip_reason(phase: dict, phases: list[dict], data: dict, kind: str, cfg: di
     elif label.startswith("package "):
         if kind != "patch":
             return "package_of_unfinished_task"
-        if _failed_first(data, label.split(" ", 1)[1]):
+        only = sum(1 for p in phases if p["label"].startswith("package ")) == 1   # one package: its checks are the "final" ones
+        if _failed_first(data, label.split(" ", 1)[1]) or (only and _failed_first(data, "final")):
             return "package_failed_first_check"
     elif fix:
         rounds = [int(m.group(2)) for p in phases if (m := FIX.match(p["label"])) and m.group(1) == fix.group(1)]

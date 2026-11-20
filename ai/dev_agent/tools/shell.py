@@ -18,7 +18,7 @@ def _status(project) -> dict[str, tuple] | None:
     if not shutil.which("git") or not (project.root / ".git").exists():
         return None
     try:
-        out = subprocess.run(["git", "-c", "core.quotepath=off", "status", "--porcelain", "-z", "-uall"], cwd=project.root, capture_output=True, timeout=60, check=True).stdout
+        out = subprocess.run(["git", "status", "--porcelain", "-z", "-uall"], cwd=project.root, capture_output=True, timeout=60, check=True).stdout
     except (OSError, subprocess.SubprocessError):
         return None
     found = {}

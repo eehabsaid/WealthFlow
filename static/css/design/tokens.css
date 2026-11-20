@@ -1,0 +1,95 @@
+/* Semantic design tokens. Components use these, never raw hex values. */
+
+:root {
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Type scale */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+}
+
+/* ── Dark theme (default) ─────────────────────────────────────────────────── */
+[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  --positive: var(--accent-emerald);
+  --negative: var(--accent-rose);
+  --warning: var(--accent-amber);
+  --info: #38bdf8;
+  --positive-soft: var(--accent-emerald-light);
+  --negative-soft: var(--accent-rose-light);
+  --warning-soft: var(--accent-amber-light);
+  --info-soft: rgb(56 189 248 / 14%);
+  --focus-ring-color: #5b9bff;
+
+  /* Chart palette: one set for every chart in the app */
+  --chart-1: #3b82f6;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #f43f5e;
+  --chart-5: #a78bfa;
+  --chart-6: #22d3ee;
+  --chart-7: #fb923c;
+  --chart-8: #84cc16;
+  --chart-grid: rgb(30 58 110 / 27%);
+
+  /* Bootstrap bridge: .text-success, .bg-danger, .badge … follow the brand */
+  --bs-primary: var(--accent-primary);
+  --bs-primary-rgb: 26, 110, 245;
+  --bs-success: var(--positive);
+  --bs-success-rgb: 0, 214, 143;
+  --bs-danger: var(--negative);
+  --bs-danger-rgb: 255, 77, 109;
+  --bs-warning: var(--warning);
+  --bs-warning-rgb: 255, 209, 102;
+  --bs-info: var(--info);
+  --bs-info-rgb: 56, 189, 248;
+  --bs-border-color: var(--border-color);
+}
+
+/* ── Light theme ──────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --positive: var(--accent-emerald);
+  --negative: var(--accent-rose);
+  --warning: var(--accent-amber);
+  --info: #0284c7;
+  --positive-soft: var(--accent-emerald-light);
+  --negative-soft: var(--accent-rose-light);
+  --warning-soft: var(--accent-amber-light);
+  --info-soft: rgb(2 132 199 / 8%);
+  --focus-ring-color: var(--accent-primary);
+
+  --chart-1: #4f46e5;
+  --chart-2: #059669;
+  --chart-3: #d97706;
+  --chart-4: #e11d48;
+  --chart-5: #7c3aed;
+  --chart-6: #0891b2;
+  --chart-7: #ea580c;
+  --chart-8: #65a30d;
+  --chart-grid: rgb(226 232 240 / 80%);
+
+  --bs-primary: var(--accent-primary);
+  --bs-primary-rgb: 79, 70, 229;
+  --bs-success: var(--positive);
+  --bs-success-rgb: 5, 150, 105;
+  --bs-danger: var(--negative);
+  --bs-danger-rgb: 225, 29, 72;
+  --bs-warning: var(--warning);
+  --bs-warning-rgb: 217, 119, 6;
+  --bs-info: var(--info);
+  --bs-info-rgb: 2, 132, 199;
+  --bs-border-color: var(--border-color);
+}

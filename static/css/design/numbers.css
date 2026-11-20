@@ -1,0 +1,56 @@
+/* Money & numbers: aligned digits everywhere an amount is shown. */
+
+.kpi-value,
+.overview-kpi-value,
+.fi-metric-main,
+.cur-amount,
+.asset-summary-value,
+.portfolio-allocation-pct,
+.data-table td,
+.data-table th,
+.text-end,
+.amt-positive,
+.amt-negative,
+.amt-zero,
+.amount,
+.num-fmt,
+.num-fmtmoney,
+.num-fmtpresent,
+.num-fmtint,
+.num-fmtRate {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings:
+    "tnum" 1,
+    "lnum" 1;
+}
+
+/* One colour language for money */
+.amt-positive,
+.amount-positive {
+  color: var(--positive);
+}
+
+.amt-negative,
+.amount-negative {
+  color: var(--negative);
+}
+
+.amt-zero,
+.amount-zero {
+  color: var(--text-muted);
+}
+
+/* Headline figures share one rhythm across Dashboard, Balance and Advisor */
+.kpi-card .kpi-value,
+.overview-kpi-value,
+.fi-metric-main {
+  font-family: var(--font-family-display);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.kpi-card .kpi-label,
+.fi-metric-title {
+  letter-spacing: 0.04em;
+}

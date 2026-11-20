@@ -80,15 +80,15 @@ class PatchExamplesTests(TrajRepo):
         self.assertEqual(found["stats"]["dropped:plan_rejected"], 1)
         self.assertIn("rejected", found["candidates"][0]["messages"][1]["content"])
 
-    def test_a_package_whose_first_check_failed_is_dropped_and_its_successful_fix_is_kept(self):
+    def test_a_package_whose_first_check_failed_is_dropped_and_so_is_its_fix_that_continued_the_conversation(self):
         replies = [READ, PLAN, READ, edit({"path": "app/calc.py", "replacements": [{"old": "    return a + b\n", "new": "    return a + b\n\n\ndef sub(a, b):\n    return a - b\n"}]}),
                    final("added sub()"), READ, FIX_SUB, final("fixed sub()")]
         ledger = self.patch_run("add a sub function", replies, checks=(FAIL, PASS))
         self.assertEqual(ledger.data["status"], "completed")
         found = traj.extract()
-        self.assertEqual(self.labels(found), [("plan", "patch"), ("fix P1 #1", "patch")], dict(found["stats"]))
-        self.assertEqual(found["stats"]["dropped:package_failed_first_check"], 1)
-        self.assertIn("AssertionError: add(1, 2) != 3", found["candidates"][1]["messages"][1]["content"], "the fix example shows the failing check the model saw")
+        # A fix round now continues the package's own conversation, so what was logged is not the whole conversation: it is not an exact example.
+        self.assertEqual(self.labels(found), [("plan", "patch")], dict(found["stats"]))
+        self.assertEqual((found["stats"]["dropped:package_failed_first_check"], found["stats"]["dropped:phase_not_clean"]), (1, 1))
 
     def test_a_trajectory_that_wrote_a_protected_file_is_never_an_example(self):
         plan_money = plan(summary="touch money", files_edit=["app/money.py"], steps=[{"title": "edit", "files": ["app/money.py"]}])
