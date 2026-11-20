@@ -27,11 +27,9 @@ def check_write(project, rel: str, op: str, scope, settings: dict | None = None)
     other = getattr(scope, "other_package", lambda _rel: "")(rel)
     if other:
         return deny(f"{rel} belongs to work package {other}, not to this package: leave it for {other} (the approved plan is unchanged)")
-    if op in ("delete", "rename") and not scope.allows(op, rel):
-        if not settings.get("ask_outside_plan", True):
-            return ask(f"{op} of {rel} is not listed in the approved plan; deleting or renaming always needs the plan or your OK")
-        return deny(f"{op} of {rel} is not listed in the approved plan (deleting or renaming needs to be in the plan)")
     reasons = []
+    if op in ("delete", "rename") and not scope.allows(op, rel):   # never denied: the owner decides (the plan is what pre-approves it)
+        reasons.append(f"{op} is not listed in an approved plan")
     protected = project.protected_reason(rel)
     if protected and settings.get("ask_protected_files", True):
         reasons.append(f"PROTECTED ({protected})")

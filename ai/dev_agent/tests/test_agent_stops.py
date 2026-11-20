@@ -15,7 +15,7 @@ def test_invalid_plan_is_retried_then_gives_up(repo):
 
 def test_model_that_never_speaks_json_is_stopped(repo):
     led = agent(repo, ["blah", "still blah", "nope"]).plan("t")
-    assert led.data["status"] == "stopped" and "not valid protocol JSON" in led.data["stop_reason"]
+    assert led.data["status"] == "stopped" and "3 replies in a row that were not valid tool calls" in led.data["stop_reason"]
 
 
 def test_repeating_the_same_call_is_stopped(repo):
@@ -31,22 +31,17 @@ def test_step_limit(repo):
 
 def test_provider_failure_stops_cleanly_and_task_can_resume(repo):
     steps = [{"title": "one", "files": ["app/calc.py"]}, {"title": "two", "files": ["app/new.py"]}]
-    first = [plan(files_add=["app/new.py"], files_edit=["app/calc.py"], steps=steps)]
-    a = agent(repo, first)
+    a = agent(repo, [plan(files_add=["app/new.py"], files_edit=["app/calc.py"], steps=steps)])
     led = a.plan("two parts")
-    led = a.approve(led.id)
-    led.data["packages"] = [{"id": "P1", "title": "one", "steps": ["S1"], "files": ["app/calc.py"], "est_tokens": 1, "status": "pending", "summary": "", "oversize": False},
-                            {"id": "P2", "title": "two", "steps": ["S2"], "files": ["app/new.py"], "est_tokens": 1, "status": "pending", "summary": "", "oversize": False}]
-    led.save()
-    a.provider.replies = [final("p1 done, nothing to change")]    # P1 finishes, then the model "crashes" on P2
+    a.approve(led.id)
+    a.provider.replies = [edit({"path": "app/new.py", "content": "N = 1\n"})]    # one file is written, then the model "crashes"
     led = a.execute(led.id)
-    assert led.data["packages"][0]["status"] == "done" and led.data["packages"][1]["status"] == "stopped" and led.data["status"] == "stopped"
-    b = agent(repo, [edit({"path": "app/new.py", "content": "N = 1\n"}), final("p2 done")])
+    assert led.data["packages"][0]["status"] == "stopped" and led.data["status"] == "stopped" and (repo.root / "app/new.py").exists()
+    b = agent(repo, [final("two parts done")])
     led = b.execute(led.id)
-    assert led.data["status"] == "completed" and (repo.root / "app/new.py").exists()
-    assert len(b.provider.calls) == 2   # P1 was not repeated; each package starts from the ledger brief
+    assert led.data["status"] == "completed"
     first_msg = b.provider.calls[0][1][0]["content"]
-    assert "TASK LEDGER" in first_msg and "[DONE] P1" in first_msg and "CURRENT PACKAGE: P2" in first_msg
+    assert "TASK LEDGER" in first_msg and "app/new.py" in first_msg and "interrupted earlier" in first_msg   # the resumed run starts from the ledger brief
 
 
 def test_a_plan_edited_after_approval_is_refused(repo):
@@ -60,7 +55,7 @@ def test_a_plan_edited_after_approval_is_refused(repo):
         a.execute(led.id)
 
 
-def test_large_task_is_split_into_packages_with_ledger_briefs(repo):
+def test_large_task_is_one_package_and_the_ledger_brief_stays_small(repo):
     for i in range(24):
         (repo.root / "m").mkdir(exist_ok=True)
         (repo.root / "m" / f"f{i}.py").write_text("x = 1\n" * 3000)
@@ -68,9 +63,9 @@ def test_large_task_is_split_into_packages_with_ledger_briefs(repo):
     a = agent(repo, [plan(files_edit=[f"m/f{i}.py" for i in range(24)], steps=steps)], context_window=60000, reserve_tokens=15000)
     led = a.plan("big refactor")
     pk = led.data["packages"]
-    assert len(pk) > 1 and sum(len(p["steps"]) for p in pk) == 24
-    brief = led.brief("P2")
-    assert "Goal: big refactor" in brief and "CURRENT PACKAGE: P2" in brief and len(brief) <= 6000
+    assert len(pk) == 1 and len(pk[0]["steps"]) == 24
+    brief = led.brief("P1")
+    assert "Goal: big refactor" in brief and "CURRENT PACKAGE: P1" in brief and len(brief) <= 6000
 
 
 def test_report_never_trusts_the_model(repo):

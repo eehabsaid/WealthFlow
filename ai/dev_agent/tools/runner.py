@@ -32,18 +32,20 @@ def resolve_exe(argv0: str) -> str | None:
     return shutil.which(argv0)
 
 
-def run(argv: list[str], cwd, timeout: int, max_chars: int = 6000, cancel=None) -> dict:
-    """status: PASSED | FAILED | CANCELLED (Stop was pressed) | NOT RUN. On timeout or Stop the whole process tree is killed."""
-    exe = resolve_exe(argv[0])
+def run(argv: list[str], cwd, timeout: int, max_chars: int = 6000, cancel=None, shell_line: str | None = None) -> dict:
+    """status: PASSED | FAILED | CANCELLED (Stop was pressed) | NOT RUN. On timeout or Stop the whole process tree is killed.
+    `shell_line`: run this one line through the system shell (cmd on Windows, sh elsewhere; the `shell` tool, already classified by guard/shell.py) instead of `argv`."""
+    exe = resolve_exe(argv[0]) if shell_line is None else "shell"
     if not exe:
         return {"status": "NOT RUN", "exit_code": None, "output": f"executable not found: {argv[0]}", "timed_out": False, "duration_s": 0}
-    if exe.lower().endswith((".cmd", ".bat")) and any(set(a) & BATCH_UNSAFE for a in argv[1:]):
+    if shell_line is None and exe.lower().endswith((".cmd", ".bat")) and any(set(a) & BATCH_UNSAFE for a in argv[1:]):
         return {"status": "NOT RUN", "exit_code": None, "output": "blocked: an argument has characters that are unsafe for a .cmd/.bat launcher", "timed_out": False, "duration_s": 0}
     if cancel is not None and cancel.is_set():
         return {"status": "CANCELLED", "exit_code": None, "output": "stopped before it started", "timed_out": False, "duration_s": 0}
     started, timed_out, cancelled, orphans, leftovers = time.monotonic(), False, False, False, False
     try:
-        proc = subprocess.Popen([exe, *argv[1:]], cwd=cwd, env=_env(), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **proctree.popen_flags())
+        command = shell_line if shell_line is not None else [exe, *argv[1:]]
+        proc = subprocess.Popen(command, shell=shell_line is not None, cwd=cwd, env=_env(), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **proctree.popen_flags())
     except OSError as exc:
         return {"status": "NOT RUN", "exit_code": None, "output": f"could not start: {exc}", "timed_out": False, "duration_s": 0}
     guard = proctree.TreeGuard(proc)

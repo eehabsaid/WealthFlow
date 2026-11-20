@@ -43,11 +43,8 @@ class FollowUps:
 
     @staticmethod
     def _plan_job(ledger):
-        """Plan, then (only when Settings > Behavior switched the plan approval off) approve and execute in the same run."""
-        def job(agent):
-            agent.plan(ledger.data["goal"], ledger)
-            agent.run_if_auto(ledger.id)
-        return job
+        """Plan approval on: plan, then wait for the owner. Plan approval off (Settings > Behavior): no planning phase, the work starts at once."""
+        return lambda agent: agent.start(ledger.data["goal"], ledger)
 
     def _start_queued(self) -> None:
         """Called (lock held) when a run ends: start the oldest waiting follow-up. A follow-up that cannot start is stopped with the reason."""

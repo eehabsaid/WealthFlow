@@ -69,7 +69,7 @@ def test_completed_task_is_remembered_with_files_checks_and_structure(repo):
 
 def test_stopped_task_becomes_a_lesson_but_a_user_stop_does_not(repo):
     led = run_task(repo, "do thing", ["blah", "still blah", "nope"], approve=False)
-    assert led.data["status"] == "stopped" and any("not valid protocol JSON" in e for e in store.entries(repo, "lessons"))
+    assert led.data["status"] == "stopped" and any("replies in a row that were not valid tool calls" in e for e in store.entries(repo, "lessons"))
     led.set_status("stopped", "stopped by user")
     before = store.entries(repo, "lessons")
     capture(led)

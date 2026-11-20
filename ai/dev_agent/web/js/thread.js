@@ -67,7 +67,7 @@ function taskNodes(env, task, events, files, here, ui, pending) {
   const worth = (g) => g.kind !== "work" || g.rows.length > 0 || g.status === "running"; // no empty "0 steps" cards
   const investigation = groups.find((g) => g.key === "plan" && worth(g));
   if (investigation) out.push(workCard(ui, investigation));
-  if (task.plan) out.push(planCard(ui, task, actions));
+  if (task.plan && !task.plan.direct) out.push(planCard(ui, task, actions)); // no card for the implicit plan of a task that skipped planning
   for (const g of groups) {
     if (g.key === "plan" || !worth(g)) continue;
     out.push(g.kind === "work" ? workCard(ui, g) : g.kind === "verify" ? verifyCard(ui, g) : errorCard(ui, g));

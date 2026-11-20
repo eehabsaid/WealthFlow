@@ -72,22 +72,10 @@ def test_budget_default_reserve_is_25_to_30k():
     assert b.window == 150000 and 25000 <= b.reserve <= 30000 and b.limit == 150000 - b.reserve
 
 
-def test_packages_split_to_fit_the_window(repo):
-    (repo.root / "big").mkdir()
-    steps = []
-    for i in range(30):
-        (repo.root / "big" / f"f{i}.py").write_text("x = 1\n" * 4000)   # ~24 KB each
-        steps.append({"id": f"S{i + 1}", "title": f"step {i}", "files": [f"big/f{i}.py"]})
-    pk = packages.split(repo, {"steps": steps}, 150000, 28000)
-    cap = packages.capacity(150000, 28000)
-    assert len(pk) > 1 and all(p["est_tokens"] <= cap for p in pk) and sum(len(p["steps"]) for p in pk) == 30
-    assert [s for p in pk for s in p["steps"]] == [s["id"] for s in steps]   # order kept, nothing lost
-
-
-def test_oversize_single_step_is_flagged(repo):
-    (repo.root / "huge.py").write_text("x" * 1_000_000)
-    pk = packages.split(repo, {"steps": [{"id": "S1", "title": "t", "files": ["huge.py"]}]}, 150000, 28000)
-    assert pk[0]["oversize"]
+def test_a_plan_is_one_package_with_every_step_and_file():
+    steps = [{"id": f"S{i + 1}", "title": f"step {i}", "files": [f"m/f{i}.py"]} for i in range(30)]
+    (pk,) = packages.single({"steps": steps})
+    assert pk["id"] == "P1" and pk["steps"] == [s["id"] for s in steps] and len(pk["files"]) == 30 and pk["status"] == "pending"
 
 
 def test_plan_validation_normalises_and_rejects(repo):

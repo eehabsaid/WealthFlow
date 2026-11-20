@@ -69,12 +69,17 @@ def wrote_files(ledger) -> bool:
     return any(f["state"] in ("written", "deleted", "rollback_failed") for f in ledger.data["files"].values())
 
 
-NO_PLAN = ("You answered with {\"final\"} but the TASK asks you to change files, and no change was made. A change task is never finished by words: reply with a {\"plan\": ...} "
-           "naming the file to edit. Do not say it is done. Only if the file already satisfies the task, reply {\"final\": \"NO CHANGE NEEDED: <why> | EVIDENCE: <path>: <exact text "
-           "copied from that file>\"}; the text is checked against the file.")
+NO_PLAN = ("You answered, but the TASK asks you to change files, and no change was made. A change task is never finished by words: submit a plan (submit_plan, or {\"plan\": ...}) "
+           "naming the file to edit. Do not say it is done. Only if the file already satisfies the task, answer "
+           "`NO CHANGE NEEDED: <why> | EVIDENCE: <path>: <exact text copied from that file>`; the text is checked against the file.")
 
-NO_READ = ("Your {\"final\"} was only a promise to read, not an answer. Use read_file, grep or search_index now to look at the code, then reply with {\"final\": \"the real answer\"} "
-           "that cites the files you read.")
+NO_CHANGE = ("You answered, but the TASK asks you to change files and no file was changed. A change task is never finished by words: make the change now with edit_file, edit_files or "
+             "write_file, then answer. Only if the file already satisfies the task, answer "
+             "`NO CHANGE NEEDED: <why> | EVIDENCE: <path>: <exact text copied from that file>`; the text is checked against the file.")
+
+NO_READ = ("Your answer was only a promise to read, not an answer. Use read_file, grep or search_index now to look at the code, then answer for real "
+           "and cite the files you read.")
 
 FAILED = {NO_PLAN: "FAILED: the model claimed the task was done without a plan or an edit (nothing was changed)",
+          NO_CHANGE: "FAILED: the model claimed the task was done without changing any file (nothing was changed)",
           NO_READ: "FAILED: the model answered with a promise to read instead of reading the code and answering"}

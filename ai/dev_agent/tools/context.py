@@ -30,6 +30,8 @@ class ToolContext:
     emit: object = lambda event: None
     cancel: object = field(default_factory=CancelToken)
     attachments: object = None   # owner attachments (engine.attachments.Attachments), added to the first message of a phase
+    provider: object = None      # the model provider (the subagent tool starts its own short conversation with it)
+    hidden: tuple = ()           # tool names not offered in this conversation (e.g. a subagent cannot start a subagent)
 
     def ask(self, kind: str, key: str, message: str) -> bool:
         """Ask the owner once per key; the answer is saved in the ledger."""

@@ -40,11 +40,11 @@ def test_the_docstring_task_reaches_completed_only_after_plan_approval_edit_and_
 
 
 def test_an_approved_plan_whose_package_changes_nothing_is_not_completed(repo):
-    a = agent(repo, [plan(), final("nothing to do, it is already fine")])
+    a = agent(repo, [plan(), final("nothing to do, it is already fine")] + [final("still fine")] * 3)
     ledger = a.plan(DOCSTRING)
     a.approve(ledger.id)
     ledger = a.execute(ledger.id)
-    assert ledger.data["status"] == "stopped" and "no file was changed" in ledger.data["stop_reason"]
+    assert ledger.data["status"] == "stopped" and "without changing any file" in ledger.data["stop_reason"]   # the answer was refused three times
 
 
 def test_a_read_only_question_is_still_answered_directly_without_a_plan(repo):

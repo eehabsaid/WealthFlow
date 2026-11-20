@@ -139,16 +139,15 @@ def test_a_file_edited_by_hand_after_the_last_record_is_flagged(repo):
     assert "differs from the last recorded write" in recovery.recover_task(Ledger.load(repo, led.id))
 
 
-def test_resume_after_a_crash_runs_only_the_unfinished_package(repo):
+def test_resume_after_a_crash_continues_from_the_ledger(repo):
     a = agent(repo, [plan(files_add=["app/new.py"], files_edit=["app/calc.py"], steps=TWO)])
     led = a.plan("two parts")
     a.approve(led.id)
     led = Ledger.load(repo, led.id)
-    led.data["packages"] = [{"id": "P1", "title": "one", "steps": ["S1"], "files": ["app/calc.py"], "est_tokens": 1, "status": "done", "summary": "did one", "oversize": False},
-                            {"id": "P2", "title": "two", "steps": ["S2"], "files": ["app/new.py"], "est_tokens": 1, "status": "running", "summary": "", "oversize": False}]
+    led.data["packages"][0]["status"] = "running"
     crash(led)
     b = agent(repo, [edit({"path": "app/new.py", "content": "Z = 2\n"}), final("two done")])
     led = b.execute(led.id)
     d = led.data
-    assert d["status"] == "completed" and [p["status"] for p in d["packages"]] == ["done", "done"]
-    assert "interrupted earlier" in b.provider.calls[0][1][0]["content"] and len(b.provider.calls) == 2     # one package only: finished work is not repeated
+    assert d["status"] == "completed" and [p["status"] for p in d["packages"]] == ["done"]
+    assert "interrupted earlier" in b.provider.calls[0][1][0]["content"] and len(b.provider.calls) == 2

@@ -59,7 +59,7 @@ def test_empty_path_and_missing_plan_check_files_remain_explicit_errors(repo):
     assert call_tool(ctx, *missing_files.payload) == {"error": "give `files`"}
 
 
-def test_truncated_provider_reply_stops_without_spending_json_retries():
+def test_truncated_provider_reply_is_fed_back_then_stops_with_the_limit_named():
     class Limited:
         calls = 0
 
@@ -83,7 +83,7 @@ def test_truncated_provider_reply_stops_without_spending_json_retries():
                               "max_tool_result_chars": 8000}, ledger=ledger, attachments=None, emit=lambda event: None)
     result = run_phase(ctx, provider, "system", "task", {"final"}, 5, attach=False)
     assert result.kind == "stopped" and "output limit (length)" in result.reason
-    assert provider.calls == 1
+    assert provider.calls == 3   # a cut-off reply is fed back ("send a smaller call") twice, then the run stops
     assert ledger.items[0][0] == "truncated_reply" and ledger.items[0][1]["text"].startswith('{"tool"')
 
 

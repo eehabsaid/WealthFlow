@@ -3,8 +3,8 @@ so the model finds the right files in fewer steps."""
 
 from __future__ import annotations
 
-NORMAL = {"read_lines": 400, "index_results": 15, "grep_default": 50, "grep_cap": 200, "result_factor": 1, "repeat_stop": 4}
-DEEP = {"read_lines": 1200, "index_results": 40, "grep_default": 100, "grep_cap": 600, "result_factor": 3, "repeat_stop": 6}
+NORMAL = {"read_lines": 400, "index_results": 15, "grep_default": 50, "grep_cap": 200, "result_factor": 1, "repeat_stop": 4, "glob_cap": 300, "fetch_chars": 12000}
+DEEP = {"read_lines": 1200, "index_results": 40, "grep_default": 100, "grep_cap": 600, "result_factor": 3, "repeat_stop": 6, "glob_cap": 1000, "fetch_chars": 36000}
 
 
 def of(settings: dict) -> dict:

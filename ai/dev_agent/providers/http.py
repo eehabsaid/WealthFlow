@@ -95,7 +95,7 @@ def post_json(url: str, headers: dict, body: dict, timeout: int, secrets=(), ret
             raise
         except urllib.error.HTTPError as exc:
             last = f"HTTP {exc.code}: {exc.read().decode('utf-8', 'replace')[:500]}"
-            if exc.code not in TRANSIENT:
+            if exc.code not in TRANSIENT or "error parsing tool call" in last:   # a malformed tool call is the model's mistake: retrying the same request cannot fix it
                 break
         except ValueError:
             last = "provider returned invalid JSON"

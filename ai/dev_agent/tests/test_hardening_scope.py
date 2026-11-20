@@ -89,19 +89,13 @@ def test_guard_denies_another_packages_file_before_any_question(ctx):
     assert paths.check_write(ctx.project, "app/calc.py", "edit", ctx.scope).action == "allow"
 
 
-def test_a_package_cannot_edit_a_file_of_another_package_but_the_task_still_completes(repo):
+def test_a_run_uses_one_package_so_no_file_is_blocked_by_package_scope(repo):
     steps = [{"title": "calc", "files": ["app/calc.py"]}, {"title": "new", "files": ["app/new.py"]}]
     a = agent(repo, [plan(files_add=["app/new.py"], files_edit=["app/calc.py"], steps=steps)])
     led = a.plan("two parts")
-    led.data["packages"] = [{"id": "P1", "title": "calc", "steps": ["S1"], "files": ["app/calc.py"], "est_tokens": 1, "status": "pending", "summary": "", "oversize": False},
-                            {"id": "P2", "title": "new", "steps": ["S2"], "files": ["app/new.py"], "est_tokens": 1, "status": "pending", "summary": "", "oversize": False}]
-    led.save()
     a.approve(led.id)
     good_calc = edit({"path": "app/calc.py", "replacements": [{"old": "a + b", "new": "a + b + 0"}]})
-    b = agent(repo, [read("app/calc.py"), edit({"path": "app/new.py", "content": "Z = 1\n"}), good_calc, final("p1"),
-                     edit({"path": "app/new.py", "content": "Z = 2\n"}), final("p2")])
+    b = agent(repo, [read("app/calc.py"), edit({"path": "app/new.py", "content": "Z = 1\n"}), good_calc, final("all done")])
     done = b.execute(led.id)
-    transcript = json.dumps(b.provider.calls)
-    assert "belongs to work package P2" in transcript and done.data["status"] == "completed"
-    assert (repo.root / "app/new.py").read_text() == "Z = 2\n" and done.data["files"]["app/new.py"]["package"] == "P2"
-    assert done.data["files"]["app/calc.py"]["package"] == "P1" and [p["status"] for p in done.data["packages"]] == ["done", "done"]
+    assert done.data["status"] == "completed" and [p["id"] for p in done.data["packages"]] == ["P1"]
+    assert done.data["files"]["app/new.py"]["package"] == "P1" and done.data["files"]["app/calc.py"]["package"] == "P1"

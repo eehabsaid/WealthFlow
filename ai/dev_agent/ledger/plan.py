@@ -12,6 +12,7 @@ class PlanScope:
     """What the approved plan allows. Edits/creates: any listed add/edit/rename-target file. Deletes and renames: exactly what is listed."""
 
     def __init__(self, plan: dict, packages: list | None = None, package: str = ""):
+        self.open = bool(plan.get("direct"))   # no plan phase (plan approval switched off): any file may be edited or created; deleting/renaming still asks
         self.write = set(plan["files_add"]) | set(plan["files_edit"]) | {r["to"] for r in plan["files_rename"]}
         self.delete = set(plan["files_delete"])
         self.rename = {r["from"]: r["to"] for r in plan["files_rename"]}
@@ -28,12 +29,19 @@ class PlanScope:
 
     def allows(self, op: str, rel: str, dst: str = "") -> bool:
         if op in ("edit", "create"):
-            return rel in self.write
+            return self.open or rel in self.write
         if op == "delete":
             return rel in self.delete
         if op == "rename":
             return rel in self.rename and (not dst or self.rename[rel] == dst)
         return False
+
+
+def direct_plan(task: str) -> dict:
+    """The implicit plan of a task that skips the planning phase (Settings > Behavior: plan approval off): one open step, no file list, so edits and creations are free and
+    deleting or renaming a file always asks the owner."""
+    return {"summary": task.strip()[:300], "steps": [{"id": "S1", "title": "Work on the task", "files": []}], "files_add": [], "files_edit": [], "files_delete": [], "files_rename": [],
+            "tests": [], "risks": [], "needs_owner_approval": [], "direct": True}
 
 
 def digest(plan: dict) -> str:

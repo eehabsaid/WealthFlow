@@ -22,7 +22,7 @@ def _stem(rel: str) -> str:
     return rel.rsplit("/", 1)[-1].rsplit(".", 1)[0]
 
 
-@tool("delete_file", "args {path}: delete one file. Only if the approved plan lists it.", mutating=True)
+@tool("delete_file", "args {path}: delete one file. A file the approved plan lists is deleted; any other asks the owner first.", mutating=True)
 def delete_file(ctx, args):
     rel, full = ctx.project.resolve(args.get("path"))
     if not full.is_file():
@@ -43,7 +43,7 @@ def delete_file(ctx, args):
     return {"ok": True, "path": rel, "state": "deleted", "sha_before": before, "still_imported_by": [c for c in ctx.index.callers(_stem(rel)) if c != rel][:20]}
 
 
-@tool("rename_file", "args {from, to}: rename/move one file (never overwrites). Only if the approved plan lists the pair.", mutating=True)
+@tool("rename_file", "args {from, to}: rename/move one file (never overwrites). A pair the approved plan lists is renamed; any other asks the owner first.", mutating=True)
 def rename_file(ctx, args):
     src_rel, src = ctx.project.resolve(args.get("from"))
     dst_rel, dst = ctx.project.resolve(args.get("to"))
@@ -55,8 +55,6 @@ def rename_file(ctx, args):
         ok, why = ctx.allow_write(rel, op)
         if not ok:
             raise ToolError(why)
-    if not ctx.scope.allows("rename", src_rel, dst_rel) and ctx.settings.get("ask_outside_plan", True):   # switched off: allow_write above already asked you
-        raise ToolError(f"{src_rel} -> {dst_rel} is not listed in the approved plan")
     with fsutil.lock_many(ctx.project.lock_dir, [src_rel, dst_rel]):
         digest = fsutil.sha(fsutil.read_bytes(src))
         if ctx.seen.get(src_rel) and ctx.seen[src_rel] != digest:

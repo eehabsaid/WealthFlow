@@ -143,6 +143,9 @@ def main(argv=None) -> int:
                     print(f"{task_id}  {data['status']}  {data['goal'][:60]}")
         elif args.cmd in ("plan", "run"):
             agent = _agent(project)
+            if args.cmd == "run" and agent.auto_approve:   # plan approval is off: no planning phase, the work starts at once (risky actions still ask)
+                print(report.write(agent.start(args.task)))
+                return 0
             ledger = agent.plan(args.task)
             _show_plan(ledger)
             if ledger.data["status"] == "awaiting_approval":

@@ -48,9 +48,17 @@ export function buildGroups(events, running) {
         cur.rows.push({
           kind: "bad",
           k: "Model reply",
-          v: "was not valid protocol JSON; it was asked again",
+          v: "could not be used as a tool call or answer; it was asked again",
         });
         break;
+      case "todo": {
+        keep(cur);
+        const items = e.items || [];
+        const done = items.filter((i) => i.status === "done").length;
+        const now = items.find((i) => i.status === "in_progress");
+        cur.rows.push({ kind: "tool", k: "Checklist", v: `${done} of ${items.length} done${now ? ` · now: ${now.text}` : ""}` });
+        break;
+      }
       case "approval_result":
         keep(cur);
         cur.rows.push({

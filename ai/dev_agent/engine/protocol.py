@@ -3,31 +3,42 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 
 from ai.dev_agent.tools import REGISTRY, specs
 
-RULES = """You are an autonomous software-development agent working inside a local project through tools.
-Reply with EXACTLY ONE JSON object per message and nothing else:
+RULES = """You are an autonomous software-development agent working inside a local project through tools. You work in a loop: call a tool, read its result, decide the next call, and repeat until the task is done.
+How to work:
+- Look before you change: list_dir, glob, grep, search_index and read_file (read a range, not whole big files). Read a file before you edit it: edits are SHA-checked against what you read.
+- Change files with edit_file (one exact replacement), edit_files (related changes in several files at once), write_file (new files). Keep each call small; never send a partial or truncated call.
+- Use shell for everything else: run the tests, the linter, a build, a script, a query. One line, `&&` and `|` allowed. Prefer the project's own test command; run the tests that cover what you changed.
+- For a task with several steps keep a checklist with todo and update it as you go. Use subagent for a big read-only investigation so your own context stays small. Use web_search/web_fetch for documentation.
+- Tool errors are information: read the message, fix the call, and try a different approach; never repeat the same failing call. A refusal is final: do not work around it.
+- The system asks the owner before risky actions (deleting or moving files, destructive or system commands, installs, paths outside the project, protected files such as balances, salary and cash flow). Do not ask yourself: just make the call. If it is refused, describe the change with note_proposal and continue with the rest.
+- Never hand-write or edit migrations (run `python manage.py makemigrations`). Git is read-only. Never change coding_agent/.
+- Never claim something is verified: after you finish, the system runs the project's checks and reports the real results. When you are done, say what you did and what you did not check.
+- Follow the project's rules and decisions given below."""
+
+PROTOCOL = """Reply with EXACTLY ONE JSON object per message and nothing else:
   {"tool": "<name>", "args": {...}}      call a tool
   {"final": "<short summary>"}           when the current job is finished
-Rules:
-- Read a file before you edit it. Make related edits for several files in ONE edit_files call when the JSON payload fits comfortably within the output limit. Keep `old` text short but unique; never emit a partial or truncated tool call.
-- For large new Markdown/text files, create a small first chunk, then append with a replacement of the unique final line. Keep each tool call small; do not resend a failed large payload.
-- Never claim anything is verified: the system runs the checks and reports the real results. In your summary say what you did and what you did not check.
-- Guards decide what is allowed. Never try to work around a refusal. Protected files need the owner: if you are refused, use note_proposal to describe the fix and continue with the rest.
-- Never hand-write or edit migrations (use `python manage.py makemigrations`). Git is read-only. One command per run_command, no shell operators.
-- Keep tool output small: read line ranges, grep narrowly, do not repeat the same call.
-- When you CONFIRM something lasting by reading code (structure, a business rule, a lesson), keep it with `remember` and the files you read as evidence. Never remember guesses.
-- Follow the project's skills and decisions given below."""
+No text outside the JSON."""
 
-PLAN_FORMAT = """Investigate with the read-only tools, then reply with:
+FINISH_NATIVE = "When you are done, reply in plain text (a short summary) without calling a tool."
+FINISH_TEXT = 'When you are done, reply {"final": "<short summary>"}.'
+
+PLAN_FORMAT = """Investigate with the read-only tools, then hand in your plan:
 {"plan": {"summary": "...", "steps": [{"title": "...", "files": ["files this step reads or changes"]}],
  "files_add": [], "files_edit": [], "files_delete": [], "files_rename": [{"from": "a", "to": "b"}],
  "tests": ["tests to add or update (paths) and what to run"], "risks": ["..."]}}
-List EVERY file you will add, edit, delete or rename: nothing outside the plan may be changed later. Deleting or renaming only works if listed.
-If the task is only a question or needs no file changes, answer it with {"final": "your answer"} instead of a plan."""
+List EVERY file you will add, edit, delete or rename: files outside the plan ask the owner again later, and deleting or renaming needs its own approval.
+If the task is only a question or needs no file changes, answer it in text instead of planning."""
+
+PLAN_FORMAT_NATIVE = """Investigate with the read-only tools, then call submit_plan with: summary, steps [{title, files}], files_add, files_edit, files_delete, files_rename [{from, to}], tests, risks.
+List EVERY file you will add, edit, delete or rename: files outside the plan ask the owner again later, and deleting or renaming needs its own approval.
+If the task is only a question or needs no file changes, answer it in text instead of planning."""
 
 QUICK = ("\nQUICK MODE: this is a small task. Look only at what you need (a search or two, read the one file), then reply with a plan of ONE or TWO steps. "
          "Include every file you may need to touch; do not add steps for tests or documentation unless the task asks for them.")
@@ -39,8 +50,20 @@ class Action:
     payload: object = None    # tool: (name, args) ; final: text ; plan: dict ; invalid: reason
 
 
-def system_prompt(readonly: bool) -> str:
-    return f"{RULES}\n\nTools:\n{specs(readonly)}"
+def platform_note() -> str:
+    if os.name == "nt":
+        return "Platform: Windows 11. `shell` runs through cmd.exe (use dir, type, findstr and `&&`; no bash syntax); / and \\ both work in paths. `python` is the project's interpreter."
+    return "Platform: POSIX. `shell` runs through sh."
+
+
+def system_prompt(readonly: bool, native: bool = False, rules: str = "", hidden=()) -> str:
+    """The system prompt. Native tool calling: the tools travel in the API's own `tools` field. Text protocol: the JSON protocol and the tool list are part of the prompt."""
+    parts = [RULES, platform_note()]
+    if not native:
+        parts += [PROTOCOL, "Tools:\n" + specs(readonly, hidden)]
+    if rules:
+        parts.append(rules)
+    return "\n\n".join(parts)
 
 
 THINK = re.compile(r"\u003cthink\u003e.*?(?:\u003c/think\u003e|\Z)", re.S | re.I)
@@ -144,13 +167,21 @@ def parse_reply(text: str) -> Action:
 
 NUDGE = ("Your last reply was not valid. Reply with EXACTLY ONE JSON object and no other text, for example "
          '{"tool": "read_file", "args": {"path": "app/x.py"}} or {"final": "your answer"} or the {"plan": {...}} object. No explanations outside the JSON.')
+NUDGE_NATIVE = ("Your last reply looked like a tool call but could not be used. Call the tool again with valid JSON arguments (one call, small payload), "
+                "or, if you are finished, answer in plain text without any JSON or tool markup.")
+LOOKS_LIKE_CALL = re.compile(r'"(?:tool|name|arguments|args|function)"\s*:|<tool_call>|<function=|^\s*[{\[]|```(?:json)?\s*[{\[]', re.I)
 
 
-def nudge_for(action: Action) -> str:
+def looks_like_call(text: str) -> bool:
+    """A native-tool-calling model that writes its call as text (broken JSON, markup) instead of using the tool API."""
+    return bool(LOOKS_LIKE_CALL.search(THINK.sub("", text or "")))
+
+
+def nudge_for(action: Action, native: bool = False) -> str:
     """Explain a parse failure without asking the model to repeat a large payload."""
     payload = str(action.payload)
+    base = NUDGE_NATIVE if native else NUDGE
     if action.kind == "invalid" and "JSON broke at char" in payload:
         detail = payload[payload.index("JSON broke at char"):]
-        return (NUDGE + " The previous tool call was not run. Return a fresh, smaller tool call; do not resend a large file payload. "
-                + detail[:240])
-    return NUDGE + f" ({payload[:160]})"
+        return base + " The previous tool call was not run. Return a fresh, smaller tool call; do not resend a large file payload. " + detail[:240]
+    return base + f" ({payload[:160]})"

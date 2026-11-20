@@ -1,36 +1,11 @@
-"""Split an approved plan into work packages that each fit the context window (150K minus the reserve and fixed overhead).
-Cost estimate per step: base overhead + for each file its size twice (read it, then edit it) at chars/4."""
+"""Work packages. The loop runs a whole plan as ONE conversation (the model keeps its own context, engine/budget.py compacts it), so a plan is ONE package that lists every
+step and file. The package record stays because the ledger, the UI progress, the report and crash recovery are built on it."""
 
 from __future__ import annotations
 
-SYSTEM_OVERHEAD = 9000   # system prompt, tool list, ledger brief
-STEP_BASE = 3000
-SHARE = 0.6              # a package may use at most this share of the free window; the rest is conversation growth
 
-
-def file_tokens(project, rel: str) -> int:
-    try:
-        size = (project.root / rel).stat().st_size
-    except OSError:
-        size = 2000
-    return max(size, 2000) // 4 * 2
-
-
-def capacity(window: int, reserve: int) -> int:
-    return int((window - reserve - SYSTEM_OVERHEAD) * SHARE)
-
-
-def split(project, plan: dict, window: int, reserve: int) -> list[dict]:
-    cap, packages, cur = capacity(window, reserve), [], None
-    for step in plan["steps"]:
-        cost = STEP_BASE + sum(file_tokens(project, f) for f in step["files"])
-        if cur is None or cur["est_tokens"] + cost > cap:
-            cur = {"id": f"P{len(packages) + 1}", "title": step["title"], "steps": [], "files": [], "est_tokens": 0, "status": "pending", "summary": "", "oversize": False}
-            packages.append(cur)
-        cur["steps"].append(step["id"])
-        cur["files"] = sorted(set(cur["files"]) | set(step["files"]))
-        cur["est_tokens"] += cost
-        cur["oversize"] = cur["est_tokens"] > cap
-        if len(cur["steps"]) > 1:
-            cur["title"] = f"{cur['title'].split(' + ')[0]} + {len(cur['steps']) - 1} more"
-    return packages
+def single(plan: dict) -> list[dict]:
+    """One package holding all steps and files of the plan."""
+    files = sorted({f for step in plan["steps"] for f in step["files"]})
+    title = plan["steps"][0]["title"] if len(plan["steps"]) == 1 else f"{plan['steps'][0]['title']} + {len(plan['steps']) - 1} more"
+    return [{"id": "P1", "title": title, "steps": [s["id"] for s in plan["steps"]], "files": files, "est_tokens": 0, "status": "pending", "summary": "", "oversize": False}]

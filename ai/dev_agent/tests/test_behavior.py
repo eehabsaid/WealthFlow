@@ -54,12 +54,12 @@ def test_turning_off_outside_plan_does_not_unprotect_protected_files(ctx):
     assert ctx.allow_write("app/money.py", "edit")[0] is False   # still asks: protected
 
 
-def test_deleting_outside_the_plan_is_denied_and_with_the_switch_off_it_asks(ctx):
+def test_deleting_outside_the_plan_always_asks_never_denies(ctx):
     ok, why = ctx.allow_write("app/calc.py", "delete")
-    assert not ok and "not listed" in why and ctx.approver.asked == []
+    assert not ok and "not listed" in why and len(ctx.approver.asked) == 1   # asked; the approver said no
     off(ctx, "ask_outside_plan")
     ok, why = ctx.allow_write("app/calc.py", "delete")
-    assert not ok and len(ctx.approver.asked) == 1   # the approver said no
+    assert not ok and len(ctx.approver.asked) == 2
     ctx.approver.answer = True
     assert ctx.allow_write("app/calc.py", "delete") == (True, "")
 
@@ -111,14 +111,14 @@ def test_light_verification_skips_the_line_limit_and_mapping_and_says_so(ctx, re
 NEW = plan(files_add=["app/more.py"], files_edit=[], steps=[{"title": "add", "files": ["app/more.py"]}])
 
 
-def test_with_plan_approval_off_the_task_runs_right_after_planning(repo):
+def test_with_plan_approval_off_the_task_runs_at_once_without_a_planning_phase(repo):
     behavior.apply(repo, {"require_plan_approval": False})
-    svc = service(repo, Scripted([NEW, edit({"path": "app/more.py", "content": "X = 1\n"}), final("done")]))
+    svc = service(repo, Scripted([edit({"path": "app/more.py", "content": "X = 1\n"}), final("done")]))
     task_id = svc.start_task("add more")
     assert idle(svc)
     d = svc.ledger(task_id).data
     assert d["status"] == "completed" and (repo.root / "app/more.py").exists()
-    assert any(a["kind"] == "plan" and a["approved"] and "automatically" in a["message"] for a in d["approvals"])
+    assert any(a["kind"] == "plan" and a["approved"] and "no planning phase" in a["message"] for a in d["approvals"]) and d["plan"]["direct"]
 
 
 def test_with_plan_approval_on_the_task_waits(repo):
@@ -138,19 +138,18 @@ def test_quick_mode_with_approval_on_still_waits_for_you(repo):
 
 def test_quick_mode_with_approval_off_runs_and_verifies_once(repo):
     behavior.apply(repo, {"quick_mode": True, "require_plan_approval": False})
-    model = Scripted([NEW, edit({"path": "app/more.py", "content": "X = 1\n"}), final("done")])
+    model = Scripted([edit({"path": "app/more.py", "content": "X = 1\n"}), final("done")])
     svc = service(repo, model)
     task_id = svc.start_task("add more")
     assert idle(svc)
     d = svc.ledger(task_id).data
-    assert d["status"] == "completed" and [v["label"] for v in d["verification"]] == ["P1"]
-    assert "QUICK MODE" in model.calls[0][1][0]["content"]
+    assert d["status"] == "completed" and [v["label"] for v in d["verification"]] == ["final"]
+    assert "small task" in model.calls[0][1][0]["content"]
 
 
 def test_a_follow_up_in_a_chat_also_runs_right_away_when_approval_is_off(repo):
     behavior.apply(repo, {"require_plan_approval": False})
-    model = Scripted([NEW, edit({"path": "app/more.py", "content": "X = 1\n"}), final("done"),
-                      plan(files_add=["app/more2.py"], files_edit=[], steps=[{"title": "add", "files": ["app/more2.py"]}]),
+    model = Scripted([edit({"path": "app/more.py", "content": "X = 1\n"}), final("done"),
                       edit({"path": "app/more2.py", "content": "Y = 1\n"}), final("done")])
     svc = service(repo, model)
     first = svc.start_task("add more")

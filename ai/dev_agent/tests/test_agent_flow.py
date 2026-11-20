@@ -70,7 +70,7 @@ def test_failed_check_is_fixed_by_the_model(repo):
     led = a.execute(led.id)
     assert led.data["status"] == "completed"
     labels = [(v["label"], {r["step"]: r["status"] for r in v["results"]}["pyflakes"]) for v in led.data["verification"]]
-    assert labels[0] == ("P1", "FAILED") and labels[-1][1] == "PASSED"
+    assert labels[0] == ("final", "FAILED") and labels[-1][1] == "PASSED"
 
 
 def test_three_failed_fix_attempts_stop_the_run(repo):
