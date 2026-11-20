@@ -80,7 +80,14 @@ def _check_money(context, reporter, shots):
     _step(reporter, shots, page, "Balance money KPIs show exactly 2 decimals", bool(texts) and not bad, f"checked={len(texts)} bad={bad}", "balance_money")
 
     context.goto_route("#financial-advisor")
-    page.wait_for_timeout(3000)
+    # Re-entering the Advisor restores the last-used tab (e.g. Goal Planning after the advisor CRUD
+    # module) and does not render Overview until it is selected. Select it explicitly first.
+    page.evaluate("() => { if (typeof switchFinancialAdvisorTab === 'function') switchFinancialAdvisorTab('overview'); }")
+    try:
+        page.wait_for_selector(".overview-kpi-value", state="attached", timeout=10000)
+    except Exception:
+        pass  # reported below as checked=0
+    page.wait_for_timeout(800)
     adv = page.eval_on_selector_all(".overview-kpi-value", "els => els.map(e => e.textContent.trim())")
     bad = [t for t in adv if re.search(r"\d[.\u066b]\d{3,}", t)]
     _step(reporter, shots, page, "Advisor KPI values never show more than 2 decimals", bool(adv) and not bad, f"checked={len(adv)} bad={bad}", "advisor_money")
