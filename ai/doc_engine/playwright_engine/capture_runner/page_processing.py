@@ -6,6 +6,7 @@ from typing import Any, Dict
 from playwright.sync_api import Page
 
 from ai.doc_engine.services.navigation_planner import sanitize_filename, safe_filename
+from ai.doc_engine.playwright_engine.capture_runner.ai_sections import AI_ADVISOR_TAB_ID
 from ai.doc_engine.playwright_engine.capture_runner.helpers import log, check_cancelled_and_exit
 
 
@@ -70,6 +71,8 @@ class PageProcessingMixin:
                         self.capture_screenshot(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
 
                     tab_nested_nav = tab.get("nested_navigation")
+                    if route == 'settings' and tab_id == AI_ADVISOR_TAB_ID:
+                        self.capture_ai_advisor_sections(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
                     if route == 'fixed-assets' and tab_id == 'assets':
                         self.process_asset_rows(page, f"{route_prefix}_{safe_filename(tab_name, tab_id)}")
                     else:

@@ -12,6 +12,7 @@ Siblings:
 - discovery.py: DiscoveryMixin - live sidebar/tab discovery and merging.
 - table_edits.py: TableEditsMixin - per-row table Edit-modal capture.
 - dynamic_routes.py: DynamicRoutesMixin - runtime-discovered route injection.
+- ai_sections.py: AiSectionsMixin - one screenshot per Settings > AI Advisor section.
 - page_processing.py: PageProcessingMixin - per-page capture orchestration.
 - run.py: RunMixin - top-level browser lifecycle and run orchestration.
 
@@ -32,6 +33,7 @@ from ai.doc_engine.playwright_engine.capture_runner.auth import AuthMixin
 from ai.doc_engine.playwright_engine.capture_runner.discovery import DiscoveryMixin
 from ai.doc_engine.playwright_engine.capture_runner.table_edits import TableEditsMixin
 from ai.doc_engine.playwright_engine.capture_runner.dynamic_routes import DynamicRoutesMixin
+from ai.doc_engine.playwright_engine.capture_runner.ai_sections import AiSectionsMixin
 from ai.doc_engine.playwright_engine.capture_runner.page_processing import PageProcessingMixin
 from ai.doc_engine.playwright_engine.capture_runner.run import RunMixin
 
@@ -45,6 +47,7 @@ class PythonPlaywrightCaptureEngine(
     DiscoveryMixin,
     TableEditsMixin,
     DynamicRoutesMixin,
+    AiSectionsMixin,
     PageProcessingMixin,
     RunMixin,
 ):

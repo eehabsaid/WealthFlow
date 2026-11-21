@@ -116,17 +116,23 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
         p.keyboard.press("ArrowRight")
         self.assertEqual(p.get_attribute('.aia-chip.active', "data-aia-target"), "docs")
 
-    def test_the_documentation_capture_shows_every_section_stacked(self):
+    def test_the_documentation_capture_shows_one_section_at_a_time(self):
         import re
         from pathlib import Path
+
+        from ai.doc_engine.playwright_engine.capture_runner.ai_sections import SECTIONS_JS
 
         src = Path(settings.BASE_DIR, "ai/doc_engine/playwright_engine/capture_runner/capture.py").read_text(encoding="utf-8")
         css = re.search(r'add_style_tag\(content="""(.*?)"""\)', src, re.S).group(1)   # the stylesheet the screenshot runner injects
         p = self.open(1400, 900)
-        self.assertEqual(p.locator(".aia-card:visible").count(), 1)
         p.add_style_tag(content=css)
-        self.assertEqual(p.locator(".aia-card:visible").count(), len(GROUPS))
-        self.assertEqual(p.locator(".aia-chips:visible").count(), 0)
+        self.assertEqual(p.locator(".aia-card:visible").count(), 1)   # the capture no longer stacks the sections
+        self.assertEqual(p.locator(".aia-chips:visible").count(), 1)
+        info = p.evaluate(SECTIONS_JS)   # the runner photographs each section the page lists, one after the other
+        self.assertEqual([x["id"] for x in info["sections"]][:len(GROUPS)], GROUPS)
+        for group in GROUPS:
+            self.assertTrue(p.evaluate("(id) => window.AIA.ui.showGroup(id)", group))
+            self.assertEqual(p.locator(".aia-card:visible").count(), 1)
 
     def test_the_open_section_survives_save(self):
         p = self.open(1400, 900)

@@ -1,0 +1,1 @@
+- 2026-11-21: owner rejected the plan for: i have changed the ai_settings page to be tabbed page, but when i run documentation > Screenshot Capture, it captured the page like the attached !!!!! please pu
