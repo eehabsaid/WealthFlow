@@ -17,11 +17,25 @@ def guide_title(intro: str) -> str:
     return f"{first if first and _has_name(first) else f'# {APP_NAME} user guide'}\n\n{body}".rstrip()
 
 
-def with_app_name(markdown: str, source: str = "") -> str:
+TITLES = {"Arabic": "دليل مستخدم", "French": "Guide de l'utilisateur", "German": "Benutzerhandbuch"}   # "<title> WealthFlow"
+
+
+def _localized(first: str, language: str) -> str:
+    """The title in the guide's language when the translation left the English one ("WealthFlow User Guide" in an Arabic guide)."""
+    word = TITLES.get(language)
+    if not word or word.lower() in first.lower():
+        return first
+    letters = [c for c in first[2:] if c.isalpha()]
+    english = "user guide" in first.lower() or (language == "Arabic" and letters and all(c.isascii() for c in letters))
+    return f"# {word} {APP_NAME}" if english else first
+
+
+def with_app_name(markdown: str, source: str = "", language: str = "") -> str:
     """A translated guide whose first heading lost the app's name gets it back (language-independent: it is a Latin product name);
-    a guide without a title takes the source guide's title."""
+    a guide without a title takes the source guide's title; an English title left in a translated guide is localized."""
     lines = markdown.lstrip().splitlines()
     if lines and lines[0].startswith("# "):
-        return markdown if _has_name(lines[0]) else "\n".join([f"{lines[0].rstrip()} – {APP_NAME}", *lines[1:]]).rstrip() + "\n"
+        lines[0] = _localized(lines[0].rstrip(), language)
+        return "\n".join(lines).rstrip() + "\n" if _has_name(lines[0]) else "\n".join([f"{lines[0]} – {APP_NAME}", *lines[1:]]).rstrip() + "\n"
     title = next((ln for ln in source.splitlines() if ln.startswith("# ")), f"# {APP_NAME} user guide")
-    return f"{title}\n\n{markdown.lstrip()}"
+    return f"{_localized(title, language)}\n\n{markdown.lstrip()}"

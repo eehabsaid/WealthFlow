@@ -27,6 +27,7 @@ from ai.services.investigation.compose_flatten import STYLE_RULE, ensure_steps_d
 from ai.services.investigation.compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
 from ai.services.investigation.compose_sections import dedupe_headings, knowledge, missing_tabs, section_heading, tab_fallback, units
 from ai.services.investigation.compose_title import guide_title, with_app_name
+from ai.services.investigation.compose_figures import invented_amounts
 from ai.services.investigation.compose_language import target_language, uses_latin_script
 from ai.services.investigation.compose_translate import translate_markdown
 from ai.services.investigation.doc_path import choose_path, is_standalone_html_code, log_path
@@ -102,7 +103,7 @@ def _tab_section(provider, user, user_text: str, out, unit: dict, tab: dict, ins
     if time.monotonic() < deadline - 20:
         text = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY this sub-section, starting with the line \"### {tab['name']}\": "
                     f"what the tab is for and the steps to use each action.\n\nTAB:\n{tab}\n\nAPP GUIDE:\n{knowledge(user, unit, tab)}", deadline, reasoning="off")
-    if len(text) < MIN_SECTION_CHARS or is_refusal(text, True):
+    if len(text) < MIN_SECTION_CHARS or is_refusal(text, True) or invented_amounts(str(tab), text):   # an amount the app did not give is invented
         return tab_fallback(tab)
     return text if text.lstrip().startswith("###") else f"### {tab['name']}\n\n{text}"
 
@@ -125,7 +126,7 @@ def _guide(provider, user, user_text: str, out, instructions: str, budget_s: int
                         f"action listed, with the steps to use them.{more}\n\nSCREEN:\n{unit['evidence']}\n\nAPP GUIDE:\n{knowledge(user, unit)}", deadline, reasoning="off")
         if out.cut_off:
             text = _without_partial_tab(text)
-        if len(text) < MIN_SECTION_CHARS or is_refusal(text, True):
+        if len(text) < MIN_SECTION_CHARS or is_refusal(text, True) or invented_amounts(unit["evidence"], text):
             parts.append(unit["fallback"])
             continue
         section = tidy(section_heading(text, unit), unit)   # a screen without documented tabs gets no invented sub-headings
@@ -189,7 +190,7 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
             non_latin = not uses_latin_script(ask, language)
             clock["deadline"] = max(deadline, time.monotonic() + budget_s * 0.25)
             translated = translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, clock["deadline"], progress, non_latin)
-            doc = _qa(sanitize(with_app_name(translated, english), english=False, source=english), language)
+            doc = _qa(sanitize(with_app_name(translated, english, language), english=False, source=english), language)
         return "" if out.cancelled else doc   # Stop pressed: nothing half-written is returned
     if guide_only:
         return ""

@@ -14,6 +14,7 @@ import logging
 import re
 import time
 
+from ai.services.investigation.compose_figures import invented_amounts
 from ai.services.investigation.compose_polish import numbered_steps, tidy_translation
 from ai.services.investigation.compose_translate_lines import translate_lines
 from ai.services.investigation.refusal import is_refusal
@@ -108,6 +109,8 @@ def rejection(source: str, text: str, cut: bool, non_latin: bool) -> str:
         return "empty or much shorter than the source"
     if is_refusal(text, True):
         return "refusal"
+    if invented_amounts(source, text):
+        return "amount that is not in the source"   # the model answered the text instead of translating it
     if re.sub(r"\W+", "", text.lower()) == re.sub(r"\W+", "", source.lower()):
         return "returned unchanged"
     if non_latin and latin_share(text) > MAX_LATIN_SHARE:

@@ -89,3 +89,53 @@ class RealRequestTest(TestCase):
         doc = self.guide(Stubborn(), ASK_AR)
         self.assertIn(MARK, doc)
         self.assertNotIn("## Dashboard", doc)
+
+
+class NoUserDataInTheGuideTest(SimpleTestCase):
+    """The first Arabic guide answered some lines instead of translating them: "List the items and their estimated values" became
+    "based on your data the items are: Gold Vault (87,500.00) ..." (the user's own balances inside a user guide)."""
+    MD = "## Furniture\n\nInventory the furniture included within a property.\n\n1. Open the Furniture sub-tab.\n2. List the items and their estimated values.\n3. Save the inventory.\n"
+    LEAK = "استنادًا إلى بياناتك، فإن العناصر هي: Gold Vault (87,500.00), Liquid Gold (25,000.00), Real Estate (175,000.00)."
+
+    def test_amounts_that_are_not_in_the_source_are_found_in_every_script(self):
+        from ai.services.investigation.compose_figures import invented_amounts
+
+        self.assertTrue(invented_amounts("List the items.", self.LEAK))
+        self.assertTrue(invented_amounts("List the items.", "المجموع ١٧٥٬٠٠٠٫٠٠"))
+        self.assertFalse(invented_amounts("Pay 1,000.00 EGP.", "ادفع 1,000.00 جنيه."))
+        self.assertFalse(invented_amounts("Step 1. Open in 2026.", "الخطوة 1. افتح في 2026."))
+
+    def test_a_line_answered_instead_of_translated_never_reaches_the_guide(self):
+        def ask(system, content, temperature=0.1):
+            if "one line of a user guide" in system:
+                return self.LEAK if "estimated values" in content else arabic(content)
+            return content
+        got = translate_markdown(ask, lambda: False, self.MD, "Arabic", 10**12, None, True)
+        self.assertNotIn("87,500", got)
+        self.assertNotIn("Gold Vault", got)
+        self.assertIn("2. List the items and their estimated values.", got)   # stays the documented English line, never invented text
+
+    def test_a_long_answer_to_a_short_line_is_refused(self):
+        def ask(system, content, temperature=0.1):
+            return " ".join(["كلمة"] * 40) if "one line of a user guide" in system and "estimated" in content else arabic(content)
+        got = translate_markdown(ask, lambda: False, self.MD, "Arabic", 10**12, None, True)
+        self.assertNotIn("كلمة كلمة كلمة", got)
+
+    def test_a_short_name_is_translated_when_a_later_attempt_can(self):
+        calls = []
+
+        def ask(system, content, temperature=0.1):
+            if "one line of a user guide" not in system:
+                return content
+            calls.append(temperature)
+            return content if temperature < 0.3 else "إضافة فئة"
+        got = translate_markdown(ask, lambda: False, "## Add Category\n", "Arabic", 10**12, None, True)
+        self.assertIn("إضافة فئة", got)
+
+    def test_an_english_title_left_in_a_translated_guide_is_localized(self):
+        from ai.services.investigation.compose_title import with_app_name
+
+        self.assertEqual(with_app_name("# WealthFlow User Guide\n\nنص\n", "", "Arabic").splitlines()[0], "# دليل مستخدم WealthFlow")
+        self.assertEqual(with_app_name("# دليل WealthFlow\n\nنص\n", "", "Arabic").splitlines()[0], "# دليل WealthFlow")
+        self.assertEqual(with_app_name("# Guide de l'utilisateur WealthFlow\n\ntexte\n", "", "French").splitlines()[0], "# Guide de l'utilisateur WealthFlow")
+        self.assertEqual(with_app_name("# WealthFlow User Guide\n\ntext\n", "", "").splitlines()[0], "# WealthFlow User Guide")
