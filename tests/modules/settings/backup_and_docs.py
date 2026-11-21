@@ -47,6 +47,10 @@ def test_backup_and_docs(context, reporter, screenshot_logger):
     except Exception as ex:
         reporter.add_step("Documentation Content: Coding Agent chapter", "Settings", "FAIL", f"Exception: {ex}")
 
+    # handleGenerateClick() can open the shared #globalModal ("Generation Validation Failed") and leave it up;
+    # close it here so it does not block the next phase.
+    close_global_modal(context.page)
+
     try:   # the documentation photographs each AI Advisor section on its own: exactly one section is visible at a time
         from tests.modules.settings.common import open_ai_section
         open_settings_tab(context, "ai-advisor")
@@ -58,7 +62,3 @@ def test_backup_and_docs(context, reporter, screenshot_logger):
         reporter.add_step("Documentation Capture: AI Advisor sections", "Settings", "PASS" if ok else "FAIL", "Each AI Advisor section shows alone, so the capture photographs them one by one." if ok else f"Visible sections: {results}")
     except Exception as ex:
         reporter.add_step("Documentation Capture: AI Advisor sections", "Settings", "FAIL", f"Exception: {ex}")
-
-    # handleGenerateClick() can open the shared #globalModal ("Generation Validation Failed") and leave it up;
-    # close it here so it does not block the next phase.
-    close_global_modal(context.page)
