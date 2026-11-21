@@ -17,7 +17,8 @@ from typing import Any
 from ai.services.exports import default_formats, detect as detect_export_formats, previous_answer
 from ai.services.exports.document import strip_export_lines
 from ai.services.investigation.compose import _ask
-from ai.services.investigation.compose_translate import translate_markdown, uses_latin_script
+from ai.services.investigation.compose_language import uses_latin_script
+from ai.services.investigation.compose_translate import translate_markdown
 from ai.services.protocol import log_reply, parse_yes_no
 from ai.services.query_engine import route as route_question
 from ai.services.query_engine.labels import t as label

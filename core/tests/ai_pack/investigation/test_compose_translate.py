@@ -9,8 +9,9 @@ import re
 from django.test import SimpleTestCase, TestCase
 
 from ai.services.investigation.compose_sections import units
+from ai.services.investigation.compose_language import target_language
 from ai.services.investigation.compose_translate import (acceptable, copied_share, latin_share, split_chunks,
-                                                              target_language, translate_markdown)
+                                                              translate_markdown)
 from ai.views.ai_chat.chat_pipeline.investigate import ensure_document
 
 from core.tests.ai_pack.investigation.support import make_user

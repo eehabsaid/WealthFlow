@@ -1,7 +1,7 @@
 """A guide in another language: written in English first (the app's own knowledge is English, and a model that writes a long
 guide straight into Arabic drifts back to English paragraph by paragraph), then translated chunk by chunk.
 
-Everything is structural, no phrase or language lists: the model names the language in one word, the Markdown is cut at the
+The language comes from compose_language.py. The Markdown is cut at the
 guide's own "## " / "### " headings, each chunk is translated alone, and a translation is only accepted when it is complete:
 not cut off by the output-token limit, not empty / unchanged / refused, headings kept and, for a language with its own alphabet,
 really written in that alphabet. A rejected chunk is retried in smaller pieces; only a piece that still fails stays English, so
@@ -14,9 +14,8 @@ import logging
 import re
 import time
 
-from ai.services.protocol import log_reply, parse_yes_no
-
 from ai.services.investigation.compose_polish import numbered_steps, tidy_translation
+from ai.services.investigation.compose_translate_lines import translate_lines
 from ai.services.investigation.refusal import is_refusal
 
 logger = logging.getLogger(__name__)
@@ -25,12 +24,6 @@ CHUNK_CHARS, PIECE_CHARS = 2200, 900
 MAX_COPIED_SHARE, MIN_WORDS_TO_JUDGE = 0.6, 12   # share of a translation's words copied from the source = untranslated (any language)
 MIN_PARAGRAPHS, MIN_KEPT_PARAGRAPHS = 4, 0.8   # a translation keeps at least this share of the source's prose lines
 MAX_LATIN_SHARE = 0.5     # a translation into a non-Latin language may keep product names / quoted labels, not whole sentences
-_LANGUAGE_Q = ("Answer with one word only: the language the requested document must be written in. Use the language the request "
-               "names; if it names none, the language the request itself is written in. Reply with the language's English name "
-               "(for example English, Arabic, French) and nothing else.")
-_NAMED_Q = ("Answer YES or NO only. Does the request below explicitly ask for the document to be written in {language}? Answer NO when "
-            "the request only happens to be written in another language or names no language at all.")
-_LATIN_Q = "Answer YES or NO only. Is {language} normally written in the Latin alphabet (like English, French or German)?"
 _TRANSLATE = ("You are a professional translator. Translate the Markdown the user sends into {language}.\n"
               "- Keep the Markdown structure exactly: the same headings with the same number of # (#, ##, ###, ####), bullet and numbered lists, blank lines.\n"
               "- Translate every heading, sentence and list item; leave no English sentence behind.\n"
@@ -42,21 +35,6 @@ _TRANSLATE = ("You are a professional translator. Translate the Markdown the use
               "- Use plain text: no *asterisk* emphasis; **bold** only where the source has it.\n"
               "- Translate the same English term the same way everywhere in the text.\n"
               "Reply with the translation only, without comments.")
-
-
-def target_language(ask, user_text: str) -> str:
-    """The language the document must be in, or "" for English / when the answer is not a language name."""
-    word = ask(_LANGUAGE_Q, user_text, 0).strip().strip(".\"'`*").split("\n")[0].strip()
-    if not word or len(word) > 24 or not all(ch.isalpha() or ch in " -" for ch in word) or word.lower().startswith("english"):
-        return ""
-    raw = ask(_NAMED_Q.format(language=word), user_text, 0)   # a one-word answer can be wrong (an English request came back as Arabic): confirmed once
-    named = parse_yes_no(raw)
-    log_reply("language_named", raw, named)
-    return word if named is not False else ""
-
-
-def uses_latin_script(ask, language: str) -> bool:
-    return ask(_LATIN_Q.format(language=language), language, 0).strip().upper().startswith("YES")
 
 
 def _without_originals(text: str) -> str:
@@ -185,10 +163,12 @@ def translate_markdown(ask, cut, markdown: str, language: str, deadline: float, 
             pieces, translated = split_chunks(chunk, PIECE_CHARS) if len(chunk) > PIECE_CHARS else [chunk], []
             for piece in pieces:
                 got = _try(ask, cut, system, piece, non_latin, deadline)
-                kept += 0 if got else 1
-                if not got:
-                    logger.warning("[AI-TRANSLATE] piece stayed English (%s): %.80s", language, piece.strip().replace("\n", " "))
-                translated.append(got or piece.strip())
+                if not got:   # last resort: line by line, so one refused reply never leaves a whole English chapter
+                    got, left = translate_lines(ask, cut, language, piece, non_latin, deadline)
+                    kept += 1 if left else 0
+                    if left:
+                        logger.warning("[AI-TRANSLATE] piece stayed English (%s): %.80s", language, piece.strip().replace("\n", " "))
+                translated.append(got.strip())
             done = "\n\n".join(translated)
         parts.append(done)
     if stats is not None:

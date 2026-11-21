@@ -87,7 +87,7 @@ class GuideTest(TestCase):
         for name in tab_names(self.admin):
             self.assertIn(name, "\n".join(u["evidence"] for u in plan))   # every tab reaches a section call
         self.assertTrue(doc.startswith("# WealthFlow user guide"))
-        self.assertEqual(len(prov.calls), 3 + len(plan))                   # "is it about the app", "which language", the intro, one per section
+        self.assertEqual(len(prov.calls), 4 + len(plan))                   # "is it about the app", "which language" (an unreadable answer is asked once more), the intro, one per section
         self.assertNotIn("Settings (1/", doc)                             # parts of one screen are one chapter, no "(1/4)" labels
         self.assertEqual(doc.count("## Settings\n"), 1)
 

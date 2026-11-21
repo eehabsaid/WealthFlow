@@ -9,7 +9,7 @@ Two ways, chosen structurally from the evidence (doc_path.py; the one-word quest
     small context window cannot write 20 screens in one reply, and was cutting the guide off after a third of it). A section
     the model fails to write, or that does not fit the time budget, is filled from the app's own screen list.
   * any other document (a report on the user's data) -> one call from the evidence the tools returned.
-A guide asked for in another language is written in English and then translated chunk by chunk (compose_translate.py).
+A guide asked for in another language is written in English and then translated chunk by chunk, line by line as a last resort (compose_translate.py).
 Every call gets the document output-token limit (Settings > AI Advisor) so a reply is not cut off at the default of a chat answer;
 a reply the limit still cut off is never trusted: the half-written last tab is rewritten alone, a half translation is redone."""
 
@@ -27,7 +27,8 @@ from ai.services.investigation.compose_flatten import STYLE_RULE, ensure_steps_d
 from ai.services.investigation.compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
 from ai.services.investigation.compose_sections import dedupe_headings, knowledge, missing_tabs, section_heading, tab_fallback, units
 from ai.services.investigation.compose_title import guide_title, with_app_name
-from ai.services.investigation.compose_translate import target_language, translate_markdown, uses_latin_script
+from ai.services.investigation.compose_language import target_language, uses_latin_script
+from ai.services.investigation.compose_translate import translate_markdown
 from ai.services.investigation.doc_path import choose_path, is_standalone_html_code, log_path
 from ai.services.investigation.refusal import is_refusal
 
@@ -174,8 +175,10 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
         if domain == APP:
             return no_info(user_text, domain)
 
+        clock = {"deadline": deadline}   # the translation gets its own minimum time even when the English guide used its whole share
+
         def ask(system: str, content: str, temperature: float = 0.2) -> str:
-            return _ask(provider, out, system, content, deadline, temperature, reasoning="off")   # language questions and translation: no reasoning
+            return _ask(provider, out, system, content, clock["deadline"], temperature, reasoning="off")   # language questions and translation: no reasoning
 
         language = target_language(ask, user_text)
         if not language:
@@ -184,7 +187,8 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
             english = _guide(provider, user, f"{user_text}\n\n[Write the document in English; it is translated into {language} afterwards.]",
                              out, instructions, int(budget_s * 0.45), progress)
             non_latin = not uses_latin_script(ask, language)
-            translated = translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, deadline, progress, non_latin)
+            clock["deadline"] = max(deadline, time.monotonic() + budget_s * 0.25)
+            translated = translate_markdown(ask, lambda: bool(getattr(out, "cut_off", False)), english, language, clock["deadline"], progress, non_latin)
             doc = _qa(sanitize(with_app_name(translated, english), english=False, source=english), language)
         return "" if out.cancelled else doc   # Stop pressed: nothing half-written is returned
     if guide_only:

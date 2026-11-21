@@ -22,6 +22,7 @@ Tests:
 18. Guide PDF contents on one page (English and Arabic) and translation clean-up (tests/modules/ai_guide_cleanup.py).
 19. Workspace tools: chat rename/search, file attachments, insights, action cards, charts, voice sample (tests/modules/ai_workspace_tools.py).
 20. Code knowledge index: sysadmin status/refresh endpoint, incremental refresh, tool step labels in 4 languages (tests/modules/ai_code_index.py).
+21. Arabic guide request: language read from the request, line-by-line translation fallback, RTL Word file (tests/modules/ai_guide_language.py).
 """
 
 from tests.modules.ai_budgets import test_ai_budgets
@@ -33,6 +34,7 @@ from tests.modules.ai_wealth import test_ai_wealth
 from tests.modules.ai_agent import test_ai_agent
 from tests.modules.ai_guide_html import test_ai_guide_html
 from tests.modules.ai_guide_cleanup import test_ai_guide_cleanup
+from tests.modules.ai_guide_language import test_ai_guide_language
 from tests.modules.ai_guide_structure import test_ai_guide_structure
 from tests.modules.ai_progress_resume import test_ai_progress_resume
 from tests.modules.ai_think_setting import test_ai_think_setting
@@ -70,6 +72,7 @@ def test_ai_module(context, reporter, screenshot_logger):
     test_ai_scope_refusal(context, reporter, screenshot_logger)
     test_ai_mode_follow(context, reporter, screenshot_logger)
     test_ai_guide_structure(context, reporter, screenshot_logger)
+    test_ai_guide_language(context, reporter, screenshot_logger)
     test_ai_screen_data(context, reporter, screenshot_logger)
     test_ai_guide_cleanup(context, reporter, screenshot_logger)
     test_ai_workspace_tools(context, reporter, screenshot_logger)
