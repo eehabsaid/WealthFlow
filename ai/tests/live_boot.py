@@ -92,3 +92,12 @@ def wait_for_rows(page, diagnostics, selector, timeout=None):
         page.wait_for_selector(selector, timeout=timeout)
     except PlaywrightTimeoutError as exc:
         raise AssertionError(diagnostics.report(selector)) from exc
+
+
+def open_ai_tab(page, group, timeout=20000):
+    """Settings > AI Advisor: click a section's tab. A tab that did not fit the bar sits in the "More" menu: open it first."""
+    chip = f'.aia-chip[data-aia-target="{group}"]'
+    page.wait_for_selector(chip, state="attached", timeout=timeout)
+    if not page.locator(chip).is_visible():
+        page.click(".aia-more-btn", timeout=timeout)
+    page.click(chip, timeout=timeout)

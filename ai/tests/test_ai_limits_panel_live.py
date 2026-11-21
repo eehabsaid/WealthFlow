@@ -13,7 +13,7 @@ from django.test import tag
 
 from ai.constants import USER_LIMIT_KEY, USE_GENERAL_KEY
 from ai.models import AISetting
-from ai.tests.live_boot import PageDiagnostics, first_load, scale_timeouts, wait_for_rows
+from ai.tests.live_boot import PageDiagnostics, first_load, open_ai_tab, scale_timeouts, wait_for_rows
 from ai.tests.support import grant_ai_workspace_access, make_sysadmin
 
 User = get_user_model()
@@ -58,6 +58,9 @@ class AILimitsPanelLiveTests(StaticLiveServerTestCase):
         first_load(self.page, f"{self.live_server_url}/#settings-aiadvisor")
         if "settings-aiadvisor" not in self.page.url:
             self.page.goto(f"{self.live_server_url}/#settings-aiadvisor", wait_until="domcontentloaded")
+        # the AI Advisor page shows one section at a time: the limits panel is the "Usage limits" entry of the side nav
+        self.page.wait_for_selector('.aia-chip[data-aia-target="limits"]:not([hidden])', state="attached", timeout=90000)   # may sit in "More"
+        open_ai_tab(self.page, "limits")
         wait_for_rows(self.page, self.diag, "#aiLimitsBody tr")
 
     def rows(self):

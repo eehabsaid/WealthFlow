@@ -1,6 +1,6 @@
 """Real-browser test (Chromium via Playwright) of the Settings > AI Advisor layout: every setting id is still there, each group is
-one card, Test Connection ends the Provider card, Save sits in the sticky bar, and nothing overflows on a phone. Skipped when
-Chromium is not installed."""
+one card, only the chosen section is visible (side nav on wide screens, chip bar on narrow ones), Test Connection ends the Provider
+card, Save sits in the sticky bar, and nothing overflows on a phone in light/dark, LTR/RTL. Skipped when Chromium is not installed."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import tag
 
-from ai.tests.live_boot import PageDiagnostics, first_load, scale_timeouts
+from ai.tests.live_boot import PageDiagnostics, first_load, open_ai_tab, scale_timeouts
 from ai.tests.support import grant_ai_workspace_access, make_sysadmin
 
 User = get_user_model()
@@ -74,14 +74,16 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
         page.evaluate("([t, r]) => { document.documentElement.setAttribute('data-theme', t); document.body.setAttribute('data-theme', t); if (r) document.documentElement.dir = 'rtl'; }", [theme, rtl])
         return page
 
-    def test_every_setting_is_still_there_in_seven_cards_with_test_connection_in_the_provider_card(self):
+    def test_every_setting_is_still_there_in_ten_cards_with_test_connection_in_the_provider_card(self):
         p = self.open(1400, 1000)
         self.assertEqual([i for i in IDS if p.locator(f"#{i}").count() != 1], [])
         self.assertEqual(p.locator(".aia-card").count(), len(GROUPS))
         self.assertEqual(p.locator("#aiaGroup-provider #aiTestConnBtn").count(), 1)
         self.assertEqual(p.locator("#aiaGroup-provider #aiTestDiagnosticResult").count(), 1)
         self.assertEqual(p.locator(".aia-savebar #aiSaveBtn").count(), 1)
-        self.assertEqual(p.locator(".aia-chip").count(), len(GROUPS))
+        self.assertEqual(p.locator(".aia-chip").count(), len(GROUPS) + 1)   # the groups + "Usage limits" (shown once the sysadmin panel loaded)
+        self.assertEqual(p.locator(".aia-card:visible").count(), 1)          # one section at a time ...
+        self.assertTrue(p.is_visible("#aiaGroup-provider"))                  # ... starting with Provider and model
         self.assertEqual(p.locator("#aiaGroup-agent input[type=number]").count(), 3)
         self.assertEqual(p.locator("#aiaGroup-docs input[type=number]").count(), 2)
         self.assertEqual(p.locator("#aiaGroup-files input[type=number]").count(), 2)
@@ -95,19 +97,95 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
         if SHOTS:
             p.screenshot(path=f"{SHOTS}/desktop_dark.png", full_page=True)
 
-    def test_a_chip_scrolls_to_its_card_without_changing_the_route(self):
+    def test_a_tab_shows_only_its_section_without_changing_the_route(self):
         p = self.open(1400, 900)
-        p.click('.aia-chip[data-aia-target="files"]')
-        p.wait_for_function("() => document.getElementById('aiaGroup-files').getBoundingClientRect().top < 400")
+        open_ai_tab(p, "files")
+        self.assertTrue(p.is_visible("#aiaGroup-files"))
+        self.assertTrue(p.is_hidden("#aiaGroup-provider"))
+        self.assertEqual(p.locator(".aia-card:visible").count(), 1)
         self.assertIn("settings-aiadvisor", p.url)
         self.assertEqual(p.locator(".aia-chip.active").count(), 1)
+        self.assertEqual(p.get_attribute('.aia-chip.active', "data-aia-target"), "files")
+        # a hidden section keeps its values: Save sends every group no matter which one is open
+        open_ai_tab(p, "provider")
+        p.fill("#aiTemperatureInput", "0.35")
+        open_ai_tab(p, "agent")
+        self.assertEqual(p.input_value("#aiTemperatureInput"), "0.35")
+        # arrow keys move between sections
+        p.focus('.aia-chip.active')
+        p.keyboard.press("ArrowRight")
+        self.assertEqual(p.get_attribute('.aia-chip.active', "data-aia-target"), "docs")
+
+    def test_the_documentation_capture_shows_every_section_stacked(self):
+        import re
+        from pathlib import Path
+
+        src = Path(settings.BASE_DIR, "ai/doc_engine/playwright_engine/capture_runner/capture.py").read_text(encoding="utf-8")
+        css = re.search(r'add_style_tag\(content="""(.*?)"""\)', src, re.S).group(1)   # the stylesheet the screenshot runner injects
+        p = self.open(1400, 900)
+        self.assertEqual(p.locator(".aia-card:visible").count(), 1)
+        p.add_style_tag(content=css)
+        self.assertEqual(p.locator(".aia-card:visible").count(), len(GROUPS))
+        self.assertEqual(p.locator(".aia-chips:visible").count(), 0)
+
+    def test_the_open_section_survives_save(self):
+        p = self.open(1400, 900)
+        open_ai_tab(p, "routing")
+        p.evaluate("() => { window.__before = document.getElementById('aiaGroup-routing'); }")
+        with p.expect_response(lambda r: "/api/settings/ai/" in r.url and r.request.method == "POST"):
+            p.click("#aiSaveBtn")
+        # Save re-renders the page: wait for the new DOM, then the section that was open must still be the visible one
+        p.wait_for_function("() => { const n = document.getElementById('aiaGroup-routing'); return n && n !== window.__before; }")
+        self.assertTrue(p.is_visible("#aiaGroup-routing"))
+        self.assertEqual(p.locator(".aia-card:visible").count(), 1)
+        self.assertEqual(p.get_attribute('.aia-chip.active', "data-aia-target"), "routing")
+
+    def test_the_tabs_sit_on_top_and_never_stretch_the_page(self):
+        # the app already has a sidebar, so the sections are a tab bar under the title at every width
+        for width in (1400, 820, 390):
+            p = self.open(width, 900)
+            self.assertEqual(p.evaluate("() => getComputedStyle(document.getElementById('aiaChips')).flexDirection"), "row")
+            tabs, detail = (p.locator(s).bounding_box() for s in ("#aiaChips", "#aiaDetail"))
+            self.assertLess(tabs["y"], detail["y"])                                   # tabs above the section, not beside it
+            self.assertLessEqual(detail["x"] + detail["width"], width + 1)            # the tab bar must not stretch the page past the screen
+            self.assertLessEqual(tabs["x"] + tabs["width"], width + 1)
+            self.assertLessEqual(p.evaluate("() => { const n = document.getElementById('aiaChips'); return n.scrollWidth - n.clientWidth; }"), 1)
+
+    def test_tabs_that_do_not_fit_move_into_a_more_menu(self):
+        bar = "() => [...document.querySelectorAll('#aiaChips > .aia-chip:not([hidden])')].map(c => c.dataset.aiaTarget)"
+        menu = "() => [...document.querySelectorAll('.aia-more-menu .aia-chip')].map(c => c.dataset.aiaTarget)"
+        p = self.open(1400, 900)
+        wide = len(p.evaluate(bar))
+        p.set_viewport_size({"width": 390, "height": 800})
+        p.wait_for_function("(n) => document.querySelectorAll('#aiaChips > .aia-chip:not([hidden])').length < n", arg=wide)   # re-laid out
+        narrow_bar, narrow_menu = p.evaluate(bar), p.evaluate(menu)
+        self.assertLess(len(narrow_bar), wide)
+        self.assertTrue(narrow_menu)                                                  # the hidden tabs are in the menu ...
+        self.assertEqual(len(narrow_bar) + len(narrow_menu), p.locator('.aia-chip:not([hidden])').count())   # ... and none is lost
+        self.assertTrue(p.is_hidden(".aia-more-menu"))
+        p.click(".aia-more-btn")
+        self.assertTrue(p.is_visible(".aia-more-menu"))
+        box = p.locator(".aia-more-menu").bounding_box()
+        self.assertTrue(0 <= box["x"] and box["x"] + box["width"] <= 391)             # the dropdown stays on screen
+        target = narrow_menu[-1]
+        p.click(f'.aia-more-menu .aia-chip[data-aia-target="{target}"]')
+        self.assertTrue(p.is_visible(f"#aiaGroup-{target}"))
+        self.assertTrue(p.is_hidden(".aia-more-menu"))                                # picking a tab closes the menu
+        self.assertIn("active", p.get_attribute(".aia-more-btn", "class"))            # More shows that its tab is the open one
+        p.click(".aia-more-btn")
+        p.keyboard.press("Escape")
+        self.assertTrue(p.is_hidden(".aia-more-menu"))
+        p.set_viewport_size({"width": 1400, "height": 900})                           # widening moves tabs back into the bar
+        p.wait_for_function("(n) => document.querySelectorAll('#aiaChips > .aia-chip:not([hidden])').length > n", arg=len(narrow_bar))
 
     def test_nothing_overflows_on_a_phone_in_light_theme_and_in_rtl(self):
         for theme, rtl in (("light", False), ("dark", True)):
             p = self.open(390, 800, theme=theme, rtl=rtl)
-            self.assertLessEqual(p.evaluate("() => document.documentElement.scrollWidth"), 392, f"{theme} rtl={rtl}")
-            rows = p.evaluate("() => [...document.querySelectorAll('.aia-row')].filter(r => r.scrollWidth > r.clientWidth + 1).map(r => (r.querySelector('label')||{}).htmlFor)")
-            self.assertEqual(rows, [], f"{theme} rtl={rtl}")
+            for group in GROUPS:                       # every section is checked: a hidden one has no width to measure
+                open_ai_tab(p, group)
+                self.assertLessEqual(p.evaluate("() => document.documentElement.scrollWidth"), 392, f"{group} {theme} rtl={rtl}")
+                rows = p.evaluate("() => [...document.querySelectorAll('.aia-card:not([hidden]) .aia-row')].filter(r => r.scrollWidth > r.clientWidth + 1).map(r => (r.querySelector('label')||{}).htmlFor)")
+                self.assertEqual(rows, [], f"{group} {theme} rtl={rtl}")
             if SHOTS:
                 p.screenshot(path=f"{SHOTS}/mobile_{theme}_{'rtl' if rtl else 'ltr'}.png", full_page=True)
 
@@ -126,6 +204,7 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
 
     def test_the_settings_card_keeps_one_domain_checked(self):
         p = self.open(1300, 900)
+        open_ai_tab(p, "domains")
         p.uncheck("#aiDomainAppToggle")
         p.click("#aiDomainBusinessToggle")          # the last one cannot be switched off: the page checks it again
         self.assertTrue(p.is_checked("#aiDomainBusinessToggle"))

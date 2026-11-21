@@ -10,6 +10,7 @@ Every setting it changes is restored at the end.
 """
 
 from tests.modules.e2e_settings import AI_ENGINE_PINS, fresh_state, pinned
+from tests.modules.settings.common import open_ai_section
 
 MODE_URL, STOP_URL, SETTINGS_URL = "/api/financial-advisor/ai/chat-mode/", "/api/financial-advisor/ai/stop/", "/api/settings/ai/"
 _FETCH = """async ([url, method, body]) => {
@@ -74,16 +75,19 @@ def _live_steps_and_stop(page, context, reporter, screenshot_logger):
 
 def _settings(page, context, reporter, screenshot_logger):
     context.goto_route("#settings-aiadvisor")
+    open_ai_section(page, "routing")
     page.wait_for_selector("#aiAgentInstructionsInput", timeout=20000)
     default_text = page.evaluate(_FETCH, [SETTINGS_URL, "GET", None])["data"]["ai_agent_instructions_default"]
     shows_default = page.input_value("#aiAgentInstructionsInput").strip() == default_text.strip()
     page.fill("#aiAgentInstructionsInput", "E2E RULE: always cite the table.")
+    open_ai_section(page, "agent")
     page.fill("#aiAgentMaxStepsInput", "7")
     with page.expect_response(lambda r: SETTINGS_URL in r.url and r.request.method == "POST", timeout=15000):
         page.click("#aiSaveBtn")
     page.wait_for_timeout(600)
     got = page.evaluate(_FETCH, [SETTINGS_URL, "GET", None])["data"]
     saved = got["ai_agent_instructions"] == "E2E RULE: always cite the table." and got["ai_agent_max_steps"] == 7
+    open_ai_section(page, "routing")
     page.click("#aiAgentInstructionsResetBtn")
     reset = page.input_value("#aiAgentInstructionsInput").strip() == default_text.strip()
     with page.expect_response(lambda r: SETTINGS_URL in r.url and r.request.method == "POST", timeout=15000):

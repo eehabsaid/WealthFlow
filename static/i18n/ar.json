@@ -2788,6 +2788,7 @@
     "docgen_admin_guide": "دليل المسؤول",
     "docgen_technical_guide": "الدليل الفني",
     "ai_grp_nav": "الأقسام",
+    "ai_grp_limits": "حدود الاستخدام",
     "ai_grp_provider": "المزوّد والنموذج",
     "ai_grp_provider_desc": "أي ذكاء اصطناعي يشغّل المستشار وكيفية استدعائه.",
     "ai_grp_safety": "الصلاحيات والأمان",

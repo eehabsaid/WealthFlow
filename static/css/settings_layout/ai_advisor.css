@@ -1,4 +1,4 @@
-/* ── Settings > AI Advisor: one card per group, label/help on the start side and the control on the end side.
+/* ── Settings > AI Advisor: one card per group (shown one at a time, see ai_advisor_layout.css), label/help on the start side and the control on the end side.
    Logical properties only (padding-inline, margin-inline, text-align: start): the same rules serve LTR and RTL. ── */
 
 #settingsContent .aia-intro {
@@ -35,56 +35,18 @@
   color: var(--text-secondary);
 }
 
-.aia-chips {
-  position: sticky;
-  top: 56px;
-  z-index: 5;
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 8px 0;
-  margin-bottom: 14px;
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-color);
-  scrollbar-width: thin;
-}
-
-.aia-chip {
-  flex: none;
-  padding: 5px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 99px;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 12.5px;
-  cursor: pointer;
-}
-
-.aia-chip:hover {
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
-}
-
-.aia-chip.active {
-  border-color: var(--accent-primary);
-  background: var(--accent-glow);
-  color: var(--accent-primary);
-}
-
 .aia-card {
-  margin-bottom: 16px;
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--bg-card);
   box-shadow: var(--shadow-card);
-  scroll-margin-top: 112px;
 }
 
 .aia-card-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
+  gap: 14px;
+  padding: 18px 22px;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -92,9 +54,10 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  font-size: 18px;
   background: var(--accent-glow);
   color: var(--accent-primary);
 }
@@ -102,7 +65,7 @@
 .aia-card-title h2 {
   margin: 0;
   color: var(--text-primary);
-  font-size: 15px;
+  font-size: var(--text-lg);
   font-weight: 600;
 }
 
@@ -123,7 +86,7 @@
 }
 
 .aia-card-body {
-  padding: 2px 18px 8px;
+  padding: 4px 22px 12px;
 }
 
 .aia-row {
@@ -220,17 +183,6 @@
   border-top: 1px solid var(--border-color);
 }
 
-.aia-savebar {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
-  display: flex;
-  justify-content: flex-end;
-  padding: 12px 0;
-  border-top: 1px solid var(--border-color);
-  background: var(--bg-primary);
-}
-
 /* Provider-specific inputs (API key, base URL...) are rendered by provider_fields.js as Bootstrap columns: a plain 2-column grid here. */
 .aia-row-wide > #providerSpecificFields {
   display: grid;
@@ -253,10 +205,6 @@
 @media (width <= 767px) {
   .aia-row-wide > #providerSpecificFields {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .aia-chips {
-    top: 52px;
   }
 
   .aia-row {
@@ -283,9 +231,5 @@
 
   .aia-badge {
     display: none;
-  }
-
-  .aia-savebar .btn {
-    flex: 1;
   }
 }

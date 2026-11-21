@@ -2788,6 +2788,7 @@
     "docgen_admin_guide": "Guide de l'administrateur",
     "docgen_technical_guide": "Guide technique",
     "ai_grp_nav": "Sections",
+    "ai_grp_limits": "Limites d'utilisation",
     "ai_grp_provider": "Fournisseur et modèle",
     "ai_grp_provider_desc": "Quelle IA alimente le conseiller et comment elle est appelée.",
     "ai_grp_safety": "Autorisations et sécurité",

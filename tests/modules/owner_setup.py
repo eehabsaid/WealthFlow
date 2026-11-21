@@ -9,6 +9,8 @@ NOTE: tests/core/test_context.py registers ONE global dialog handler; do not add
 import io
 import wave
 
+from tests.modules.settings.common import open_ai_section
+
 
 def _step(reporter, shots, page, name, ok, detail, tab):
     shot = shots.capture(page, "owner_setup", tab, "none", "view", "ok" if ok else "fail")
@@ -44,6 +46,7 @@ def _check_paymob_test(context, reporter, shots):
 def _check_speech_settings(context, reporter, shots):
     page = context.page
     context.goto_route("#settings-aiadvisor")
+    open_ai_section(page, "speech", timeout=15000)   # the AI Advisor page shows one section at a time
     page.wait_for_selector("#aiaGroup-speech", timeout=15000)
     api = page.evaluate("fetch('/api/settings/ai/').then(r => r.json())")
     controls = ["speech_stt_enabled", "speech_stt_provider", "speech_stt_endpoint", "speech_stt_model",

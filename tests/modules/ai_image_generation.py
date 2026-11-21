@@ -19,6 +19,7 @@ import time
 import requests
 
 from tests.modules.e2e_settings import AI_ENGINE_PINS, django_exec, fresh_state, pinned
+from tests.modules.settings.common import open_ai_section
 
 SETTINGS_URL = "/api/settings/ai/"
 KEYS = [f"image_gen_{f}" for f in ("enabled", "provider", "model", "endpoint", "api_key", "start_command")]
@@ -48,6 +49,7 @@ def _open(page, context):
     context.goto_route("#settings-aiadvisor")
     page.reload()   # earlier modules already loaded this page: start from what the server holds now, not their in-memory form
     context.goto_route("#settings-aiadvisor")
+    open_ai_section(page, "image")
     page.wait_for_selector("#image_gen_enabled", timeout=20000)
 
 

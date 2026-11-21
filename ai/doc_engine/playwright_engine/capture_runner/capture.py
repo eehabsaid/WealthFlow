@@ -29,6 +29,11 @@ class CaptureMixin:
               max-width: 100% !important;
               width: 100% !important;
             }
+            /* Settings > AI Advisor shows one section at a time; the documentation shows every section, stacked, without the nav. */
+            .aia-layout { display: block !important; }
+            .aia-chips { display: none !important; }
+            .aia-card[hidden], .aia-pane:has(#aiUserLimitsCard)[hidden] { display: block !important; }
+            .aia-savebar { position: static !important; }
             .modal.show {
               position: absolute !important;
               overflow: visible !important;

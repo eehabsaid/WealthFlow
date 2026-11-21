@@ -69,7 +69,7 @@ window.AIA.ui.grid = function (fieldsHtml, columns) {
 window.AIA.ui.card = function (o) {
   const badge = o.badge ? `<span class="aia-badge">${escapeHtml(o.badge)}</span>` : "";
   return `
-    <section class="aia-card" id="aiaGroup-${o.id}" data-aia-group="${o.id}">
+    <section class="aia-card" id="aiaGroup-${o.id}" data-aia-group="${o.id}" role="tabpanel">
       <header class="aia-card-head">
         <span class="aia-card-icon"><i class="bi ${o.icon}"></i></span>
         <div class="aia-card-title">
@@ -148,39 +148,3 @@ window.AIA.ui.GROUPS = [
   ],
   ["diag", "bi-bug", "ai_grp_diag", "Diagnostics", "For troubleshooting only."],
 ];
-
-window.AIA.ui.chips = function () {
-  const items = window.AIA.ui.GROUPS.map(
-    ([id, , key, fallback], i) =>
-      `<button type="button" class="aia-chip${i === 0 ? " active" : ""}" data-aia-target="${id}" data-i18n="${key}">${t(key, fallback)}</button>`
-  ).join("");
-  return `<nav class="aia-chips" id="aiaChips" aria-label="${escapeHtml(t("ai_grp_nav", "Sections"))}">${items}</nav>`;
-};
-
-// Chip click scrolls to its card (no hash change: the hash is the app's router); the chip of the card in view is highlighted.
-window.AIA.ui.wireChips = function () {
-  const chips = document.getElementById("aiaChips");
-  if (!chips) return;
-  const mark = (id) =>
-    chips
-      .querySelectorAll(".aia-chip")
-      .forEach((c) => c.classList.toggle("active", c.dataset.aiaTarget === id));
-  chips.addEventListener("click", (e) => {
-    const chip = e.target.closest(".aia-chip");
-    const card = chip && document.getElementById(`aiaGroup-${chip.dataset.aiaTarget}`);
-    if (!card) return;
-    mark(chip.dataset.aiaTarget);
-    card.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-  if (typeof IntersectionObserver !== "function") return;
-  const seen = new IntersectionObserver(
-    (entries) => {
-      const top = entries
-        .filter((en) => en.isIntersecting)
-        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-      if (top) mark(top.target.dataset.aiaGroup);
-    },
-    { rootMargin: "-120px 0px -65% 0px" }
-  );
-  document.querySelectorAll(".aia-card").forEach((card) => seen.observe(card));
-};

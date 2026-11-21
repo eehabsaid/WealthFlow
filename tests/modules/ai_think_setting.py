@@ -10,6 +10,7 @@ Every setting it changes is restored at the end.
 """
 
 from tests.modules.e2e_settings import AI_ENGINE_PINS, fresh_state, pinned
+from tests.modules.settings.common import open_ai_section
 
 SETTINGS_URL = "/api/settings/ai/"
 _FETCH = """async ([url]) => { const res = await fetch(url); let data = null; try { data = await res.json(); } catch (e) {}
@@ -29,6 +30,7 @@ def _save(page):
 
 def _open(page, context):
     context.goto_route("#settings-aiadvisor")
+    open_ai_section(page, "routing")
     page.wait_for_selector("#aiThinkSelect", timeout=20000)
 
 

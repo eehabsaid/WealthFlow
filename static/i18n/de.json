@@ -2788,6 +2788,7 @@
     "docgen_admin_guide": "Administratorhandbuch",
     "docgen_technical_guide": "Technischer Leitfaden",
     "ai_grp_nav": "Abschnitte",
+    "ai_grp_limits": "Nutzungslimits",
     "ai_grp_provider": "Anbieter und Modell",
     "ai_grp_provider_desc": "Welche KI den Berater antreibt und wie sie aufgerufen wird.",
     "ai_grp_safety": "Berechtigungen und Sicherheit",

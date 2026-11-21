@@ -16,6 +16,7 @@ window.AIA = window.AIA || {};
 window.AIA.state = {
   currentAISettings: null,
   currentProviderSchemas: [],
+  activeGroup: "provider", // section shown in Settings > AI Advisor; kept across the re-render after Save
 };
 
 // Re-arms the app's shared "Show all N rows / Show less" toggle (app/utils/collapsible.js, same as Expenses)

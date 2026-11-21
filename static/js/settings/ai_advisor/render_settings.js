@@ -4,6 +4,7 @@
 // - state.js                    Shared window.AIA.state + escapeHtml helper
 // - render_settings_form.js     Builds the settings form HTML (provider group + page composition)
 // - layout_helpers.js / settings_groups.js / settings_groups_limits.js  Card/row builders and the other groups
+// - nav.js / page_layout.js     Section navigation (one section visible at a time) and page composition
 // - user_limits.js / user_limits_actions.js  Monthly token limits panel (sysadmin)
 // - provider_fields.js          Provider dropdown + dynamic field rendering
 // - connection_test.js          "Test Connection" button handler
@@ -71,7 +72,7 @@ window.AIA.renderAIAdvisorSettings = async function () {
     permissionTier,
     multiAgentChecked,
   });
-  // Order: settings form -> monthly token limits -> platform card (installed models)
+  // Sections: one per group, plus the monthly token limits panel (sysadmin) as its own section
   const keyWarning = window.AIA.state.currentAISettings.encryption_key_default
     ? `<div class="aia-notice" id="aiDefaultKeyWarning" role="alert">
          <i class="bi bi-shield-exclamation"></i>
@@ -82,11 +83,12 @@ window.AIA.renderAIAdvisorSettings = async function () {
          <button type="button" class="btn btn-sm btn-outline-warning" data-i18n="ai_key_warning_how" onclick="document.getElementById('aiDefaultKeyMore').hidden = !document.getElementById('aiDefaultKeyMore').hidden">${t("ai_key_warning_how", "How to fix")}</button>
        </div>`
     : "";
-  container.innerHTML = keyWarning + html + '<div id="aiUserLimitsPanel"></div>';
-  window.AIA.loadUserLimitsPanel();
-
+  container.innerHTML = keyWarning + html;
   window.AIA.renderProviderFields(activeProviderKey);
   window.AIA.ui.wireChips();
+  window.AIA.ui.showGroup(window.AIA.state.activeGroup || "provider") ||
+    window.AIA.ui.showGroup("provider");
+  Promise.resolve(window.AIA.loadUserLimitsPanel()).then(window.AIA.ui.syncLimitsNav);
 
   if (typeof applyTranslations === "function") {
     applyTranslations();

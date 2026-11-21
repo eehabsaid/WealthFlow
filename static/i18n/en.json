@@ -2788,6 +2788,7 @@
     "docgen_admin_guide": "Admin Guide",
     "docgen_technical_guide": "Technical Guide",
     "ai_grp_nav": "Sections",
+    "ai_grp_limits": "Usage limits",
     "ai_grp_provider": "Provider and model",
     "ai_grp_provider_desc": "Which AI runs the advisor and how it is called.",
     "ai_grp_safety": "Permissions and safety",

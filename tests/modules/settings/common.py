@@ -29,6 +29,16 @@ def open_settings_tab(context, tab, wait_ms=900):
     return context.page.evaluate("location.hash") == f"#{route}"
 
 
+def open_ai_section(page, group, timeout=20000):
+    """Settings > AI Advisor shows one section at a time (side nav / chip bar). Click the nav entry of `group`
+    (provider, safety, domains, routing, agent, docs, files, speech, image, diag, limits) so its controls are visible."""
+    chip = f'.aia-chip[data-aia-target="{group}"]'
+    page.wait_for_selector(chip, state="attached", timeout=timeout)
+    if not page.locator(chip).is_visible():   # a tab that did not fit the bar sits in its "More" menu
+        page.click(".aia-more-btn", timeout=timeout)
+    page.click(chip, timeout=timeout)
+
+
 _CLOSE_GLOBAL_MODAL_JS = """async () => {
     const el = document.getElementById('globalModal');
     if (!el) return false;

@@ -11,7 +11,7 @@ Checks, against the real API (not just the DOM):
 """
 
 from tests.modules.e2e_settings import AI_ENGINE_PINS, fresh_state, pinned
-from tests.modules.settings.common import close_global_modal
+from tests.modules.settings.common import close_global_modal, open_ai_section
 
 SETTINGS_URL = "/api/settings/ai/"
 CHAT_URL = "/api/financial-advisor/ai/chat/"
@@ -47,6 +47,7 @@ def _set_toggle(context, checked):
     box = page.query_selector("#aiDirectAnswersToggle")
     if box is None:
         return None
+    open_ai_section(page, "routing")
     if box.is_checked() != checked:
         box.click()
     with page.expect_response(lambda r: SETTINGS_URL in r.url and r.request.method == "POST", timeout=15000):
@@ -71,6 +72,7 @@ def _run(context, reporter, screenshot_logger):
     close_global_modal(page)
     reporter.pages_visited.add("Settings -> AI Advisor")
     try:
+        open_ai_section(page, "routing")
         page.wait_for_selector("#aiDirectAnswersToggle", timeout=20000)
     except Exception as ex:
         shot = screenshot_logger.capture(page, "settings", "ai_instant_answers", "none", "toggle_missing", "fail")

@@ -11,7 +11,7 @@ Drives the real UI and verifies every result through the API:
 The account's original settings and limits are always restored.
 """
 
-from tests.modules.settings.common import close_global_modal
+from tests.modules.settings.common import close_global_modal, open_ai_section
 
 ME_URL = "/api/settings/ai/me/"
 LIMITS_URL = "/api/settings/ai/user-limits/"
@@ -83,6 +83,7 @@ def _limits(context, reporter, shots):
     context.goto_route("#settings-aiadvisor")
     reporter.pages_visited.add("Settings -> AI Advisor (limits)")
     try:
+        open_ai_section(page, "limits")
         page.wait_for_selector("#aiDefaultLimitInput", timeout=20000)
     except Exception as ex:
         _step(reporter, shots, page, "AI token limits panel renders", False, f"panel missing: {ex}", "ai_limits_missing")
