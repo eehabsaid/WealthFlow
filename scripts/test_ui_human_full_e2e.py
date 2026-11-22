@@ -95,7 +95,7 @@ def main():
                 modules_to_run = [
                     "auth", "dashboard", "ai", "balance", "salary", "certificates",
                     "fixed_assets", "expenses", "budgets", "import_data", "reports", "reminders",
-                    "financial_advisor", "settings", "translations", "billing", "pwa", "gulf_market", "gold_feed", "legal", "account_deletion", "recurring_auto_post", "owner_setup", "design_system"
+                    "financial_advisor", "settings", "translations", "billing", "pwa", "gulf_market", "gold_feed", "legal", "account_deletion", "recurring_auto_post", "owner_setup", "design_system", "commitments_calendar"
                 ]
 
             # Suite-level watchdog: a hard wall-clock ceiling on the whole run.

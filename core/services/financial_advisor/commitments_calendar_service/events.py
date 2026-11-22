@@ -170,14 +170,14 @@ class CommitmentsEventsBuilder(RenewalEventsMixin):
                     if _in_range(self.start, self.end, due):
                         out.append(_make(due, "income", "certificate_interest", "actual",
                                          "commitments_event_certificate_interest",
-                                         amount=interest, amount_base=interest, currency_code=code,
+                                         amount=interest, amount_base=None if code else interest, currency_code=code,
                                          source="BankCertificate", source_id=cert.id,
                                          bank_id=cert.bank_id, status="active"))
                     period += 1
             if _in_range(self.start, self.end, cert.expiry_date):
                 out.append(_make(cert.expiry_date, "income", "certificate_maturity", "actual",
                                  "commitments_event_certificate_maturity",
-                                 amount=_to_float(cert.amount), amount_base=_to_float(cert.amount),
+                                 amount=_to_float(cert.amount), amount_base=None if code else _to_float(cert.amount),
                                  currency_code=code, source="BankCertificate", source_id=cert.id,
                                  bank_id=cert.bank_id, status="active"))
         return out

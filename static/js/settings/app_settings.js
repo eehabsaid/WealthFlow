@@ -7,5 +7,9 @@ function saveAppSetting(key, value) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ key, value }),
-  }).then(() => showToast(t("settings_saved", "Settings saved ✓")));
+  }).then((response) =>
+    response.ok
+      ? showToast(t("settings_saved", "Settings saved ✓"))
+      : showToast(t("settings_save_failed", "Save failed"), "error")
+  );
 }

@@ -13,6 +13,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Optional
 
+from core.constants.user_scoped_settings import INTEGER_SETTING_RANGES
 from core.models import AppSettings, Bank
 from core.services.shared.base_currency import get_user_base_code
 from core.services.shared.currency_conversion_service import CurrencyConversionService
@@ -22,8 +23,7 @@ from .liquidity import ForecastSeries, build_analysis
 
 WINDOW_KEY = "commitments_concentration_window_days"
 WINDOW_DEFAULT = 30
-WINDOW_MIN = 1
-WINDOW_MAX = 90
+WINDOW_MIN, WINDOW_MAX = INTEGER_SETTING_RANGES[WINDOW_KEY]
 
 
 def resolve_window_days(owner) -> int:

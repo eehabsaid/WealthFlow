@@ -60,7 +60,7 @@ async function saveReminderRule(id) {
 }
 
 async function saveAppSetting(key, value) {
-  await fetch("/api/settings/", {
+  const response = await fetch("/api/settings/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -68,6 +68,10 @@ async function saveAppSetting(key, value) {
       value: value, // Matches backend data["value"]
     }),
   });
+  if (!response.ok) {
+    showToast(t("settings_save_failed", "Save failed"), "error");
+    return;
+  }
   showToast(t("settings_saved", "Settings saved ✓"), "success");
   applyTranslations();
 }

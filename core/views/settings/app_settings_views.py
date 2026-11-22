@@ -18,7 +18,11 @@ from django.db import transaction
 
 from core.validators.json_body import parse_json_body
 from core.models import AppSettings
-from core.constants.user_scoped_settings import USER_SCOPED_SETTING_KEYS, ACTIVE_LANGUAGE_KEY
+from core.constants.user_scoped_settings import (
+    ACTIVE_LANGUAGE_KEY,
+    INTEGER_SETTING_RANGES,
+    USER_SCOPED_SETTING_KEYS,
+)
 from core.views.settings.settings_access import SettingsAccess
 
 
@@ -38,6 +42,21 @@ def _resolve_for_user(request):
         if profile.preferred_language:
             resolved[ACTIVE_LANGUAGE_KEY] = profile.preferred_language
     return resolved
+
+
+def _out_of_range_key(items):
+    """Return the first key whose value is not an integer inside its allowed range."""
+    for key, val in items:
+        bounds = INTEGER_SETTING_RANGES.get(key)
+        if bounds is None:
+            continue
+        try:
+            number = int(str(val).strip())
+        except ValueError:
+            return key
+        if not bounds[0] <= number <= bounds[1]:
+            return key
+    return None
 
 
 class SettingsView(View):
@@ -79,6 +98,9 @@ class SettingsView(View):
         access = SettingsAccess(request.user)
         if not all(access.can_write(key) for key, _ in items):
             return JsonResponse({"error": "Permission denied"}, status=403)
+        invalid_key = _out_of_range_key(items)
+        if invalid_key:
+            return JsonResponse({"error": f"invalid value for {invalid_key}"}, status=400)
 
         user = request.user
         saved = {}

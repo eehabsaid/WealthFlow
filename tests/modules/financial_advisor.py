@@ -1,7 +1,7 @@
 """
 WealthFlow QA Module — Financial Advisor
 Tests:
- 1. Deep sweep of all 10 Financial Advisor sub-tabs:
+ 1. Deep sweep of all 12 Financial Advisor sub-tabs:
     - Overview
     - Cash Flow Forecast
     - Wealth Growth Forecast
@@ -36,6 +36,7 @@ def test_financial_advisor_module(context, reporter, screenshot_logger):
         ("performance", "Performance Analytics"),
         ("what-if-simulator", "What-If Simulator"),
         ("scenario-planner", "Scenario Planner"),
+        ("commitments-calendar", "Commitments Calendar"),
     ]
 
     for tab_id, tab_label in fa_tabs:

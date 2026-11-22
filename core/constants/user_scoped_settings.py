@@ -37,3 +37,8 @@ USER_SCOPED_SETTING_KEYS = frozenset(
 # .preferred_language (an existing dedicated field) rather than via a
 # per-user AppSettings row — see app_settings_views.py.
 ACTIVE_LANGUAGE_KEY = "active_language"
+
+# Integer settings validated on save: key -> (min, max), both inclusive.
+INTEGER_SETTING_RANGES = {
+    "commitments_concentration_window_days": (1, 90),
+}

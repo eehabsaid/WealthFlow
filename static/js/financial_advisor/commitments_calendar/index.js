@@ -1,32 +1,19 @@
 "use strict";
 // commitments_calendar/index.js — Financial Commitments Calendar tab.
 // One backend payload (date range + filters) drives three frontend views:
-// month, week, agenda. Siblings: month_view.js, week_view.js, agenda_view.js,
-// risk_panel.js, shared.js (state + small helpers).
+// month, week, agenda. Siblings: nav.js, shared.js, month_view.js,
+// week_view.js, agenda_view.js, risk_panel.js.
 // Read-only feature: it never posts expenses or changes balances.
 
 let _commitmentsData = null;
 let _commitmentsView = "month";
 let _commitmentsCategory = "";
 let _commitmentsBank = "";
-let _commitmentsAnchor = new Date(); // first day of the month being shown
+let _commitmentsAnchor = new Date(); // any day inside the month / week being shown
 let _commitmentsLoading = false;
 
 function _commitmentsPaneId() {
   return "fa-commitments-calendar-content";
-}
-
-function _commitmentsRange() {
-  // 12-month window starting at the first day of the current month (API max is 366 days).
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 11, 0);
-  return { start, end };
-}
-
-function _commitmentsInWindow(d) {
-  const { start, end } = _commitmentsRange();
-  return d >= start && d <= end;
 }
 
 async function loadCommitmentsCalendar(force = false) {
@@ -64,22 +51,22 @@ async function loadCommitmentsCalendar(force = false) {
 function _renderCommitmentsCalendar() {
   const pane = document.getElementById(_commitmentsPaneId());
   if (!pane || !_commitmentsData) return;
-  const events = _commitmentsData.events || [];
-  const analysis = _commitmentsData.analysis || {};
   pane.innerHTML = `
     <div class="mb-3" id="commitments-toolbar"></div>
     <div class="mb-4" id="commitments-risk-panel"></div>
     <div id="commitments-view"></div>
   `;
   _renderCommitmentsToolbar();
-  _renderCommitmentsRiskPanel(analysis);
-  _renderCommitmentsView(events);
-  applyTranslations();
+  _renderCommitmentsRiskPanel(_commitmentsData.analysis || {});
+  _renderCommitmentsView();
 }
 
-function _renderCommitmentsView(events) {
+// Re-renders the active view from the loaded payload and re-applies
+// translations, because every view contains data-i18n elements.
+function _renderCommitmentsView() {
   const host = document.getElementById("commitments-view");
   if (!host) return;
+  const events = _commitmentsData ? _commitmentsData.events || [] : [];
   if (_commitmentsView === "week") {
     host.innerHTML = _renderCommitmentsWeekView(events);
   } else if (_commitmentsView === "agenda") {
@@ -88,22 +75,25 @@ function _renderCommitmentsView(events) {
     host.innerHTML = _renderCommitmentsMonthView(events);
   }
   _wireCommitmentsView();
+  applyTranslations();
+}
+
+// Toolbar state (active view, month, disabled arrows) depends on the view and anchor.
+function _refreshCommitmentsView() {
+  _renderCommitmentsToolbar();
+  _renderCommitmentsView();
+  applyTranslations();
 }
 
 function _setCommitmentsView(view) {
-  if (view !== _commitmentsView) {
-    _commitmentsView = view;
-    _renderCommitmentsView(_commitmentsData ? _commitmentsData.events || [] : []);
-  }
+  if (view === _commitmentsView) return;
+  _commitmentsView = view;
+  _refreshCommitmentsView();
 }
 
-function _setCommitmentsAnchor(deltaMonths) {
-  _commitmentsAnchor = new Date(
-    _commitmentsAnchor.getFullYear(),
-    _commitmentsAnchor.getMonth() + deltaMonths,
-    1
-  );
-  _renderCommitmentsView(_commitmentsData ? _commitmentsData.events || [] : []);
+function _setCommitmentsAnchor(date) {
+  _commitmentsAnchor = date;
+  _refreshCommitmentsView();
 }
 
 function _applyCommitmentsFilter(category, bank) {

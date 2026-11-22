@@ -21,7 +21,7 @@ Always allow all file read, write, move, and delete operations within `d:\MyApps
 - Treat all scripts inside `d:\MyApps\WealthFlow\venv\` as trusted.
 - Auto-approve test runs, static file collection, and Django management commands.
 - Always invoke Python as `.\venv\Scripts\python.exe`
-- **Automated Test Credentials Standard**: Automated test scripts, Playwright browser scripts, and scratch debugging scripts MUST NEVER modify, reset, or overwrite user credentials in `db.sqlite3` (never call `set_password` on existing users). Always authenticate using the existing project credentials (`eehab_said` / `Eehabdev1`) as-is.
+- **Automated Test Credentials Standard**: Automated test scripts, Playwright browser scripts, and scratch debugging scripts MUST NEVER modify, reset, or overwrite user credentials in `db.sqlite3` (never call `set_password` on existing users). Always authenticate with the existing project credentials from the `WF_USERNAME` / `WF_PASSWORD` environment variables (`.env`); never write a password into a rules or documentation file.
 
 ## UI/UX & I18n Lessons Learned (Financial Advisor)
 
@@ -35,8 +35,9 @@ Always allow all file read, write, move, and delete operations within `d:\MyApps
 
 - The Commitments Calendar (Financial Advisor tab) is strictly READ-ONLY: it must never create expenses, change balances, or write to any model. Any change that posts money belongs in the expense/balance services, not here.
 - Backend: package `core/services/financial_advisor/commitments_calendar_service/` (`events.py`, `events_renewals.py`, `liquidity.py`, `event_shape.py`, `service.py`; every file <= 200 lines). API: `GET /api/financial-advisor/commitments-calendar/` (range max 366 days; `category` and `bank` filters).
-- Frontend: `static/js/financial_advisor/commitments_calendar/` (`shared.js`, `month_view.js`, `week_view.js`, `agenda_view.js`, `risk_panel.js`, `index.js`); tab registered in `FINANCIAL_ADVISOR_TABS` (`utils.js`), `tab_panes.js`, `render.js`, scripts in `templates/partials/scripts/03_financial_advisor_features.html`. Bump the `?v=` number when changing a file.
-- Concentration window setting: `commitments_concentration_window_days` (AppSettings; clamped 1-90, default 30), edited on Settings > Reminders.
+- Frontend: `static/js/financial_advisor/commitments_calendar/` (`nav.js`, `shared.js`, `month_view.js`, `week_view.js`, `agenda_view.js`, `risk_panel.js`, `index.js`; every file <= 200 lines); tab registered in `FINANCIAL_ADVISOR_TABS` (`utils.js`), `tab_panes.js`, `render.js`, scripts in `templates/partials/scripts/03_financial_advisor_features.html`. Bump the `?v=` number when changing a file.
+- Concentration window setting: `commitments_concentration_window_days` (AppSettings; range `INTEGER_SETTING_RANGES` in `core/constants/user_scoped_settings.py` = 1-90, validated on save and clamped on read, default 30), edited on Settings > Reminders. A concentration window counts each commitment (same source record + event type) once, so one recurring bill never raises a false alarm.
+- UI rules: every view re-render must re-apply translations (`_renderCommitmentsView` does); shown dates use `formatDate`; month/week navigation stays inside the loaded 12-month window; `description_key` is always `commitments_event_<event_type>`.
 - i18n keys are `commitments_*` (+ tab keys `financial_advisor_tab_commitments*`) and must exist in all four locales (en/ar/fr/de).
 - Tests: Django `core/tests/financial_advisor/test_commitments_calendar.py`; browser E2E module `tests/modules/commitments_calendar.py` wired in `scripts/e2e_module_dispatch.py`.
 
@@ -49,7 +50,7 @@ These six deliverables are MANDATORY for every new page, tab, feature, or signif
 3. **Documentation inventory registration**: Add the route/tab to `ai/doc_engine/inventory.json` (route entry + `tabs` array, `id` = the DOM tab id).
 4. **Actual UI screenshot capture**: Run the documentation engine (`python scripts/generate_docs.py --lang en --theme dark`) and confirm a real screenshot of the new page/tab exists in `docs/screenshots/`. Never commit a placeholder or a screenshot of the wrong tab.
 5. **User guide in all four languages**: Add the `route::tab` entry (English `purpose` + `steps`) to `ai/doc_engine/content/page_descriptions.json`; the engine translates to ar/fr/de. Verify the tab appears in the generated guide and that its i18n labels exist in `en.json`, `ar.json`, `fr.json`, `de.json`.
-6. **AI Agent documentation-generation support**: The WealthFlow AI Agent must be able to generate and maintain this guide. Keep `ai/services/agent/instructions.py` and these AGENTS.md rules consistent with the doc-engine workflow (inventory → page_descriptions → generate_docs.py → 4-language guide).
+6. **AI Agent documentation-generation support**: The doc-engine workflow is inventory → page_descriptions → generate_docs.py → 4-language guide. The in-app WealthFlow AI Agent writes user guides from the app's live screen list (`app_routes`) and this guide text, so steps 3 and 5 are all it needs for a new screen to be documented; `ai/services/agent/instructions.py` must stay free of file paths and developer workflow (its document rules forbid technical internals). The coding agent reads `coding_agent/AGENTS.md`, which carries a condensed copy of these six deliverables; keep the two files consistent.
 
 ## Mandatory Implementation & Validation Protocol
 

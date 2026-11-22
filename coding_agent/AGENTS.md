@@ -19,5 +19,11 @@ These rules are loaded into every conversation of `ai/dev_agent` (see `rules_fil
 - State plainly what you could not run (real browser, Windows, real model).
 
 ## Feature standing rules
-- See `.agents/AGENTS.md` section "Financial Commitments Calendar — Standing Rules" before touching that feature (it is read-only: never post expenses or change balances from it).
-- For every new page, tab, feature, or significant UI change, follow `.agents/AGENTS.md` section "Documentation & Testing Deliverables — Standing Rules for Every New Page, Tab, Feature, or Significant UI Change" (unit tests, browser E2E, inventory registration, real screenshot capture, 4-language guide, AI Agent doc support).
+- Financial Commitments Calendar (Financial Advisor tab) is READ-ONLY: never post expenses, change balances or write to any model from it. Full rules: `.agents/AGENTS.md`, section "Financial Commitments Calendar — Standing Rules".
+- Every new page, tab, feature or significant UI change needs ALL six, and is not done until they are verified:
+  1. Django unit tests in `core/tests/...` (service + API), plus a Node test for non-trivial JS date/calculation helpers.
+  2. A browser E2E module `tests/modules/<feature>.py`, registered in `scripts/e2e_module_dispatch.py` and in the `--module` choices of `scripts/test_ui_human_full_e2e.py`; it must assert real rendered content (not just that a button exists) and be run.
+  3. Route/tab registered in `ai/doc_engine/inventory.json` (`id` = the DOM tab id).
+  4. A real screenshot from `python scripts/generate_docs.py --lang en --theme dark` in `docs/screenshots/` (never a placeholder or the wrong tab).
+  5. English `purpose` + `steps` for `route::tab` in `ai/doc_engine/content/page_descriptions.json` (the engine translates to ar/fr/de) and all i18n labels in en/ar/fr/de.
+  6. Keep these rules and `.agents/AGENTS.md` consistent with the doc-engine workflow.

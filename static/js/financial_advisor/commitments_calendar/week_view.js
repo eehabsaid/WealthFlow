@@ -1,43 +1,23 @@
 "use strict";
-// commitments_calendar/week_view.js — 7-day week view around the anchor month's first week.
-
-function _commitmentsWeekDays() {
-  const first = new Date(_commitmentsAnchor.getFullYear(), _commitmentsAnchor.getMonth(), 1);
-  const startOffset = (first.getDay() + 6) % 7;
-  const start = new Date(first);
-  start.setDate(first.getDate() - startOffset);
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
-    return d;
-  });
-}
+// commitments_calendar/week_view.js — the 7-day week (Monday to Sunday)
+// containing the anchor date; the toolbar arrows move one week at a time.
 
 function _renderCommitmentsWeekView(events) {
   const byDate = _commitmentsEventsByDate(events);
-  const days = _commitmentsWeekDays();
+  const monday = _commitmentsMondayOf(_commitmentsAnchor);
   const today = _commitmentsLocalISO(new Date());
-  const lang =
-    currentLang() === "ar"
-      ? "ar"
-      : currentLang() === "fr"
-        ? "fr"
-        : currentLang() === "de"
-          ? "de"
-          : "en";
 
-  const cols = days
-    .map((d) => {
-      const iso = _commitmentsLocalISO(d);
-      const dayEvents = byDate[iso] || [];
-      return `<div style="background:${iso === today ? "var(--bg-primary)" : "var(--bg-secondary)"}; border:1px solid var(--border-color); border-radius:8px; padding:8px; min-height:120px;">
-        <div style="font-weight:700; color:var(--text-primary); margin-bottom:6px; font-size:0.85rem;">
-          ${d.toLocaleDateString(lang, { weekday: "short", day: "numeric", month: "short" })}
-        </div>
-        ${dayEvents.length ? dayEvents.map((e) => _commitmentsEventCard(e, true)).join("") : `<div style="color:var(--text-secondary); font-size:0.78rem;" data-i18n="commitments_day_empty"></div>`}
+  const cols = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const iso = _commitmentsLocalISO(d);
+    const dayEvents = byDate[iso] || [];
+    return `<div class="commitments-week-day" data-commitments-week-day="${iso}" style="background:${iso === today ? "var(--bg-primary)" : "var(--bg-secondary)"}; border:1px solid var(--border-color); border-radius:8px; padding:8px; min-height:120px;">
+        <div style="font-weight:700; color:var(--text-primary); font-size:0.85rem;">${_escapeHtml(_commitmentsWeekday(d))}</div>
+        <div style="color:var(--text-secondary); font-size:0.72rem; margin-bottom:6px;">${_escapeHtml(_commitmentsShowDate(iso))}</div>
+        ${dayEvents.length ? dayEvents.map((e) => _commitmentsEventCard(e, true)).join("") : `<div style="color:var(--text-secondary); font-size:0.78rem;">${_escapeHtml(t("commitments_day_empty"))}</div>`}
       </div>`;
-    })
-    .join("");
+  }).join("");
 
   return `
     <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">

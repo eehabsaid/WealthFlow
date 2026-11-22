@@ -67,6 +67,33 @@ def _outflow_total(event: dict) -> float:
     return abs(event.get("amount_base") if event.get("amount_base") is not None else event.get("amount") or 0)
 
 
+def _concentration_windows(outflows: List[dict], window_days: int) -> List[dict]:
+    """Windows opening on an outflow date, ranked by total outflow.
+
+    A window counts each commitment (same source record and event type) once,
+    at its first occurrence inside the window, so one monthly bill is never
+    reported as a concentration of obligations just because a short month
+    puts two of its payments less than N days apart.
+    """
+    windows = []
+    for e in outflows:
+        d = date.fromisoformat(e["date"])
+        end = d + timedelta(days=window_days)
+        first_per_commitment = {}
+        for o in outflows:
+            if d <= date.fromisoformat(o["date"]) < end:
+                first_per_commitment.setdefault((o["source"], o["source_id"], o["event_type"]), o)
+        total = sum(_outflow_total(o) for o in first_per_commitment.values())
+        windows.append({"start": d.isoformat(), "days": window_days,
+                        "outflow": round(total, 2), "events": len(first_per_commitment)})
+    windows.sort(key=lambda w: (-w["outflow"], w["start"]))
+    deduped = []
+    for w in windows:
+        if not any(x["start"] == w["start"] and x["events"] == w["events"] for x in deduped):
+            deduped.append(w)
+    return deduped
+
+
 def build_analysis(events: List[dict], window_days: int, series: ForecastSeries) -> dict:
     for e in events:
         d = date.fromisoformat(e["date"])
@@ -82,22 +109,7 @@ def build_analysis(events: List[dict], window_days: int, series: ForecastSeries)
 
     negative_months = [m["month"] for m in series.timeline if float(m.get("ending_cash") or 0) < 0]
 
-    windows = []
-    for e in outflows:
-        d = date.fromisoformat(e["date"])
-        total = 0.0
-        count = 0
-        for o in outflows:
-            od = date.fromisoformat(o["date"])
-            if d <= od <= d + timedelta(days=window_days):
-                total += _outflow_total(o)
-                count += 1
-        windows.append({"start": d.isoformat(), "days": window_days, "outflow": round(total, 2), "events": count})
-    windows.sort(key=lambda w: (-w["outflow"], w["start"]))
-    deduped = []
-    for w in windows:
-        if not any(x["start"] == w["start"] and x["events"] == w["events"] for x in deduped):
-            deduped.append(w)
+    deduped = _concentration_windows(outflows, window_days)
     concentration = [w for w in deduped if w["events"] > 1][:5]
 
     reasons = []

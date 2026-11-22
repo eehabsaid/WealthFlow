@@ -25,7 +25,7 @@ class RenewalEventsMixin:
         for rec in recs:
             run = rec.next_run_date
             safety = 0
-            while run <= self.end and safety < 366:
+            while run <= self.end and safety < 5000:
                 safety += 1
                 if rec.end_date and run > rec.end_date:
                     break
@@ -127,7 +127,7 @@ class RenewalEventsMixin:
                     "renewal",
                     "vehicle_license_renewal",
                     "informational",
-                    "commitments_event_vehicle_license",
+                    "commitments_event_vehicle_license_renewal",
                     source="VehicleDetails",
                     source_id=v.id,
                     status="renewal_due",
@@ -155,7 +155,7 @@ class RenewalEventsMixin:
                     "renewal",
                     "rental_contract_expiry",
                     "informational",
-                    "commitments_event_rental_contract",
+                    "commitments_event_rental_contract_expiry",
                     source="AssetRental",
                     source_id=r.asset_id,
                     bank_id=r.bank_id,
