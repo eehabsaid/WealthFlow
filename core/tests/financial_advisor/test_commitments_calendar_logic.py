@@ -7,7 +7,7 @@ from unittest import mock
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import BalanceEntry, Bank, BankCertificate, Currency
+from core.models import AssetSale, BalanceEntry, Bank, BankCertificate, Currency, FixedAsset
 from core.services.financial_advisor.commitments_calendar_service import CommitmentsCalendarService, resolve_window_days
 from core.services.financial_advisor.commitments_calendar_service import events as events_module
 from core.services.financial_advisor.commitments_calendar_service.event_shape import _make
@@ -199,3 +199,31 @@ class ApiAndSettingsTest(TestCase):
         self.client.logout()
         self.client.login(username="cc_set2", password="x12345678")
         self.assertEqual(self.get().json()["settings"]["concentration_window_days"], 30)
+
+
+class AssetSaleEventsTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="cc_sale", password="x12345678")
+        self.other = User.objects.create_user(username="cc_sale2", password="x12345678")
+
+    def sale(self, owner, name, day, net):
+        asset = FixedAsset.objects.create(owner=owner, name=name, asset_type="Other Assets",
+                                          purchase_date=date(2025, 1, 1))
+        return AssetSale.objects.create(asset=asset, sale_date=day, sale_price=net, selling_expenses=0,
+                                        net_sale_amount=net)
+
+    def events(self, start, end):
+        payload = CommitmentsCalendarService(self.user, today=TODAY).payload(start, end)
+        return [e for e in payload["events"] if e["event_type"] == "asset_sale"]
+
+    def test_sale_in_range_is_actual_income_with_net_amount(self):
+        sale = self.sale(self.user, "Car", date(2026, 12, 10), 250000)
+        rows = self.events(date(2026, 11, 1), date(2026, 12, 31))
+        self.assertEqual([(e["date"], e["category"], e["kind"], e["amount"], e["source_id"]) for e in rows],
+                         [("2026-12-10", "income", "actual", 250000.0, sale.id)])
+
+    def test_sale_outside_range_zero_net_and_other_user_are_excluded(self):
+        self.sale(self.user, "Late", date(2027, 6, 1), 1000)
+        self.sale(self.user, "Free", date(2026, 12, 12), 0)
+        self.sale(self.other, "Foreign", date(2026, 12, 15), 5000)
+        self.assertEqual(self.events(date(2026, 11, 1), date(2026, 12, 31)), [])
