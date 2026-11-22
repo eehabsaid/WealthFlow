@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from core.models import AssetSale, BalanceEntry, Bank, BankCertificate, Currency, FixedAsset
-from core.services.financial_advisor.commitments_calendar_service import CommitmentsCalendarService, resolve_window_days
+from core.services.financial_advisor.commitments_calendar_service import CommitmentsCalendarService, resolve_week_start_day, resolve_window_days
 from core.services.financial_advisor.commitments_calendar_service import events as events_module
 from core.services.financial_advisor.commitments_calendar_service.event_shape import _make
 from core.services.financial_advisor.commitments_calendar_service.liquidity import build_analysis
@@ -227,3 +227,37 @@ class AssetSaleEventsTest(TestCase):
         self.sale(self.user, "Free", date(2026, 12, 12), 0)
         self.sale(self.other, "Foreign", date(2026, 12, 15), 5000)
         self.assertEqual(self.events(date(2026, 11, 1), date(2026, 12, 31)), [])
+
+
+class WeekStartSettingTest(TestCase):
+    KEY = "commitments_week_start_day"
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="cc_ws", password="x12345678")
+        self.other = User.objects.create_user(username="cc_ws2", password="x12345678")
+        self.client.login(username="cc_ws", password="x12345678")
+
+    def save(self, value):
+        return self.client.post("/api/settings/", data=json.dumps({"key": self.KEY, "value": value}),
+                                content_type="application/json")
+
+    def test_default_is_sunday(self):
+        self.assertEqual(resolve_week_start_day(self.user), 0)
+        r = self.client.get(API, {"start_date": "2026-11-01", "end_date": "2026-12-31"})
+        self.assertEqual(r.json()["settings"]["week_start_day"], 0)
+
+    def test_valid_values_are_saved_and_returned(self):
+        for day in ("0", "1", "6"):
+            self.assertEqual(self.save(day).status_code, 200, day)
+            r = self.client.get(API, {"start_date": "2026-11-01", "end_date": "2026-12-31"})
+            self.assertEqual(r.json()["settings"]["week_start_day"], int(day))
+
+    def test_invalid_values_are_rejected(self):
+        for bad in ("7", "-1", "abc", ""):
+            self.assertEqual(self.save(bad).status_code, 400, bad)
+        self.assertEqual(resolve_week_start_day(self.user), 0)
+
+    def test_setting_is_per_user(self):
+        self.save("6")
+        self.assertEqual(resolve_week_start_day(self.user), 6)
+        self.assertEqual(resolve_week_start_day(self.other), 0)

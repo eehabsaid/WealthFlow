@@ -2998,6 +2998,8 @@
   "commitments_window_title": "Verpflichtungskalender — Konzentrationfenster",
   "commitments_window_label": "Konzentrationfenster (Tage)",
   "commitments_window_desc": "Anzahl der Tage, die zur Erkennung von Perioden mit konzentrierten Finanzverpflichtungen im Verpflichtungskalender verwendet wird.",
+  "commitments_week_start_title": "Verpflichtungskalender — erster Wochentag",
+  "commitments_week_start_desc": "Der Tag, mit dem die Monats- und Wochenansicht des Verpflichtungskalenders beginnen.",
   "commitments_aria_view": "Kalenderansicht",
   "commitments_aria_navigation": "Kalendernavigation",
   "commitments_aria_previous": "Zurück",

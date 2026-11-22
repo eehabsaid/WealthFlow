@@ -42,10 +42,17 @@ function _commitmentsWeekday(date) {
   return _commitmentsName(date, { weekday: "short" });
 }
 
-function _commitmentsMondayOf(d) {
-  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-  return monday;
+// First day of the week is a per-user setting (0 = Sunday ... 6 = Saturday, Date.getDay() values).
+function _commitmentsWeekStartDay() {
+  const value =
+    _commitmentsData && _commitmentsData.settings && _commitmentsData.settings.week_start_day;
+  return Number.isInteger(value) ? value : 0;
+}
+
+function _commitmentsWeekStartOf(d) {
+  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  start.setDate(start.getDate() - ((start.getDay() - _commitmentsWeekStartDay() + 7) % 7));
+  return start;
 }
 
 // The loaded window: first day of the current month through 12 months (API max is 366 days).
@@ -59,7 +66,7 @@ function _commitmentsRange() {
 
 function _commitmentsPeriod(anchor) {
   if (_commitmentsView === "week") {
-    const start = _commitmentsMondayOf(anchor);
+    const start = _commitmentsWeekStartOf(anchor);
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
     return { start, end };

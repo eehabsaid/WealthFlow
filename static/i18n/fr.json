@@ -2998,6 +2998,8 @@
   "commitments_window_title": "Calendrier des engagements — Fenêtre de concentration",
   "commitments_window_label": "Fenêtre de concentration (jours)",
   "commitments_window_desc": "Nombre de jours utilisé pour détecter les périodes à obligations financières concentrées sur le calendrier des engagements.",
+  "commitments_week_start_title": "Calendrier des engagements — premier jour de la semaine",
+  "commitments_week_start_desc": "Le jour par lequel commencent les vues Mois et Semaine du calendrier des engagements.",
   "commitments_aria_view": "Vue du calendrier",
   "commitments_aria_navigation": "Navigation du calendrier",
   "commitments_aria_previous": "Précédent",

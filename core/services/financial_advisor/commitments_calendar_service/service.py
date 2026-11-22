@@ -25,6 +25,10 @@ WINDOW_KEY = "commitments_concentration_window_days"
 WINDOW_DEFAULT = 30
 WINDOW_MIN, WINDOW_MAX = INTEGER_SETTING_RANGES[WINDOW_KEY]
 
+WEEK_START_KEY = "commitments_week_start_day"
+WEEK_START_DEFAULT = 0  # Sunday; values follow JavaScript getDay(): 0 = Sunday ... 6 = Saturday
+WEEK_START_MIN, WEEK_START_MAX = INTEGER_SETTING_RANGES[WEEK_START_KEY]
+
 
 def resolve_window_days(owner) -> int:
     raw = str(AppSettings.get(WINDOW_KEY, str(WINDOW_DEFAULT), user=owner) or "").strip()
@@ -33,6 +37,15 @@ def resolve_window_days(owner) -> int:
     except ValueError:
         return WINDOW_DEFAULT
     return min(max(value, WINDOW_MIN), WINDOW_MAX)
+
+
+def resolve_week_start_day(owner) -> int:
+    raw = str(AppSettings.get(WEEK_START_KEY, str(WEEK_START_DEFAULT), user=owner) or "").strip()
+    try:
+        value = int(raw)
+    except ValueError:
+        return WEEK_START_DEFAULT
+    return value if WEEK_START_MIN <= value <= WEEK_START_MAX else WEEK_START_DEFAULT
 
 
 class CommitmentsCalendarService:
@@ -74,7 +87,7 @@ class CommitmentsCalendarService:
                 "categories": ["income", "expense", "renewal"],
                 "banks": [{"id": b.id, "name": b.name} for b in Bank.objects.filter(owner=self.owner)],
             },
-            "settings": {"concentration_window_days": window_days},
+            "settings": {"concentration_window_days": window_days, "week_start_day": resolve_week_start_day(self.owner)},
         }
 
     def _fill_amount_base(self, events) -> None:

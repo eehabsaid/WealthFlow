@@ -2998,6 +2998,8 @@
   "commitments_window_title": "Commitments Calendar — Concentration Window",
   "commitments_window_label": "Concentration window (days)",
   "commitments_window_desc": "Number of days used to detect periods with concentrated financial obligations on the Commitments Calendar.",
+  "commitments_week_start_title": "Commitments Calendar — First Day of the Week",
+  "commitments_week_start_desc": "The day the Month and Week views of the Commitments Calendar start on.",
   "commitments_aria_view": "Calendar view",
   "commitments_aria_navigation": "Calendar navigation",
   "commitments_aria_previous": "Previous",

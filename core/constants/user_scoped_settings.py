@@ -30,6 +30,7 @@ USER_SCOPED_SETTING_KEYS = frozenset(
         "cert_expiry_warning_days",
         # Commitments calendar (Reminders tab)
         "commitments_concentration_window_days",
+        "commitments_week_start_day",
     }
 )
 
@@ -41,4 +42,5 @@ ACTIVE_LANGUAGE_KEY = "active_language"
 # Integer settings validated on save: key -> (min, max), both inclusive.
 INTEGER_SETTING_RANGES = {
     "commitments_concentration_window_days": (1, 90),
+    "commitments_week_start_day": (0, 6),  # 0 = Sunday ... 6 = Saturday
 }

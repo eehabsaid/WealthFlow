@@ -1,5 +1,5 @@
 "use strict";
-// commitments_calendar/month_view.js — month grid view (weeks start on Monday).
+// commitments_calendar/month_view.js — month grid view (weeks start on the user's first day of the week).
 
 function _commitmentsEventsByDate(events) {
   const map = {};
@@ -12,7 +12,7 @@ function _commitmentsEventsByDate(events) {
 function _renderCommitmentsMonthView(events) {
   const byDate = _commitmentsEventsByDate(events);
   const first = new Date(_commitmentsAnchor.getFullYear(), _commitmentsAnchor.getMonth(), 1);
-  const gridFirst = _commitmentsMondayOf(first);
+  const gridFirst = _commitmentsWeekStartOf(first);
   const today = _commitmentsLocalISO(new Date());
 
   let cells = "";

@@ -2998,6 +2998,8 @@
   "commitments_window_title": "تقويم الالتزامات — نافذة التركز",
   "commitments_window_label": "نافذة التركز (أيام)",
   "commitments_window_desc": "عدد الأيام المستخدمة لاكتشاف الفترات ذات الالتزامات المالية المركزة في تقويم الالتزامات.",
+  "commitments_week_start_title": "تقويم الالتزامات — أول يوم في الأسبوع",
+  "commitments_week_start_desc": "اليوم الذي تبدأ به عروض الشهر والأسبوع في تقويم الالتزامات.",
   "commitments_aria_view": "عرض التقويم",
   "commitments_aria_navigation": "التنقل في التقويم",
   "commitments_aria_previous": "السابق",

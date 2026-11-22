@@ -5,11 +5,11 @@ Asserts real rendered content (not just that buttons exist):
  2. No blank labels or raw i18n keys in any view (month / week / agenda / risk panel)
  3. Day detail opens by click and by keyboard (Enter) with a formatted date
  4. Month navigation: arrows, month picker, Today; arrows disable at the loaded window edges
- 5. Week view: Monday-first 7 columns, current week by default, week arrows, events on their day
+ 5. Week view: 7 columns starting on the configured first day (Sunday by default), current week by default, week arrows, events on their day
  6. Agenda view: one row per event, kind badge and projected balance, no navigation controls
  7. Financial Intelligence panel: formatted dates/amounts, concentration = distinct commitments
  8. Category filter and bank filter change the loaded events correctly
- 9. Settings > Reminders concentration window: valid value saved and applied, invalid rejected
+ 9. Settings > Reminders: concentration window and first day of the week saved, applied and validated
 10. Arabic language: RTL labels translated, no raw keys
 """
 
@@ -179,10 +179,10 @@ def test_commitments_calendar_module(context, reporter, screenshot_logger):
           const first = new Date(keys[0] + 'T00:00:00');
           const mismatched = _commitmentsData.events.filter(e => keys.includes(e.date)).filter(e =>
             !document.querySelector('[data-commitments-week-day="' + e.date + '"] .commitments-event-card')).map(e => e.date);
-          return { count: days.length, keys, today, containsToday: keys.includes(today), monday: first.getDay() === 1, mismatched };
+          return { count: days.length, keys, today, containsToday: keys.includes(today), startsOnSetting: first.getDay() === _commitmentsData.settings.week_start_day, mismatched };
         })()""")
-        step("Commitments Week View (current week, Monday first)",
-             week["count"] == 7 and week["containsToday"] and week["monday"] and not week["mismatched"],
+        step("Commitments Week View (current week, configured first day)",
+             week["count"] == 7 and week["containsToday"] and week["startsOnSetting"] and not week["mismatched"],
              f"Week {week['keys'][0]} .. {week['keys'][-1]} shows today and its events." if week["count"] == 7
              else str(week), shot("commitments_calendar_week", "week"))
         first_week = week["keys"][0]
@@ -279,6 +279,34 @@ def test_commitments_calendar_module(context, reporter, screenshot_logger):
         step("Commitments Concentration Window Setting", setting_ok,
              "45 saved and applied by the calendar; 0 rejected with an error toast; restored to 30." if setting_ok
              else f"saved_ok={saved_ok} still_45={still_45} applied={applied} toast={toast!r}")
+
+        # 9b. First day of the week (default Sunday; configurable on Settings > Reminders)
+        default_start = _eval(context, "_commitmentsData.settings.week_start_day")
+        sunday_first = _eval(context, "new Date(document.querySelector('.commitments-day-cell').dataset.commitmentsDay + 'T00:00:00').getDay()")
+        context.goto_route("#settings-reminders")
+        page.wait_for_selector("#commitmentsWeekStart", timeout=15000)
+        page.select_option("#commitmentsWeekStart", "1")
+        page.click("#commitmentsWeekStart + button")
+        page.wait_for_timeout(900)
+        context.goto_route("#financial-advisor")
+        _open_tab(context)
+        monday_month = _eval(context, "new Date(document.querySelector('.commitments-day-cell').dataset.commitmentsDay + 'T00:00:00').getDay()")
+        _click(context, '[data-commitments-view="week"]', 600)
+        monday_week = _eval(context, "new Date(document.querySelector('[data-commitments-week-day]').dataset.commitmentsWeekDay + 'T00:00:00').getDay()")
+        context.goto_route("#settings-reminders")
+        page.wait_for_selector("#commitmentsWeekStart", timeout=15000)
+        page.evaluate("fetch('/api/settings/', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({key:'commitments_week_start_day', value:'7'})}).then(r => window.__weekStartBad = r.status)")
+        page.wait_for_timeout(600)
+        rejected = _eval(context, "window.__weekStartBad") == 400
+        page.select_option("#commitmentsWeekStart", "0")
+        page.click("#commitmentsWeekStart + button")
+        page.wait_for_timeout(900)
+        context.goto_route("#financial-advisor")
+        _open_tab(context)
+        week_ok = default_start == 0 and sunday_first == 0 and monday_month == 1 and monday_week == 1 and rejected
+        step("Commitments First Day of the Week Setting", week_ok,
+             "Default Sunday; set to Monday -> month grid and week view start on Monday; 7 rejected; restored to Sunday."
+             if week_ok else f"default={default_start} sunday_first={sunday_first} monday_month={monday_month} monday_week={monday_week} rejected={rejected}")
 
         # 10. Arabic
         page.evaluate("loadLanguage('ar')")
