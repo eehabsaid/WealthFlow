@@ -81,6 +81,14 @@ function _renderFATabPane(tab, activeTabId) {
       `;
   }
 
+  if (tab.id === "commitments-calendar") {
+    return `
+        <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
+          <div id="fa-commitments-calendar-content"></div>
+        </div>
+      `;
+  }
+
   return `
       <div class="tab-pane fade ${isActive}" id="${paneId}" role="tabpanel" aria-labelledby="fa-tab-${tab.id}" tabindex="0">
         <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">

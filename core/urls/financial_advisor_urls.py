@@ -7,6 +7,10 @@ urlpatterns = [
             views.CashFlowForecastView.as_view(),
         ),
     path(
+            "api/financial-advisor/commitments-calendar/",
+            views.CommitmentsCalendarView.as_view(),
+        ),
+    path(
             "api/financial-advisor/cash-flow-custom-projection/",
             views.CashFlowCustomProjectionView.as_view(),
         ),

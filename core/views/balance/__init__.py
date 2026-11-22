@@ -68,6 +68,7 @@ from core.views.balance.forecasts.forecast_core_views import (
     WealthGrowthForecastView,
     PortfolioOptimizerView,
     OverviewView,
+    CommitmentsCalendarView,
 )
 from core.views.balance.forecasts.forecast_analysis_views import (
     RiskAnalysisView,
@@ -116,6 +117,7 @@ __all__ = [
     "PerformanceView",
     "WhatIfSimulatorView",
     "OverviewView",
+    "CommitmentsCalendarView",
     "ScenarioEventDefinitionsView",
     "ScenarioListCreateView",
     "ScenarioDetailView",

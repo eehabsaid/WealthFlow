@@ -115,6 +115,8 @@ function renderFinancialAdvisor() {
           if (typeof loadWhatIfSimulator === "function") loadWhatIfSimulator();
         } else if (targetSelector === "#fa-pane-scenario-planner") {
           if (typeof loadScenarioPlanner === "function") loadScenarioPlanner();
+        } else if (targetSelector === "#fa-pane-commitments-calendar") {
+          if (typeof loadCommitmentsCalendar === "function") loadCommitmentsCalendar();
         }
       });
     });
@@ -140,5 +142,7 @@ function renderFinancialAdvisor() {
     if (typeof loadPerformance === "function") loadPerformance();
   } else if (activeTabId === "what-if-simulator") {
     if (typeof loadWhatIfSimulator === "function") loadWhatIfSimulator();
+  } else if (activeTabId === "commitments-calendar") {
+    if (typeof loadCommitmentsCalendar === "function") loadCommitmentsCalendar();
   }
 }

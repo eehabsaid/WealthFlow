@@ -113,6 +113,19 @@ async function renderReminderSettings() {
             </div>
         </div>
 
+        <!-- Commitments calendar concentration window -->
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <div>
+                <div style="font-weight:700;color:var(--text-primary)" data-i18n="commitments_window_title">${t("commitments_window_title", "Commitments Calendar — Concentration Window")}</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px" data-i18n="commitments_window_desc">${t("commitments_window_desc", "Number of days used to detect periods with concentrated financial obligations on the Commitments Calendar.")}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+                <input type="number" id="commitmentsWindowDays" class="form-control" style="width:90px"
+                    value="${s.commitments_concentration_window_days || 30}" min="1" max="90">
+                <button class="btn-secondary-custom" onclick="saveAppSetting('commitments_concentration_window_days', document.getElementById('commitmentsWindowDays').value)" data-i18n="save">${saveText}</button>
+            </div>
+        </div>
+
         <!-- Rules table -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <div style="font-weight:700;color:var(--text-primary)" data-i18n="reminder_rules">${reminderRulesTitle}</div>

@@ -36,6 +36,11 @@ const FINANCIAL_ADVISOR_TABS = [
   },
   { id: "what-if-simulator", key: "financial_advisor_tab_what_if_simulator" },
   { id: "scenario-planner", key: "financial_advisor_tab_scenario_planner" },
+  {
+    id: "commitments-calendar",
+    key: "financial_advisor_tab_commitments_calendar",
+    shortKey: "financial_advisor_tab_commitments",
+  },
 ];
 
 const FINANCIAL_ADVISOR_ACTIVE_TAB_KEY = "wf_financial_advisor_active_tab";

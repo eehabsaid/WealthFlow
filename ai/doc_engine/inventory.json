@@ -27,7 +27,8 @@
     { "name": "Opportunity Detection", "id": "opportunity-detection" }, 
     { "name": "Performance", "id": "performance" }, 
     { "name": "What If Simulator", "id": "what-if-simulator" },
-    { "name": "Scenario Planner", "id": "scenario-planner" }
+    { "name": "Scenario Planner", "id": "scenario-planner" },
+    { "name": "Commitments Calendar", "id": "commitments-calendar" }
   ]},
   { "route": "employment", "title": "Employment" },
   { "route": "balance", "title": "Balance", "tabs": [

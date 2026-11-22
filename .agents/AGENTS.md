@@ -31,6 +31,26 @@ Always allow all file read, write, move, and delete operations within `d:\MyApps
 - **Modern Dashboard Aesthetic**: Use the [si-modern-card] CSS attribute class for applying a consistent, premium glassmorphism frame to dashboard components.
 - **Global Date Formatting Standard**: All UI components, pages, tabs, modals, reports, dashboard cards, tooltips, timelines, chart tooltips, PDF exports, and Excel exports displaying dates MUST use the centralized date-formatting utilities (`core.utils.format_date()` in Python, `window.formatDate()` in JavaScript). Never duplicate date-formatting logic, never hardcode month names, and never create additional date formatter functions. All displayed dates must automatically respect active application language and existing `month_short_1` ... `month_short_12` translation keys.
 
+## Financial Commitments Calendar — Standing Rules
+
+- The Commitments Calendar (Financial Advisor tab) is strictly READ-ONLY: it must never create expenses, change balances, or write to any model. Any change that posts money belongs in the expense/balance services, not here.
+- Backend: package `core/services/financial_advisor/commitments_calendar_service/` (`events.py`, `events_renewals.py`, `liquidity.py`, `event_shape.py`, `service.py`; every file <= 200 lines). API: `GET /api/financial-advisor/commitments-calendar/` (range max 366 days; `category` and `bank` filters).
+- Frontend: `static/js/financial_advisor/commitments_calendar/` (`shared.js`, `month_view.js`, `week_view.js`, `agenda_view.js`, `risk_panel.js`, `index.js`); tab registered in `FINANCIAL_ADVISOR_TABS` (`utils.js`), `tab_panes.js`, `render.js`, scripts in `templates/partials/scripts/03_financial_advisor_features.html`. Bump the `?v=` number when changing a file.
+- Concentration window setting: `commitments_concentration_window_days` (AppSettings; clamped 1-90, default 30), edited on Settings > Reminders.
+- i18n keys are `commitments_*` (+ tab keys `financial_advisor_tab_commitments*`) and must exist in all four locales (en/ar/fr/de).
+- Tests: Django `core/tests/financial_advisor/test_commitments_calendar.py`; browser E2E module `tests/modules/commitments_calendar.py` wired in `scripts/e2e_module_dispatch.py`.
+
+## Documentation & Testing Deliverables — Standing Rules for Every New Page, Tab, Feature, or Significant UI Change
+
+These six deliverables are MANDATORY for every new page, tab, feature, or significant UI modification (and must be kept current when one changes). Do not report the work complete until all six are done and verified:
+
+1. **Unit tests**: Backend Django tests in `core/tests/...` covering the new API/service behavior, and (where the logic is non-trivial) a frontend/Node test for the date/calculation helpers.
+2. **Browser E2E UI tests**: A dedicated module in `tests/modules/<feature>.py`, registered in `scripts/e2e_module_dispatch.py` and added to the `--module` choices in `scripts/test_ui_human_full_e2e.py`. It must log in, navigate to the new UI, and assert the real rendered elements. Run it and confirm PASS.
+3. **Documentation inventory registration**: Add the route/tab to `ai/doc_engine/inventory.json` (route entry + `tabs` array, `id` = the DOM tab id).
+4. **Actual UI screenshot capture**: Run the documentation engine (`python scripts/generate_docs.py --lang en --theme dark`) and confirm a real screenshot of the new page/tab exists in `docs/screenshots/`. Never commit a placeholder or a screenshot of the wrong tab.
+5. **User guide in all four languages**: Add the `route::tab` entry (English `purpose` + `steps`) to `ai/doc_engine/content/page_descriptions.json`; the engine translates to ar/fr/de. Verify the tab appears in the generated guide and that its i18n labels exist in `en.json`, `ar.json`, `fr.json`, `de.json`.
+6. **AI Agent documentation-generation support**: The WealthFlow AI Agent must be able to generate and maintain this guide. Keep `ai/services/agent/instructions.py` and these AGENTS.md rules consistent with the doc-engine workflow (inventory → page_descriptions → generate_docs.py → 4-language guide).
+
 ## Mandatory Implementation & Validation Protocol
 
 ### General Rules

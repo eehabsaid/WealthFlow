@@ -375,6 +375,16 @@
       "Review the side-by-side N-scenario comparison and rule-based insights."
     ]
   },
+  "financial-advisor::commitments-calendar": {
+    "purpose": "See all of your financial commitments — recurring payments, certificates, goals and other dated events — on a calendar, in one place, so you know what is due and when.",
+    "steps": [
+      "Navigate to the Financial Advisor tab and open Commitments Calendar.",
+      "Switch between Month, Week and Agenda views using the view switcher.",
+      "Use the month/week arrows to move through time and the category filter to focus on one kind of commitment.",
+      "Read the risk panel for upcoming and at-risk items.",
+      "This tab is read-only: it never creates expenses or changes your balances."
+    ]
+  },
   "employment": {
     "purpose": "Manage your income streams, salary structures, and employment benefits across employers.",
     "steps": [

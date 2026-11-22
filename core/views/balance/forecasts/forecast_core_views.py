@@ -3,9 +3,11 @@ import time
 from django.http import JsonResponse
 from django.views import View
 
+from core.models import Bank
 from core.services.balance.net_worth_service import NetWorthService
 from core.services.financial_advisor.cash_flow_forecast_service import CashFlowForecastService
 from core.services.financial_advisor.cash_flow_forecast_service.custom_projection import compute_custom_cash_projection
+from core.services.financial_advisor.commitments_calendar_service import CommitmentsCalendarService
 from core.services.financial_advisor.portfolio_optimizer_service import PortfolioOptimizerService
 from core.services.financial_advisor.wealth_growth_forecast_service import WealthGrowthForecastService
 from core.services.financial_advisor.overview_service import OverviewService
@@ -129,4 +131,38 @@ class OverviewView(View):
 
         _overview_cache[request.user.id] = (payload, now + 30.0)
 
+        return JsonResponse(payload)
+
+
+class CommitmentsCalendarView(View):
+    """Financial Commitments Calendar: unified date-range event feed plus
+    forecast-anchored liquidity analysis. Read-only — no posting, no
+    balance changes. Month/week/agenda views are frontend rendering modes
+    over this one payload."""
+
+    def get(self, request):
+        auth_error = _api_auth_required(request)
+        if auth_error:
+            return auth_error
+        try:
+            start_date = datetime.date.fromisoformat(request.GET.get("start_date", ""))
+            end_date = datetime.date.fromisoformat(request.GET.get("end_date", ""))
+        except ValueError:
+            return JsonResponse({"error": "start_date and end_date must be YYYY-MM-DD"}, status=400)
+        category = request.GET.get("category") or None
+        if category and category not in ("income", "expense", "renewal"):
+            return JsonResponse({"error": "invalid category"}, status=400)
+        bank_id = None
+        if request.GET.get("bank"):
+            try:
+                bank_id = int(request.GET.get("bank"))
+            except ValueError:
+                return JsonResponse({"error": "invalid bank"}, status=400)
+            if not Bank.objects.filter(pk=bank_id, owner=request.user).exists():
+                return JsonResponse({"error": "invalid bank"}, status=400)
+        service = CommitmentsCalendarService(request.user, today=datetime.date.today())
+        try:
+            payload = service.payload(start_date, end_date, category=category, bank_id=bank_id)
+        except ValueError as exc:
+            return JsonResponse({"error": str(exc)}, status=400)
         return JsonResponse(payload)

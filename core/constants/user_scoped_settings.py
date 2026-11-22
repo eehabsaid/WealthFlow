@@ -28,6 +28,8 @@ USER_SCOPED_SETTING_KEYS = frozenset(
         # Reminders tab
         "reminder_check_enabled",
         "cert_expiry_warning_days",
+        # Commitments calendar (Reminders tab)
+        "commitments_concentration_window_days",
     }
 )
 

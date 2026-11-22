@@ -17,3 +17,7 @@ These rules are loaded into every conversation of `ai/dev_agent` (see `rules_fil
 - README/Settings > Documentation are updated when behaviour changes.
 - Fix any bug you find on the way, even out of scope, and say so in the final summary. Stop after 3 failed fix attempts on the same error and report it.
 - State plainly what you could not run (real browser, Windows, real model).
+
+## Feature standing rules
+- See `.agents/AGENTS.md` section "Financial Commitments Calendar — Standing Rules" before touching that feature (it is read-only: never post expenses or change balances from it).
+- For every new page, tab, feature, or significant UI change, follow `.agents/AGENTS.md` section "Documentation & Testing Deliverables — Standing Rules for Every New Page, Tab, Feature, or Significant UI Change" (unit tests, browser E2E, inventory registration, real screenshot capture, 4-language guide, AI Agent doc support).

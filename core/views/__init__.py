@@ -56,7 +56,7 @@ from .exports_financial_core import (
 from .exports_balance import (
     BalanceListView, BalanceDetailView, CertificateForecastView, CashFlowForecastView, CashFlowCustomProjectionView,
     WealthGrowthForecastView, PortfolioOptimizerView, RiskAnalysisView, SpendingIntelligenceView,
-    OpportunityDetectionView, PerformanceView, WhatIfSimulatorView, OverviewView,
+    OpportunityDetectionView, PerformanceView, WhatIfSimulatorView, OverviewView, CommitmentsCalendarView,
     ScenarioEventDefinitionsView, ScenarioListCreateView, ScenarioDetailView, ScenarioEventListCreateView,
     ScenarioEventDetailView, ScenarioComparisonView, ScenarioDuplicateView, BalanceTransferListView,
     BalanceTransferDetailView, BankInterestListView, BankInterestDetailView, CardRenewalFeeListView,
@@ -121,7 +121,7 @@ __all__ = [
     "PerDiemListView", "PerDiemDetailView", "PerDiemCurrencyListView", "BankCertificateListView", "BankCertificateDetailView",
     "BankCertificateInterestHistoryView", "_run_certificate_interest_sync", "GoalPlanningView", "GoalListView", "GoalDetailView",
     "DashboardSummaryView", "index", "_api_auth_required", "_parse_iso_date", "BalanceListView",
-    "BalanceDetailView", "CertificateForecastView", "CashFlowForecastView", "CashFlowCustomProjectionView", "WealthGrowthForecastView", "PortfolioOptimizerView",
+    "BalanceDetailView", "CertificateForecastView", "CashFlowForecastView", "CashFlowCustomProjectionView", "WealthGrowthForecastView", "PortfolioOptimizerView", "CommitmentsCalendarView",
     "RiskAnalysisView", "SpendingIntelligenceView", "OpportunityDetectionView", "PerformanceView", "WhatIfSimulatorView",
     "OverviewView", "ScenarioEventDefinitionsView", "ScenarioListCreateView", "ScenarioDetailView", "ScenarioEventListCreateView",
     "ScenarioEventDetailView", "ScenarioComparisonView", "ScenarioDuplicateView", "BalanceTransferListView", "BalanceTransferDetailView",
