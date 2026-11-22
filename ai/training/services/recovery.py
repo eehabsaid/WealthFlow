@@ -7,8 +7,8 @@ from typing import Callable
 
 from ai.training.services import evaluate, ollama_stage, pipeline, train_stage
 from ai.training.services.config import load as load_config
-from .recovery_data import export_dataset, format_report, validate_dataset, _append_replay  # noqa: F401
-from .recovery_profile import load_profile, report_paths, resolve_path, _PROFILES_DIR, PROFILE_PATH, PROFILE_PATHS, SYSTEM_PROMPT, dataset_path  # noqa: F401
+from .recovery_data import export_dataset, format_report, validate_dataset, _append_replay
+from .recovery_profile import load_profile, report_paths, resolve_path, _PROFILES_DIR, PROFILE_PATH, PROFILE_PATHS, SYSTEM_PROMPT, dataset_path
 
 
 def run(stages: str | None = None, *, dry_run: bool = False, fresh: bool = False, username: str = "",
@@ -88,3 +88,20 @@ def run(stages: str | None = None, *, dry_run: bool = False, fresh: bool = False
         report = validate_dataset(profile)
     result["report"] = format_report(report) if report is not None else ""
     return result
+
+
+__all__ = [
+    "export_dataset",
+    "format_report",
+    "validate_dataset",
+    "_append_replay",
+    "load_profile",
+    "report_paths",
+    "resolve_path",
+    "_PROFILES_DIR",
+    "PROFILE_PATH",
+    "PROFILE_PATHS",
+    "SYSTEM_PROMPT",
+    "dataset_path",
+    "run",
+]

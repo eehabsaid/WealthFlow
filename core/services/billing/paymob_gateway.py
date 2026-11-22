@@ -19,8 +19,8 @@ import logging
 
 from core.integrations.provider_utils import make_json_http_request
 from ai.services.credential_encryption import redact_secrets
-from .paymob_gateway_config import _PaymobConfigMixin  # noqa: F401
-from .paymob_gateway_helpers import PaymobConfigError, _HMAC_FIELDS, PAYMOB_BASE_URL, DEFAULT_CURRENCIES_FALLBACK, _REGION_FIELDS, _REGION_SECRET_FIELDS, region_key, normalize_base_url  # noqa: F401
+from .paymob_gateway_config import _PaymobConfigMixin
+from .paymob_gateway_helpers import PaymobConfigError, _HMAC_FIELDS, PAYMOB_BASE_URL, DEFAULT_CURRENCIES_FALLBACK, _REGION_FIELDS, _REGION_SECRET_FIELDS, region_key, normalize_base_url
 
 
 logger = logging.getLogger(__name__)
@@ -138,3 +138,18 @@ class PaymobGateway(_PaymobConfigMixin):
             if hmac.compare_digest(computed, received_hmac):
                 return True
         return False
+
+
+__all__ = [
+    "_PaymobConfigMixin",
+    "PaymobConfigError",
+    "_HMAC_FIELDS",
+    "PAYMOB_BASE_URL",
+    "DEFAULT_CURRENCIES_FALLBACK",
+    "_REGION_FIELDS",
+    "_REGION_SECRET_FIELDS",
+    "region_key",
+    "normalize_base_url",
+    "logger",
+    "PaymobGateway",
+]

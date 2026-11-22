@@ -16,7 +16,7 @@ from .lexicon_fr_de import LANGS, fold, to_english
 from .registry import get_capabilities
 from .spec import Capability
 from .timespec import parse_time
-from .slots_fill import MAX_CHARS, Routing, build_request, score, KARATS, _first_hit, _match_names, fill_filters  # noqa: F401
+from .slots_fill import MAX_CHARS, Routing, build_request, score, KARATS, _first_hit, _match_names, fill_filters
 
 
 _FOLLOW_UP = re.compile(r"^\s*(?:and|also|then|what about|how about|ok(?:ay)?|so)\b|^\s*(?:و|طيب|وكمان|وكم|ماذا عن|وماذا عن|وبالنسبه)\s*|\?$|؟$")
@@ -116,3 +116,20 @@ def route(text: str, *, category_lookup: Callable[[], Iterable[str]] | None = No
     if time.notes:
         out.confidence -= 0.1
     return out
+
+
+__all__ = [
+    "MAX_CHARS",
+    "Routing",
+    "build_request",
+    "score",
+    "KARATS",
+    "_first_hit",
+    "_match_names",
+    "fill_filters",
+    "_FOLLOW_UP",
+    "MAX_FOLLOW_UP_WORDS",
+    "MIN_FOLLOW_UP_SCORE",
+    "_follow_up",
+    "route",
+]

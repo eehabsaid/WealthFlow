@@ -6,7 +6,7 @@ from __future__ import annotations
 from ai.dev_agent.providers.base import MalformedOutput, NoToolSupport, Provider, ProviderError, Reply
 from ai.dev_agent.providers.http import post_json
 from ai.dev_agent.providers.toolmsg import decode_args, new_id, to_text
-from .adapters_messages import _anthropic_all, _gemini_all, _gemini_schema, _ollama_all, _openai_all, _anthropic, _ollama, _openai, _gemini  # noqa: F401
+from .adapters_messages import _anthropic_all, _gemini_all, _gemini_schema, _ollama_all, _openai_all, _anthropic, _ollama, _openai, _gemini
 
 
 class _Base(Provider):
@@ -118,3 +118,21 @@ class Gemini(_Base):
             return Reply(text, {"input_tokens": usage.get("promptTokenCount", 0), "output_tokens": usage.get("candidatesTokenCount", 0)}, str(candidate.get("finishReason") or ""), {}, calls)
         except (KeyError, IndexError, TypeError, AttributeError) as exc:
             raise ProviderError("unexpected Gemini reply shape") from exc
+
+
+__all__ = [
+    "_anthropic_all",
+    "_gemini_all",
+    "_gemini_schema",
+    "_ollama_all",
+    "_openai_all",
+    "_anthropic",
+    "_ollama",
+    "_openai",
+    "_gemini",
+    "_Base",
+    "Ollama",
+    "Anthropic",
+    "OpenAI",
+    "Gemini",
+]

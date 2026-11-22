@@ -11,7 +11,7 @@ from __future__ import annotations
 from django.core.exceptions import FieldError, ValidationError
 
 from ai.services.investigation import scope
-from .data_tools_helpers import FOREIGN_KEY_QUERY_NOTE, MAX_GROUPS, MAX_ROWS, MODEL_CATALOG_NOTE, MODEL_NOTES, QueryError, _aggregates, _filters, _group_paths, _having_filters, _json_rows, _resolve, _walk, LOOKUPS, AGGREGATES, ROW_CHARS, _fields_hint, _coerce  # noqa: F401
+from .data_tools_helpers import FOREIGN_KEY_QUERY_NOTE, MAX_GROUPS, MAX_ROWS, MODEL_CATALOG_NOTE, MODEL_NOTES, QueryError, _aggregates, _filters, _group_paths, _having_filters, _json_rows, _resolve, _walk, LOOKUPS, AGGREGATES, ROW_CHARS, _fields_hint, _coerce
 
 
 def models(user, params):
@@ -80,3 +80,27 @@ def query(user, params):
     if cut or total > len(rows):
         out["note"] = "more rows exist: narrow filters, raise limit (max 100) or use aggregate/group_by for totals"
     return out
+
+
+__all__ = [
+    "FOREIGN_KEY_QUERY_NOTE",
+    "MAX_GROUPS",
+    "MAX_ROWS",
+    "MODEL_CATALOG_NOTE",
+    "MODEL_NOTES",
+    "QueryError",
+    "_aggregates",
+    "_filters",
+    "_group_paths",
+    "_having_filters",
+    "_json_rows",
+    "_resolve",
+    "_walk",
+    "LOOKUPS",
+    "AGGREGATES",
+    "ROW_CHARS",
+    "_fields_hint",
+    "_coerce",
+    "models",
+    "query",
+]

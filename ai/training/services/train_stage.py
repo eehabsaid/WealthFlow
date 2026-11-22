@@ -10,7 +10,7 @@ from typing import Callable
 
 from ai.training.services import export, preflight, wsl
 from ai.training.services.config import REPO_ROOT, TrainConfig
-from .train_stage_files import ESTIMATE, finished_export, finished_model, model_out_dir, run_dir, write_inputs, _vision_assets_ready  # noqa: F401
+from .train_stage_files import ESTIMATE, finished_export, finished_model, model_out_dir, run_dir, write_inputs, _vision_assets_ready
 
 
 def free_gpu(ollama_model: str, log: Callable[[str], None]) -> None:
@@ -153,3 +153,22 @@ def explain(outcome: dict) -> str:
         return ""
     code = outcome.get("exit_code")
     return f"NOT FINISHED ({status}{', exit code ' + str(code) if code is not None else ''}): {WHY[status]}"
+
+
+__all__ = [
+    "ESTIMATE",
+    "finished_export",
+    "finished_model",
+    "model_out_dir",
+    "run_dir",
+    "write_inputs",
+    "_vision_assets_ready",
+    "free_gpu",
+    "dry_stats",
+    "_training_checks",
+    "run",
+    "run_prepared",
+    "_run_training",
+    "WHY",
+    "explain",
+]
