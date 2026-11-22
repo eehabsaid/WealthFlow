@@ -52,6 +52,12 @@ class WordPatternTest(SimpleTestCase):
     def test_html_in_a_list_of_formats_is_found(self):
         self.assertEqual(keys(LIST), ["docx", "html", "pdf"])
 
+    def test_html_after_the_noun_in_french_and_german_is_a_file_request(self):
+        """"guide utilisateur HTML complet": the format comes after the noun in French, so the English "html guide" order is not enough."""
+        for text in ("Rédige un guide utilisateur HTML complet de l’application WealthFlow.", "Écris un manuel HTML complet de l'application.",
+                     "Schreibe eine vollständige Anleitung als HTML.", "اكتب دليل مستخدم كامل للتطبيق WealthFlow بصيغة HTML."):
+            self.assertEqual(keys(text), ["html"], text)
+
     def test_a_bare_html_question_is_not_a_file_request(self):
         self.assertEqual(keys("what is html?"), [])
 
