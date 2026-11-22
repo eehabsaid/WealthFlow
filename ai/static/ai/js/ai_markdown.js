@@ -19,21 +19,9 @@ function _renderMarkdown(text) {
   });
 
   // 2. HTML escape (excluding protected blocks)
+  const HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
   html = html.replace(/[&<>"']/g, function (m) {
-    switch (m) {
-      case "&":
-        return "&amp;";
-      case "<":
-        return "&lt;";
-      case ">":
-        return "&gt;";
-      case '"':
-        return "&quot;";
-      case "'":
-        return "&#039;";
-      default:
-        return m;
-    }
+    return HTML_ESCAPES[m] || m;
   });
 
   // 3. Callout boxes (> [!NOTE], > [!WARNING], > [!TIP], > [!IMPORTANT])

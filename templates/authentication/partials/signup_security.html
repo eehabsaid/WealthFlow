@@ -1,0 +1,73 @@
+        <!-- Security Section -->
+        <div class="form-section-header">
+          <i class="bi bi-shield-lock"></i>
+          <span data-i18n="auth_sec_security">Security</span>
+        </div>
+
+        <div class="mb-form">
+          <div class="strength-header">
+            <label class="form-label mb-0" for="signupPasswordInput" data-i18n="auth_password_label">Password</label>
+            <span id="strengthText" class="strength-text" role="status"></span>
+          </div>
+          <div class="input-group mt-1">
+            <input
+              type="password"
+              name="password"
+              id="signupPasswordInput"
+              class="form-control"
+              data-i18n-placeholder="auth_signup_password_placeholder"
+              placeholder="At least 8 characters"
+              autocomplete="new-password"
+              required
+              tabindex="4"
+            />
+            <button type="button" class="btn-eye" onclick="WFAuth.togglePassword('signupPasswordInput', 'signupEyeIcon')" aria-label="Toggle password visibility" tabindex="-1">
+              <i class="bi bi-eye" id="signupEyeIcon"></i>
+            </button>
+          </div>
+          <div class="strength-bar">
+            <div class="strength-fill" id="strengthFill"></div>
+          </div>
+          <div id="signupCapsLockWarning" class="caps-lock-warning d-none" role="status">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span data-i18n="auth_caps_lock_on">Caps Lock is ON</span>
+          </div>
+        </div>
+
+        <div class="mb-form">
+          <label class="form-label" for="signupConfirmPasswordInput" data-i18n="auth_confirm_password_label">Confirm Password</label>
+          <div class="input-group">
+            <input
+              type="password"
+              name="confirm_password"
+              id="signupConfirmPasswordInput"
+              class="form-control"
+              data-i18n-placeholder="auth_confirm_password_placeholder"
+              placeholder="Repeat password"
+              autocomplete="new-password"
+              required
+              tabindex="5"
+            />
+            <button type="button" class="btn-eye" onclick="WFAuth.togglePassword('signupConfirmPasswordInput', 'confirmEyeIcon')" aria-label="Toggle password visibility" tabindex="-1">
+              <i class="bi bi-eye" id="confirmEyeIcon"></i>
+            </button>
+          </div>
+          <div class="match-warning" id="passwordMatchWarning" data-i18n="auth_error_passwords_mismatch" role="status">
+            Passwords do not match
+          </div>
+        </div>
+
+        <label class="signup-terms" for="signupAcceptTerms">
+          <input type="checkbox" name="accept_terms" id="signupAcceptTerms" value="on" required tabindex="6" />
+          <span>
+            <span data-i18n="auth_accept_prefix">I agree to the</span>
+            <a href="/terms/" target="_blank" rel="noopener" data-i18n="legal_terms_title">Terms of Service</a>
+            <span data-i18n="auth_accept_and">and</span>
+            <a href="/privacy/" target="_blank" rel="noopener" data-i18n="legal_privacy_title">Privacy Policy</a>
+          </span>
+        </label>
+
+        <button type="submit" class="btn-submit" tabindex="7">
+          <i class="bi bi-person-plus"></i>
+          <span data-i18n="auth_create_account_button">Create Account</span>
+        </button>

@@ -1,0 +1,65 @@
+/* Authentication forms: password strength, caps lock and live field warnings (imported by forms.css) */
+
+/* Password Strength Indicator & Label */
+.strength-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.strength-text {
+  font-size: 10.5px;
+  font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+.strength-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--wf-auth-bg-tertiary);
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  width: 0;
+  transition:
+    width 0.3s ease,
+    background-color 0.3s ease;
+  border-radius: 2px;
+}
+
+/* Caps Lock Warning */
+.caps-lock-warning {
+  color: #f59e0b;
+  font-size: 10.5px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+/* Match & Live Field Warnings */
+.field-hint {
+  font-size: 10.5px;
+  margin-top: 3px;
+  display: none;
+  font-weight: 500;
+}
+
+.field-hint.hint-error {
+  color: var(--wf-auth-red);
+}
+
+.field-hint.hint-success {
+  color: var(--wf-auth-green);
+}
+
+.match-warning {
+  display: none;
+  color: var(--wf-auth-red);
+  font-size: 10.5px;
+  margin-top: 3px;
+}

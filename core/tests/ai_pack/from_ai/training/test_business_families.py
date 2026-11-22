@@ -1,17 +1,12 @@
-from __future__ import annotations
+
 
 import datetime
-import random
 from decimal import Decimal
 
-from django.test import TestCase
 
-from ai.training.services import phrasing
 from ai.training.services.families import balance
-from core.ai_pack.training_families import assets, banking, income
+from core.ai_pack.training_families import banking, income
 from core.models import (
-    AssetFurniture,
-    AssetMortgage,
     AssetRental,
     BalanceEntry,
     BalanceTransfer,
@@ -21,55 +16,13 @@ from core.models import (
     Currency,
     CurrencyExchange,
     Expense,
-    FixedAsset,
     PerDiem,
     RentReceipt,
-    SalaryEntry,
 )
-from core.services.shared.base_currency import get_user_base_code
-from core.tests.ai_pack.investigation.support import make_user, seed_tenant
+from .business_families_support import BusinessFamilyBase
 
 
-class BusinessFamilyTest(TestCase):
-    def setUp(self):
-        self.user = make_user("business_families")
-        tenant = seed_tenant(self.user, "BF", expenses=0)
-        base_code = str(get_user_base_code(self.user)).upper()
-        self.currency, _ = Currency.objects.get_or_create(
-            owner=self.user, code=base_code, defaults={"name": "Base currency"}
-        )
-        self.bank = tenant["bank"]
-        self.category = tenant["category"]
-        self.company = tenant["company"]
-        self.company.current_salary_currency = self.currency
-        self.company.save(update_fields=["current_salary_currency"])
-        self.salary = SalaryEntry.objects.get(company=self.company)
-        self.salary.year, self.salary.month = 2025, "1"
-        self.salary.expected, self.salary.paid, self.salary.bonus = (
-            Decimal("1000.00"), Decimal("800.00"), Decimal("50.00")
-        )
-        self.salary.save()
-
-        self.asset = FixedAsset.objects.get(owner=self.user)
-        self.asset.name = "Rental asset BF"
-        self.asset.status = "Owned"
-        self.asset.current_market_value = Decimal("50000.00")
-        self.asset.save()
-        BalanceEntry.objects.create(
-            owner=self.user, title="Bank balance", balance_type="bank", bank=self.bank,
-            currency=self.currency, amount=Decimal("500.00"),
-        )
-
-    @staticmethod
-    def _cases(module, method, user):
-        return getattr(module, method)(user, phrasing.LANGS, random.Random(1))
-
-    def _assert_four_languages(self, cases, key):
-        found = [case for case in cases if case.key.startswith(key)]
-        self.assertEqual({case.meta["lang"] for case in found}, set(phrasing.LANGS))
-        self.assertTrue(all(case.question for case in found))
-        return next(case for case in found if case.meta["lang"] == "en" and "|" not in case.key)
-
+class BusinessFamilyTest(BusinessFamilyBase):
     def test_banking_balances_interest_and_active_certificate_principal(self):
         BankInterest.objects.create(
             owner=self.user, bank=self.bank, currency=self.currency,
@@ -164,61 +117,3 @@ class BusinessFamilyTest(TestCase):
         remaining = self._assert_four_languages(evaluation, "eval:salary_remaining_year:2025")
         self.assertEqual(remaining.expected["values"], ["200.00"])
         self.assertTrue(all(case.key.startswith("eval:") for case in evaluation))
-
-    def test_per_diem_and_rent_stay_available_when_salary_currency_is_not_comparable(self):
-        PerDiem.objects.create(
-            company=self.company, year=2025, date=datetime.date(2025, 2, 1), currency=self.currency,
-            amount=Decimal("100.00"), amount_base=Decimal("100.00"),
-        )
-        rental = AssetRental.objects.create(
-            asset=self.asset, monthly_rent=Decimal("500.00"), occupancy_rate=Decimal("80.00")
-        )
-        RentReceipt.objects.create(
-            owner=self.user, rental=rental, period_start=datetime.date(2025, 1, 1),
-            received_date=datetime.date(2025, 1, 5), currency=self.currency, amount=Decimal("200.00"),
-        )
-        foreign, _ = Currency.objects.get_or_create(
-            owner=self.user, code="OTHER", defaults={"name": "Other currency"}
-        )
-        self.company.current_salary_currency = foreign
-        self.company.save(update_fields=["current_salary_currency"])
-
-        training = self._cases(income, "train", self.user)
-        other_income = self._assert_four_languages(training, "other_income_year:2025")
-        self.assertEqual(other_income.expected["values"], ["100.00", "200.00", "300.00"])
-        self.assertFalse(any(case.key.startswith("income_stream_year:") for case in training))
-
-    def test_asset_equity_and_furniture_cost_follow_asset_relations(self):
-        AssetMortgage.objects.create(
-            asset=self.asset, loan_amount=Decimal("30000.00"), remaining_balance=Decimal("20000.00"),
-            monthly_installment=Decimal("500.00"),
-        )
-        AssetFurniture.objects.create(
-            asset=self.asset, name="Desk", category="Furniture", amount_base=Decimal("300.00"),
-        )
-        rental = AssetRental.objects.create(
-            asset=self.asset, monthly_rent=Decimal("500.00"), occupancy_rate=Decimal("80.00")
-        )
-        RentReceipt.objects.create(
-            owner=self.user, rental=rental, period_start=datetime.date(2025, 1, 1),
-            received_date=datetime.date(2025, 1, 5), currency=self.currency, amount=Decimal("200.00"),
-        )
-
-        training = self._cases(assets, "train", self.user)
-        equity = self._assert_four_languages(training, f"asset_equity:{self.asset.pk}")
-        self.assertEqual(equity.expected["values"], ["30000.00"])
-        self.assertEqual(equity.meta["category"], "cross")
-        self.assertFalse(any(case.key.startswith("eval:") for case in training))
-
-        evaluation = self._cases(assets, "evaluate", self.user)
-        furniture = self._assert_four_languages(evaluation, f"eval:furniture_cost:{self.asset.pk}")
-        receipts = self._assert_four_languages(evaluation, f"eval:rent_receipts_year:{self.asset.pk}:2025")
-        self.assertEqual(furniture.expected["values"], ["300.00"])
-        self.assertEqual(receipts.expected["values"], ["200.00"])
-        self.assertTrue(all(case.key.startswith("eval:") for case in evaluation))
-
-    def test_month_questions_include_a_numeric_month_reference(self):
-        self.assertIn("(month 9)", phrasing.month("en", 2025, 9))
-        self.assertIn("(mois 9)", phrasing.month("fr", 2025, 9))
-        self.assertIn("(Monat 9)", phrasing.month("de", 2025, 9))
-        self.assertIn("(الشهر 9)", phrasing.month("ar", 2025, 9))

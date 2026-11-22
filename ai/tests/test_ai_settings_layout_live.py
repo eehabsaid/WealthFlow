@@ -2,78 +2,17 @@
 one card, only the chosen section is visible (side nav on wide screens, chip bar on narrow ones), Test Connection ends the Provider
 card, Save sits in the sticky bar, and nothing overflows on a phone in light/dark, LTR/RTL. Skipped when Chromium is not installed."""
 
-from __future__ import annotations
 
-import os
-import uuid
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import tag
 
-from ai.tests.live_boot import PageDiagnostics, first_load, open_ai_tab, scale_timeouts
-from ai.tests.support import grant_ai_workspace_access, make_sysadmin
-
-User = get_user_model()
-
-IDS = ["aiEnabledToggle", "aiProviderSelect", "aiModelInput", "aiTemperatureInput", "aiContextSizeInput", "aiTimeoutInput",
-       "aiRuntimeCapabilitiesBtn", "aiAdvancedAccordion", "aiSystemPromptInput", "aiMaxTokensInput", "aiTopPInput", "aiTopKInput",
-       "aiRepeatPenaltyInput", "aiSeedInput", "aiKeepAliveInput", "aiTestConnBtn", "aiTestDiagnosticResult",
-       "aiDomainBusinessToggle", "aiDomainAppToggle", "aiPermissionTierSelect", "aiCodeAccessToggle", "aiValidateModeSelect", "aiDirectAnswersToggle", "aiMultiAgentToggle",
-       "aiInvestigatorModeSelect", "aiAgentEnabledToggle", "aiAgentInstructionsInput", "aiAgentInstructionsResetBtn",
-       "aiAgentMaxStepsInput", "aiAgentBudgetInput", "aiAgentMaxReadsInput", "aiDocumentBudgetInput", "aiDocumentMaxTokensInput",
-       "aiDocumentInstructionsInput", "aiDocumentInstructionsResetBtn", "aiFileGenerationToggle", "aiFileMaxMbInput",
-       "aiFileMaxRowsInput", "aiPipelineDebugToggle", "aiSaveBtn", "aiUserLimitsPanel",
-       "speech_stt_enabled", "speech_stt_endpoint", "speech_stt_test", "speech_tts_enabled", "speech_tts_endpoint", "speech_tts_test",
-       "speech_tts_ar_enabled", "speech_tts_ar_endpoint", "speech_tts_ar_test",
-       "image_gen_enabled", "image_gen_provider", "image_gen_model", "image_gen_endpoint", "image_gen_api_key", "image_gen_start_command", "image_gen_test"]
-GROUPS = ["provider", "safety", "domains", "routing", "agent", "docs", "files", "speech", "image", "diag"]
-SHOTS = os.environ.get("AI_LAYOUT_SHOTS", "")
+from ai.tests.live_boot import open_ai_tab
+from .ai_settings_layout_support import AISettingsLayoutLiveBase, GROUPS, IDS, SHOTS
 
 
 @tag("requires_host_ui")
-class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
-    @classmethod
-    def setUpClass(cls):
-        os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
-        super().setUpClass()
-        try:
-            from playwright.sync_api import sync_playwright
-
-            cls._pw = sync_playwright().start()
-            cls._browser = cls._pw.chromium.launch(headless=True, args=["--no-sandbox"])
-        except Exception as exc:
-            super().tearDownClass()
-            from unittest import SkipTest
-            raise SkipTest(f"Chromium not available: {str(exc).splitlines()[0]}")
-
-    @classmethod
-    def tearDownClass(cls):
-        cls._browser.close()
-        cls._pw.stop()
-        super().tearDownClass()
-
-    def open(self, width, height, theme="dark", rtl=False, route="settings-aiadvisor", ready="#aiSaveBtn"):
-        admin = User.objects.create_user(username=f"lay_admin_{uuid.uuid4().hex[:10]}", password="pw123456", is_staff=True)
-        make_sysadmin(admin)
-        grant_ai_workspace_access(admin)
-        self.client.force_login(admin)
-        ctx = self._browser.new_context(viewport={"width": width, "height": height})
-        ctx.add_cookies([{"name": settings.SESSION_COOKIE_NAME, "value": self.client.cookies[settings.SESSION_COOKIE_NAME].value,
-                          "url": self.live_server_url}])
-        scale_timeouts(ctx)
-        self.addCleanup(ctx.close)
-        page = ctx.new_page()
-        PageDiagnostics(page)
-        first_load(page, f"{self.live_server_url}/#{route}")
-        if route not in page.url:
-            page.goto(f"{self.live_server_url}/#{route}", wait_until="domcontentloaded")
-        page.wait_for_selector(ready, state="attached", timeout=60000)
-        page.wait_for_load_state("networkidle")
-        page.evaluate("([t, r]) => { document.documentElement.setAttribute('data-theme', t); document.body.setAttribute('data-theme', t); if (r) document.documentElement.dir = 'rtl'; }", [theme, rtl])
-        return page
-
+class AISettingsLayoutLiveTests(AISettingsLayoutLiveBase):
     def test_every_setting_is_still_there_in_ten_cards_with_test_connection_in_the_provider_card(self):
         p = self.open(1400, 1000)
         self.assertEqual([i for i in IDS if p.locator(f"#{i}").count() != 1], [])
@@ -156,62 +95,3 @@ class AISettingsLayoutLiveTests(StaticLiveServerTestCase):
             self.assertLessEqual(detail["x"] + detail["width"], width + 1)            # the tab bar must not stretch the page past the screen
             self.assertLessEqual(tabs["x"] + tabs["width"], width + 1)
             self.assertLessEqual(p.evaluate("() => { const n = document.getElementById('aiaChips'); return n.scrollWidth - n.clientWidth; }"), 1)
-
-    def test_tabs_that_do_not_fit_move_into_a_more_menu(self):
-        bar = "() => [...document.querySelectorAll('#aiaChips > .aia-chip:not([hidden])')].map(c => c.dataset.aiaTarget)"
-        menu = "() => [...document.querySelectorAll('.aia-more-menu .aia-chip')].map(c => c.dataset.aiaTarget)"
-        p = self.open(1400, 900)
-        wide = len(p.evaluate(bar))
-        p.set_viewport_size({"width": 390, "height": 800})
-        p.wait_for_function("(n) => document.querySelectorAll('#aiaChips > .aia-chip:not([hidden])').length < n", arg=wide)   # re-laid out
-        narrow_bar, narrow_menu = p.evaluate(bar), p.evaluate(menu)
-        self.assertLess(len(narrow_bar), wide)
-        self.assertTrue(narrow_menu)                                                  # the hidden tabs are in the menu ...
-        self.assertEqual(len(narrow_bar) + len(narrow_menu), p.locator('.aia-chip:not([hidden])').count())   # ... and none is lost
-        self.assertTrue(p.is_hidden(".aia-more-menu"))
-        p.click(".aia-more-btn")
-        self.assertTrue(p.is_visible(".aia-more-menu"))
-        box = p.locator(".aia-more-menu").bounding_box()
-        self.assertTrue(0 <= box["x"] and box["x"] + box["width"] <= 391)             # the dropdown stays on screen
-        target = narrow_menu[-1]
-        p.click(f'.aia-more-menu .aia-chip[data-aia-target="{target}"]')
-        self.assertTrue(p.is_visible(f"#aiaGroup-{target}"))
-        self.assertTrue(p.is_hidden(".aia-more-menu"))                                # picking a tab closes the menu
-        self.assertIn("active", p.get_attribute(".aia-more-btn", "class"))            # More shows that its tab is the open one
-        p.click(".aia-more-btn")
-        p.keyboard.press("Escape")
-        self.assertTrue(p.is_hidden(".aia-more-menu"))
-        p.set_viewport_size({"width": 1400, "height": 900})                           # widening moves tabs back into the bar
-        p.wait_for_function("(n) => document.querySelectorAll('#aiaChips > .aia-chip:not([hidden])').length > n", arg=len(narrow_bar))
-
-    def test_nothing_overflows_on_a_phone_in_light_theme_and_in_rtl(self):
-        for theme, rtl in (("light", False), ("dark", True)):
-            p = self.open(390, 800, theme=theme, rtl=rtl)
-            for group in GROUPS:                       # every section is checked: a hidden one has no width to measure
-                open_ai_tab(p, group)
-                self.assertLessEqual(p.evaluate("() => document.documentElement.scrollWidth"), 392, f"{group} {theme} rtl={rtl}")
-                rows = p.evaluate("() => [...document.querySelectorAll('.aia-card:not([hidden]) .aia-row')].filter(r => r.scrollWidth > r.clientWidth + 1).map(r => (r.querySelector('label')||{}).htmlFor)")
-                self.assertEqual(rows, [], f"{group} {theme} rtl={rtl}")
-            if SHOTS:
-                p.screenshot(path=f"{SHOTS}/mobile_{theme}_{'rtl' if rtl else 'ltr'}.png", full_page=True)
-
-    def test_the_workspace_dropdown_follows_the_chat_domains_the_sysadmin_allows(self):
-        from ai.models import AISetting
-
-        for business, app, visible in ((True, True, True), (True, False, False), (False, True, False)):
-            AISetting.set("ai_domain_business", "true" if business else "false", user=None)
-            AISetting.set("ai_domain_app", "true" if app else "false", user=None)
-            p = self.open(1300, 900, route="ai", ready="#ai-ws-domain-select")
-            p.wait_for_function("() => Array.isArray(_aiState.domains)", timeout=30000)
-            self.assertEqual(p.evaluate("() => document.getElementById('ai-ws-domain-select').hidden"), not visible, (business, app))
-            if not visible:
-                expected = "business_data_analysis" if business else "app_features_architecture"
-                self.assertEqual(p.evaluate("() => document.getElementById('ai-ws-domain-select').value"), expected)
-
-    def test_the_settings_card_keeps_one_domain_checked(self):
-        p = self.open(1300, 900)
-        open_ai_tab(p, "domains")
-        p.uncheck("#aiDomainAppToggle")
-        p.click("#aiDomainBusinessToggle")          # the last one cannot be switched off: the page checks it again
-        self.assertTrue(p.is_checked("#aiDomainBusinessToggle"))
-        self.assertFalse(p.is_checked("#aiDomainAppToggle"))
