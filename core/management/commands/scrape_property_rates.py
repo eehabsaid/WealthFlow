@@ -56,9 +56,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        from core.models import AppSettings
         from core.services.fixed_assets.aqarmap_scraper import (
             build_rate_map,
+            rate_map_is_current,
+            save_rate_map,
             CAIRO_BASELINE,
             GOVERNORATE_BASELINE,
             DEFAULT_RATE,
@@ -74,6 +75,7 @@ class Command(BaseCommand):
         # ------------------------------------------------------------------ #
         self.stdout.write("Building property rate map …")
 
+        diag: dict = {}
         if baseline_only:
             self.stdout.write("  Mode: baseline only (scraping skipped)")
             rate_map = {
@@ -85,7 +87,7 @@ class Command(BaseCommand):
         else:
             self.stdout.write("  Mode: live scrape (Aqarmap) + baseline fallback")
             try:
-                rate_map = build_rate_map(timeout_ms=timeout_ms)
+                rate_map = build_rate_map(timeout_ms=timeout_ms, diag=diag)
             except Exception as exc:
                 raise CommandError(f"Failed to build rate map: {exc}") from exc
 
@@ -101,61 +103,35 @@ class Command(BaseCommand):
                 f"  Default rate : {rate_map['default']:,.0f} EGP/sqm"
             )
         )
+        if diag.get("baseline_only"):
+            self.stdout.write(
+                self.style.WARNING("  Still baseline (no live price): " + ", ".join(diag["baseline_only"]))
+            )
 
         # ------------------------------------------------------------------ #
-        # 2. Serialise                                                         #
-        # ------------------------------------------------------------------ #
-        new_json = json.dumps(rate_map, ensure_ascii=False, indent=2)
-
-        # ------------------------------------------------------------------ #
-        # 3. Dry-run: just print                                              #
+        # 2. Dry-run: just print                                              #
         # ------------------------------------------------------------------ #
         if dry_run:
             self.stdout.write("\n--- DRY RUN (not saved) ---")
-            self.stdout.write(new_json)
+            self.stdout.write(json.dumps(rate_map, ensure_ascii=False, indent=2))
             return
 
         # ------------------------------------------------------------------ #
-        # 4. Compare with existing value                                      #
+        # 3. Compare with the stored rows (global + every per-user copy)      #
         # ------------------------------------------------------------------ #
-        existing_raw = AppSettings.get("property_valuation_rate_map", "")
-        if existing_raw and not force:
-            try:
-                existing = json.loads(existing_raw)
-                if (
-                    existing.get("by_city") == rate_map.get("by_city")
-                    and existing.get("by_governorate") == rate_map.get("by_governorate")
-                    and existing.get("default") == rate_map.get("default")
-                ):
-                    self.stdout.write(
-                        self.style.WARNING(
-                            "Map is identical to current DB value — skipping save. "
-                            "Use --force to override."
-                        )
-                    )
-                    return
-            except (json.JSONDecodeError, TypeError):
-                pass  # existing value is malformed → overwrite
-
-        # ------------------------------------------------------------------ #
-        # 5. Save                                                              #
-        # ------------------------------------------------------------------ #
-        AppSettings.set(
-            "property_valuation_rate_map",
-            new_json,
-        )
-
-        # Ensure description is set for the settings UI
-        try:
-            obj = AppSettings.objects.get(key="property_valuation_rate_map")
-            if not obj.description:
-                obj.description = (
-                    "Auto-updated EGP/sqm rates by district/governorate. "
-                    "JSON with keys: by_city, by_governorate, default."
+        if not force and rate_map_is_current(rate_map):
+            self.stdout.write(
+                self.style.WARNING(
+                    "Map is identical to every stored copy — skipping save. "
+                    "Use --force to override."
                 )
-                obj.save(update_fields=["description"])
-        except AppSettings.DoesNotExist:
-            pass
+            )
+            return
+
+        # ------------------------------------------------------------------ #
+        # 4. Save                                                              #
+        # ------------------------------------------------------------------ #
+        new_json = save_rate_map(rate_map)
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -165,7 +141,7 @@ class Command(BaseCommand):
         )
 
         # ------------------------------------------------------------------ #
-        # 6. Summary table                                                    #
+        # 5. Summary table                                                    #
         # ------------------------------------------------------------------ #
         self.stdout.write("\nTop 10 districts by rate (EGP/sqm):")
         top = sorted(

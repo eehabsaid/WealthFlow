@@ -608,6 +608,7 @@ SECTIONS = [
         ],
         notes=[
             "The local rate map is scraped from AqarMap (aqarmap.com) via a Python management command.",
+            "Every scrape (button or management command) updates the saved rate map and each user's own copy; districts AqarMap does not return stay on the built-in baseline.",
             "Map tile settings are per-user (stored in USER_SCOPED_SETTING_KEYS).",
             "Valuation history is retained for each asset to track appreciation over time.",
         ],

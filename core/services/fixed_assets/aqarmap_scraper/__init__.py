@@ -19,15 +19,19 @@ Sibling modules:
 - rsc_parsing.py: RSC payload decode/extract/validate helpers
 - district_scraper.py: live scraping loop across all districts (_scrape_districts)
 - rate_map_builder.py: build_rate_map() public entry point
+- rate_map_store.py: save_rate_map() / rate_map_is_current() — global row + every per-user copy
 """
 
 from __future__ import annotations
 
 from .constants import CAIRO_BASELINE, GOVERNORATE_BASELINE, DEFAULT_RATE, DISTRICT_PATHS
 from .rate_map_builder import build_rate_map
+from .rate_map_store import rate_map_is_current, save_rate_map
 
 __all__ = [
     "build_rate_map",
+    "rate_map_is_current",
+    "save_rate_map",
     "CAIRO_BASELINE",
     "GOVERNORATE_BASELINE",
     "DEFAULT_RATE",

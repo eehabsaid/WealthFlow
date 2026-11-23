@@ -14,7 +14,7 @@ def build_rate_map(timeout_ms: int = 25_000, diag: dict | None = None) -> dict:
     """
     Always returns a valid property_valuation_rate_map dict.
     Baseline fills any district not returned by the live scrape. `diag` (optional) receives the scrape diagnostics,
-    including `reason` when nothing live came back.
+    including `reason` when nothing live came back, and `baseline_only` (the districts left on baseline).
     """
     diag = diag if diag is not None else {}
     timeout_secs = max(10, timeout_ms // 1_000)
@@ -28,6 +28,8 @@ def build_rate_map(timeout_ms: int = 25_000, diag: dict | None = None) -> dict:
 
     # Baseline first, live data overrides only validated districts
     by_city: dict[str, float] = CAIRO_BASELINE.copy()
+
+    diag["baseline_only"] = sorted(name for name in by_city if name not in scraped)
 
     if scraped:
         by_city.update(scraped)

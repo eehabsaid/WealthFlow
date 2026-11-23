@@ -10,7 +10,6 @@ from django.http import JsonResponse
 from django.views import View
 
 from core.views.auth_views import PermissionRequiredMixin
-from core.models import AppSettings
 
 
 class ScrapePropertyRatesView(PermissionRequiredMixin, View):
@@ -30,6 +29,7 @@ class ScrapePropertyRatesView(PermissionRequiredMixin, View):
         import json as _json
         from core.services.fixed_assets.aqarmap_scraper import (
             build_rate_map,
+            save_rate_map,
             CAIRO_BASELINE,
             GOVERNORATE_BASELINE,
             DEFAULT_RATE,
@@ -58,20 +58,7 @@ class ScrapePropertyRatesView(PermissionRequiredMixin, View):
         except Exception as exc:
             return JsonResponse({"ok": False, "error": str(exc)}, status=500)
 
-        new_json = _json.dumps(rate_map, ensure_ascii=False, indent=2)
-        AppSettings.set("property_valuation_rate_map", new_json)
-
-        # Ensure description is set
-        try:
-            obj = AppSettings.objects.get(key="property_valuation_rate_map")
-            if not obj.description:
-                obj.description = (
-                    "Auto-updated EGP/sqm rates by district/governorate. "
-                    "JSON with keys: by_city, by_governorate, default."
-                )
-                obj.save(update_fields=["description"])
-        except AppSettings.DoesNotExist:
-            pass
+        new_json = save_rate_map(rate_map)
 
         return JsonResponse({
             "ok": True,

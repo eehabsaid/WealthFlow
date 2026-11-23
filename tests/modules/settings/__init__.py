@@ -6,6 +6,7 @@ Tests:
  3. Documentation Engine generation (handleGenerateClick()).
  4. AI Advisor "Instant Data Answers" toggle round-trip + instant-answer engine check (API-verified).
  5. Per-user "My AI Settings" tab + sysadmin monthly token limits panel (API-verified).
+ 6. Property Valuation rate-map scrape: real save endpoint (baseline only) + Scrape button with a faked Aqarmap result.
 
 Split into one file per phase (200-line rule):
   - common.py            — shared _uid() helper
@@ -18,6 +19,7 @@ Split into one file per phase (200-line rule):
   - ai_instant_answers.py — Phase 7: AI Advisor Instant Data Answers toggle + engine check
   - ai_user_settings.py   — Phase 8: My AI Settings tab + sysadmin token limits panel
   - ai_investigator.py    — Phase 9: AI Investigator mode + source-code switch, French instant answer
+  - property_valuation_scrape.py — Phase 10: Property Valuation rate-map scrape (endpoint + button)
 
 This module re-exports test_settings_module, the entry point imported by
 scripts/test_ui_human_full_e2e.py.
@@ -34,6 +36,7 @@ from tests.modules.settings.ai_instant_answers import test_ai_instant_answers
 from tests.modules.settings.ai_investigator import test_ai_investigator
 from tests.modules.settings.ai_user_settings import test_ai_user_settings
 from tests.modules.settings.legal_text import test_legal_text
+from tests.modules.settings.property_valuation_scrape import test_property_valuation_scrape
 
 
 def test_settings_module(context, reporter, screenshot_logger):
@@ -62,3 +65,4 @@ def test_settings_module(context, reporter, screenshot_logger):
     test_ai_investigator(context, reporter, screenshot_logger)
     test_ai_user_settings(context, reporter, screenshot_logger)
     test_legal_text(context, reporter, screenshot_logger)
+    test_property_valuation_scrape(context, reporter, screenshot_logger)

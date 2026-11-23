@@ -9,7 +9,7 @@ from __future__ import annotations
 DISTRICT_PATHS: dict[str, str] = {
     "zamalek": "Zamalek",
     "garden-city": "Garden City",
-    "maadi": "Maadi",
+    "el-maadi": "Maadi",            # renamed on Aqarmap (was "maadi")
     "heliopolis": "Heliopolis",
     "nasr-city": "Nasr City",
     "new-cairo": "New Cairo",
@@ -34,6 +34,16 @@ DISTRICT_PATHS: dict[str, str] = {
     "el-matariya": "Matariya",
     "boulaq": "Boulaq",
     "helwan/wdy-hwf": "Wadi Hof",   # Cairo > Helwan > Wadi Hof
+}
+
+# Other slugs tried, in order, when the main slug above redirects to the city page
+# (Aqarmap renames districts). Display name -> slugs. Not verified against the live
+# site: the scrape report lists every district that still ends up on baseline.
+DISTRICT_ALT_PATHS: dict[str, tuple[str, ...]] = {
+    "Zamalek": ("el-zamalek",),
+    "Mohandessin": ("el-mohandessin", "mohandseen"),
+    "Shubra": ("shoubra",),
+    "Agouza": ("el-agouza",),
 }
 
 BASE_URL = "https://aqarmap.com.eg/en/for-sale/property-type/cairo/{path}/"
