@@ -40,19 +40,37 @@ def run_week_agenda_risk(context, step, shot, state):
 
     # 6. Agenda view
     click(context, '[data-commitments-view="agenda"]', 700)
-    agenda = eval_js(context, """(() => ({
-      rows: document.querySelectorAll('.commitments-agenda-row').length,
-      events: _commitmentsData.events.length,
-      badges: Array.from(document.querySelectorAll('.commitments-agenda-row .badge')).filter(b => !b.textContent.trim()).length,
-      balances: Array.from(document.querySelectorAll('.commitments-agenda-row')).filter(r => /\\d/.test(r.innerText)).length,
-      navShown: !!document.querySelector('[data-commitments-nav]'),
-    }))()""")
+    agenda = eval_js(context, """(() => {
+      const rows = Array.from(document.querySelectorAll('.commitments-agenda-row'));
+      const label = t('commitments_projected_balance');
+      const digits = (x) => String(x).replace(/[^0-9]/g, '');
+      const bad = [];
+      let checked = 0;
+      _commitmentsData.events.forEach((e, i) => {
+        if (e.projected_balance === undefined || !rows[i]) return;
+        checked++;
+        const cell = rows[i].children[2].children[1].innerText;
+        const value = cell.replace(label, '').trim();
+        const okLabel = cell.includes(label);
+        const okNumber = /\\d/.test(value) && !/NaN|undefined|null/.test(value) && digits(value) === digits(_money(e.projected_balance));
+        if (!okLabel || !okNumber) bad.push(e.date + ' ' + e.event_type + ' payload=' + e.projected_balance + ' shown=' + cell);
+      });
+      return {
+        rows: rows.length,
+        events: _commitmentsData.events.length,
+        badges: Array.from(document.querySelectorAll('.commitments-agenda-row .badge')).filter(b => !b.textContent.trim()).length,
+        withBalance: _commitmentsData.events.filter(e => e.projected_balance !== undefined).length,
+        checked, bad: bad.slice(0, 3),
+        navShown: !!document.querySelector('[data-commitments-nav]'),
+      };
+    })()""")
     agenda_scan = blank_and_raw(context, ["#commitments-toolbar", "#commitments-view"])
     agenda_ok = agenda["rows"] == agenda["events"] and agenda["badges"] == 0 and not agenda["navShown"] \
+        and agenda["checked"] == agenda["withBalance"] > 0 and not agenda["bad"] \
         and not agenda_scan["blank"] and not agenda_scan["raw"]
     step("Commitments Calendar Agenda View", agenda_ok,
-         f"{agenda['rows']} rows = {agenda['events']} events; badges and labels present." if agenda_ok
-         else f"{agenda} {agenda_scan}", shot("commitments_calendar_agenda", "agenda"))
+         f"{agenda['rows']} rows = {agenda['events']} events; {agenda['checked']} projected balances rendered (label + number) "
+         f"and equal to the payload." if agenda_ok else f"{agenda} {agenda_scan}", shot("commitments_calendar_agenda", "agenda"))
     click(context, '[data-commitments-view="month"]', 500)
 
     # 7. Risk panel content

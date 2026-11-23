@@ -379,8 +379,9 @@
     "purpose": "See your upcoming financial commitments on one calendar: salary and rental income, recurring payments, mortgage installments, bank certificate interest and maturity, insurance and vehicle license renewals, rental contract expiries and asset sales, so you know what is due and when.",
     "steps": [
       "Open Financial Advisor, then the Commitments Calendar tab (it may be under More).",
-      "Choose Month, Week or Agenda. Month and Week have previous and next arrows (a month or a week at a time), a month picker and a Today button; Agenda lists every upcoming event in order with the projected balance.",
+      "Choose Month, Week or Agenda. Month and Week have previous and next arrows (a month or a week at a time), a month picker and a Today button; Agenda lists every upcoming event in order with the projected balance. Today's box is highlighted in a different colour in Month and Week views.",
       "Use the category filter (income, expense, renewal) and the bank filter to focus on part of the calendar.",
+      "Bank certificate interest and maturity come from the same schedule as the Cash Flow Forecast: interest already posted is not shown again, and the interest due on the maturity date is included in the maturity amount. Amounts keep the certificate's own currency and show the base-currency value used by the forecast.",
       "In Month view, select a day (click it, or press Enter on it) to list its events below the grid.",
       "Read the Financial Intelligence panel: it warns about months with a negative projected balance, several different commitments falling close together, and payments due well before your next income, and highlights upcoming maturities and renewals.",
       "The number of days that count as close together is a per-user value from 1 to 90 (default 30); it is changed on the Reminders configuration screen. The same screen sets the first day of the week (Sunday by default) used by the Month and Week views.",

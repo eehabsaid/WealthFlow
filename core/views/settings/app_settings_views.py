@@ -131,3 +131,13 @@ class SettingsView(View):
             return JsonResponse({"key": items[0][0], "value": saved.get(items[0][0], "")})
 
         return JsonResponse({"status": "ok", "settings": saved})
+
+    def delete(self, request):
+        """Reset one per-user setting: removes the caller's own row so the key is unset again (default applies)."""
+        if not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        key = str(request.GET.get("key", "")).strip()
+        if key not in USER_SCOPED_SETTING_KEYS:
+            return JsonResponse({"error": "only per-user settings can be reset"}, status=400)
+        removed, _ = AppSettings.objects.filter(key=key, owner=request.user).delete()
+        return JsonResponse({"status": "ok", "key": key, "removed": bool(removed)})

@@ -2,12 +2,12 @@
 
 import json
 from datetime import date
-from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from core.models import AssetSale, BalanceEntry, Bank, BankCertificate, Currency, FixedAsset
+from core.models import AssetSale, BalanceEntry, Bank, BankCertificate, Currency, ExchangeRate, FixedAsset
+from core.services.financial_advisor.cash_flow_forecast_service import CashFlowForecastService
 from core.services.financial_advisor.commitments_calendar_service import CommitmentsCalendarService, resolve_week_start_day, resolve_window_days
 
 User = get_user_model()
@@ -22,7 +22,9 @@ class CurrencyTest(TestCase):
         self.bank = Bank.objects.create(owner=self.user, name="FX Bank")
         self.usd = Currency.objects.create(code="USD", symbol="$", name="US Dollar")
 
-    def certificate_events(self):
+    def calendar_for_usd_certificate(self, with_rate=True):
+        if with_rate:
+            ExchangeRate.objects.create(currency_code="USD", buy_rate=50, sell_rate=50, mid_rate=50)
         BalanceEntry.objects.create(
             owner=self.user, title="USD cash", balance_type=BalanceEntry.BalanceType.CASH,
             currency=self.usd, amount=100000, bank=self.bank,
@@ -31,30 +33,19 @@ class CurrencyTest(TestCase):
             owner=self.user, bank=self.bank, currency=self.usd, amount=1000, interest_value=10,
             issue_date=date(2026, 1, 15), expiry_date=date(2027, 1, 15), frequency="monthly", status="active",
         )
-        with mock.patch("core.services.financial_advisor.commitments_calendar_service.service.get_user_base_code",
-                        return_value="EGP"):
-            return CommitmentsCalendarService(self.user, today=TODAY)
+        return CommitmentsCalendarService(self.user, today=TODAY).payload(date(2026, 12, 1), date(2026, 12, 31))["events"]
 
     def test_foreign_certificate_amounts_are_converted_to_base(self):
-        service = self.certificate_events()
-        with mock.patch("core.services.financial_advisor.commitments_calendar_service.service.get_user_base_code",
-                        return_value="EGP"), \
-                mock.patch("core.services.financial_advisor.commitments_calendar_service.service.CurrencyConversionService.strict_rate",
-                           return_value=50):
-            events = service.payload(date(2026, 12, 1), date(2026, 12, 31))["events"]
-        interest = [e for e in events if e["event_type"] == "certificate_interest"]
+        interest = [e for e in self.calendar_for_usd_certificate() if e["event_type"] == "certificate_interest"]
         self.assertTrue(interest)
-        self.assertEqual((interest[0]["amount"], interest[0]["amount_base"]), (10.0, 500.0))
+        self.assertEqual((interest[0]["amount"], interest[0]["currency_code"], interest[0]["amount_base"]),
+                         (10.0, "USD", 500.0))
 
-    def test_missing_rate_leaves_base_amount_empty(self):
-        service = self.certificate_events()
-        with mock.patch("core.services.financial_advisor.commitments_calendar_service.service.get_user_base_code",
-                        return_value="EGP"), \
-                mock.patch("core.services.financial_advisor.commitments_calendar_service.service.CurrencyConversionService.strict_rate",
-                           side_effect=ValueError("no rate")):
-            events = service.payload(date(2026, 12, 1), date(2026, 12, 31))["events"]
-        interest = [e for e in events if e["event_type"] == "certificate_interest"]
-        self.assertIsNone(interest[0]["amount_base"])
+    def test_certificate_without_a_stored_rate_is_omitted_like_the_forecast(self):
+        events = self.calendar_for_usd_certificate(with_rate=False)
+        self.assertEqual([e for e in events if e["event_type"].startswith("certificate_")], [])
+        forecast = CashFlowForecastService(self.user, today=TODAY).payload()
+        self.assertFalse(any(ev["type"].startswith("certificate_") for m in forecast["timeline"] for ev in m["events"]))
 
 
 class ApiAndSettingsTest(TestCase):

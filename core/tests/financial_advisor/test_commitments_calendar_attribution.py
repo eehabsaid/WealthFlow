@@ -72,6 +72,9 @@ class _Series:
     def __init__(self, events):
         self.events = events
 
+    def certificate_items(self, end):
+        return []
+
 
 class RentalMortgageAttributionTest(TestCase):
     def setUp(self):

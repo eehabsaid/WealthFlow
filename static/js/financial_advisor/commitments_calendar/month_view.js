@@ -33,8 +33,9 @@ function _renderCommitmentsMonthView(events) {
       dayEvents.length > 3
         ? `<span style="font-size:0.72rem; color:var(--text-secondary);">+${dayEvents.length - 3}</span>`
         : "";
-    cells += `<div class="commitments-day-cell" data-commitments-day="${iso}" role="button" tabindex="0" aria-label="${_escapeHtml(_commitmentsShowDate(iso))}" style="min-height:84px; background:${inMonth ? "var(--bg-primary)" : "var(--bg-secondary)"}; border:1px solid var(--border-color); border-radius:8px; padding:6px; cursor:pointer;">
-      <div style="font-size:0.75rem; font-weight:${iso === today ? 800 : 600}; color:${iso === today ? "var(--primary-color, #3b82f6)" : "var(--text-secondary)"}; margin-bottom:3px;">${d.getDate()}</div>
+    const isToday = iso === today;
+    cells += `<div class="commitments-day-cell${isToday ? " commitments-today" : ""}"${isToday ? ' aria-current="date"' : ""} data-commitments-day="${iso}" role="button" tabindex="0" aria-label="${_escapeHtml(_commitmentsShowDate(iso))}" style="min-height:84px; background:${inMonth ? "var(--bg-primary)" : "var(--bg-secondary)"}; border:1px solid var(--border-color); border-radius:8px; padding:6px; cursor:pointer;">
+      <div style="font-size:0.75rem; font-weight:${isToday ? 800 : 600}; color:${isToday ? "var(--accent-primary)" : "var(--text-secondary)"}; margin-bottom:3px;">${d.getDate()}</div>
       ${chips}${more}
     </div>`;
   }

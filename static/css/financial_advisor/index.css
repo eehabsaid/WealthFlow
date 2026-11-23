@@ -4,7 +4,9 @@
  *   overview_dashboard.css   — Overview tab custom dashboard (score, AI summary, alerts)
  *   kpi_and_summaries.css    — KPI cards, cash flow/wealth growth summaries, opportunities
  *   scenario_and_theme.css   — Scenario Planner extensions + dark-theme fixes
+ *   commitments_calendar.css — Commitments Calendar: highlighted "today" box
  */
 @import url("overview_dashboard/index.css");
 @import url("kpi_and_summaries/index.css");
 @import url("scenario_and_theme.css");
+@import url("commitments_calendar.css");

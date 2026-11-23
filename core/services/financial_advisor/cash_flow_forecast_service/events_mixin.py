@@ -15,10 +15,9 @@ import calendar
 from datetime import date
 from typing import Dict, List
 
-from django.db.models import Max
+from core.models import AssetSale
 
-from core.models import AssetSale, BankCertificate, BankCertificateInterestHistory, _is_certificate_active
-
+from .certificate_schedule import build_certificate_schedule
 from .helpers import ForecastEvent, to_float
 
 
@@ -41,74 +40,19 @@ class EventsMixin:
             current = self._add_months(current, 1)
         return out
 
-    def _certificate_events(self, rates: Dict[str, float]) -> List[ForecastEvent]:
-        certs = list(BankCertificate.objects.select_related("bank", "currency").filter(owner=self.owner))
-        active_certs = [cert for cert in certs if _is_certificate_active(cert)]
-        if not active_certs:
-            return []
-
-        cert_ids = [cert.id for cert in active_certs]
-        history_rows = (
-            BankCertificateInterestHistory.objects
-            .filter(certificate_id__in=cert_ids)
-            .filter(posting_date__lte=self.today)
-            .values("certificate_id")
-            .annotate(last_posting=Max("posting_date"))
+    def certificate_schedule(self, until: date | None = None, rates: Dict[str, float] | None = None):
+        """Per-certificate interest/maturity items (shared with the Commitments Calendar)."""
+        rates = self._rates() if rates is None else rates
+        return build_certificate_schedule(
+            self.owner, self.today, until or self.timeline_end_date, self._interest_service,
+            lambda amount, code: self._convert_base(amount, code, rates),
         )
-        history_map = {row["certificate_id"]: row["last_posting"] for row in history_rows}
 
-        events: List[ForecastEvent] = []
-        for cert in active_certs:
-            if not cert.issue_date or not cert.expiry_date:
-                continue
-            if cert.expiry_date <= self.today:
-                continue
-
-            interval = self._interest_service._frequency_interval_months(cert.frequency)
-            currency_code = str(getattr(cert.currency, "code", "") or "").upper()
-            principal_base = self._convert_base(to_float(cert.amount), currency_code, rates)
-            interest_period_base = self._convert_base(to_float(cert.interest_value), currency_code, rates)
-            if interest_period_base <= 0:
-                continue
-
-            maturity_interest_base = 0.0
-            if interval:
-                last_posted = cert.last_interest_posted_date
-                history_last = history_map.get(cert.id)
-                if last_posted and history_last:
-                    effective_last = max(last_posted, history_last)
-                else:
-                    effective_last = last_posted or history_last
-
-                period_index = 1
-                due_date = self._interest_service._scheduled_due_date(cert.issue_date, interval, period_index)
-                while due_date <= cert.expiry_date and due_date <= self.timeline_end_date:
-                    if due_date > self.today and (effective_last is None or due_date > effective_last):
-                        if due_date < cert.expiry_date:
-                            events.append(
-                                ForecastEvent(
-                                    event_date=due_date,
-                                    event_type="certificate_interest",
-                                    amount_base=interest_period_base,
-                                    meta={"certificate_id": cert.id},
-                                )
-                            )
-                        else:
-                            maturity_interest_base += interest_period_base
-                    period_index += 1
-                    due_date = self._interest_service._scheduled_due_date(cert.issue_date, interval, period_index)
-
-            if cert.expiry_date <= self.timeline_end_date:
-                events.append(
-                    ForecastEvent(
-                        event_date=cert.expiry_date,
-                        event_type="certificate_maturity",
-                        amount_base=principal_base + maturity_interest_base,
-                        meta={"certificate_id": cert.id},
-                    )
-                )
-
-        return events
+    def _certificate_events(self, rates: Dict[str, float]) -> List[ForecastEvent]:
+        return [
+            ForecastEvent(item.event_date, item.event_type, item.amount_base, {"certificate_id": item.certificate.id})
+            for item in self.certificate_schedule(rates=rates)
+        ]
 
     def _asset_sale_events(self) -> List[ForecastEvent]:
         sales = (

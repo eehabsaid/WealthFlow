@@ -76,7 +76,10 @@ class CommitmentsCalendarServiceTest(TestCase):
         maturity = [e for e in p["events"] if e["event_type"] == "certificate_maturity"]
         self.assertTrue(interest)
         self.assertEqual(maturity[0]["kind"], "actual")
-        self.assertEqual(maturity[0]["amount"], 100000)
+        # interest due on the expiry date is folded into maturity (not a separate interest event)
+        self.assertEqual(maturity[0]["amount"], 105000)
+        self.assertEqual((maturity[0]["extra"]["principal"], maturity[0]["extra"]["interest"]), (100000.0, 5000.0))
+        self.assertEqual([e["date"] for e in interest], ["2026-12-01"])
 
     def test_renewals_are_informational(self):
         AssetInsurance.objects.create(asset=self.asset, company="ACME", expiry_date=date(2026, 12, 10), premium=2000)

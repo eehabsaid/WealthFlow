@@ -29,7 +29,8 @@ class ForecastSeries:
     """Running balance replayed from the forecast's own timeline events."""
 
     def __init__(self, owner, today: Optional[date] = None):
-        payload = CashFlowForecastService(owner, today=today or date.today()).payload()
+        self._service = CashFlowForecastService(owner, today=today or date.today())
+        payload = self._service.payload()
         self.as_of = payload.get("as_of")
         self.timeline = payload.get("timeline") or []
         self.events: List[dict] = []
@@ -49,6 +50,10 @@ class ForecastSeries:
             first = self.timeline[0]
             start = float(first.get("ending_cash") or 0) - float(first.get("net") or 0)
         self.start_cash = round(start, 2)
+
+    def certificate_items(self, end: date) -> list:
+        """The forecast's own certificate schedule, extended to `end` when the range runs past its horizon."""
+        return self._service.certificate_schedule(until=max(end, self._service.timeline_end_date))
 
     def balance_at(self, d: date) -> float:
         total = self.start_cash

@@ -18,20 +18,15 @@ import calendar
 from datetime import date
 from typing import List
 
-from core.models import (
-    AssetMortgage,
-    AssetRental,
-    BankCertificate,
-    _is_certificate_active,
-)
-from core.services.certificate.certificate_interest_service import CertificateInterestService
+from core.models import AssetMortgage, AssetRental
 from core.services.salary.salary_service import MONTH_ORDER, get_current_monthly_salary
 
-from .event_shape import _add_months, _in_range, _make, _shared_value, _to_float
+from .event_shape import _add_months, _in_range, _make, _shared_value
+from .events_certificates import CertificateEventsMixin
 from .events_renewals import RenewalEventsMixin
 
 
-class CommitmentsEventsBuilder(RenewalEventsMixin):
+class CommitmentsEventsBuilder(CertificateEventsMixin, RenewalEventsMixin):
     def __init__(self, owner, start_date: date, end_date: date, series):
         self.owner = owner
         self.start = start_date
@@ -152,35 +147,3 @@ class CommitmentsEventsBuilder(RenewalEventsMixin):
                      amount=amount, amount_base=amount, source="AssetMortgage",
                      source_id=mortgages[0].asset_id if len(mortgages) == 1 else None,
                      status="active", extra={"count": len(mortgages)})
-
-    # Certificate interest + maturity: derived from the certificate's own
-    # issue/expiry/frequency fields (same schedule the forecast uses).
-    def _certificate_events(self) -> List[dict]:
-        out: List[dict] = []
-        certs = BankCertificate.objects.select_related("bank", "currency").filter(owner=self.owner)
-        for cert in certs:
-            if not _is_certificate_active(cert) or not cert.issue_date or not cert.expiry_date:
-                continue
-            code = cert.currency.code if cert.currency else ""
-            interval = CertificateInterestService.FREQUENCY_MONTHS.get(str(cert.frequency or "").strip().lower())
-            interest = _to_float(cert.interest_value)
-            if interval and interest > 0:
-                period = 1
-                while True:
-                    due = _add_months(cert.issue_date, interval * period)
-                    if due >= cert.expiry_date:
-                        break
-                    if _in_range(self.start, self.end, due):
-                        out.append(_make(due, "income", "certificate_interest", "actual",
-                                         "commitments_event_certificate_interest",
-                                         amount=interest, amount_base=None if code else interest, currency_code=code,
-                                         source="BankCertificate", source_id=cert.id,
-                                         bank_id=cert.bank_id, status="active"))
-                    period += 1
-            if _in_range(self.start, self.end, cert.expiry_date):
-                out.append(_make(cert.expiry_date, "income", "certificate_maturity", "actual",
-                                 "commitments_event_certificate_maturity",
-                                 amount=_to_float(cert.amount), amount_base=None if code else _to_float(cert.amount),
-                                 currency_code=code, source="BankCertificate", source_id=cert.id,
-                                 bank_id=cert.bank_id, status="active"))
-        return out

@@ -12,7 +12,8 @@ function _renderCommitmentsWeekView(events) {
     d.setDate(weekStart.getDate() + i);
     const iso = _commitmentsLocalISO(d);
     const dayEvents = byDate[iso] || [];
-    return `<div class="commitments-week-day" data-commitments-week-day="${iso}" style="background:${iso === today ? "var(--bg-primary)" : "var(--bg-secondary)"}; border:1px solid var(--border-color); border-radius:8px; padding:8px; min-height:120px;">
+    const isToday = iso === today;
+    return `<div class="commitments-week-day${isToday ? " commitments-today" : ""}"${isToday ? ' aria-current="date"' : ""} data-commitments-week-day="${iso}" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:8px; min-height:120px;">
         <div style="font-weight:700; color:var(--text-primary); font-size:0.85rem;">${_escapeHtml(_commitmentsWeekday(d))}</div>
         <div style="color:var(--text-secondary); font-size:0.72rem; margin-bottom:6px;">${_escapeHtml(_commitmentsShowDate(iso))}</div>
         ${dayEvents.length ? dayEvents.map((e) => _commitmentsEventCard(e, true)).join("") : `<div style="color:var(--text-secondary); font-size:0.78rem;">${_escapeHtml(t("commitments_day_empty"))}</div>`}

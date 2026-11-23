@@ -1,35 +1,15 @@
-"""Commitments Calendar E2E, part 3: filters, Settings > Reminders (window, first day of week), Arabic."""
+"""Commitments Calendar E2E, part 4: Settings > Reminders (window, first day of week) and Arabic.
+
+The user's own values are captured by the orchestrator (state["original"]) and restored exactly, never a default."""
 
 import re
 
+from tests.modules.commitments_calendar_state import WEEK_KEY, WINDOW_KEY, restore_settings
 from tests.modules.commitments_calendar_support import blank_and_raw, click, eval_js, open_tab
 
 
-def run_filters_settings_language(context, step, shot, state):
+def run_settings_language(context, step, shot, state):
     page = context.page
-    # 8. Filters
-    page.select_option("#commitments-category-filter", "income")
-    page.wait_for_timeout(1500)
-    income = eval_js(context, "_commitmentsData.events.map(e => e.category)")
-    page.select_option("#commitments-category-filter", "")
-    page.wait_for_timeout(1500)
-    full = eval_js(context, "_commitmentsData.events.length")
-    step("Commitments Category Filter", all(c == "income" for c in income) and len(income) <= full,
-         f"income filter returned {len(income)} of {full} events, all income.")
-    banks = eval_js(context, "_commitmentsData.filters.banks")
-    options = eval_js(context, "document.querySelectorAll('#commitments-bank-filter option').length")
-    bank_ok = options == len(banks) + 1
-    bank_detail = f"{len(banks)} banks listed."
-    if banks:
-        page.select_option("#commitments-bank-filter", str(banks[0]["id"]))
-        page.wait_for_timeout(1500)
-        ids = eval_js(context, "_commitmentsData.events.map(e => e.bank_id)")
-        bank_ok = bank_ok and all(i == banks[0]["id"] for i in ids)
-        bank_detail = f"bank {banks[0]['name']}: {len(ids)} events, all for that bank."
-        page.select_option("#commitments-bank-filter", "")
-        page.wait_for_timeout(1500)
-    step("Commitments Bank Filter", bank_ok, bank_detail)
-
     # 9. Concentration window setting (Settings > Reminders)
     context.goto_route("#settings-reminders")
     page.wait_for_selector("#commitmentsWindowDays", timeout=15000)
@@ -46,16 +26,17 @@ def run_filters_settings_language(context, step, shot, state):
     context.goto_route("#financial-advisor")
     open_tab(context)
     applied = eval_js(context, "_commitmentsData.settings.concentration_window_days")
-    page.evaluate("fetch('/api/settings/', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({key:'commitments_concentration_window_days', value:'30'})})")
+    restore_settings(context, state["original"], [WINDOW_KEY])
     page.wait_for_timeout(500)
     setting_ok = saved_ok and still_45 and applied == 45 and bool(toast.strip())
     step("Commitments Concentration Window Setting", setting_ok,
-         "45 saved and applied by the calendar; 0 rejected with an error toast; restored to 30." if setting_ok
+         "45 saved and applied by the calendar; 0 rejected with an error toast; original value restored." if setting_ok
          else f"saved_ok={saved_ok} still_45={still_45} applied={applied} toast={toast!r}")
 
     # 9b. First day of the week (default Sunday; configurable on Settings > Reminders)
+    expected_start = int(state["original"][WEEK_KEY] or 0)  # the user's own first day (default Sunday when unset)
     default_start = eval_js(context, "_commitmentsData.settings.week_start_day")
-    sunday_first = eval_js(context, "new Date(document.querySelector('.commitments-day-cell').dataset.commitmentsDay + 'T00:00:00').getDay()")
+    first_day = eval_js(context, "new Date(document.querySelector('.commitments-day-cell').dataset.commitmentsDay + 'T00:00:00').getDay()")
     context.goto_route("#settings-reminders")
     page.wait_for_selector("#commitmentsWeekStart", timeout=15000)
     page.select_option("#commitmentsWeekStart", "1")
@@ -71,15 +52,14 @@ def run_filters_settings_language(context, step, shot, state):
     page.evaluate("fetch('/api/settings/', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({key:'commitments_week_start_day', value:'7'})}).then(r => window.__weekStartBad = r.status)")
     page.wait_for_timeout(600)
     rejected = eval_js(context, "window.__weekStartBad") == 400
-    page.select_option("#commitmentsWeekStart", "0")
-    page.click("#commitmentsWeekStart + button")
-    page.wait_for_timeout(900)
+    restore_settings(context, state["original"], [WEEK_KEY])
+    page.wait_for_timeout(600)
     context.goto_route("#financial-advisor")
     open_tab(context)
-    week_ok = default_start == 0 and sunday_first == 0 and monday_month == 1 and monday_week == 1 and rejected
+    week_ok = default_start == expected_start and first_day == expected_start and monday_month == 1 and monday_week == 1 and rejected
     step("Commitments First Day of the Week Setting", week_ok,
-         "Default Sunday; set to Monday -> month grid and week view start on Monday; 7 rejected; restored to Sunday."
-         if week_ok else f"default={default_start} sunday_first={sunday_first} monday_month={monday_month} monday_week={monday_week} rejected={rejected}")
+         "Original first day shown; set to Monday -> month grid and week view start on Monday; 7 rejected; original restored."
+         if week_ok else f"default={default_start} expected={expected_start} first_day={first_day} monday_month={monday_month} monday_week={monday_week} rejected={rejected}")
 
     # 10. Arabic
     page.evaluate("loadLanguage('ar')")

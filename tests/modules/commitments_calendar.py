@@ -3,24 +3,27 @@ WealthFlow QA Module — Financial Commitments Calendar
 Asserts real rendered content (not just that buttons exist). Orchestrator; parts:
   commitments_calendar.py           1-4: tab load, month grid correctness, day detail, month navigation
   commitments_calendar_views.py     5-7: week view, agenda view, Financial Intelligence panel
-  commitments_calendar_settings.py  8-10: category/bank filters, Settings > Reminders (window, first day), Arabic
+  commitments_calendar_today.py     today's box highlighted (month + week)
+  commitments_calendar_filters.py   8: category filter, bank filter (real events, API fallback data)
+  commitments_calendar_settings.py  9-10: Settings > Reminders (window, first day), Arabic
+  commitments_calendar_state.py     capture/restore the user's ORIGINAL settings
 Plus: no JavaScript errors while using the calendar, and the user's settings are always restored.
 """
 
-from tests.modules.commitments_calendar_settings import run_filters_settings_language
+from tests.modules.commitments_calendar_filters import run_filters
+from tests.modules.commitments_calendar_settings import run_settings_language
+from tests.modules.commitments_calendar_state import read_settings, restore_settings
+from tests.modules.commitments_calendar_today import run_today_highlight
 from tests.modules.commitments_calendar_support import ISO_DATE, blank_and_raw, click, eval_js, open_tab
 from tests.modules.commitments_calendar_views import run_week_agenda_risk
 
 SECTION = "Financial Advisor"
-RESTORE_SETTINGS = (
-    "for (const [k, v] of [['commitments_concentration_window_days', '30'], ['commitments_week_start_day', '0']])"
-    " fetch('/api/settings/', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({key: k, value: v})});"
-)
 
 
 def test_commitments_calendar_module(context, reporter, screenshot_logger):
     page = context.page
     js_errors = []
+    original = None
     page.on("pageerror", lambda e: js_errors.append(str(e)))
 
     def step(name, ok, detail, shot=None):
@@ -33,6 +36,7 @@ def test_commitments_calendar_module(context, reporter, screenshot_logger):
     reporter.pages_visited.add("Financial Advisor -> Commitments Calendar")
 
     try:
+        original = read_settings(context)  # the user's own values (None = nothing stored), restored in `finally`
         open_tab(context)
         reporter.tabs_visited.add("Financial Advisor -> Commitments Calendar")
         step("Commitments Calendar Tab Load", page.query_selector("#commitments-toolbar") is not None,
@@ -43,22 +47,28 @@ def test_commitments_calendar_module(context, reporter, screenshot_logger):
              f"{len((data or {}).get('events', []))} events, window "
              f"{(data or {}).get('settings', {}).get('concentration_window_days')} days.")
         events = (data or {}).get("events", [])
-        state = {"data": data, "events": events}
+        state = {"data": data, "events": events, "original": original}
 
         run_month_sections(context, step, shot, state)
+        run_today_highlight(context, step, shot)
         run_week_agenda_risk(context, step, shot, state)
-        run_filters_settings_language(context, step, shot, state)
+        run_filters(context, step, shot, state)
+        run_settings_language(context, step, shot, state)
         step("Commitments No JavaScript Errors", not js_errors, "; ".join(js_errors)[:200] or "No page errors raised.")
     except Exception as ex:  # noqa: BLE001 - report any UI failure as a failed step
         page.evaluate("try { loadLanguage('en'); } catch (e) {}")
         err = screenshot_logger.capture(page, "financial-advisor", "commitments_calendar", "error", "exception", "fail")
         reporter.add_step("Commitments Calendar Module", SECTION, "FAIL", f"Exception: {ex}", screenshot_path=err)
     finally:
-        try:
-            page.evaluate(RESTORE_SETTINGS)
-            page.wait_for_timeout(500)
-        except Exception:  # noqa: BLE001 - best-effort cleanup
-            pass
+        if original is not None:
+            try:
+                restore_settings(context, original)
+                page.wait_for_timeout(500)
+                after = read_settings(context)
+                step("Commitments Settings Restored To Originals", after == original,
+                     f"Restored exactly: {original}" if after == original else f"original={original} after={after}")
+            except Exception as ex:  # noqa: BLE001 - report a failed cleanup instead of hiding it
+                step("Commitments Settings Restored To Originals", False, f"Restore failed: {ex}")
 
 
 def run_month_sections(context, step, shot, state):

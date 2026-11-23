@@ -1,0 +1,7 @@
+/* Commitments Calendar: today's box (month grid cell and week column) stands out in the accent colour. */
+.commitments-day-cell.commitments-today,
+.commitments-week-day.commitments-today {
+  background: color-mix(in srgb, var(--accent-primary) 16%, var(--bg-primary)) !important;
+  border: 2px solid var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 22%, transparent);
+}
