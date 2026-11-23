@@ -51,7 +51,7 @@ class RenamedSlugTest(SimpleTestCase):
         self.assertEqual(self._scrape({"new-cairo/ltjm-lkhms": ("ltjm-lkhms", 52000)})["Fifth Settlement"], 52000.0)
 
     def test_the_new_aqarmap_slugs_are_used(self):
-        for slug in ("al-zamalek", "el-mohandesen", "al-oubour", "el-matarya"):
+        for slug in ("al-zamalek", "el-mohandesen", "al-oubour", "el-matarya", "hadayek-el-koba", "downtown", "downtown/bolak-abo-el-ala"):
             self.assertIn(slug, DISTRICT_PATHS)
 
     def test_a_district_with_no_working_slug_is_left_out(self):

@@ -22,9 +22,9 @@ DISTRICT_PATHS: dict[str, str] = {
     "helwan": "Helwan",
     "shoubra": "Shubra",
     "ain-shams": "Ain Shams",
-    "hadayek-el-kobba": "Hadayek el Kobba",
+    "hadayek-el-koba": "Hadayek el Kobba",
     "abbassia": "Abbassia",
-    "downtown-cairo": "Downtown Cairo",
+    "downtown": "Downtown Cairo",
     "madinaty": "Madinaty",
     "el-shorouk": "Shorouk",
     "badr-city": "Badr City",
@@ -32,7 +32,7 @@ DISTRICT_PATHS: dict[str, str] = {
     "el-agouza": "Agouza",
     "imbaba": "Imbaba",
     "el-matarya": "Matariya",
-    "boulaq": "Boulaq",
+    "downtown/bolak-abo-el-ala": "Boulaq",   # Cairo > Downtown > Bolaq Abo El Ela
     "helwan/wdy-hwf": "Wadi Hof",   # Cairo > Helwan > Wadi Hof
     "new-cairo/ltjm-lkhms": "Fifth Settlement",   # Cairo > New Cairo > Fifth Settlement
 }
@@ -43,9 +43,6 @@ DISTRICT_PATHS: dict[str, str] = {
 DISTRICT_ALT_PATHS: dict[str, tuple[str, ...]] = {
     "Madinaty": ("new-cairo/madinaty",),
     "Abbassia": ("el-abbasiya", "el-abbaseya"),
-    "Boulaq": ("bulaq", "bolaq"),
-    "Hadayek el Kobba": ("hadayek-el-qobba", "hadaek-el-kobba"),
-    "Downtown Cairo": ("wust-el-balad", "down-town"),
 }
 
 BASE_URL = "https://aqarmap.com.eg/en/for-sale/property-type/cairo/{path}/"
