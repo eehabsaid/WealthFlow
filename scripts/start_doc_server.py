@@ -26,7 +26,9 @@ def start_server():
         [python_exe, manage_py, 'runserver', f'{host}:{port}'],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
-        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0,
+        # POSIX: own session, so stop_server()'s killpg stops only the server tree, never this script.
+        start_new_session=(os.name != 'nt'),
     )
     
     # Write PID

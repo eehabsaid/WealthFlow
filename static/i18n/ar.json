@@ -2985,7 +2985,7 @@
   "commitments_risk_title": "الذكاء المالي",
   "commitments_risk_negative_balance": "الرصيد المتوقع سالب في {months} شهرًا قادمًا.",
   "commitments_risk_concentration": "{events} التزامات بإجمالي {amount} خلال نافذة {days} يومًا.",
-  "commitments_risk_before_income": "يُستحق {count} التزام قبل دخلك المتوقع التالي.",
+  "commitments_risk_before_income": "يقع {count} التزام قبل أكثر من {days} يومًا من دخلك المتوقع التالي.",
   "commitments_risk_clear": "لا توجد مخاطر مرتفعة حول التزاماتك القادمة.",
   "commitments_concentration_title": "نوافذ التركز",
   "commitments_concentration_events": "التزامات",

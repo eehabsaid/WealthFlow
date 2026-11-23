@@ -27,6 +27,12 @@ def _in_range(start: date, end: date, d: date) -> bool:
     return start <= d <= end
 
 
+def _shared_value(values):
+    """The single non-null value every item agrees on, else None."""
+    distinct = {v for v in values if v is not None}
+    return distinct.pop() if len(distinct) == 1 else None
+
+
 def _make(date_, category, event_type, kind, description_key, amount=0.0, amount_base=None,
          currency_code="", source="", source_id=None, status="upcoming", bank_id=None, extra=None):
     return {

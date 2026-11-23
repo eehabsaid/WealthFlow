@@ -27,7 +27,7 @@ from core.models import (
 from core.services.certificate.certificate_interest_service import CertificateInterestService
 from core.services.salary.salary_service import MONTH_ORDER, get_current_monthly_salary
 
-from .event_shape import _add_months, _in_range, _make, _to_float
+from .event_shape import _add_months, _in_range, _make, _shared_value, _to_float
 from .events_renewals import RenewalEventsMixin
 
 
@@ -99,26 +99,28 @@ class CommitmentsEventsBuilder(RenewalEventsMixin):
             return []
         amount = rental_series[0]["amount"]
         rentals = list(AssetRental.objects.select_related("asset", "bank").filter(asset__owner=self.owner))
-        first = rentals[0] if rentals else None
         covered = set()
         out = []
         for e in rental_series:
             if _in_range(self.start, self.end, e["date"]):
-                out.append(self._rental_event(e["date"], amount, first))
+                out.append(self._rental_event(e["date"], amount, rentals))
                 covered.add((e["date"].year, e["date"].month))
         for month in self._month_cursor():
             if (month.year, month.month) in covered:
                 continue
             d = date(month.year, month.month, calendar.monthrange(month.year, month.month)[1])
             if _in_range(self.start, self.end, d):
-                out.append(self._rental_event(d, amount, first))
+                out.append(self._rental_event(d, amount, rentals))
         return out
 
-    def _rental_event(self, d: date, amount: float, rental) -> dict:
+    def _rental_event(self, d: date, amount: float, rentals) -> dict:
+        # The forecast amount aggregates every rental: attribute the event to a
+        # bank/asset only when that is unambiguous (all records agree).
         return _make(d, "income", "rental_income", "actual", "commitments_event_rental_income",
                      amount=amount, amount_base=amount, source="AssetRental",
-                     source_id=rental.asset_id if rental else None,
-                     bank_id=rental.bank_id if rental else None, status="expected_income")
+                     source_id=rentals[0].asset_id if len(rentals) == 1 else None,
+                     bank_id=_shared_value(r.bank_id for r in rentals), status="expected_income",
+                     extra={"count": len(rentals)})
 
     # Mortgage installments: forecast series events (month-end convention).
     def _mortgage_events(self) -> List[dict]:
@@ -130,25 +132,26 @@ class CommitmentsEventsBuilder(RenewalEventsMixin):
             return []
         mortgages = list(AssetMortgage.objects.select_related("asset").filter(
             asset__owner=self.owner, remaining_balance__gt=0))
-        first = mortgages[0] if mortgages else None
         covered = set()
         out = []
         for e in mortgage_series:
             if _in_range(self.start, self.end, e["date"]):
-                out.append(self._mortgage_event(e["date"], amount, first))
+                out.append(self._mortgage_event(e["date"], amount, mortgages))
                 covered.add((e["date"].year, e["date"].month))
         for month in self._month_cursor():
             if (month.year, month.month) in covered:
                 continue
             d = date(month.year, month.month, calendar.monthrange(month.year, month.month)[1])
             if _in_range(self.start, self.end, d):
-                out.append(self._mortgage_event(d, amount, first))
+                out.append(self._mortgage_event(d, amount, mortgages))
         return out
 
-    def _mortgage_event(self, d: date, amount: float, m) -> dict:
+    def _mortgage_event(self, d: date, amount: float, mortgages) -> dict:
+        # Aggregated forecast installment: attribute to an asset only if single.
         return _make(d, "expense", "mortgage", "actual", "commitments_event_mortgage",
                      amount=amount, amount_base=amount, source="AssetMortgage",
-                     source_id=m.asset_id if m else None, status="active")
+                     source_id=mortgages[0].asset_id if len(mortgages) == 1 else None,
+                     status="active", extra={"count": len(mortgages)})
 
     # Certificate interest + maturity: derived from the certificate's own
     # issue/expiry/frequency fields (same schedule the forecast uses).

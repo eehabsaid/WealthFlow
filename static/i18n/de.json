@@ -2985,7 +2985,7 @@
   "commitments_risk_title": "Finanzintelligenz",
   "commitments_risk_negative_balance": "Der prognostizierte Saldo ist in {months} Monat(en) negativ.",
   "commitments_risk_concentration": "{events} Verpflichtungen im Wert von {amount} fallen in ein {days}-Tage-Fenster.",
-  "commitments_risk_before_income": "{count} Verpflichtung(en) fallen vor Ihrem nächsten erwarteten Einkommen.",
+  "commitments_risk_before_income": "{count} Verpflichtung(en) fallen mehr als {days} Tage vor Ihrem nächsten erwarteten Einkommen.",
   "commitments_risk_clear": "Keine erhöhten Risiken rund um Ihre kommenden Verpflichtungen.",
   "commitments_concentration_title": "Konzentrationfenster",
   "commitments_concentration_events": "Verpflichtungen",

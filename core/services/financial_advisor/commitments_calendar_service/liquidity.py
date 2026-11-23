@@ -9,7 +9,9 @@ Analysis over the calendar events:
 - projected_balance per event (forecast series value at that date)
 - negative projected balance months (forecast timeline ending_cash < 0)
 - concentration windows (outflow events inside a configurable N-day window)
-- commitments occurring before the next expected income event
+- outflows that fall more than window_days before the next expected income
+  (a long stretch with no inflow after the commitment). The risk panel always
+  reflects ALL commitments in the range, independent of the display filters
 - upcoming certificate maturities / asset renewals highlights
 """
 from __future__ import annotations
@@ -121,7 +123,8 @@ def build_analysis(events: List[dict], window_days: int, series: ForecastSeries)
                         "params": {"days": top["days"], "amount": top["outflow"], "events": top["events"]}})
     before = [e for e in outflows if e["before_income"]]
     if before:
-        reasons.append({"key": "commitments_risk_before_income", "params": {"count": len(before)}})
+        reasons.append({"key": "commitments_risk_before_income",
+                        "params": {"count": len(before), "days": window_days}})
 
     highlights = [
         {"date": e["date"], "event_type": e["event_type"], "amount": e["amount"], "currency_code": e["currency_code"]}

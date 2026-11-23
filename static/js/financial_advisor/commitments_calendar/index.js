@@ -10,7 +10,7 @@ let _commitmentsView = "month";
 let _commitmentsCategory = "";
 let _commitmentsBank = "";
 let _commitmentsAnchor = new Date(); // any day inside the month / week being shown
-let _commitmentsLoading = false;
+let _commitmentsRequestSeq = 0; // a newer request supersedes an older one (filters changed mid-load)
 
 function _commitmentsPaneId() {
   return "fa-commitments-calendar-content";
@@ -23,8 +23,7 @@ async function loadCommitmentsCalendar(force = false) {
   }
   const pane = document.getElementById(_commitmentsPaneId());
   if (!pane) return;
-  if (_commitmentsLoading) return;
-  _commitmentsLoading = true;
+  const seq = ++_commitmentsRequestSeq;
   pane.innerHTML = `<div class="text-center py-5" style="color:var(--text-secondary);">
     <div class="spinner-border spinner-border-sm me-2"></div><span data-i18n="commitments_loading"></span></div>`;
   applyTranslations();
@@ -39,12 +38,12 @@ async function loadCommitmentsCalendar(force = false) {
       `/api/financial-advisor/commitments-calendar/?${params.toString()}`
     );
     if (!response.ok) throw new Error("commitments_fetch_failed");
-    _commitmentsData = await response.json();
+    const payload = await response.json();
+    if (seq !== _commitmentsRequestSeq) return;
+    _commitmentsData = payload;
     _renderCommitmentsCalendar();
   } catch (error) {
-    _renderCommitmentsError();
-  } finally {
-    _commitmentsLoading = false;
+    if (seq === _commitmentsRequestSeq) _renderCommitmentsError();
   }
 }
 

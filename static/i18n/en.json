@@ -2985,7 +2985,7 @@
   "commitments_risk_title": "Financial Intelligence",
   "commitments_risk_negative_balance": "Projected balance is negative in {months} month(s) ahead.",
   "commitments_risk_concentration": "{events} commitments totaling {amount} fall within a {days}-day window.",
-  "commitments_risk_before_income": "{count} commitment(s) occur before your next expected income.",
+  "commitments_risk_before_income": "{count} commitment(s) fall more than {days} days before your next expected income.",
   "commitments_risk_clear": "No elevated risk detected around your upcoming commitments.",
   "commitments_concentration_title": "Concentration windows",
   "commitments_concentration_events": "events",

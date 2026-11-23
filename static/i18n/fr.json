@@ -2985,7 +2985,7 @@
   "commitments_risk_title": "Intelligence financière",
   "commitments_risk_negative_balance": "Le solde projeté est négatif dans {months} mois à venir.",
   "commitments_risk_concentration": "{events} engagements, {amount} au total, dans une fenêtre de {days} jours.",
-  "commitments_risk_before_income": "{count} engagement(s) avant votre prochain revenu attendu.",
+  "commitments_risk_before_income": "{count} engagement(s) tombent plus de {days} jours avant votre prochain revenu attendu.",
   "commitments_risk_clear": "Aucun risque élevé autour de vos engagements à venir.",
   "commitments_concentration_title": "Fenêtres de concentration",
   "commitments_concentration_events": "engagements",
