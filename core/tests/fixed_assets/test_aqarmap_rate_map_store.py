@@ -45,7 +45,14 @@ class RenamedSlugTest(SimpleTestCase):
         self.assertEqual(self._scrape({"el-maadi": ("el-maadi", 61000)})["Maadi"], 61000.0)
 
     def test_an_alternative_slug_is_tried_when_the_main_one_redirects(self):
-        self.assertEqual(self._scrape({"el-zamalek": ("el-zamalek", 99000)})["Zamalek"], 99000.0)
+        self.assertEqual(self._scrape({"new-cairo/madinaty": ("madinaty", 44000)})["Madinaty"], 44000.0)
+
+    def test_a_nested_slug_is_matched_on_its_last_part(self):
+        self.assertEqual(self._scrape({"new-cairo/ltjm-lkhms": ("ltjm-lkhms", 52000)})["Fifth Settlement"], 52000.0)
+
+    def test_the_new_aqarmap_slugs_are_used(self):
+        for slug in ("al-zamalek", "el-mohandesen", "al-oubour", "el-matarya"):
+            self.assertIn(slug, DISTRICT_PATHS)
 
     def test_a_district_with_no_working_slug_is_left_out(self):
         self.assertNotIn("Zamalek", self._scrape({"el-maadi": ("el-maadi", 61000)}))

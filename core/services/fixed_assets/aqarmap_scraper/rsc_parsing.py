@@ -65,6 +65,7 @@ def _slug_matches(avg_data: dict, requested_slug: str) -> bool:
     When a slug doesn't exist, Aqarmap silently redirects to the main
     Cairo page whose averagePriceData.location.slug == "cairo".
     We reject that and fall back to baseline for that district.
+    A nested request such as "new-cairo/ltjm-lkhms" is matched on its last part.
     """
     returned_slug = avg_data.get("location", {}).get("slug", "")
-    return returned_slug.endswith(requested_slug)
+    return returned_slug.endswith(requested_slug.rsplit("/", 1)[-1])

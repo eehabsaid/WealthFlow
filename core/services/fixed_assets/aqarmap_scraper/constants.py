@@ -7,20 +7,20 @@ from __future__ import annotations
 # Names must align with LOCATION_ALIASES in property_valuation_service.py
 # ---------------------------------------------------------------------------
 DISTRICT_PATHS: dict[str, str] = {
-    "zamalek": "Zamalek",
+    "al-zamalek": "Zamalek",
     "garden-city": "Garden City",
     "el-maadi": "Maadi",            # renamed on Aqarmap (was "maadi")
     "heliopolis": "Heliopolis",
     "nasr-city": "Nasr City",
     "new-cairo": "New Cairo",
     "dokki": "Dokki",
-    "mohandessin": "Mohandessin",
+    "el-mohandesen": "Mohandessin",
     "6th-of-october": "6th of October",
     "el-sheikh-zayed-city": "Sheikh Zayed",
     "new-administrative-capital": "New Administrative Capital",
     "mokattam": "Mokattam",
     "helwan": "Helwan",
-    "shubra": "Shubra",
+    "shoubra": "Shubra",
     "ain-shams": "Ain Shams",
     "hadayek-el-kobba": "Hadayek el Kobba",
     "abbassia": "Abbassia",
@@ -28,22 +28,24 @@ DISTRICT_PATHS: dict[str, str] = {
     "madinaty": "Madinaty",
     "el-shorouk": "Shorouk",
     "badr-city": "Badr City",
-    "el-obour": "Obour",
-    "agouza": "Agouza",
+    "al-oubour": "Obour",
+    "el-agouza": "Agouza",
     "imbaba": "Imbaba",
-    "el-matariya": "Matariya",
+    "el-matarya": "Matariya",
     "boulaq": "Boulaq",
     "helwan/wdy-hwf": "Wadi Hof",   # Cairo > Helwan > Wadi Hof
+    "new-cairo/ltjm-lkhms": "Fifth Settlement",   # Cairo > New Cairo > Fifth Settlement
 }
 
 # Other slugs tried, in order, when the main slug above redirects to the city page
-# (Aqarmap renames districts). Display name -> slugs. Not verified against the live
-# site: the scrape report lists every district that still ends up on baseline.
+# (Aqarmap renames districts). Display name -> slugs. The scrape report lists every
+# district that still ends up on baseline.
 DISTRICT_ALT_PATHS: dict[str, tuple[str, ...]] = {
-    "Zamalek": ("el-zamalek",),
-    "Mohandessin": ("el-mohandessin", "mohandseen"),
-    "Shubra": ("shoubra",),
-    "Agouza": ("el-agouza",),
+    "Madinaty": ("new-cairo/madinaty",),
+    "Abbassia": ("el-abbasiya", "el-abbaseya"),
+    "Boulaq": ("bulaq", "bolaq"),
+    "Hadayek el Kobba": ("hadayek-el-qobba", "hadaek-el-kobba"),
+    "Downtown Cairo": ("wust-el-balad", "down-town"),
 }
 
 BASE_URL = "https://aqarmap.com.eg/en/for-sale/property-type/cairo/{path}/"
