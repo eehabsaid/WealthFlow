@@ -2987,6 +2987,7 @@
   "commitments_risk_concentration": "{events} engagements, {amount} au total, dans une fenêtre de {days} jours.",
   "commitments_risk_before_income": "{count} engagement(s) tombent plus de {days} jours avant votre prochain revenu attendu.",
   "commitments_risk_clear": "Aucun risque élevé autour de vos engagements à venir.",
+  "commitments_risk_incomplete": "Certains engagements n'ont pas pu être convertis dans votre devise de base ({currencies}) : {count} d'entre eux sont exclus de l'analyse de concentration ; la vue des risques peut être incomplète.",
   "commitments_concentration_title": "Fenêtres de concentration",
   "commitments_concentration_events": "engagements",
   "commitments_highlights_title": "Échéances et renouvellements à venir",

@@ -2987,6 +2987,7 @@
   "commitments_risk_concentration": "{events} التزامات بإجمالي {amount} خلال نافذة {days} يومًا.",
   "commitments_risk_before_income": "يقع {count} التزام قبل أكثر من {days} يومًا من دخلك المتوقع التالي.",
   "commitments_risk_clear": "لا توجد مخاطر مرتفعة حول التزاماتك القادمة.",
+  "commitments_risk_incomplete": "تعذر تحويل بعض الالتزامات إلى عملتك الأساسية ({currencies})، لذلك استُبعد {count} منها من فحص التركّز؛ وقد تكون صورة المخاطر غير مكتملة.",
   "commitments_concentration_title": "نوافذ التركز",
   "commitments_concentration_events": "التزامات",
   "commitments_highlights_title": "استحقاقات وتجديدات قادمة",

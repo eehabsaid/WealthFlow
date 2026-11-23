@@ -33,23 +33,36 @@ function _renderCommitmentsRiskPanel(analysis) {
   const host = document.getElementById("commitments-risk-panel");
   if (!host) return;
   const reasons = analysis.risk_reasons || [];
-  const reasonsHtml = reasons.length
-    ? reasons
-        .map((r) =>
-          _commitmentsReasonRow(
-            "bi-exclamation-circle",
-            "var(--warning-color, #f39c12)",
-            _commitmentsFillParams(t(r.key), r.params),
-            "var(--text-primary)"
+  const incomplete = Boolean(analysis.concentration_incomplete);
+  const incompleteHtml = incomplete
+    ? _commitmentsReasonRow(
+        "bi-info-circle",
+        "var(--info-color, #3498db)",
+        _commitmentsFillParams(t("commitments_risk_incomplete"), {
+          count: analysis.unconverted_count || 0,
+          currencies: (analysis.unconverted_currencies || []).join(", "),
+        }),
+        "var(--text-primary)"
+      )
+    : "";
+  const reasonsHtml =
+    reasons.length || incomplete
+      ? reasons
+          .map((r) =>
+            _commitmentsReasonRow(
+              "bi-exclamation-circle",
+              "var(--warning-color, #f39c12)",
+              _commitmentsFillParams(t(r.key), r.params),
+              "var(--text-primary)"
+            )
           )
-        )
-        .join("")
-    : _commitmentsReasonRow(
-        "bi-check-circle",
-        "var(--success-color, #2ecc71)",
-        t("commitments_risk_clear"),
-        "var(--text-secondary)"
-      );
+          .join("")
+      : _commitmentsReasonRow(
+          "bi-check-circle",
+          "var(--success-color, #2ecc71)",
+          t("commitments_risk_clear"),
+          "var(--text-secondary)"
+        );
 
   const windows = (analysis.concentration_windows || []).map(
     (w) =>
@@ -68,6 +81,7 @@ function _renderCommitmentsRiskPanel(analysis) {
         <i class="bi bi-graph-up me-2"></i><span>${_escapeHtml(t("commitments_risk_title"))}</span>
       </div>
       ${reasonsHtml}
+      ${incompleteHtml}
       ${_commitmentsPanelSection("commitments_concentration_title", windows)}
       ${_commitmentsPanelSection("commitments_highlights_title", highlights)}
     </div>

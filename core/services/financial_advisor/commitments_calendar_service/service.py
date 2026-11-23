@@ -71,7 +71,7 @@ class CommitmentsCalendarService:
         events = CommitmentsEventsBuilder(self.owner, start_date, end_date, series).build()
         self._fill_amount_base(events)
         window_days = resolve_window_days(self.owner)
-        analysis = build_analysis(events, window_days, series)
+        analysis = build_analysis(events, window_days, series, get_user_base_code(self.owner))
 
         if category:
             events = [e for e in events if e["category"] == category]

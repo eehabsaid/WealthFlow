@@ -2987,6 +2987,7 @@
   "commitments_risk_concentration": "{events} Verpflichtungen im Wert von {amount} fallen in ein {days}-Tage-Fenster.",
   "commitments_risk_before_income": "{count} Verpflichtung(en) fallen mehr als {days} Tage vor Ihrem nächsten erwarteten Einkommen.",
   "commitments_risk_clear": "Keine erhöhten Risiken rund um Ihre kommenden Verpflichtungen.",
+  "commitments_risk_incomplete": "Einige Verpflichtungen konnten nicht in Ihre Basiswährung ({currencies}) umgerechnet werden; {count} davon bleiben in der Konzentrationsprüfung unberücksichtigt, die Risikoübersicht kann unvollständig sein.",
   "commitments_concentration_title": "Konzentrationfenster",
   "commitments_concentration_events": "Verpflichtungen",
   "commitments_highlights_title": "Kommende Fälligkeiten & Verlängerungen",

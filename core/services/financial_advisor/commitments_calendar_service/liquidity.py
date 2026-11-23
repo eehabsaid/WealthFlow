@@ -70,17 +70,29 @@ class ForecastSeries:
         return None
 
 
-def _outflow_total(event: dict) -> float:
-    return abs(event.get("amount_base") if event.get("amount_base") is not None else event.get("amount") or 0)
+def _outflow_total(event: dict, base_code: Optional[str] = None) -> Optional[float]:
+    """Outflow in the base currency, or None when it cannot be converted.
+
+    Original amounts of different currencies are never added together: with no
+    amount_base, only an amount already in the base currency (or with no
+    currency at all) counts.
+    """
+    if event.get("amount_base") is not None:
+        return abs(event["amount_base"])
+    code = str(event.get("currency_code") or "").upper()
+    if not code or (base_code and code == str(base_code).upper()):
+        return abs(event.get("amount") or 0)
+    return None
 
 
-def _concentration_windows(outflows: List[dict], window_days: int) -> List[dict]:
+def _concentration_windows(outflows: List[dict], window_days: int, base_code: Optional[str] = None) -> List[dict]:
     """Windows opening on an outflow date, ranked by total outflow.
 
     A window counts each commitment (same source record and event type) once,
     at its first occurrence inside the window, so one monthly bill is never
     reported as a concentration of obligations just because a short month
-    puts two of its payments less than N days apart.
+    puts two of its payments less than N days apart. Commitments that cannot be
+    converted to the base currency are left out of the window total and count.
     """
     windows = []
     for e in outflows:
@@ -90,9 +102,9 @@ def _concentration_windows(outflows: List[dict], window_days: int) -> List[dict]
         for o in outflows:
             if d <= date.fromisoformat(o["date"]) < end:
                 first_per_commitment.setdefault((o["source"], o["source_id"], o["event_type"]), o)
-        total = sum(_outflow_total(o) for o in first_per_commitment.values())
+        amounts = [a for a in (_outflow_total(o, base_code) for o in first_per_commitment.values()) if a is not None]
         windows.append({"start": d.isoformat(), "days": window_days,
-                        "outflow": round(total, 2), "events": len(first_per_commitment)})
+                        "outflow": round(sum(amounts), 2), "events": len(amounts)})
     windows.sort(key=lambda w: (-w["outflow"], w["start"]))
     deduped = []
     for w in windows:
@@ -101,7 +113,7 @@ def _concentration_windows(outflows: List[dict], window_days: int) -> List[dict]
     return deduped
 
 
-def build_analysis(events: List[dict], window_days: int, series: ForecastSeries) -> dict:
+def build_analysis(events: List[dict], window_days: int, series: ForecastSeries, base_code: Optional[str] = None) -> dict:
     for e in events:
         d = date.fromisoformat(e["date"])
         e["projected_balance"] = series.balance_at(d)
@@ -116,8 +128,9 @@ def build_analysis(events: List[dict], window_days: int, series: ForecastSeries)
 
     negative_months = [m["month"] for m in series.timeline if float(m.get("ending_cash") or 0) < 0]
 
-    deduped = _concentration_windows(outflows, window_days)
+    deduped = _concentration_windows(outflows, window_days, base_code)
     concentration = [w for w in deduped if w["events"] > 1][:5]
+    unconverted = [e for e in outflows if _outflow_total(e, base_code) is None]
 
     reasons = []
     if negative_months:
@@ -142,6 +155,9 @@ def build_analysis(events: List[dict], window_days: int, series: ForecastSeries)
         "series_start_cash": series.start_cash,
         "negative_balance_months": negative_months,
         "concentration_windows": concentration,
+        "concentration_incomplete": bool(unconverted),
+        "unconverted_count": len(unconverted),
+        "unconverted_currencies": sorted({str(e["currency_code"]).upper() for e in unconverted}),
         "risk_reasons": reasons,
         "highlights": highlights,
         "window_days": window_days,

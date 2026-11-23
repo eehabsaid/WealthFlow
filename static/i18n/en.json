@@ -2987,6 +2987,7 @@
   "commitments_risk_concentration": "{events} commitments totaling {amount} fall within a {days}-day window.",
   "commitments_risk_before_income": "{count} commitment(s) fall more than {days} days before your next expected income.",
   "commitments_risk_clear": "No elevated risk detected around your upcoming commitments.",
+  "commitments_risk_incomplete": "Some commitments could not be converted to your base currency ({currencies}), so {count} of them are left out of the concentration check; the risk view may be incomplete.",
   "commitments_concentration_title": "Concentration windows",
   "commitments_concentration_events": "events",
   "commitments_highlights_title": "Upcoming maturities & renewals",

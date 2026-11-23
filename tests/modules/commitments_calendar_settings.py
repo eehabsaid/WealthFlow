@@ -8,6 +8,16 @@ from tests.modules.commitments_calendar_state import WEEK_KEY, WINDOW_KEY, resto
 from tests.modules.commitments_calendar_support import blank_and_raw, click, eval_js, open_tab
 
 
+_BAD_WEEK_START = """async () => {
+  const csrf = (window.wfGetCsrfToken && window.wfGetCsrfToken()) || '';
+  const r = await fetch('/api/settings/', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+                                            body: JSON.stringify({key: 'commitments_week_start_day', value: '7'})});
+  let body = {};
+  try { body = await r.json(); } catch (e) { body = {}; }
+  return {csrf: csrf.length > 0, status: r.status, error: body.error || ''};
+}"""
+
+
 def run_settings_language(context, step, shot, state):
     page = context.page
     # 9. Concentration window setting (Settings > Reminders)
@@ -49,17 +59,16 @@ def run_settings_language(context, step, shot, state):
     monday_week = eval_js(context, "new Date(document.querySelector('[data-commitments-week-day]').dataset.commitmentsWeekDay + 'T00:00:00').getDay()")
     context.goto_route("#settings-reminders")
     page.wait_for_selector("#commitmentsWeekStart", timeout=15000)
-    page.evaluate("fetch('/api/settings/', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({key:'commitments_week_start_day', value:'7'})}).then(r => window.__weekStartBad = r.status)")
-    page.wait_for_timeout(600)
-    rejected = eval_js(context, "window.__weekStartBad") == 400
+    bad = page.evaluate(_BAD_WEEK_START)  # carries a valid CSRF token, so a 400 is the validation answer, not a CSRF 403
+    rejected = bad["csrf"] and bad["status"] == 400 and bad["error"] == "invalid value for commitments_week_start_day"
     restore_settings(context, state["original"], [WEEK_KEY])
     page.wait_for_timeout(600)
     context.goto_route("#financial-advisor")
     open_tab(context)
     week_ok = default_start == expected_start and first_day == expected_start and monday_month == 1 and monday_week == 1 and rejected
     step("Commitments First Day of the Week Setting", week_ok,
-         "Original first day shown; set to Monday -> month grid and week view start on Monday; 7 rejected; original restored."
-         if week_ok else f"default={default_start} expected={expected_start} first_day={first_day} monday_month={monday_month} monday_week={monday_week} rejected={rejected}")
+         "Original first day shown; set to Monday -> month grid and week view start on Monday; 7 rejected with HTTP 400 and the validation error (valid CSRF token sent); original restored."
+         if week_ok else f"default={default_start} expected={expected_start} first_day={first_day} monday_month={monday_month} monday_week={monday_week} rejected={rejected} bad={bad}")
 
     # 10. Arabic
     page.evaluate("loadLanguage('ar')")

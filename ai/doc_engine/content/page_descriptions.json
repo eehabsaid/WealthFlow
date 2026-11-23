@@ -383,7 +383,7 @@
       "Use the category filter (income, expense, renewal) and the bank filter to focus on part of the calendar.",
       "Bank certificate interest and maturity come from the same schedule as the Cash Flow Forecast: interest already posted is not shown again, and the interest due on the maturity date is included in the maturity amount. Amounts keep the certificate's own currency and show the base-currency value used by the forecast.",
       "In Month view, select a day (click it, or press Enter on it) to list its events below the grid.",
-      "Read the Financial Intelligence panel: it warns about months with a negative projected balance, several different commitments falling close together, and payments due well before your next income, and highlights upcoming maturities and renewals.",
+      "Read the Financial Intelligence panel: it warns about months with a negative projected balance, several different commitments falling close together, and payments due well before your next income, and highlights upcoming maturities and renewals. Amounts that cannot be converted to your base currency are left out of the close-together check and the panel says the data is incomplete instead of showing a misleading warning.",
       "The number of days that count as close together is a per-user value from 1 to 90 (default 30); it is changed on the Reminders configuration screen. The same screen sets the first day of the week (Sunday by default) used by the Month and Week views.",
       "This tab is read-only: it never creates expenses or changes your balances."
     ]
