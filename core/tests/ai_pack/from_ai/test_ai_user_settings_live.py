@@ -105,6 +105,7 @@ class AIUserSettingsLiveTests(StaticLiveServerTestCase):
             AISetting.set(USE_GENERAL_KEY, "false", user=self.user)          # switched to own settings => unlimited
             self.page.reload()
             self.page.wait_for_selector("#ai-ws-input", timeout=15000)
+            self.page.wait_for_selector(".ai-ws-msg-content:has-text('if i bought a laptop')", timeout=15000)
             self.ask(LAPTOP, "purchase price already deducts")
             self.assertTrue(prov.calls)
         latest = AIMessage.objects.filter(conversation__user=self.user, content__contains="purchase price").first()

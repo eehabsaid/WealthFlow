@@ -98,13 +98,26 @@ def _qa(markdown: str, language: str = "") -> str:
 
 
 def _tab_section(provider, user, user_text: str, out, unit: dict, tab: dict, instructions: str, deadline: float) -> str:
-    """One tab the section skipped: written alone (small prompt); the app's own tab list when the model cannot or time is up."""
+    """Write one tab independently, keeping its prompt within the size limit."""
     text = ""
     if time.monotonic() < deadline - 20:
-        text = _ask(provider, out, instructions, f"REQUEST:\n{user_text}\n\nWrite ONLY this sub-section, starting with the line \"### {tab['name']}\": "
-                    f"what the tab is for and the steps to use each action.\n\nTAB:\n{tab}\n\nAPP GUIDE:\n{knowledge(user, unit, tab)}", deadline, reasoning="off")
-    if len(text) < MIN_SECTION_CHARS or is_refusal(text, True) or invented_amounts(str(tab), text):   # an amount the app did not give is invented
+        tab_evidence = str(tab)[:2200]
+        app_knowledge = knowledge(user, unit, tab)
+
+        text = _ask(
+            provider, out, instructions,
+            f"REQUEST:\n{user_text}\n\n"
+            f"Write ONLY this sub-section, starting with the line "
+            f"\"### {tab['name']}\": what the tab is for and the steps "
+            f"to use each action.\n\n"
+            f"TAB:\n{tab_evidence}\n\n"
+            f"APP GUIDE:\n{app_knowledge}",
+            deadline, reasoning="off"
+        )
+
+    if len(text) < MIN_SECTION_CHARS or is_refusal(text, True) or invented_amounts(str(tab), text):
         return tab_fallback(tab)
+
     return text if text.lstrip().startswith("###") else f"### {tab['name']}\n\n{text}"
 
 

@@ -13,7 +13,7 @@ from ai.services.investigation.compose_quality import clean_title, norm
 TABS_PER_UNIT = 5
 GETTING_STARTED = {"route": "auth", "title": "Signing up and signing in", "open": "/",
                    "actions": ["Create Account", "Login", "Forgot Password", "Restore Account", "Privacy", "Terms"]}
-KNOWLEDGE_CHARS = 3500
+KNOWLEDGE_CHARS = 1800
 
 
 def units(user) -> list[dict]:
