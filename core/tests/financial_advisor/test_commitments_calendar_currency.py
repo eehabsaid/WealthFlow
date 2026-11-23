@@ -53,3 +53,22 @@ class ConcentrationCurrencyTest(SimpleTestCase):
         a = analyse(events)
         self.assertEqual(a["concentration_windows"][0]["outflow"], 350.0)
         self.assertFalse(a["concentration_incomplete"])
+
+
+class UnconvertedCountTest(SimpleTestCase):
+    def test_occurrences_of_one_commitment_count_once(self):
+        events = [bill(date(2027, m, 5), 1, 100, None, "USD") for m in (1, 2, 3)]
+        a = analyse(events)
+        self.assertEqual(a["unconverted_count"], 1)
+        self.assertTrue(a["concentration_incomplete"])
+
+    def test_different_commitments_count_separately(self):
+        events = [bill(date(2027, 1, 5), 1, 100, None, "USD"), bill(date(2027, 2, 5), 1, 100, None, "USD"),
+                  bill(date(2027, 1, 6), 2, 100, None, "USD"), bill(date(2027, 1, 7), 3, 100, None, "EUR")]
+        self.assertEqual(analyse(events)["unconverted_count"], 3)
+
+    def test_same_source_id_with_different_event_type_counts_separately(self):
+        a = bill(date(2027, 1, 5), 1, 100, None, "USD")
+        b = _make(date(2027, 1, 6), "expense", "insurance_renewal", "expected", "commitments_event_insurance_renewal",
+                  amount=100, amount_base=None, currency_code="USD", source="RecurringTransaction", source_id=1)
+        self.assertEqual(analyse([a, b])["unconverted_count"], 2)
