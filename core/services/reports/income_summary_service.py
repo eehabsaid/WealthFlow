@@ -6,7 +6,12 @@ from decimal import Decimal
 
 from django.db.models import Sum
 
-from core.models import BankCertificate, MonthlyIncomeAdjustment, SalaryEntry
+from core.models import (
+    BankCertificate,
+    BankCertificateInterestHistory,
+    MonthlyIncomeAdjustment,
+    SalaryEntry,
+)
 from core.services.balance.financial_sync_service import FinancialSyncService
 
 MONTH_NAMES = [
@@ -24,11 +29,27 @@ def _certificate_in_period(certificate, start_date, end_date):
 
 
 def _interest_for_period(owner, start_date, end_date):
-    return sum(
-        float(c.interest_value or 0)
-        for c in BankCertificate.objects.filter(owner=owner, status__iexact="Active")
-        if _certificate_in_period(c, start_date, end_date)
-    )
+    total = 0.0
+    for cert in BankCertificate.objects.filter(owner=owner):
+        if not _certificate_in_period(cert, start_date, end_date):
+            continue
+        if str(cert.status or "").strip().lower() == "active":
+            # Active certificates keep the existing rule: their periodic
+            # interest counts for every month they are alive, posted or not.
+            total += float(cert.interest_value or 0)
+        else:
+            # A certificate that is no longer Active (Closed after maturity,
+            # Inactive, ...) must not erase its historical income: recognize
+            # only the interest it actually posted in this period, from its
+            # interest history (one row per posting, never duplicated).
+            total += float(
+                BankCertificateInterestHistory.objects.filter(
+                    certificate=cert,
+                    posting_date__range=(start_date, end_date),
+                ).aggregate(total=Sum("interest_amount"))["total"]
+                or 0
+            )
+    return total
 
 
 def _months_between(start, end):
