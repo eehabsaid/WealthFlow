@@ -1,7 +1,7 @@
 """Export the product documentation (docs/product_docs/content/*.json) to a formatted Word file with a TOC."""
 import json, glob, os
 from docx import Document
-from docx.shared import Pt, RGBColor, Cm
+from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
