@@ -13,9 +13,11 @@
   max-width: 100%;
   overflow-x: hidden;
 }
+
 .commitments-card-body {
   padding: 16px;
 }
+
 .commitments-weekdays,
 .commitments-month-grid,
 .commitments-week-grid {
@@ -23,12 +25,15 @@
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
 }
+
 .commitments-weekdays {
   margin-block-end: 8px;
 }
+
 .commitments-week-grid {
   gap: 8px;
 }
+
 .commitments-weekday {
   min-width: 0;
   text-align: center;
@@ -39,6 +44,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .commitments-day-cell,
 .commitments-week-day {
   min-width: 0;
@@ -46,32 +52,39 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
 }
+
 .commitments-day-cell {
   min-height: 84px;
   padding: 6px;
   cursor: pointer;
 }
+
 .commitments-day-cell.commitments-out-month,
 .commitments-week-day {
   background: var(--bg-secondary);
 }
+
 .commitments-week-day {
   padding: 8px;
   min-height: 120px;
 }
+
 .commitments-day-num {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
   margin-block-end: 3px;
 }
+
 .commitments-today .commitments-day-num {
   font-weight: 800;
   color: var(--accent-primary);
 }
+
 .commitments-chips {
   min-width: 0;
 }
+
 .commitments-chip {
   display: block;
   max-width: 100%;
@@ -86,34 +99,40 @@
   font-size: 0.72rem;
   color: var(--text-primary);
 }
+
 .commitments-more {
   font-size: 0.72rem;
   color: var(--text-secondary);
 }
 
 /* Mobile: compact cells, events as small coloured bars (full text in the day detail on tap). */
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .commitments-card-body {
     padding: 10px;
   }
+
   .commitments-weekdays,
   .commitments-month-grid {
     gap: 3px;
   }
+
   .commitments-weekday {
     font-size: 0.68rem;
   }
+
   .commitments-day-cell {
     min-height: 54px;
     padding: 3px;
     border-radius: 6px;
     overflow: hidden;
   }
+
   .commitments-day-num {
     font-size: 0.7rem;
     text-align: center;
     margin-block-end: 2px;
   }
+
   .commitments-chip {
     height: 5px;
     margin: 0 0 2px;
@@ -125,15 +144,18 @@
     line-height: 0;
     color: transparent;
   }
+
   .commitments-more {
     display: block;
     text-align: center;
     font-size: 0.62rem;
     line-height: 1;
   }
+
   .commitments-week-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .commitments-week-day {
     min-height: 0;
   }
