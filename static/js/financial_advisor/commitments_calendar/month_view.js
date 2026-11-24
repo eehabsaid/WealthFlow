@@ -26,34 +26,32 @@ function _renderCommitmentsMonthView(events) {
       .slice(0, 3)
       .map((e) => {
         const label = _escapeHtml(_commitmentsEventLabel(e));
-        return `<span class="commitments-chip" style="display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; border-inline-start:3px solid ${_commitmentsEventColor(e)}; background:var(--bg-secondary); border-radius:4px; padding:1px 5px; margin:1px; font-size:0.72rem; color:var(--text-primary); white-space:nowrap;" title="${label}">${label}</span>`;
+        return `<span class="commitments-chip" style="--chip-color:${_commitmentsEventColor(e)};" title="${label}">${label}</span>`;
       })
       .join("");
     const more =
-      dayEvents.length > 3
-        ? `<span style="font-size:0.72rem; color:var(--text-secondary);">+${dayEvents.length - 3}</span>`
-        : "";
+      dayEvents.length > 3 ? `<span class="commitments-more">+${dayEvents.length - 3}</span>` : "";
     const isToday = iso === today;
-    cells += `<div class="commitments-day-cell${isToday ? " commitments-today" : ""}"${isToday ? ' aria-current="date"' : ""} data-commitments-day="${iso}" role="button" tabindex="0" aria-label="${_escapeHtml(_commitmentsShowDate(iso))}" style="min-height:84px; background:${inMonth ? "var(--bg-primary)" : "var(--bg-secondary)"}; border:1px solid var(--border-color); border-radius:8px; padding:6px; cursor:pointer;">
-      <div style="font-size:0.75rem; font-weight:${isToday ? 800 : 600}; color:${isToday ? "var(--accent-primary)" : "var(--text-secondary)"}; margin-bottom:3px;">${d.getDate()}</div>
-      ${chips}${more}
+    cells += `<div class="commitments-day-cell${inMonth ? "" : " commitments-out-month"}${isToday ? " commitments-today" : ""}"${isToday ? ' aria-current="date"' : ""} data-commitments-day="${iso}" role="button" tabindex="0" aria-label="${_escapeHtml(_commitmentsShowDate(iso))}">
+      <div class="commitments-day-num">${d.getDate()}</div>
+      <div class="commitments-chips">${chips}${more}</div>
     </div>`;
   }
 
   const headers = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(gridFirst);
     d.setDate(gridFirst.getDate() + i);
-    return `<div style="text-align:center; font-size:0.75rem; font-weight:600; color:var(--text-secondary);">${_escapeHtml(_commitmentsWeekday(d))}</div>`;
+    return `<div class="commitments-weekday">${_escapeHtml(_commitmentsWeekday(d))}</div>`;
   }).join("");
 
   return `
-    <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
-      <div class="card-body" style="padding:16px;">
+    <div class="card border-0 commitments-card">
+      <div class="card-body commitments-card-body">
         <div style="font-weight:700; color:var(--text-primary); margin-bottom:12px; font-size:1.05rem;">
           ${_escapeHtml(_commitmentsMonthYear(first))}
         </div>
-        <div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; margin-bottom:8px;">${headers}</div>
-        <div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;">${cells}</div>
+        <div class="commitments-weekdays">${headers}</div>
+        <div class="commitments-month-grid">${cells}</div>
       </div>
     </div>
     <div id="commitments-day-detail"></div>

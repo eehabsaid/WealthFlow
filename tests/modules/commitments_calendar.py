@@ -3,6 +3,7 @@ WealthFlow QA Module — Financial Commitments Calendar
 Asserts real rendered content (not just that buttons exist). Orchestrator; parts:
   commitments_calendar.py           1-4: tab load, month grid correctness, day detail, month navigation
   commitments_calendar_views.py     5-7: week view, agenda view, Financial Intelligence panel
+  commitments_calendar_mobile.py    phone widths (375/414): equal columns, no overflow, tap opens day detail
   commitments_calendar_today.py     today's box highlighted (month + week)
   commitments_calendar_filters.py   8: category filter, bank filter (real events, API fallback data)
   commitments_calendar_settings.py  9-10: Settings > Reminders (window, first day), Arabic
@@ -11,6 +12,7 @@ Plus: no JavaScript errors while using the calendar, and the user's settings are
 """
 
 from tests.modules.commitments_calendar_filters import run_filters
+from tests.modules.commitments_calendar_mobile import run_mobile_layout
 from tests.modules.commitments_calendar_settings import run_settings_language
 from tests.modules.commitments_calendar_state import read_settings, restore_settings
 from tests.modules.commitments_calendar_today import run_today_highlight
@@ -51,6 +53,7 @@ def test_commitments_calendar_module(context, reporter, screenshot_logger):
 
         run_month_sections(context, step, shot, state)
         run_today_highlight(context, step, shot)
+        run_mobile_layout(context, step, shot)
         run_week_agenda_risk(context, step, shot, state)
         run_filters(context, step, shot, state)
         run_settings_language(context, step, shot, state)

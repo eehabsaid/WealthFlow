@@ -13,7 +13,7 @@ function _renderCommitmentsWeekView(events) {
     const iso = _commitmentsLocalISO(d);
     const dayEvents = byDate[iso] || [];
     const isToday = iso === today;
-    return `<div class="commitments-week-day${isToday ? " commitments-today" : ""}"${isToday ? ' aria-current="date"' : ""} data-commitments-week-day="${iso}" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:8px; min-height:120px;">
+    return `<div class="commitments-week-day${isToday ? " commitments-today" : ""}"${isToday ? ' aria-current="date"' : ""} data-commitments-week-day="${iso}">
         <div style="font-weight:700; color:var(--text-primary); font-size:0.85rem;">${_escapeHtml(_commitmentsWeekday(d))}</div>
         <div style="color:var(--text-secondary); font-size:0.72rem; margin-bottom:6px;">${_escapeHtml(_commitmentsShowDate(iso))}</div>
         ${dayEvents.length ? dayEvents.map((e) => _commitmentsEventCard(e, true)).join("") : `<div style="color:var(--text-secondary); font-size:0.78rem;">${_escapeHtml(t("commitments_day_empty"))}</div>`}
@@ -21,9 +21,9 @@ function _renderCommitmentsWeekView(events) {
   }).join("");
 
   return `
-    <div class="card border-0" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
-      <div class="card-body" style="padding:16px;">
-        <div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:8px;">${cols}</div>
+    <div class="card border-0 commitments-card">
+      <div class="card-body commitments-card-body">
+        <div class="commitments-week-grid">${cols}</div>
       </div>
     </div>
   `;
