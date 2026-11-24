@@ -43,7 +43,8 @@ def run_week_agenda_risk(context, step, shot, state):
     agenda = eval_js(context, """(() => {
       const rows = Array.from(document.querySelectorAll('.commitments-agenda-row'));
       const label = t('commitments_projected_balance');
-      const digits = (x) => String(x).replace(/[^0-9]/g, '');
+      const ascii = (x) => String(x).replace(/[\\u0660-\\u0669]/g, (c) => c.charCodeAt(0) - 0x0660).replace(/[\\u06F0-\\u06F9]/g, (c) => c.charCodeAt(0) - 0x06F0);
+      const digits = (x) => ascii(x).replace(/[^0-9]/g, '');
       const bad = [];
       let checked = 0;
       _commitmentsData.events.forEach((e, i) => {
@@ -52,7 +53,7 @@ def run_week_agenda_risk(context, step, shot, state):
         const cell = rows[i].children[2].children[1].innerText;
         const value = cell.replace(label, '').trim();
         const okLabel = cell.includes(label);
-        const okNumber = /\\d/.test(value) && !/NaN|undefined|null/.test(value) && digits(value) === digits(_money(e.projected_balance));
+        const okNumber = /\\d/.test(ascii(value)) && !/NaN|undefined|null/.test(value) && digits(value) === digits(_money(e.projected_balance));
         if (!okLabel || !okNumber) bad.push(e.date + ' ' + e.event_type + ' payload=' + e.projected_balance + ' shown=' + cell);
       });
       return {
