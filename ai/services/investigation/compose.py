@@ -15,7 +15,6 @@ a reply the limit still cut off is never trusted: the half-written last tab is r
 
 from __future__ import annotations
 
-import logging
 import time
 
 from ai.services.investigation.actions import strip_think
@@ -24,7 +23,7 @@ from ai.services.domains import APP
 from ai.services.protocol import ABOUT_APP_PROMPT, log_reply, parse_yes_no
 
 from ai.services.investigation.compose_flatten import STYLE_RULE, ensure_steps_document, tidy
-from ai.services.investigation.compose_quality import norm, replace_blocks, report, sanitize, thin_tabs
+from ai.services.investigation.compose_quality import norm, replace_blocks, sanitize, thin_tabs
 from ai.services.investigation.compose_sections import dedupe_headings, knowledge, missing_tabs, section_heading, tab_fallback, units
 from ai.services.investigation.compose_title import guide_title, with_app_name
 from ai.services.investigation.compose_figures import invented_amounts
@@ -32,19 +31,10 @@ from ai.services.investigation.compose_language import target_language, uses_lat
 from ai.services.investigation.compose_translate import translate_markdown
 from ai.services.investigation.doc_path import choose_path, is_standalone_html_code, log_path
 from ai.services.investigation.refusal import is_refusal
+from .compose_helpers import _qa, _without_partial_tab, MIN_DOC_CHARS, generated_file, needs_document, logger, drop_model_drafts
 
-MIN_DOC_CHARS = 1500      # a real guide/report is longer than this; shorter text is an announcement or a stub
+
 MIN_ACCEPT_CHARS, MIN_SECTION_CHARS, TIMEOUT_S = 400, 120, 240
-
-
-
-def generated_file(steps: list) -> bool:
-    return any(s.get("tool") == "generate_file" and s.get("status") == "success" for s in steps or [])
-
-
-def needs_document(out) -> bool:
-    """No file was generated and the answer is a stub, or the model's generate_file call was cut off (its text is a partial document)."""
-    return not generated_file(out.steps) and (len((out.content or "").strip()) < MIN_DOC_CHARS or out.reason == "truncated_call")
 
 
 def _ask(provider, out, system: str, user_content: str, deadline: float, temperature: float = 0.2, reasoning: str = "on") -> str:
@@ -69,13 +59,6 @@ def _ask(provider, out, system: str, user_content: str, deadline: float, tempera
     return strip_think(res.get("content")).strip()
 
 
-def _without_partial_tab(text: str) -> str:
-    """A section the output limit cut off ends inside its last tab: that tab is dropped (missing_tabs then rewrites it alone)."""
-    lines = text.splitlines()
-    heads = [i for i, line in enumerate(lines) if line.lstrip().startswith("#")]
-    return "\n".join(lines[:heads[-1]]).rstrip() if len(heads) > 1 else text
-
-
 def _about_the_app(provider, user_text: str, out, deadline: float) -> bool:
     """The one-word question; an answer that is neither YES nor NO (empty) is asked once more with reasoning on."""
     for reasoning in ("off", "on"):
@@ -85,16 +68,6 @@ def _about_the_app(provider, user_text: str, out, deadline: float) -> bool:
         if answer is not None:
             break
     return bool(answer)
-
-
-logger = logging.getLogger("ai.pipeline")
-
-
-def _qa(markdown: str, language: str = "") -> str:
-    """The guide, with its quality report in the log (a non-zero count means the gate could not repair something)."""
-    found = report(markdown)
-    (logger.warning if any(v for k, v in found.items() if k != "chapters") else logger.info)("[AI-GUIDE-QA] %s language=%s", found, language or "en")
-    return markdown
 
 
 def _tab_section(provider, user, user_text: str, out, unit: dict, tab: dict, instructions: str, deadline: float) -> str:
@@ -158,15 +131,6 @@ def _single(provider, user_text: str, out, instructions: str, ctx_chars: int, de
     return text if len(text) >= MIN_ACCEPT_CHARS and not is_refusal(text, True) else ""
 
 
-def drop_model_drafts(steps: list) -> None:
-    """The app wrote the guide itself: the text the model put in its own generate_file calls is not the file's content any more
-    (the download is built from the saved answer). Datasets and tables the calls carry stay."""
-    for step in steps or []:
-        args = step.get("arguments") if step.get("tool") == "generate_file" else None
-        if isinstance(args, dict):
-            args.pop("content", None)
-
-
 def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user=None, progress=None, guide_only: bool = False, domain: str = "",
                      cancel_check=None, strict: bool = False) -> str:
     """The full document text, or "" when the model could not produce one (the caller keeps the original answer).
@@ -209,3 +173,23 @@ def compose_document(provider, user_text: str, out, ctx_chars: int = 24000, user
         return ""
     doc = _single(provider, user_text, out, instructions, ctx_chars, deadline)
     return "" if out.cancelled else doc
+
+
+__all__ = [
+    "_qa",
+    "_without_partial_tab",
+    "MIN_DOC_CHARS",
+    "generated_file",
+    "needs_document",
+    "logger",
+    "drop_model_drafts",
+    "MIN_ACCEPT_CHARS",
+    "MIN_SECTION_CHARS",
+    "TIMEOUT_S",
+    "_ask",
+    "_about_the_app",
+    "_tab_section",
+    "_guide",
+    "_single",
+    "compose_document",
+]
