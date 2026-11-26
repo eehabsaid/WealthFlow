@@ -75,9 +75,12 @@ async function renderEmploymentPage(companyId = null) {
             </div>
         </div>
 
-        <div class="wf-tabs-shell">
-            <div class="wf-tabs-row" id="employmentTabsRow" role="tablist">
-                ${tabsHtml}
+        <div>
+            <div class="employment-section-label" data-i18n="employment_employer_label">Employer</div>
+            <div class="wf-tabs-shell">
+                <div class="wf-tabs-row" id="employmentTabsRow" role="tablist">
+                    ${tabsHtml}
+                </div>
             </div>
         </div>
 
@@ -165,7 +168,10 @@ async function loadEmployerTabContent(companyId) {
   const activeYear = years[years.length - 1] || new Date().getFullYear();
 
   container.innerHTML = `
-        <div class="year-pills" id="yearPills"></div>
+        <div class="salary-year-row">
+            <span class="employment-section-label" data-i18n="employment_year_label">Year</span>
+            <div class="year-pills" id="yearPills"></div>
+        </div>
         <div id="salaryTableArea"></div>`;
 
   renderYearPills(years, activeYear, companyId);

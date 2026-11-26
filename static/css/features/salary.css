@@ -1,1 +1,127 @@
-/* Reserved for future salary-specific styles. Currently unused — not linked in any template. */
+/* Employment page — employer-centric dashboard styles. */
+
+/* ── Section labels (Employer / Year) ── */
+.employment-section-label {
+  margin: 0 0 8px 2px;
+  font-family: var(--font-family-display);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+/* ── Year selector row (label + pills) ── */
+.salary-year-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.salary-year-row .employment-section-label {
+  margin: 0;
+}
+
+.salary-year-row .year-pills {
+  margin-bottom: 0;
+}
+
+/* ── KPI summary cards (selected year) ── */
+.salary-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.salary-summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 12px);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.salary-summary-card .salary-summary-label {
+  font-family: var(--font-family-display);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.salary-summary-card .salary-summary-value {
+  font-family: var(--font-family-display);
+  font-size: clamp(18px, 1.6vw + 12px, 24px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+@media (width <= 900px) {
+  .salary-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Salary table ── */
+/* Amounts in one column align vertically for easy scanning/comparison */
+.salary-table-card .data-table td.text-end {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Paid months get a quiet green tint so they stand out at a glance */
+.salary-table-card .data-table tbody tr.salary-row-paid td {
+  background: color-mix(in srgb, var(--accent-green) 6%, transparent);
+}
+
+.salary-table-card .data-table tbody tr.salary-row-paid:hover td {
+  background: color-mix(in srgb, var(--accent-green) 10%, var(--bg-card-hover));
+}
+
+.salary-empty-row td {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 30px 16px;
+}
+
+/* ── Collapsible "How it works" help ── */
+.salary-help {
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md, 12px);
+  padding: 0 16px;
+  font-size: 13px;
+}
+
+.salary-help summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent-primary);
+  padding: 10px 0;
+  user-select: none;
+}
+
+.salary-help summary::-webkit-details-marker {
+  display: none;
+}
+
+.salary-help summary::before {
+  content: "▸ ";
+}
+
+.salary-help[open] summary::before {
+  content: "▾ ";
+}
+
+.salary-help ul {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}

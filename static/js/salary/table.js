@@ -17,12 +17,18 @@ function renderSalaryTable(allEntries, year, companyId) {
     totRemaining += e.remaining;
   });
 
+  const isEntryPaid = (e) => {
+    const exp = parseFloat(String(e.expected).replace(/,/g, ""));
+    const paid = parseFloat(String(e.paid).replace(/,/g, ""));
+    return exp > 0 && Math.abs(exp - paid) < 0.01;
+  };
+
   const rows = entries
     .map(
       (e) => `
-        <tr>
+        <tr${isEntryPaid(e) ? ' class="salary-row-paid"' : ""}>
             <td>
-                <input type="checkbox" class="form-check-input" ${parseFloat(String(e.expected).replace(/,/g, "")) > 0 && Math.abs(parseFloat(String(e.expected).replace(/,/g, "")) - parseFloat(String(e.paid).replace(/,/g, ""))) < 0.01 ? 'checked="checked" style="background-color: var(--bs-primary) !important; border-color: var(--bs-primary) !important;"' : ""} onchange="toggleSalaryPaid(${e.id}, this.checked, ${companyId})">
+                <input type="checkbox" class="form-check-input" ${isEntryPaid(e) ? 'checked="checked" style="background-color: var(--bs-primary) !important; border-color: var(--bs-primary) !important;"' : ""} onchange="toggleSalaryPaid(${e.id}, this.checked, ${companyId})">
             </td>
             <td>${e.month}</td>
             <td class="text-end">${fmt(e.expected)}</td>
@@ -43,12 +49,16 @@ function renderSalaryTable(allEntries, year, companyId) {
     )
     .join("");
 
-  const emptyRow = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px">
-        No entries for this year.</td></tr>`;
+  const emptyRow = `<tr class="salary-empty-row"><td colspan="7" data-i18n="salary_no_entries">No entries for this year.</td></tr>`;
 
   area.innerHTML = `
-        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);
-                    border-radius:12px;overflow:visible">
+        <div class="salary-summary-grid">
+            ${salarySummaryCard("salary_expected", fmt(totExp), "var(--accent-primary)")}
+            ${salarySummaryCard("salary_paid", fmt(totPaid), "var(--accent-green)")}
+            ${salarySummaryCard("salary_bonus", fmt(totBonus), "var(--accent-yellow)")}
+            ${salarySummaryCard("salary_remaining", fmt(totRemaining), totRemaining > 0 ? "var(--accent-red)" : "var(--text-muted)")}
+        </div>
+        <div class="surface-panel surface-panel--flush salary-table-card">
             <div class="table-container">
             <table class="data-table">
                 <thead><tr>
@@ -73,16 +83,26 @@ function renderSalaryTable(allEntries, year, companyId) {
             </div>
         </div>
         
-        <div class="alert alert-info py-3 px-4 mt-4" style="border: 1px solid rgba(13, 110, 253, 0.25); background: rgba(13, 110, 253, 0.05); color: var(--text-primary); border-radius: 12px;">
-            <h6 style="color: var(--accent-primary); font-weight: 700; margin-bottom: 10px;">✓ How it works:</h6>
-            <ul style="margin-bottom: 0; padding-left: 20px; font-size: 13px; line-height: 1.6; color: var(--text-secondary);">
-                <li>Check the ✓ box to mark salary as paid</li>
-                <li>Unchecking reverses the payment (removes from bank balance)</li>
-                <li>Payment goes to the default bank configured for this company</li>
-                <li>"Generate Current Month" creates entries for missing months</li>
-                <li>Uses current_salary_amount from company payroll config</li>
+        <details class="salary-help">
+            <summary data-i18n="salary_how_it_works">How it works</summary>
+            <ul>
+                <li data-i18n="salary_how_1">Check the ✓ box to mark a month as paid</li>
+                <li data-i18n="salary_how_2">Unchecking reverses the payment and removes it from the bank balance</li>
+                <li data-i18n="salary_how_3">Payment is credited to the default bank set for this company</li>
+                <li data-i18n="salary_how_4">"Generate Current Month" creates entries for missing months</li>
+                <li data-i18n="salary_how_5">Uses the current salary amount from the company's payroll settings</li>
             </ul>
-        </div>`;
+        </details>`;
 
   applyTranslations();
+}
+
+// ── KPI summary card (selected year) ──────────────────────────────────────
+function salarySummaryCard(labelKey, value, color) {
+  const label = typeof t === "function" ? t(labelKey, labelKey) : labelKey;
+  return `
+        <div class="salary-summary-card">
+            <div class="salary-summary-label" data-i18n="${labelKey}">${label}</div>
+            <div class="salary-summary-value" style="color:${color}">${value}</div>
+        </div>`;
 }
