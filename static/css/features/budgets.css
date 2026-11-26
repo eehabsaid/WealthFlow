@@ -1,0 +1,158 @@
+/* Budgets & Recurring Transactions page — KPI cards, budget/recurring card
+   hierarchy, over-budget emphasis, status chips, alerts visibility.
+   Theme tokens: static/css/theme/tokens.css (--accent-*, --bg-card, ...). */
+
+/* ── KPI cards ─────────────────────────────────────────────────────────── */
+
+.budgets-kpi-row .kpi-card {
+  margin-bottom: 0;
+  padding: 16px 18px;
+}
+
+.budgets-kpi .kpi-label {
+  margin-bottom: 6px;
+}
+
+.budgets-kpi .kpi-value {
+  font-size: clamp(22px, 1.6vw + 12px, 28px);
+}
+
+.budgets-kpi-alert .kpi-value {
+  color: var(--accent-red, #ff4d6d);
+}
+
+.budgets-kpi-alert::before {
+  background: linear-gradient(90deg, transparent, rgb(255 77 109 / 45%), transparent);
+}
+
+/* ── Budget cards ──────────────────────────────────────────────────────── */
+
+.budget-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 12px);
+  transition:
+    border-color var(--transition-fast, 0.15s ease),
+    box-shadow var(--transition-fast, 0.15s ease);
+}
+
+.budget-card:hover {
+  border-color: var(--border-strong, var(--border-color));
+  box-shadow: var(--shadow-card, 0 2px 8px rgb(0 0 0 / 8%));
+}
+
+.budget-card .progress {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg-hover, rgb(127 127 127 / 14%));
+  overflow: hidden;
+}
+
+.budget-card .progress-bar {
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.budget-card-over {
+  border-color: var(--accent-red, #ff4d6d);
+  box-shadow: 0 0 0 3px var(--accent-rose-light, rgb(255 77 109 / 14%));
+}
+
+.budget-card-over .progress {
+  background: var(--accent-rose-light, rgb(255 77 109 / 14%));
+}
+
+/* ── Recurring transaction cards ───────────────────────────────────────── */
+
+.recurring-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 12px);
+  transition:
+    border-color var(--transition-fast, 0.15s ease),
+    box-shadow var(--transition-fast, 0.15s ease);
+}
+
+.recurring-card:hover {
+  border-color: var(--border-strong, var(--border-color));
+  box-shadow: var(--shadow-card, 0 2px 8px rgb(0 0 0 / 8%));
+}
+
+.recurring-card-overdue {
+  border-color: var(--accent-red, #ff4d6d);
+}
+
+/* Status chips */
+.rec-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.rec-status-inactive {
+  color: var(--text-muted, #6b7280);
+  background: var(--bg-hover, rgb(127 127 127 / 14%));
+}
+
+.rec-status-due-soon {
+  color: var(--accent-amber, #ffd166);
+  background: var(--accent-amber-light, rgb(255 209 102 / 14%));
+}
+
+.rec-status-overdue {
+  color: var(--accent-red, #ff4d6d);
+  background: var(--accent-rose-light, rgb(255 77 109 / 14%));
+}
+
+/* ── Alerts card ───────────────────────────────────────────────────────── */
+
+.budgets-alerts-card {
+  border: 1px solid var(--border-color);
+  border-inline-start: 3px solid var(--accent-amber, #ffd166);
+  border-radius: var(--radius-md, 12px);
+}
+
+.budgets-alerts-card h6 {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+/* ── Recurring transaction modal: header & footer stay put, body scrolls ──
+   Scoped to the recurring modal only (it is the only modal with #rActive).
+   Flex column with a bounded height guarantees the Active checkbox can never
+   end up behind the footer on any screen size. */
+
+#globalModal .modal-content:has(#rActive) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#globalModal .modal-content:has(#rActive) .modal-header,
+#globalModal .modal-content:has(#rActive) .modal-footer {
+  flex: 0 0 auto;
+}
+
+#globalModal .modal-content:has(#rActive) .modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ── Small screens ─────────────────────────────────────────────────────── */
+
+@media (width <= 575px) {
+  .budgets-kpi-row .kpi-card {
+    padding: 12px 14px;
+  }
+
+  .budgets-kpi .kpi-value {
+    font-size: 20px;
+  }
+
+  .rec-status {
+    padding: 2px 6px;
+  }
+}

@@ -20,6 +20,51 @@ function _budgetAlertHtml(alert) {
   return `<div class="d-flex align-items-center gap-2 py-1"><i class="bi ${iconByType[alert.type] || "bi-info-circle"}"></i><span>${text}</span></div>`;
 }
 
+function _todayIso(offsetDays = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+function _budgetKpis(budgets, recurring) {
+  const today = _todayIso(0);
+  const week = _todayIso(7);
+  let active = 0;
+  let over = 0;
+  let dueSoon = 0;
+  let overdue = 0;
+  for (const b of budgets) {
+    if (!b.is_active) continue;
+    active += 1;
+    if ((b.percent_used || 0) >= 100) over += 1;
+  }
+  for (const r of recurring) {
+    if (!r.is_active || !r.next_run_date) continue;
+    if (r.next_run_date < today) overdue += 1;
+    else if (r.next_run_date <= week) dueSoon += 1;
+  }
+  return { active, over, dueSoon, overdue };
+}
+
+function _budgetKpiCardsHtml(k) {
+  const card = (labelKey, label, value, cls, subKey, subText) => `
+    <div class="col-6 col-xl-3">
+      <div class="kpi-card budgets-kpi ${cls}">
+        <div class="kpi-label" data-i18n="${labelKey}">${label}</div>
+        <div class="kpi-value">${value}</div>
+        ${subKey ? `<div class="kpi-sub" data-i18n="${subKey}">${subText}</div>` : ""}
+      </div>
+    </div>`;
+  return `
+    <div class="row g-3 mb-3 budgets-kpi-row">
+      ${card("budgets_kpi_active", t("budgets_kpi_active", "Active Budgets"), k.active, "")}
+      ${card("budgets_kpi_over", t("budgets_kpi_over", "Over Budget"), k.over, k.over > 0 ? "budgets-kpi-alert" : "")}
+      ${card("budgets_kpi_due_soon", t("budgets_kpi_due_soon", "Due Soon"), k.dueSoon, "", "budgets_kpi_due_soon_sub", t("budgets_kpi_due_soon_sub", "next 7 days"))}
+      ${card("budgets_kpi_overdue", t("budgets_kpi_overdue", "Overdue"), k.overdue, k.overdue > 0 ? "budgets-kpi-alert" : "")}
+    </div>`;
+}
+
 function _budgetRowHtml(b) {
   const percent = Math.min(b.percent_used || 0, 100);
   const barClass =
@@ -28,8 +73,9 @@ function _budgetRowHtml(b) {
       : b.percent_used >= b.alert_threshold_percent
         ? "bg-warning"
         : "bg-success";
+  const over = (b.percent_used || 0) >= 100;
   return `
-    <div class="card mb-2" style="background:var(--bg-secondary);border:1px solid var(--border-color)">
+    <div class="card mb-2 budget-card${over ? " budget-card-over" : ""}" style="background:var(--bg-secondary)">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start">
           <div>
@@ -53,15 +99,27 @@ function _budgetRowHtml(b) {
 }
 
 function _recurringRowHtml(r) {
+  const today = _todayIso(0);
+  const week = _todayIso(7);
+  let status = "";
+  let isOverdue = false;
+  if (!r.is_active) {
+    status = `<span class="rec-status rec-status-inactive" data-i18n="recurring_inactive">Inactive</span>`;
+  } else if (r.next_run_date && r.next_run_date < today) {
+    isOverdue = true;
+    status = `<span class="rec-status rec-status-overdue" data-i18n="overdue">Overdue</span>`;
+  } else if (r.next_run_date && r.next_run_date <= week) {
+    status = `<span class="rec-status rec-status-due-soon" data-i18n="recurring_status_due_soon">Due soon</span>`;
+  }
   return `
-    <div class="card mb-2" style="background:var(--bg-secondary);border:1px solid var(--border-color)">
+    <div class="card mb-2 recurring-card${isOverdue ? " recurring-card-overdue" : ""}" style="background:var(--bg-secondary)">
       <div class="card-body d-flex justify-content-between align-items-center">
         <div>
           <strong>${r.name}</strong>
           <div class="text-secondary" style="font-size:12px">
             ${r.amount} ${r.currency_code} · <span data-i18n="frequency_${r.frequency}">${r.frequency}</span>
             · <span data-i18n="recurring_next_run">Next</span>: ${r.next_run_date}
-            ${r.is_active ? "" : `· <span class="text-danger" data-i18n="recurring_inactive">Inactive</span>`}
+            ${status ? ` · ${status}` : ""}
           </div>
         </div>
         <div class="d-flex gap-2">
@@ -98,11 +156,13 @@ async function renderBudgets() {
   window._expCurrencies = (await curRes.json()).currencies || [];
   window._expBanks = ((await bankRes.json()).banks || []).filter((b) => b.is_active !== false);
 
+  const kpis = _budgetKpis(budgets, recurring);
   mc.innerHTML = `
     <div class="container-fluid p-3">
+      ${_budgetKpiCardsHtml(kpis)}
       ${
         alerts.length
-          ? `<div class="card mb-3" style="background:var(--bg-secondary);border:1px solid var(--border-color)">
+          ? `<div class="card mb-3 budgets-alerts-card" style="background:var(--bg-secondary)">
               <div class="card-body">
                 <h6 data-i18n="budget_alerts">Alerts</h6>
                 ${alerts.map(_budgetAlertHtml).join("")}
