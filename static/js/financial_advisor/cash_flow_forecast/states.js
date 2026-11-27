@@ -28,6 +28,7 @@ function _renderCashFlowError() {
 }
 
 function _buildCashFlowCardsHtml(cp) {
+  const current = Number(cp.current || 0);
   const cards = [
     { key: "cash_flow_card_current", value: cp.current || 0 },
     { key: "cash_flow_card_next_month", value: cp.next_month || 0 },
@@ -37,27 +38,44 @@ function _buildCashFlowCardsHtml(cp) {
   ];
 
   return cards
-    .map(
-      (card) => `
+    .map((card, index) => {
+      let deltaHtml;
+      if (index === 0) {
+        deltaHtml = `<div class="cash-flow-card-delta" data-i18n="cash_flow_card_available_now"></div>`;
+      } else {
+        const delta = Number(card.value || 0) - current;
+        const sign = delta >= 0 ? "+" : "-";
+        deltaHtml = `<div class="cash-flow-card-delta ${
+          delta >= 0 ? "is-positive" : "is-negative"
+        }">${sign}${_money(Math.abs(delta))} <span data-i18n="cash_flow_card_delta_suffix"></span></div>`;
+      }
+      return `
     <div class="col-12 col-sm-6 col-xl">
       <div class="asset-summary-card h-100" style="background:var(--bg-secondary);">
         <div class="asset-summary-label" data-i18n="${card.key}"></div>
         <div class="asset-summary-value">${_money(card.value)}</div>
+        ${deltaHtml}
       </div>
     </div>
-  `
-    )
+  `;
+    })
     .join("");
 }
 
 function _buildCashFlowWarningsHtml(warnings) {
-  return warnings
-    .map(
-      (warning) => `
-    <div class="alert alert-${warning.level || "secondary"}" style="background:var(--bg-secondary); border-color:var(--border-color); color:var(--text-primary); margin-bottom:10px;">
-      <span data-i18n="${warning.key}"></span>
+  return `
+    <div class="cash-flow-status-strip">
+      ${warnings
+        .map(
+          (warning) => `
+        <div class="cash-flow-status-strip-row is-${warning.level || "secondary"}">
+          <span class="cash-flow-status-dot"></span>
+          <span data-i18n="${warning.key}"></span>
+          <a href="#cash_flow_custom_projection_container" data-i18n="cash_flow_status_explore"></a>
+        </div>
+      `
+        )
+        .join("")}
     </div>
-  `
-    )
-    .join("");
+  `;
 }

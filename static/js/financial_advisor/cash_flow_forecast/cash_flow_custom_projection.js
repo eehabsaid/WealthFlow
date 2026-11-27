@@ -179,6 +179,7 @@ function _renderCustomProjectionEventsAndResult() {
       <div style="color:var(--text-secondary); font-size:12px; margin-top:4px;">
         ${dateFmt.format(new Date(state.targetDate))}
       </div>
+      <div style="color:var(--text-muted); font-size:11px; margin-top:2px;" data-i18n="cash_flow_custom_based_on"></div>
     </div>
     <div style="color:var(--text-secondary); font-size:12px; margin-bottom:6px;" data-i18n="cash_flow_custom_events_label"></div>
     <div>${eventsHtml}</div>

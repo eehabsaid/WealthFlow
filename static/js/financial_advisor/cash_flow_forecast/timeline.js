@@ -28,10 +28,18 @@ function _buildCashFlowTimelineHtml(timeline) {
               const isPositive = Number(event.amount || 0) >= 0;
               const sign = isPositive ? "+" : "-";
               const amountText = _money(Math.abs(Number(event.amount || 0)));
+              const eventDate = event.date
+                ? new Intl.DateTimeFormat(langCode, { month: "short", day: "numeric" }).format(
+                    new Date(event.date)
+                  )
+                : "";
               return `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border-color);">
-              <span style="color:var(--text-primary);" data-i18n="${_eventTranslationKey(event.type)}"></span>
-              <span style="color:var(--text-secondary); font-weight:600;">${sign}${amountText}</span>
+            <div class="cash-flow-event-row">
+              <span class="cash-flow-event-date">${eventDate}</span>
+              <span class="cash-flow-event-name" data-i18n="${_eventTranslationKey(event.type)}"></span>
+              <span class="cash-flow-event-amount ${
+                isPositive ? "is-positive" : "is-negative"
+              }">${sign}${amountText}</span>
             </div>
           `;
             })
@@ -56,8 +64,11 @@ function _buildCashFlowTimelineHtml(timeline) {
                 <span style="color:var(--text-primary); font-weight:700;">${monthLabel}</span>
                 ${maturityBadgeHtml}
               </div>
-              <div style="color:var(--text-secondary); font-size:12px; display:flex; align-items:center; gap:8px;">
-                <span>${_money(month.ending_cash || 0)}</span>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="text-align:end;">
+                  <div style="color:var(--text-secondary); font-size:10px;" data-i18n="cash_flow_timeline_closing"></div>
+                  <div style="color:var(--text-primary); font-weight:600; font-size:13px;">${_money(month.ending_cash || 0)}</div>
+                </div>
                 <svg class="toggle-icon" style="transition: transform 0.2s; fill:currentColor; width:16px; height:16px;" viewBox="0 0 16 16">
                   <path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
                 </svg>

@@ -1,0 +1,174 @@
+/*
+ * Cash Flow tab (Financial Advisor) — page-level styles for the redesigned
+ * layout: checkpoint card deltas, forecast status strip, balance chart card,
+ * forecast status panel rows, and timeline event rows.
+ * Theme variables only — no hardcoded palette colors.
+ */
+
+/* Checkpoint cards: delta line under the value */
+.cash-flow-card-delta {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cash-flow-card-delta.is-positive {
+  color: var(--positive);
+}
+
+.cash-flow-card-delta.is-negative {
+  color: var(--negative);
+}
+
+/* Forecast status strip (existing warnings[], restyled) */
+.cash-flow-status-strip {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+}
+
+.cash-flow-status-strip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.cash-flow-status-strip-row + .cash-flow-status-strip-row {
+  border-top: 1px solid var(--border-color);
+}
+
+.cash-flow-status-strip-row a {
+  margin-inline-start: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cash-flow-status-strip-row a:hover {
+  text-decoration: underline;
+}
+
+.cash-flow-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--text-muted);
+}
+
+.cash-flow-status-strip-row.is-success .cash-flow-status-dot {
+  background: var(--positive);
+}
+
+.cash-flow-status-strip-row.is-warning .cash-flow-status-dot {
+  background: var(--warning);
+}
+
+.cash-flow-status-strip-row.is-danger .cash-flow-status-dot {
+  background: var(--negative);
+}
+
+/* Balance chart card */
+.cash-flow-chart-wrap {
+  position: relative;
+  height: 280px;
+}
+
+@media (width <= 575.98px) {
+  .cash-flow-chart-wrap {
+    height: 220px;
+  }
+}
+
+/* Forecast status panel rows */
+.cash-flow-status-row {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-inline-start: 3px solid var(--border-strong, var(--border-color));
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cash-flow-status-row b {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.cash-flow-status-row span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.cash-flow-status-row a {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+.cash-flow-status-row a:hover {
+  text-decoration: underline;
+}
+
+.cash-flow-status-row.is-good {
+  border-inline-start-color: var(--positive);
+}
+
+.cash-flow-status-row.is-warn {
+  border-inline-start-color: var(--warning);
+}
+
+/* Timeline event rows: date | name | amount */
+.cash-flow-event-row {
+  display: grid;
+  grid-template-columns: 84px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--border-color);
+  font-size: 13px;
+}
+
+.cash-flow-event-date {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.cash-flow-event-name {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cash-flow-event-amount {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.cash-flow-event-amount.is-positive {
+  color: var(--positive);
+}
+
+.cash-flow-event-amount.is-negative {
+  color: var(--negative);
+}
+
+@media (width <= 400px) {
+  .cash-flow-event-row {
+    grid-template-columns: 64px 1fr auto;
+    gap: 6px;
+  }
+}
