@@ -110,7 +110,7 @@ async function renderExpenses() {
         <div class="kpi-card" style="--kpi-accent:var(--accent-yellow);--kpi-bg:var(--accent-yellow-bg)">
           <div class="kpi-icon"><i class="bi bi-calendar-day"></i></div>
           <div class="kpi-label" data-i18n="daily_average">Daily Average</div>
-          <div class="kpi-value">${fmt(avgDaily)}</div>
+          <div class="kpi-value">${fmtMoney(avgDaily)}</div>
           <div class="kpi-sub"><span data-i18n="base_currency_code">${baseCurrencyCode()}</span> / <span data-i18n="day">day</span></div>
         </div>
       </div>
@@ -146,9 +146,9 @@ async function renderExpenses() {
         ${categories.map((c) => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("")}
       </select>
       <div style="position:relative;flex:1;min-width:180px">
-        <i class="bi bi-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+        <i class="bi bi-search" style="position:absolute;inset-inline-start:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
         <input type="text" id="fSearch" class="form-control form-control-sm"
-               placeholder="Search..." data-i18n-placeholder="search_placeholder" style="padding-left:32px"
+               placeholder="Search..." data-i18n-placeholder="search_placeholder" style="padding-inline-start:32px"
                oninput="applyExpenseFilters()">
       </div>
       <button class="btn-secondary-custom" onclick="exportExpenses()" style="padding:5px 12px;font-size:12px">

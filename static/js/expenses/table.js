@@ -3,6 +3,15 @@
 // monolith. See index.js header comment for the sibling list.
 "use strict";
 
+// Payment-method pill meta (visual only — value display is unchanged).
+const EXP_METHOD_META = {
+  Cash: { cls: "cash", icon: "bi-cash-coin" },
+  Card: { cls: "card", icon: "bi-credit-card" },
+  Bank: { cls: "bank", icon: "bi-bank" },
+  "Bank Transfer": { cls: "bank-transfer", icon: "bi-arrow-left-right" },
+  Other: { cls: "other", icon: "bi-receipt" },
+};
+
 function renderExpenseTableHTML(entries) {
   if (!entries.length) {
     return `<div class="empty-state">
@@ -15,22 +24,22 @@ function renderExpenseTableHTML(entries) {
       </div></div>`;
   }
   const rows = entries
-    .map(
-      (e) => `
+    .map((e) => {
+      const m = EXP_METHOD_META[e.payment_method] || { cls: "other", icon: "bi-receipt" };
+      return `
     <tr>
-      <td>${formatDate(e.date)}</td>
-      <td><span style="background:${e.category_color}22;color:${e.category_color};
-                       padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700">
+      <td class="exp-date" data-label="${t("date", "Date")}">${formatDate(e.date)}</td>
+      <td data-label="${t("category", "Category")}"><span class="exp-cat-pill" style="background:${e.category_color}22;color:${e.category_color}">
         ${e.category_icon} ${e.category_name || "—"}
       </span></td>
-      <td style="color:var(--text-muted);font-size:12px">${e.subcategory_name || "—"}</td>
-      <td>${e.description || "—"}${e.is_readonly ? ` <i class="bi bi-link-45deg" style="color:var(--text-muted)" title="${t("linked_asset_record", "Linked to a fixed asset record")}"></i>` : ""}</td>
-      <td><span style="font-size:11px;color:var(--text-muted)">${e.payment_method || "—"}</span></td>
-      <td class="text-end num-col amt-negative">${fmt(e.amount)} <span style="font-size:10px;color:var(--text-muted)">${e.currency_code}</span></td>
-      <td style="white-space:nowrap">
+      <td class="exp-subcat" data-label="${t("subcategory", "Subcategory")}">${e.subcategory_name || "—"}</td>
+      <td class="exp-desc-cell" data-label="${t("description", "Description")}">${e.description || "—"}${e.is_readonly ? ` <i class="bi bi-link-45deg" style="color:var(--text-muted)" title="${t("linked_asset_record", "Linked to a fixed asset record")}"></i>` : ""}</td>
+      <td data-label="${t("method", "Method")}"><span class="exp-method exp-method-${m.cls}"><i class="bi ${m.icon}"></i>${e.payment_method || "—"}</span></td>
+      <td class="text-end num-col amt-negative" data-label="${t("amount", "Amount")}"><span class="exp-amount">${fmt(e.amount)}</span> <span class="exp-cur">${e.currency_code}</span></td>
+      <td class="exp-actions" style="white-space:nowrap" data-label="${t("actions", "Actions")}">
         ${
           e.is_readonly
-            ? `<button class="btn-icon" onclick="showExpenseModal(${e.id})" title="${t("view_linked_expense", "View (linked to asset)")}">
+            ? `<button class="btn-icon" onclick="showExpenseModal(${e.id})" title="${t("view_linked_expense", "View (linked to asset)")}"">
               <i class="bi bi-lock"></i></button>`
             : `<button class="btn-icon edit" onclick="showExpenseModal(${e.id})" title="Edit">
               <i class="bi bi-pencil"></i></button>
@@ -38,12 +47,12 @@ function renderExpenseTableHTML(entries) {
               <i class="bi bi-trash"></i></button>`
         }
       </td>
-    </tr>`
-    )
+    </tr>`;
+    })
     .join("");
 
   const total = entries.reduce((s, e) => s + (e.amount_base || 0), 0);
-  return `<table class="data-table">
+  return `<table class="data-table expense-table">
     <thead><tr>
       <th data-i18n="date">Date</th><th data-i18n="category">Category</th><th data-i18n="subcategory">Subcategory</th>
       <th data-i18n="description">Description</th><th data-i18n="method">Method</th>

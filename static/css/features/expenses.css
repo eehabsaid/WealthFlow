@@ -16,3 +16,90 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
 }
+
+/* ── Expense entries table: row hierarchy ───────────────────── */
+
+.expense-table .exp-date {
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.expense-table .exp-cat-pill {
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.expense-table .exp-subcat {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.expense-table .exp-desc-cell {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Payment-method pills (visual distinction only) */
+.exp-method {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.exp-method i {
+  font-size: 12px;
+}
+
+.exp-method-cash {
+  color: var(--accent-green);
+  background: var(--accent-emerald-light);
+  border-color: rgb(0 214 143 / 25%);
+}
+
+.exp-method-card {
+  color: var(--accent-primary);
+  background: var(--accent-light);
+  border-color: rgb(26 110 245 / 25%);
+}
+
+.exp-method-bank {
+  color: var(--accent-cyan);
+  background: rgb(0 180 216 / 14%);
+  border-color: rgb(0 180 216 / 25%);
+}
+
+.exp-method-bank-transfer {
+  color: var(--accent-purple);
+  background: rgb(114 9 183 / 14%);
+  border-color: rgb(114 9 183 / 25%);
+}
+
+/* Amount: tabular numerals, currency code muted */
+.expense-table .exp-amount {
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.expense-table .exp-cur {
+  font-size: 10px;
+  color: var(--text-muted);
+}

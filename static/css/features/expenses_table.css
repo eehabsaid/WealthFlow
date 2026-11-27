@@ -1,0 +1,95 @@
+/* ════════════════════════════════════════════════════════════
+   EXPENSE TABLE — MOBILE CARD VIEW (≤768px)
+   Reflows the expense entries table into stacked cards so the
+   page is usable without horizontal scrolling. Scoped to
+   .expense-table only — no other page is affected.
+   ════════════════════════════════════════════════════════════ */
+
+@media (width <= 768px) {
+  .expense-table {
+    min-width: 0;
+    display: block;
+  }
+
+  .expense-table thead {
+    display: none;
+  }
+
+  .expense-table tbody,
+  .expense-table tbody tr,
+  .expense-table tbody td {
+    display: block;
+    width: 100%;
+  }
+
+  .expense-table tbody tr {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .expense-table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+    white-space: normal;
+    text-align: start;
+  }
+
+  .expense-table tbody td:last-child {
+    border-bottom: none;
+  }
+
+  .expense-table tbody td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Long descriptions: label on top, text wraps below */
+  .expense-table .exp-desc-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  /* Amount: allow wrapping instead of overflowing */
+  .expense-table .exp-amount {
+    overflow-wrap: anywhere;
+  }
+
+  /* Actions: keep the icon buttons together on the end side */
+  .expense-table .exp-actions {
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  /* Total row: "Total …… amount" */
+  .expense-table tfoot {
+    display: block;
+  }
+
+  .expense-table tfoot tr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .expense-table tfoot td {
+    padding: 8px 14px;
+    border: none;
+  }
+
+  .expense-table tfoot td:last-child {
+    display: none;
+  }
+}
