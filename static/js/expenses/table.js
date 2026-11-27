@@ -39,7 +39,7 @@ function renderExpenseTableHTML(entries) {
       <td class="exp-actions" style="white-space:nowrap" data-label="${t("actions", "Actions")}">
         ${
           e.is_readonly
-            ? `<button class="btn-icon" onclick="showExpenseModal(${e.id})" title="${t("view_linked_expense", "View (linked to asset)")}"">
+            ? `<button class="btn-icon" onclick="showExpenseModal(${e.id})" title="${t("view_linked_expense", "View (linked to asset)")}">
               <i class="bi bi-lock"></i></button>`
             : `<button class="btn-icon edit" onclick="showExpenseModal(${e.id})" title="Edit">
               <i class="bi bi-pencil"></i></button>
