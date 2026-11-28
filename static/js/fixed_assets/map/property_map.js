@@ -75,7 +75,7 @@ function initializePropertyMap(lat = 30.0444, lng = 31.2357) {
                             <div class="card-body p-2 text-center">
 
                                 <div class="small text-truncate">
-                                    ${file.name}
+                                    ${wfEsc(file.name)}
                                 </div>
 
                             </div>

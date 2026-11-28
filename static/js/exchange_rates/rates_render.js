@@ -92,7 +92,7 @@ async function renderExchangeRates() {
       };
       return `<tr>
                 <td><span style="font-size:18px;margin-right:8px">${meta.flag}</span><strong>${r.currency_code}</strong></td>
-                <td>${meta.name || r.currency_name}</td>
+                <td>${wfEsc(meta.name || r.currency_name)}</td>
                 <td class="text-end num-col">${fmtRate(rateInBase(r.currency_code, "buy_rate"))}</td>
                 <td class="text-end num-col" style="color:var(--accent-green)">${fmtRate(rateInBase(r.currency_code, "mid_rate"))}</td>
                 <td class="text-end num-col">${fmtRate(rateInBase(r.currency_code, "sell_rate"))}</td>

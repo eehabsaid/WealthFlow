@@ -38,7 +38,7 @@ function buildSpendingCategoryDonutHtml(ctx) {
         </div>
         <div class="flex-grow-1">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <span style="font-weight:700; font-size:15px; color:var(--text-primary);">${cat.name}</span>
+            <span style="font-weight:700; font-size:15px; color:var(--text-primary);">${wfEsc(cat.name)}</span>
             <span style="font-weight:800; font-size:15px; color:var(--text-primary); text-align:right;">${fmt(Number(cat.amount_base).toFixed(2))} ${baseCurrencyCode()}</span>
           </div>
           <div style="width:100%; height:6px; background:rgba(123,147,201,0.1); border-radius:3px; margin-bottom:10px; overflow:hidden;">

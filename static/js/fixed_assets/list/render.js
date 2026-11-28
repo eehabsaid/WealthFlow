@@ -104,7 +104,7 @@ function renderFixedAssetsList(assets) {
 
     html += `
             <tr>
-              <td class="fixed-assets-card-title">${asset.name || "—"}</td>
+              <td class="fixed-assets-card-title">${wfEsc(asset.name || "—")}</td>
               <td>
                 <span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;" data-i18n="${typeKey}">${assetType}</span>
               </td>

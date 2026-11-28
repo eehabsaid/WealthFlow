@@ -40,7 +40,7 @@ window.SP.buildBuilderPaneHtml = function () {
   return `
       <div class="card border-0 p-4" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
         <div class="d-flex align-items-center justify-content-between mb-3">
-          <h5 class="fw-bold m-0" style="color:var(--text-primary);">${activeScenario.name} — Life Event Builder</h5>
+          <h5 class="fw-bold m-0" style="color:var(--text-primary);">${wfEsc(activeScenario.name)} — Life Event Builder</h5>
           <span class="badge bg-primary">${configuredEvents.length} Event(s) Configured</span>
         </div>
 
@@ -55,7 +55,7 @@ window.SP.buildBuilderPaneHtml = function () {
             <div class="col">
               <div class="p-3 text-center rounded border sp-event-type-card ${isSelected ? "border-primary bg-primary bg-opacity-15 shadow-sm" : ""}" style="cursor:pointer; background:var(--bg-tertiary); height:110px; display:flex; flex-direction:column; justify-content:center; align-items:center;" data-event-type="${item.event_type}">
                 <div class="rounded-circle d-flex align-items-center justify-content-center mb-2" style="width:36px; height:36px; background:rgba(26,110,245,0.15);">
-                  <i class="bi ${item.icon} text-primary fs-5"></i>
+                  <i class="bi ${wfEsc(item.icon)} text-primary fs-5"></i>
                 </div>
                 <div class="fw-bold extra-small text-truncate w-100" style="color:var(--text-primary);" data-i18n="${item.label_key}">${item.event_type}</div>
                 <div class="extra-small text-muted text-truncate w-100 mt-1" style="font-size:10px;">${sub}</div>
@@ -78,16 +78,16 @@ window.SP.buildBuilderPaneHtml = function () {
                 .map(
                   (f) => `
                 <div class="col-12 col-md-4">
-                  <label class="form-label extra-small fw-semibold" style="color:var(--text-primary);" data-i18n="${f.label_key}">${f.name}</label>
+                  <label class="form-label extra-small fw-semibold" style="color:var(--text-primary);" data-i18n="${f.label_key}">${wfEsc(f.name)}</label>
                   ${
                     f.type === "select"
                       ? `
-                    <select class="form-select form-select-sm" name="${f.name}">
+                    <select class="form-select form-select-sm" name="${wfEsc(f.name)}">
                       ${(f.options || []).map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
                     </select>
                   `
                       : `
-                    <input type="${f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}" class="form-control form-control-sm" name="${f.name}" value="${f.default || ""}">
+                    <input type="${f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}" class="form-control form-control-sm" name="${wfEsc(f.name)}" value="${f.default || ""}">
                   `
                   }
                 </div>

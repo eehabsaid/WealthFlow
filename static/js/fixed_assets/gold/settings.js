@@ -72,11 +72,11 @@ async function populateGoldSettingsDropdowns(selectedGoldType = "", selectedPuri
     const activePurities = (goldPurities || []).filter((item) => item && item.is_active);
 
     goldTypeSelect.innerHTML = activeGoldTypes
-      .map((item) => `<option value="${item.name}">${item.name}</option>`)
+      .map((item) => `<option value="${wfEsc(item.name)}">${wfEsc(item.name)}</option>`)
       .join("");
 
     puritySelect.innerHTML = activePurities
-      .map((item) => `<option value="${item.key}">${item.label || item.key}</option>`)
+      .map((item) => `<option value="${item.key}">${wfEsc(item.label || item.key)}</option>`)
       .join("");
 
     if (fallbackType) {

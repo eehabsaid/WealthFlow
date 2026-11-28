@@ -27,7 +27,7 @@ async function renderBillingSettings() {
     .map(
       (p) => `
         <tr>
-            <td>${p.name}</td>
+            <td>${wfEsc(p.name)}</td>
             <td>${_planPricesSummary(p)}</td>
             <td>${p.billing_interval_days}</td>
             <td><span style="color:${p.is_active ? "var(--accent-green)" : "var(--accent-red)"}" data-i18n="${p.is_active ? "active" : "inactive"}">${p.is_active ? t("active", "Active") : t("inactive", "Inactive")}</span></td>

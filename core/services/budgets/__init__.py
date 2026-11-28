@@ -8,9 +8,11 @@ Sibling files:
 - auto_post.py: optional per-user "post due recurring transactions at sign-in" (default off).
 - alert_service.py: AlertService.get_alerts(), a live (non-persisted)
   read combining budget-threshold and recurring-due-date alerts.
+- kpi_service.py: BudgetKpiService.get_kpis(), the Budgets page KPI counts.
 """
 from .budget_service import BudgetService
 from .recurring_service import RecurringService
 from .alert_service import AlertService
+from .kpi_service import BudgetKpiService
 
-__all__ = ["BudgetService", "RecurringService", "AlertService"]
+__all__ = ["BudgetService", "RecurringService", "AlertService", "BudgetKpiService"]

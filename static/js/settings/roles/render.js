@@ -21,8 +21,8 @@ async function renderRoleSettings() {
     .map(
       (r) => `
         <tr>
-            <td>${r.name}</td>
-            <td>${r.description || "—"}</td>
+            <td>${wfEsc(r.name)}</td>
+            <td>${wfEsc(r.description || "—")}</td>
             <td>${(r.keys || []).length}</td>
             <td>
                 <button class="btn-icon" onclick="showRoleModal(${r.id})"><i class="bi bi-pencil"></i></button>

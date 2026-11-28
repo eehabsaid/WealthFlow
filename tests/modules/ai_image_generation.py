@@ -54,6 +54,8 @@ def _open(page, context):
 
 
 def _save(page):
+    # A toast from the previous step can sit on top of the Save button on phones; clear it first.
+    page.evaluate("() => document.querySelectorAll('#toast-container .toast').forEach((t) => t.remove())")
     with page.expect_response(lambda r: SETTINGS_URL in r.url and r.request.method == "POST", timeout=15000) as info:
         page.click("#aiSaveBtn")
     page.wait_for_timeout(500)

@@ -39,7 +39,7 @@ def test_fixed_assets_module(context, reporter, screenshot_logger):
         checker.add_manual_step(context.page.query_selector("#fa_name") is not None)
 
         if context.page.query_selector("#fa_name"):
-            context.page.select_option("#fa_type", label="Real Estate")
+            context.page.select_option("#fa_type", value="Real Estate")
             context.page.wait_for_timeout(500)
             context.page.fill("#fa_name", asset_data["name"])
             if context.page.query_selector("#fa_status"):

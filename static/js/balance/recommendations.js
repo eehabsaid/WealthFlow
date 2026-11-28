@@ -59,7 +59,7 @@ function renderBalanceRecommendations(data) {
                     <div class="fi-emphasis-band fi-emphasis-gold"><span class="fi-band-icon">📊</span><span>${labelGoldMarketAnalysis}</span></div>
                     <div class="fi-section-title">${labelGoldMarketAnalysis}</div>
                     <div class="fi-metric-grid">
-                        <div class="fi-metric-row"><span class="fi-metric-label">${labelTrend}</span><span class="fi-trend-pill ${trendMeta.cls}">${trendMeta.icon} ${localizedTrendLabel}</span></div>
+                        <div class="fi-metric-row"><span class="fi-metric-label">${labelTrend}</span><span class="fi-trend-pill ${trendMeta.cls}">${wfEsc(trendMeta.icon)} ${localizedTrendLabel}</span></div>
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelSevenDayChange}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.gold_trend_7 || 0}">${fmt(forecastData.gold_trend_7 || 0)}%</span></div>
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelThirtyDayChange}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.gold_trend_30 || 0}">${fmt(forecastData.gold_trend_30 || 0)}%</span></div>
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelNinetyDayChange}</span><span class="fi-metric-value num-fmt" data-value="${forecastData.gold_trend_90 || 0}">${fmt(forecastData.gold_trend_90 || 0)}%</span></div>
@@ -89,7 +89,7 @@ function renderBalanceRecommendations(data) {
                     <div class="kpi-label" data-i18n="financial_recommendations">Financial Recommendations</div>
                     <div class="fi-emphasis-band fi-emphasis-health"><span class="fi-band-icon">📌</span><span>${labelFinancialHealthOverview}</span></div>
                     <div class="fi-section-title">${labelFinancialHealth}</div>
-                    <div class="fi-badge-row"><span class="fi-status-badge ${financialHealth.cls}">${financialHealth.icon} ${financialHealth.label}</span></div>
+                    <div class="fi-badge-row"><span class="fi-status-badge ${financialHealth.cls}">${wfEsc(financialHealth.icon)} ${wfEsc(financialHealth.label)}</span></div>
                     <div class="fi-metric-grid">
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelNetWorth}</span><span class="fi-metric-value fi-accent fi-value-inline"><span class="num-fmtpresent" data-value="${netWorth}">${fmtpresent(netWorth)}</span><span class="fi-value-unit" data-i18n="base_currency_code">${labelBase}</span></span></div>
                         <div class="fi-metric-row"><span class="fi-metric-label">${labelLiquidityCoverage}</span><span class="fi-metric-value fi-value-inline"><span class="num-fmt" data-value="${forecastData.cash_coverage_months || 0}">${fmt(forecastData.cash_coverage_months || 0)}</span><span class="fi-value-unit" data-i18n="months">${labelMonths}</span></span></div>
@@ -137,7 +137,7 @@ function renderBalanceRecommendations(data) {
                                       .map(
                                         (row) => `
                                         <div class="fi-highlight-row">
-                                            <div class="fi-metric-label fi-label-with-icon"><span>${row.icon}</span><span>${row.label}</span></div>
+                                            <div class="fi-metric-label fi-label-with-icon"><span>${wfEsc(row.icon)}</span><span>${wfEsc(row.label)}</span></div>
                                             <div class="fi-metric-value fi-accent fi-value-inline">
                                                 <span class="num-fmtpresent" data-value="${row.value}">${fmtpresent(row.value)}</span>
                                                 <span class="fi-value-unit" data-i18n="base_currency_code">${labelBase}</span>

@@ -137,7 +137,7 @@ function _buildKeyFindingsHtml(keyFindings) {
   if (keyFindings.most_frequent) {
     const mf = keyFindings.most_frequent;
     const catAvg = mf.count > 0 ? mf.avg_per_tx : 0;
-    const catNameHtml = `<b>${mf.name}</b>`;
+    const catNameHtml = `<b>${wfEsc(mf.name)}</b>`;
     const paramsObj = {
       category: catNameHtml,
       count: mf.count,

@@ -118,7 +118,7 @@ async function renderExpenses() {
         <div class="kpi-card" style="--kpi-accent:var(--accent-primary);--kpi-bg:var(--accent-blue-dim)">
           <div class="kpi-icon"><i class="bi bi-tag"></i></div>
           <div class="kpi-label" data-i18n="top_category">Top Category</div>
-          <div class="kpi-value">${topCat.icon} ${topCat.name}</div>
+          <div class="kpi-value">${wfEsc(topCat.icon)} ${wfEsc(topCat.name)}</div>
           <div class="kpi-sub">${fmt(topCat.total)} <span data-i18n="base_currency_code">${baseCurrencyCode()}</span></div>
         </div>
       </div>
@@ -143,7 +143,7 @@ async function renderExpenses() {
       </select>
       <select id="fCategory" class="form-select form-select-sm" onchange="updateExpenseSubcategoryOptions(this.value);applyExpenseFilters()" style="width:auto">
         <option value="" data-i18n="all_categories">All Categories</option>
-        ${categories.map((c) => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("")}
+        ${categories.map((c) => `<option value="${c.id}">${_expEsc(c.icon)} ${_expEsc(c.name)}</option>`).join("")}
       </select>
       <div style="position:relative;flex:1;min-width:180px">
         <i class="bi bi-search" style="position:absolute;inset-inline-start:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>

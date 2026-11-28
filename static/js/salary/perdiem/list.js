@@ -112,7 +112,7 @@ function filterPerDiems() {
             <td class="text-end">${fmt(pd.amount)}</td>
             <td class="text-end amt-positive">${fmt(pd.amount_base)}</td>
             <td>${pd.bank_name ? pd.bank_name : `<span class="badge bg-secondary" style="font-weight: normal;" data-i18n="cash_option">${t("cash_option", "Cash")}</span>`}</td>
-            <td>${pd.notes || ""}</td>
+            <td>${wfEsc(pd.notes || "")}</td>
             <td>
                 <button class="btn-icon" onclick="showPerDiemFormModal(${pd.id}, ${window._currentCompanyId}, ${window._currentYear})"><i class="bi bi-pencil"></i></button>
                 <button class="btn-icon del" onclick="deletePerDiem(${pd.id})"><i class="bi bi-trash"></i></button>

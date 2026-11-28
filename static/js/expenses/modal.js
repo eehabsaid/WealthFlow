@@ -16,7 +16,7 @@ async function showExpenseModal(expId) {
   const catOpts = cats
     .map(
       (c) =>
-        `<option value="${c.id}" ${exp && exp.category_id === c.id ? "selected" : ""}>${c.icon} ${c.name}</option>`
+        `<option value="${c.id}" ${exp && exp.category_id === c.id ? "selected" : ""}>${wfEsc(c.icon)} ${wfEsc(c.name)}</option>`
     )
     .join("");
   const curOpts = curs
@@ -32,7 +32,7 @@ async function showExpenseModal(expId) {
   const bankOpts = banks
     .map(
       (b) =>
-        `<option value="${b.id}" ${exp && exp.bank_id === b.id ? "selected" : ""}>${b.name}</option>`
+        `<option value="${b.id}" ${exp && exp.bank_id === b.id ? "selected" : ""}>${wfEsc(b.name)}</option>`
     )
     .join("");
 
@@ -133,15 +133,15 @@ function showReadonlyExpenseModal(exp) {
         </div>
         <div class="col-sm-6">
           <label class="form-label" data-i18n="category">Category</label>
-          <div class="form-control-plaintext">${exp.category_icon || ""} ${exp.category_name || "—"}</div>
+          <div class="form-control-plaintext">${wfEsc(exp.category_icon || "")} ${wfEsc(exp.category_name || "—")}</div>
         </div>
         <div class="col-sm-6">
           <label class="form-label" data-i18n="subcategory">Subcategory</label>
-          <div class="form-control-plaintext">${exp.subcategory_name || "—"}</div>
+          <div class="form-control-plaintext">${wfEsc(exp.subcategory_name || "—")}</div>
         </div>
         <div class="col-12">
           <label class="form-label" data-i18n="description">Description</label>
-          <div class="form-control-plaintext">${exp.description || "—"}</div>
+          <div class="form-control-plaintext">${wfEsc(exp.description || "—")}</div>
         </div>
         <div class="col-sm-6">
           <label class="form-label" data-i18n="payment_method">Payment Method</label>

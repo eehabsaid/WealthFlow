@@ -6,6 +6,8 @@ list, edit and delete), so the test seeds one note with the Django shell-free ro
 the Django tests with a stub model.
 """
 
+from tests.support.ai_drawer import close_ai_drawer, open_ai_drawer
+
 _FETCH = """async ([url, method, body]) => {
   const res = await fetch(url, {method, headers: {"Content-Type": "application/json",
     "X-CSRFToken": (window.wfGetCsrfToken && window.wfGetCsrfToken()) || ""}, body: body ? JSON.stringify(body) : undefined});
@@ -39,7 +41,9 @@ def _run(context, reporter, screenshot_logger):
           f"{missing} / {bad}", "memory_errors")
 
     # 2. The page opens from the sidebar card and matches the API list (empty state or one row per note)
+    open_ai_drawer(page)
     page.click("#ai-ws-card-memory")
+    close_ai_drawer(page)
     page.wait_for_selector("#mem-modal-body", timeout=5000)
     page.wait_for_selector("#mem-empty, .mem-row", timeout=5000)
     rows = len(page.query_selector_all(".mem-row"))

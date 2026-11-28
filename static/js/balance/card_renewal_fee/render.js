@@ -32,10 +32,10 @@ function renderBalanceCardRenewalFee(data) {
         (crf) => `
             <tr>
                 <td>${formatDate(crf.fee_date)}</td>
-                <td>${crf.bank_name || "-"}</td>
+                <td>${wfEsc(crf.bank_name || "-")}</td>
                 <td>${crf.card_label || "-"}</td>
                 <td class="text-end amt-negative num-fmt" data-value="${crf.amount_base}">${fmt(crf.amount_base)}</td>
-                <td class="text-truncate" style="max-width: 150px;" title="${crf.notes}">${crf.notes || "-"}</td>
+                <td class="text-truncate" style="max-width: 150px;" title="${wfEsc(crf.notes)}">${wfEsc(crf.notes || "-")}</td>
                 <td>
                     <button class="btn-icon" onclick="showCardRenewalFeeModal(${crf.id})" title="${editText}"><i class="bi bi-pencil"></i></button>
                     <button class="btn-icon del" onclick="deleteCardRenewalFee(${crf.id})" title="${deleteText}"><i class="bi bi-trash"></i></button>

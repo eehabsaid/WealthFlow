@@ -18,7 +18,7 @@ async function renderGoldSettings() {
     .map(
       (item) => `
         <tr>
-            <td>${item.name}</td>
+            <td>${wfEsc(item.name)}</td>
             <td>${item.order ?? 0}</td>
             <td><span style="color:${item.is_active ? "var(--accent-green)" : "var(--accent-red)"}" data-i18n="${item.is_active ? "active" : "inactive"}">${item.is_active ? t("active", "Active") : t("inactive", "Inactive")}</span></td>
             <td>
@@ -35,7 +35,7 @@ async function renderGoldSettings() {
       (item) => `
         <tr>
             <td>${item.key}</td>
-            <td>${item.label}</td>
+            <td>${wfEsc(item.label)}</td>
             <td class="num-fmt" data-value="${item.cashback_per_gram || 0}">${fmt(item.cashback_per_gram || 0)}</td>
             <td>${item.order ?? 0}</td>
             <td><span style="color:${item.is_active ? "var(--accent-green)" : "var(--accent-red)"}" data-i18n="${item.is_active ? "active" : "inactive"}">${item.is_active ? t("active", "Active") : t("inactive", "Inactive")}</span></td>

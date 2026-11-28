@@ -31,7 +31,7 @@ async function renderDocumentationSettings() {
       let optionsHtml =
         '<option value="current" data-i18n="doc_lang_current">Current Language</option><option value="ALL" data-i18n="doc_lang_all">All Supported Languages</option>';
       for (const l of langs) {
-        optionsHtml += `<option value="${l.code}">${l.label || l.code}</option>`;
+        optionsHtml += `<option value="${l.code}">${wfEsc(l.label || l.code)}</option>`;
       }
       langSelect.innerHTML = optionsHtml;
       applyTranslations(langSelect);
@@ -86,7 +86,7 @@ function updateDocDeviceType() {
   for (const item of optionsList) {
     let i18nAttr =
       item.display_name === "Current Resolution" ? ' data-i18n="doc_engine_current_res"' : "";
-    optionsHtml += `<option value="${item.id}"${i18nAttr}>${item.display_name}</option>`;
+    optionsHtml += `<option value="${item.id}"${i18nAttr}>${wfEsc(item.display_name)}</option>`;
     if (!firstEnabledId) firstEnabledId = item.id;
     if (item.default) defaultId = item.id;
   }

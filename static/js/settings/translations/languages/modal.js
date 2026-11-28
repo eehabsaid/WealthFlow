@@ -51,7 +51,7 @@ function showLanguageModal(index) {
                 </div>
                 <div class="col-6">
                     <label data-i18n="language_label">Label</label>
-                    <input class="form-control" id="lLabel" value="${l.label}">
+                    <input class="form-control" id="lLabel" value="${wfEsc(l.label)}">
                 </div>
                 <div class="col-12">
                     <label data-i18n="language_rtl">RTL?</label>

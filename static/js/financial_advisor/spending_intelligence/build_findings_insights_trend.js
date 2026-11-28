@@ -105,7 +105,7 @@ function buildSpendingFindingsInsightsTrendHtml(ctx) {
 
   let catSelectOptions = `<option value="all" data-i18n="all_categories">All Categories</option>`;
   registeredCategories.forEach((cat) => {
-    catSelectOptions += `<option value="${cat.id}">${cat.icon ? cat.icon + " " : ""}${cat.name}</option>`;
+    catSelectOptions += `<option value="${cat.id}">${cat.icon ? cat.icon + " " : ""}${wfEsc(cat.name)}</option>`;
   });
   if (hasUncategorized) {
     catSelectOptions += `<option value="uncategorized" data-i18n="spending_intelligence_uncategorized">Uncategorized</option>`;

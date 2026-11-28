@@ -11,7 +11,7 @@ async function renderBankSettings() {
     .map(
       (b) => `
         <tr>
-            <td>${b.name}</td>
+            <td>${wfEsc(b.name)}</td>
             <td><code style="color:var(--text-muted);font-size:11px">${b.account_number || "—"}</code></td>
             <td><code style="color:var(--text-muted);font-size:11px">${b.swift_code || "—"}</code></td>
             <td style="color:${b.is_active ? "var(--accent-green)" : "var(--accent-red)"}">

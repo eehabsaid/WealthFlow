@@ -35,7 +35,7 @@ async function showBankCertificateInterestHistory(certificateId) {
                 <td>${formatDate(item.posting_date) || "—"}</td>
                 <td>${item.posting_period || "—"}</td>
                 <td class="text-end">${fmt(item.interest_amount || 0)}</td>
-                <td>${item.bank_name || "—"}</td>
+                <td>${wfEsc(item.bank_name || "—")}</td>
                 <td>${item.currency_code || "—"}</td>
                 <td>${item.created_at ? formatDate(item.created_at) : "—"}</td>
             </tr>
@@ -55,7 +55,7 @@ async function showBankCertificateInterestHistory(certificateId) {
             <div class="col-md-4">
                 <div style="padding:10px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-secondary);">
                     <div style="font-size:11px;color:var(--text-secondary);" data-i18n="certificate">Certificate</div>
-                    <div style="font-weight:700;color:var(--text-primary);">${certificate.bank_name || certTitle || "—"}</div>
+                    <div style="font-weight:700;color:var(--text-primary);">${wfEsc(certificate.bank_name || certTitle || "—")}</div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -98,7 +98,7 @@ async function showBankCertificateInterestHistory(certificateId) {
         </div>
         <div class="modal-body">
             <div style="margin-bottom:10px;color:var(--text-secondary);font-size:13px;">
-                <span data-i18n="certificate">Certificate</span>: ${certTitle || "—"}
+                <span data-i18n="certificate">Certificate</span>: ${wfEsc(certTitle || "—")}
             </div>
             ${summaryRows}
             <div class="row g-2" style="margin-bottom:10px;">

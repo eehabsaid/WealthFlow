@@ -24,7 +24,7 @@ function buildNonRealEstateCoreTabParts(ctx) {
                 <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="fuel_type">Fuel Type</span><span class="value">${ctx.vehicleDetails.fuel_type || "-"}</span></div></div>
                 <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="mileage">Mileage</span><span class="value">${ctx.vehicleDetails.mileage || "-"}</span></div></div>
                 <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="plate_number">Plate Number</span><span class="value">${ctx.vehicleDetails.plate_number || "-"}</span></div></div>
-                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="color">Color</span><span class="value">${ctx.vehicleDetails.color || "-"}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="color">Color</span><span class="value">${wfEsc(ctx.vehicleDetails.color || "-")}</span></div></div>
               </div>
             </div>
           </div>
@@ -53,8 +53,8 @@ function buildNonRealEstateCoreTabParts(ctx) {
                 <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="model">Model</span><span class="value">${ctx.otherDetails.model || "-"}</span></div></div>
                 <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="serial_number">Serial Number</span><span class="value">${ctx.otherDetails.serial_number || "-"}</span></div></div>
                 <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="warranty_expiry">Warranty Expiry</span><span class="value">${ctx.otherDetails.warranty_expiry || "-"}</span></div></div>
-                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${ctx.otherDetails.notes || "-"}</span></div></div>
-                <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="description">Description</span><span class="value">${ctx.otherDetails.description || "-"}</span></div></div>
+                <div class="col"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${wfEsc(ctx.otherDetails.notes || "-")}</span></div></div>
+                <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="description">Description</span><span class="value">${wfEsc(ctx.otherDetails.description || "-")}</span></div></div>
               </div>
             </div>
           </div>
@@ -81,7 +81,7 @@ function buildNonRealEstateCoreTabParts(ctx) {
               )
                 .map(
                   (item) => `
-                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${formatDate(item.date) || "-"}</div></div><div><div class="small" data-i18n="type">Type</div><div>${item.type || "-"}</div></div><div><div class="small" data-i18n="cost">Cost</div><div>${fmt(item.cost)}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${item.notes || "-"}</div></div></div></div></div>
+                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${formatDate(item.date) || "-"}</div></div><div><div class="small" data-i18n="type">Type</div><div>${item.type || "-"}</div></div><div><div class="small" data-i18n="cost">Cost</div><div>${fmt(item.cost)}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${wfEsc(item.notes || "-")}</div></div></div></div></div>
               `
                 )
                 .join("")}
@@ -122,7 +122,7 @@ function buildNonRealEstateCoreTabParts(ctx) {
               )
                 .map(
                   (item) => `
-                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${formatDate(item.valuation_date) || "-"}</div></div><div><div class="small" data-i18n="current_market_value">Market Value</div><div>${fmt(item.market_value)}</div></div><div><div class="small" data-i18n="valuation_source">Valuation Source</div><div>${item.valuation_source || "-"}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${item.notes || "-"}</div></div></div></div></div>
+                <div class="col-12"><div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-3 d-flex flex-wrap gap-3 justify-content-between"><div><div class="small" data-i18n="date">Date</div><div>${formatDate(item.valuation_date) || "-"}</div></div><div><div class="small" data-i18n="current_market_value">Market Value</div><div>${fmt(item.market_value)}</div></div><div><div class="small" data-i18n="valuation_source">Valuation Source</div><div>${item.valuation_source || "-"}</div></div><div><div class="small" data-i18n="notes">Notes</div><div>${wfEsc(item.notes || "-")}</div></div></div></div></div>
               `
                 )
                 .join("")}

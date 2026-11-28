@@ -79,7 +79,7 @@ window.SP.buildTimelineHtml = function () {
             <div class="rounded-circle d-flex align-items-center justify-content-center mb-1" style="width:30px; height:30px; background:var(--bg-tertiary); border:2px solid var(--accent-primary);">
               <i class="bi ${node.type === "now" ? "bi-geo-alt-fill text-primary" : node.type === "retirement" ? "bi-flag-fill text-warning" : "bi-calendar-check-fill text-info"}" style="font-size:12px;"></i>
             </div>
-            <span class="fw-bold extra-small text-truncate style="color:var(--text-primary); max-width:105px;">${node.label}</span>
+            <span class="fw-bold extra-small text-truncate style="color:var(--text-primary); max-width:105px;">${wfEsc(node.label)}</span>
             <span class="extra-small style="color:var(--text-muted);">${node.dateStr}</span>
             <span class="badge bg-secondary extra-small mt-1">${node.chip}</span>
           </div>
@@ -114,7 +114,7 @@ window.SP.buildScenarioRailHtml = function () {
             <div class="d-flex align-items-center gap-2">
               <input type="checkbox" class="form-check-input sp-cmp-check" data-id="${sc.id}" ${isChecked ? "checked" : ""} title="Include in comparison">
               <div>
-                <div class="fw-bold small" style="color:var(--text-primary);">${sc.name}</div>
+                <div class="fw-bold small" style="color:var(--text-primary);">${wfEsc(sc.name)}</div>
                 <div class="extra-small" style="color:var(--text-muted);">${eventCount} event(s)</div>
               </div>
             </div>

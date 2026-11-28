@@ -37,11 +37,11 @@ function buildPhotosRenovationAcquisitionTabsHtml(ctx) {
                                     </div>
                                     <div class="mt-3">
                                         <div class="small mb-1" data-i18n="description">Description</div>
-                                        <div>${r.description || "-"}</div>
+                                        <div>${wfEsc(r.description || "-")}</div>
                                     </div>
                                     <div class="mt-3">
                                         <div class="small mb-1" data-i18n="notes">Notes</div>
-                                        <div>${r.notes || "-"}</div>
+                                        <div>${wfEsc(r.notes || "-")}</div>
                                     </div>
                                 </div>
                             </div>
@@ -111,11 +111,11 @@ function buildPhotosRenovationAcquisitionTabsHtml(ctx) {
                                     </div>
                                     <div class="mt-3">
                                         <div class="small mb-1" data-i18n="description">Description</div>
-                                        <div>${c.description || "-"}</div>
+                                        <div>${wfEsc(c.description || "-")}</div>
                                     </div>
                                     <div class="mt-3">
                                         <div class="small mb-1" data-i18n="notes">Notes</div>
-                                        <div>${c.notes || "-"}</div>
+                                        <div>${wfEsc(c.notes || "-")}</div>
                                     </div>
                                 </div>
                             </div>

@@ -34,7 +34,7 @@ function rebuildExpenseSubcategoryOptions(sel, catId) {
   const subs = expenseSubsForCategory(catId);
   sel.innerHTML =
     '<option value="" data-i18n="all_subcategories">All Subcategories</option>' +
-    subs.map((s) => `<option value="${s.id}">${s.name}</option>`).join("");
+    subs.map((s) => `<option value="${s.id}">${_expEsc(s.name)}</option>`).join("");
   if (catId !== "" && !subs.some((s) => String(s.id) === String(current))) sel.value = "";
   if (typeof applyTranslations === "function") applyTranslations();
 }
@@ -61,7 +61,7 @@ function renderExpenseFilterBar() {
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <select id="fSubcategory" class="form-select form-select-sm" style="width:auto" onchange="applyExpenseFilters()">
         <option value="" data-i18n="all_subcategories">All Subcategories</option>
-        ${subs.map((s) => `<option value="${s.id}">${s.name}</option>`).join("")}
+        ${subs.map((s) => `<option value="${s.id}">${_expEsc(s.name)}</option>`).join("")}
       </select>
       <select id="fPaymentMethod" class="form-select form-select-sm" style="width:auto" onchange="applyExpenseFilters()">
         <option value="" data-i18n="all_payment_methods">All Payment Methods</option>
@@ -69,7 +69,7 @@ function renderExpenseFilterBar() {
       </select>
       <select id="fBank" class="form-select form-select-sm" style="width:auto" onchange="applyExpenseFilters()">
         <option value="" data-i18n="all_banks">All Banks</option>
-        ${banks.map((b) => `<option value="${b.id}">${b.name}</option>`).join("")}
+        ${banks.map((b) => `<option value="${b.id}">${_expEsc(b.name)}</option>`).join("")}
       </select>
       <input type="date" id="fDateFrom" class="form-control form-control-sm" style="width:auto" onchange="applyExpenseFilters()" aria-label="${typeof t === "function" ? t("date_from") : "From"}">
       <input type="date" id="fDateTo" class="form-control form-control-sm" style="width:auto" onchange="applyExpenseFilters()" aria-label="${typeof t === "function" ? t("date_to") : "To"}">

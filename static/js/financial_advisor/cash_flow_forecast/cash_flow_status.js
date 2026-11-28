@@ -33,7 +33,7 @@ function _buildCashFlowStatusPanelHtml(payload) {
       `<div class="cash-flow-status-row">
         <b data-i18n="cash_flow_status_review_events"></b>
         <span data-i18n="cash_flow_status_review_events_desc"></span>
-        <a href="#cash_flow_summary_section" data-i18n="cash_flow_status_see_summary"></a>
+        <a href="#cash_flow_summary_section" onclick="event.preventDefault(); var el = document.getElementById('cash_flow_summary_section'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });" data-i18n="cash_flow_status_see_summary"></a>
       </div>`
     );
   }

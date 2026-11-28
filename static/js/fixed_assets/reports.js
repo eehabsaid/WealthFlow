@@ -23,7 +23,7 @@ function renderFixedAssetsReports(assets) {
   }
 
   const options = assetsArray
-    .map((asset) => `<option value="${asset.id}">${asset.name || "—"}</option>`)
+    .map((asset) => `<option value="${asset.id}">${wfEsc(asset.name || "—")}</option>`)
     .join("");
 
   container.innerHTML = `

@@ -18,7 +18,7 @@ window.SP.buildComparePaneHtml = function () {
               <tr class="border-bottom border-secondary">
                 <th style="color:var(--text-muted); font-size:12px;" data-i18n="scenario_planner_metric_header">Metric</th>
                 <th style="color:var(--text-muted); font-size:12px;">Baseline</th>
-                ${scenarios.map((sc) => `<th style="color:var(--accent-primary); font-size:12px;">${sc.name}</th>`).join("")}
+                ${scenarios.map((sc) => `<th style="color:var(--accent-primary); font-size:12px;">${wfEsc(sc.name)}</th>`).join("")}
               </tr>
             </thead>
             <tbody>
@@ -78,7 +78,7 @@ window.SP.buildInsightsPaneHtml = function () {
             const insights = sc.insights || [];
             return `
             <div class="card border-0 p-4" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px;">
-              <h6 class="fw-bold mb-3" style="color:var(--text-primary);">${sc.name} — Actionable Financial Insights</h6>
+              <h6 class="fw-bold mb-3" style="color:var(--text-primary);">${wfEsc(sc.name)} — Actionable Financial Insights</h6>
               <div class="d-flex flex-column gap-3">
                 ${insights
                   .map(

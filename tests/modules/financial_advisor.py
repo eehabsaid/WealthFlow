@@ -55,6 +55,22 @@ def test_financial_advisor_module(context, reporter, screenshot_logger):
                 }""")
                 context.page.wait_for_timeout(600)
 
+            if tab_id == "cash-flow-forecast":
+                context.page.wait_for_timeout(900)
+                res = context.page.evaluate("""() => {
+                    const hash = location.hash;
+                    const link = document.querySelector('.cash-flow-status-row a[href="#cash_flow_summary_section"]');
+                    if (link) link.click();
+                    return {chart: !!document.getElementById('cash_flow_chart_canvas'),
+                            panel: !!document.querySelector('.cash-flow-status-row'),
+                            hasLink: !!link, hashKept: location.hash === hash};
+                }""")
+                context.page.wait_for_timeout(400)
+                ok = res["chart"] and res["panel"] and res["hashKept"] and str(context.page.evaluate("location.hash")).startswith("#financial-advisor")
+                context.page.evaluate(f"if (typeof switchFinancialAdvisorTab === 'function') switchFinancialAdvisorTab('{tab_id}');")
+                reporter.add_step("Cash Flow chart, status panel and See-summary link keep the page", "Financial Advisor",
+                                  "PASS" if ok else "FAIL", f"result={res}")
+
             shot_tab = screenshot_logger.capture(context.page, "financial-advisor", tab_id, "none", "view", "ok")
             reporter.add_step(f"Financial Advisor Tab: {tab_label}", "Financial Advisor", "PASS", f"Swept tab '{tab_label}'.", screenshot_path=shot_tab)
         except Exception as ex:

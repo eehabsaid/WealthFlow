@@ -29,7 +29,7 @@ function _budgetCategoryOptions(selectedId, includeAll) {
     cats
       .map(
         (c) =>
-          `<option value="${c.id}" ${selectedId === c.id ? "selected" : ""}>${c.icon} ${c.name}</option>`
+          `<option value="${c.id}" ${selectedId === c.id ? "selected" : ""}>${wfEsc(c.icon)} ${wfEsc(c.name)}</option>`
       )
       .join("")
   );
@@ -88,7 +88,7 @@ async function showRecurringModal(rec) {
   const bankOpts = banks
     .map(
       (b) =>
-        `<option value="${b.id}" ${rec && rec.bank_id === b.id ? "selected" : ""}>${b.name}</option>`
+        `<option value="${b.id}" ${rec && rec.bank_id === b.id ? "selected" : ""}>${wfEsc(b.name)}</option>`
     )
     .join("");
   const methOpts = PAYMENT_METHODS.map(

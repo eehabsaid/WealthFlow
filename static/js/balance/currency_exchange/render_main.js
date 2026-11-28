@@ -54,7 +54,7 @@ async function renderBalanceCurrencyExchange(data) {
                     <td class="text-end font-monospace">${ex.exchange_rate}</td>
                     <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${statusLabel}</span></td>
                     <td><small>${ex.user_username || "System"}</small></td>
-                    <td class="text-truncate" style="max-width: 130px;" title="${ex.notes}">${ex.notes || "-"}</td>
+                    <td class="text-truncate" style="max-width: 130px;" title="${wfEsc(ex.notes)}">${wfEsc(ex.notes || "-")}</td>
                     <td>
                         ${
                           !isReversed

@@ -64,7 +64,7 @@ function renderBankOptions(selectedBankId = "") {
   const rows = [`<option value="">${t("none_option", "--")}</option>`];
   fixedAssetSyncBanks.forEach((bank) => {
     const selected = String(selectedBankId) === String(bank.id) ? "selected" : "";
-    rows.push(`<option value="${bank.id}" ${selected}>${bank.name}</option>`);
+    rows.push(`<option value="${bank.id}" ${selected}>${wfEsc(bank.name)}</option>`);
   });
   return rows.join("");
 }
@@ -73,7 +73,7 @@ function renderBankWithBalanceOptions(selectedBankId = "") {
   const rows = [`<option value="">${t("select_bank_account", "Select bank account")}</option>`];
   fixedAssetBanksWithBalance.forEach((bank) => {
     const selected = String(selectedBankId) === String(bank.id) ? "selected" : "";
-    rows.push(`<option value="${bank.id}" ${selected}>${bank.name}</option>`);
+    rows.push(`<option value="${bank.id}" ${selected}>${wfEsc(bank.name)}</option>`);
   });
   return rows.join("");
 }
@@ -114,7 +114,7 @@ function renderFurnitureLinkOptions(selectedFurnitureId = "") {
   const rows = [`<option value="">${t("none_option", "— None —")}</option>`];
   (currentAssetFurnitureOptions || []).forEach((item) => {
     const selected = String(selectedFurnitureId) === String(item.id) ? "selected" : "";
-    rows.push(`<option value="${item.id}" ${selected}>${item.name}</option>`);
+    rows.push(`<option value="${item.id}" ${selected}>${wfEsc(item.name)}</option>`);
   });
   return rows.join("");
 }

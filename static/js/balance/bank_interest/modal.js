@@ -29,7 +29,8 @@ function showBankInterestModal(id = null) {
   // Bank dropdown is sourced dynamically from Settings > Bank list (_banks).
   const bankOptions = _banks
     .map(
-      (b) => `<option value="${b.id}" ${bi.bank_id === b.id ? "selected" : ""}>${b.name}</option>`
+      (b) =>
+        `<option value="${b.id}" ${bi.bank_id === b.id ? "selected" : ""}>${wfEsc(b.name)}</option>`
     )
     .join("");
 

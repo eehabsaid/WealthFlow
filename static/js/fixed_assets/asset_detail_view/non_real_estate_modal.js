@@ -24,7 +24,7 @@ function buildAndShowNonRealEstateModal(ctx) {
       <div class="modal-body asset-modal-body p-0">
         <div class="p-4">
           <div class="asset-detail-header mb-4">
-            <h3 class="asset-title mb-1 fixed-assets-heading">${asset.name || "-"}</h3>
+            <h3 class="asset-title mb-1 fixed-assets-heading">${wfEsc(asset.name || "-")}</h3>
             <span class="badge rounded-pill asset-type-badge" data-i18n="${fixedAssetTypeToI18nKey(asset.asset_type)}">${asset.asset_type || "-"}</span>
           </div>
           <ul class="nav nav-pills nav-fill mb-4 asset-detail-tabs" role="tablist">
@@ -43,7 +43,7 @@ function buildAndShowNonRealEstateModal(ctx) {
                   <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="current_market_value">Current Market Value</span><span class="value ${gainClass}">${fmt(asset.current_market_value)}</span></div></div>
                   <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="purchase_date">Purchase Date</span><span class="value">${formatDate(asset.purchase_date) || "-"}</span></div></div>
                   <div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="gain_loss">Gain / Loss</span><span class="value ${gainClass}">${fmt(gainValue)}</span></div></div>
-                  <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${asset.notes || "-"}</span></div></div>
+                  <div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${wfEsc(asset.notes || "-")}</span></div></div>
                 </div>
               </div></div>
             </div>
@@ -57,7 +57,7 @@ function buildAndShowNonRealEstateModal(ctx) {
             ${extraValuationPane}
             <div class="tab-pane fade" id="asset-sale-pane" role="tabpanel" aria-labelledby="asset-sale-tab">
               <div class="card border-0 shadow-sm" style="background:var(--bg-secondary);"><div class="card-body p-4">
-                ${sale ? `<div class="row g-3"><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="sale_date">Sale Date</span><span class="value">${formatDate(sale.sale_date) || "-"}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="sale_price_base">Sale Price</span><span class="value">${fmt(sale.sale_price)}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="selling_expenses_base">Selling Expenses</span><span class="value">${fmt(sale.selling_expenses)}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="net_sale_amount">Net Sale Amount</span><span class="value">${fmt(sale.net_sale_amount)}</span></div></div><div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${sale.notes || "-"}</span></div></div></div>` : `<div class="text-center" data-i18n="no_data">No data available</div>`}
+                ${sale ? `<div class="row g-3"><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="sale_date">Sale Date</span><span class="value">${formatDate(sale.sale_date) || "-"}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="sale_price_base">Sale Price</span><span class="value">${fmt(sale.sale_price)}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="selling_expenses_base">Selling Expenses</span><span class="value">${fmt(sale.selling_expenses)}</span></div></div><div class="col-md-6"><div class="asset-attribute-row"><span class="label" data-i18n="net_sale_amount">Net Sale Amount</span><span class="value">${fmt(sale.net_sale_amount)}</span></div></div><div class="col-12"><div class="asset-attribute-row"><span class="label" data-i18n="notes">Notes</span><span class="value">${wfEsc(sale.notes || "-")}</span></div></div></div>` : `<div class="text-center" data-i18n="no_data">No data available</div>`}
               </div></div>
             </div>
           </div>

@@ -19,7 +19,7 @@ async function renderCurrencySettings() {
             <td style="font-size:20px">${c.flag}</td>
             <td><code style="color:var(--accent-primary);font-weight:700">${c.code}</code></td>
             <td>${c.symbol || "—"}</td>
-            <td>${c.name}</td>
+            <td>${wfEsc(c.name)}</td>
             <td>${
               c.is_default
                 ? `<span class="badge bg-success" data-i18n="currency_default_badge">${t("currency_default_badge", "Default")}</span>`

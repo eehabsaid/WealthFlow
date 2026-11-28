@@ -33,7 +33,7 @@ function renderFixedAssetsAnalytics(assets) {
         .map(
           (row) => `
       <tr>
-        <td class="fixed-assets-card-title">${row.name}</td>
+        <td class="fixed-assets-card-title">${wfEsc(row.name)}</td>
         <td data-i18n="${fixedAssetTypeToI18nKey(row.type)}">${row.type}</td>
         <td class="text-end">${fmtpresent(row.roi)}%</td>
         <td class="text-end">${fmtpresent(row.appreciation)}%</td>

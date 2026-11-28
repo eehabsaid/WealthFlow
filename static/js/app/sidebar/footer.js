@@ -37,7 +37,7 @@ function _renderSidebarFooter(sidebar) {
                             white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                     ${uName}
                 </div>
-                <div style="font-size:11px;color:var(--text-muted)">${u.email || ""}</div>
+                <div style="font-size:11px;color:var(--text-muted)">${wfEsc(u.email || "")}</div>
             </div>
             <i class="bi bi-pencil-square nav-text"
                style="color:var(--text-muted);font-size:13px;flex-shrink:0"></i>

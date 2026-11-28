@@ -27,7 +27,7 @@ function buildValuationHistoryPaneHtml(valuationHistory) {
                                 <div class="fw-semibold">${fmt(item.market_value)}</div>
                               </div>
                             </div>
-                            <div class="mt-3"><div class="small mb-1" data-i18n="notes">Notes</div><div>${item.notes || "-"}</div></div>
+                            <div class="mt-3"><div class="small mb-1" data-i18n="notes">Notes</div><div>${wfEsc(item.notes || "-")}</div></div>
                           </div>
                         </div>
                       `

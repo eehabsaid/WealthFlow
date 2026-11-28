@@ -43,7 +43,7 @@ def _steps(page, context, reporter, screenshot_logger):
     page.evaluate("() => _setLoadingUI(true)")
     page.evaluate("(d) => window._aiRenderAgentSteps(d)", STEP)
     texts = [t.strip() for t in page.locator("#ai-ws-agent-steps li.ai-ws-agent-step").all_inner_texts()]
-    ok = len(texts) == 2 and "app_screen_data" not in " ".join(texts) and texts[0].startswith("Reading the screen data") and "cash-flow-custom-projection" in texts[1]
+    ok = len(texts) == 2 and "app_screen_data" not in " ".join(texts) and "(cash flow projection)" in texts[0] and "cash-flow-custom-projection" in texts[1]
     _step(reporter, screenshot_logger, page, "AI screen data: live step label", ok, f"step texts={texts!r}", "screen_data_steps")
     page.evaluate("() => _setLoadingUI(false)")
 

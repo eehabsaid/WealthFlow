@@ -153,6 +153,11 @@ class BudgetAlertsView(View):
         auth_error = _api_auth_required(request)
         if auth_error:
             return auth_error
-        from core.services.budgets import AlertService
+        from core.services.budgets import AlertService, BudgetKpiService
 
-        return JsonResponse({"alerts": AlertService.get_alerts(request.user)})
+        return JsonResponse(
+            {
+                "alerts": AlertService.get_alerts(request.user),
+                "kpis": BudgetKpiService.get_kpis(request.user),
+            }
+        )

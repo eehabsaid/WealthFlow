@@ -33,7 +33,7 @@ function _renderCashFlowChart(timeline, currentCash) {
   _destroyChart("cash_flow_chart_canvas");
 
   const langCode = currentLang ? currentLang() : document.documentElement.lang || "en";
-  const monthFmt = new Intl.DateTimeFormat(langCode, { month: "short" });
+  const monthFmt = new Intl.DateTimeFormat(langCode, { month: "short", timeZone: "UTC" });
   const compactFmt = new Intl.NumberFormat(langCode, {
     notation: "compact",
     maximumFractionDigits: 1,

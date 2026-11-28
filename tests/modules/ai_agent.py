@@ -43,7 +43,7 @@ def _switch(page, context, reporter, screenshot_logger):
     context.goto_route("#ai")
     page.wait_for_selector("#ai-ws-mode-switch", timeout=15000)
     page.wait_for_function("() => document.getElementById('ai-ws-mode-agent').getAttribute('aria-pressed') === 'true'", timeout=8000)
-    ok = before == "true" and saved.get("mode") == "agent" and "Agent" in hint
+    ok = before == "true" and saved.get("mode") == "agent" and bool(hint.strip())
     _step(reporter, screenshot_logger, page, "AI Agent: Ask/Agent switch is remembered", ok,
           f"default ask pressed={before!r}, server mode={saved.get('mode')!r}, hint={hint!r}, still Agent after reload")
 

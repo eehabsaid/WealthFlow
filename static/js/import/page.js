@@ -18,7 +18,9 @@ function renderImportPreview(sampleRows, totalRows) {
         `<option value="${c.id}" ${c.code === baseCurrencyCode() ? "selected" : ""}>${c.flag} ${c.code}</option>`
     )
     .join("");
-  const catOpts = cats.map((c) => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
+  const catOpts = cats
+    .map((c) => `<option value="${c.id}">${wfEsc(c.icon)} ${wfEsc(c.name)}</option>`)
+    .join("");
   const methOpts = PAYMENT_METHODS.map(
     (m) => `<option value="${m.value}" data-i18n="${m.key}">${m.value}</option>`
   ).join("");

@@ -11,13 +11,13 @@ async function renderCompanySettings() {
       (c) => `
         <tr>
             <td>
-                <span style="background:${c.color_hex};width:12px;height:12px;border-radius:3px;
-                             display:inline-block;margin-right:8px"></span>${c.name}
+                <span style="background:${wfEsc(c.color_hex)};width:12px;height:12px;border-radius:3px;
+                             display:inline-block;margin-right:8px"></span>${wfEsc(c.name)}
             </td>
-            <td>${c.display_name}</td>
-            <td><span class="group-badge">${c.group_name || "—"}</span></td>
+            <td>${wfEsc(c.display_name)}</td>
+            <td><span class="group-badge">${wfEsc(c.group_name || "—")}</span></td>
             <td>
-                <input type="color" value="${c.color_hex}"
+                <input type="color" value="${wfEsc(c.color_hex)}"
                     onchange="updateCompanyColor(${c.id}, this.value)"
                     style="background:none;border:none;width:32px;height:32px;cursor:pointer">
             </td>

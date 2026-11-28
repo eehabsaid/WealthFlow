@@ -300,7 +300,9 @@
     "steps": [
       "Select the Cash Flow tab.",
       "Adjust the time period filter.",
-      "Analyze income versus expense breakdowns."
+      "Analyze income versus expense breakdowns.",
+      "Read the projected cash balance chart: the solid line is your forecast ending cash per month and the dashed line is today's cash.",
+      "Check the Forecast status panel beside the chart for a plain-language reading of the forecast; use its See summary link to jump to the summary section on the same page."
     ]
   },
   "financial-advisor::wealth-growth": {
@@ -798,7 +800,9 @@
     "steps": [
       "Navigate to Expenses.",
       "Review your recent expense entries.",
-      "Analyze your spending via the summary charts."
+      "Analyze your spending via the summary charts.",
+      "Each row shows the payment method as a colour-coded pill (Cash, Card, Bank, Bank Transfer, Other) in your language; on phones the table turns into stacked cards.",
+      "Descriptions, category and subcategory names are shown as plain text, so special characters you type are never interpreted as page markup."
     ]
   },
   "expenses::edit_add_expenses": {
@@ -1047,7 +1051,8 @@
       "Use Add Budget to set an amount, period, category and alert threshold in your base currency.",
       "Use Add Recurring to schedule a repeating transaction; pause or resume it at any time. Past start dates are not back-filled unless you choose to.",
       "Review the alerts shown when spending reaches the alert threshold or exceeds the budget.",
-      "Turn on Post due recurring transactions automatically when I sign in (off by default) to have due items posted at sign-in; Post Due Now still previews and asks first."
+      "Turn on Post due recurring transactions automatically when I sign in (off by default) to have due items posted at sign-in; Post Due Now still previews and asks first.",
+      "The four cards at the top (Active Budgets, Over Budget, Due Soon in the next 7 days, Overdue) are counted by the server; each recurring transaction also shows its Due soon, Overdue or Inactive status."
     ]
   },
   "budgets::add_budget": {

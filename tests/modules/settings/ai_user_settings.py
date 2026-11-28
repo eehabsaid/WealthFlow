@@ -138,7 +138,7 @@ def _layout_and_bulk(context, reporter, shots, snapshot):
         page.fill("#aiLimitsSearch", name)
         found = page.locator("#aiLimitsBody tr[data-user-id]").count()
         page.fill("#aiLimitsSearch", "zz-no-such-user-zz")
-        none = "No users match" in page.inner_text("#aiLimitsBody")
+        none = page.locator('#aiLimitsBody [data-i18n="ai_limits_no_users"]').count() == 1
         page.fill("#aiLimitsSearch", "")
         _step(reporter, shots, page, "Token-limit search narrows and restores the user list", found >= 1 and none and
               page.locator("#aiLimitsBody tr[data-user-id]").count() == rows, f"match={found} none_msg={none} rows={rows}", "ai_limits_search")

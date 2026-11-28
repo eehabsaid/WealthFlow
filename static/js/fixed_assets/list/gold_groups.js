@@ -27,7 +27,7 @@ function showGoldPurityGroupDetails(purityKey) {
       const unit = asset?.gold_details?.unit || "gram";
       return `
         <tr>
-          <td>${asset.name || "—"}</td>
+          <td>${wfEsc(asset.name || "—")}</td>
           <td>${asset.purchase_date || "—"}</td>
           <td>${fmt(weight)} ${unit}</td>
           <td class="text-end">${fmt(asset.purchase_price)}</td>

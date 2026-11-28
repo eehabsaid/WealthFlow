@@ -12,10 +12,10 @@ function buildGeneralPropertyTabsHtml(ctx) {
                                     <h6 class="mb-3 fw-bold fixed-assets-section-title" data-i18n="general_information">General Information</h6>
                                                           
                                     <div class="row mb-2"><div class="col-5 fixed-assets-section-title" data-i18n="asset_type">Asset Type</div><div class="col-7">${asset.asset_type || "-"}</div></div>
-                                    <div class="row mb-2"><div class="col-5 fixed-assets-section-title" data-i18n="asset_name">Asset Name</div><div class="col-7">${asset.name || "-"}</div></div>
+                                    <div class="row mb-2"><div class="col-5 fixed-assets-section-title" data-i18n="asset_name">Asset Name</div><div class="col-7">${wfEsc(asset.name || "-")}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="purchase_date">Purchase Date</div><div class="col-7">${formatDate(asset.purchase_date) || "-"}</div></div>
                                     <div class="row mb-2"><div class="col-5" data-i18n="valuation_source">Valuation Source</div><div class="col-7">${asset.valuation_source || "-"}</div></div>
-                                    <div class="row"><div class="col-5" data-i18n="notes">Notes</div><div class="col-7">${asset.notes || "-"}</div></div>
+                                    <div class="row"><div class="col-5" data-i18n="notes">Notes</div><div class="col-7">${wfEsc(asset.notes || "-")}</div></div>
                                 </div>
                             </div>
                         </div>

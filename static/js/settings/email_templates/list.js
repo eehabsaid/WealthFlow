@@ -21,7 +21,7 @@ async function renderEmailTemplateSettings() {
         <tr>
             <td data-i18n="email_template_${item.key}_name">${t(`email_template_${item.key}_name`, item.key)}</td>
             <td>${item.subject || ""}</td>
-            <td>${item.description || ""}</td>
+            <td>${wfEsc(item.description || "")}</td>
             <td>${item.updated_at ? new Date(item.updated_at).toLocaleString(lang) : "—"}</td>
             <td>
                 <button class="btn-icon" onclick="showEmailTemplateModal(${item.id})" data-i18n-title="edit"><i class="bi bi-pencil"></i></button>

@@ -21,7 +21,7 @@ async function _renderCertReport() {
 
       return `
             <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px 16px">
-                <div style="font-size:12px;font-weight:700;color:${bl.color};text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px" 
+                <div style="font-size:12px;font-weight:700;color:${wfEsc(bl.color)};text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px" 
                     ${bl.key ? `data-i18n="${bl.key}"` : ""}>${bl.key ? "" : bl.label}</div>
                 <div style="font-size:22px;font-weight:800;color:var(--text-primary)">${certs.length}</div>
                 <div style="font-size:12px;color:var(--text-muted);margin-top:2px">

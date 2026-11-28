@@ -16,7 +16,7 @@ function buildFurniturePaneHtml(furniture, asset) {
                             <div class="d-flex justify-content-between gap-3">
                               <div>
                                 <div class="small mb-1" data-i18n="item_name">Item Name</div>
-                                <div class="fw-semibold">${item.name || "-"}</div>
+                                <div class="fw-semibold">${wfEsc(item.name || "-")}</div>
                               </div>
                               <div class="text-end">
                                 <div class="small mb-1" data-i18n="amount_base">Amount</div>
@@ -28,7 +28,7 @@ function buildFurniturePaneHtml(furniture, asset) {
                                <div><span class="small" data-i18n="quantity">Quantity</span><div>${item.quantity || "-"}</div></div>
                               <div><span class="small" data-i18n="purchase_date">Purchase Date</span><div>${formatDate(item.purchase_date) || "-"}</div></div>
                             </div>
-                            <div class="mt-3"><div class="small mb-1" data-i18n="notes">Notes</div><div>${item.notes || "-"}</div></div>
+                            <div class="mt-3"><div class="small mb-1" data-i18n="notes">Notes</div><div>${wfEsc(item.notes || "-")}</div></div>
                           </div>
                         </div>
                       `

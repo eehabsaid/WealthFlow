@@ -46,9 +46,9 @@ async function renderGoldPrice() {
         .map(
           ([key, meta]) => `
                 <div class="col-6 col-md-3">
-                    <div class="kpi-card" style="--kpi-accent:${meta.color};--kpi-bg:rgba(255,209,102,0.08);text-align:center;border-color:${meta.color}44">
+                    <div class="kpi-card" style="--kpi-accent:${wfEsc(meta.color)};--kpi-bg:rgba(255,209,102,0.08);text-align:center;border-color:${wfEsc(meta.color)}44">
                         <div style="font-size:28px;margin-bottom:4px">🥇</div>
-                        <div class="kpi-label" style="color:${meta.color}">${meta.label_en} — ${meta.label}</div>
+                        <div class="kpi-label" style="color:${wfEsc(meta.color)}">${meta.label_en} — ${wfEsc(meta.label)}</div>
                         <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px" ${isSpot ? spotAttrs("gold_currency_per_gram") : 'data-i18n="egp_per_gram"'}>${egpPerGramText}</div>
                         <div style="display:flex;gap:10px;font-size:13px;margin-top:8px">
                             ${
@@ -56,12 +56,12 @@ async function renderGoldPrice() {
                                 ? ""
                                 : `<div style="flex:1;background:rgba(255,255,255,0.1);padding:6px;border-radius:4px;text-align:center">
                                 <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px" data-i18n="buy">${buyText}</div>
-                                <div style="font-weight:bold;color:${meta.color}">${fmt(gd[key + "_buy"])}</div>
+                                <div style="font-weight:bold;color:${wfEsc(meta.color)}">${fmt(gd[key + "_buy"])}</div>
                             </div>`
                             }
                             <div style="flex:1;background:rgba(255,255,255,0.1);padding:6px;border-radius:4px;text-align:center">
                                 <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px" data-i18n="sell">${sellText}</div>
-                                <div style="font-weight:bold;color:${meta.color}">${fmt(gd[key])}</div>
+                                <div style="font-weight:bold;color:${wfEsc(meta.color)}">${fmt(gd[key])}</div>
                             </div>
                         </div>
                         <div style="font-size:11px;color:var(--text-muted);margin-top:6px"><span data-i18n="purity">${purityText}</span>: ${meta.purity}</div>
@@ -144,11 +144,11 @@ async function renderGoldPrice() {
                                 const egpSell = Number(gd[key]);
                                 const spread = egpBuy - egpSell;
                                 return `<tr>
-                                        <td><strong style="color:${meta.color}">${meta.label_en}</strong></td>
-                                        <td>${meta.label}</td>
+                                        <td><strong style="color:${wfEsc(meta.color)}">${meta.label_en}</strong></td>
+                                        <td>${wfEsc(meta.label)}</td>
                                         <td>${meta.purity}</td>
-                                        ${isSpot ? "" : `<td class="text-center num-col" style="color:${meta.color}">${fmt(egpBuy)}</td>`}
-                                        <td class="text-center num-col" style="color:${meta.color}">${fmt(egpSell)}</td>
+                                        ${isSpot ? "" : `<td class="text-center num-col" style="color:${wfEsc(meta.color)}">${fmt(egpBuy)}</td>`}
+                                        <td class="text-center num-col" style="color:${wfEsc(meta.color)}">${fmt(egpSell)}</td>
                                         ${isSpot ? "" : `<td class="text-center num-col" style="color:var(--text-muted)">${fmt(spread)}</td>`}
                                     </tr>`;
                               })

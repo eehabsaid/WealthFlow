@@ -57,7 +57,7 @@ async function loadLangMenu() {
                    onclick="loadLanguage('${l.code}');
                             document.getElementById('langLabel').textContent='${l.code.toUpperCase()}';
                             return false">
-                ${l.label}
+                ${wfEsc(l.label)}
             </a></li>`
       )
       .join("");

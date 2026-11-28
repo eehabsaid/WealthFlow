@@ -23,7 +23,7 @@ async function renderLanguageSettings() {
       (l, i) => `
         <tr>
             <td><code>${l.code}</code></td>
-            <td>${l.label}</td>
+            <td>${wfEsc(l.label)}</td>
             <td>${l.rtl ? "✓" : "—"}</td>
             <td>${
               l.code === activeLang

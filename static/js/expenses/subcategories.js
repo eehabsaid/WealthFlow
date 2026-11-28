@@ -28,7 +28,7 @@ async function showSubcategoryModal(catId) {
     .map(
       (s) => `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-      <input type="text" class="form-control form-control-sm" value="${s.name}"
+      <input type="text" class="form-control form-control-sm" value="${wfEsc(s.name)}"
              id="sub_${s.id}" style="flex:1">
       <button class="btn-icon edit" onclick="saveSubcategory(${s.id})" title="Save">
         <i class="bi bi-floppy"></i></button>
@@ -40,7 +40,7 @@ async function showSubcategoryModal(catId) {
 
   showModal(`
     <div class="modal-header">
-      <h5 class="modal-title">${cat.icon} ${cat.name} - <span data-i18n="subcategories">Subcategories</span></h5>
+      <h5 class="modal-title">${wfEsc(cat.icon)} ${wfEsc(cat.name)} - <span data-i18n="subcategories">Subcategories</span></h5>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="closeModal()"></button>
     </div>
     <div class="modal-body">

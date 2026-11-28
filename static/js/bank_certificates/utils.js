@@ -18,7 +18,7 @@ async function _getCertStatusOptions(currentStatus) {
       return statuses
         .map(
           (s) =>
-            `<option value="${s.name}" ${s.name === (currentStatus || "") || (!currentStatus && s.is_default) ? "selected" : ""}>${s.name}</option>`
+            `<option value="${wfEsc(s.name)}" ${s.name === (currentStatus || "") || (!currentStatus && s.is_default) ? "selected" : ""}>${wfEsc(s.name)}</option>`
         )
         .join("");
     }

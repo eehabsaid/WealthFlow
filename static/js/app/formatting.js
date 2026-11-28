@@ -47,3 +47,21 @@ function amtClass(n) {
 // ════════════════════════════════════════════════════════════════════════════
 // LOADING HELPERS
 // ════════════════════════════════════════════════════════════════════════════
+
+// Escape user-entered text before it is placed into innerHTML / attribute values.
+function wfEsc(value) {
+  return String(value === null || value === undefined ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// Escape regex metacharacters so user text (bank names such as "A+B (Egypt)") can be used in new RegExp().
+function _escapeRegExp(value) {
+  return String(value === null || value === undefined ? "" : value).replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+}

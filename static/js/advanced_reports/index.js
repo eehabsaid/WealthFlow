@@ -20,7 +20,7 @@ async function renderAdvancedReports(tab) {
       (tb) => `
             <button class="wf-tab ${tab === tb.id ? "active" : ""}"
                 onclick="renderAdvancedReports('${tb.id}');closeMobileSidebar && closeMobileSidebar()">
-                ${tb.icon} <span data-i18n="${tb.key}"></span>
+                ${wfEsc(tb.icon)} <span data-i18n="${tb.key}"></span>
             </button>
         `
     )
@@ -31,7 +31,7 @@ async function renderAdvancedReports(tab) {
   mc.innerHTML = `
         <div class="page-header">
             <div>
-                <div class="page-title">${activeTabObj.icon} <span data-i18n="${activeTabObj.key}"></span></div>
+                <div class="page-title">${wfEsc(activeTabObj.icon)} <span data-i18n="${activeTabObj.key}"></span></div>
         
                 <div style="color:var(--text-muted);font-size:13px" data-i18n="advanced_reports_subtitle"></div>
             </div>
@@ -73,7 +73,7 @@ async function _renderCompanyReport() {
         <tr>
             <td>
                 <span style="display:inline-flex;align-items:center;gap:8px">
-                    ${c.color_hex ? `<span style="width:10px;height:10px;border-radius:50%;background:${c.color_hex};flex-shrink:0;display:inline-block"></span>` : ""}
+                    ${c.color_hex ? `<span style="width:10px;height:10px;border-radius:50%;background:${wfEsc(c.color_hex)};flex-shrink:0;display:inline-block"></span>` : ""}
                     <strong>${esc(c.company_name)}</strong>
                 </span>
             </td>

@@ -21,11 +21,11 @@ function getTranslatedBalanceTitle(b) {
 
   // Strip duplicate trailing (BANK_NAME) or (CURRENCY_CODE) from title if present
   if (b.bank_name) {
-    const dupBank = new RegExp(`\\s*\\(${b.bank_name}\\)\\s*$`, "i");
+    const dupBank = new RegExp(`\\s*\\(${_escapeRegExp(b.bank_name)}\\)\\s*$`, "i");
     title = title.replace(dupBank, "");
   }
   if (b.currency_code) {
-    const dupCurr = new RegExp(`\\s*\\(${b.currency_code}\\)\\s*$`, "i");
+    const dupCurr = new RegExp(`\\s*\\(${_escapeRegExp(b.currency_code)}\\)\\s*$`, "i");
     title = title.replace(dupCurr, "");
   }
 

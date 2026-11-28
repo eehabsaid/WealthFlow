@@ -18,14 +18,14 @@ async function showReminderRuleModal(id) {
   const typeOpts = ruleTypes
     .map(
       (rt) =>
-        `<option value="${rt.value}" ${rule && rule.rule_type === rt.value ? "selected" : ""}>${rt.label}</option>`
+        `<option value="${rt.value}" ${rule && rule.rule_type === rt.value ? "selected" : ""}>${wfEsc(rt.label)}</option>`
     )
     .join("");
 
   const triggerOpts = triggers
     .map(
       (tr) =>
-        `<option value="${tr.value}" ${rule && rule.salary_trigger === tr.value ? "selected" : ""}>${tr.label}</option>`
+        `<option value="${tr.value}" ${rule && rule.salary_trigger === tr.value ? "selected" : ""}>${wfEsc(tr.label)}</option>`
     )
     .join("");
 

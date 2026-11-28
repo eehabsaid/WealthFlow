@@ -5,6 +5,8 @@ page, and the Learned Answers modal is opened exactly as the sidebar card does. 
 covered by the Django tests with a stub model.)
 """
 
+from tests.support.ai_drawer import close_ai_drawer, open_ai_drawer
+
 _FETCH = """async ([url, method, body]) => {
   const res = await fetch(url, {method, headers: {"Content-Type": "application/json",
     "X-CSRFToken": (window.wfGetCsrfToken && window.wfGetCsrfToken()) || ""}, body: body ? JSON.stringify(body) : undefined});
@@ -59,7 +61,9 @@ def _run(context, reporter, screenshot_logger):
     _step(reporter, screenshot_logger, page, "Failed feedback shows an error and keeps the thumb inactive", ok, f"error text: {err!r}", "thumbs_error")
 
     # 4. Learned Answers modal opens from the sidebar card and shows the empty state
+    open_ai_drawer(page)
     page.click("#ai-ws-card-learned-answers")
+    close_ai_drawer(page)
     page.wait_for_selector("#la-modal-body", timeout=5000)
     # The modal shows the empty state iff the list is empty, otherwise exactly one row per rated answer.
     page.wait_for_selector("#la-empty, .la-row", timeout=5000)

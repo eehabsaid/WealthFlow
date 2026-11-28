@@ -20,7 +20,7 @@ async function showCompanyModal(companyId) {
   const bankOpts = banks
     .map(
       (b) =>
-        `<option value="${b.id}" ${c && c.default_bank_id === b.id ? "selected" : ""}>${b.name}</option>`
+        `<option value="${b.id}" ${c && c.default_bank_id === b.id ? "selected" : ""}>${wfEsc(b.name)}</option>`
     )
     .join("");
   const currencyOpts = currencies

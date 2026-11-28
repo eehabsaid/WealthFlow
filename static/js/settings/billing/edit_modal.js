@@ -34,7 +34,7 @@ async function showPlanEditModal(planId) {
         <div class="row g-2 align-items-end mt-2">
             <div class="col-5">
                 <select class="form-select form-select-sm" id="newPriceCurrency">
-                    ${availableCurrencies.map((c) => `<option value="${c.id}">${c.code} — ${c.name}</option>`).join("")}
+                    ${availableCurrencies.map((c) => `<option value="${c.id}">${c.code} — ${wfEsc(c.name)}</option>`).join("")}
                 </select>
             </div>
             <div class="col-4">
@@ -53,7 +53,7 @@ async function showPlanEditModal(planId) {
         </div>
         <div class="modal-body">
             <div class="row g-3">
-                <div class="col-8"><label data-i18n="plan_name">${t("plan_name", "Plan")}</label><input type="text" class="form-control" id="planName" value="${plan.name}"></div>
+                <div class="col-8"><label data-i18n="plan_name">${t("plan_name", "Plan")}</label><input type="text" class="form-control" id="planName" value="${wfEsc(plan.name)}"></div>
                 <div class="col-4"><label data-i18n="billing_interval_days">${t("billing_interval_days", "Interval (days)")}</label><input type="number" class="form-control" id="planIntervalDays" value="${plan.billing_interval_days}"></div>
                 <div class="col-4"><label data-i18n="active">${t("active", "Active")}</label><select class="form-select" id="planActive"><option value="true" ${plan.is_active ? "selected" : ""}>${t("yes", "Yes")}</option><option value="false" ${!plan.is_active ? "selected" : ""}>${t("no", "No")}</option></select></div>
             </div>

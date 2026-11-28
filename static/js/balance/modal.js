@@ -14,7 +14,7 @@ async function showBalanceModal(entryId) {
   const bankOpts = _banks
     .map(
       (b) =>
-        `<option value="${b.id}" ${entry && entry.bank_id === b.id ? "selected" : ""}>${b.name}</option>`
+        `<option value="${b.id}" ${entry && entry.bank_id === b.id ? "selected" : ""}>${wfEsc(b.name)}</option>`
     )
     .join("");
   const curOpts = _currencies
@@ -63,7 +63,7 @@ async function showBalanceModal(entryId) {
     .filter((p) => p.is_active)
     .map(
       (p) =>
-        `<option value="${p.key}" ${entry && String(entry.purity || "").toLowerCase() === String(p.key || "").toLowerCase() ? "selected" : ""}>${p.label || p.key}</option>`
+        `<option value="${p.key}" ${entry && String(entry.purity || "").toLowerCase() === String(p.key || "").toLowerCase() ? "selected" : ""}>${wfEsc(p.label || p.key)}</option>`
     )
     .join("");
 

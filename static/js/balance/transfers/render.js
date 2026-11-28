@@ -56,7 +56,7 @@ function renderBalanceTransfers(data) {
                     <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${tr.currency_flag || "💱"} ${tr.currency_code}</span></td>
                     <td class="text-end amt-positive num-fmt" data-value="${tr.amount}">${fmt(tr.amount)}</td>
                     <td class="text-end amt-negative num-fmt" data-value="${tr.fee}">${fmt(tr.fee)}</td>
-                    <td class="text-truncate" style="max-width: 150px;" title="${tr.notes}">${tr.notes || "-"}</td>
+                    <td class="text-truncate" style="max-width: 150px;" title="${wfEsc(tr.notes)}">${wfEsc(tr.notes || "-")}</td>
                     <td>
                         <button class="btn-icon" onclick="showTransferModal(${tr.id})" title="${editText}"><i class="bi bi-pencil"></i></button>
                         <button class="btn-icon del" onclick="deleteTransfer(${tr.id})" title="${deleteText}"><i class="bi bi-trash"></i></button>

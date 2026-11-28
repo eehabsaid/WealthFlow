@@ -73,6 +73,9 @@ class Budget(models.Model):
         return f"{self.name} ({self.period})"
 
 
+RECURRING_DUE_SOON_DAYS = 7
+
+
 class RecurringTransaction(models.Model):
     """A recurring expense (bill, subscription, rent, ...) that is
     auto-posted as a real Expense row once its next_run_date is due."""
@@ -134,7 +137,23 @@ class RecurringTransaction(models.Model):
             "end_date": self.end_date.isoformat() if self.end_date else "",
             "is_active": self.is_active,
             "notes": self.notes,
+            "due_status": self.due_status(),
         }
+
+    def due_status(self, ref_date=None) -> str:
+        """"inactive", "overdue", "due_soon" or "" - computed here so the UI only displays it."""
+        from datetime import date, timedelta
+
+        if not self.is_active:
+            return "inactive"
+        if not self.next_run_date:
+            return ""
+        today = ref_date or date.today()
+        if self.next_run_date < today:
+            return "overdue"
+        if self.next_run_date <= today + timedelta(days=RECURRING_DUE_SOON_DAYS):
+            return "due_soon"
+        return ""
 
     def __str__(self):
         return f"{self.name} ({self.frequency})"

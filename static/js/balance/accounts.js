@@ -25,9 +25,9 @@ function renderBalanceAccounts(data) {
     .map(
       (e) => `
         <tr>
-            <td data-i18n-key="${e.title || ""}">${_t && _t[e.title] ? _t[e.title] : e.title || ""}</td>
+            <td data-i18n-key="${wfEsc(e.title || "")}">${_t && _t[e.title] ? _t[e.title] : e.title || ""}</td>
             <td data-i18n-prefix="type_" data-i18n-value="${e.balance_type || ""}">${_t && _t["type_" + e.balance_type] ? _t["type_" + e.balance_type] : e.balance_type || ""}</td>
-            <td data-i18n-prefix="bank_" data-i18n-value="${e.bank_name || ""}">${e.bank_name || "_"}</td>
+            <td data-i18n-prefix="bank_" data-i18n-value="${wfEsc(e.bank_name || "")}">${wfEsc(e.bank_name || "_")}</td>
             <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${e.currency_flag} ${e.currency_code}</span></td>
             <td>${e.balance_type === "gold" ? e.purity || "-" : "-"}</td>
             <td class="text-end amt-positive num-fmt" data-value="${e.amount}">${fmt(e.amount)}</td>

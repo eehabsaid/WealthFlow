@@ -101,7 +101,7 @@ window.RA.buildRiskAnalysisFragments = function ({
       </div>
       <div class="ms-3">
         <div style="width:40px;height:40px;border-radius:50%;background:var(--bg-primary);display:flex;align-items:center;justify-content:center; border: 1px solid var(--border-color);">
-          <i class="bi ${item.icon}" style="color:var(--text-primary); font-size:1.2rem;"></i>
+          <i class="bi ${wfEsc(item.icon)}" style="color:var(--text-primary); font-size:1.2rem;"></i>
         </div>
       </div>
     </div>
@@ -115,7 +115,7 @@ window.RA.buildRiskAnalysisFragments = function ({
     <div class="col-12 col-md-6 col-xl-3 mb-3">
       <div class="p-3 rounded h-100 d-flex flex-column" style="background:var(--bg-secondary); border:1px solid var(--border-color);">
         <div class="d-flex align-items-center mb-2">
-          <i class="bi ${item.icon} me-2 fs-5" style="color:var(--text-primary);"></i>
+          <i class="bi ${wfEsc(item.icon)} me-2 fs-5" style="color:var(--text-primary);"></i>
           <span style="font-weight:bold; color:var(--text-primary);" data-i18n="${item.action_key}"></span>
         </div>
         <div class="mb-3" style="font-size:0.85em; color:var(--text-primary); flex-grow:1;" data-i18n="${item.title_key}"></div>

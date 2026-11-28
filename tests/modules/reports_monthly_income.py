@@ -11,6 +11,8 @@ PAGE = "Expenses Report"
 def _income_value(page):
     page.wait_for_timeout(1200)
     text = page.inner_text("#reportKPIs .kpi-value")
+    # Arabic locale renders Arabic-Indic digits with ٬ (thousands) and ٫ (decimal) separators.
+    text = text.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩٬٫", "0123456789,."))
     return float(text.replace(",", "").strip())
 
 

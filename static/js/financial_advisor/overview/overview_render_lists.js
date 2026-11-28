@@ -19,7 +19,7 @@ function buildOverviewAlertsHtml(payload) {
             return `
           <div class="overview-alert-item animate__animated animate__fadeIn" style="cursor:pointer;" onclick="switchFinancialAdvisorTab('${alert.target_tab}')">
             <div class="overview-alert-icon-wrap ${alert.class}">
-              <i class="bi ${alert.icon}"></i>
+              <i class="bi ${wfEsc(alert.icon)}"></i>
             </div>
             <div class="overview-alert-details">
               <div class="d-flex align-items-center justify-content-between mb-1">

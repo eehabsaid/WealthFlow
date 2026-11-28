@@ -48,7 +48,7 @@ async function renderEmploymentPage(companyId = null) {
     .map((c) => {
       const isActive = c.id === activeId;
       const colorDot = c.color_hex
-        ? `<span class="nav-dot" style="background:${c.color_hex};display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>`
+        ? `<span class="nav-dot" style="background:${wfEsc(c.color_hex)};display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>`
         : "";
       return `
             <button class="wf-tab employer-tab ${isActive ? "active" : ""}"
@@ -59,7 +59,7 @@ async function renderEmploymentPage(companyId = null) {
                     type="button"
                     role="tab"
                     aria-selected="${isActive}">
-                ${colorDot}${c.display_name || c.name}
+                ${colorDot}${wfEsc(c.display_name || c.name)}
             </button>`;
     })
     .join("");

@@ -62,13 +62,13 @@ def _run(context, reporter, screenshot_logger):
 
     # 4. Action card and chart are drawn by the real page code
     html = page.evaluate("(c) => { AIBlocks.remember({id: 1, blocks: [c]}); return window._aiMessageExtras.map(f => f({role: 'assistant', messageId: 1})).join(''); }", _SAMPLE_CARD)
-    card_ok = "ai-act-card" in html and "Confirm" in html and "dinner" in html
+    card_ok = "ai-act-card" in html and "AIBlocks.decide(" in html and "dinner" in html
     gone = page.evaluate(_FETCH, [_API + "blocks/987654/cancel/", "POST", None])
     _step(reporter, screenshot_logger, page, "Action card shows before/after with Confirm; unknown cards are refused (404)", card_ok and gone["status"] == 404, f"status={gone['status']}", "tools_action_card")
     form = page.evaluate("""(c) => { AIBlocks.remember({id: 3, blocks: [c]}); return window._aiMessageExtras.map(f => f({role: 'assistant', messageId: 3})).join(''); }""", _EDIT_CARD)
     _step(reporter, screenshot_logger, page, "An expense card is a form: Category and Subcategory lists and an Amount box can be edited before Confirm", all(k in form for k in ('data-ai-field="category"', 'data-ai-field="subcategory"', 'data-ai-field="amount"')), f"len={len(form)}", "tools_card_form")
     code = page.evaluate("(c) => { AIBlocks.remember({id: 2, blocks: [c]}); return window._aiMessageExtras.map(f => f({role: 'assistant', messageId: 2})).join(''); }", _CODE_CARD)
-    _step(reporter, screenshot_logger, page, "A code-change card is drawn in monospace with Confirm", "ai-act-code" in code and "Confirm" in code, f"len={len(code)}", "tools_code_card")
+    _step(reporter, screenshot_logger, page, "A code-change card is drawn in monospace with Confirm", "ai-act-code" in code and "AIBlocks.decide(" in code, f"len={len(code)}", "tools_code_card")
     svg = page.evaluate("(c) => AIChart.draw(c)", _SAMPLE_CHART)
     _step(reporter, screenshot_logger, page, "Chart is drawn as an SVG with its title and unit", "<svg" in svg and "Expenses by month" in svg and "EGP" in svg, f"len={len(svg)}", "tools_chart")
 

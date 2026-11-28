@@ -61,12 +61,12 @@ function showProfileModal() {
                 <div class="col-12">
                     <label class="form-label">${t("profile_username", "Username")}</label>
                     <input type="text" class="form-control"
-                           value="${u.username || ""}" disabled style="opacity:.6">
+                           value="${wfEsc(u.username)}" disabled style="opacity:.6">
                 </div>
                 <div class="col-12">
                     <label class="form-label">${t("profile_email", "Email")}</label>
                     <input type="text" class="form-control"
-                           value="${u.email || ""}" disabled style="opacity:.6">
+                           value="${wfEsc(u.email)}" disabled style="opacity:.6">
                 </div>
                 <div class="col-12">
                     <label class="form-label">${t("profile_birthday_optional", "Birthday (Optional)")}</label>

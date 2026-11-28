@@ -5,12 +5,26 @@
 
 // Payment-method pill meta (visual only — value display is unchanged).
 const EXP_METHOD_META = {
-  Cash: { cls: "cash", icon: "bi-cash-coin" },
-  Card: { cls: "card", icon: "bi-credit-card" },
-  Bank: { cls: "bank", icon: "bi-bank" },
-  "Bank Transfer": { cls: "bank-transfer", icon: "bi-arrow-left-right" },
-  Other: { cls: "other", icon: "bi-receipt" },
+  Cash: { cls: "cash", icon: "bi-cash-coin", key: "payment_cash" },
+  Card: { cls: "card", icon: "bi-credit-card", key: "payment_card" },
+  Bank: { cls: "bank", icon: "bi-bank", key: "payment_bank" },
+  "Bank Transfer": {
+    cls: "bank-transfer",
+    icon: "bi-arrow-left-right",
+    key: "payment_bank_transfer",
+  },
+  Other: { cls: "other", icon: "bi-receipt", key: "payment_other" },
 };
+
+// Escape user-entered text before it goes into innerHTML (names, descriptions, colors).
+function _expEsc(value) {
+  return String(value === null || value === undefined ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 function renderExpenseTableHTML(entries) {
   if (!entries.length) {
@@ -25,25 +39,29 @@ function renderExpenseTableHTML(entries) {
   }
   const rows = entries
     .map((e) => {
-      const m = EXP_METHOD_META[e.payment_method] || { cls: "other", icon: "bi-receipt" };
+      const m = EXP_METHOD_META[e.payment_method] || {
+        cls: "other",
+        icon: "bi-receipt",
+        key: "payment_other",
+      };
       return `
     <tr>
       <td class="exp-date" data-label="${t("date", "Date")}">${formatDate(e.date)}</td>
-      <td data-label="${t("category", "Category")}"><span class="exp-cat-pill" style="background:${e.category_color}22;color:${e.category_color}">
-        ${e.category_icon} ${e.category_name || "—"}
+      <td data-label="${t("category", "Category")}"><span class="exp-cat-pill" style="background:${_expEsc(e.category_color)}22;color:${_expEsc(e.category_color)}">
+        ${_expEsc(e.category_icon)} ${_expEsc(e.category_name) || "—"}
       </span></td>
-      <td class="exp-subcat" data-label="${t("subcategory", "Subcategory")}">${e.subcategory_name || "—"}</td>
-      <td class="exp-desc-cell" data-label="${t("description", "Description")}">${e.description || "—"}${e.is_readonly ? ` <i class="bi bi-link-45deg" style="color:var(--text-muted)" title="${t("linked_asset_record", "Linked to a fixed asset record")}"></i>` : ""}</td>
-      <td data-label="${t("method", "Method")}"><span class="exp-method exp-method-${m.cls}"><i class="bi ${m.icon}"></i>${e.payment_method || "—"}</span></td>
-      <td class="text-end num-col amt-negative" data-label="${t("amount", "Amount")}"><span class="exp-amount">${fmt(e.amount)}</span> <span class="exp-cur">${e.currency_code}</span></td>
+      <td class="exp-subcat" data-label="${t("subcategory", "Subcategory")}">${_expEsc(e.subcategory_name) || "—"}</td>
+      <td class="exp-desc-cell" data-label="${t("description", "Description")}">${_expEsc(e.description) || "—"}${e.is_readonly ? ` <i class="bi bi-link-45deg" style="color:var(--text-muted)" title="${t("linked_asset_record", "Linked to a fixed asset record")}"></i>` : ""}</td>
+      <td data-label="${t("method", "Method")}"><span class="exp-method exp-method-${m.cls}"><i class="bi ${m.icon}"></i>${e.payment_method ? _expEsc(t(m.key, e.payment_method)) : "—"}</span></td>
+      <td class="text-end num-col amt-negative" data-label="${t("amount", "Amount")}"><span class="exp-amount">${fmt(e.amount)}</span> <span class="exp-cur">${_expEsc(e.currency_code)}</span></td>
       <td class="exp-actions" style="white-space:nowrap" data-label="${t("actions", "Actions")}">
         ${
           e.is_readonly
             ? `<button class="btn-icon" onclick="showExpenseModal(${e.id})" title="${t("view_linked_expense", "View (linked to asset)")}">
               <i class="bi bi-lock"></i></button>`
-            : `<button class="btn-icon edit" onclick="showExpenseModal(${e.id})" title="Edit">
+            : `<button class="btn-icon edit" onclick="showExpenseModal(${e.id})" title="${t("btn_edit", "Edit")}">
               <i class="bi bi-pencil"></i></button>
-            <button class="btn-icon del" onclick="deleteExpense(${e.id})" title="Delete">
+            <button class="btn-icon del" onclick="deleteExpense(${e.id})" title="${t("btn_delete", "Delete")}">
               <i class="bi bi-trash"></i></button>`
         }
       </td>

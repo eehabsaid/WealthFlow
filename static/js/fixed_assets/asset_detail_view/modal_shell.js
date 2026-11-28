@@ -28,7 +28,7 @@ function buildRealEstateModalHtml(ctx) {
                     <div class="flex-fill">
                         <div class="d-flex flex-column flex-sm-row justify-content-between gap-3 align-items-start align-items-sm-center">
                             <div>
-                                <h3 class="asset-title mb-1 fixed-assets-heading">${asset.name || "-"}</h3>
+                                <h3 class="asset-title mb-1 fixed-assets-heading">${wfEsc(asset.name || "-")}</h3>
                                 <span class="badge rounded-pill asset-type-badge" data-i18n="${fixedAssetTypeToI18nKey(asset.asset_type)}">${asset.asset_type || "-"}</span>
                             </div>
                             <div class="text-sm-end">

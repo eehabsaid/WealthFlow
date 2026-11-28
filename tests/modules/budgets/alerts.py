@@ -59,6 +59,20 @@ def test_alerts(context, reporter, screenshot_logger):
         context.goto_route("#budgets")
         shot = screenshot_logger.capture(page, "budgets", "alerts", "none", "view", "ok")
 
+        kpis = payload.get("kpis") or {}
+        cards = page.evaluate(
+            "() => Array.from(document.querySelectorAll('.budgets-kpi .kpi-value')).map(e => e.textContent.trim())"
+        )
+        kpi_ok = (
+            all(isinstance(kpis.get(k), int) for k in ("active", "over", "due_soon", "overdue"))
+            and cards == [str(kpis["active"]), str(kpis["over"]), str(kpis["due_soon"]), str(kpis["overdue"])]
+            and (not raised or kpis["over"] >= 1)
+        )
+        reporter.add_step(
+            "Budgets KPI cards show the server-computed counts", "Budgets", "PASS" if kpi_ok else "FAIL",
+            f"API kpis={kpis}, rendered cards={cards}.", screenshot_path=shot,
+        )
+
         if not endpoint_ok:
             reporter.add_step("Budget alerts endpoint", "Budgets", "FAIL", "GET /api/budgets/alerts/ failed.", screenshot_path=shot)
         elif raised:

@@ -24,7 +24,8 @@ async function _refreshCertStatusOptions() {
   const current = select.value;
   select.innerHTML = (data.statuses || [])
     .map(
-      (s) => `<option value="${s.name}" ${s.name === current ? "selected" : ""}>${s.name}</option>`
+      (s) =>
+        `<option value="${wfEsc(s.name)}" ${s.name === current ? "selected" : ""}>${wfEsc(s.name)}</option>`
     )
     .join("");
 }

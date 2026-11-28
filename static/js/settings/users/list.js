@@ -109,8 +109,8 @@ async function loadUsers({ page = 1, pageSize = 10, q = "" } = {}) {
       (u) => `
         <tr>
             <td><input type="checkbox" class="user-select" data-id="${u.id}"></td>
-            <td>${u.username}</td>
-            <td>${u.email || "—"}</td>
+            <td>${wfEsc(u.username)}</td>
+            <td>${wfEsc(u.email || "—")}</td>
             <td data-i18n="${u.email_verified ? "yes" : "no"}">${u.email_verified ? t("yes", "Yes") : t("no", "No")}</td>
             <td data-i18n="${statusKeyForUser(u)}">${t(statusKeyForUser(u), u.account_status || "active")}</td>
             <td data-i18n="${u.is_active ? "active" : "inactive"}">${u.is_active ? t("active", "Active") : t("inactive", "Inactive")}</td>

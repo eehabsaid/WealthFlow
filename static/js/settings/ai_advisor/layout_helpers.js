@@ -71,7 +71,7 @@ window.AIA.ui.card = function (o) {
   return `
     <section class="aia-card" id="aiaGroup-${o.id}" data-aia-group="${o.id}" role="tabpanel">
       <header class="aia-card-head">
-        <span class="aia-card-icon"><i class="bi ${o.icon}"></i></span>
+        <span class="aia-card-icon"><i class="bi ${wfEsc(o.icon)}"></i></span>
         <div class="aia-card-title">
           <h2 data-i18n="${o.titleKey}">${t(o.titleKey, o.title)}</h2>
           <p data-i18n="${o.descKey}">${t(o.descKey, o.desc)}</p>

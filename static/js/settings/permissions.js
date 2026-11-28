@@ -29,7 +29,7 @@ async function showPermissionsModal(userId) {
 
   const assignableRoleOpts = allRoles
     .filter((r) => !assignedRoleIds.has(r.id))
-    .map((r) => `<option value="${r.id}">${r.name}</option>`)
+    .map((r) => `<option value="${r.id}">${wfEsc(r.name)}</option>`)
     .join("");
 
   const overrideRows = (d.permissions || [])

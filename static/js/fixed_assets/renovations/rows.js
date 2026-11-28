@@ -99,7 +99,7 @@ function addRenovationRow(data = {}, expand = false) {
         ${renderMoneyMovementFields("renovation", paymentMethodVal, bankIdVal)}
         <div class="field span-4">
           <label class="form-label small" data-i18n="notes">Notes</label>
-          <textarea class="form-control renovation-notes" rows="2">${data.notes || ""}</textarea>
+          <textarea class="form-control renovation-notes" rows="2">${wfEsc(data.notes || "")}</textarea>
         </div>
       </div>
     </div>

@@ -47,7 +47,7 @@ async function renderBankCertificates() {
 
       return `
                 <tr>
-                    <td ${tdStyle}>${c.bank_name || "—"}</td>
+                    <td ${tdStyle}>${wfEsc(c.bank_name || "—")}</td>
                     <td ${tdStyle}><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${c.currency_flag} ${c.currency_code || "—"}</span></td>
                     <td ${tdStyle}>${formatDate(c.issue_date) || "—"}</td>
                     <td ${tdStyle}>${formatDate(c.expiry_date) || "—"}</td>

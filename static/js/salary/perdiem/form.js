@@ -37,7 +37,7 @@ async function showPerDiemFormModal(perDiemId, companyId, year) {
       .map(
         (b) => `
             <option value="${b.id}" ${pd && pd.bank_id === b.id ? "selected" : ""}>
-                ${b.name}
+                ${wfEsc(b.name)}
             </option>
         `
       )

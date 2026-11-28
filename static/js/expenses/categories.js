@@ -3,12 +3,12 @@
 function categoryRowHTML(c) {
   return `
     <tr>
-      <td style="font-size:20px;text-align:center;width:50px">${c.icon}</td>
+      <td style="font-size:20px;text-align:center;width:50px">${_expEsc(c.icon)}</td>
       <td>
-        <span style="font-weight:700">${c.name}</span>
+        <span style="font-weight:700">${_expEsc(c.name)}</span>
         <div style="font-size:11px;color:var(--text-muted)">${(c.subcategories || []).map((s) => s.name).join(" · ")}</div>
       </td>
-      <td><input type="color" value="${c.color_hex}" title="Change colour"
+      <td><input type="color" value="${_expEsc(c.color_hex)}" title="Change colour"
                  onchange="patchCategoryColor(${c.id},this.value)" style="width:32px;height:32px;border:none;background:none;cursor:pointer"></td>
       <td class="text-center">${(c.subcategories || []).length}</td>
       <td style="white-space:nowrap">

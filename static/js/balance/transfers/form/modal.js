@@ -25,7 +25,9 @@ function showTransferModal(id = null) {
   const cancelText = t("btn_cancel", "Cancel");
   const saveText = t("btn_save", "Save");
 
-  const bankOptions = _banks.map((b) => `<option value="${b.id}">${b.name}</option>`).join("");
+  const bankOptions = _banks
+    .map((b) => `<option value="${b.id}">${wfEsc(b.name)}</option>`)
+    .join("");
 
   // Format currency options like modal.js
   const curOptions = (_currencies || [])

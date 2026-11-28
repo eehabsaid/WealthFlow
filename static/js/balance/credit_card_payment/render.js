@@ -33,11 +33,11 @@ function renderBalanceCreditCardPayment(data) {
         (cp) => `
             <tr>
                 <td>${formatDate(cp.payment_date)}</td>
-                <td>${cp.bank_name || "-"}</td>
+                <td>${wfEsc(cp.bank_name || "-")}</td>
                 <td><span style="background:rgba(220,53,69,.15);color:#dc3545;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${cp.payment_method}</span></td>
                 <td>${cp.card_label || "-"}</td>
                 <td class="text-end amt-negative num-fmt" data-value="${cp.amount_base}">${fmt(cp.amount_base)}</td>
-                <td class="text-truncate" style="max-width: 150px;" title="${cp.notes}">${cp.notes || "-"}</td>
+                <td class="text-truncate" style="max-width: 150px;" title="${wfEsc(cp.notes)}">${wfEsc(cp.notes || "-")}</td>
                 <td>
                     <button class="btn-icon" onclick="showCreditCardPaymentModal(${cp.id})" title="${editText}"><i class="bi bi-pencil"></i></button>
                     <button class="btn-icon del" onclick="deleteCreditCardPayment(${cp.id})" title="${deleteText}"><i class="bi bi-trash"></i></button>

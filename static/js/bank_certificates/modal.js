@@ -9,7 +9,7 @@ async function showBankCertificateModal(certificateId) {
   const bankOpts = _banks
     .map(
       (b) =>
-        `<option value="${b.id}" ${certificate && certificate.bank_id === b.id ? "selected" : ""}>${b.name}</option>`
+        `<option value="${b.id}" ${certificate && certificate.bank_id === b.id ? "selected" : ""}>${wfEsc(b.name)}</option>`
     )
     .join("");
   const curOpts = _currencies

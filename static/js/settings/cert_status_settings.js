@@ -27,12 +27,12 @@ async function renderCertStatusSettings() {
                 <tr>
                     <td>
                         <span style="display:inline-flex;align-items:center;gap:8px">
-                            <span style="width:14px;height:14px;border-radius:50%;background:${s.color_hex};flex-shrink:0;display:inline-block"></span>
+                            <span style="width:14px;height:14px;border-radius:50%;background:${wfEsc(s.color_hex)};flex-shrink:0;display:inline-block"></span>
                             <strong>${esc(s.name)}</strong>
                             ${s.is_default ? `<span style="background:var(--accent-primary);color:#fff;font-size:10px;padding:1px 6px;border-radius:8px" data-i18n="default">${defaultText}</span>` : ""}
                         </span>
                     </td>
-                    <td style="font-size:13px;color:var(--text-muted)">${s.color_hex}</td>
+                    <td style="font-size:13px;color:var(--text-muted)">${wfEsc(s.color_hex)}</td>
                     <td>
                         ${
                           s.is_terminal

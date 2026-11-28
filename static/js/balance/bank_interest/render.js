@@ -32,10 +32,10 @@ function renderBalanceBankInterest(data) {
         (bi) => `
             <tr>
                 <td>${formatDate(bi.interest_date)}</td>
-                <td>${bi.bank_name || "-"}</td>
+                <td>${wfEsc(bi.bank_name || "-")}</td>
                 <td><span style="background:rgba(26,110,245,.15);color:var(--accent-primary);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${bi.currency_flag || "💱"} ${bi.currency_code}</span></td>
                 <td class="text-end amt-positive num-fmt" data-value="${bi.amount}">${fmt(bi.amount)}</td>
-                <td class="text-truncate" style="max-width: 150px;" title="${bi.notes}">${bi.notes || "-"}</td>
+                <td class="text-truncate" style="max-width: 150px;" title="${wfEsc(bi.notes)}">${wfEsc(bi.notes || "-")}</td>
                 <td>
                     <button class="btn-icon" onclick="showBankInterestModal(${bi.id})" title="${editText}"><i class="bi bi-pencil"></i></button>
                     <button class="btn-icon del" onclick="deleteBankInterest(${bi.id})" title="${deleteText}"><i class="bi bi-trash"></i></button>

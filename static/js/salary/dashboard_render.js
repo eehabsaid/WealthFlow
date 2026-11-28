@@ -19,8 +19,8 @@ async function renderDashboard() {
             <td>
                 <span style="background:${readableChartColor(c.color_hex)};display:inline-block;
                              width:8px;height:8px;border-radius:50%;margin-right:6px"></span>
-                ${c.display_name}
-                ${c.group_name ? `<span class="group-badge">${c.group_name}</span>` : ""}
+                ${wfEsc(c.display_name)}
+                ${c.group_name ? `<span class="group-badge">${wfEsc(c.group_name)}</span>` : ""}
             </td>
             <td>${c.years.length > 0 ? `${c.years[0]} – ${c.years[c.years.length - 1]}` : "—"}</td>
             <td>${c.total_months}</td>
