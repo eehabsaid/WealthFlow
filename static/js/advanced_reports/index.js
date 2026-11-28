@@ -13,6 +13,7 @@ async function renderAdvancedReports(tab) {
     { id: "company", key: "report_company", icon: "🏢" },
     { id: "balance", key: "report_balance", icon: "🏛️" },
     { id: "certificates", key: "report_certificates", icon: "🏦" },
+    { id: "income", key: "income_tab", icon: "📈" },
   ];
 
   const tabBar = tabs
@@ -58,6 +59,7 @@ async function renderAdvancedReports(tab) {
   else if (tab === "company") await _renderCompanyReport();
   else if (tab === "balance") await _renderBalanceReport();
   else if (tab === "certificates") await _renderCertReport();
+  else if (tab === "income") await renderIncomeReport();
 }
 
 // ── Salary & Bonus Report ──────────────────────────────────────

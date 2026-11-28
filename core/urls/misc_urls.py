@@ -21,6 +21,8 @@ urlpatterns = [
     path("api/reports/salary/", views.SalaryReportView.as_view()),
     path("api/reports/balance/", views.BalanceReportView.as_view()),
     path("api/reports/certificates/", views.CertificateReportView.as_view()),
+    path("api/reports/income/", views.IncomeReportView.as_view()),
+    path("api/reports/income/export/", views.IncomeExportView.as_view()),
     # ── Dashboard Summary ────────────────────────────────────────────────────
     path("api/dashboard/summary/", views.DashboardSummaryView.as_view()),
     path("api/goals/", views.GoalListView.as_view()),

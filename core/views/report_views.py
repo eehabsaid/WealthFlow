@@ -53,3 +53,13 @@ class FixedAssetPdfReportView(View):
 class FixedAssetExcelReportView(View):
     def get(self, request):
         return FixedAssetExcelReportGenerator().get(request)
+
+class IncomeReportView(View):
+    def get(self, request):
+        from core.reports.income_report_view import IncomeReportView as IncomeReportGeneratorView
+        return IncomeReportGeneratorView().get(request)
+
+class IncomeExportView(View):
+    def get(self, request):
+        from core.reports.income_report_view import IncomeExportView as IncomeExportGeneratorView
+        return IncomeExportGeneratorView().get(request)

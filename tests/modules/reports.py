@@ -7,6 +7,7 @@ Tests:
 """
 
 from tests.core.download_verifier import verify_downloaded_file
+from tests.modules.reports_income import test_reports_income
 from tests.modules.reports_monthly_income import test_reports_monthly_income
 
 def test_reports_module(context, reporter, screenshot_logger):
@@ -52,3 +53,6 @@ def test_reports_module(context, reporter, screenshot_logger):
 
     # Per-month editable Total Income card
     test_reports_monthly_income(context, reporter)
+
+    # Income Analytics tab
+    test_reports_income(context, reporter, screenshot_logger)

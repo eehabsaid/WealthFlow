@@ -28,20 +28,25 @@ async function showSalaryModal(entryId, companyId) {
                     <label data-i18n="salary_month">Month</label>
                     <select class="form-select" id="mMonth">${opts}</select>
                 </div>
-                <div class="col-4">
+                <div class="col-6">
                     <label data-i18n="salary_expected">Expected</label>
                     <input type="number" step="0.01" class="form-control" id="mExpected"
                         value="${entry ? entry.expected : ""}">
                 </div>
-                <div class="col-4">
+                <div class="col-6">
                     <label data-i18n="salary_paid">Paid</label>
                     <input type="number" step="0.01" class="form-control" id="mPaid"
                         value="${entry ? entry.paid : ""}">
                 </div>
-                <div class="col-4">
+                <div class="col-6">
                     <label data-i18n="salary_bonus">Bonus</label>
                     <input type="number" step="0.01" class="form-control" id="mBonus"
                         value="${entry ? entry.bonus : "0"}">
+                </div>
+                <div class="col-6">
+                    <label data-i18n="salary_gross">Gross</label>
+                    <input type="number" step="0.01" class="form-control" id="mGross"
+                        value="${entry && entry.gross != null ? entry.gross : ""}">
                 </div>
                 <div class="col-12">
                     <label data-i18n="notes">Notes</label>

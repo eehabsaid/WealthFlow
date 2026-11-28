@@ -1317,5 +1317,17 @@
     "steps": [
       "Set the default monthly AI token limit and optional per-user overrides in the 'Monthly AI token limit per user' frame, above the platform and model-history section: a blank override uses the default and 0 means unlimited. Search users by name or email, filter by AI settings mode, use Toggle Select All (or tick users) and Apply to selected to set one limit for many users at once. Limits apply only to users on the general app settings; users on their own AI settings are never limited. Long tables show 5 rows with a Show all / Show less toggle."
     ]
+  },
+  "advanced-reports::income": {
+    "purpose": "Analyze every income source from your real records — salary, bonus, per diem, certificate interest, bank interest, rental income, manual income and asset sale proceeds — and compare periods.",
+    "steps": [
+      "Navigate to Expenses Reports -> Advanced Reports.",
+      "Select the Income tab.",
+      "Choose a compare mode: Off (one year), Year vs Year, or Month vs Month.",
+      "Filter by months and income sources with the chips, and switch the salary basis between Net and Gross.",
+      "Review the KPI cards, the per-source cards, and the charts.",
+      "Open the Detailed breakdown table, expand a source group, and click a row to see its underlying records in the drawer.",
+      "Download the Excel or PDF export (current filters, current language)."
+    ]
   }
 }

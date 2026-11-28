@@ -45,6 +45,7 @@ class SalaryListView(View):
             expected=data.get("expected", 0),
             paid=data.get("paid", 0),
             bonus=data.get("bonus", 0),
+            gross=data.get("gross") if data.get("gross") not in (None, "") else None,
             notes=data.get("notes", ""),
         )
         return JsonResponse(entry.to_dict(), status=201)

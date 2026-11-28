@@ -95,7 +95,8 @@
     { "name": "Salary", "id": "salary" }, 
     { "name": "Company", "id": "company" }, 
     { "name": "Balance", "id": "balance" }, 
-    { "name": "Certificates", "id": "certificates" }
+    { "name": "Certificates", "id": "certificates" },
+    { "name": "Income", "id": "income" }
   ]},
 
   { "route": "settings", "title": "Settings", "is_admin": true, "tabs": [

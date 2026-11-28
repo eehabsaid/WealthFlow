@@ -8,6 +8,7 @@ async function saveSalaryEntry(entryId, companyId) {
     expected: parseFloat(document.getElementById("mExpected").value) || 0,
     paid: parseFloat(document.getElementById("mPaid").value) || 0,
     bonus: parseFloat(document.getElementById("mBonus").value) || 0,
+    gross: document.getElementById("mGross").value === "" ? null : parseFloat(document.getElementById("mGross").value),
     notes: document.getElementById("mNotes").value,
   };
 

@@ -102,6 +102,10 @@ class SalaryService:
                 else:
                     entry.__setattr__(field, data[field])
 
+        if "gross" in data:
+            g = data["gross"]
+            entry.gross = Decimal(str(g)) if g not in (None, "") else None
+
         new_paid = entry.paid
         diff = new_paid - old_paid
 

@@ -28,6 +28,8 @@ from .report_views import (
     CertificateReportView,
     FixedAssetPdfReportView,
     FixedAssetExcelReportView,
+    IncomeReportView,
+    IncomeExportView,
 )
 from core.reports.report_generators import (
     format_arabic,
@@ -60,6 +62,8 @@ __all__ = [
     "CertificateReportView",
     "FixedAssetPdfReportView",
     "FixedAssetExcelReportView",
+    "IncomeReportView",
+    "IncomeExportView",
     "format_arabic",
     "get_text",
     "_fixed_asset_report_queryset",

@@ -12,6 +12,7 @@ class SalaryEntry(models.Model):
     expected = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     paid = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     bonus = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    gross = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -35,6 +36,7 @@ class SalaryEntry(models.Model):
             "expected": float(self.expected),
             "paid": float(self.paid),
             "bonus": float(self.bonus),
+            "gross": float(self.gross) if self.gross is not None else None,
             "remaining": self.remaining,
             "notes": self.notes,
         }
